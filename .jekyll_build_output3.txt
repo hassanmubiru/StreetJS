@@ -79,3 +79,37 @@ Configuration file: /srv/jekyll/_config.yml
  Incremental build: disabled. Enable with --incremental
       Generating... 
        Jekyll Feed: Generating feed for posts
+[33m     Build Warning: Layout 'default' requested in cli/commands.md does not exist.[0m
+[33m     Build Warning: Layout 'default' requested in getting-started/configuration.md does not exist.[0m
+[33m     Build Warning: Layout 'default' requested in core/controllers.md does not exist.[0m
+[33m     Build Warning: Layout 'default' requested in core/dependency-injection.md does not exist.[0m
+[33m     Build Warning: Layout 'default' requested in deployment/docker.md does not exist.[0m
+[33m     Build Warning: Layout 'default' requested in getting-started/first-server.md does not exist.[0m
+[33m     Build Warning: Layout 'default' requested in deployment/hosting-guide.md does not exist.[0m
+[33m     Build Warning: Layout 'default' requested in deployment/index.md does not exist.[0m
+[33m     Build Warning: Layout 'default' requested in core/index.md does not exist.[0m
+[33m     Build Warning: Layout 'default' requested in getting-started/index.md does not exist.[0m
+[33m     Build Warning: Layout 'default' requested in database/index.md does not exist.[0m
+[33m     Build Warning: Layout 'home' requested in index.md does not exist.[0m
+[33m     Build Warning: Layout 'default' requested in storage/index.md does not exist.[0m
+[33m     Build Warning: Layout 'default' requested in realtime/index.md does not exist.[0m
+[33m     Build Warning: Layout 'default' requested in testing/index.md does not exist.[0m
+[33m     Build Warning: Layout 'default' requested in performance/index.md does not exist.[0m
+[33m     Build Warning: Layout 'default' requested in security/index.md does not exist.[0m
+[33m     Build Warning: Layout 'default' requested in cli/index.md does not exist.[0m
+[33m     Build Warning: Layout 'default' requested in examples/index.md does not exist.[0m
+[33m     Build Warning: Layout 'default' requested in getting-started/installation.md does not exist.[0m
+[33m     Build Warning: Layout 'default' requested in testing/integration-tests.md does not exist.[0m
+[33m     Build Warning: Layout 'default' requested in security/jwt.md does not exist.[0m
+[33m     Build Warning: Layout 'default' requested in core/middleware.md does not exist.[0m
+[33m     Build Warning: Layout 'default' requested in storage/multipart-uploads.md does not exist.[0m
+[33m     Build Warning: Layout 'default' requested in database/postgres-wire-driver.md does not exist.[0m
+[33m     Build Warning: Layout 'default' requested in getting-started/project-structure.md does not exist.[0m
+[33m     Build Warning: Layout 'default' requested in database/repositories.md does not exist.[0m
+[33m     Build Warning: Layout 'default' requested in core/routing.md does not exist.[0m
+[33m     Build Warning: Layout 'default' requested in examples/streaming-query.md does not exist.[0m
+[33m     Build Warning: Layout 'default' requested in performance/telemetry.md does not exist.[0m
+[33m     Build Warning: Layout 'default' requested in examples/user-api.md does not exist.[0m
+[33m     Build Warning: Layout 'default' requested in realtime/websocket.md does not exist.[0m
+                    done in 3.207 seconds.
+ Auto-regeneration: disabled. Use --watch to enable.
