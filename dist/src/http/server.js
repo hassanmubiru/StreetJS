@@ -173,7 +173,8 @@ export function streetApp(options = {}) {
     };
 }
 function normalizePath(p) {
-    return ('/' + p.replace(/\/+/g, '/')).replace(/\/$/, '') || '/';
+    const s = '/' + (p ?? '');
+    return s.replace(/\/+/g, '/').replace(/\/$/, '') || '/';
 }
 async function runPipeline(ctx, pipeline, index) {
     if (index >= pipeline.length)

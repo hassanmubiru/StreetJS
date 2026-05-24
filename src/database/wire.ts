@@ -266,7 +266,11 @@ export class PgConnection {
           if (stream) {
             stream.finalize();
           } else if (resolve) {
-            resolve({ rows, command: cmd, rowCount: rows.length });
+            // Parse row count from CommandComplete message when available
+            // CommandComplete examples: "SELECT 3", "INSERT 0 1", "DELETE 2"
+            const rcMatch = cmd.match(/(\d+)\s*$/);
+            const rowCount = rcMatch ? parseInt(rcMatch[1]!, 10) : rows.length;
+            resolve({ rows, command: cmd, rowCount });
           }
         }
         break;

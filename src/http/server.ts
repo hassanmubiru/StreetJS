@@ -224,7 +224,8 @@ export function streetApp(options: StreetAppOptions = {}): StreetApp {
 }
 
 function normalizePath(p: string): string {
-  return ('/' + p.replace(/\/+/g, '/')).replace(/\/$/, '') || '/';
+  const s = '/' + (p ?? '');
+  return s.replace(/\/+/g, '/').replace(/\/$/, '') || '/';
 }
 
 async function runPipeline(

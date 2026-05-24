@@ -78,7 +78,7 @@ function compilePath(path: string): { pattern: RegExp; paramNames: string[] } {
   const paramNames: string[] = [];
   const regexStr = path
     .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    .replace(/\\:([a-zA-Z_][a-zA-Z0-9_]*)/g, (_: string, name: string) => {
+    .replace(/:([a-zA-Z_][a-zA-Z0-9_]*)/g, (_: string, name: string) => {
       paramNames.push(name);
       return '([^/]+)';
     })
