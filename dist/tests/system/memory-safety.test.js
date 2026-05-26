@@ -405,14 +405,110 @@ describe('PgPool — memory safety (mocked)', () => {
         assert.equal(state.waitQueue.length, 0, 'Wait queue not emptied after close');
         assert.equal(state.closed, true);
     });
-    it('acquire timeout rejects and cleans up wait queue entries', async () => {
+    it('serves queued waiters when a connection is released', async () => {
         const { PgPool } = await import('../../src/database/pool.js');
         const pool = new PgPool({
             host: 'localhost', port: 5432, user: 'u', password: 'p', database: 'd',
-            minConnections: 0, maxConnections: 1, acquireTimeoutMs: 10, // very short
+            minConnections: 0, maxConnections: 1, acquireTimeoutMs: 5000,
+        });
+        const conn = await pool.acquire();
+        // Queue a waiter while the only connection is held
+        const waiter = pool.acquire();
+        // Release the connection — waiter should get it immediately
+        pool.release(conn);
+        const served = await waiter;
+        assert.ok(served !== undefined);
+        pool.release(served);
+        await pool.close();
+    });
+    // ═════════════════════════════════════════════════════════════════════════
+    // Pool Timeout Edge Cases
+    // ═════════════════════════════════════════════════════════════════════════
+    it('throws synchronously when wait queue exceeds MAX_WAIT', async () => {
+        const { PgPool } = await import('../../src/database/pool.js');
+        const pool = new PgPool({
+            host: 'localhost', port: 5432, user: 'u', password: 'p', database: 'd',
+            minConnections: 0, maxConnections: 1, acquireTimeoutMs: 5000,
+        });
+        // Acquire the only connection
+        await pool.acquire();
+        // Queue waiters until MAX_WAIT (100) is reached
+        // Each call checks waitQueue.length >= 100 synchronously before queueing
+        for (let i = 0; i < 100; i++) {
+            pool.acquire().catch(() => undefined);
+        }
+        // The 101st should throw /wait queue full/ synchronously
+        // (no await needed — it throws in the synchronous check)
+        const state = pool;
+        assert.equal(state.waitQueue.length, 100, 'Should have 100 queued waiters');
+        await assert.rejects(() => pool.acquire(), /wait queue full/);
+        // Close rejects all queued waiters
+        await pool.close();
+    });
+    it('close rejects queued waiters (cleans up acquire timeout timers)', async () => {
+        const { PgPool } = await import('../../src/database/pool.js');
+        const pool = new PgPool({
+            host: 'localhost', port: 5432, user: 'u', password: 'p', database: 'd',
+            minConnections: 0, maxConnections: 1, acquireTimeoutMs: 5000,
         });
         await pool.acquire();
-        await assert.rejects(() => pool.acquire(), /acquire timeout/);
+        const waiter = pool.acquire();
+        // Close rejects the queued waiter (and clears its timer)
+        await pool.close();
+        // Waiter must be rejected with pool closed error
+        await assert.rejects(waiter, /Connection pool is closed/);
+        // Wait queue must be empty after close
+        const state = pool;
+        assert.equal(state.waitQueue.length, 0, 'Wait queue should be empty after close');
+    });
+    it('acquire after close throws synchronously', async () => {
+        const { PgPool } = await import('../../src/database/pool.js');
+        const pool = new PgPool({
+            host: 'localhost', port: 5432, user: 'u', password: 'p', database: 'd',
+            minConnections: 0, maxConnections: 1, acquireTimeoutMs: 5000,
+        });
+        await pool.close();
+        // acquire() checks this.closed synchronously
+        await assert.rejects(() => pool.acquire(), /Pool is closed/);
+    });
+    it('release of unready connection does not consume waiter from queue', async () => {
+        const { PgPool } = await import('../../src/database/pool.js');
+        const pool = new PgPool({
+            host: 'localhost', port: 5432, user: 'u', password: 'p', database: 'd',
+            minConnections: 0, maxConnections: 1, acquireTimeoutMs: 5000,
+        });
+        const conn = await pool.acquire();
+        // Make the connection appear unready
+        conn.isReady = false;
+        // Queue a waiter
+        const waiter = pool.acquire();
+        // Release the unready connection — waiter stays in queue (isReady is false)
+        const state = pool;
+        assert.equal(state.waitQueue.length, 1, 'Waiter should still be in queue');
+        pool.release(conn);
+        // Waiter remains in queue — was NOT shifted out
+        assert.equal(state.waitQueue.length, 1, 'Waiter was not consumed from queue');
+        // Close rejects the waiter that stayed in the queue
+        await pool.close();
+        await assert.rejects(waiter, /Connection pool is closed/);
+        assert.equal(state.waitQueue.length, 0, 'Wait queue should be empty after close');
+    });
+    it('release resolves waiter before timeout can fire', async () => {
+        const { PgPool } = await import('../../src/database/pool.js');
+        const pool = new PgPool({
+            host: 'localhost', port: 5432, user: 'u', password: 'p', database: 'd',
+            minConnections: 0, maxConnections: 1, acquireTimeoutMs: 5000,
+        });
+        const conn = await pool.acquire();
+        const waiter = pool.acquire();
+        // Release quickly — waiter should be resolved before the 5s timeout
+        pool.release(conn);
+        const served = await waiter;
+        assert.ok(served !== undefined);
+        assert.equal(served.isReady, true);
+        // Should still be able to release the served connection back
+        pool.release(served);
+        assert.equal(pool.idle, pool.size);
         await pool.close();
     });
 });

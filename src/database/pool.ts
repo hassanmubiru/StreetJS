@@ -119,12 +119,14 @@ export class PgPool {
     pooled.inUse = false;
     pooled.lastUsed = Date.now();
 
-    // Service waiting callers
-    const waiter = this.waitQueue.shift();
-    if (waiter && pooled.conn.isReady) {
-      pooled.inUse = true;
-      clearTimeout(waiter.timer);
-      waiter.resolve(pooled.conn);
+    // Service waiting callers — only if connection is healthy
+    if (pooled.conn.isReady) {
+      const waiter = this.waitQueue.shift();
+      if (waiter) {
+        pooled.inUse = true;
+        clearTimeout(waiter.timer);
+        waiter.resolve(pooled.conn);
+      }
     }
   }
 
