@@ -237,8 +237,13 @@ export function parseSASLMechanisms(data) {
     let offset = 0;
     while (offset < data.length) {
         const end = data.indexOf(0, offset);
-        if (end === -1 || end === offset)
-            break; // empty string = end of list, or no null found
+        if (end === offset)
+            break; // empty string = end of list (double null)
+        if (end === -1) {
+            // No null terminator found — take the rest of the buffer
+            mechanisms.push(data.toString('utf8', offset));
+            break;
+        }
         mechanisms.push(data.toString('utf8', offset, end));
         offset = end + 1;
     }

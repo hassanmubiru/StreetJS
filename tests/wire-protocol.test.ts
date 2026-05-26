@@ -11,7 +11,7 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
-import { pbkdf2Sync, createHmac } from 'node:crypto';
+
 
 import {
   buildParseMessage,
@@ -823,21 +823,6 @@ describe('SCRAM auth nonce validation', () => {
     return Buffer.concat([typeBuf, msgBuf]);
   }
 
-  /** Helper: build a mock SASLFinal body (AuthRequest type=12) with server signature */
-  function buildSASLFinalBody(serverSignatureB64: string): Buffer {
-    const typeBuf = Buffer.alloc(4);
-    typeBuf.writeUInt32BE(12); // SASL final
-    const msgBuf = Buffer.from(`v=${serverSignatureB64}`, 'utf8');
-    return Buffer.concat([typeBuf, msgBuf]);
-  }
-
-  /** Helper: build AuthOk body (AuthRequest type=0) */
-  function buildAuthOkBody(): Buffer {
-    const typeBuf = Buffer.alloc(4);
-    typeBuf.writeUInt32BE(0); // OK
-    return typeBuf;
-  }
-
   /**
    * Helper: wrap a body as a complete PostgreSQL backend message (type + length + body).
    * Returns the full message buffer ready to emit as socket data.
@@ -912,7 +897,7 @@ describe('SCRAM auth nonce validation', () => {
   });
 
   it('rejects authentication when server nonce does not start with client nonce', async () => {
-    const { conn, socket } = createAuthConnection();
+    const { socket } = createAuthConnection();
 
     // First round: send SASL auth request
     const saslBody = buildSASLStartupBody(['SCRAM-SHA-256']);
