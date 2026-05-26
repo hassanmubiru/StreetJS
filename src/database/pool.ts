@@ -17,10 +17,16 @@ interface PooledConnection {
   inUse: boolean;
 }
 
+interface WaitEntry {
+  resolve: (conn: PgConnection) => void;
+  reject: (err: Error) => void;
+  timer: NodeJS.Timeout;
+}
+
 @Injectable()
 export class PgPool {
   private readonly connections: PooledConnection[] = [];
-  private readonly waitQueue: Array<(conn: PgConnection) => void> = [];
+  private readonly waitQueue: WaitEntry[] = [];
   private readonly MAX_WAIT = 100; // bounded wait queue
   private readonly opts: {
     host: string; port: number; user: string; password: string; database: string;
@@ -88,13 +94,14 @@ export class PgPool {
 
     return new Promise<PgConnection>((resolve, reject) => {
       const timeout = setTimeout(() => {
-        const idx = this.waitQueue.indexOf(resolve);
+        const idx = this.waitQueue.indexOf(waitEntry);
         if (idx !== -1) this.waitQueue.splice(idx, 1);
         reject(new Error('Connection acquire timeout'));
       }, this.opts.acquireTimeoutMs);
       timeout.unref();
 
-      this.waitQueue.push(resolve);
+      const waitEntry: WaitEntry = { resolve, reject, timer: timeout };
+      this.waitQueue.push(waitEntry);
     });
   }
 
@@ -110,7 +117,8 @@ export class PgPool {
     const waiter = this.waitQueue.shift();
     if (waiter && pooled.conn.isReady) {
       pooled.inUse = true;
-      waiter(pooled.conn);
+      clearTimeout(waiter.timer);
+      waiter.resolve(pooled.conn);
     }
   }
 
