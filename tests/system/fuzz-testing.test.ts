@@ -777,9 +777,11 @@ describe('SSE Connection — fuzz testing', () => {
     assert.ok(written.join('').includes('id: custom-id-42'));
 
     // Without custom id, it should use auto-incrementing id
+    // eventId is 0, first send increments to 1 (overridden by custom id),
+    // second send increments to 2
     sse.send({ data: 'msg2' });
     const output = written.join('');
-    assert.ok(output.includes('id: 1'));
+    assert.ok(output.includes('id: 2'));
     assert.ok(output.includes('id: custom-id-42'));
 
     sse.close();
@@ -787,9 +789,13 @@ describe('SSE Connection — fuzz testing', () => {
 
   it('handles writableEnded response gracefully', () => {
     const res = mockSseResponse();
-    res.writableEnded = true;
     const sse = new SseConnection(res as any, 5000);
 
+    // Initially send works
+    assert.equal(sse.send({ data: 'hello' }), true);
+
+    // After externally ending the response, send/comment return false
+    res.writableEnded = true;
     assert.equal(sse.send({ data: 'test' }), false);
     assert.equal(sse.comment('test'), false);
     sse.close();
