@@ -215,7 +215,7 @@ describe('XSS — depth and size bound verification', () => {
         const keys = Object.keys(result);
         assert.ok(keys.length <= 500, `Keys exceeded MAX_KEYS: ${keys.length}`);
     });
-    it('truncates strings exceeding MAX_STRING_LEN', () => {
+    it('truncates strings exceeding MAX_STRING_LEN', async () => {
         const huge = 'A'.repeat(2_000_000);
         const { sanitizeString: sanitize } = await import('../../src/security/xss.js');
         const result = sanitize(huge);

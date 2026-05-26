@@ -260,7 +260,7 @@ describe('XSS — fuzz testing', () => {
         __proto__: { polluted: 'yes' },
       },
     };
-    const result = sanitizeDeep(payload) as Record<string, unknown>;
+    sanitizeDeep(payload);
     // Should not crash and prototype should not be polluted
     assert.equal(({} as Record<string, unknown>)['admin'], undefined);
     assert.equal(({} as Record<string, unknown>)['polluted'], undefined);

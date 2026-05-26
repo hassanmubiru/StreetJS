@@ -160,9 +160,10 @@ describe('Server — shutdown chaos', () => {
     await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
     const port = (server.address() as any).port;
 
+    const { request: httpRequestFn } = await import('node:http');
+
     // Start a slow request, then immediately close
     const requestPromise = new Promise<void>((resolve) => {
-      const { request: httpRequestFn } = await import('node:http');
       const req = httpRequestFn(
         { hostname: '127.0.0.1', port, path: '/', method: 'GET' },
         (res: any) => {
@@ -190,7 +191,7 @@ describe('Server — shutdown chaos', () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 describe('Resource exhaustion — simulation', () => {
-  it('handles extremely large number of LRU cache instances', () => {
+  it('handles extremely large number of LRU cache instances', async () => {
     // Create and destroy many cache instances to test timer cleanup
     const caches: any[] = [];
     const { LruCache: LruCacheCls } = await import('../../src/cache/lru.js');

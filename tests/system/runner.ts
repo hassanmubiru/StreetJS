@@ -18,27 +18,27 @@ const ROOT = dirname(fileURLToPath(import.meta.url));
 
 const SUITES: Record<string, { path: string; label: string; requiresPg?: boolean }> = {
   security: {
-    path: join(ROOT, 'security.test.ts'),
+    path: join(ROOT, 'security.test.js'),
     label: 'Security — fuzz, bounds, timing attacks',
   },
   'memory-safety': {
-    path: join(ROOT, 'memory-safety.test.ts'),
+    path: join(ROOT, 'memory-safety.test.js'),
     label: 'Memory Safety — heap, bounds, leak detection',
   },
   'load-testing': {
-    path: join(ROOT, 'load-testing.test.ts'),
+    path: join(ROOT, 'load-testing.test.js'),
     label: 'Load Testing — concurrent HTTP, pool, sustained load',
   },
   'fuzz-testing': {
-    path: join(ROOT, 'fuzz-testing.test.ts'),
+    path: join(ROOT, 'fuzz-testing.test.js'),
     label: 'Fuzz Testing — randomized inputs, protocol fuzzing',
   },
   'chaos-testing': {
-    path: join(ROOT, 'chaos-testing.test.ts'),
+    path: join(ROOT, 'chaos-testing.test.js'),
     label: 'Chaos Testing — fault injection, shutdown, resource exhaustion',
   },
   infrastructure: {
-    path: join(ROOT, 'infrastructure.test.ts'),
+    path: join(ROOT, 'infrastructure.test.js'),
     label: 'Infrastructure — migrations, Docker, telemetry, cluster',
     requiresPg: true,
   },
