@@ -16,7 +16,7 @@ permissions:
 jobs:
   zizmor:
     name: Lint workflows with zizmor
-    runs-"on": ubuntu-latest
+    runs-on: ubuntu-latest
     timeout-minutes: 5
 
     steps:

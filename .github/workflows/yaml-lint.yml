@@ -1,0 +1,85 @@
+name: YAML Lint
+
+"on":
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: yaml-lint-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate YAML syntax
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Setup Python
+        uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55 # v5.5.0
+        with:
+          python-version: '3.x'
+
+      - name: Validate all YAML files
+        run: |
+          set +e
+          errors=0
+          while IFS= read -r -d '' file; do
+            python3 -c "
+import yaml, sys
+try:
+    yaml.safe_load(open('$file'))
+except yaml.YAMLError as e:
+    print(f'::error title=YAML Syntax Error,file={file}::{e}')
+    sys.exit(1)
+else:
+    print(f'  ✓ {file}')
+" || errors=$((errors + 1))
+          done < <(find . -type f \( -name '*.yml' -o -name '*.yaml' \) ! -path './node_modules/*' ! -path './.git/*' -print0)
+          if [ $errors -gt 0 ]; then
+            echo "❌ $errors YAML file(s) failed validation"
+            exit 1
+          else
+            echo "✅ All YAML files valid"
+          fi
+
+      - name: Validate workflows with GitHub schema
+        run: |
+          pip install yamale -q 2>/dev/null
+          python3 -c "
+import json, sys, os
+# Simple check: try to parse each workflow file and verify
+# it has the required top-level keys
+workflows = [f for f in os.listdir('.github/workflows') 
+             if f.endswith(('.yml', '.yaml'))]
+errors = 0
+for wf in workflows:
+    path = f'.github/workflows/{wf}'
+    import yaml
+    try:
+        data = yaml.safe_load(open(path))
+        if not isinstance(data, dict):
+            print(f'::warning title=Invalid Workflow,file={path}::Root is not a mapping')
+            errors += 1
+            continue
+        if 'name' not in data:
+            print(f'::warning title=Missing name,file={path}::Workflow missing \"name\" key')
+        if 'on' not in data and '\"on\"' not in open(path).read():
+            print(f'::warning title=Missing trigger,file={path}::Workflow missing \"on\" trigger')
+        print(f'  ✓ {path}')
+    except Exception as e:
+        print(f'::error title=Workflow Parse Error,file={path}::{e}')
+        errors += 1
+if errors:
+    sys.exit(1)
+"
