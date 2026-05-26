@@ -40,6 +40,7 @@ export declare class PgConnection {
     private state;
     private buffer;
     private fields;
+    private scramState;
     private queryResolve;
     private queryReject;
     private queryRows;

@@ -2,7 +2,7 @@
 // PostgreSQL frontend/backend wire protocol v3 implementation.
 // Pure node:net + node:crypto – no external dependencies.
 import { createConnection } from 'node:net';
-import { createHash, createHmac } from 'node:crypto';
+import { createHash, createHmac, randomBytes, pbkdf2Sync } from 'node:crypto';
 import { Readable } from 'node:stream';
 // ─── Wire Constants ────────────────────────────────────────────────────────────
 const PROTOCOL_VERSION = 196608; // 3.0
@@ -28,6 +28,9 @@ const AuthType = {
     Ok: 0,
     CleartextPassword: 3,
     MD5Password: 5,
+    SASL: 10,
+    SASLContinue: 11,
+    SASLFinal: 12,
 };
 // ─── Message Builders (client → server) ────────────────────────────────────────
 function buildStartupMessage(user, database) {
@@ -205,6 +208,89 @@ export function buildSyncMessage() {
 function md5(input) {
     return createHash('md5').update(input, 'binary').digest('hex');
 }
+// ─── SASL / SCRAM-SHA-256 ──────────────────────────────────────────────────────
+/**
+ * Build a SASLInitialResponse ('p') message for the chosen mechanism.
+ * Per PostgreSQL wire protocol: mechanism (null-terminated) + client-first-message-bare length (Int32BE) + client-first-message-bare.
+ */
+function buildSASLInitialResponse(mechanism, clientFirstMessageBare) {
+    const mechBuf = Buffer.from(mechanism + '\0', 'utf8');
+    const firstBuf = Buffer.from(clientFirstMessageBare, 'utf8');
+    const bodyLen = mechBuf.length + 4 + firstBuf.length;
+    const buf = Buffer.allocUnsafe(1 + 4 + bodyLen);
+    buf[0] = 0x70; // 'p'
+    buf.writeUInt32BE(4 + bodyLen, 1);
+    mechBuf.copy(buf, 5);
+    buf.writeUInt32BE(firstBuf.length, 5 + mechBuf.length);
+    firstBuf.copy(buf, 5 + mechBuf.length + 4);
+    return buf;
+}
+/**
+ * Build a SASLResponse ('p') message containing the client-final-message.
+ * Per PostgreSQL wire protocol: body length (Int32BE) + client-final-message (UTF-8).
+ */
+function buildSASLResponse(clientFinalMessage) {
+    const msgBuf = Buffer.from(clientFinalMessage, 'utf8');
+    const buf = Buffer.allocUnsafe(1 + 4 + 4 + msgBuf.length);
+    buf[0] = 0x70; // 'p'
+    buf.writeUInt32BE(4 + 4 + msgBuf.length, 1);
+    buf.writeUInt32BE(msgBuf.length, 5);
+    msgBuf.copy(buf, 9);
+    return buf;
+}
+/**
+ * Parse a SASL mechanism list from buffer (null-terminated strings, ends with empty string).
+ */
+function parseSASLMechanisms(data) {
+    const mechanisms = [];
+    let offset = 0;
+    while (offset < data.length) {
+        const end = data.indexOf(0, offset);
+        if (end === -1 || end === offset)
+            break; // empty string = end of list, or no null found
+        mechanisms.push(data.toString('utf8', offset, end));
+        offset = end + 1;
+    }
+    return mechanisms;
+}
+/**
+ * Parse SCRAM key=value parameters from a comma-separated message string.
+ */
+function parseScramParams(message) {
+    const params = {};
+    const parts = message.split(',');
+    for (const part of parts) {
+        const eqIdx = part.indexOf('=');
+        if (eqIdx > 0) {
+            params[part.slice(0, eqIdx)] = part.slice(eqIdx + 1);
+        }
+    }
+    return params;
+}
+/**
+ * Normalise a password for SCRAM using SASLprep (NFKC normalization).
+ * For ASCII passwords this is a no-op.
+ */
+function normalizePassword(password) {
+    return password.normalize('NFKC');
+}
+/**
+ * SCRAM Hi() function: PBKDF2-SHA256.
+ */
+function scramHi(password, salt, iterations) {
+    return pbkdf2Sync(password, salt, iterations, 32, 'sha256');
+}
+/**
+ * XOR two buffers together (bytewise).
+ */
+function xorBuffers(a, b) {
+    const len = Math.min(a.length, b.length);
+    const out = Buffer.allocUnsafe(len);
+    for (let i = 0; i < len; i++) {
+        out[i] = a[i] ^ b[i];
+    }
+    return out;
+}
 // ─── Streaming result (backpressure-aware) ─────────────────────────────────────
 export class StreetPostgresWireStream extends Readable {
     rows = [];
@@ -241,6 +327,8 @@ export class PgConnection {
     state = 'connecting';
     buffer = Buffer.alloc(0);
     fields = [];
+    // Multi-round SASL/SCRAM auth state
+    scramState = null;
     // Pending query callbacks
     queryResolve = null;
     queryReject = null;
@@ -432,6 +520,112 @@ export class PgConnection {
             case AuthType.MD5Password: {
                 const salt = body.subarray(4, 8);
                 this.socket?.write(buildMD5Password(opts.password, opts.user, salt));
+                break;
+            }
+            case AuthType.SASL: {
+                // AuthenticationSASL — server sent the list of supported SASL mechanisms
+                const mechanisms = parseSASLMechanisms(body.subarray(4));
+                const scramMechanism = mechanisms.find((m) => m === 'SCRAM-SHA-256');
+                if (!scramMechanism) {
+                    if (this.authReject) {
+                        this.authReject(new Error('Server does not advertise SCRAM-SHA-256'));
+                        this.authReject = null;
+                    }
+                    return;
+                }
+                // Generate client-first-message-bare: n=<user>,r=<client-nonce>
+                const cNonce = randomBytes(18).toString('base64url');
+                const clientFirstMessageBare = `n=${opts.user},r=${cNonce}`;
+                this.scramState = {
+                    clientFirstMessageBare,
+                    serverFirstMessage: '',
+                    saltedPassword: Buffer.alloc(0),
+                    authMessage: '',
+                };
+                this.socket?.write(buildSASLInitialResponse(scramMechanism, clientFirstMessageBare));
+                break;
+            }
+            case AuthType.SASLContinue: {
+                // AuthenticationSASLContinue — server responded with server-first-message
+                if (!this.scramState) {
+                    if (this.authReject) {
+                        this.authReject(new Error('Unexpected SASL continue without prior SASL handshake'));
+                        this.authReject = null;
+                    }
+                    return;
+                }
+                const serverFirstMessage = body.subarray(4).toString('utf8');
+                this.scramState.serverFirstMessage = serverFirstMessage;
+                // Parse server-first-message fields: r=<nonce>, s=<base64-salt>, i=<iterations>
+                const params = parseScramParams(serverFirstMessage);
+                const nonce = params['r'];
+                const saltB64 = params['s'];
+                const iterationsStr = params['i'];
+                if (!nonce || !saltB64 || !iterationsStr) {
+                    if (this.authReject) {
+                        this.authReject(new Error('Malformed SCRAM server-first-message'));
+                        this.authReject = null;
+                    }
+                    return;
+                }
+                const salt = Buffer.from(saltB64, 'base64');
+                const iterations = parseInt(iterationsStr, 10);
+                // Compute SaltedPassword = Hi(normalize(password), salt, iterations)
+                const normalizedPassword = normalizePassword(opts.password);
+                const saltedPassword = scramHi(normalizedPassword, salt, iterations);
+                this.scramState.saltedPassword = saltedPassword;
+                // Compute ClientKey = HMAC(SaltedPassword, "Client Key")
+                const clientKey = createHmac('sha256', saltedPassword).update('Client Key').digest();
+                // Compute StoredKey = SHA256(ClientKey)
+                const storedKey = createHash('sha256').update(clientKey).digest();
+                // Build client-final-message-without-proof
+                const clientFinalMessageWithoutProof = `c=biws,r=${nonce}`;
+                // Compute AuthMessage = client-first-message-bare + "," + server-first-message + "," + client-final-message-without-proof
+                const authMessage = `${this.scramState.clientFirstMessageBare},${serverFirstMessage},${clientFinalMessageWithoutProof}`;
+                this.scramState.authMessage = authMessage;
+                // Compute ClientSignature = HMAC(StoredKey, AuthMessage)
+                const clientSignature = createHmac('sha256', storedKey).update(authMessage).digest();
+                // Compute ClientProof = ClientKey XOR ClientSignature
+                const clientProof = xorBuffers(clientKey, clientSignature);
+                // Build client-final-message: client-final-message-without-proof + ",p=" + base64(client-proof)
+                const clientFinalMessage = `${clientFinalMessageWithoutProof},p=${clientProof.toString('base64')}`;
+                this.socket?.write(buildSASLResponse(clientFinalMessage));
+                break;
+            }
+            case AuthType.SASLFinal: {
+                // AuthenticationSASLFinal — server sent server-final-message with server-signature
+                if (!this.scramState) {
+                    if (this.authReject) {
+                        this.authReject(new Error('Unexpected SASL final without prior SASL handshake'));
+                        this.authReject = null;
+                    }
+                    return;
+                }
+                const serverFinalMessage = body.subarray(4).toString('utf8');
+                const params = parseScramParams(serverFinalMessage);
+                const serverSignatureB64 = params['v'];
+                if (!serverSignatureB64) {
+                    // No server signature — likely an error from the server
+                    const errMsg = params['e'] ?? 'SCRAM authentication failed (no verifier)';
+                    if (this.authReject) {
+                        this.authReject(new Error(`SCRAM authentication failed: ${errMsg}`));
+                        this.authReject = null;
+                    }
+                    return;
+                }
+                // Verify server signature: ServerSignature = HMAC(ServerKey, AuthMessage)
+                const serverKey = createHmac('sha256', this.scramState.saltedPassword).update('Server Key').digest();
+                const expectedSignature = createHmac('sha256', serverKey).update(this.scramState.authMessage).digest();
+                const expectedB64 = expectedSignature.toString('base64');
+                if (serverSignatureB64 !== expectedB64) {
+                    if (this.authReject) {
+                        this.authReject(new Error('SCRAM server signature mismatch — possible MITM attack'));
+                        this.authReject = null;
+                    }
+                    return;
+                }
+                // Server verified — clear SCRAM state, wait for AuthenticationOk
+                this.scramState = null;
                 break;
             }
             default:
