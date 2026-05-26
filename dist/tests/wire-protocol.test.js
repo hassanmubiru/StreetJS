@@ -22,24 +22,21 @@ function serverResponse(msgs) {
     }
     return Buffer.concat(parts);
 }
+// NOTE: serverResponse() wraps each body with a type byte and length prefix.
+// These helpers return ONLY the body content (without length prefix).
 function parseComplete() {
-    return Buffer.from([0x00, 0x00, 0x00, 0x04]); // type '1', length 4, no body
+    return Buffer.alloc(0); // no body
 }
 function bindComplete() {
-    return Buffer.from([0x00, 0x00, 0x00, 0x04]); // type '2', length 4, no body
+    return Buffer.alloc(0); // no body
 }
 function commandComplete(tag) {
-    const str = Buffer.from(tag + '\0', 'utf8');
-    const len = Buffer.alloc(4);
-    len.writeUInt32BE(4 + str.length);
-    return Buffer.concat([len, str]);
+    // Body is just the null-terminated command tag
+    return Buffer.from(tag + '\0', 'utf8');
 }
 function readyForQuery(status) {
-    const body = Buffer.alloc(1);
-    body[0] = status; // 'I' = 0x49 = idle
-    const len = Buffer.alloc(4);
-    len.writeUInt32BE(5); // 4 + 1
-    return Buffer.concat([len, body]);
+    // Body is a single byte (transaction status indicator)
+    return Buffer.from([status]);
 }
 const MOCK_CONNECT_OPTS = {
     host: 'localhost',
@@ -300,7 +297,8 @@ describe('_queryParams integration (via PgConnection.query)', () => {
         assert.equal(syncLen, 4, 'Sync message length is 4 (no body)');
         assert.equal(written.length, syncStart + 1 + syncLen, 'Written buffer ends at Sync boundary');
         // Parse message should contain the query
-        const queryText = written.toString('utf8', 6, written.indexOf(0, 6));
+        const nullAt = written.indexOf(0, 6);
+        const queryText = written.toString('utf8', 6, nullAt);
         assert.equal(queryText, 'SELECT $1::text AS name');
         // Bind message should contain the parameter 'Alice'
         const bindMsg = written.subarray(bindStart);
@@ -317,7 +315,7 @@ describe('_queryParams integration (via PgConnection.query)', () => {
         ]);
         socket.emit('data', response);
         const result = await queryPromise;
-        assert.equal(result.command, 'SELECT 1');
+        assert.equal(result.command, 'SELECT 1', `commandComplete tag mismatch, got: ${result.command}`);
         assert.equal(result.rows.length, 0); // no DataRow in our mock response
     });
     it('handles DataRow results via extended query', async () => {
@@ -326,20 +324,8 @@ describe('_queryParams integration (via PgConnection.query)', () => {
         const written = socket.write.mock.calls[0].arguments[0];
         assert.ok(written[0] === 0x50);
         // Build RowDescription for one column 'n' (typeoid INT4 = 23)
-        const rowDescBody = Buffer.alloc(2 + 1 + 18); // count(2) + name_null(1) + tableOid(4)+attNum(2)+typeOid(4)+typeSize(2)+typeMod(4)+format(2)
-        rowDescBody.writeUInt16BE(1, 0); // 1 column
-        rowDescBody[2] = 0x6e; // 'n'
-        rowDescBody[3] = 0; // null terminator... wait
-        // Actually let me construct this more carefully:
-        // Field count (uint16)
-        // For each field:
-        //   name (null-terminated string)
-        //   tableOid (int32)
-        //   columnAttNum (int16)
-        //   typeOid (int32)
-        //   typeSize (int16)
-        //   typeMod (int32)
-        //   format (int16)
+        // Field format: count(uint16) + for each field: name(null-term) + tableOid(int32)
+        // + attNum(int16) + typeOid(int32) + typeSize(int16) + typeMod(int32) + format(int16)
         const rdBody = Buffer.alloc(2);
         rdBody.writeUInt16BE(1); // 1 column
         const nameBuf = Buffer.from('n\0', 'utf8');
@@ -393,17 +379,12 @@ describe('_queryParams integration (via PgConnection.query)', () => {
         rowDescBody.writeInt16BE(-1, fiOffset + 10); // typeSize = -1 (variable length, signed)
         rowDescBody.writeInt32BE(-1, fiOffset + 12);
         rowDescBody.writeUInt16BE(0, fiOffset + 16);
-        const rowDescHeader = Buffer.alloc(4);
-        rowDescHeader.writeUInt32BE(4 + rowDescBody.length);
-        const dataHeader = Buffer.alloc(4);
-        dataHeader.writeUInt32BE(4 + dataRowBody.length);
-        const cmdBody = commandComplete('SELECT 1');
-        const rfqBody = readyForQuery(0x49);
-        const response = Buffer.concat([
-            Buffer.from([0x54]), rowDescHeader, rowDescBody, // RowDescription
-            Buffer.from([0x44]), dataHeader, dataRowBody, // DataRow
-            Buffer.from([0x43]), cmdBody, // CommandComplete
-            Buffer.from([0x5a]), rfqBody, // ReadyForQuery
+        // Build response using serverResponse() helper (which wraps bodies with type+len)
+        const response = serverResponse([
+            { type: 0x54, body: rowDescBody }, // RowDescription
+            { type: 0x44, body: dataRowBody }, // DataRow
+            { type: 0x43, body: commandComplete('SELECT 1') }, // CommandComplete
+            { type: 0x5a, body: readyForQuery(0x49) }, // ReadyForQuery
         ]);
         socket.emit('data', response);
         const result = await queryPromise;

@@ -703,14 +703,14 @@ describe('Repository & Migrations', () => {
 
   after(async () => {
     await pool.query(`DROP TABLE IF EXISTS ${TEST_TABLE}`);
-    await pool.query(`DELETE FROM street_migrations WHERE name LIKE '%${TEST_TABLE}%'`);
+    await pool.query(`DELETE FROM street_migrations WHERE name LIKE $1`, [`%${TEST_TABLE}%`]);
     await rm(migrationsDir, { recursive: true, force: true });
     await pool.close();
   });
 
   it('migration creates table', async () => {
     const result = await pool.query(
-      `SELECT to_regclass('${TEST_TABLE}') AS tbl`
+      `SELECT to_regclass($1) AS tbl`, [TEST_TABLE]
     );
     assert.ok(result.rows[0]?.['tbl'] !== null);
   });
@@ -832,10 +832,11 @@ describe('Schema: users table (via pool)', () => {
     const id = randomUUID();
     await pool.query(
       `INSERT INTO users (id, email, name, password_hash, roles)
-       VALUES ('${id}', 'test@streettest.local', 'Test User', 'hashed', '["user"]'::jsonb)`
+       VALUES ($1, $2, $3, $4, $5::jsonb)`,
+      [id, 'test@streettest.local', 'Test User', 'hashed', '["user"]']
     );
 
-    const result = await pool.query(`SELECT * FROM users WHERE id = '${id}'`);
+    const result = await pool.query(`SELECT * FROM users WHERE id = $1`, [id]);
     assert.equal(result.rows.length, 1);
     assert.equal(result.rows[0]?.['email'], 'test@streettest.local');
     assert.equal(result.rows[0]?.['name'], 'Test User');
@@ -845,12 +846,14 @@ describe('Schema: users table (via pool)', () => {
     const email = `unique-${randomBytes(4).toString('hex')}@streettest.local`;
     await pool.query(
       `INSERT INTO users (id, email, name, password_hash)
-       VALUES ('${randomUUID()}', '${email}', 'A', 'h')`
+       VALUES ($1, $2, $3, $4)`,
+      [randomUUID(), email, 'A', 'h']
     );
     await assert.rejects(
       () => pool.query(
         `INSERT INTO users (id, email, name, password_hash)
-         VALUES ('${randomUUID()}', '${email}', 'B', 'h')`
+         VALUES ($1, $2, $3, $4)`,
+        [randomUUID(), email, 'B', 'h']
       ),
       /unique/i
     );
