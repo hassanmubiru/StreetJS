@@ -1,0 +1,760 @@
+// tests/integration.test.ts
+// Integration tests: IoC, PostgreSQL wire, repository, JWT, session, LRU,
+// rate limiter, XSS, multipart parser, HTTP server, router, migrations.
+// Uses ONLY node:test and node:assert.
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+import 'reflect-metadata';
+import { describe, it, before, after, beforeEach } from 'node:test';
+import assert from 'node:assert/strict';
+import { request as httpRequest } from 'node:http';
+import { writeFile, mkdir, rm } from 'node:fs/promises';
+import { join, resolve } from 'node:path';
+import { tmpdir } from 'node:os';
+import { randomBytes } from 'node:crypto';
+// Framework imports
+import { container, Container, Injectable } from '../src/core/container.js';
+import { Controller, Get, Post } from '../src/core/decorators.js';
+import { PgConnection } from '../src/database/wire.js';
+import { PgPool } from '../src/database/pool.js';
+import { StreetMigrationRunner } from '../src/database/migrations.js';
+import { JwtService } from '../src/security/jwt.js';
+import { SessionManager } from '../src/security/session.js';
+import { LruCache } from '../src/cache/lru.js';
+import { RateLimiter } from '../src/security/ratelimit.js';
+import { sanitizeString, sanitizeDeep } from '../src/security/xss.js';
+import { streetApp } from '../src/http/server.js';
+import { createContext } from '../src/core/context.js';
+import { Router } from '../src/router/router.js';
+import { StreetPostgresRepository } from '../src/database/repository.js';
+import { encryptSecret, decryptSecret } from '../src/security/vault.js';
+// ─── Test DB configuration ─────────────────────────────────────────────────────
+const PG_OPTS = {
+    host: process.env['PG_HOST'] ?? 'localhost',
+    port: parseInt(process.env['PG_PORT'] ?? '5432', 10),
+    user: process.env['PG_USER'] ?? 'street',
+    password: process.env['PG_PASSWORD'] ?? 'street_secret',
+    database: process.env['PG_DATABASE'] ?? 'street_test',
+};
+const TEST_TABLE = 'test_items_' + randomBytes(4).toString('hex');
+const TEST_UPLOADS = join(tmpdir(), 'street_test_uploads_' + randomBytes(4).toString('hex'));
+// ─── Helper: HTTP request ──────────────────────────────────────────────────────
+function fetch(port, path, opts = {}) {
+    return new Promise((resolve, reject) => {
+        const req = httpRequest({
+            hostname: '127.0.0.1',
+            port,
+            path,
+            method: opts.method ?? 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(opts.body ? { 'Content-Length': Buffer.byteLength(opts.body).toString() } : {}),
+                ...(opts.headers ?? {}),
+            },
+        }, (res) => {
+            const chunks = [];
+            res.on('data', (c) => chunks.push(c));
+            res.on('end', () => {
+                const headers = {};
+                for (const [k, v] of Object.entries(res.headers)) {
+                    if (v !== undefined)
+                        headers[k] = Array.isArray(v) ? v[0] : v;
+                }
+                resolve({
+                    status: res.statusCode ?? 0,
+                    body: Buffer.concat(chunks).toString('utf8'),
+                    headers,
+                });
+            });
+            res.on('error', reject);
+        });
+        req.on('error', reject);
+        if (opts.body)
+            req.write(opts.body);
+        req.end();
+    });
+}
+// ─── Suite 1: IoC Container ───────────────────────────────────────────────────
+describe('IoC Container', () => {
+    beforeEach(() => {
+        container.reset();
+    });
+    it('resolves a class with no dependencies', () => {
+        let NoDepService = class NoDepService {
+            greet() { return 'hello'; }
+        };
+        NoDepService = __decorate([
+            Injectable()
+        ], NoDepService);
+        const inst = container.resolve(NoDepService);
+        assert.equal(inst.greet(), 'hello');
+    });
+    it('resolves nested dependencies', () => {
+        let DepA = class DepA {
+            value = 'A';
+        };
+        DepA = __decorate([
+            Injectable()
+        ], DepA);
+        let DepB = class DepB {
+            a;
+            constructor(a) {
+                this.a = a;
+            }
+            value() { return 'B+' + this.a.value; }
+        };
+        DepB = __decorate([
+            Injectable(),
+            __metadata("design:paramtypes", [DepA])
+        ], DepB);
+        const b = container.resolve(DepB);
+        assert.equal(b.value(), 'B+A');
+    });
+    it('returns singleton on repeated resolve', () => {
+        let SingletonService = class SingletonService {
+            id = Math.random();
+        };
+        SingletonService = __decorate([
+            Injectable()
+        ], SingletonService);
+        const a = container.resolve(SingletonService);
+        const b = container.resolve(SingletonService);
+        assert.equal(a.id, b.id);
+    });
+    it('detects circular dependencies', () => {
+        // We cannot actually create a real circular dep with TS decorators
+        // but we can simulate via direct registration
+        const c = Container.getInstance();
+        assert.throws(() => {
+            // Register a token that tries to resolve itself
+            const fakeToken = class CircularA {
+            };
+            Reflect.defineMetadata('design:paramtypes', [fakeToken], fakeToken);
+            c.resolve(fakeToken);
+        }, /Circular dependency/);
+    });
+    it('register() overrides resolved singleton', () => {
+        let OverrideService = class OverrideService {
+            val = 'original';
+        };
+        OverrideService = __decorate([
+            Injectable()
+        ], OverrideService);
+        container.resolve(OverrideService); // creates original
+        const mock = new OverrideService();
+        mock.val = 'mocked';
+        container.register(OverrideService, mock);
+        assert.equal(container.resolve(OverrideService).val, 'mocked');
+    });
+});
+// ─── Suite 2: JWT ─────────────────────────────────────────────────────────────
+describe('JwtService', () => {
+    const jwt = new JwtService('super-secret-key-that-is-at-least-32-chars-long!');
+    it('signs and verifies a token', () => {
+        const token = jwt.sign({ sub: 'user-123', email: 'a@b.com', roles: ['user'] });
+        const payload = jwt.verify(token);
+        assert.ok(payload);
+        assert.equal(payload.sub, 'user-123');
+        assert.equal(payload.email, 'a@b.com');
+    });
+    it('rejects tampered token', () => {
+        const token = jwt.sign({ sub: 'user-1' });
+        const parts = token.split('.');
+        parts[1] = Buffer.from(JSON.stringify({ sub: 'hacker', roles: ['admin'] })).toString('base64url');
+        const tampered = parts.join('.');
+        assert.equal(jwt.verify(tampered), null);
+    });
+    it('rejects expired token', async () => {
+        const token = jwt.sign({ sub: 'user-1' }, { expiresInSeconds: -1 });
+        assert.equal(jwt.verify(token), null);
+    });
+    it('decodes without verification', () => {
+        const token = jwt.sign({ sub: 'user-99', custom: 'data' });
+        const decoded = jwt.decode(token);
+        assert.equal(decoded?.['sub'], 'user-99');
+        assert.equal(decoded?.['custom'], 'data');
+    });
+    it('throws on short secret', () => {
+        assert.throws(() => new JwtService('short'), /at least 32/);
+    });
+});
+// ─── Suite 3: SessionManager ──────────────────────────────────────────────────
+describe('SessionManager', () => {
+    const key = randomBytes(32).toString('hex'); // 64-char hex
+    const sm = new SessionManager(key);
+    it('encrypts and decrypts session data', () => {
+        const data = { userId: 'abc-123', email: 'x@y.com', roles: ['admin'] };
+        const blob = sm.encrypt(data);
+        const decrypted = sm.decrypt(blob);
+        assert.ok(decrypted);
+        assert.equal(decrypted.userId, data.userId);
+        assert.equal(decrypted.email, data.email);
+    });
+    it('returns null on tampered blob', () => {
+        const blob = sm.encrypt({ userId: 'user-1' });
+        const buf = Buffer.from(blob, 'base64');
+        buf[20] ^= 0xff; // flip bits in ciphertext
+        const tampered = buf.toString('base64');
+        assert.equal(sm.decrypt(tampered), null);
+    });
+    it('generates unique CSRF tokens', () => {
+        const a = SessionManager.generateCsrf();
+        const b = SessionManager.generateCsrf();
+        assert.notEqual(a, b);
+        assert.ok(a.length > 20);
+    });
+    it('throws on invalid key length', () => {
+        assert.throws(() => new SessionManager('too-short'), /64-char hex/);
+    });
+});
+// ─── Suite 4: Vault encryption ────────────────────────────────────────────────
+describe('Vault', () => {
+    const kek = 'my-very-secret-kek-for-testing-purposes!';
+    it('encrypts and decrypts a secret', () => {
+        const plaintext = 'super-database-password-123!';
+        const encrypted = encryptSecret(plaintext, kek);
+        const decrypted = decryptSecret(encrypted, kek);
+        assert.equal(decrypted, plaintext);
+    });
+    it('produces different ciphertext each call (random IV)', () => {
+        const enc1 = encryptSecret('same-secret', kek);
+        const enc2 = encryptSecret('same-secret', kek);
+        assert.notEqual(enc1, enc2);
+    });
+    it('throws on wrong KEK', () => {
+        const encrypted = encryptSecret('secret', kek);
+        assert.throws(() => decryptSecret(encrypted, 'wrong-kek-!!!!'), /decryption failed/);
+    });
+    it('throws on truncated blob', () => {
+        assert.throws(() => decryptSecret('dG9vc2hvcnQ=', kek), /too short/);
+    });
+});
+// ─── Suite 5: LRU Cache ───────────────────────────────────────────────────────
+describe('LruCache', () => {
+    it('stores and retrieves values', () => {
+        const cache = new LruCache({ maxEntries: 10, ttlMs: 10_000 });
+        cache.set('a', 1);
+        cache.set('b', 2);
+        assert.equal(cache.get('a'), 1);
+        assert.equal(cache.get('b'), 2);
+        cache.destroy();
+    });
+    it('evicts LRU entry when at capacity', () => {
+        const cache = new LruCache({ maxEntries: 3, ttlMs: 10_000 });
+        cache.set('x', 1);
+        cache.set('y', 2);
+        cache.set('z', 3);
+        cache.set('w', 4); // should evict 'x'
+        assert.equal(cache.get('x'), undefined);
+        assert.equal(cache.get('w'), 4);
+        cache.destroy();
+    });
+    it('returns undefined for expired entries', async () => {
+        const cache = new LruCache({ maxEntries: 10, ttlMs: 10 });
+        cache.set('exp', 'value');
+        await new Promise((r) => setTimeout(r, 50));
+        assert.equal(cache.get('exp'), undefined);
+        cache.destroy();
+    });
+    it('has() respects TTL', async () => {
+        const cache = new LruCache({ maxEntries: 5, ttlMs: 20 });
+        cache.set('k', 99);
+        assert.equal(cache.has('k'), true);
+        await new Promise((r) => setTimeout(r, 50));
+        assert.equal(cache.has('k'), false);
+        cache.destroy();
+    });
+    it('delete() removes entry', () => {
+        const cache = new LruCache({ maxEntries: 5, ttlMs: 10_000 });
+        cache.set('del', 42);
+        assert.equal(cache.delete('del'), true);
+        assert.equal(cache.get('del'), undefined);
+        cache.destroy();
+    });
+    it('enforces maxEntries size invariant', () => {
+        const max = 50;
+        const cache = new LruCache({ maxEntries: max, ttlMs: 60_000 });
+        for (let i = 0; i < max + 20; i++) {
+            cache.set(`key-${i}`, i);
+        }
+        assert.ok(cache.size <= max);
+        cache.destroy();
+    });
+});
+// ─── Suite 6: XSS Sanitizer ───────────────────────────────────────────────────
+describe('XSS Sanitizer', () => {
+    it('strips HTML tags from strings', () => {
+        const out = sanitizeString('<script>alert(1)</script>hello');
+        assert.ok(!out.includes('<script>'));
+        assert.ok(out.includes('hello'));
+    });
+    it('removes javascript: protocol', () => {
+        const out = sanitizeString('javascript:alert(1)');
+        assert.ok(!out.includes('javascript:'));
+    });
+    it('removes onerror attributes', () => {
+        const out = sanitizeString('text onerror=alert(1) more');
+        assert.ok(!out.toLowerCase().includes('onerror'));
+    });
+    it('recursively sanitizes nested objects', () => {
+        const input = {
+            name: '<b>Bob</b>',
+            nested: { evil: '<script>xss</script>', safe: 'ok' },
+            list: ['<img onerror=1>', 'clean'],
+        };
+        const out = sanitizeDeep(input);
+        assert.ok(!out.name.includes('<b>'));
+        assert.ok(!out.nested.evil.includes('<script>'));
+        assert.equal(out.nested.safe, 'ok');
+        assert.ok(!out.list[0].includes('<img'));
+    });
+    it('handles depth limit without stack overflow', () => {
+        // Build deeply nested object
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let deep = { val: 'leaf' };
+        for (let i = 0; i < 40; i++)
+            deep = { child: deep };
+        assert.doesNotThrow(() => sanitizeDeep(deep));
+    });
+});
+// ─── Suite 7: Rate Limiter ────────────────────────────────────────────────────
+describe('RateLimiter', () => {
+    it('allows requests under the limit', async () => {
+        const limiter = new RateLimiter({ windowMs: 5_000, maxRequests: 10 });
+        const mw = limiter.middleware();
+        let allowed = 0;
+        for (let i = 0; i < 10; i++) {
+            const ctx = makeMinimalCtx('192.0.2.1');
+            let threw = false;
+            try {
+                await mw(ctx, async () => { allowed++; });
+            }
+            catch {
+                threw = true;
+            }
+            assert.equal(threw, false, `Request ${i} should be allowed`);
+        }
+        assert.equal(allowed, 10);
+        limiter.destroy();
+    });
+    it('blocks requests over the limit', async () => {
+        const limiter = new RateLimiter({ windowMs: 5_000, maxRequests: 3 });
+        const mw = limiter.middleware();
+        // Fill the limit
+        for (let i = 0; i < 3; i++) {
+            await mw(makeMinimalCtx('192.0.2.2'), async () => undefined);
+        }
+        // Next should throw
+        await assert.rejects(() => mw(makeMinimalCtx('192.0.2.2'), async () => undefined), /Too Many Requests/);
+        limiter.destroy();
+    });
+});
+// ─── Suite 8: Router ─────────────────────────────────────────────────────────
+describe('Router', () => {
+    it('matches a simple route and extracts params', async () => {
+        const router = new Router();
+        let captured = {};
+        router.add('GET', '/users/:id', [], async (ctx) => {
+            captured = ctx.params;
+            ctx.json({ ok: true });
+        });
+        const ctx = makeMinimalCtx('127.0.0.1', 'GET', '/users/abc-123');
+        const matched = await router.dispatch(ctx);
+        assert.equal(matched, true);
+        assert.equal(captured['id'], 'abc-123');
+    });
+    it('returns false for unmatched routes', async () => {
+        const router = new Router();
+        router.add('GET', '/only-this', [], async (ctx) => ctx.json({}));
+        const ctx = makeMinimalCtx('127.0.0.1', 'GET', '/other-path');
+        const matched = await router.dispatch(ctx);
+        assert.equal(matched, false);
+    });
+    it('runs middleware pipeline in order', async () => {
+        const router = new Router();
+        const order = [];
+        router.add('POST', '/test', [
+            async (_ctx, next) => { order.push(1); await next(); order.push(3); },
+            async (_ctx, next) => { order.push(2); await next(); },
+        ], async (_ctx) => { order.push(4); });
+        const ctx = makeMinimalCtx('127.0.0.1', 'POST', '/test');
+        await router.dispatch(ctx);
+        assert.deepEqual(order, [1, 2, 4, 3]);
+    });
+    it('validation middleware rejects bad input', async () => {
+        const router = new Router();
+        router.add('POST', '/validate', [], async (ctx) => ctx.json({ ok: true }), { body: { email: { type: 'email', required: true } } });
+        const ctx = makeMinimalCtx('127.0.0.1', 'POST', '/validate');
+        ctx['body'] = { email: 'not-an-email' };
+        await assert.rejects(() => router.dispatch(ctx), /Validation failed/);
+    });
+});
+// ─── Suite 9: HTTP Server ─────────────────────────────────────────────────────
+describe('HTTP Server', () => {
+    let port;
+    let app;
+    before(async () => {
+        port = 3100 + Math.floor(Math.random() * 900);
+        app = streetApp({ port, uploadsDir: TEST_UPLOADS });
+        let TestCtrl = class TestCtrl {
+            async hello(ctx) {
+                ctx.json({ message: 'world' });
+            }
+            async echo(ctx) {
+                ctx.json({ received: ctx.body }, 201);
+            }
+            async error(_ctx) {
+                throw new (await import('../src/http/exceptions.js')).NotFoundException('test not found');
+            }
+        };
+        __decorate([
+            Get('/hello'),
+            __metadata("design:type", Function),
+            __metadata("design:paramtypes", [Object]),
+            __metadata("design:returntype", Promise)
+        ], TestCtrl.prototype, "hello", null);
+        __decorate([
+            Post('/echo'),
+            __metadata("design:type", Function),
+            __metadata("design:paramtypes", [Object]),
+            __metadata("design:returntype", Promise)
+        ], TestCtrl.prototype, "echo", null);
+        __decorate([
+            Get('/error'),
+            __metadata("design:type", Function),
+            __metadata("design:paramtypes", [Object]),
+            __metadata("design:returntype", Promise)
+        ], TestCtrl.prototype, "error", null);
+        TestCtrl = __decorate([
+            Injectable(),
+            Controller('/test')
+        ], TestCtrl);
+        container.reset();
+        app.registerController(TestCtrl);
+        await app.listen(port);
+    });
+    after(async () => {
+        await app.close();
+    });
+    it('GET returns JSON response', async () => {
+        const res = await fetch(port, '/test/hello');
+        assert.equal(res.status, 200);
+        const body = JSON.parse(res.body);
+        assert.equal(body.message, 'world');
+    });
+    it('POST parses JSON body and echoes it', async () => {
+        const payload = { name: 'Alice', value: 42 };
+        const res = await fetch(port, '/test/echo', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+        });
+        assert.equal(res.status, 201);
+        const body = JSON.parse(res.body);
+        assert.equal(body.received.name, 'Alice');
+    });
+    it('returns 404 for unknown routes', async () => {
+        const res = await fetch(port, '/does/not/exist');
+        assert.equal(res.status, 404);
+    });
+    it('returns typed error responses', async () => {
+        const res = await fetch(port, '/test/error');
+        assert.equal(res.status, 404);
+        const body = JSON.parse(res.body);
+        assert.equal(body.error, 'NotFoundException');
+    });
+    it('sets content-type header', async () => {
+        const res = await fetch(port, '/test/hello');
+        assert.ok(res.headers['content-type']?.includes('application/json'));
+    });
+});
+// ─── Suite 10: PostgreSQL Wire Driver ────────────────────────────────────────
+describe('PostgreSQL Wire Protocol', () => {
+    let conn;
+    before(async () => {
+        conn = await PgConnection.connect({ ...PG_OPTS, connectTimeoutMs: 10_000 });
+    });
+    after(async () => {
+        await conn.close();
+    });
+    it('connects to PostgreSQL', () => {
+        assert.equal(conn.isReady, true);
+        assert.equal(conn.isClosed, false);
+    });
+    it('executes a simple query', async () => {
+        const result = await conn.query('SELECT 1 AS val, 2 AS val2');
+        assert.equal(result.rows.length, 1);
+        assert.equal(result.rows[0]?.['val'], '1');
+        assert.equal(result.rows[0]?.['val2'], '2');
+    });
+    it('returns multiple rows', async () => {
+        const result = await conn.query(`SELECT generate_series(1, 5) AS n`);
+        assert.equal(result.rows.length, 5);
+        assert.equal(result.rows[0]?.['n'], '1');
+        assert.equal(result.rows[4]?.['n'], '5');
+    });
+    it('handles SQL errors gracefully', async () => {
+        await assert.rejects(() => conn.query('SELECT * FROM table_that_does_not_exist_xyz'), /PostgreSQL/);
+        // Connection should recover to ready state
+        assert.equal(conn.isReady, true);
+    });
+    it('executes streaming query row by row', async () => {
+        const stream = conn.queryStream('SELECT generate_series(1, 3) AS n');
+        const rows = [];
+        await new Promise((resolve, reject) => {
+            stream.on('data', (row) => {
+                const r = row;
+                rows.push(r['n'] ?? '');
+            });
+            stream.on('end', resolve);
+            stream.on('error', reject);
+        });
+        assert.deepEqual(rows, ['1', '2', '3']);
+    });
+});
+// ─── Suite 11: PgPool ────────────────────────────────────────────────────────
+describe('PgPool', () => {
+    let pool;
+    before(async () => {
+        pool = new PgPool({ ...PG_OPTS, minConnections: 1, maxConnections: 3 });
+        await pool.initialize();
+    });
+    after(async () => {
+        await pool.close();
+    });
+    it('executes queries through pool', async () => {
+        const result = await pool.query(`SELECT 'pool' AS src`);
+        assert.equal(result.rows[0]?.['src'], 'pool');
+    });
+    it('runs transactions with COMMIT', async () => {
+        await pool.query(`CREATE TEMP TABLE tx_test (val INT)`);
+        await pool.transaction(async (conn) => {
+            await conn.query('INSERT INTO tx_test VALUES (99)');
+        });
+        const r = await pool.query('SELECT val FROM tx_test');
+        assert.equal(r.rows[0]?.['val'], '99');
+        await pool.query('DROP TABLE tx_test');
+    });
+    it('rolls back on transaction error', async () => {
+        await pool.query(`CREATE TEMP TABLE tx_rollback (val INT)`);
+        try {
+            await pool.transaction(async (conn) => {
+                await conn.query('INSERT INTO tx_rollback VALUES (1)');
+                throw new Error('forced rollback');
+            });
+        }
+        catch { /* expected */ }
+        const r = await pool.query('SELECT COUNT(*) AS c FROM tx_rollback');
+        assert.equal(r.rows[0]?.['c'], '0');
+        await pool.query('DROP TABLE tx_rollback');
+    });
+    it('handles concurrent queries', async () => {
+        const results = await Promise.all([
+            pool.query('SELECT 1 AS n'),
+            pool.query('SELECT 2 AS n'),
+            pool.query('SELECT 3 AS n'),
+        ]);
+        const values = results.map((r) => r.rows[0]?.['n']);
+        assert.ok(values.includes('1'));
+        assert.ok(values.includes('2'));
+        assert.ok(values.includes('3'));
+    });
+});
+// ─── Suite 12: Repository & Migrations ───────────────────────────────────────
+describe('Repository & Migrations', () => {
+    let pool;
+    let runner;
+    let migrationsDir;
+    class TestItemRepository extends StreetPostgresRepository {
+        tableName = TEST_TABLE;
+        constructor(p) { super(p); }
+        mapRow(row) {
+            return {
+                id: row['id'] ?? '',
+                name: row['name'] ?? '',
+                value: row['value'] ?? '',
+                created_at: row['created_at'] ?? '',
+                updated_at: row['updated_at'] ?? '',
+            };
+        }
+    }
+    before(async () => {
+        pool = new PgPool({ ...PG_OPTS, minConnections: 1, maxConnections: 3 });
+        await pool.initialize();
+        runner = new StreetMigrationRunner(pool);
+        // Create temp migrations directory
+        migrationsDir = join(tmpdir(), 'street_test_migrations_' + randomBytes(4).toString('hex'));
+        await mkdir(migrationsDir, { recursive: true });
+        // Write test migration
+        await writeFile(join(migrationsDir, `001_create_${TEST_TABLE}.sql`), `CREATE TABLE IF NOT EXISTS ${TEST_TABLE} (
+        id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name       VARCHAR(100) NOT NULL,
+        value      TEXT NOT NULL DEFAULT '',
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )`);
+        await runner.run(migrationsDir);
+    });
+    after(async () => {
+        await pool.query(`DROP TABLE IF EXISTS ${TEST_TABLE}`);
+        await pool.query(`DELETE FROM street_migrations WHERE name LIKE $1`, [`%${TEST_TABLE}%`]);
+        await rm(migrationsDir, { recursive: true, force: true });
+        await pool.close();
+    });
+    it('migration creates table', async () => {
+        const result = await pool.query(`SELECT to_regclass($1) AS tbl`, [TEST_TABLE]);
+        assert.ok(result.rows[0]?.['tbl'] !== null);
+    });
+    it('migration is idempotent (skips on re-run)', async () => {
+        // Should not throw on second run
+        await runner.run(migrationsDir);
+    });
+    it('repository creates and finds by ID', async () => {
+        const repo = new TestItemRepository(pool);
+        const item = await repo.create({
+            id: randomUUID(),
+            name: 'Test Item',
+            value: 'hello',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+        });
+        assert.equal(item.name, 'Test Item');
+        assert.ok(item.id);
+        const found = await repo.findById(item.id);
+        assert.ok(found);
+        assert.equal(found.name, 'Test Item');
+    });
+    it('repository updates a row', async () => {
+        const repo = new TestItemRepository(pool);
+        const item = await repo.create({
+            id: randomUUID(),
+            name: 'Original',
+            value: 'v1',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+        });
+        const updated = await repo.update(item.id, { name: 'Updated', value: 'v2' });
+        assert.ok(updated);
+        assert.equal(updated.name, 'Updated');
+    });
+    it('repository deletes a row', async () => {
+        const repo = new TestItemRepository(pool);
+        const item = await repo.create({
+            id: randomUUID(),
+            name: 'ToDelete',
+            value: 'bye',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+        });
+        const deleted = await repo.delete(item.id);
+        assert.equal(deleted, true);
+        const found = await repo.findById(item.id);
+        assert.equal(found, null);
+    });
+    it('repository findAll returns paginated results', async () => {
+        const repo = new TestItemRepository(pool);
+        const ids = [];
+        for (let i = 0; i < 5; i++) {
+            const id = randomUUID();
+            ids.push(id);
+            await repo.create({
+                id,
+                name: `Paginated-${i}`,
+                value: String(i),
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+            });
+        }
+        const page1 = await repo.findAll(3, 0);
+        assert.equal(page1.length, 3);
+        const page2 = await repo.findAll(3, 3);
+        assert.ok(page2.length >= 2);
+    });
+    it('repository count returns correct total', async () => {
+        const repo = new TestItemRepository(pool);
+        const before = await repo.count();
+        await repo.create({
+            id: randomUUID(),
+            name: 'CountTest',
+            value: 'x',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+        });
+        const after = await repo.count();
+        assert.equal(after, before + 1);
+    });
+});
+// ─── Suite 13: Schema Behavior ────────────────────────────────────────────────
+describe('Schema: users table (via pool)', () => {
+    let pool;
+    let migrationsDir;
+    before(async () => {
+        pool = new PgPool({ ...PG_OPTS, minConnections: 1, maxConnections: 3 });
+        await pool.initialize();
+        // Run the real users migration
+        migrationsDir = resolve('./migrations');
+        const runner = new StreetMigrationRunner(pool);
+        await runner.run(migrationsDir);
+    });
+    after(async () => {
+        // Clean up test users
+        await pool.query(`DELETE FROM users WHERE email LIKE '%@streettest.local'`);
+        await pool.close();
+    });
+    it('inserts and retrieves a user row', async () => {
+        const id = randomUUID();
+        await pool.query(`INSERT INTO users (id, email, name, password_hash, roles)
+       VALUES ($1, $2, $3, $4, $5::jsonb)`, [id, 'test@streettest.local', 'Test User', 'hashed', '["user"]']);
+        const result = await pool.query(`SELECT * FROM users WHERE id = $1`, [id]);
+        assert.equal(result.rows.length, 1);
+        assert.equal(result.rows[0]?.['email'], 'test@streettest.local');
+        assert.equal(result.rows[0]?.['name'], 'Test User');
+    });
+    it('enforces unique email constraint', async () => {
+        const email = `unique-${randomBytes(4).toString('hex')}@streettest.local`;
+        await pool.query(`INSERT INTO users (id, email, name, password_hash)
+       VALUES ($1, $2, $3, $4)`, [randomUUID(), email, 'A', 'h']);
+        await assert.rejects(() => pool.query(`INSERT INTO users (id, email, name, password_hash)
+         VALUES ($1, $2, $3, $4)`, [randomUUID(), email, 'B', 'h']), /unique/i);
+    });
+});
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function makeMinimalCtx(ip, method = 'GET', path = '/') {
+    const fakeReq = {
+        method,
+        url: path,
+        headers: { 'x-forwarded-for': ip },
+        socket: { remoteAddress: ip },
+        on: () => fakeReq,
+        once: () => fakeReq,
+        pipe: () => fakeReq,
+        resume: () => fakeReq,
+        destroy: () => fakeReq,
+    };
+    const fakeRes = {
+        writeHead: () => undefined,
+        write: () => true,
+        end: () => undefined,
+        setHeader: () => undefined,
+        writableEnded: false,
+        once: () => fakeRes,
+        on: () => fakeRes,
+        socket: { once: () => undefined },
+    };
+    const ctx = createContext(fakeReq, fakeRes, path, {});
+    return ctx;
+}
+function randomUUID() {
+    const bytes = randomBytes(16);
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    const hex = bytes.toString('hex');
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+//# sourceMappingURL=integration.test.js.map
