@@ -139,9 +139,9 @@ export async function errorHandler(ctx, err) {
         ctx.json(err.toJSON(), err.status);
     }
     else {
-        const msg = err instanceof Error ? err.message : 'Internal Server Error';
+        // Log the full error server-side, but never leak internal details to client
         console.error('[street] Unhandled error:', err);
-        ctx.json({ error: 'InternalException', message: msg, status: 500 }, 500);
+        ctx.json({ error: 'InternalException', message: 'Internal Server Error', status: 500 }, 500);
     }
 }
 //# sourceMappingURL=router.js.map

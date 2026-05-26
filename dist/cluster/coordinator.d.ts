@@ -11,6 +11,9 @@ export declare class ClusterCoordinator {
     private readonly workerMap;
     private readonly opts;
     private heartbeatTimer;
+    private _started;
+    private readonly _onExit;
+    private readonly _onMessage;
     constructor(opts?: ClusterOptions);
     /** Start all workers (called from primary) */
     start(): void;

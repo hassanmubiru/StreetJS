@@ -7,6 +7,10 @@ export class ClusterCoordinator {
     workerMap = new Map();
     opts;
     heartbeatTimer = null;
+    _started = false;
+    // Stored listener references for cleanup
+    _onExit;
+    _onMessage;
     constructor(opts = {}) {
         this.workerCount = opts.workers ?? Math.max(1, cpus().length);
         this.opts = {
@@ -16,17 +20,7 @@ export class ClusterCoordinator {
             onWorkerStart: opts.onWorkerStart ?? (() => undefined),
             onWorkerExit: opts.onWorkerExit ?? (() => undefined),
         };
-    }
-    /** Start all workers (called from primary) */
-    start() {
-        if (!cluster.isPrimary) {
-            throw new Error('ClusterCoordinator.start() must be called from the primary process');
-        }
-        console.log(`[cluster] Primary ${process.pid} starting ${this.workerCount} workers`);
-        for (let i = 0; i < this.workerCount; i++) {
-            this._spawnWorker();
-        }
-        cluster.on('exit', (worker, code, signal) => {
+        this._onExit = (worker, code, signal) => {
             const state = this.workerMap.get(worker.id);
             if (state)
                 this.workerMap.delete(worker.id);
@@ -34,10 +28,28 @@ export class ClusterCoordinator {
             this.opts.onWorkerExit(worker, code, signal);
             // Auto-restart after brief delay to avoid tight restart loops
             setTimeout(() => this._spawnWorker(), 500).unref();
-        });
-        cluster.on('message', (worker, msg) => {
+        };
+        this._onMessage = (worker, msg) => {
             this._handleWorkerMessage(worker, msg);
-        });
+        };
+    }
+    /** Start all workers (called from primary) */
+    start() {
+        if (!cluster.isPrimary) {
+            throw new Error('ClusterCoordinator.start() must be called from the primary process');
+        }
+        // Guard against multiple start() calls to prevent listener pile-up
+        if (this._started) {
+            console.warn('[cluster] start() called again — ignoring duplicate call');
+            return;
+        }
+        this._started = true;
+        console.log(`[cluster] Primary ${process.pid} starting ${this.workerCount} workers`);
+        for (let i = 0; i < this.workerCount; i++) {
+            this._spawnWorker();
+        }
+        cluster.on('exit', this._onExit);
+        cluster.on('message', this._onMessage);
         // Heartbeat monitor
         this.heartbeatTimer = setInterval(() => this._checkHeartbeats(), this.opts.heartbeatIntervalMs);
         this.heartbeatTimer.unref();
@@ -82,10 +94,14 @@ export class ClusterCoordinator {
     shutdown() {
         if (this.heartbeatTimer)
             clearInterval(this.heartbeatTimer);
+        // Clean up cluster listeners to prevent memory leaks
+        cluster.removeListener('exit', this._onExit);
+        cluster.removeListener('message', this._onMessage);
         for (const { worker } of this.workerMap.values()) {
             worker.kill('SIGTERM');
         }
         this.workerMap.clear();
+        this._started = false;
     }
 }
 /** Send heartbeat from worker to primary */

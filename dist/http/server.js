@@ -86,20 +86,33 @@ export function streetApp(options = {}) {
         if (contentType.includes('application/json') || contentType.includes('text/')) {
             const chunks = [];
             let totalBytes = 0;
+            const onData = (chunk) => {
+                totalBytes += chunk.length;
+                if (totalBytes > maxBytes) {
+                    req.destroy(new Error('Body too large'));
+                    rejectRef(new Error('Request body exceeds limit'));
+                    return;
+                }
+                chunks.push(chunk);
+            };
+            const onEnd = () => resolveRef();
+            const onError = (err) => rejectRef(err);
+            const onAborted = () => rejectRef(new Error('Request aborted'));
+            let resolveRef;
+            let rejectRef;
             await new Promise((resolve, reject) => {
-                req.on('data', (chunk) => {
-                    totalBytes += chunk.length;
-                    if (totalBytes > maxBytes) {
-                        req.destroy(new Error('Body too large'));
-                        reject(new Error('Request body exceeds limit'));
-                        return;
-                    }
-                    chunks.push(chunk);
-                });
-                req.on('end', resolve);
-                req.on('error', reject);
-                req.on('aborted', () => reject(new Error('Request aborted')));
+                resolveRef = resolve;
+                rejectRef = reject;
+                req.on('data', onData);
+                req.on('end', onEnd);
+                req.on('error', onError);
+                req.on('aborted', onAborted);
             });
+            // Clean up event listeners after body is fully consumed
+            req.removeListener('data', onData);
+            req.removeListener('end', onEnd);
+            req.removeListener('error', onError);
+            req.removeListener('aborted', onAborted);
             if (chunks.length === 0)
                 return;
             const raw = Buffer.concat(chunks).toString('utf8');
@@ -153,8 +166,13 @@ export function streetApp(options = {}) {
         },
         listen(port = options.port ?? 3000, host = options.host ?? '0.0.0.0') {
             return new Promise((resolve, reject) => {
-                server.on('error', reject);
+                const onError = (err) => {
+                    server.removeListener('error', onError);
+                    reject(err);
+                };
+                server.on('error', onError);
                 server.listen(port, host, () => {
+                    server.removeListener('error', onError);
                     console.log(`[street] Listening on http://${host}:${port}`);
                     resolve();
                 });

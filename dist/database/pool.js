@@ -68,13 +68,14 @@ let PgPool = class PgPool {
         }
         return new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
-                const idx = this.waitQueue.indexOf(resolve);
+                const idx = this.waitQueue.indexOf(waitEntry);
                 if (idx !== -1)
                     this.waitQueue.splice(idx, 1);
                 reject(new Error('Connection acquire timeout'));
             }, this.opts.acquireTimeoutMs);
             timeout.unref();
-            this.waitQueue.push(resolve);
+            const waitEntry = { resolve, reject, timer: timeout };
+            this.waitQueue.push(waitEntry);
         });
     }
     /** Release connection back to pool */
@@ -88,7 +89,8 @@ let PgPool = class PgPool {
         const waiter = this.waitQueue.shift();
         if (waiter && pooled.conn.isReady) {
             pooled.inUse = true;
-            waiter(pooled.conn);
+            clearTimeout(waiter.timer);
+            waiter.resolve(pooled.conn);
         }
     }
     /** Execute a query with automatic connection management */
@@ -141,6 +143,13 @@ let PgPool = class PgPool {
     async close() {
         this.closed = true;
         clearInterval(this.sweepTimer);
+        // Reject all pending waiters to prevent hanging promises
+        const err = new Error('Connection pool is closed');
+        const waiters = this.waitQueue.splice(0);
+        for (const w of waiters) {
+            clearTimeout(w.timer);
+            w.reject(err);
+        }
         await Promise.all(this.connections.map((p) => p.conn.close().catch(() => undefined)));
         this.connections.length = 0;
     }
