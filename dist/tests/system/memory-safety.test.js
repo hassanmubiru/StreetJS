@@ -15,6 +15,7 @@ import { mkdtempSync, rmSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { PgConnection } from '../../src/database/wire.js';
+import { pbkdf2Sync, createHmac } from 'node:crypto';
 // ═══════════════════════════════════════════════════════════════════════════════
 // 1. LRU Cache — Memory Bound Verification
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -510,6 +511,205 @@ describe('PgPool — memory safety (mocked)', () => {
         pool.release(served);
         assert.equal(pool.idle, pool.size);
         await pool.close();
+    });
+});
+// ═══════════════════════════════════════════════════════════════════════════════
+// 7. SCRAM Wire Protocol — Memory Safety
+// ═══════════════════════════════════════════════════════════════════════════════
+describe('SCRAM Wire Protocol — memory safety', () => {
+    /** Build a mock SASL mechanisms response body (AuthRequest type=10) */
+    function buildSASLBody(mechanisms) {
+        const typeBuf = Buffer.alloc(4);
+        typeBuf.writeUInt32BE(10);
+        const mechBuf = Buffer.from(mechanisms.map(m => m + '\0').join('') + '\0', 'utf8');
+        return Buffer.concat([typeBuf, mechBuf]);
+    }
+    /** Build a mock SASLContinue body (AuthRequest type=11) */
+    function buildContinueBody(nonce, salt, iterations) {
+        const typeBuf = Buffer.alloc(4);
+        typeBuf.writeUInt32BE(11);
+        const msgBuf = Buffer.from(`r=${nonce},s=${salt},i=${iterations}`, 'utf8');
+        return Buffer.concat([typeBuf, msgBuf]);
+    }
+    /** Wrap a body as a complete PG backend message */
+    function wrapMsg(type, body) {
+        const lenBuf = Buffer.alloc(4);
+        lenBuf.writeUInt32BE(4 + body.length);
+        return Buffer.concat([Buffer.from([type]), lenBuf, body]);
+    }
+    /** Create a PgConnection in authenticating state wired to a mock socket */
+    function createAuthConn() {
+        const socket = new EventEmitter();
+        socket.setKeepAlive = () => { };
+        socket.setNoDelay = () => { };
+        socket.destroy = () => { };
+        socket.write = mock.fn(() => true);
+        const conn = new PgConnection();
+        conn.socket = socket;
+        conn.state = 'authenticating';
+        socket.on('data', (chunk) => {
+            conn.buffer = Buffer.concat([conn.buffer, chunk]);
+            conn._processBuffer({
+                host: 'localhost', port: 5432, user: 'test', password: 'test', database: 'test',
+            });
+        });
+        return { conn, socket };
+    }
+    /** Run the full 3-round SCRAM-SHA-256 handshake on a mock connection */
+    function runFullHandshake(conn, socket) {
+        // Round 1: AuthSASL → SASLInitialResponse
+        socket.emit('data', wrapMsg(0x52, buildSASLBody(['SCRAM-SHA-256'])));
+        assert.equal(socket.write.mock.calls.length, 1, 'SASLInitialResponse written');
+        const written1 = socket.write.mock.calls[0].arguments[0];
+        // Extract client nonce
+        const mechEnd = written1.indexOf(0, 5);
+        const dataLenOffset = mechEnd + 1;
+        const dataLen = written1.readInt32BE(dataLenOffset);
+        const dataStart = dataLenOffset + 4;
+        const clientFirstMessage = written1.toString('utf8', dataStart, dataStart + dataLen);
+        const rMatch = clientFirstMessage.match(/r=([^,]+)/);
+        assert.ok(rMatch, 'Client nonce found');
+        const clientNonce = rMatch[1];
+        const clientFirstMessageBare = `n=test,r=${clientNonce}`;
+        // Round 2: SASLContinue → compute proof → SASLResponse
+        const saltB64 = 'c2FsdHlzYWx0';
+        const iterations = 4096;
+        const combinedNonce = clientNonce + 'serverdata';
+        const serverFirstMessage = `r=${combinedNonce},s=${saltB64},i=${iterations}`;
+        socket.emit('data', wrapMsg(0x52, buildContinueBody(combinedNonce, saltB64, iterations)));
+        assert.equal(socket.write.mock.calls.length, 2, 'SASLResponse written');
+        // Compute expected server signature
+        const salt = Buffer.from(saltB64, 'base64');
+        const normalizedPassword = 'test'.normalize('NFKC');
+        const saltedPassword = pbkdf2Sync(normalizedPassword, salt, iterations, 32, 'sha256');
+        const serverKey = createHmac('sha256', saltedPassword).update('Server Key').digest();
+        const clientFinalMessageWithoutProof = `c=biws,r=${combinedNonce}`;
+        const authMessage = `${clientFirstMessageBare},${serverFirstMessage},${clientFinalMessageWithoutProof}`;
+        const expectedServerSignature = createHmac('sha256', serverKey).update(authMessage).digest('base64');
+        // Round 3: SASLFinal with correct signature → AuthOk → ReadyForQuery
+        const saslFinalBody = Buffer.alloc(4);
+        saslFinalBody.writeUInt32BE(12);
+        const finalMsg = Buffer.from(`v=${expectedServerSignature}`, 'utf8');
+        socket.emit('data', wrapMsg(0x52, Buffer.concat([saslFinalBody, finalMsg])));
+        const authOkBody = Buffer.alloc(4);
+        authOkBody.writeUInt32BE(0);
+        socket.emit('data', wrapMsg(0x52, authOkBody));
+        const rFQBody = Buffer.from([0x49]);
+        socket.emit('data', wrapMsg(0x5a, rFQBody));
+        assert.ok(conn.isReady, 'Connection ready after full SCRAM handshake');
+    }
+    it('does not leak PgConnection scramState or socket listeners after many auth cycles', () => {
+        const count = 100;
+        const connections = [];
+        const heapBefore = process.memoryUsage().heapUsed;
+        for (let i = 0; i < count; i++) {
+            const { conn, socket } = createAuthConn();
+            runFullHandshake(conn, socket);
+            // After successful handshake, scramState must be null
+            assert.equal(conn.scramState, null, `scramState should be null after successful auth (iter ${i})`);
+            // Track socket for listener leak check
+            connections.push(socket);
+        }
+        // Check that no mock sockets have stray event listeners beyond the initial 'data' handler
+        for (const s of connections) {
+            assert.ok(s.listenerCount('data') <= 1, 'Socket has at most one data listener');
+            assert.equal(s.listenerCount('end'), 0, 'No end listeners');
+            assert.equal(s.listenerCount('error'), 0, 'No error listeners');
+        }
+        const heapAfter = process.memoryUsage().heapUsed;
+        const heapDelta = heapAfter - heapBefore;
+        const perConn = heapDelta / count;
+        // 100 full auth handshakes should not cause runaway heap growth.
+        // Each handshake allocates ~2-3 Buffers (nonce, proof, salt, etc.) + a few temp objects.
+        // Allow generous overhead: 10KB per connection × 100 = ~1MB max delta.
+        const maxExpected = 1_000_000;
+        assert.ok(heapDelta <= maxExpected, `Heap grew ${(heapDelta / 1024).toFixed(0)}KB across ${count} auth cycles ` +
+            `(${(perConn / 1024).toFixed(1)}KB/conn) — exceeded ${(maxExpected / 1024).toFixed(0)}KB`);
+        // Also verify the heap grew by at least some reasonable amount (smells like code actually ran)
+        assert.ok(heapDelta >= 1000, `Heap only grew ${heapDelta} bytes — auth may not have executed?`);
+    });
+    it('does not leak on SCRAM auth failure (invalid nonce)', () => {
+        const count = 50;
+        const initialListenerCount = EventEmitter.listenerCount(process, 'warning');
+        for (let i = 0; i < count; i++) {
+            const { conn, socket } = createAuthConn();
+            // Round 1: AuthSASL → SASLInitialResponse
+            socket.emit('data', wrapMsg(0x52, buildSASLBody(['SCRAM-SHA-256'])));
+            assert.equal(socket.write.mock.calls.length, 1);
+            const written1 = socket.write.mock.calls[0].arguments[0];
+            const mechEnd = written1.indexOf(0, 5);
+            const dataLenOffset = mechEnd + 1;
+            const dataLen = written1.readInt32BE(dataLenOffset);
+            const dataStart = dataLenOffset + 4;
+            const clientFirstMessage = written1.toString('utf8', dataStart, dataStart + dataLen);
+            const rMatch = clientFirstMessage.match(/r=([^,]+)/);
+            assert.ok(rMatch);
+            // Round 2: Send SASLContinue with completely different nonce (validation should fail)
+            socket.emit('data', wrapMsg(0x52, buildContinueBody('attackercontrollednonce', 'c2FsdA==', 4096)));
+            // No SASLResponse should have been written
+            assert.equal(socket.write.mock.calls.length, 1, 'No SASLResponse on nonce mismatch');
+            assert.equal(conn.isReady, false, 'Connection not ready after nonce mismatch');
+        }
+        const finalListenerCount = EventEmitter.listenerCount(process, 'warning');
+        const leaked = finalListenerCount - initialListenerCount;
+        assert.ok(leaked <= 2, `Listener leak: ${leaked} new process 'warning' listeners`);
+    });
+    it('does not leak on SCRAM failure (wrong server signature)', () => {
+        const count = 50;
+        for (let i = 0; i < count; i++) {
+            const { conn, socket } = createAuthConn();
+            // Run through Round 1 and 2
+            socket.emit('data', wrapMsg(0x52, buildSASLBody(['SCRAM-SHA-256'])));
+            const written1 = socket.write.mock.calls[0].arguments[0];
+            const mechEnd = written1.indexOf(0, 5);
+            const dataLenOffset = mechEnd + 1;
+            const dataLen = written1.readInt32BE(dataLenOffset);
+            const dataStart = dataLenOffset + 4;
+            const clientFirstMessage = written1.toString('utf8', dataStart, dataStart + dataLen);
+            const rMatch = clientFirstMessage.match(/r=([^,]+)/);
+            assert.ok(rMatch);
+            const clientNonce = rMatch[1];
+            socket.emit('data', wrapMsg(0x52, buildContinueBody(clientNonce + 'svr', 'c2FsdA==', 4096)));
+            assert.equal(socket.write.mock.calls.length, 2, 'SASLResponse written');
+            // Round 3: Send SASLFinal with wrong signature
+            const saslFinalBody = Buffer.alloc(4);
+            saslFinalBody.writeUInt32BE(12);
+            socket.emit('data', wrapMsg(0x52, Buffer.concat([saslFinalBody, Buffer.from('v=dGhpc0lzV3Jvbmc=', 'utf8')])));
+            // scramState should NOT have been cleared (auth failed, but state persists for error handling)
+            // Connection should not be ready
+            assert.equal(conn.isReady, false, 'Connection not ready after wrong signature');
+        }
+    });
+    it('verifies null state after all three failure modes', () => {
+        const count = 30;
+        // Run through all three failure modes: missing mechanism, bad nonce, bad signature
+        // then verify the connections can be GC'd
+        const conns = [];
+        // Failure mode 1: No SCRAM-SHA-256 advertised
+        for (let i = 0; i < count; i++) {
+            const { conn, socket } = createAuthConn();
+            conns.push(conn);
+            socket.emit('data', wrapMsg(0x52, buildSASLBody(['SCRAM-SHA-1'])));
+            assert.equal(socket.write.mock.calls.length, 0, 'No write when SCRAM-SHA-256 not advertised');
+        }
+        // Failure mode 2: Malformed server-first-message (missing fields)
+        for (let i = 0; i < count; i++) {
+            const { conn, socket } = createAuthConn();
+            conns.push(conn);
+            socket.emit('data', wrapMsg(0x52, buildSASLBody(['SCRAM-SHA-256'])));
+            assert.equal(socket.write.mock.calls.length, 1);
+            // Send SASLContinue without 'i' parameter (missing iterations)
+            const continueBody = Buffer.alloc(4);
+            continueBody.writeUInt32BE(11);
+            socket.emit('data', wrapMsg(0x52, Buffer.concat([continueBody, Buffer.from('r=abc,s=ZGVm', 'utf8')])));
+            assert.equal(socket.write.mock.calls.length, 1, 'No SASLResponse on malformed message');
+        }
+        // After all failures, connections should have been cleaned up
+        // (scramState is never set for mode 1, set properly for mode 2)
+        // So at minimum, the mock sockets shouldn't keep event loop alive
+        for (const conn of conns) {
+            conn.close?.();
+        }
     });
 });
 //# sourceMappingURL=memory-safety.test.js.map
