@@ -50,6 +50,29 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Validate YAML syntax
+        run: |
+          python3 << 'PYEOF'
+          import os, sys, yaml
+          errors = 0
+          for root, dirs, files in os.walk('.'):
+              dirs[:] = [d for d in dirs if d not in ('node_modules', '.git')]
+              for f in files:
+                  if not (f.endswith('.yml') or f.endswith('.yaml')):
+                      continue
+                  path = os.path.join(root, f)
+                  try:
+                      yaml.safe_load(open(path))
+                  except yaml.YAMLError as e:
+                      msg = str(e).replace('\n', ' | ')
+                      print(f'::error title=YAML Syntax Error,file={path}::{msg}')
+                      errors += 1
+                      continue
+                  print(f'  OK: {path}')
+          if errors:
+              sys.exit(1)
+          PYEOF
+
       - name: Setup Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
