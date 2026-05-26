@@ -280,20 +280,30 @@ describe('_queryParams integration (via PgConnection.query)', () => {
         assert.equal(socket.write.mock.calls.length, 1);
         const written = socket.write.mock.calls[0].arguments[0];
         // Verify the concatenated buffer starts with 'P', then 'B', then 'E', then 'S'
-        const pIdx = 0;
-        const bIdx = written.indexOf(0x42); // 'B'
-        const eIdx = written.indexOf(0x45); // 'E'
-        const sIdx = written.indexOf(0x53); // 'S'
-        assert.equal(written[pIdx], 0x50, 'First message type is Parse (P)');
-        assert.ok(bIdx > pIdx, 'Bind (B) follows Parse');
-        assert.ok(eIdx > bIdx, 'Execute (E) follows Bind');
-        assert.ok(sIdx > eIdx, 'Sync (S) follows Execute');
-        assert.equal(written[sIdx + 1 + 4], 0, 'Last byte of Sync length is correct');
+        // using length-based positioning (NOT byte-search, since query text may contain
+        // bytes matching message type bytes like 0x45 'E')
+        assert.equal(written[0], 0x50, 'First message type is Parse (P)');
+        // Parse message: type(1) + length(UInt32BE at offset 1)
+        const parseLen = written.readUInt32BE(1);
+        const bindStart = 1 + parseLen;
+        assert.equal(written[bindStart], 0x42, 'Bind (B) follows Parse');
+        // Bind message
+        const bindLen = written.readUInt32BE(bindStart + 1);
+        const execStart = bindStart + 1 + bindLen;
+        assert.equal(written[execStart], 0x45, 'Execute (E) follows Bind');
+        // Execute message
+        const execLen = written.readUInt32BE(execStart + 1);
+        const syncStart = execStart + 1 + execLen;
+        assert.equal(written[syncStart], 0x53, 'Sync (S) follows Execute');
+        // Sync message: type(1) + length(4), total 5 bytes
+        const syncLen = written.readUInt32BE(syncStart + 1);
+        assert.equal(syncLen, 4, 'Sync message length is 4 (no body)');
+        assert.equal(written.length, syncStart + 1 + syncLen, 'Written buffer ends at Sync boundary');
         // Parse message should contain the query
         const queryText = written.toString('utf8', 6, written.indexOf(0, 6));
         assert.equal(queryText, 'SELECT $1::text AS name');
         // Bind message should contain the parameter 'Alice'
-        const bindMsg = written.subarray(bIdx);
+        const bindMsg = written.subarray(bindStart);
         const bindHeaderLen = 1 + 4 + 1 + 1 + 2 + 2; // B + len + portal_null + stmt_null + fmt + count
         const aliceLen = bindMsg.readInt32BE(bindHeaderLen);
         const aliceVal = bindMsg.toString('utf8', bindHeaderLen + 4, bindHeaderLen + 4 + aliceLen);
@@ -379,8 +389,8 @@ describe('_queryParams integration (via PgConnection.query)', () => {
         const fiOffset = 2 + 4;
         rowDescBody.writeUInt32BE(0, fiOffset);
         rowDescBody.writeUInt16BE(0, fiOffset + 4);
-        rowDescBody.writeUInt32BE(25, fiOffset + 6); // text type
-        rowDescBody.writeUInt16BE(-1, fiOffset + 10);
+        rowDescBody.writeUInt32BE(25, fiOffset + 6); // text type (25)
+        rowDescBody.writeInt16BE(-1, fiOffset + 10); // typeSize = -1 (variable length, signed)
         rowDescBody.writeInt32BE(-1, fiOffset + 12);
         rowDescBody.writeUInt16BE(0, fiOffset + 16);
         const rowDescHeader = Buffer.alloc(4);
