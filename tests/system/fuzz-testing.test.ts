@@ -796,19 +796,13 @@ describe('SSE Connection — fuzz testing', () => {
     sse.close();
   });
 
-  it('handles socket end event for early cleanup', () => {
-    let endHandler: (() => void) | null = null;
+  it('handles response close event for early cleanup', () => {
     const res = mockSseResponse();
-    res.socket = {
-      once: (event: string, handler: () => void) => {
-        if (event === 'end') endHandler = handler;
-      },
-    };
     const sse = new SseConnection(res as any, 5000);
     assert.equal(sse.closed, false);
 
-    // Simulate socket end
-    if (endHandler) endHandler();
+    // Emit close on response — triggers cleanup via res.once('close')
+    res.emit('close');
     assert.equal(sse.closed, true);
   });
 });
