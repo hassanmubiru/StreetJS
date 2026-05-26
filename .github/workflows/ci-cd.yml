@@ -67,6 +67,59 @@ jobs:
           PORT: "3001"
         run: node --test dist/tests/integration.test.js
 
+  system-tests:
+    name: System Tests (security, memory, load, fuzz, chaos, infra)
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build (emit JS)
+        run: npx tsc
+
+      - name: Run security tests
+        run: node --test dist/tests/system/security.test.js
+
+      - name: Run memory-safety tests
+        run: node --test dist/tests/system/memory-safety.test.js
+
+      - name: Run load-testing tests
+        run: node --test dist/tests/system/load-testing.test.js
+
+      - name: Run fuzz-testing tests
+        run: node --test dist/tests/system/fuzz-testing.test.js
+
+      - name: Run chaos-testing tests
+        run: node --test dist/tests/system/chaos-testing.test.js
+
+      - name: Run infrastructure tests (no PG)
+        run: node --test dist/tests/system/infrastructure.test.js
+        env:
+          PG_HOST: ""  # Skip PG-dependent tests
+
+      - name: Run unified system test runner
+        run: node --test tests/system/runner.ts --ci --json --skip-pg
+
+      - name: Upload system test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: system-test-results
+          path: tests/system/system-test-results.json
+
   docker-build:
     name: Docker Build
     runs-on: ubuntu-latest

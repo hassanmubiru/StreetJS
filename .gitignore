@@ -6,3 +6,6 @@ node_modules/
 
 # Environment files
 .env
+
+# System test output
+tests/system/system-test-results.json
