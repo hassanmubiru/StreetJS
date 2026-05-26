@@ -933,4 +933,126 @@ describe('SCRAM auth nonce validation', () => {
     // Connection should NOT be ready
     assert.equal(conn.isReady, false, 'Connection not ready after failed nonce validation');
   });
+
+  it('completes full 3-round SASL-SHA-256 handshake including server signature verification', async () => {
+    const { conn, socket } = createAuthConnection();
+
+    // ── Round 1: AuthSASL → SASLInitialResponse ──
+    const saslBody = buildSASLStartupBody(['SCRAM-SHA-256']);
+    socket.emit('data', wrapAuthMessage(0x52, saslBody));
+    assert.equal(socket.write.mock.calls.length, 1);
+    const written1 = socket.write.mock.calls[0].arguments[0] as Buffer;
+    assert.equal(written1[0], 0x70, 'SASLInitialResponse written');
+
+    // Extract client nonce from client-first-message
+    const mechEnd = written1.indexOf(0, 5);
+    const dataLenOffset = mechEnd + 1;
+    const dataLen = written1.readInt32BE(dataLenOffset);
+    const dataStart = dataLenOffset + 4;
+    const clientFirstMessage = written1.toString('utf8', dataStart, dataStart + dataLen);
+    const rMatch = clientFirstMessage.match(/r=([^,]+)/);
+    assert.ok(rMatch, 'Client nonce found in SASLInitialResponse');
+    const clientNonce = rMatch![1]!;
+    const clientFirstMessageBare = `n=test,r=${clientNonce}`;
+
+    // ── Round 2: SASLContinue → compute proof → SASLResponse ──
+    const password = 'test';
+    const saltB64 = 'c2FsdHlzYWx0'; // 'saltsalt' in base64
+    const iterations = 4096;
+    const serverNonceAppend = 'serverdata';
+    const combinedNonce = clientNonce + serverNonceAppend;
+    const serverFirstMessage = `r=${combinedNonce},s=${saltB64},i=${iterations}`;
+
+    socket.emit('data', wrapAuthMessage(0x52, buildSASLContinueBody(combinedNonce, saltB64, iterations)));
+    assert.equal(socket.write.mock.calls.length, 2, 'SASLResponse written');
+    const written2 = socket.write.mock.calls[1].arguments[0] as Buffer;
+    assert.equal(written2[0], 0x70, 'SASLResponse type byte');
+
+    // Parse the SASLResponse to verify structure
+    const saslResponseBody = written2.toString('utf8', 5, written2.length);
+    const respNonceMatch = saslResponseBody.match(/r=([^,]+)/);
+    assert.ok(respNonceMatch, 'Nonce in SASLResponse');
+    assert.equal(respNonceMatch![1], combinedNonce, 'Combined nonce echoed back');
+    assert.ok(saslResponseBody.includes('c=biws'), 'c=biws present');
+    assert.ok(saslResponseBody.includes(',p='), 'proof present');
+
+    // ── Compute expected server signature ──
+    // Replicate the SCRAM math that wire.ts does internally
+    const salt = Buffer.from(saltB64, 'base64');
+    const normalizedPassword = password.normalize('NFKC');
+    const saltedPassword = pbkdf2Sync(normalizedPassword, salt, iterations, 32, 'sha256');
+    const serverKey = createHmac('sha256', saltedPassword).update('Server Key').digest();
+    const clientFinalMessageWithoutProof = `c=biws,r=${combinedNonce}`;
+    const authMessage = `${clientFirstMessageBare},${serverFirstMessage},${clientFinalMessageWithoutProof}`;
+    const expectedServerSignature = createHmac('sha256', serverKey).update(authMessage).digest('base64');
+
+    // ── Round 3: SASLFinal with correct signature → AuthOk → ReadyForQuery ──
+    const saslFinalBody = Buffer.alloc(4);
+    saslFinalBody.writeUInt32BE(12); // SASL final type
+    const finalMsg = Buffer.from(`v=${expectedServerSignature}`, 'utf8');
+    socket.emit('data', wrapAuthMessage(0x52, Buffer.concat([saslFinalBody, finalMsg])));
+
+    // Send AuthenticationOk
+    const authOkBody = Buffer.alloc(4);
+    authOkBody.writeUInt32BE(0); // AuthType.Ok
+    socket.emit('data', wrapAuthMessage(0x52, authOkBody));
+
+    // Send ParameterStatus (optional, ignored but realistic)
+    const psBody = Buffer.from('server_version\014.0\0', 'utf8');
+    socket.emit('data', wrapAuthMessage(0x53, psBody));
+
+    // Send ReadyForQuery
+    const rFQBody = Buffer.from([0x49]); // 'I' idle
+    socket.emit('data', wrapAuthMessage(0x5a, rFQBody));
+
+    // Connection should now be ready
+    assert.ok(conn.isReady, 'Connection is ready after full SASL handshake');
+  });
+
+  it('rejects authentication when server signature is wrong', async () => {
+    const { conn, socket } = createAuthConnection();
+
+    // ── Round 1: AuthSASL → SASLInitialResponse ──
+    const saslBody = buildSASLStartupBody(['SCRAM-SHA-256']);
+    socket.emit('data', wrapAuthMessage(0x52, saslBody));
+    assert.equal(socket.write.mock.calls.length, 1);
+    const written1 = socket.write.mock.calls[0].arguments[0] as Buffer;
+    assert.equal(written1[0], 0x70, 'SASLInitialResponse written');
+
+    // Extract client nonce
+    const mechEnd = written1.indexOf(0, 5);
+    const dataLenOffset = mechEnd + 1;
+    const dataLen = written1.readInt32BE(dataLenOffset);
+    const dataStart = dataLenOffset + 4;
+    const clientFirstMessage = written1.toString('utf8', dataStart, dataStart + dataLen);
+    const rMatch = clientFirstMessage.match(/r=([^,]+)/);
+    assert.ok(rMatch!);
+    const clientNonce = rMatch![1]!;
+
+    // ── Round 2: SASLContinue → SASLResponse ──
+    const saltB64 = 'bXlzYWx0'; // 'mysalt'
+    const iterations = 4096;
+    const combinedNonce = clientNonce + 'serverdata';
+    socket.emit('data', wrapAuthMessage(0x52, buildSASLContinueBody(combinedNonce, saltB64, iterations)));
+    assert.equal(socket.write.mock.calls.length, 2, 'SASLResponse written');
+
+    // ── Round 3: SASLFinal with WRONG signature ──
+    const wrongSignature = 'aW52YWxpZFNpZ25hdHVyZQ==';
+    const saslFinalBody = Buffer.alloc(4);
+    saslFinalBody.writeUInt32BE(12);
+    const finalMsg = Buffer.from(`v=${wrongSignature}`, 'utf8');
+    socket.emit('data', wrapAuthMessage(0x52, Buffer.concat([saslFinalBody, finalMsg])));
+
+    // Send AuthOk (but auth was already rejected, so this shouldn't matter)
+    const authOkBody = Buffer.alloc(4);
+    authOkBody.writeUInt32BE(0);
+    socket.emit('data', wrapAuthMessage(0x52, authOkBody));
+
+    // Send ReadyForQuery
+    const rFQBody = Buffer.from([0x49]);
+    socket.emit('data', wrapAuthMessage(0x5a, rFQBody));
+
+    // Connection should NOT be ready (auth rejected due to signature mismatch)
+    assert.equal(conn.isReady, false, 'Connection not ready after wrong server signature');
+  });
 });
