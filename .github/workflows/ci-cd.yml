@@ -52,6 +52,7 @@ jobs:
 
       - name: Validate YAML syntax
         run: |
+          pip install pyyaml -q
           python3 << 'PYEOF'
           import os, sys, yaml
           errors = 0
