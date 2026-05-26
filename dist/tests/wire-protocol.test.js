@@ -678,7 +678,7 @@ describe('SCRAM auth nonce validation', () => {
         return Buffer.concat([Buffer.from([type]), lenBuf, body]);
     }
     it('writes correct SASLInitialResponse and SASLResponse messages through the auth state machine', async () => {
-        const { conn, socket } = createAuthConnection();
+        const { socket } = createAuthConnection();
         // Round 1: Send AuthenticationSASL with SCRAM-SHA-256
         const saslBody = buildSASLStartupBody(['SCRAM-SHA-256']);
         socket.emit('data', wrapAuthMessage(0x52, saslBody));
@@ -728,7 +728,7 @@ describe('SCRAM auth nonce validation', () => {
         assert.equal(rawSaslLen, 4 + expectedBodyLen, 'SASLResponse body is raw bytes (no extra framing)');
     });
     it('rejects authentication when server nonce does not start with client nonce', async () => {
-        const { socket } = createAuthConnection();
+        const { conn, socket } = createAuthConnection();
         // First round: send SASL auth request
         const saslBody = buildSASLStartupBody(['SCRAM-SHA-256']);
         socket.emit('data', wrapAuthMessage(0x52, saslBody));
