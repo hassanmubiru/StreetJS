@@ -373,7 +373,7 @@ describe('_queryParams integration (via PgConnection.query)', () => {
         dataRowBody.writeUInt16BE(1, 0);
         dataRowBody.writeInt32BE(1, 2);
         dataRowBody[6] = 0x31; // '1'
-        const rowDescBody = Buffer.alloc(2 + 2 + 18); // count + "val\0" + fieldInfo
+        const rowDescBody = Buffer.alloc(2 + 4 + 18); // count + "val\0" + fieldInfo
         rowDescBody.writeUInt16BE(1, 0);
         Buffer.from('val\0', 'utf8').copy(rowDescBody, 2);
         const fiOffset = 2 + 4;
