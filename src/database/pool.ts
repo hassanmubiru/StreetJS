@@ -162,6 +162,13 @@ export class PgPool {
   async close(): Promise<void> {
     this.closed = true;
     clearInterval(this.sweepTimer);
+
+    // Reject all pending waiters to prevent hanging promises
+    const waiters = this.waitQueue.splice(0);
+    for (const waiter of waiters) {
+      waiter(Promise.reject(new Error('Connection pool is closed')) as unknown as PgConnection);
+    }
+
     await Promise.all(this.connections.map((p) => p.conn.close().catch(() => undefined)));
     this.connections.length = 0;
   }
