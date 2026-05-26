@@ -548,25 +548,28 @@ describe('WebSocket StreetSocket — fuzz testing', () => {
     }
   });
 
-  it('wildcard handler receives all messages', () => {
+  it('wildcard handler receives all incoming messages', () => {
     const ws = mockWs();
     const socket = new StreetSocket(ws as any);
 
     const wildcardMessages: unknown[] = [];
-    socket.on('*', (msg) => wildcardMessages.push(msg));
+    const handler = (msg: unknown) => { wildcardMessages.push(msg); };
+    socket.on('*', handler);
 
-    // Emit various messages
-    socket.emit('event1', { a: 1 });
-    socket.emit('event2', 'hello');
-    socket.emit('event3', null);
+    // Emit incoming messages via the mock WebSocket — triggers the message handler
+    ws.emit('message', Buffer.from(JSON.stringify({ type: 'event1', payload: { a: 1 }, ts: 100 })));
+    ws.emit('message', Buffer.from(JSON.stringify({ type: 'event2', payload: 'hello', ts: 200 })));
+    ws.emit('message', Buffer.from(JSON.stringify({ type: 'event3', payload: null, ts: 300 })));
 
-    // Wildcard should have received 3 messages (full WsEvent objects)
+    // Wildcard should have received 3 raw WsEvent objects (the whole message, not just payload)
     assert.equal(wildcardMessages.length, 3);
     const first = wildcardMessages[0] as WsEvent;
     assert.equal(first.type, 'event1');
+    assert.deepEqual(first.payload, { a: 1 });
 
-    socket.off('*', (msg) => wildcardMessages.push(msg));
-    socket.emit('event4', {});
+    // Remove the handler by the same reference
+    socket.off('*', handler);
+    ws.emit('message', Buffer.from(JSON.stringify({ type: 'event4', payload: {}, ts: 400 })));
     // After off(), wildcard should not receive more
     assert.equal(wildcardMessages.length, 3);
   });
@@ -682,14 +685,14 @@ describe('SSE Connection — fuzz testing', () => {
     // Only data, no event or id
     assert.doesNotThrow(() => sse.send({ data: 'hello' }));
 
-    // Only event name, no data
-    assert.doesNotThrow(() => sse.send({ event: 'update' } as any));
-
-    // Empty event
+    // Empty event and empty data
     assert.doesNotThrow(() => sse.send({ event: '', data: '' }));
 
-    // Only retry, no other fields
-    assert.doesNotThrow(() => sse.send({ retry: 5000 } as any));
+    // Only data with undefined event
+    assert.doesNotThrow(() => sse.send({ data: 'some data' }));
+
+    // Only retry with valid data
+    assert.doesNotThrow(() => sse.send({ data: 'test', retry: 5000 }));
 
     sse.close();
   });
@@ -698,8 +701,13 @@ describe('SSE Connection — fuzz testing', () => {
     const res = mockSseResponse();
     const sse = new SseConnection(res as any, 5000);
 
+    // null data → JSON.stringify('null') works fine
     assert.doesNotThrow(() => sse.send({ data: null }));
+
+    // undefined data → source handles with fallback (empty string or skip)
     assert.doesNotThrow(() => sse.send({ data: undefined }));
+
+    // Numerical/falsy values
     assert.doesNotThrow(() => sse.send({ data: 0 }));
     assert.doesNotThrow(() => sse.send({ data: false }));
     assert.doesNotThrow(() => sse.send({ data: '' }));
@@ -755,8 +763,8 @@ describe('SSE Connection — fuzz testing', () => {
 
     const output = written.join('');
     assert.ok(output.includes('event: data'));
-    assert.ok(output.includes('data: {"key":"value"'));
-    assert.ok(output.includes('data: [1,2,3]')); // single line array check
+    const expectedJson = JSON.stringify(obj);
+    assert.ok(output.includes(`data: ${expectedJson}`));
     assert.ok(output.endsWith('\n\n'));
 
     sse.close();

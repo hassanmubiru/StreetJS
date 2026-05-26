@@ -50,9 +50,12 @@ export class SseConnection {
     if (event.event) frame += `event: ${event.event}\n`;
     if (event.retry !== undefined) frame += `retry: ${event.retry}\n`;
 
+    // undefined → empty string, null/falsy → JSON.stringify handles it
     const data = typeof event.data === 'string'
       ? event.data
-      : JSON.stringify(event.data);
+      : event.data === undefined
+        ? ''
+        : JSON.stringify(event.data);
 
     // Split multi-line data correctly
     for (const line of data.split('\n')) {
