@@ -1,6 +1,6 @@
 name: Memory Leak Tests
 
-on:
+"on":
   push:
     branches: [main, develop]
   pull_request:
@@ -19,7 +19,7 @@ env:
 jobs:
   memory-leak:
     name: Memory Leak Tests
-    runs-on: ubuntu-latest
+    runs-"on": ubuntu-latest
 
     steps:
       - name: Checkout source
@@ -30,7 +30,7 @@ jobs:
       - name: Setup Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-versi"on": ${{ env.NODE_VERSION }}
           cache: 'npm'
 
       - name: Install dependencies

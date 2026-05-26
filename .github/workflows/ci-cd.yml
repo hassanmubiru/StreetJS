@@ -1,6 +1,6 @@
 name: street CI/CD
 
-on:
+"on":
   push:
     branches: [main, develop]
   pull_request:
@@ -24,7 +24,7 @@ env:
 jobs:
   build-and-test:
     name: Build, Lint, Test
-    runs-on: ubuntu-latest
+    runs-"on": ubuntu-latest
 
     env:
       KEK: ${{ secrets.KEK }}
@@ -53,7 +53,7 @@ jobs:
       - name: Setup Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-versi"on": ${{ env.NODE_VERSION }}
           cache: 'npm'
 
       - name: Install dependencies
@@ -77,7 +77,7 @@ jobs:
 
   system-tests:
     name: System Tests (security, memory, load, fuzz, chaos, infra)
-    runs-on: ubuntu-latest
+    runs-"on": ubuntu-latest
     needs: build-and-test
 
     timeout-minutes: 15
@@ -91,7 +91,7 @@ jobs:
       - name: Setup Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-versi"on": ${{ env.NODE_VERSION }}
           cache: 'npm'
 
       - name: Install dependencies
@@ -132,7 +132,7 @@ jobs:
 
   docker-build:
     name: Docker Build & Push
-    runs-on: ubuntu-latest
+    runs-"on": ubuntu-latest
     needs: build-and-test
     if: github.ref == 'refs/heads/main'
 
