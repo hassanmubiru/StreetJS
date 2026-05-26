@@ -229,11 +229,12 @@ function md5(input: string): string {
 
 /**
  * Build a SASLInitialResponse ('p') message for the chosen mechanism.
- * Per PostgreSQL wire protocol: mechanism (null-terminated) + client-first-message-bare length (Int32BE) + client-first-message-bare.
+ * Per PostgreSQL wire protocol: mechanism (null-terminated) + client-first-message length (Int32BE) + client-first-message.
+ * The client-first-message must include the gs2-header (e.g., "n,,n=user,r=nonce").
  */
-function buildSASLInitialResponse(mechanism: string, clientFirstMessageBare: string): Buffer {
+function buildSASLInitialResponse(mechanism: string, clientFirstMessage: string): Buffer {
   const mechBuf = Buffer.from(mechanism + '\0', 'utf8');
-  const firstBuf = Buffer.from(clientFirstMessageBare, 'utf8');
+  const firstBuf = Buffer.from(clientFirstMessage, 'utf8');
   const bodyLen = mechBuf.length + 4 + firstBuf.length;
   const buf = Buffer.allocUnsafe(1 + 4 + bodyLen);
   buf[0] = 0x70; // 'p'
@@ -609,9 +610,11 @@ export class PgConnection {
           return;
         }
 
-        // Generate client-first-message-bare: n=<user>,r=<client-nonce>
+        // Generate client-first-message with gs2-header: "n,,n=user,r=nonce"
         const cNonce = randomBytes(18).toString('base64url');
+        const gs2Header = 'n,,';
         const clientFirstMessageBare = `n=${opts.user},r=${cNonce}`;
+        const clientFirstMessage = gs2Header + clientFirstMessageBare;
 
         this.scramState = {
           clientFirstMessageBare,
@@ -620,7 +623,7 @@ export class PgConnection {
           authMessage: '',
         };
 
-        this.socket?.write(buildSASLInitialResponse(scramMechanism, clientFirstMessageBare));
+        this.socket?.write(buildSASLInitialResponse(scramMechanism, clientFirstMessage));
         break;
       }
 
