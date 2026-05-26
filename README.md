@@ -15,7 +15,7 @@
 | **Getting started** | [Installation & setup](docs/getting-started/installation.md) · [Your first server](docs/getting-started/first-server.md) · [Configuration](docs/getting-started/configuration.md) · [Project structure](docs/getting-started/project-structure.md) |
 | **Core** | [Dependency injection](docs/core/dependency-injection.md) · [Routing](docs/core/routing.md) · [Controllers](docs/core/controllers.md) · [Middleware](docs/core/middleware.md) |
 | **Database** | [PostgreSQL wire driver](docs/database/postgres-wire-driver.md) · [Repositories](docs/database/repositories.md) |
-| **Security** | [JWT](docs/security/jwt.md) · Sessions · Vault mode · Rate limiter · XSS sanitizer |
+| **Security** | [JWT](docs/security/jwt.md) · [Sessions, vault, rate limiter, XSS](docs/security/) |
 | **Realtime** | [WebSocket](docs/realtime/websocket.md) · SSE streaming |
 | **Performance** | [Telemetry](docs/performance/telemetry.md) · LRU cache · Cluster coordinator |
 | **Storage** | [Multipart uploads](docs/storage/multipart-uploads.md) |
