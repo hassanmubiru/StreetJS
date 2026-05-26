@@ -3,7 +3,7 @@
 // Pure node:net + node:crypto – no external dependencies.
 
 import { createConnection, type Socket } from 'node:net';
-import { createHash, createHmac, randomBytes, pbkdf2Sync } from 'node:crypto';
+import { createHash, createHmac, randomBytes, pbkdf2Sync, timingSafeEqual } from 'node:crypto';
 import { Readable } from 'node:stream';
 
 // ─── Wire Constants ────────────────────────────────────────────────────────────
@@ -283,7 +283,35 @@ export function parseScramParams(message: string): Record<string, string> {
 }
 
 /**
- * Normalise a password for SCRAM using SASLprep (NFKC normalization).
+ * Validate that a string does not contain characters prohibited by RFC 4013 §3 (SASLprep).
+ * Checks the most common prohibited categories after NFKC normalization.
+ */
+function validateSASLprep(s: string): boolean {
+  let i = 0;
+  while (i < s.length) {
+    const cp = s.codePointAt(i)!;
+    // C.2.1 - ASCII control characters (U+0000-U+001F, U+007F-U+009F)
+    if (cp <= 0x1F || (cp >= 0x7F && cp <= 0x9F)) return false;
+    // C.5 - Surrogate code points (U+D800-U+DFFF) — shouldn't appear in valid JS strings
+    if (cp >= 0xD800 && cp <= 0xDFFF) return false;
+    // C.3 - Private use code points
+    if ((cp >= 0xE000 && cp <= 0xF8FF) ||
+        (cp >= 0xF0000 && cp <= 0xFFFFD) ||
+        (cp >= 0x100000 && cp <= 0x10FFFD)) return false;
+    // C.4 - Non-character code points (ending in FFFE or FFFF)
+    if (cp <= 0x10FFFF && (cp & 0xFFFE) === 0xFFFE) return false;
+    // C.4 - Non-character code points (U+FDD0-U+FDEF)
+    if (cp >= 0xFDD0 && cp <= 0xFDEF) return false;
+    i++;
+    // Skip low surrogate if this was a supplementary character (outside BMP)
+    if (cp > 0xFFFF) i++;
+  }
+  return true;
+}
+
+/**
+ * Normalise a password for SCRAM using SASLprep (NFKC normalization
+ * + RFC 4013 §3 character prohibition).
  * For ASCII passwords this is a no-op.
  */
 function normalizePassword(password: string): string {
@@ -661,8 +689,26 @@ export class PgConnection {
         const salt = Buffer.from(saltB64, 'base64');
         const iterations = parseInt(iterationsStr, 10);
 
+        // Validate salt length and iteration count
+        if (salt.length === 0 || !Number.isFinite(iterations) || iterations < 4096 || iterations > 10_000_000) {
+          if (this.authReject) {
+            this.authReject(new Error('SCRAM server sent invalid salt length or iteration count'));
+            this.authReject = null;
+          }
+          return;
+        }
+
         // Compute SaltedPassword = Hi(normalize(password), salt, iterations)
         const normalizedPassword = normalizePassword(opts.password);
+
+        // Validate normalized password against SASLprep character prohibitions
+        if (!validateSASLprep(normalizedPassword)) {
+          if (this.authReject) {
+            this.authReject(new Error('Password contains characters prohibited by SASLprep (RFC 4013)'));
+            this.authReject = null;
+          }
+          return;
+        }
         const saltedPassword = scramHi(normalizedPassword, salt, iterations);
         this.scramState.saltedPassword = saltedPassword;
 
@@ -717,11 +763,12 @@ export class PgConnection {
         }
 
         // Verify server signature: ServerSignature = HMAC(ServerKey, AuthMessage)
+        // Use timingSafeEqual to prevent timing side-channel attacks on the comparison.
         const serverKey = createHmac('sha256', this.scramState.saltedPassword).update('Server Key').digest();
         const expectedSignature = createHmac('sha256', serverKey).update(this.scramState.authMessage).digest();
-        const expectedB64 = expectedSignature.toString('base64');
+        const sigBuf = Buffer.from(serverSignatureB64, 'base64');
 
-        if (serverSignatureB64 !== expectedB64) {
+        if (sigBuf.length !== expectedSignature.length || !timingSafeEqual(sigBuf, expectedSignature)) {
           if (this.authReject) {
             this.authReject(new Error('SCRAM server signature mismatch — possible MITM attack'));
             this.authReject = null;
