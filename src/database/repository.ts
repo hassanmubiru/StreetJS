@@ -117,29 +117,5 @@ export class LedgerTransactionService {
   }
 }
 
-// ─── SQL escaping helpers ───────────────────────────────────────────────────────
-
-function escapeString(val: string): string {
-  return val.replace(/'/g, "''").replace(/\\/g, '\\\\');
-}
-
-function escapeValue(val: unknown): string {
-  if (val === null || val === undefined) return 'NULL';
-  if (typeof val === 'boolean') return val ? 'TRUE' : 'FALSE';
-  if (typeof val === 'number') return isFinite(val) ? String(val) : 'NULL';
-  return `'${escapeString(String(val))}'`;
-}
-
-function buildInsert(data: Record<string, unknown>): { columns: string; values: string } {
-  const keys = Object.keys(data).filter((k) => data[k] !== undefined);
-  const columns = keys.map((k) => `"${k}"`).join(', ');
-  const values = keys.map((k) => escapeValue(data[k])).join(', ');
-  return { columns, values };
-}
-
-function buildUpdate(data: Record<string, unknown>): string {
-  return Object.entries(data)
-    .filter(([, v]) => v !== undefined)
-    .map(([k, v]) => `"${k}" = ${escapeValue(v)}`)
-    .join(', ');
-}
+// ─── SQL escaping helpers (deprecated — kept for reference) ────────────────────
+// Parameterized queries via pool.query(sql, params) should be used instead.
