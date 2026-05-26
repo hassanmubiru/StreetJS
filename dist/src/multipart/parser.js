@@ -50,8 +50,8 @@ export class MultipartParser {
                         totalBytes += chunk.length;
                         if (totalBytes > this.maxBytes) {
                             done = true;
-                            removeListeners();
                             req.destroy(new Error('Multipart upload exceeds size limit'));
+                            removeListeners();
                             reject(new Error('Upload too large'));
                             return;
                         }

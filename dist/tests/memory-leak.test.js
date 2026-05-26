@@ -108,7 +108,7 @@ describe('PgPool — waiter rejection on close', () => {
         mockConnect = mock.method(PgConnection, 'connect', mockConn);
     });
     afterEach(() => {
-        mockConnect.restore();
+        mockConnect.mock.restore();
     });
     it('rejects pending acquire waiters when pool is closed', async () => {
         const { PgPool } = await import('../src/database/pool.js');
