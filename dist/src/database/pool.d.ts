@@ -1,4 +1,4 @@
-import { PgConnection, type PgConnectOptions, type PgResult } from './wire.js';
+import { PgConnection, type PgConnectOptions, type PgResult, type StreetPostgresWireStream } from './wire.js';
 export interface PoolOptions extends PgConnectOptions {
     minConnections?: number;
     maxConnections?: number;
@@ -20,6 +20,8 @@ export declare class PgPool {
     acquire(): Promise<PgConnection>;
     /** Release connection back to pool */
     release(conn: PgConnection): void;
+    /** Execute a streaming query — automatically manages acquire/release */
+    stream(sql: string): Promise<StreetPostgresWireStream>;
     /** Execute a query with automatic connection management */
     query(sql: string, params?: unknown[]): Promise<PgResult>;
     /** Execute in a transaction */

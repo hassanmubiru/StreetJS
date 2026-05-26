@@ -93,6 +93,14 @@ let PgPool = class PgPool {
             waiter.resolve(pooled.conn);
         }
     }
+    /** Execute a streaming query — automatically manages acquire/release */
+    async stream(sql) {
+        const conn = await this.acquire();
+        const stream = conn.queryStream(sql);
+        // 'close' fires after 'end' (success) or 'error' (failure) — covers both
+        stream.once('close', () => this.release(conn));
+        return stream;
+    }
     /** Execute a query with automatic connection management */
     async query(sql, params) {
         const conn = await this.acquire();

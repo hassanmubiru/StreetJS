@@ -1,7 +1,7 @@
 // src/database/pool.ts
 // Bounded PostgreSQL connection pool with health checking and backpressure.
 
-import { PgConnection, type PgConnectOptions, type PgResult } from './wire.js';
+import { PgConnection, type PgConnectOptions, type PgResult, type StreetPostgresWireStream } from './wire.js';
 import { Injectable } from '../core/container.js';
 
 export interface PoolOptions extends PgConnectOptions {
@@ -120,6 +120,15 @@ export class PgPool {
       clearTimeout(waiter.timer);
       waiter.resolve(pooled.conn);
     }
+  }
+
+  /** Execute a streaming query — automatically manages acquire/release */
+  async stream(sql: string): Promise<StreetPostgresWireStream> {
+    const conn = await this.acquire();
+    const stream = conn.queryStream(sql);
+    // 'close' fires after 'end' (success) or 'error' (failure) — covers both
+    stream.once('close', () => this.release(conn));
+    return stream;
   }
 
   /** Execute a query with automatic connection management */

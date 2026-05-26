@@ -55,9 +55,7 @@ export class StreetPostgresRepository {
     }
     /** Stream rows with backpressure */
     streamAll(sql) {
-        return this.pool['connections']
-            .find((p) => !p.inUse)
-            ?.conn.queryStream(sql) ?? (() => { throw new Error('No idle connection for streaming'); })();
+        return this.pool.stream(sql);
     }
 }
 // ─── ACID ledger service ────────────────────────────────────────────────────────

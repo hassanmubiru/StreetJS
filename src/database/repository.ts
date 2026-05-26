@@ -92,10 +92,8 @@ export abstract class StreetPostgresRepository<T extends object>
   }
 
   /** Stream rows with backpressure */
-  streamAll(sql: string): import('./wire.js').StreetPostgresWireStream {
-    return this.pool['connections']
-      .find((p: { inUse: boolean }) => !p.inUse)
-      ?.conn.queryStream(sql) ?? ((): never => { throw new Error('No idle connection for streaming'); })();
+  streamAll(sql: string): Promise<import('./wire.js').StreetPostgresWireStream> {
+    return this.pool.stream(sql);
   }
 }
 

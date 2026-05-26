@@ -1,0 +1,32 @@
+name: Memory Leak Tests
+
+on:
+  push:
+  pull_request:
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  memory-leak:
+    name: Memory Leak Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript compilation
+        run: npx tsc
+
+      - name: Run memory leak and wire protocol tests
+        run: node --test dist/tests/memory-leak.test.js dist/tests/wire-protocol.test.js

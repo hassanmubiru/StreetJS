@@ -22,7 +22,7 @@ export declare abstract class StreetPostgresRepository<T extends object> impleme
     /** Execute raw SQL within a transaction */
     withTransaction<R>(fn: (conn: PgConnection) => Promise<R>): Promise<R>;
     /** Stream rows with backpressure */
-    streamAll(sql: string): import('./wire.js').StreetPostgresWireStream;
+    streamAll(sql: string): Promise<import('./wire.js').StreetPostgresWireStream>;
 }
 export declare class LedgerTransactionService {
     private readonly pool;
