@@ -247,15 +247,15 @@ function buildSASLInitialResponse(mechanism: string, clientFirstMessage: string)
 
 /**
  * Build a SASLResponse ('p') message containing the client-final-message.
- * Per PostgreSQL wire protocol: body length (Int32BE) + client-final-message (UTF-8).
+ * Per PostgreSQL wire protocol: the message body is the raw SASL payload bytes
+ * (unlike SASLInitialResponse which has an Int32 length prefix before the data).
  */
 function buildSASLResponse(clientFinalMessage: string): Buffer {
   const msgBuf = Buffer.from(clientFinalMessage, 'utf8');
-  const buf = Buffer.allocUnsafe(1 + 4 + 4 + msgBuf.length);
+  const buf = Buffer.allocUnsafe(1 + 4 + msgBuf.length);
   buf[0] = 0x70; // 'p'
-  buf.writeUInt32BE(4 + 4 + msgBuf.length, 1);
-  buf.writeUInt32BE(msgBuf.length, 5);
-  msgBuf.copy(buf, 9);
+  buf.writeUInt32BE(4 + msgBuf.length, 1);
+  msgBuf.copy(buf, 5);
   return buf;
 }
 
