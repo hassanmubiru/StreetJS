@@ -17,6 +17,7 @@ jobs:
   zizmor:
     name: Lint workflows with zizmor
     runs-on: ubuntu-latest
+    timeout-minutes: 5
 
     steps:
       - name: Checkout source
@@ -27,3 +28,4 @@ jobs:
         with:
           min-severity: medium
           advanced-security: false
+          annotations: true
