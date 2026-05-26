@@ -72,7 +72,8 @@ function buildTerminateMessage() {
     return buf;
 }
 // ─── Extended Query Protocol: Parse / Bind / Execute / Sync ────────────────────
-function buildParseMessage(query) {
+/** @internal Exported for testing. Builds a PostgreSQL Parse ('P') message. */
+export function buildParseMessage(query) {
     const queryBuf = Buffer.from(query + '\0', 'utf8');
     // Empty statement name + query string + 2-byte zero param types count
     const stmtNameLen = 1; // just null terminator for empty name
@@ -96,7 +97,8 @@ function buildParseMessage(query) {
     buf.writeUInt32BE(offset - 1, lenOffset);
     return buf.subarray(0, offset);
 }
-function buildBindMessage(params) {
+/** @internal Exported for testing. Builds a PostgreSQL Bind ('B') message. */
+export function buildBindMessage(params) {
     let totalLen = 1 + 4; // 'B' + length
     // Portal name (empty)
     totalLen += 1; // null terminator
@@ -175,7 +177,8 @@ function buildBindMessage(params) {
     offset += 2;
     return buf.subarray(0, offset);
 }
-function buildExecuteMessage() {
+/** @internal Exported for testing. Builds a PostgreSQL Execute ('E') message. */
+export function buildExecuteMessage() {
     const buf = Buffer.allocUnsafe(1 + 4 + 1 + 4);
     buf[0] = 0x45; // 'E'
     buf.writeUInt32BE(9, 1); // length
@@ -183,7 +186,8 @@ function buildExecuteMessage() {
     buf.writeUInt32BE(0, 6); // max rows (0 = unlimited)
     return buf;
 }
-function buildSyncMessage() {
+/** @internal Exported for testing. Builds a PostgreSQL Sync ('S') message. */
+export function buildSyncMessage() {
     const buf = Buffer.allocUnsafe(5);
     buf[0] = 0x53; // 'S'
     buf.writeUInt32BE(4, 1);

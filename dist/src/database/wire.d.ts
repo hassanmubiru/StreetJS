@@ -1,4 +1,12 @@
 import { Readable } from 'node:stream';
+/** @internal Exported for testing. Builds a PostgreSQL Parse ('P') message. */
+export declare function buildParseMessage(query: string): Buffer;
+/** @internal Exported for testing. Builds a PostgreSQL Bind ('B') message. */
+export declare function buildBindMessage(params: unknown[]): Buffer;
+/** @internal Exported for testing. Builds a PostgreSQL Execute ('E') message. */
+export declare function buildExecuteMessage(): Buffer;
+/** @internal Exported for testing. Builds a PostgreSQL Sync ('S') message. */
+export declare function buildSyncMessage(): Buffer;
 export interface PgRow {
     [column: string]: string | null;
 }
