@@ -1,0 +1,47 @@
+# Keep GitHub Actions and npm dependencies up to date
+# Dependabot will create PRs to update SHA-pinned actions and npm packages
+
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "UTC"
+    # Group all action updates into a single PR per week
+    groups:
+      actions:
+        patterns:
+          - "*"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    # Keep up to 10 open PRs for actions at any time
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "UTC"
+    # Group dev dependencies into one PR, runtime deps into another
+    groups:
+      development-dependencies:
+        dependency-type: "development"
+        patterns:
+          - "*"
+      production-dependencies:
+        dependency-type: "production"
+        patterns:
+          - "*"
+    labels:
+      - "dependencies"
+      - "npm"
+    # Keep up to 10 open PRs for npm at any time
+    open-pull-requests-limit: 10
+    # Don't bump the lockfile-only version — we want actual version bumps
+    versioning-strategy: increase
