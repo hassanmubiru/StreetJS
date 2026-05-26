@@ -33,7 +33,8 @@ export class StreetMigrationRunner {
       await this.pool.transaction(async (conn) => {
         await conn.query(sql);
         await conn.query(
-          `INSERT INTO ${MIGRATIONS_TABLE} (name, applied_at) VALUES ('${file.replace(/'/g, "''")}', NOW())`
+          `INSERT INTO ${MIGRATIONS_TABLE} (name, applied_at) VALUES ($1, NOW())`,
+          [file]
         );
       });
 
@@ -63,7 +64,8 @@ export class StreetMigrationRunner {
       await this.pool.transaction(async (conn) => {
         await conn.query(sql);
         await conn.query(
-          `DELETE FROM ${MIGRATIONS_TABLE} WHERE name = '${name.replace(/'/g, "''")}'`
+          `DELETE FROM ${MIGRATIONS_TABLE} WHERE name = $1`,
+          [name]
         );
       });
 
