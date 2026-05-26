@@ -18,8 +18,8 @@ updates:
     labels:
       - "dependencies"
       - "github-actions"
-    # Keep up to 10 open PRs for actions at any time
-    open-pull-requests-limit: 10
+    # Keep up to 5 open PRs for actions at any time
+    open-pull-requests-limit: 5
 
   - package-ecosystem: "npm"
     directory: "/"
@@ -41,7 +41,7 @@ updates:
     labels:
       - "dependencies"
       - "npm"
-    # Keep up to 10 open PRs for npm at any time
-    open-pull-requests-limit: 10
+    # Keep up to 5 open PRs for npm at any time
+    open-pull-requests-limit: 5
     # Don't bump the lockfile-only version — we want actual version bumps
     versioning-strategy: increase
