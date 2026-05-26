@@ -23,6 +23,7 @@ import {
   parseSASLMechanisms,
   parseScramParams,
   xorBuffers,
+  validateSASLprep,
   PgConnection,
 } from '../src/database/wire.js';
 import { pbkdf2Sync, createHmac } from 'node:crypto';
@@ -1049,5 +1050,232 @@ describe('SCRAM auth nonce validation', () => {
     // send ErrorResponse here — it would NOT send AuthOk or ReadyForQuery.
     // Connection should NOT be ready (still in 'authenticating' state)
     assert.equal(conn.isReady, false, 'Connection not ready after wrong server signature');
+  });
+});
+
+// ─── Suite 12: validateSASLprep — Unicode edge cases ──────────────────────────
+//
+// Tests the SASLprep prohibited-character validator (RFC 4013 §2.3) with
+// edge-case Unicode code points from categories C.2.1, C.3, C.4, and C.5.
+// Uses JavaScript's built-in UTF-16 awareness via String.codePointAt().
+
+describe('validateSASLprep', () => {
+  // ── Valid inputs (should return true) ──
+
+  it('accepts empty string', () => {
+    assert.equal(validateSASLprep(''), true);
+  });
+
+  it('accepts basic ASCII letters and digits', () => {
+    assert.equal(validateSASLprep('password123'), true);
+    assert.equal(validateSASLprep('JohnDoe'), true);
+    assert.equal(validateSASLprep('a'), true);
+  });
+
+  it('accepts common ASCII symbols', () => {
+    assert.equal(validateSASLprep('hello_world!'), true);
+    assert.equal(validateSASLprep('pass-word@host'), true);
+    assert.equal(validateSASLprep('ABC123.-_~'), true);
+  });
+
+  it('accepts accented Latin characters (Latin-1 Supplement, C1 Controls range overlap check)', () => {
+    // U+00A1 (¡) is NOT in C.2.1 range (7F-9F ends at 9F), should pass
+    assert.equal(validateSASLprep('¡Hola!'), true);
+    // U+00E9 (é), U+00F1 (ñ) — common accented chars
+    assert.equal(validateSASLprep('café'), true);
+    assert.equal(validateSASLprep('jalapeño'), true);
+    // U+00DF (ß) — eszett
+    assert.equal(validateSASLprep('straße'), true);
+  });
+
+  it('accepts CJK ideographs and non-Latin scripts', () => {
+    assert.equal(validateSASLprep('密码'), true);
+    assert.equal(validateSASLprep('パスワード'), true);
+    assert.equal(validateSASLprep('비밀번호'), true);
+    assert.equal(validateSASLprep('كلمةالسر'), true);
+  });
+
+  it('accepts emoji and supplementary plane characters (non-private-use, non-non-character)', () => {
+    // U+1F600 — GRINNING FACE emoji
+    assert.equal(validateSASLprep('😀'), true);
+    // U+1F389 — PARTY POPPER
+    assert.equal(validateSASLprep('🎉'), true);
+    // Combined with ASCII
+    assert.equal(validateSASLprep('hello😀world'), true);
+  });
+
+  it('accepts Deseret alphabet and other ancient scripts in supplementary planes', () => {
+    // U+10400 — DESERET CAPITAL LETTER LONG I (supplementary plane, valid)
+    assert.equal(validateSASLprep('𐐀'), true);
+    // U+10330 — GOTHIC LETTER AHSA
+    assert.equal(validateSASLprep('𐌰'), true);
+  });
+
+  it('accepts soft hyphen and other B.1 mapped-to-nothing characters (not prohibited)', () => {
+    // U+00AD — SOFT HYPHEN (B.1 mapped-to-nothing, NOT prohibited)
+    assert.equal(validateSASLprep('\u00AD'), true);
+    // U+034F — COMBINING GRAPHEME JOINER (B.1)
+    assert.equal(validateSASLprep('\u034F'), true);
+  });
+
+  it('accepts combining characters (valid per SASLprep)', () => {
+    // U+0300 — COMBINING GRAVE ACCENT
+    assert.equal(validateSASLprep('a\u0300'), true);
+    // Multiple combining marks
+    assert.equal(validateSASLprep('e\u0301\u0302'), true);
+  });
+
+  it('accepts space characters that are not ASCII controls', () => {
+    // U+0020 — SPACE (valid, not a control char)
+    assert.equal(validateSASLprep('hello world'), true);
+    // U+00A0 — NO-BREAK SPACE (valid, NOT in C.2.1 — 7F-9F ends at 9F)
+    assert.equal(validateSASLprep('hello\u00A0world'), true);
+  });
+
+  // ── Invalid inputs (should return false) ──
+
+  it('rejects C.2.1 — ASCII control characters (U+0000-U+001F)', () => {
+    // Null character
+    assert.equal(validateSASLprep('\x00'), false);
+    // Tab
+    assert.equal(validateSASLprep('\t'), false);
+    // Newline
+    assert.equal(validateSASLprep('\n'), false);
+    // Carriage return
+    assert.equal(validateSASLprep('\r'), false);
+    // Unit separator (U+001F)
+    assert.equal(validateSASLprep('\x1F'), false);
+    // Within a string with valid chars
+    assert.equal(validateSASLprep('pass\x00word'), false);
+    assert.equal(validateSASLprep('pass\nword'), false);
+  });
+
+  it('rejects C.2.1 — DEL and C1 control characters (U+007F-U+009F)', () => {
+    // DEL (U+007F)
+    assert.equal(validateSASLprep('\x7F'), false);
+    // Padding character (U+0080)
+    assert.equal(validateSASLprep('\x80'), false);
+    // Application Program Command (U+009F)
+    assert.equal(validateSASLprep('\x9F'), false);
+    // Embedded in a valid string
+    assert.equal(validateSASLprep('hello\x7Fworld'), false);
+  });
+
+  it('rejects C.3 — BMP private use area (U+E000-U+F8FF)', () => {
+    // Start of BMP private use
+    assert.equal(validateSASLprep('\uE000'), false);
+    // End of BMP private use
+    assert.equal(validateSASLprep('\uF8FF'), false);
+    // Middle of BMP private use
+    assert.equal(validateSASLprep('\uF000'), false);
+    // Embedded in a valid string
+    assert.equal(validateSASLprep('pass\uE000word'), false);
+  });
+
+  it('rejects C.3 — supplementary private use areas (Planes 15-16)', () => {
+    // Plane 15 private use: U+F0000-U+FFFFD
+    assert.equal(validateSASLprep(String.fromCodePoint(0xF0000)), false);
+    assert.equal(validateSASLprep(String.fromCodePoint(0xFFFFD)), false);
+    // Plane 16 private use: U+100000-U+10FFFD
+    assert.equal(validateSASLprep(String.fromCodePoint(0x100000)), false);
+    assert.equal(validateSASLprep(String.fromCodePoint(0x10FFFD)), false);
+    // Embedded with valid characters
+    assert.equal(validateSASLprep('a' + String.fromCodePoint(0xF0000) + 'b'), false);
+  });
+
+  it('rejects C.4 — non-character code points (U+FDD0-U+FDEF)', () => {
+    // Start of non-character range
+    assert.equal(validateSASLprep('\uFDD0'), false);
+    // End of non-character range
+    assert.equal(validateSASLprep('\uFDEF'), false);
+    // Middle of non-character range
+    assert.equal(validateSASLprep('\uFDE0'), false);
+  });
+
+  it('rejects C.4 — non-character code points ending in FFFE or FFFF', () => {
+    // BMP non-characters
+    assert.equal(validateSASLprep('\uFFFE'), false);
+    assert.equal(validateSASLprep('\uFFFF'), false);
+    // Supplementary plane non-characters
+    assert.equal(validateSASLprep(String.fromCodePoint(0x1FFFE)), false);
+    assert.equal(validateSASLprep(String.fromCodePoint(0x1FFFF)), false);
+    assert.equal(validateSASLprep(String.fromCodePoint(0x2FFFE)), false);
+    assert.equal(validateSASLprep(String.fromCodePoint(0x2FFFF)), false);
+    // Maximum code point non-characters
+    assert.equal(validateSASLprep(String.fromCodePoint(0x10FFFE)), false);
+    assert.equal(validateSASLprep(String.fromCodePoint(0x10FFFF)), false);
+  });
+
+  it('rejects C.5 — surrogate code points (U+D800-U+DFFF)', () => {
+    // High surrogates
+    assert.equal(validateSASLprep(String.fromCharCode(0xD800)), false);
+    assert.equal(validateSASLprep(String.fromCharCode(0xDB7F)), false);
+    // Low surrogates
+    assert.equal(validateSASLprep(String.fromCharCode(0xDC00)), false);
+    assert.equal(validateSASLprep(String.fromCharCode(0xDFFF)), false);
+    // Isolated surrogate embedded with valid characters
+    assert.equal(validateSASLprep('a' + String.fromCharCode(0xD800) + 'b'), false);
+  });
+
+  it('rejects strings with multiple prohibited characters', () => {
+    // Control char + private use + non-character
+    const mixed = '\x00' + '\uE000' + '\uFFFE';
+    assert.equal(validateSASLprep(mixed), false);
+    // Private use + surrogate
+    const mixed2 = '\uF8FF' + String.fromCharCode(0xD800);
+    assert.equal(validateSASLprep(mixed2), false);
+  });
+
+  // ── Supplementary code point index increment ──
+
+  it('correctly iterates supplementary characters without off-by-one errors', () => {
+    // A string with supplementary char + ASCII should be valid
+    // If the index increment logic is wrong, it would read the trailing surrogate
+    // as a standalone code point and potentially mis-classify or reject it.
+    assert.equal(validateSASLprep('😀x'), true);
+    // Multiple supplementary chars
+    assert.equal(validateSASLprep('😀🎉'), true);
+    // Supplementary char followed by a non-character (boundary test)
+    assert.equal(validateSASLprep('😀' + String.fromCodePoint(0x1FFFE)), false);
+    // Multiple supplementary chars, then ASCII, then control char
+    assert.equal(validateSASLprep('😀🎉xyz' + '\x00'), false);
+  });
+
+  it('handles code point exactly at boundaries of each prohibited category', () => {
+    // Boundary: one below, at, and above each range boundary
+
+    // C.2.1: ASCII control boundary at U+001F/U+0020
+    assert.equal(validateSASLprep(' '), true);      // U+0020 — valid (space)
+    assert.equal(validateSASLprep('\x1F'), false);  // U+001F — control char
+
+    // C.2.1: DEL + C1 boundary at U+007F/U+0080
+    assert.equal(validateSASLprep('~'), true);       // U+007E — ~ is valid
+    assert.equal(validateSASLprep('\x7F'), false);  // U+007F — DEL
+    assert.equal(validateSASLprep('\x80'), false);  // U+0080 — C1 control
+    assert.equal(validateSASLprep('\u00A0'), true); // U+00A0 — just above C1, valid
+
+    // C.3: BMP private use boundary at U+DFFF/U+E000
+    assert.equal(validateSASLprep('\uDFFF'), false); // U+DFFF — surrogate (C.5)
+    assert.equal(validateSASLprep('\uE000'), false); // U+E000 — private use start
+    assert.equal(validateSASLprep('\uF8FF'), false); // U+F8FF — private use end
+    // U+F900 is outside private use (it's CJK compat ideographs)
+    assert.equal(validateSASLprep('\uF900'), true);
+
+    // C.4: Non-character boundary at U+FDEF/U+FDD0
+    assert.equal(validateSASLprep('\uFDCF'), true);  // U+FDCF — valid (just before non-char range)
+    assert.equal(validateSASLprep('\uFDD0'), false); // U+FDD0 — non-char start
+    assert.equal(validateSASLprep('\uFDEF'), false); // U+FDEF — non-char end
+    assert.equal(validateSASLprep('\uFDF0'), true);  // U+FDF0 — valid (just after non-char range)
+
+    // C.4: Non-character at FFFE/FFFF
+    assert.equal(validateSASLprep('\uFFFD'), true);  // U+FFFD — valid (replacement char)
+    assert.equal(validateSASLprep('\uFFFE'), false); // U+FFFE — non-char
+    assert.equal(validateSASLprep('\uFFFF'), false); // U+FFFF — non-char
+
+    // C.5: Surrogate boundary at U+D7FF/U+D800/U+DFFF/U+E000
+    assert.equal(validateSASLprep('\uD7FF'), true);  // U+D7FF — valid (just before surrogates)
+    assert.equal(validateSASLprep('\uD800'), false); // U+D800 — high surrogate start
+    assert.equal(validateSASLprep('\uDFFF'), false); // U+DFFF — low surrogate end
+    assert.equal(validateSASLprep('\uE000'), false); // U+E000 — private use
   });
 });
