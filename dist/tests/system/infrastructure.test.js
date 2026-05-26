@@ -313,7 +313,7 @@ describe('Migration System — (requires PG, skipped if unavailable)', () => {
     let runner;
     let migrationsDir;
     const PG_HOST = process.env['PG_HOST'];
-    const testEnabled = PG_HOST !== undefined;
+    const testEnabled = PG_HOST !== undefined && PG_HOST !== '';
     before(async function () {
         if (!testEnabled) {
             console.log('[SKIP] Migration tests require PG_HOST set');
