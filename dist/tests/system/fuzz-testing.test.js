@@ -408,7 +408,7 @@ describe('WebSocket StreetSocket — fuzz testing', () => {
     it(`handles ${FUZZ_COUNT} fuzzed messages without throwing`, () => {
         for (let i = 0; i < FUZZ_COUNT; i++) {
             const ws = mockWs();
-            const socket = new StreetSocket(ws);
+            new StreetSocket(ws);
             const raw = fuzzWsEvent();
             assert.doesNotThrow(() => {
                 ws.emit('message', Buffer.from(raw));
@@ -418,7 +418,7 @@ describe('WebSocket StreetSocket — fuzz testing', () => {
     it(`handles ${FUZZ_COUNT} fuzzed message buffer variants (string / Buffer / raw bytes)`, () => {
         for (let i = 0; i < FUZZ_COUNT; i++) {
             const ws = mockWs();
-            const socket = new StreetSocket(ws);
+            new StreetSocket(ws);
             const variant = Math.random();
             assert.doesNotThrow(() => {
                 if (variant < 0.33) {
@@ -531,6 +531,7 @@ describe('WebSocket StreetSocket — fuzz testing', () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 /** Create a mock ServerResponse for SseConnection testing */
 function mockSseResponse() {
+    // Returns an object matching ServerResponse interface {
     const res = new EventEmitter();
     res.writeHead = () => { };
     res.writableEnded = false;
