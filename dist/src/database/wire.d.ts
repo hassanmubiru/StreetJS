@@ -9,6 +9,16 @@ export declare function buildExecuteMessage(): Buffer;
 export declare function buildDescribeMessage(): Buffer;
 /** @internal Exported for testing. Builds a PostgreSQL Sync ('S') message. */
 export declare function buildSyncMessage(): Buffer;
+/** @internal Exported for testing. Builds a SASLInitialResponse ('p') message. */
+export declare function buildSASLInitialResponse(mechanism: string, clientFirstMessage: string): Buffer;
+/** @internal Exported for testing. Builds a SASLResponse ('p') message with raw client-final-message bytes. */
+export declare function buildSASLResponse(clientFinalMessage: string): Buffer;
+/** @internal Exported for testing. Parse a SASL mechanism list from buffer (null-terminated strings). */
+export declare function parseSASLMechanisms(data: Buffer): string[];
+/** @internal Exported for testing. Parse SCRAM key=value parameters from a comma-separated message string. */
+export declare function parseScramParams(message: string): Record<string, string>;
+/** @internal Exported for testing. XOR two buffers together (bytewise). */
+export declare function xorBuffers(a: Buffer, b: Buffer): Buffer;
 export interface PgRow {
     [column: string]: string | null;
 }

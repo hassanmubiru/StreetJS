@@ -10,7 +10,7 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
-import { buildParseMessage, buildBindMessage, buildExecuteMessage, buildSyncMessage, PgConnection, } from '../src/database/wire.js';
+import { buildParseMessage, buildBindMessage, buildExecuteMessage, buildSyncMessage, buildSASLInitialResponse, buildSASLResponse, parseSASLMechanisms, parseScramParams, xorBuffers, PgConnection, } from '../src/database/wire.js';
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 /** Build a complete PG server response from an array of {type, body} parts */
 function serverResponse(msgs) {
@@ -249,9 +249,9 @@ describe('buildSyncMessage', () => {
 // ─── Suite 5: _queryParams integration ────────────────────────────────────────
 //
 // Wires a mock socket into PgConnection to verify the extended query protocol
-// flow without a real database: Parse → Bind → Execute → Sync messages are
-// written atomically, and the connection correctly handles the server response
-// cycle (ParseComplete → BindComplete → CommandComplete → ReadyForQuery).
+// flow without a real database: Parse → Describe → Bind → Execute → Sync
+// messages are written atomically, and the connection correctly handles the
+// server response cycle.
 describe('_queryParams integration (via PgConnection.query)', () => {
     /** Helper: create a PgConnection wired to a mock socket */
     function createMockedConnection() {
@@ -410,6 +410,406 @@ describe('_queryParams integration (via PgConnection.query)', () => {
         const conn = new PgConnection();
         // State is 'connecting' by default — query should reject
         await assert.rejects(() => conn.query('SELECT $1', ['test']), /Cannot query: connection is in state "connecting"/);
+    });
+});
+// ─── Suite 6: buildSASLInitialResponse ────────────────────────────────────────
+describe('buildSASLInitialResponse', () => {
+    it('has type byte 0x70 (p)', () => {
+        const buf = buildSASLInitialResponse('SCRAM-SHA-256', 'n,,n=user,r=abc');
+        assert.equal(buf[0], 0x70);
+    });
+    it('encodes the mechanism as a null-terminated string', () => {
+        const buf = buildSASLInitialResponse('SCRAM-SHA-256', 'n,,n=user,r=abc');
+        // After type(1) + length(4) = offset 5
+        const nullAt = buf.indexOf(0, 5);
+        const mechanism = buf.toString('utf8', 5, nullAt);
+        assert.equal(mechanism, 'SCRAM-SHA-256');
+    });
+    it('encodes the client-first-message length as Int32BE before the data', () => {
+        const msg = 'n,,n=user,r=abc123';
+        const buf = buildSASLInitialResponse('SCRAM-SHA-256', msg);
+        // After type(1) + len(4) + mechanism + null(1) = offset varies
+        const mechEnd = buf.indexOf(0, 5); // null at end of mechanism
+        const dataLenOffset = mechEnd + 1;
+        const dataLen = buf.readInt32BE(dataLenOffset);
+        assert.equal(dataLen, Buffer.from(msg, 'utf8').length);
+    });
+    it('places the client-first-message bytes after the length prefix', () => {
+        const msg = 'n,,n=user,r=myrandomnonce';
+        const buf = buildSASLInitialResponse('SCRAM-SHA-256', msg);
+        const mechEnd = buf.indexOf(0, 5);
+        const dataLenOffset = mechEnd + 1;
+        const dataLen = buf.readInt32BE(dataLenOffset);
+        const dataStart = dataLenOffset + 4;
+        const extracted = buf.toString('utf8', dataStart, dataStart + dataLen);
+        assert.equal(extracted, msg);
+    });
+    it('computes correct total message length', () => {
+        const mechanism = 'SCRAM-SHA-256';
+        const msg = 'n,,n=user,r=abc';
+        const buf = buildSASLInitialResponse(mechanism, msg);
+        const msgLen = buf.readUInt32BE(1);
+        // total wire bytes = 1 (type) + length field
+        assert.equal(buf.length, 1 + msgLen);
+    });
+    it('round-trips a realistic client-first-message with gs2-header', () => {
+        const mechanism = 'SCRAM-SHA-256';
+        const gs2Header = 'n,,';
+        const cNonce = '9mM4WxLq7RtBp2KjHvY3Zw';
+        const clientFirstMessageBare = `n=testuser,r=${cNonce}`;
+        const clientFirstMessage = gs2Header + clientFirstMessageBare;
+        const buf = buildSASLInitialResponse(mechanism, clientFirstMessage);
+        const msgLen = buf.readUInt32BE(1);
+        // Decode mechanism
+        const mechEnd = buf.indexOf(0, 5);
+        const decodedMech = buf.toString('utf8', 5, mechEnd);
+        assert.equal(decodedMech, mechanism);
+        // Decode data
+        const dataLenOffset = mechEnd + 1;
+        const dataLen = buf.readInt32BE(dataLenOffset);
+        const dataStart = dataLenOffset + 4;
+        const decodedMsg = buf.toString('utf8', dataStart, dataStart + dataLen);
+        assert.equal(decodedMsg, clientFirstMessage);
+        // Verify gs2-header is present
+        assert.ok(decodedMsg.startsWith('n,,'));
+        assert.ok(decodedMsg.includes('r=' + cNonce));
+    });
+});
+// ─── Suite 7: buildSASLResponse ───────────────────────────────────────────────
+describe('buildSASLResponse', () => {
+    it('has type byte 0x70 (p)', () => {
+        const buf = buildSASLResponse('c=biws,r=abc,p=proof');
+        assert.equal(buf[0], 0x70);
+    });
+    it('contains only raw bytes with no extra Int32 length prefix', () => {
+        const msg = 'c=biws,r=abc,p=proof';
+        const buf = buildSASLResponse(msg);
+        // Per PG protocol: SASLResponse body is raw bytes, no extra framing
+        // After type(1) + length(4) = offset 5, the raw bytes should start directly
+        const bodyStart = 5;
+        const extracted = buf.toString('utf8', bodyStart, buf.length);
+        assert.equal(extracted, msg);
+    });
+    it('computes correct total message length (type + len + raw bytes)', () => {
+        const msg = 'c=biws,r=abc,p=proof';
+        const buf = buildSASLResponse(msg);
+        const msgLen = buf.readUInt32BE(1);
+        const expectedLen = 4 + Buffer.from(msg, 'utf8').length;
+        assert.equal(msgLen, expectedLen);
+        assert.equal(buf.length, 1 + msgLen);
+    });
+    it('handles a realistic client-final-message with proof', () => {
+        const clientFinalMessageWithoutProof = 'c=biws,r=9mM4WxLq7RtBp2KjHvY3Zw+serverNonce';
+        const proof = 'dHxY7jK9mQpZ2LvN4RtBw6FgC3VsX8JkMnP0Ab';
+        const clientFinalMessage = `${clientFinalMessageWithoutProof},p=${proof}`;
+        const buf = buildSASLResponse(clientFinalMessage);
+        const decoded = buf.toString('utf8', 5, buf.length);
+        assert.equal(decoded, clientFinalMessage);
+        assert.ok(decoded.includes('c=biws'));
+        assert.ok(decoded.includes('p=' + proof));
+    });
+    it('encodes an empty string correctly', () => {
+        const buf = buildSASLResponse('');
+        const msgLen = buf.readUInt32BE(1);
+        assert.equal(msgLen, 4); // just self, no body
+        assert.equal(buf.length, 5); // type(1) + length(4) = 5
+    });
+});
+// ─── Suite 8: parseSASLMechanisms ─────────────────────────────────────────────
+describe('parseSASLMechanisms', () => {
+    it('parses a single null-terminated mechanism', () => {
+        const buf = Buffer.from('SCRAM-SHA-256\0', 'utf8');
+        const mechanisms = parseSASLMechanisms(buf);
+        assert.deepEqual(mechanisms, ['SCRAM-SHA-256']);
+    });
+    it('parses multiple null-terminated mechanisms', () => {
+        const buf = Buffer.from('SCRAM-SHA-256\0SCRAM-SHA-1\0SCRAM-SHA-224\0', 'utf8');
+        const mechanisms = parseSASLMechanisms(buf);
+        assert.deepEqual(mechanisms, ['SCRAM-SHA-256', 'SCRAM-SHA-1', 'SCRAM-SHA-224']);
+    });
+    it('stops at empty string (double null)', () => {
+        const buf = Buffer.from('SCRAM-SHA-256\0\0', 'utf8');
+        const mechanisms = parseSASLMechanisms(buf);
+        assert.deepEqual(mechanisms, ['SCRAM-SHA-256']);
+    });
+    it('returns empty array for empty input', () => {
+        const buf = Buffer.alloc(0);
+        const mechanisms = parseSASLMechanisms(buf);
+        assert.deepEqual(mechanisms, []);
+    });
+    it('stops at empty string vs trailing non-null bytes', () => {
+        // After list ends with double null, there may be trailing bytes
+        const buf = Buffer.from('SCRAM-SHA-256\0\0extra', 'utf8');
+        const mechanisms = parseSASLMechanisms(buf);
+        assert.deepEqual(mechanisms, ['SCRAM-SHA-256']);
+    });
+    it('handles mechanism with no trailing null', () => {
+        const buf = Buffer.from('SCRAM-SHA-256', 'utf8');
+        // offset < length but no null found → loop exits
+        const mechanisms = parseSASLMechanisms(buf);
+        assert.deepEqual(mechanisms, ['SCRAM-SHA-256']);
+    });
+});
+// ─── Suite 9: parseScramParams ────────────────────────────────────────────────
+describe('parseScramParams', () => {
+    it('parses r, s, i from a server-first-message', () => {
+        const msg = 'r=abc123,s=ZGVm,s=ZGVm,i=4096';
+        const params = parseScramParams(msg);
+        assert.equal(params['r'], 'abc123');
+        assert.equal(params['s'], 'ZGVm');
+        assert.equal(params['i'], '4096');
+    });
+    it('ignores parts without = separator', () => {
+        const msg = 'r=abc,justtext,i=4096';
+        const params = parseScramParams(msg);
+        assert.equal(params['r'], 'abc');
+        assert.equal(params['i'], '4096');
+        // 'justtext' has no '=' so it's skipped
+        assert.equal(Object.keys(params).length, 2);
+    });
+    it('handles empty string', () => {
+        const params = parseScramParams('');
+        assert.deepEqual(params, {});
+    });
+    it('handles value with = character (base64 padding)', () => {
+        // base64 sometimes contains = padding
+        const msg = 'r=abc,s=dGVzdA==,i=4096';
+        const params = parseScramParams(msg);
+        assert.equal(params['r'], 'abc');
+        assert.equal(params['s'], 'dGVzdA==');
+        assert.equal(params['i'], '4096');
+    });
+    it('handles server-final-message with verifier and error', () => {
+        const msg = 'v=6rYTRSdXpPvH/2N+jqGz6w==,e=invalid-encoding';
+        const params = parseScramParams(msg);
+        assert.equal(params['v'], '6rYTRSdXpPvH/2N+jqGz6w==');
+        assert.equal(params['e'], 'invalid-encoding');
+    });
+});
+// ─── Suite 10: xorBuffers ─────────────────────────────────────────────────────
+describe('xorBuffers', () => {
+    it('XORs two equal-length buffers bytewise', () => {
+        const a = Buffer.from([0x0f, 0xff, 0xaa]);
+        const b = Buffer.from([0xf0, 0x00, 0x55]);
+        const result = xorBuffers(a, b);
+        assert.equal(result.length, 3);
+        // 0x0f ^ 0xf0 = 0xff; 0xff ^ 0x00 = 0xff; 0xaa ^ 0x55 = 0xff
+        assert.equal(result[0], 0xff);
+        assert.equal(result[1], 0xff);
+        assert.equal(result[2], 0xff);
+    });
+    it('returns XOR of different-length buffers (min length)', () => {
+        const a = Buffer.from([0x0f, 0xff, 0xaa, 0x11]);
+        const b = Buffer.from([0xf0, 0x00]); // shorter
+        const result = xorBuffers(a, b);
+        assert.equal(result.length, 2);
+        assert.equal(result[0], 0xff);
+        assert.equal(result[1], 0xff);
+    });
+    it('self-XOR yields zero', () => {
+        const a = Buffer.from([0x12, 0x34, 0x56, 0x78]);
+        const result = xorBuffers(a, a);
+        assert.equal(result.length, 4);
+        for (let i = 0; i < 4; i++) {
+            assert.equal(result[i], 0);
+        }
+    });
+    it('XOR with zero buffer is identity', () => {
+        const a = Buffer.from([0x12, 0x34, 0x56]);
+        const zero = Buffer.alloc(3);
+        const result = xorBuffers(a, zero);
+        assert.deepEqual(result, a);
+    });
+    it('handles empty buffers', () => {
+        const result = xorBuffers(Buffer.alloc(0), Buffer.alloc(0));
+        assert.equal(result.length, 0);
+    });
+    it('XOR property: (A XOR B) XOR B = A', () => {
+        const a = Buffer.from([0xde, 0xad, 0xbe, 0xef]);
+        const b = Buffer.from([0x12, 0x34, 0x56, 0x78]);
+        const xor1 = xorBuffers(a, b);
+        const xor2 = xorBuffers(xor1, b);
+        assert.deepEqual(xor2, a);
+    });
+});
+// ─── Suite 11: SCRAM nonce validation via mock auth state machine ─────────────
+//
+// Wires a mock socket into PgConnection and simulates the SASL authentication
+// flow (AuthSASL → SASLContinue → SASLFinal → AuthOk → ReadyForQuery) to
+// verify nonce prefix validation and overall SCRAM message exchange.
+describe('SCRAM auth nonce validation', () => {
+    /** Minimal RowDescription body with 0 columns needed for query after auth */
+    const rowDescBody = Buffer.from([0x00, 0x00]);
+    /** Create a PgConnection that skips TCP connection and goes straight to auth */
+    function createAuthConnection() {
+        const socket = new EventEmitter();
+        socket.setKeepAlive = () => { };
+        socket.setNoDelay = () => { };
+        socket.destroy = () => { };
+        socket.write = mock.fn(() => true);
+        const conn = new PgConnection();
+        conn.socket = socket;
+        conn.state = 'authenticating';
+        // Register the data handler like _connect() does
+        socket.on('data', (chunk) => {
+            conn.buffer = Buffer.concat([conn.buffer, chunk]);
+            conn._processBuffer(MOCK_CONNECT_OPTS);
+        });
+        return { conn, socket };
+    }
+    /** Helper: build a mock SASL mechanisms response body (AuthRequest type=10) */
+    function buildSASLStartupBody(mechanisms) {
+        const typeBuf = Buffer.alloc(4);
+        typeBuf.writeUInt32BE(10); // SASL auth type
+        const mechBuf = Buffer.from(mechanisms.map(m => m + '\0').join('') + '\0', 'utf8');
+        return Buffer.concat([typeBuf, mechBuf]);
+    }
+    /** Helper: build a mock SASLContinue body (AuthRequest type=11) with custom nonce */
+    function buildSASLContinueBody(nonce, salt, iterations) {
+        const typeBuf = Buffer.alloc(4);
+        typeBuf.writeUInt32BE(11); // SASL continue
+        const msgBuf = Buffer.from(`r=${nonce},s=${salt},i=${iterations}`, 'utf8');
+        return Buffer.concat([typeBuf, msgBuf]);
+    }
+    /** Helper: build a mock SASLFinal body (AuthRequest type=12) with server signature */
+    function buildSASLFinalBody(serverSignatureB64) {
+        const typeBuf = Buffer.alloc(4);
+        typeBuf.writeUInt32BE(12); // SASL final
+        const msgBuf = Buffer.from(`v=${serverSignatureB64}`, 'utf8');
+        return Buffer.concat([typeBuf, msgBuf]);
+    }
+    /** Helper: build AuthOk body (AuthRequest type=0) */
+    function buildAuthOkBody() {
+        const typeBuf = Buffer.alloc(4);
+        typeBuf.writeUInt32BE(0); // OK
+        return typeBuf;
+    }
+    /**
+     * Helper: wrap a body as a complete PostgreSQL backend message (type + length + body).
+     * Returns the full message buffer ready to emit as socket data.
+     */
+    function wrapAuthMessage(type, body) {
+        const lenBuf = Buffer.alloc(4);
+        lenBuf.writeUInt32BE(4 + body.length);
+        return Buffer.concat([Buffer.from([type]), lenBuf, body]);
+    }
+    it('authenticates successfully when server nonce starts with client nonce', async () => {
+        const { conn, socket } = createAuthConnection();
+        // Start auth by triggering the startup flow
+        // The connection needs to receive SASL auth request
+        // First, send AuthenticationSASL with SCRAM-SHA-256
+        const saslBody = buildSASLStartupBody(['SCRAM-SHA-256']);
+        socket.emit('data', wrapAuthMessage(0x52, saslBody));
+        // Connection should have written SASLInitialResponse
+        assert.equal(socket.write.mock.calls.length, 1);
+        const written1 = socket.write.mock.calls[0].arguments[0];
+        assert.equal(written1[0], 0x70, 'First write is SASLInitialResponse');
+        // Extract the client nonce from the written message
+        const mechEnd = written1.indexOf(0, 5);
+        const dataLenOffset = mechEnd + 1;
+        const dataLen = written1.readInt32BE(dataLenOffset);
+        const dataStart = dataLenOffset + 4;
+        const clientFirstMessage = written1.toString('utf8', dataStart, dataStart + dataLen);
+        // Format: n,,n=user,r=<nonce>
+        const rMatch = clientFirstMessage.match(/r=([^,]+)/);
+        assert.ok(rMatch, 'Client nonce found in first message');
+        const clientNonce = rMatch[1];
+        // Now send SASLContinue with a valid nonce (client nonce + server suffix)
+        const salt = 'c2FsdHlzYWx0'; // "salty salt" in base64
+        const iterations = 4096;
+        const serverNonce = clientNonce + 'serverappend';
+        const saslContinueBody = buildSASLContinueBody(serverNonce, salt, iterations);
+        socket.emit('data', wrapAuthMessage(0x52, saslContinueBody));
+        // Connection should have written SASLResponse
+        assert.equal(socket.write.mock.calls.length, 2);
+        const written2 = socket.write.mock.calls[1].arguments[0];
+        assert.equal(written2[0], 0x70, 'Second write is SASLResponse');
+        const saslResponseBody = written2.toString('utf8', 5, written2.length);
+        // Should contain c=biws (base64 of 'n,,')
+        assert.ok(saslResponseBody.includes('c=biws'), 'SASL response includes c=biws');
+        assert.ok(saslResponseBody.includes(`r=${serverNonce}`), 'SASL response includes combined nonce');
+        assert.ok(saslResponseBody.includes(',p='), 'SASL response includes proof');
+        // Now send SASLFinal (we need to compute the server signature correctly)
+        // The client proof sent in the previous step reveals the client key.
+        // For this test, we need to compute what the server signature would be.
+        // But since the actual password is known ('test') and the nonce/salt/iterations
+        // are deterministic from the test, we can verify the connection accepts
+        // the correctly-computed server signature.
+        //
+        // Extract the proof from the client response to reverse-engineer:
+        const proofMatch = saslResponseBody.match(/p=([A-Za-z0-9+/=]+)$/);
+        assert.ok(proofMatch, 'Proof found in SASL response');
+        // Wait for the SASLResponse to be processed before sending SASLFinal
+        // Give a microtask tick
+        await new Promise(r => setImmediate(r));
+        // We need the server to respond with a correct server signature.
+        // Let the server signature computation happen in the actual handler
+        // by sending a correctly-computed signature.
+        // Compute expected server signature using the same algorithm as wire.ts
+        const normalizedPassword = 'test'.normalize('NFKC');
+        const { createHash, createHmac, pbkdf2Sync } = await import('node:crypto');
+        const saltBuf = Buffer.from(salt, 'base64');
+        // Compute the salted password
+        const saltedPassword = pbkdf2Sync(normalizedPassword, saltBuf, iterations, 32, 'sha256');
+        const serverKey = createHmac('sha256', saltedPassword).update('Server Key').digest();
+        // Reconstruct authMessage from what the connection would have computed:
+        // client-first-message-bare = n=test,r=<clientNonce>
+        // server-first-message = r=<serverNonce>,s=<salt>,i=<iterations>
+        // client-final-message-without-proof = c=biws,r=<serverNonce>
+        const clientFirstMessageBare = `n=test,r=${clientNonce}`;
+        const serverFirstMessage = `r=${serverNonce},s=${salt},i=${iterations}`;
+        const clientFinalMessageWithoutProof = `c=biws,r=${serverNonce}`;
+        const authMessage = `${clientFirstMessageBare},${serverFirstMessage},${clientFinalMessageWithoutProof}`;
+        const expectedServerSignature = createHmac('sha256', serverKey).update(authMessage).digest('base64');
+        // Send SASLFinal with correct server signature
+        const saslFinalBody = buildSASLFinalBody(expectedServerSignature);
+        socket.emit('data', wrapAuthMessage(0x52, saslFinalBody));
+        // Send AuthenticationOk
+        const authOkBody = buildAuthOkBody();
+        socket.emit('data', wrapAuthMessage(0x52, authOkBody));
+        // Send ParameterStatus and ReadyForQuery to complete auth
+        socket.emit('data', Buffer.from([0x53, 0x00, 0x00, 0x00, 0x21, 0x61, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]));
+        // Now send full ReadyForQuery
+        const rFQ = Buffer.alloc(6);
+        rFQ[0] = 0x5a; // 'Z'
+        rFQ.writeUInt32BE(5, 1); // length
+        rFQ[5] = 0x49; // 'I' (idle)
+        socket.emit('data', rFQ);
+        // Connection should be ready now — we can test it by issuing a query
+        assert.ok(conn.isReady, 'Connection is ready after successful auth');
+    });
+    it('rejects authentication when server nonce does not start with client nonce', async () => {
+        const { conn, socket } = createAuthConnection();
+        // First round: send SASL auth request
+        const saslBody = buildSASLStartupBody(['SCRAM-SHA-256']);
+        socket.emit('data', wrapAuthMessage(0x52, saslBody));
+        assert.equal(socket.write.mock.calls.length, 1);
+        const written1 = socket.write.mock.calls[0].arguments[0];
+        // Extract client nonce
+        const mechEnd = written1.indexOf(0, 5);
+        const dataLenOffset = mechEnd + 1;
+        const dataLen = written1.readInt32BE(dataLenOffset);
+        const dataStart = dataLenOffset + 4;
+        const clientFirstMessage = written1.toString('utf8', dataStart, dataStart + dataLen);
+        const rMatch = clientFirstMessage.match(/r=([^,]+)/);
+        assert.ok(rMatch);
+        // Send SASLContinue with a DIFFERENT nonce (doesn't start with client nonce)
+        const salt = 'c2FsdHlzYWx0';
+        const iterations = 4096;
+        // Completely different nonce — NOT starting with client nonce
+        const differentNonce = 'attackercontrollednonce';
+        const saslContinueBody = buildSASLContinueBody(differentNonce, salt, iterations);
+        // We need to listen for auth rejection
+        let authError = null;
+        conn.connect = async () => { }; // stub to prevent actual connection
+        // Override _connect to capture the authReject
+        // Actually, we can check the error via the _handleAuth method directly
+        // Emit the SASLContinue with bad nonce
+        socket.emit('data', wrapAuthMessage(0x52, saslContinueBody));
+        // Should NOT have written SASLResponse (only 1 write from the first round)
+        assert.equal(socket.write.mock.calls.length, 1, 'No SASLResponse written when nonce validation fails');
+        // Connection should NOT be ready
+        assert.equal(conn.isReady, false, 'Connection not ready after failed nonce validation');
     });
 });
 //# sourceMappingURL=wire-protocol.test.js.map
