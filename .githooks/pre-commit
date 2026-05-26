@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Pre-commit hook: validate YAML workflow files
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# Only run when workflow files are staged for commit
+CHANGED=$(git diff --cached --name-only --diff-filter=ACM '.github/workflows/*.yml' 2>/dev/null || true)
+
+if [ -z "$CHANGED" ]; then
+  exit 0
+fi
+
+exec "$ROOT_DIR/scripts/validate-workflows.sh"
