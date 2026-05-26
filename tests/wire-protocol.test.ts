@@ -11,21 +11,19 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
-import { createHash, createHmac } from 'node:crypto';
+import { pbkdf2Sync, createHmac } from 'node:crypto';
 
 import {
   buildParseMessage,
   buildBindMessage,
   buildExecuteMessage,
   buildSyncMessage,
-  buildDescribeMessage,
   buildSASLInitialResponse,
   buildSASLResponse,
   parseSASLMechanisms,
   parseScramParams,
   xorBuffers,
   PgConnection,
-  type PgResult,
 } from '../src/database/wire.js';
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
@@ -573,7 +571,6 @@ describe('buildSASLInitialResponse', () => {
     const clientFirstMessage = gs2Header + clientFirstMessageBare;
 
     const buf = buildSASLInitialResponse(mechanism, clientFirstMessage);
-    const msgLen = buf.readUInt32BE(1);
 
     // Decode mechanism
     const mechEnd = buf.indexOf(0, 5);
@@ -617,7 +614,7 @@ describe('buildSASLResponse', () => {
     const msgLen = buf.readUInt32BE(1);
     const expectedLen = 4 + Buffer.from(msg, 'utf8').length;
     assert.equal(msgLen, expectedLen);
-    assert.equal(buf.length, 1 + msgLen);
+    assert.equal(buf.length, 1 + msgLen, `expected ${1 + msgLen} but got ${buf.length}`);
   });
 
   it('handles a realistic client-final-message with proof', () => {
@@ -784,9 +781,6 @@ describe('xorBuffers', () => {
 // verify nonce prefix validation and overall SCRAM message exchange.
 
 describe('SCRAM auth nonce validation', () => {
-  /** Minimal RowDescription body with 0 columns needed for query after auth */
-  const rowDescBody = Buffer.from([0x00, 0x00]);
-
   /** Create a PgConnection that skips TCP connection and goes straight to auth */
   function createAuthConnection() {
     const socket = new EventEmitter() as EventEmitter & {
@@ -917,7 +911,6 @@ describe('SCRAM auth nonce validation', () => {
 
     // Compute expected server signature using the same algorithm as wire.ts
     const normalizedPassword = 'test'.normalize('NFKC');
-    const { createHash, createHmac, pbkdf2Sync } = await import('node:crypto');
     const saltBuf = Buffer.from(salt, 'base64');
     // Compute the salted password
     const saltedPassword = pbkdf2Sync(normalizedPassword, saltBuf, iterations, 32, 'sha256');
@@ -979,12 +972,6 @@ describe('SCRAM auth nonce validation', () => {
     // Completely different nonce — NOT starting with client nonce
     const differentNonce = 'attackercontrollednonce';
     const saslContinueBody = buildSASLContinueBody(differentNonce, salt, iterations);
-
-    // We need to listen for auth rejection
-    let authError: Error | null = null;
-    conn.connect = async () => {}; // stub to prevent actual connection
-    // Override _connect to capture the authReject
-    // Actually, we can check the error via the _handleAuth method directly
 
     // Emit the SASLContinue with bad nonce
     socket.emit('data', wrapAuthMessage(0x52, saslContinueBody));
