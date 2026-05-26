@@ -9,6 +9,7 @@ export declare class PgPool {
     private readonly connections;
     private readonly waitQueue;
     private readonly MAX_WAIT;
+    private pendingCreations;
     private readonly opts;
     private readonly sweepTimer;
     private closed;

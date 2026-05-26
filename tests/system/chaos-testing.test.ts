@@ -171,6 +171,7 @@ describe('Server — shutdown chaos', () => {
           res.on('end', resolve);
         }
       );
+      req.on('error', () => { resolve(); });
       req.end();
     });
 

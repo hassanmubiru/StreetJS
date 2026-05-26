@@ -15,6 +15,7 @@ let PgPool = class PgPool {
     connections = [];
     waitQueue = [];
     MAX_WAIT = 100; // bounded wait queue
+    pendingCreations = 0; // track in-flight connection creation
     opts;
     sweepTimer;
     closed = false;
@@ -56,11 +57,17 @@ let PgPool = class PgPool {
                 return p.conn;
             }
         }
-        // Create new if under limit
-        if (this.connections.length < this.opts.maxConnections) {
-            const pooled = await this._createConnection();
-            pooled.inUse = true;
-            return pooled.conn;
+        // Create new if under limit (account for in-flight connections)
+        if (this.connections.length + this.pendingCreations < this.opts.maxConnections) {
+            this.pendingCreations++;
+            try {
+                const pooled = await this._createConnection();
+                pooled.inUse = true;
+                return pooled.conn;
+            }
+            finally {
+                this.pendingCreations--;
+            }
         }
         // Wait in queue (bounded)
         if (this.waitQueue.length >= this.MAX_WAIT) {

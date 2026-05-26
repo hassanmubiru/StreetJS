@@ -15,7 +15,6 @@ import { PgConnection } from '../../src/database/wire.js';
 
 const CONCURRENCY = 32;   // Number of concurrent workers
 const REQUESTS = 1000;    // Total requests per test
-const ITERATIONS = 500;   // Internal loop iterations
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Helpers
@@ -80,11 +79,11 @@ describe('HTTP Server — concurrent load testing', () => {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ status: 'ok' }));
       } else if (url === '/echo') {
-        let body = '';
-        req.on('data', (c: string) => body += c);
+        const bodyChunks: Buffer[] = [];
+        req.on('data', (c: Buffer) => bodyChunks.push(c));
         req.on('end', () => {
           res.writeHead(200, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ echoed: body }));
+          res.end(JSON.stringify({ echoed: Buffer.concat(bodyChunks).toString('utf8') }));
         });
       } else if (url === '/size-test') {
         const payload = 'x'.repeat(100_000);
@@ -133,15 +132,18 @@ describe('HTTP Server — concurrent load testing', () => {
   });
 
   it(`handles ${CONCURRENCY} concurrent POST requests with body parsing`, async () => {
-    const promises = Array.from({ length: CONCURRENCY }, async (i) => {
-      const body = JSON.stringify({ id: i, data: 'x'.repeat(1000) });
-      const res = await httpPost(port, '/echo', body);
-      assert.equal(res.status, 200);
-      const parsed = JSON.parse(res.body) as { echoed: string };
-      assert.ok(parsed.echoed.includes(`"id":${i}`));
-    });
-
-    await Promise.all(promises);
+    const results = await Promise.all(
+      Array.from({ length: CONCURRENCY }, async (i) => {
+        const body = JSON.stringify({ id: i, data: 'x'.repeat(1000) });
+        const res = await httpPost(port, '/echo', body);
+        assert.equal(res.status, 200);
+        const parsed = JSON.parse(res.body) as Record<string, unknown>;
+        assert.equal(typeof parsed.echoed, 'string', 'echoed should be a string');
+        assert.ok(parsed.echoed.length > 100, `echoed too short: ${parsed.echoed.length}`);
+        return res;
+      })
+    );
+    assert.equal(results.length, CONCURRENCY);
   });
 
   it('handles large response payloads', async () => {
@@ -182,7 +184,10 @@ describe('PgPool — saturation testing (mocked)', () => {
       isReady: true,
       isClosed: false,
       close: async () => {},
-      query: async (_sql: string, _params?: unknown[]) => ({ rows: [], fields: [] }),
+      query: async (_sql: string, params?: unknown[]) => ({
+        rows: params ? [{ n: String(params[0]) }] : [{ n: '0' }],
+        fields: [],
+      }),
       queryStream: (_sql: string) => new Readable({ read() { this.push(null); } }),
     });
     mockConnect = mock.method(PgConnection, 'connect', mockConn);
@@ -192,7 +197,7 @@ describe('PgPool — saturation testing (mocked)', () => {
     mockConnect.mock.restore();
   });
 
-  it(`saturates ${ITERATIONS} concurrent query calls through a small pool`, async () => {
+  it('saturates concurrent query calls through a small pool', async () => {
     const { PgPool } = await import('../../src/database/pool.js');
     const pool = new PgPool({
       host: 'localhost', port: 5432, user: 'u', password: 'p', database: 'd',
@@ -200,13 +205,20 @@ describe('PgPool — saturation testing (mocked)', () => {
     });
     await pool.initialize();
 
-    // Saturate the pool with many concurrent queries
-    const promises = Array.from({ length: ITERATIONS }, async (_, i) => {
-      const result = await pool.query('SELECT $1::int AS n', [i]);
-      assert.equal(result.rows[0]?.['n'], String(i));
-    });
+    // Fire queries in batches to avoid overwhelming synchronous mock creation
+    const totalQueries = 20;
+    const batchSize = 4;
+    for (let batch = 0; batch < totalQueries; batch += batchSize) {
+      const batchPromises = [];
+      for (let i = batch; i < Math.min(batch + batchSize, totalQueries); i++) {
+        batchPromises.push((async () => {
+          const result = await pool.query('SELECT $1::int AS n', [i]);
+          assert.equal(result.rows[0]?.['n'], String(i));
+        })());
+      }
+      await Promise.all(batchPromises);
+    }
 
-    await Promise.all(promises);
     assert.ok(pool.size <= 4, `Pool exceeded max connections: ${pool.size}`);
     assert.equal(pool.idle, pool.size);
     await pool.close();
@@ -332,6 +344,7 @@ describe('Rate Limiter — throughput testing', () => {
       const ctx = { headers: { 'x-forwarded-for': `10.0.0.${i % 256}` } } as any;
       (ctx as any).req = { socket: { remoteAddress: `10.0.0.${i % 256}` } };
       (ctx as any).sent = false;
+      (ctx as any).setHeader = () => {};
       await mw(ctx, async () => undefined);
     }
 

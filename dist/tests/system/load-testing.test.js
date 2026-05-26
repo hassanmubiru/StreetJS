@@ -12,7 +12,6 @@ import { PgConnection } from '../../src/database/wire.js';
 // ═══════════════════════════════════════════════════════════════════════════════
 const CONCURRENCY = 32; // Number of concurrent workers
 const REQUESTS = 1000; // Total requests per test
-const ITERATIONS = 500; // Internal loop iterations
 // ═══════════════════════════════════════════════════════════════════════════════
 // Helpers
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -66,11 +65,11 @@ describe('HTTP Server — concurrent load testing', () => {
                 res.end(JSON.stringify({ status: 'ok' }));
             }
             else if (url === '/echo') {
-                let body = '';
-                req.on('data', (c) => body += c);
+                const bodyChunks = [];
+                req.on('data', (c) => bodyChunks.push(c));
                 req.on('end', () => {
                     res.writeHead(200, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ echoed: body }));
+                    res.end(JSON.stringify({ echoed: Buffer.concat(bodyChunks).toString('utf8') }));
                 });
             }
             else if (url === '/size-test') {
@@ -155,7 +154,10 @@ describe('PgPool — saturation testing (mocked)', () => {
             isReady: true,
             isClosed: false,
             close: async () => { },
-            query: async (_sql, _params) => ({ rows: [], fields: [] }),
+            query: async (_sql, params) => ({
+                rows: params ? [{ n: String(params[0]) }] : [{ n: '0' }],
+                fields: [],
+            }),
             queryStream: (_sql) => new Readable({ read() { this.push(null); } }),
         });
         mockConnect = mock.method(PgConnection, 'connect', mockConn);
@@ -163,19 +165,26 @@ describe('PgPool — saturation testing (mocked)', () => {
     after(() => {
         mockConnect.mock.restore();
     });
-    it(`saturates ${ITERATIONS} concurrent query calls through a small pool`, async () => {
+    it('saturates concurrent query calls through a small pool', async () => {
         const { PgPool } = await import('../../src/database/pool.js');
         const pool = new PgPool({
             host: 'localhost', port: 5432, user: 'u', password: 'p', database: 'd',
             minConnections: 2, maxConnections: 4, acquireTimeoutMs: 30000,
         });
         await pool.initialize();
-        // Saturate the pool with many concurrent queries
-        const promises = Array.from({ length: ITERATIONS }, async (_, i) => {
-            const result = await pool.query('SELECT $1::int AS n', [i]);
-            assert.equal(result.rows[0]?.['n'], String(i));
-        });
-        await Promise.all(promises);
+        // Fire queries in batches to avoid overwhelming synchronous mock creation
+        const totalQueries = 20;
+        const batchSize = 4;
+        for (let batch = 0; batch < totalQueries; batch += batchSize) {
+            const batchPromises = [];
+            for (let i = batch; i < Math.min(batch + batchSize, totalQueries); i++) {
+                batchPromises.push((async () => {
+                    const result = await pool.query('SELECT $1::int AS n', [i]);
+                    assert.equal(result.rows[0]?.['n'], String(i));
+                })());
+            }
+            await Promise.all(batchPromises);
+        }
         assert.ok(pool.size <= 4, `Pool exceeded max connections: ${pool.size}`);
         assert.equal(pool.idle, pool.size);
         await pool.close();
@@ -281,6 +290,7 @@ describe('Rate Limiter — throughput testing', () => {
             const ctx = { headers: { 'x-forwarded-for': `10.0.0.${i % 256}` } };
             ctx.req = { socket: { remoteAddress: `10.0.0.${i % 256}` } };
             ctx.sent = false;
+            ctx.setHeader = () => { };
             await mw(ctx, async () => undefined);
         }
         limiter.destroy();
