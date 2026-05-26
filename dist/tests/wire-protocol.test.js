@@ -811,8 +811,9 @@ describe('SCRAM auth nonce validation', () => {
         authOkBody.writeUInt32BE(0); // AuthType.Ok
         socket.emit('data', wrapAuthMessage(0x52, authOkBody));
         // Send ParameterStatus (optional, ignored but realistic)
-        const psBody = Buffer.from('server_version\014.0\0', 'utf8');
-        socket.emit('data', wrapAuthMessage(0x53, psBody));
+        const psName = Buffer.from('server_version\0', 'utf8');
+        const psValue = Buffer.from('14.0\0', 'utf8');
+        socket.emit('data', wrapAuthMessage(0x53, Buffer.concat([psName, psValue])));
         // Send ReadyForQuery
         const rFQBody = Buffer.from([0x49]); // 'I' idle
         socket.emit('data', wrapAuthMessage(0x5a, rFQBody));
@@ -848,14 +849,10 @@ describe('SCRAM auth nonce validation', () => {
         saslFinalBody.writeUInt32BE(12);
         const finalMsg = Buffer.from(`v=${wrongSignature}`, 'utf8');
         socket.emit('data', wrapAuthMessage(0x52, Buffer.concat([saslFinalBody, finalMsg])));
-        // Send AuthOk (but auth was already rejected, so this shouldn't matter)
-        const authOkBody = Buffer.alloc(4);
-        authOkBody.writeUInt32BE(0);
-        socket.emit('data', wrapAuthMessage(0x52, authOkBody));
-        // Send ReadyForQuery
-        const rFQBody = Buffer.from([0x49]);
-        socket.emit('data', wrapAuthMessage(0x5a, rFQBody));
-        // Connection should NOT be ready (auth rejected due to signature mismatch)
+        // After SASLFinal with wrong sig, authReject was called and scramState was NOT cleared.
+        // State remains 'authenticating'. A real PG server would close the connection or
+        // send ErrorResponse here — it would NOT send AuthOk or ReadyForQuery.
+        // Connection should NOT be ready (still in 'authenticating' state)
         assert.equal(conn.isReady, false, 'Connection not ready after wrong server signature');
     });
 });
