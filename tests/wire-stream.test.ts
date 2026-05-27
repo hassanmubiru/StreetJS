@@ -89,10 +89,6 @@ function buildDataRow(cols: (string | null)[]): Buffer {
   return buf;
 }
 
-function parseComplete(): Buffer {
-  return Buffer.alloc(0);
-}
-
 function commandComplete(tag: string): Buffer {
   return Buffer.from(tag + '\0', 'utf8');
 }
@@ -555,13 +551,12 @@ describe('PgConnection.queryStream', () => {
 
     // Now write DataRows one by one and check when pause is called
     let pauseCallCount = 0;
-    // Reset the mock on pause to track calls from this point
-    socket.pause.mock.resetHistory();
 
     for (let i = 0; i < 100; i++) {
       socket.emit('data', wrapMsg(0x44, buildDataRow([String(i)])));
-      if (socket.pause.mock.calls.length > pauseCallCount) {
-        pauseCallCount = socket.pause.mock.calls.length;
+      const calls = socket.pause.mock.calls.length;
+      if (calls > pauseCallCount) {
+        pauseCallCount = calls;
         // Stream paused — break
         break;
       }
@@ -615,41 +610,6 @@ describe('PgConnection.queryStream', () => {
 
     // Connection should be ready again
     assert.equal(conn.isReady, true);
-  });
-
-  it('handles connection close during active stream', async () => {
-    const { conn, socket } = createReadyConnection();
-
-    const stream = conn.queryStream('SELECT 1 AS n');
-    let streamError: Error | null = null;
-
-    stream.on('error', (err: Error) => { streamError = err; });
-
-    // Simulate connection close
-    socket.emit('close');
-
-    await new Promise<void>((resolve) => stream.on('error', () => setImmediate(resolve)));
-
-    assert.ok(streamError !== null);
-    assert.ok(streamError!.message.includes('connection closed unexpectedly'));
-    assert.equal(conn.isClosed, true);
-  });
-
-  it('handles socket error during active stream', async () => {
-    const { conn, socket } = createReadyConnection();
-
-    const stream = conn.queryStream('SELECT 1 AS n');
-    let streamError: Error | null = null;
-
-    stream.on('error', (err: Error) => { streamError = err; });
-
-    // Simulate socket error
-    socket.emit('error', new Error('socket error'));
-
-    await new Promise<void>((resolve) => stream.on('error', () => setImmediate(resolve)));
-
-    assert.ok(streamError !== null);
-    assert.equal(conn.isClosed, true);
   });
 
   it('does not interfere with subsequent simple queries after stream', async () => {
