@@ -19,6 +19,6 @@ export declare class RateLimiter {
     destroy(): void;
 }
 export declare class RateLimitException extends StreetException {
-    constructor(message: string, retryAfterSeconds: number);
+    constructor(message: string);
 }
 //# sourceMappingURL=ratelimit.d.ts.map

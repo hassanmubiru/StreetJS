@@ -2,7 +2,7 @@ export { container, Container, Injectable } from './core/container.js';
 export { Controller, Get, Post, Put, Patch, Delete, Validate, ApiOperation, Config, Command, getControllerMeta, getRoutesMeta, getCommandMeta, getConfigFields, } from './core/decorators.js';
 export { createContext } from './core/context.js';
 export type { StreetContext, AuthenticatedUser, CookieOptions, } from './core/context.js';
-export type { Constructor, Awaitable, DeepReadonly, ValidationResult, TokenPair, PaginationParams, PaginatedResult, HealthStatus, RouteMetadata, ControllerMetadata, MiddlewareFn, ValidationSchema, FieldRule, OpenApiOperation, IpcMessage, TelemetrySample, } from './core/types.js';
+export type { Constructor, Awaitable, TokenPair, PaginatedResult, RouteMetadata, ControllerMetadata, MiddlewareFn, ValidationSchema, FieldRule, OpenApiOperation, IpcMessage, TelemetrySample, } from './core/types.js';
 export { streetApp } from './http/server.js';
 export type { StreetApp, StreetAppOptions } from './http/server.js';
 export { StreetException, BadRequestException, UnauthorizedException, ForbiddenException, NotFoundException, ConflictException, UnprocessableException, InternalException, ServiceUnavailableException, isStreetException, } from './http/exceptions.js';

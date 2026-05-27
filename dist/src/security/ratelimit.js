@@ -25,7 +25,7 @@ export class RateLimiter {
             const key = this.opts.keyFn(ctx);
             const allowed = this._check(key);
             if (!allowed) {
-                throw new RateLimitException(this.opts.message, Math.ceil(this.opts.windowMs / 1000));
+                throw new RateLimitException(this.opts.message);
             }
             ctx.setHeader('X-RateLimit-Limit', String(this.opts.maxRequests));
             const remaining = this._remaining(key);
@@ -96,11 +96,9 @@ function defaultKeyFn(ctx) {
     return ctx.req.socket.remoteAddress ?? 'unknown';
 }
 export class RateLimitException extends StreetException {
-    constructor(message, retryAfterSeconds) {
+    constructor(message) {
         super(429, message);
         this.name = 'RateLimitException';
-        // Add retry-after header info in details
-        void retryAfterSeconds;
     }
 }
 //# sourceMappingURL=ratelimit.js.map

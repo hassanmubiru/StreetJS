@@ -1,28 +1,10 @@
 export type Constructor<T = object> = new (...args: any[]) => T;
 export type Awaitable<T> = T | Promise<T>;
-/** Immutable readonly deep type */
-export type DeepReadonly<T> = T extends (infer U)[] ? ReadonlyArray<DeepReadonly<U>> : T extends object ? {
-    readonly [P in keyof T]: DeepReadonly<T[P]>;
-} : T;
-/** Validated result discriminated union */
-export type ValidationResult<T> = {
-    ok: true;
-    value: T;
-} | {
-    ok: false;
-    errors: string[];
-};
 /** Token pair for auth flows */
 export interface TokenPair {
     accessToken: string;
     refreshToken: string;
     expiresIn: number;
-}
-/** Pagination parameters */
-export interface PaginationParams {
-    page: number;
-    limit: number;
-    offset: number;
 }
 /** Generic paginated response */
 export interface PaginatedResult<T> {
@@ -31,17 +13,6 @@ export interface PaginatedResult<T> {
     page: number;
     limit: number;
     hasMore: boolean;
-}
-/** Health status */
-export interface HealthStatus {
-    status: 'ok' | 'degraded' | 'down';
-    uptime: number;
-    timestamp: string;
-    checks: Record<string, {
-        status: 'ok' | 'fail';
-        latencyMs?: number;
-        detail?: string;
-    }>;
 }
 /** Route metadata stored via decorators */
 export interface RouteMetadata {
