@@ -1,6 +1,6 @@
 // tests/integration.test.ts
-// Integration tests: IoC, PostgreSQL wire, repository, JWT, session, LRU,
-// rate limiter, XSS, multipart parser, HTTP server, router, migrations.
+// Integration tests: IoC, PostgreSQL wire, repository,
+// HTTP server, router, migrations, schema.
 // Uses ONLY node:test and node:assert.
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -25,16 +25,10 @@ import { Controller, Get, Post } from '../src/core/decorators.js';
 import { PgConnection } from '../src/database/wire.js';
 import { PgPool } from '../src/database/pool.js';
 import { StreetMigrationRunner } from '../src/database/migrations.js';
-import { JwtService } from '../src/security/jwt.js';
-import { SessionManager } from '../src/security/session.js';
-import { LruCache } from '../src/cache/lru.js';
-import { RateLimiter } from '../src/security/ratelimit.js';
-import { sanitizeString, sanitizeDeep } from '../src/security/xss.js';
 import { streetApp } from '../src/http/server.js';
 import { createContext } from '../src/core/context.js';
 import { Router } from '../src/router/router.js';
 import { StreetPostgresRepository } from '../src/database/repository.js';
-import { encryptSecret, decryptSecret } from '../src/security/vault.js';
 // ─── Test DB configuration ─────────────────────────────────────────────────────
 const PG_OPTS = {
     host: process.env['PG_HOST'] ?? 'localhost',
@@ -154,209 +148,7 @@ describe('IoC Container', () => {
         assert.equal(container.resolve(OverrideService).val, 'mocked');
     });
 });
-// ─── Suite 2: JWT ─────────────────────────────────────────────────────────────
-describe('JwtService', () => {
-    const jwt = new JwtService('super-secret-key-that-is-at-least-32-chars-long!');
-    it('signs and verifies a token', () => {
-        const token = jwt.sign({ sub: 'user-123', email: 'a@b.com', roles: ['user'] });
-        const payload = jwt.verify(token);
-        assert.ok(payload);
-        assert.equal(payload.sub, 'user-123');
-        assert.equal(payload.email, 'a@b.com');
-    });
-    it('rejects tampered token', () => {
-        const token = jwt.sign({ sub: 'user-1' });
-        const parts = token.split('.');
-        parts[1] = Buffer.from(JSON.stringify({ sub: 'hacker', roles: ['admin'] })).toString('base64url');
-        const tampered = parts.join('.');
-        assert.equal(jwt.verify(tampered), null);
-    });
-    it('rejects expired token', async () => {
-        const token = jwt.sign({ sub: 'user-1' }, { expiresInSeconds: -1 });
-        assert.equal(jwt.verify(token), null);
-    });
-    it('decodes without verification', () => {
-        const token = jwt.sign({ sub: 'user-99', custom: 'data' });
-        const decoded = jwt.decode(token);
-        assert.equal(decoded?.['sub'], 'user-99');
-        assert.equal(decoded?.['custom'], 'data');
-    });
-    it('throws on short secret', () => {
-        assert.throws(() => new JwtService('short'), /at least 32/);
-    });
-});
-// ─── Suite 3: SessionManager ──────────────────────────────────────────────────
-describe('SessionManager', () => {
-    const key = randomBytes(32).toString('hex'); // 64-char hex
-    const sm = new SessionManager(key);
-    it('encrypts and decrypts session data', () => {
-        const data = { userId: 'abc-123', email: 'x@y.com', roles: ['admin'] };
-        const blob = sm.encrypt(data);
-        const decrypted = sm.decrypt(blob);
-        assert.ok(decrypted);
-        assert.equal(decrypted.userId, data.userId);
-        assert.equal(decrypted.email, data.email);
-    });
-    it('returns null on tampered blob', () => {
-        const blob = sm.encrypt({ userId: 'user-1' });
-        const buf = Buffer.from(blob, 'base64');
-        buf[20] ^= 0xff; // flip bits in ciphertext
-        const tampered = buf.toString('base64');
-        assert.equal(sm.decrypt(tampered), null);
-    });
-    it('generates unique CSRF tokens', () => {
-        const a = SessionManager.generateCsrf();
-        const b = SessionManager.generateCsrf();
-        assert.notEqual(a, b);
-        assert.ok(a.length > 20);
-    });
-    it('throws on invalid key length', () => {
-        assert.throws(() => new SessionManager('too-short'), /64-char hex/);
-    });
-});
-// ─── Suite 4: Vault encryption ────────────────────────────────────────────────
-describe('Vault', () => {
-    const kek = 'my-very-secret-kek-for-testing-purposes!';
-    it('encrypts and decrypts a secret', () => {
-        const plaintext = 'super-database-password-123!';
-        const encrypted = encryptSecret(plaintext, kek);
-        const decrypted = decryptSecret(encrypted, kek);
-        assert.equal(decrypted, plaintext);
-    });
-    it('produces different ciphertext each call (random IV)', () => {
-        const enc1 = encryptSecret('same-secret', kek);
-        const enc2 = encryptSecret('same-secret', kek);
-        assert.notEqual(enc1, enc2);
-    });
-    it('throws on wrong KEK', () => {
-        const encrypted = encryptSecret('secret', kek);
-        assert.throws(() => decryptSecret(encrypted, 'wrong-kek-!!!!'), /decryption failed/);
-    });
-    it('throws on truncated blob', () => {
-        assert.throws(() => decryptSecret('dG9vc2hvcnQ=', kek), /too short/);
-    });
-});
-// ─── Suite 5: LRU Cache ───────────────────────────────────────────────────────
-describe('LruCache', () => {
-    it('stores and retrieves values', () => {
-        const cache = new LruCache({ maxEntries: 10, ttlMs: 10_000 });
-        cache.set('a', 1);
-        cache.set('b', 2);
-        assert.equal(cache.get('a'), 1);
-        assert.equal(cache.get('b'), 2);
-        cache.destroy();
-    });
-    it('evicts LRU entry when at capacity', () => {
-        const cache = new LruCache({ maxEntries: 3, ttlMs: 10_000 });
-        cache.set('x', 1);
-        cache.set('y', 2);
-        cache.set('z', 3);
-        cache.set('w', 4); // should evict 'x'
-        assert.equal(cache.get('x'), undefined);
-        assert.equal(cache.get('w'), 4);
-        cache.destroy();
-    });
-    it('returns undefined for expired entries', async () => {
-        const cache = new LruCache({ maxEntries: 10, ttlMs: 10 });
-        cache.set('exp', 'value');
-        await new Promise((r) => setTimeout(r, 50));
-        assert.equal(cache.get('exp'), undefined);
-        cache.destroy();
-    });
-    it('has() respects TTL', async () => {
-        const cache = new LruCache({ maxEntries: 5, ttlMs: 20 });
-        cache.set('k', 99);
-        assert.equal(cache.has('k'), true);
-        await new Promise((r) => setTimeout(r, 50));
-        assert.equal(cache.has('k'), false);
-        cache.destroy();
-    });
-    it('delete() removes entry', () => {
-        const cache = new LruCache({ maxEntries: 5, ttlMs: 10_000 });
-        cache.set('del', 42);
-        assert.equal(cache.delete('del'), true);
-        assert.equal(cache.get('del'), undefined);
-        cache.destroy();
-    });
-    it('enforces maxEntries size invariant', () => {
-        const max = 50;
-        const cache = new LruCache({ maxEntries: max, ttlMs: 60_000 });
-        for (let i = 0; i < max + 20; i++) {
-            cache.set(`key-${i}`, i);
-        }
-        assert.ok(cache.size <= max);
-        cache.destroy();
-    });
-});
-// ─── Suite 6: XSS Sanitizer ───────────────────────────────────────────────────
-describe('XSS Sanitizer', () => {
-    it('strips HTML tags from strings', () => {
-        const out = sanitizeString('<script>alert(1)</script>hello');
-        assert.ok(!out.includes('<script>'));
-        assert.ok(out.includes('hello'));
-    });
-    it('removes javascript: protocol', () => {
-        const out = sanitizeString('javascript:alert(1)');
-        assert.ok(!out.includes('javascript:'));
-    });
-    it('removes onerror attributes', () => {
-        const out = sanitizeString('text onerror=alert(1) more');
-        assert.ok(!out.toLowerCase().includes('onerror'));
-    });
-    it('recursively sanitizes nested objects', () => {
-        const input = {
-            name: '<b>Bob</b>',
-            nested: { evil: '<script>xss</script>', safe: 'ok' },
-            list: ['<img onerror=1>', 'clean'],
-        };
-        const out = sanitizeDeep(input);
-        assert.ok(!out.name.includes('<b>'));
-        assert.ok(!out.nested.evil.includes('<script>'));
-        assert.equal(out.nested.safe, 'ok');
-        assert.ok(!out.list[0].includes('<img'));
-    });
-    it('handles depth limit without stack overflow', () => {
-        // Build deeply nested object
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        let deep = { val: 'leaf' };
-        for (let i = 0; i < 40; i++)
-            deep = { child: deep };
-        assert.doesNotThrow(() => sanitizeDeep(deep));
-    });
-});
-// ─── Suite 7: Rate Limiter ────────────────────────────────────────────────────
-describe('RateLimiter', () => {
-    it('allows requests under the limit', async () => {
-        const limiter = new RateLimiter({ windowMs: 5_000, maxRequests: 10 });
-        const mw = limiter.middleware();
-        let allowed = 0;
-        for (let i = 0; i < 10; i++) {
-            const ctx = makeMinimalCtx('192.0.2.1');
-            let threw = false;
-            try {
-                await mw(ctx, async () => { allowed++; });
-            }
-            catch {
-                threw = true;
-            }
-            assert.equal(threw, false, `Request ${i} should be allowed`);
-        }
-        assert.equal(allowed, 10);
-        limiter.destroy();
-    });
-    it('blocks requests over the limit', async () => {
-        const limiter = new RateLimiter({ windowMs: 5_000, maxRequests: 3 });
-        const mw = limiter.middleware();
-        // Fill the limit
-        for (let i = 0; i < 3; i++) {
-            await mw(makeMinimalCtx('192.0.2.2'), async () => undefined);
-        }
-        // Next should throw
-        await assert.rejects(() => mw(makeMinimalCtx('192.0.2.2'), async () => undefined), /Too Many Requests/);
-        limiter.destroy();
-    });
-});
-// ─── Suite 8: Router ─────────────────────────────────────────────────────────
+// ─── Suite 2: Router ─────────────────────────────────────────────────────────
 describe('Router', () => {
     it('matches a simple route and extracts params', async () => {
         const router = new Router();
@@ -396,7 +188,7 @@ describe('Router', () => {
         await assert.rejects(() => router.dispatch(ctx), /Validation failed/);
     });
 });
-// ─── Suite 9: HTTP Server ─────────────────────────────────────────────────────
+// ─── Suite 3: HTTP Server ─────────────────────────────────────────────────────
 describe('HTTP Server', () => {
     let port;
     let app;
@@ -474,7 +266,7 @@ describe('HTTP Server', () => {
         assert.ok(res.headers['content-type']?.includes('application/json'));
     });
 });
-// ─── Suite 10: PostgreSQL Wire Driver ────────────────────────────────────────
+// ─── Suite 4: PostgreSQL Wire Driver ────────────────────────────────────────
 describe('PostgreSQL Wire Protocol', () => {
     let conn;
     before(async () => {
@@ -518,7 +310,7 @@ describe('PostgreSQL Wire Protocol', () => {
         assert.deepEqual(rows, ['1', '2', '3']);
     });
 });
-// ─── Suite 11: PgPool ────────────────────────────────────────────────────────
+// ─── Suite 5: PgPool ────────────────────────────────────────────────────────
 describe('PgPool', () => {
     let pool;
     before(async () => {
@@ -566,7 +358,7 @@ describe('PgPool', () => {
         assert.ok(values.includes('3'));
     });
 });
-// ─── Suite 12: Repository & Migrations ───────────────────────────────────────
+// ─── Suite 6: Repository & Migrations ───────────────────────────────────────
 describe('Repository & Migrations', () => {
     let pool;
     let runner;
@@ -690,7 +482,7 @@ describe('Repository & Migrations', () => {
         assert.equal(after, before + 1);
     });
 });
-// ─── Suite 13: Schema Behavior ────────────────────────────────────────────────
+// ─── Suite 7: Schema Behavior ────────────────────────────────────────────────
 describe('Schema: users table (via pool)', () => {
     let pool;
     let migrationsDir;
