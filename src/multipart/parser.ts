@@ -7,7 +7,6 @@ import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomBytes } from 'node:crypto';
 import { Transform, type TransformCallback } from 'node:stream';
-import { pipeline } from 'node:stream/promises';
 import type { IncomingMessage } from 'node:http';
 
 export interface ParsedFile {
