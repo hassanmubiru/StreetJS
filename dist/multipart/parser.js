@@ -6,7 +6,6 @@ import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomBytes } from 'node:crypto';
 import { Transform } from 'node:stream';
-import { pipeline } from 'node:stream/promises';
 const MAX_FIELD_SIZE = 64 * 1024; // 64 KB per field
 const MAX_FILE_CHUNK = 64 * 1024; // 64 KB chunk size
 export class MultipartParser {
@@ -217,6 +216,4 @@ export class BoundedTransform extends Transform {
         cb(null, chunk);
     }
 }
-// Re-export pipeline for use in streaming contexts
-export { pipeline as streamPipeline };
 //# sourceMappingURL=parser.js.map

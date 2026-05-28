@@ -8,9 +8,7 @@ export interface PgResult {
     rowCount: number;
 }
 export declare class StreetPostgresWireStream extends Readable {
-    private readonly rows;
     private _done;
-    private readonly MAX_BUFFERED;
     constructor();
     /** Called internally when a DataRow is parsed */
     pushRow(row: PgRow): boolean;
@@ -30,6 +28,7 @@ export declare class PgConnection {
     private state;
     private buffer;
     private fields;
+    private scramState;
     private queryResolve;
     private queryReject;
     private queryRows;

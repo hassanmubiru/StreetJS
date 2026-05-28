@@ -1,5 +1,4 @@
 import { Transform, type TransformCallback } from 'node:stream';
-import { pipeline } from 'node:stream/promises';
 import type { IncomingMessage } from 'node:http';
 export interface ParsedFile {
     fieldName: string;
@@ -28,5 +27,4 @@ export declare class BoundedTransform extends Transform {
     constructor(maxBytes: number);
     _transform(chunk: Buffer, _enc: BufferEncoding, cb: TransformCallback): void;
 }
-export { pipeline as streamPipeline };
 //# sourceMappingURL=parser.d.ts.map

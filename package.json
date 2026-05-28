@@ -1,101 +1,101 @@
 {
   "name": "@streetjs/core",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Production-grade, memory-safe TypeScript backend framework built on Node.js core modules",
   "type": "module",
-  "main": "./dist/src/index.js",
-  "types": "./dist/src/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/src/index.js",
-      "types": "./dist/src/index.d.ts"
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
     },
     "./http": {
-      "import": "./dist/src/http/server.js",
-      "types": "./dist/src/http/server.d.ts"
+      "import": "./dist/http/server.js",
+      "types": "./dist/http/server.d.ts"
     },
     "./router": {
-      "import": "./dist/src/router/router.js",
-      "types": "./dist/src/router/router.d.ts"
+      "import": "./dist/router/router.js",
+      "types": "./dist/router/router.d.ts"
     },
     "./database": {
-      "import": "./dist/src/database/wire.js",
-      "types": "./dist/src/database/wire.d.ts"
+      "import": "./dist/database/wire.js",
+      "types": "./dist/database/wire.d.ts"
     },
     "./pool": {
-      "import": "./dist/src/database/pool.js",
-      "types": "./dist/src/database/pool.d.ts"
+      "import": "./dist/database/pool.js",
+      "types": "./dist/database/pool.d.ts"
     },
     "./repository": {
-      "import": "./dist/src/database/repository.js",
-      "types": "./dist/src/database/repository.d.ts"
+      "import": "./dist/database/repository.js",
+      "types": "./dist/database/repository.d.ts"
     },
     "./migrations": {
-      "import": "./dist/src/database/migrations.js",
-      "types": "./dist/src/database/migrations.d.ts"
+      "import": "./dist/database/migrations.js",
+      "types": "./dist/database/migrations.d.ts"
     },
     "./security": {
-      "import": "./dist/src/security/jwt.js",
-      "types": "./dist/src/security/jwt.d.ts"
+      "import": "./dist/security/jwt.js",
+      "types": "./dist/security/jwt.d.ts"
     },
     "./session": {
-      "import": "./dist/src/security/session.js",
-      "types": "./dist/src/security/session.d.ts"
+      "import": "./dist/security/session.js",
+      "types": "./dist/security/session.d.ts"
     },
     "./vault": {
-      "import": "./dist/src/security/vault.js",
-      "types": "./dist/src/security/vault.d.ts"
+      "import": "./dist/security/vault.js",
+      "types": "./dist/security/vault.d.ts"
     },
     "./ratelimit": {
-      "import": "./dist/src/security/ratelimit.js",
-      "types": "./dist/src/security/ratelimit.d.ts"
+      "import": "./dist/security/ratelimit.js",
+      "types": "./dist/security/ratelimit.d.ts"
     },
     "./xss": {
-      "import": "./dist/src/security/xss.js",
-      "types": "./dist/src/security/xss.d.ts"
+      "import": "./dist/security/xss.js",
+      "types": "./dist/security/xss.d.ts"
     },
     "./websocket": {
-      "import": "./dist/src/websocket/server.js",
-      "types": "./dist/src/websocket/server.d.ts"
+      "import": "./dist/websocket/server.js",
+      "types": "./dist/websocket/server.d.ts"
     },
     "./sse": {
-      "import": "./dist/src/websocket/sse.js",
-      "types": "./dist/src/websocket/sse.d.ts"
+      "import": "./dist/websocket/sse.js",
+      "types": "./dist/websocket/sse.d.ts"
     },
     "./cache": {
-      "import": "./dist/src/cache/lru.js",
-      "types": "./dist/src/cache/lru.d.ts"
+      "import": "./dist/cache/lru.js",
+      "types": "./dist/cache/lru.d.ts"
     },
     "./telemetry": {
-      "import": "./dist/src/telemetry/tracker.js",
-      "types": "./dist/src/telemetry/tracker.d.ts"
+      "import": "./dist/telemetry/tracker.js",
+      "types": "./dist/telemetry/tracker.d.ts"
     },
     "./cluster": {
-      "import": "./dist/src/cluster/coordinator.js",
-      "types": "./dist/src/cluster/coordinator.d.ts"
+      "import": "./dist/cluster/coordinator.js",
+      "types": "./dist/cluster/coordinator.d.ts"
     },
     "./cli": {
-      "import": "./dist/src/cli/kernel.js",
-      "types": "./dist/src/cli/kernel.d.ts"
+      "import": "./dist/cli/kernel.js",
+      "types": "./dist/cli/kernel.d.ts"
     },
     "./multipart": {
-      "import": "./dist/src/multipart/parser.js",
-      "types": "./dist/src/multipart/parser.d.ts"
+      "import": "./dist/multipart/parser.js",
+      "types": "./dist/multipart/parser.d.ts"
     },
     "./webhook": {
-      "import": "./dist/src/webhook/dispatcher.js",
-      "types": "./dist/src/webhook/dispatcher.d.ts"
+      "import": "./dist/webhook/dispatcher.js",
+      "types": "./dist/webhook/dispatcher.d.ts"
     },
     "./exceptions": {
-      "import": "./dist/src/http/exceptions.js",
-      "types": "./dist/src/http/exceptions.d.ts"
+      "import": "./dist/http/exceptions.js",
+      "types": "./dist/http/exceptions.d.ts"
     }
   },
   "files": [
-    "dist/src/**/*.js",
-    "dist/src/**/*.d.ts",
-    "dist/src/**/*.js.map",
-    "dist/src/**/*.d.ts.map",
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
+    "dist/**/*.js.map",
+    "dist/**/*.d.ts.map",
     "migrations/",
     "README.md",
     "LICENSE",
@@ -104,7 +104,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.lib.json",
     "build:app": "tsc",
-    "start": "node dist/src/main.js",
+    "start": "node dist/main.js",
     "test": "node --test dist/tests/integration.test.js",
     "test:run": "tsc && node --test dist/tests/integration.test.js",
     "test:system": "tsc && node dist/tests/system/runner.js",
@@ -115,8 +115,8 @@
     "test:chaos": "tsc && node --test dist/tests/system/chaos-testing.test.js",
     "test:infra": "tsc && node --test dist/tests/system/infrastructure.test.js",
     "test:system:ci": "tsc && node dist/tests/system/runner.js --ci --json --skip-pg",
-    "migrate": "node dist/src/main.js migrate",
-    "dev": "tsc && node dist/src/main.js",
+    "migrate": "node dist/main.js migrate",
+    "dev": "tsc && node dist/main.js",
     "lint": "tsc --noEmit",
     "lint:workflows": "bash scripts/validate-workflows.sh",
     "lint:security": "if command -v zizmor >/dev/null 2>&1; then zizmor --min-severity medium .; else echo 'zizmor not installed. Install with: cargo install zizmor'; fi",

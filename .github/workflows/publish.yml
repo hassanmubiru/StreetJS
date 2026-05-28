@@ -1,0 +1,71 @@
+name: Publish to npm
+
+# Publishes @streetjs/core to the npm registry when a semver tag is pushed.
+# Runs the full build, lint, and system tests before publishing to ensure
+# only verified releases make it to the registry.
+
+"on":
+  push:
+    tags:
+      - 'v*.*.*'
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  id-token: write   # required for npm provenance
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  test-and-publish:
+    name: Test & Publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify version matches tag
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::Tag version ($TAG_VERSION) does not match package.json version ($PKG_VERSION)"
+            exit 1
+          fi
+
+      - name: TypeScript compilation (full project)
+        run: npx tsc
+
+      - name: Run lint
+        run: npm run lint
+
+      - name: Run system tests (no PostgreSQL required)
+        run: node --test dist/tests/system/security.test.js dist/tests/system/memory-safety.test.js dist/tests/system/infrastructure.test.js
+        env:
+          PG_HOST: ""
+
+      - name: Verify library build (matches prepublishOnly)
+        run: npm run build
+
+      - name: Publish to npm
+        run: npm publish --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -22,3 +22,4 @@ tests/system/system-test-results.json
 # General log files
 log.txt
 *.log
+*.tgz
