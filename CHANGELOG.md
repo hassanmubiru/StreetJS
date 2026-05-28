@@ -39,15 +39,23 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 **Infrastructure**
 - `docker-compose.yml`: added for local development with PostgreSQL
-- `.github/workflows/`: new workflows for system-tests, yaml-lint, security-lint, memory-leak
+- `.github/workflows/`: new workflows for publish (npm on tags), system-tests, yaml-lint, security-lint, memory-leak
 - `.github/dependabot.yml`: automated dependency updates for GitHub Actions and npm
 - `.githooks/pre-commit`: pre-commit hook for workflow YAML validation
 - `scripts/validate-workflows.sh`: standalone YAML validation script
 - `scripts/test-setup.sh`: test environment setup
-- `Dockerfile`: cleaned up — removed tests copy, uploads dir created at runtime by `MultipartParser`
-- `street-build.sh`: build script
+- `docker-init/001_enable_pgcrypto.sql`: init script for enabling pgcrypto extension
+
+**Developer tooling**
+- `.gitignore`: added `*.tgz` pattern to prevent build artifacts from being tracked
 
 ### Changed
+
+**Database repository — parameterized queries**
+- `StreetPostgresRepository`: all CRUD methods (`findById`, `list`, `create`, `update`, `delete`) migrated from manual SQL string building + `escapeString` to parameterized queries with `$N` placeholders — eliminates SQL injection surface across the entire repository layer
+- `streamAll()`: return type changed from `StreetPostgresWireStream` to `Promise<StreetPostgresWireStream>`, implementation simplified to `this.pool.stream(sql)`
+- Removed deprecated helper functions: `escapeString`, `escapeValue`, `buildInsert`, `buildUpdate`
+- `StreetMigrationRunner`: insert/delete queries in `run()` and `rollback()` also switched to parameterized queries
 
 **Connection pool**
 - Dead connection detection and automatic replacement in `acquire()`
@@ -72,7 +80,13 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Explicit `_onExit` / `_onMessage` handler references instead of anonymous closures
 
 **Dockerfile**
-- Removed `COPY tests ./tests` and `RUN mkdir -p uploads` (uploads created at runtime)
+- Removed `COPY tests ./tests` and `RUN mkdir -p uploads` (uploads created at runtime by `MultipartParser`)
+
+**Rate limiter**
+- `RateLimitException` constructor simplified — removed `retryAfterSeconds` parameter
+
+**SSE**
+- `SseConnection`: `undefined` event data now treated as empty string instead of being passed to `JSON.stringify` (fixes value handling for optional data fields)
 
 ### Removed
 
@@ -81,6 +95,10 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `ValidationResult<T>` — discriminated union (replaced by implicit patterns)
 - `PaginationParams` — unused; pagination uses inline interfaces
 - `HealthStatus` — unused; health endpoint returns ad-hoc shapes
+
+**Deprecated module exports**
+- `LedgerTransactionService` — removed from public API (replaced by direct repository patterns)
+- `BoundedTransform` — removed from public API (internal implementation detail)
 
 ---
 
