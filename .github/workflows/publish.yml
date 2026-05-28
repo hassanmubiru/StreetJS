@@ -32,7 +32,10 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Configure npm auth
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+          chmod 600 ~/.npmrc
+
       - name: Publish package
         run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
