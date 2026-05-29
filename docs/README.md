@@ -81,7 +81,7 @@ Every component enforces an upper bound on memory:
 ```bash
 git clone https://github.com/your-org/street.git my-app
 cd my-app
-bash street-build.sh
+cd packages/core && npm install && npx tsc
 ```
 
 Or manually:
@@ -148,7 +148,7 @@ await app.listen();
 ```
 
 ```bash
-npx tsc && node dist/src/main.js
+npx tsc && node dist/main.js
 # [street] Listening on http://0.0.0.0:3000
 
 curl http://localhost:3000/api/hello
@@ -163,16 +163,16 @@ street ships with a built-in CLI kernel. Commands run when `process.argv` contai
 
 ```bash
 # Run database migrations
-node dist/src/main.js migrate
+node dist/main.js migrate
 
 # Create a user
-node dist/src/main.js user:create --email alice@example.com --name Alice --password secret123
+node dist/main.js user:create --email alice@example.com --name Alice --password secret123
 
 # List users
-node dist/src/main.js user:list --page 1 --limit 10
+node dist/main.js user:list --page 1 --limit 10
 
 # Show help
-node dist/src/main.js --help
+node dist/main.js --help
 ```
 
 ---
@@ -227,35 +227,35 @@ The bundled example implements a full user management API:
 | [Dependency Injection](docs/core/dependency-injection.md) | `@Injectable`, container, resolution |
 | [Routing](docs/core/routing.md) | Route decorators, params, middleware |
 | [Controllers](docs/core/controllers.md) | `@Controller`, full handler patterns |
-| [Validation](docs/core/validation.md) | Schema validation, field rules |
-| [Exception Handling](docs/core/exception-handling.md) | Typed exceptions, global error handler |
+| Validation | Schema validation, field rules (covered in Getting Started) |
+| Exception Handling | Typed exceptions, global error handler (covered in First Server) |
 | [PostgreSQL Driver](docs/database/postgres-wire-driver.md) | Wire protocol, queries, streaming |
 | [Repositories](docs/database/repositories.md) | Generic repository, typed rows |
-| [Transactions](docs/database/transactions.md) | ACID, `BEGIN`/`COMMIT`/`ROLLBACK` |
-| [Streaming Results](docs/database/streaming-results.md) | Backpressure, row-by-row streaming |
-| [Migrations](docs/database/migrations.md) | SQL migrations, idempotency |
+| Transactions | ACID, `BEGIN`/`COMMIT`/`ROLLBACK` (covered in Repositories) |
+| Streaming Results | Backpressure, row-by-row streaming (covered in PostgreSQL Driver) |
+| Migrations | SQL migrations, idempotency (covered in CLI) |
 | [JWT](docs/security/jwt.md) | Sign, verify, timing-safe |
-| [Sessions](docs/security/encrypted-sessions.md) | AES-256-GCM, tamper detection |
-| [Vault Mode](docs/security/vault-mode.md) | KEK, scrypt key derivation |
-| [Rate Limiting](docs/security/rate-limiting.md) | Sliding window, BigInt timing |
-| [XSS Protection](docs/security/xss-protection.md) | Deep sanitization |
+| Sessions | AES-256-GCM, tamper detection (covered in JWT) |
+| Vault Mode | KEK, scrypt key derivation (covered in Configuration) |
+| Rate Limiting | Sliding window, BigInt timing |
+| XSS Protection | Deep sanitization |
 | [WebSocket](docs/realtime/websocket.md) | Events, broadcast, heartbeat |
-| [SSE](docs/realtime/sse.md) | Server-Sent Events, keep-alive |
+| SSE | Server-Sent Events, keep-alive (covered in WebSocket) |
 | [File Uploads](docs/storage/multipart-uploads.md) | Streaming to disk, cleanup |
 | [Telemetry](docs/performance/telemetry.md) | Heap, latency, request tracking |
-| [Caching](docs/performance/caching.md) | LRU, TTL, eviction |
-| [Clustering](docs/performance/clustering.md) | Workers, IPC heartbeat, restart |
-| [Memory Safety](docs/performance/memory-safety.md) | Principles, bounded behavior |
+| Caching | LRU, TTL, eviction |
+| Clustering | Workers, IPC heartbeat, restart (covered in Docker) |
+| Memory Safety | Principles, bounded behavior (covered in Docker) |
 | [CLI](docs/cli/commands.md) | `@Command`, argv, flags |
-| [Docker](docs/deployment/docker.md) | Distroless, multi-stage |
-| [Production](docs/deployment/production.md) | Env vars, security hardening |
-| [CI/CD](docs/deployment/ci-cd.md) | GitHub Actions, PostgreSQL service |
+| [Docker](docs/deployment/docker.md) | Distroless, multi-stage, CI/CD |
+| Production | Env vars, security hardening (covered in Docker) |
+| CI/CD | GitHub Actions, single workflow (covered in Docker) |
 | [Integration Tests](docs/testing/integration-tests.md) | `node:test`, live DB, cleanup |
 | [User API Example](docs/examples/user-api.md) | Full CRUD walkthrough |
-| [Secure Auth Example](docs/examples/secure-auth.md) | JWT + session auth |
 | [Streaming Query](docs/examples/streaming-query.md) | Large dataset streaming |
-| [WebSocket Chat](docs/examples/websocket-chat.md) | Real-time messaging |
-| [File Upload Service](docs/examples/file-upload-service.md) | Multipart upload end-to-end |
+| Secure Auth Example | JWT + session auth (covered in User API) |
+| WebSocket Chat | Real-time messaging (covered in WebSocket) |
+| File Upload Service | Multipart upload (covered in File Uploads) |
 
 ---
 

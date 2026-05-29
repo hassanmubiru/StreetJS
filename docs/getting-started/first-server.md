@@ -322,7 +322,7 @@ Unhandled errors (non-`StreetException`) are caught by the global handler, logge
 
 ```bash
 npx tsc
-node dist/src/main.js
+node dist/main.js
 ```
 
 Full sequence output:
@@ -381,7 +381,7 @@ my-api/
 Compile and start:
 
 ```bash
-npx tsc && node dist/src/main.js
+npx tsc && node dist/main.js
 ```
 
 You now have a type-safe, injection-driven, validated HTTP API server — built entirely on Node.js core modules.

@@ -1,11 +1,30 @@
 name: street CI/CD
 
-# Merged CI/CD workflow — core & CLI packages, unit & integration, memory leak, system tests,
-# security lint, and npm publish. All jobs run in parallel on separate runners for fast feedback.
-# Postgres is available for the core and CLI migration integration jobs.
-# Use workflow_dispatch with a suite input to run a specific system test suite.
-# Tag pushes (v*.*.*) trigger the publish job after core tests pass.
+# ── Consolidated CI/CD ────────────────────────────────────────────────────
+# This single workflow consolidates all CI/CD into one file — replacing 5
+# previously standalone workflows (yaml-lint, security-lint, memory-leak,
+# system-tests, publish) that were merged into the original ci-cd base.
+# Every job runs in parallel on separate runners for maximum feedback speed.
+#
+# Architecture overview:
+#   ┌─ build-and-test ─┬── test-cli-unit ──┬── migration-integration ──┐
+#   │  (Core, matrix)  │  (CLI, matrix)    │  (CLI+PG, matrix)        │
+#   ├─ memory-leak ────┼── system-tests ───┼── security-lint ─────────┤
+#   │  (matrix)        │  (matrix, 6 suit) │  (zizmor, single run)    │
+#   └──┬── summary (after system-tests) ─────────────────────────────────┘
+#      │
+#      ├── docker-build  (main branch only, needs build-and-test)
+#      └── test-and-publish  (semver tags only, needs build-and-test)
+#
+# Postgres service containers are spun up only for jobs that need them.
+# Use workflow_dispatch with a suite input to run a specific system test.
+# Tag pushes (v*.*.*) trigger npm publish after core tests pass.
 
+# ── Triggers ───────────────────────────────────────────────────────────────
+# Three trigger types control when this workflow runs:
+#   push:           Code push to main/develop branches, or any semver tag
+#   pull_request:   PR opened/synced targeting main
+#   workflow_dispatch: Manual trigger with a suite selector for system tests
 "on":
   push:
     branches: [main, develop]
@@ -28,13 +47,25 @@ name: street CI/CD
           - infrastructure
         default: all
 
+# ── Concurrency ──────────────────────────────────────────────────────────
+# Groups all CI runs by git ref. A new push to the same branch/PR cancels
+# any in-progress runs — saves runner minutes on iterative pushes.
+# The publish job uses its own concurrency group to avoid cancellation.
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# ── Permissions ──────────────────────────────────────────────────────────
+# Minimal default: read-only contents. Jobs that need write or id-token
+# permissions (docker-build, test-and-publish) declare them at job level.
 permissions:
   contents: read
 
+# ── Shared environment ───────────────────────────────────────────────────
+# These values are inherited by all jobs. Jobs can override or extend
+# them at the job or step level as needed.
+#   PG_*      — PostgreSQL connection parameters for service containers
+#   SUITE     — workflow_dispatch input: selects which system test suite to run
 env:
   PG_HOST: localhost
   PG_PORT: 5432
@@ -44,7 +75,14 @@ env:
   SUITE: ${{ inputs.suite || 'all' }}
 
 jobs:
-  # ── Core package: build + integration tests with Postgres ──────────────
+  # ── build-and-test: Core integration tests (gatekeeper) ────────────────
+  # Purpose:   Compile and test the @streetjs/core package against a live
+  #            PostgreSQL instance. Runs integration tests with coverage.
+  # Depends:   Nothing (independent parallel job)
+  # Matrix:    Node 20 and 22 (fail-fast disabled — both must report)
+  # Services:  postgres:16-alpine with health check
+  # Outputs:   Coverage report artifact uploaded per matrix entry
+  # Critical path: Other jobs (docker-build, test-and-publish) depend on this.
   build-and-test:
     name: Core (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
@@ -135,7 +173,14 @@ jobs:
           name: core-coverage-${{ matrix.node }}-${{ github.sha }}
           path: packages/core/coverage/
 
-  # ── CLI unit tests (no external dependencies) ──────────────────────────
+  # ── test-cli-unit: CLI unit tests ───────────────────────────────────────
+  # Purpose:   Run @streetjs/cli package unit tests. Fast check for CLI-only
+  #            logic changes (argument parsing, help output, command dispatch).
+  # Depends:   Nothing (independent parallel job)
+  # Matrix:    Node 20 and 22 (fail-fast disabled)
+  # Requires:  Core package must be built first (build step depends on dist/)
+  #            but there is no formal needs: dependency — both run in parallel.
+  # Outputs:   Coverage report artifact uploaded per matrix entry
   test-cli-unit:
     name: CLI Unit (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
@@ -180,7 +225,13 @@ jobs:
           name: cli-coverage-${{ matrix.node }}-${{ github.sha }}
           path: packages/cli/coverage/
 
-  # ── CLI migration integration tests with Postgres ──────────────────────
+  # ── migration-integration: CLI migration tests ─────────────────────────
+  # Purpose:   Test the CLI's migration commands (migrate, rollback) against
+  #            a live PostgreSQL instance. Catches SQL migration issues.
+  # Depends:   Nothing (independent parallel job)
+  # Matrix:    Node 20 and 22 (fail-fast disabled)
+  # Services:  postgres:16-alpine with health check (same as build-and-test)
+  # Outputs:   Coverage report artifact uploaded per matrix entry
   migration-integration:
     name: CLI Migration (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
@@ -237,7 +288,13 @@ jobs:
           name: cli-migration-coverage-${{ matrix.node }}-${{ github.sha }}
           path: packages/cli/coverage/
 
-  # ── Memory leak & wire protocol tests (no external dependencies) ──────
+  # ── memory-leak: Memory safety & wire protocol ─────────────────────────
+  # Purpose:   Run memory leak detection tests and wire protocol compliance
+  #            tests. No PostgreSQL needed — the wire driver is tested using
+  #            a mock TCP server. Isolates memory-sensitive tests.
+  # Depends:   Nothing (independent parallel job)
+  # Matrix:    Node 20 and 22 (fail-fast disabled)
+  # Timeout:   15 minutes (leak tests can be slow under GC pressure)
   memory-leak:
     name: Memory Leak (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
@@ -269,7 +326,17 @@ jobs:
       - name: Run memory leak and wire protocol tests
         run: node --test packages/core/dist/tests/memory-leak.test.js packages/core/dist/tests/wire-protocol.test.js
 
-  # ── System tests: security, memory-safety, load, fuzz, chaos, infra ──
+  # ── system-tests: Six system-level test suites ─────────────────────────
+  # Purpose:   Run comprehensive system-level tests: security (XSS, JWT,
+  #            session), memory-safety (bounded buffers), load-testing,
+  #            fuzz-testing, chaos-testing, and infrastructure.
+  #            Supports workflow_dispatch suite selection via env.SUITE.
+  # Depends:   Nothing (independent parallel job)
+  # Matrix:    Node 20 and 22 (fail-fast disabled)
+  # Timeout:   15 minutes
+  # Dispatch:  Each suite can be selected individually via workflow_dispatch
+  #            input. When 'all', runs the unified system test runner too.
+  # Note:      Infrastructure tests set PG_HOST="" to skip PG-dependent cases.
   system-tests:
     name: System Tests (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
@@ -335,7 +402,13 @@ jobs:
           name: system-test-results-${{ matrix.node }}-${{ github.sha }}
           path: packages/core/tests/system/system-test-results.json
 
-  # ── Security lint: zizmor workflow analysis ────────────────────────────
+  # ── security-lint: Static analysis for workflow security ───────────────
+  # Purpose:   Run zizmor — a static analyzer for GitHub Actions workflows.
+  #            Scans all .yml/.yaml files for credential leaks, injection,
+  #            and other CI security antipatterns.
+  # Depends:   Nothing (independent, fastest job at ~2 min)
+  # Timeout:   5 minutes (generous for static analysis)
+  # Config:    medium+ severity, annotations on PRs, no advanced security
   security-lint:
     name: Security Lint (zizmor)
     runs-on: ubuntu-latest
@@ -354,6 +427,11 @@ jobs:
           advanced-security: false
           annotations: true
 
+  # ── summary: Post-system-test summary step ─────────────────────────────
+  # Purpose:   Print a summary of system test results to the GitHub Actions
+  #            job summary. Only collects after system-tests completes.
+  # Depends:   system-tests (with always() — runs even if tests failed)
+  # Note:      Uses GITHUB_STEP_SUMMARY for rich rendering in the UI.
   summary:
     name: Test Summary
     runs-on: ubuntu-latest
@@ -371,7 +449,13 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "All 6 system test suites executed (security, memory-safety, load-testing, fuzz-testing, chaos-testing, infrastructure)." >> $GITHUB_STEP_SUMMARY
 
-  # ── Docker build (depends on core tests passing) ───────────────────────
+  # ── docker-build: Container image build & push ─────────────────────────
+  # Purpose:   Build a distroless Docker image and push to GitHub Container
+  #            Registry. Only runs on main branch after core tests pass.
+  # Depends:   build-and-test (waits for integration tests to pass)
+  # Trigger:   Push to main branch only
+  # Permissions: packages: write (required for GHCR push)
+  # Tags:      :latest and :<commit-sha>
   docker-build:
     name: Docker Build & Push
     runs-on: ubuntu-latest
@@ -402,7 +486,23 @@ jobs:
           docker push $IMAGE:${{ github.sha }}
           docker push $IMAGE:latest
 
-  # ── npm publish (triggered by semver tags) ─────────────────────────────
+  # ── test-and-publish: npm provenance publish ───────────────────────────
+  # Purpose:   Verify the package, build, run additional pre-publish checks
+  #            (lint, security, memory-safety, infrastructure), then publish
+  #            to npm with provenance attestation.
+  # Depends:   build-and-test (waits for core integration tests to pass)
+  # Trigger:   Semver tag push only (v*.*.*)
+  # Timeout:   20 minutes (includes multiple test suites)
+  # Permissions: id-token: write (npm provenance requires OIDC token)
+  # Concurrency: Separate group (publish-${{ github.ref }}) to avoid cancellation
+  #              of a publish run by subsequent CI pushes on the same tag.
+  # Steps:
+  #   1. Version match — ensures git tag matches packages/core/package.json
+  #   2. Build & lint  — full TypeScript compilation and noEmit check
+  #   3. Pre-publish tests — run security, memory-safety, infrastructure tests
+  #      with PG_HOST="" to skip PG-dependent cases (already covered by build-and-test)
+  #   4. Library build — clean build matching prepublishOnly script
+  #   5. npm publish  — with --provenance for supply-chain security
   test-and-publish:
     name: Test & Publish
     runs-on: ubuntu-latest

@@ -72,24 +72,34 @@ Why only two? Everything else — HTTP server, TLS, streams, crypto, cluster —
 
 ```bash
 # Using the provided script (recommended)
-bash street-build.sh
+npm install && npx tsc
 
 # Or manually
 npx tsc
 ```
 
-`street-build.sh` does:
-1. `npm ci` — reproducible dependency install
-2. `npx tsc` — strict TypeScript compilation
-3. `mkdir -p dist/uploads` — ensures upload directory exists
+The framework ships with a `street-build.sh` script that runs `npm ci` and `npx tsc`. You can use it from the core package:
+
+```bash
+cd packages/core
+bash street-build.sh
+```
+
+Or build manually:
+
+```bash
+npm ci
+npx tsc
+mkdir -p dist/uploads
+```
 
 ### What gets compiled
 
 TypeScript source in `src/` and `tests/` is compiled to `dist/`. The output mirrors the source directory:
 
 ```
-src/main.ts           → dist/src/main.js
-src/http/server.ts    → dist/src/http/server.js
+src/main.ts           → dist/main.js
+src/http/server.ts    → dist/http/server.js
 tests/integration.test.ts → dist/tests/integration.test.js
 ```
 
@@ -127,10 +137,10 @@ Load it before starting:
 
 ```bash
 # Using dotenv (dev only, not required in production)
-node --env-file=.env dist/src/main.js
+node --env-file=.env dist/main.js
 
 # Or export manually
-export $(cat .env | xargs) && node dist/src/main.js
+export $(cat .env | xargs) && node dist/main.js
 ```
 
 ### Generating a SESSION_KEY
@@ -161,7 +171,7 @@ psql -c "CREATE DATABASE myapp_dev;"
 Run migrations to create the schema:
 
 ```bash
-node dist/src/main.js migrate
+node dist/main.js migrate
 # [migrations] Applying: 001_create_users.sql
 # [migrations] Applied: 001_create_users.sql
 # [migrations] Applying: 002_create_sessions_webhooks.sql
@@ -174,7 +184,7 @@ node dist/src/main.js migrate
 ## Step 6: Start the server
 
 ```bash
-node dist/src/main.js
+node dist/main.js
 # [street] Listening on http://0.0.0.0:3000
 ```
 

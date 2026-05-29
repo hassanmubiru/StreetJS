@@ -40,7 +40,7 @@ USER nonroot                      # UID 65532 — no root privileges
 EXPOSE 3000
 ENV NODE_ENV=production
 
-ENTRYPOINT ["nodejs", "dist/src/main.js"]
+ENTRYPOINT ["nodejs", "dist/main.js"]
 ```
 
 ### Why distroless?
@@ -139,7 +139,7 @@ services:
     volumes:
       - uploads_data:/app/uploads
     command: >
-      sh -c "nodejs dist/src/main.js migrate && nodejs dist/src/main.js"
+      sh -c "nodejs dist/main.js migrate && nodejs dist/main.js"
 
 volumes:
   pg_data:
@@ -260,32 +260,39 @@ server {
 
 # CI/CD Pipeline
 
-The bundled GitHub Actions workflow covers build, test, and Docker publish.
+The single consolidated GitHub Actions workflow (`ci-cd.yml`) runs build, test, lint, and deploy jobs in parallel across Node 20 and 22:
 
 ```yaml
-# .github/workflows/ci-cd.yml
+# .github/workflows/ci-cd.yml (abridged — Docker-relevant jobs)
 name: street CI/CD
 
 on:
   push:
     branches: [main, develop]
+    tags: ['v*.*.*']
   pull_request:
     branches: [main]
 
 env:
-  NODE_VERSION: '20'
+  PG_HOST: localhost
+  PG_PORT: 5432
+  PG_DATABASE: street_test
+  PG_USER: street
+  PG_PASSWORD: street_secret
 
 jobs:
+  # Core tests — Node 20 & 22 matrix, YAML validation first
   build-and-test:
-    runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        node: [20, 22]
     services:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_DB: street_test
-          POSTGRES_USER: street
-          POSTGRES_PASSWORD: street_secret
+          POSTGRES_DB: ${{ env.PG_DATABASE }}
+          POSTGRES_USER: ${{ env.PG_USER }}
+          POSTGRES_PASSWORD: ${{ env.PG_PASSWORD }}
         ports:
           - 5432:5432
         options: >-
@@ -293,69 +300,44 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: ${{ matrix.node }}
           cache: 'npm'
-
       - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npx tsc
+      - run: node dist/main.js migrate
+      - run: node --test dist/tests/integration.test.js
 
-      - name: TypeScript strict compile
-        run: npx tsc --noEmit
-
-      - name: Build
-        run: npx tsc
-
-      - name: Run migrations
-        run: node dist/src/main.js migrate
-        env:
-          PG_HOST: localhost
-          PG_DATABASE: street_test
-          PG_USER: street
-          PG_PASSWORD: street_secret
-          JWT_SECRET: ci-jwt-secret-at-least-32-chars-long
-          SESSION_KEY: ${{ secrets.CI_SESSION_KEY }}
-
-      - name: Integration tests
-        run: node --test dist/tests/integration.test.js
-        env:
-          PG_HOST: localhost
-          PG_DATABASE: street_test
-          PG_USER: street
-          PG_PASSWORD: street_secret
-          JWT_SECRET: ci-jwt-secret-at-least-32-chars-long
-          SESSION_KEY: ${{ secrets.CI_SESSION_KEY }}
-          KEK: ${{ secrets.KEK }}
-
+  # Docker build — only on main branch, waits for core tests
   docker-build:
     needs: build-and-test
     if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Login to registry
+      - name: Login to GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
           push: true
-          tags: |
-            ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:${{ github.sha }}
+          tags: ghcr.io/${{ github.repository }}:latest, ghcr.io/${{ github.repository }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 ```
+
+Additional parallel jobs in `ci-cd.yml`:
+- `security-lint` — zizmor static analysis (2 min)
+- `memory-leak` — isolated memory-safety tests
+- `system-tests` — infrastructure, load, fuzz, chaos tests
+- `test-and-publish` — npm publish on version tags, waits for `build-and-test`
 
 ---
 
@@ -366,7 +348,7 @@ jobs:
 street's cluster mode uses all CPU cores automatically in production. A 4-core server runs 4 workers, each handling independent request queues:
 
 ```bash
-NODE_ENV=production node dist/src/main.js
+NODE_ENV=production node dist/main.js
 # [cluster] Primary 1234 starting 4 workers
 # [cluster] Spawned worker 1235
 # [cluster] Spawned worker 1236
@@ -378,7 +360,7 @@ Tune the worker count:
 
 ```bash
 # More workers than CPUs for I/O-bound workloads
-WORKERS=8 NODE_ENV=production node dist/src/main.js
+WORKERS=8 NODE_ENV=production node dist/main.js
 ```
 
 ## Horizontal scaling (multiple servers)

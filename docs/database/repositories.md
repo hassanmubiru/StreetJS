@@ -155,23 +155,34 @@ export class OrderRepository extends StreetPostgresRepository<Order> {
 
 ---
 
-## SQL escaping
+## Parameterized queries
 
-The base class provides `escapeString()` behavior via the `buildInsert` and `buildUpdate` helpers. For custom queries, always escape string inputs to prevent SQL injection:
+The repository layer uses **parameterized queries** (`$1`, `$2`, `$N` placeholders) for all built-in CRUD operations. For custom queries, use parameters to prevent SQL injection:
 
 ```typescript
-// Safe: escape the value
-const safeEmail = email.replace(/'/g, "''");
-await this.pool.query(`SELECT * FROM users WHERE email = '${safeEmail}'`);
+// Safe: parameterized query with placeholders
+const result = await this.pool.query(
+  `SELECT * FROM users WHERE email = $1 LIMIT 1`,
+  [email.toLowerCase()]
+);
 
-// Safe: use a numeric parameter directly (no injection risk)
-await this.pool.query(`SELECT * FROM orders LIMIT ${Math.floor(limit)}`);
+// Safe: multiple parameters
+await this.pool.query(
+  `SELECT * FROM orders WHERE user_id = $1 AND status = $2 ORDER BY created_at DESC LIMIT $3`,
+  [userId, status, Math.min(limit, 1000)]
+);
+
+// Safe: INSERT with parameters
+await this.pool.query(
+  `INSERT INTO users (id, email, name, password_hash) VALUES ($1, $2, $3, $4)`,
+  [userId, email, name, passwordHash]
+);
 
 // Dangerous: never interpolate untrusted input directly
 await this.pool.query(`SELECT * FROM users WHERE email = '${email}'`);  // ✗
 ```
 
-> **Note:** The wire driver does not support parameterized queries (`$1`, `$2`) in the current implementation. This is a roadmap item. Until then, always escape string values before interpolation.
+All values are sent as separate parameters in the wire protocol — the database handles escaping, so there is no SQL injection risk. String, number, boolean, and null values are all supported.
 
 ---
 
@@ -253,47 +264,38 @@ const row = await conn.query(
 
 ---
 
-## ACID Ledger transactions
+## Multi-operation transactions
 
-For multi-operation workflows with multiple repositories, use `LedgerTransactionService`:
+For complex workflows involving multiple operations, use `pool.transaction()` to run them atomically:
 
 ```typescript
-import { LedgerTransactionService } from '../database/repository.js';
-
 @Injectable()
 export class OrderFulfillmentService {
-  private readonly ledger: LedgerTransactionService;
-
-  constructor(pool: PgPool) {
-    this.ledger = new LedgerTransactionService(pool);
-  }
+  constructor(private readonly pool: PgPool) {}
 
   async fulfill(orderId: string): Promise<void> {
-    await this.ledger.execute([
-      async (conn) => {
-        await conn.query(
-          `UPDATE orders SET status = 'fulfilled', fulfilled_at = NOW()
-           WHERE id = '${orderId}'`
-        );
-      },
-      async (conn) => {
-        await conn.query(
-          `INSERT INTO fulfillment_events (order_id, event, created_at)
-           VALUES ('${orderId}', 'fulfilled', NOW())`
-        );
-      },
-      async (conn) => {
-        await conn.query(
-          `UPDATE inventory SET reserved = reserved - 1
-           WHERE product_id = (SELECT product_id FROM orders WHERE id = '${orderId}')`
-        );
-      },
-    ]);
+    await this.pool.transaction(async (conn) => {
+      await conn.query(
+        `UPDATE orders SET status = 'fulfilled', fulfilled_at = NOW()
+         WHERE id = $1`,
+        [orderId]
+      );
+      await conn.query(
+        `INSERT INTO fulfillment_events (order_id, event, created_at)
+         VALUES ($1, 'fulfilled', NOW())`,
+        [orderId]
+      );
+      await conn.query(
+        `UPDATE inventory SET reserved = reserved - 1
+         WHERE product_id = (SELECT product_id FROM orders WHERE id = $1)`,
+        [orderId]
+      );
+    });
   }
 }
 ```
 
-All three operations run in one transaction. Any failure rolls back all of them.
+All operations run in one transaction — any failure rolls back all of them.
 
 ---
 

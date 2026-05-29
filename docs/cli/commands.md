@@ -44,8 +44,8 @@ If `argv[2]` matches a registered command name, CLI mode runs. Otherwise, the HT
 Run all pending migrations:
 
 ```bash
-node dist/src/main.js migrate
-node dist/src/main.js migrate --dir ./migrations
+node dist/main.js migrate
+node dist/main.js migrate --dir ./migrations
 ```
 
 | Flag | Default | Description |
@@ -69,8 +69,8 @@ Output:
 Roll back the last N migrations:
 
 ```bash
-node dist/src/main.js migrate:rollback
-node dist/src/main.js migrate:rollback --steps 2
+node dist/main.js migrate:rollback
+node dist/main.js migrate:rollback --steps 2
 ```
 
 | Flag | Default | Description |
@@ -83,7 +83,7 @@ node dist/src/main.js migrate:rollback --steps 2
 Create a new user directly:
 
 ```bash
-node dist/src/main.js user:create \
+node dist/main.js user:create \
   --email alice@example.com \
   --name "Alice Smith" \
   --password "s3cure-p@ssword!"
@@ -106,8 +106,8 @@ Output:
 List all users with pagination:
 
 ```bash
-node dist/src/main.js user:list
-node dist/src/main.js user:list --page 2 --limit 10
+node dist/main.js user:list
+node dist/main.js user:list --page 2 --limit 10
 ```
 
 Output:
@@ -123,7 +123,7 @@ Output:
 Delete a user by UUID:
 
 ```bash
-node dist/src/main.js user:delete --id a1b2c3d4-e5f6-7890-abcd-ef1234567890
+node dist/main.js user:delete --id a1b2c3d4-e5f6-7890-abcd-ef1234567890
 ```
 
 ---
@@ -230,15 +230,15 @@ cli.register(ReportCommand);    // ← add your new class
 ### Step 3: Run it
 
 ```bash
-node dist/src/main.js report:users
+node dist/main.js report:users
 # Total users: 42
 #   user                 40
 #   admin                2
 
-node dist/src/main.js report:users --format json
+node dist/main.js report:users --format json
 # { "total": 42, "byRole": { "user": 40, "admin": 2 } }
 
-node dist/src/main.js report:health --verbose
+node dist/main.js report:health --verbose
 # Database time: 2024-01-15T10:23:45.123Z
 # PostgreSQL: PostgreSQL 16.1 on x86_64-pc-linux-gnu, ...
 ```
@@ -250,7 +250,7 @@ node dist/src/main.js report:health --verbose
 `--help` prints all registered commands:
 
 ```bash
-node dist/src/main.js --help
+node dist/main.js --help
 
 # street v1.0.0
 #
@@ -280,7 +280,7 @@ Run migrations as part of the deployment pipeline:
 # .github/workflows/ci-cd.yml
 - name: Run migrations
   run: |
-    node dist/src/main.js migrate
+    node dist/main.js migrate
   env:
     PG_HOST: localhost
     PG_DATABASE: myapp
@@ -298,10 +298,10 @@ Or in a Docker entrypoint:
 set -e
 
 echo "Running migrations..."
-node dist/src/main.js migrate
+node dist/main.js migrate
 
 echo "Starting server..."
-exec node dist/src/main.js
+exec node dist/main.js
 ```
 
 ---

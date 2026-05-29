@@ -145,7 +145,7 @@ MIGRATIONS_DIR=./migrations
 Load with Node 20's built-in `--env-file`:
 
 ```bash
-node --env-file=.env dist/src/main.js
+node --env-file=.env dist/main.js
 ```
 
 ### Production
@@ -239,7 +239,7 @@ If any required environment variable is missing, `config.load()` throws before t
 
 ```
 Error: Missing required environment variable: PG_HOST
-    at loadConfig (dist/src/security/vault.js:...)
+    at loadConfig (dist/security/vault.js:...)
 ```
 
 This is intentional. A misconfigured server that starts silently is worse than one that refuses to start. Fail fast.
