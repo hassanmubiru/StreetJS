@@ -20,7 +20,13 @@
     "clean": "npm run clean -w packages/core && npm run clean -w packages/cli",
     "lint:workflows": "bash scripts/validate-workflows.sh",
     "lint:security": "if command -v zizmor >/dev/null 2>&1; then zizmor --min-severity medium .; else echo 'zizmor not installed. Install with: cargo install zizmor'; fi",
-    "prepare": "if test -d .git; then git config core.hooksPath .githooks; fi"
+    "prepare": "if test -d .git; then git config core.hooksPath .githooks; fi",
+    "release:patch": "bash scripts/release.sh patch",
+    "release:minor": "bash scripts/release.sh minor",
+    "release:major": "bash scripts/release.sh major",
+    "release:dry-run": "bash scripts/release.sh patch --dry-run",
+    "validate:publish": "bash scripts/validate-publish.sh",
+    "verify:publish": "bash scripts/post-publish-verify.sh"
   },
   "keywords": [
     "typescript",
