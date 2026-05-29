@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/cli",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Street framework CLI — scaffolding, dev server, code generation, and migration management",
   "type": "module",
   "main": "./dist/index.js",

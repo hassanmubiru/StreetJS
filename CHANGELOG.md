@@ -11,6 +11,20 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+**@streetjs/cli — `street generate repository` log message**
+- Success message printed `src/repositorys/` (naive `type + 's'`) instead of
+  `src/repositories/`. Fixed by routing through the existing `toPlural()` helper,
+  which correctly handles the `y → ies` rule. The generated file path was always
+  correct — only the console output was wrong.
+
+**@streetjs/cli — version bump to 1.0.2**
+
+---
+
+## [1.0.3] — 2026-05-29
+
+### Fixed
+
 **@streetjs/core — publish artifact pollution (critical)**
 - `package.json` `"files"` array replaced the wildcard `"dist/**/*.js"` with
   explicit per-subdirectory globs (`"dist/cache/**/*.js"`, `"dist/cli/**/*.js"`,

@@ -8,7 +8,7 @@ import { StartCommand } from './commands/start.js';
 import { TestCommand } from './commands/test.js';
 import { GenerateCommand } from './commands/generate.js';
 import { MigrateCommand } from './commands/migrate.js';
-const VERSION = '1.0.1';
+const VERSION = '1.0.2';
 const APP_NAME = 'street';
 /**
  * Main CLI entry point. Parses process.argv, finds a matching command,
