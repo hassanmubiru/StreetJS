@@ -27,7 +27,7 @@ done
 
 echo "Postgres ready. Running tests..."
 # Run tests pointing to local compose DB
-PG_HOST=127.0.0.1 PG_PORT=5432 PG_USER=street PG_PASSWORD=street_secret PG_DATABASE=street_test npm run test:run
+cd "$ROOT_DIR/packages/core" && PG_HOST=127.0.0.1 PG_PORT=5432 PG_USER=street PG_PASSWORD=street_secret PG_DATABASE=street_test npm run test:run
 
 EXIT_CODE=$?
 

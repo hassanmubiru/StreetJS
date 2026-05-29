@@ -45,37 +45,37 @@ jobs:
       - name: Verify version matches tag
         run: |
           TAG_VERSION="${GITHUB_REF_NAME#v}"
-          PKG_VERSION=$(node -p "require('./package.json').version")
+          PKG_VERSION=$(node -p "require('./packages/core/package.json').version")
           if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
-            echo "::error::Tag version ($TAG_VERSION) does not match package.json version ($PKG_VERSION)"
+            echo "::error::Tag version ($TAG_VERSION) does not match packages/core/package.json version ($PKG_VERSION)"
             exit 1
           fi
 
       - name: TypeScript compilation (full project)
-        run: npx tsc
+        run: npm run build -w packages/core
 
       - name: Run lint
-        run: npm run lint
+        run: npm run lint -w packages/core
 
       - name: Run security tests
-        run: node --test --test-concurrency=1 dist/tests/system/security.test.js
+        run: node --test --test-concurrency=1 packages/core/dist/tests/system/security.test.js
         env:
           PG_HOST: ""
 
       - name: Run memory-safety tests
-        run: node --test --test-concurrency=1 dist/tests/system/memory-safety.test.js
+        run: node --test --test-concurrency=1 packages/core/dist/tests/system/memory-safety.test.js
         env:
           PG_HOST: ""
 
       - name: Run infrastructure tests
-        run: node --test --test-concurrency=1 dist/tests/system/infrastructure.test.js
+        run: node --test --test-concurrency=1 packages/core/dist/tests/system/infrastructure.test.js
         env:
           PG_HOST: ""
 
       - name: Verify library build (matches prepublishOnly)
-        run: npm run build
+        run: npm run build -w packages/core
 
       - name: Publish to npm
-        run: npm publish --provenance
+        run: npm publish -w packages/core --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

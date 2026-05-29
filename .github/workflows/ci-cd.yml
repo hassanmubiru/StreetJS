@@ -84,7 +84,7 @@ jobs:
         run: npm ci
 
       - name: TypeScript check & build
-        run: npx tsc
+        run: npm run build -w packages/core
 
       - name: Run integration tests
         env:
@@ -97,7 +97,7 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           SESSION_KEY: ${{ secrets.SESSION_KEY }}
           PORT: "3001"
-        run: node --test dist/tests/integration.test.js
+        run: node --test packages/core/dist/tests/integration.test.js
 
   docker-build:
     name: Docker Build & Push

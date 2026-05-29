@@ -37,7 +37,7 @@ jobs:
         run: npm ci
 
       - name: TypeScript compilation
-        run: npx tsc
+        run: npm run build -w packages/core
 
       - name: Run memory leak and wire protocol tests
-        run: node --test dist/tests/memory-leak.test.js dist/tests/wire-protocol.test.js
+        run: node --test packages/core/dist/tests/memory-leak.test.js packages/core/dist/tests/wire-protocol.test.js

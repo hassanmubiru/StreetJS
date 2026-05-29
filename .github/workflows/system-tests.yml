@@ -58,44 +58,44 @@ jobs:
         run: npm ci
 
       - name: TypeScript compilation
-        run: npx tsc
+        run: npm run build -w packages/core
 
       - name: Run security tests
         if: env.SUITE == 'all' || env.SUITE == 'security'
-        run: node --test dist/tests/system/security.test.js
+        run: node --test packages/core/dist/tests/system/security.test.js
 
       - name: Run memory-safety tests
         if: env.SUITE == 'all' || env.SUITE == 'memory-safety'
-        run: node --test dist/tests/system/memory-safety.test.js
+        run: node --test packages/core/dist/tests/system/memory-safety.test.js
 
       - name: Run load-testing tests
         if: env.SUITE == 'all' || env.SUITE == 'load-testing'
-        run: node --test dist/tests/system/load-testing.test.js
+        run: node --test packages/core/dist/tests/system/load-testing.test.js
 
       - name: Run fuzz-testing tests
         if: env.SUITE == 'all' || env.SUITE == 'fuzz-testing'
-        run: node --test dist/tests/system/fuzz-testing.test.js
+        run: node --test packages/core/dist/tests/system/fuzz-testing.test.js
 
       - name: Run chaos-testing tests
         if: env.SUITE == 'all' || env.SUITE == 'chaos-testing'
-        run: node --test dist/tests/system/chaos-testing.test.js
+        run: node --test packages/core/dist/tests/system/chaos-testing.test.js
 
       - name: Run infrastructure tests (no PG)
         if: env.SUITE == 'all' || env.SUITE == 'infrastructure'
-        run: node --test dist/tests/system/infrastructure.test.js
+        run: node --test packages/core/dist/tests/system/infrastructure.test.js
         env:
           PG_HOST: ""  # Skip PG-dependent tests
 
       - name: Run unified system test runner
         if: env.SUITE == 'all'
-        run: node dist/tests/system/runner.js --ci --json --skip-pg
+        run: node packages/core/dist/tests/system/runner.js --ci --json --skip-pg
 
       - name: Upload system test results
         if: success() || failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: system-test-results-${{ github.sha }}
-          path: tests/system/system-test-results.json
+          path: packages/core/tests/system/system-test-results.json
 
   summary:
     name: Test Summary

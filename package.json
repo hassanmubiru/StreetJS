@@ -1,131 +1,23 @@
 {
-  "name": "@streetjs/core",
-  "version": "1.0.3",
-  "description": "Production-grade, memory-safe TypeScript backend framework built on Node.js core modules",
+  "name": "street-monorepo",
+  "private": true,
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    },
-    "./http": {
-      "import": "./dist/http/server.js",
-      "types": "./dist/http/server.d.ts"
-    },
-    "./router": {
-      "import": "./dist/router/router.js",
-      "types": "./dist/router/router.d.ts"
-    },
-    "./database": {
-      "import": "./dist/database/wire.js",
-      "types": "./dist/database/wire.d.ts"
-    },
-    "./pool": {
-      "import": "./dist/database/pool.js",
-      "types": "./dist/database/pool.d.ts"
-    },
-    "./repository": {
-      "import": "./dist/database/repository.js",
-      "types": "./dist/database/repository.d.ts"
-    },
-    "./migrations": {
-      "import": "./dist/database/migrations.js",
-      "types": "./dist/database/migrations.d.ts"
-    },
-    "./security": {
-      "import": "./dist/security/jwt.js",
-      "types": "./dist/security/jwt.d.ts"
-    },
-    "./session": {
-      "import": "./dist/security/session.js",
-      "types": "./dist/security/session.d.ts"
-    },
-    "./vault": {
-      "import": "./dist/security/vault.js",
-      "types": "./dist/security/vault.d.ts"
-    },
-    "./ratelimit": {
-      "import": "./dist/security/ratelimit.js",
-      "types": "./dist/security/ratelimit.d.ts"
-    },
-    "./xss": {
-      "import": "./dist/security/xss.js",
-      "types": "./dist/security/xss.d.ts"
-    },
-    "./websocket": {
-      "import": "./dist/websocket/server.js",
-      "types": "./dist/websocket/server.d.ts"
-    },
-    "./sse": {
-      "import": "./dist/websocket/sse.js",
-      "types": "./dist/websocket/sse.d.ts"
-    },
-    "./cache": {
-      "import": "./dist/cache/lru.js",
-      "types": "./dist/cache/lru.d.ts"
-    },
-    "./telemetry": {
-      "import": "./dist/telemetry/tracker.js",
-      "types": "./dist/telemetry/tracker.d.ts"
-    },
-    "./cluster": {
-      "import": "./dist/cluster/coordinator.js",
-      "types": "./dist/cluster/coordinator.d.ts"
-    },
-    "./cli": {
-      "import": "./dist/cli/kernel.js",
-      "types": "./dist/cli/kernel.d.ts"
-    },
-    "./multipart": {
-      "import": "./dist/multipart/parser.js",
-      "types": "./dist/multipart/parser.d.ts"
-    },
-    "./webhook": {
-      "import": "./dist/webhook/dispatcher.js",
-      "types": "./dist/webhook/dispatcher.d.ts"
-    },
-    "./exceptions": {
-      "import": "./dist/http/exceptions.js",
-      "types": "./dist/http/exceptions.d.ts"
-    }
-  },
-  "files": [
-    "dist/**/*.js",
-    "dist/**/*.d.ts",
-    "dist/**/*.js.map",
-    "dist/**/*.d.ts.map",
-    "migrations/",
-    "README.md",
-    "LICENSE",
-    "CHANGELOG.md"
+  "workspaces": [
+    "packages/*"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.lib.json",
-    "build:app": "tsc",
-    "start": "node dist/main.js",
-    "test": "node --test dist/tests/integration.test.js",
-    "test:run": "tsc && node --test dist/tests/integration.test.js",
-    "test:system": "tsc && node dist/tests/system/runner.js",
-    "test:security": "tsc && node --test dist/tests/system/security.test.js",
-    "test:memory": "tsc && node --test dist/tests/system/memory-safety.test.js",
-    "test:load": "tsc && node --test dist/tests/system/load-testing.test.js",
-    "test:fuzz": "tsc && node --test dist/tests/system/fuzz-testing.test.js",
-    "test:chaos": "tsc && node --test dist/tests/system/chaos-testing.test.js",
-    "test:infra": "tsc && node --test dist/tests/system/infrastructure.test.js",
-    "test:system:ci": "tsc && node dist/tests/system/runner.js --ci --json --skip-pg",
-    "migrate": "node dist/main.js migrate",
-    "dev": "tsc && node dist/main.js",
-    "lint": "tsc --noEmit",
+    "build": "npm run build -w packages/core && npm run build -w packages/cli",
+    "build:core": "npm run build -w packages/core",
+    "build:cli": "npm run build -w packages/cli",
+    "start": "npm run start -w packages/core",
+    "dev": "npm run dev -w packages/core",
+    "test": "npm run test -w packages/core",
+    "test:run": "npm run test:run -w packages/core",
+    "lint": "npm run lint -w packages/core",
+    "clean": "npm run clean -w packages/core && npm run clean -w packages/cli",
     "lint:workflows": "bash scripts/validate-workflows.sh",
     "lint:security": "if command -v zizmor >/dev/null 2>&1; then zizmor --min-severity medium .; else echo 'zizmor not installed. Install with: cargo install zizmor'; fi",
-    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
-    "prepare": "if test -d .git; then git config core.hooksPath .githooks; fi",
-    "prepublishOnly": "npm run clean && npm run build && npm run lint",
-    "version:patch": "npm version patch --no-git-tag-version",
-    "version:minor": "npm version minor --no-git-tag-version",
-    "version:major": "npm version major --no-git-tag-version"
+    "prepare": "if test -d .git; then git config core.hooksPath .githooks; fi"
   },
   "keywords": [
     "typescript",
@@ -134,19 +26,7 @@
     "http",
     "server",
     "postgresql",
-    "wire-protocol",
-    "dependency-injection",
-    "ioc",
-    "websocket",
-    "sse",
-    "streaming",
-    "memory-safe",
-    "clustering",
-    "jwt",
-    "aes-gcm",
-    "rate-limiting",
-    "esm",
-    "nodejs"
+    "monorepo"
   ],
   "author": "street contributors",
   "license": "MIT",
@@ -158,24 +38,8 @@
   "bugs": {
     "url": "https://github.com/hassanmubiru/street/issues"
   },
-  "dependencies": {
-    "reflect-metadata": "^0.2.2",
-    "ws": "^8.18.0"
-  },
-  "devDependencies": {
-    "@types/node": "^20.14.0",
-    "@types/ws": "^8.5.10",
-    "typescript": "^5.4.5"
-  },
-  "peerDependencies": {
-    "typescript": ">=5.0.0"
-  },
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=9.0.0"
-  },
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/"
   }
 }
