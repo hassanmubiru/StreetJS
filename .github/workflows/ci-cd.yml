@@ -388,26 +388,27 @@ jobs:
 
   # ── test-and-publish: npm provenance publish ───────────────────────────
   # Purpose:   Verify package version matches git tag, build with tests,
-  #            lint, then publish to npm with provenance attestation.
+  #            lint, then publish both @streetjs/core and @streetjs/cli to
+  #            npm with provenance attestation.
   # Depends:   build-and-test (waits for core integration tests to pass)
   # Trigger:   Semver tag push only (v*.*.*)
-  # Timeout:   15 minutes (reduced from 20 — pre-publish test steps removed)
+  # Timeout:   15 minutes
   # Permissions: id-token: write (npm provenance requires OIDC token)
   # Concurrency: Separate group (publish-${{ github.ref }}) to avoid
   #              cancellation of a publish run by subsequent CI pushes.
   # Steps:
   #   1. Version match — ensures git tag matches packages/core/package.json
-  #   2. Build & lint  — full TypeScript compilation and noEmit check
-  #   3. Library build — clean build matching prepublishOnly script
-  #   4. npm publish  — with --provenance for supply-chain security
-  # Note: Pre-publish tests (security, memory-safety, infrastructure) were
-  #       removed — they already passed in build-and-test (integration) and
-  #       system-tests (dedicated suites). The added coverage is negligible.
+  #      AND packages/cli/package.json (both must be in sync)
+  #   2. Build both packages
+  #   3. Validate pack output — no test files, no dist/src duplication
+  #   4. Smoke test — street create validates scaffolding
+  #   5. Publish @streetjs/core with provenance
+  #   6. Publish @streetjs/cli with provenance
   test-and-publish:
     name: Test & Publish
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: build-and-test
+    needs: [build-and-test, migration-integration]
     if: startsWith(github.ref, 'refs/tags/v')
 
     concurrency:
@@ -427,22 +428,100 @@ jobs:
       - name: Verify version matches tag
         run: |
           TAG_VERSION="${GITHUB_REF_NAME#v}"
-          PKG_VERSION=$(node -p "require('./packages/core/package.json').version")
-          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
-            echo "::error::Tag version ($TAG_VERSION) does not match packages/core/package.json version ($PKG_VERSION)"
+          CORE_VERSION=$(node -p "require('./packages/core/package.json').version")
+          CLI_VERSION=$(node -p "require('./packages/cli/package.json').version")
+
+          if [ "$TAG_VERSION" != "$CORE_VERSION" ]; then
+            echo "::error::Tag version ($TAG_VERSION) does not match packages/core/package.json ($CORE_VERSION)"
             exit 1
           fi
+          if [ "$TAG_VERSION" != "$CLI_VERSION" ]; then
+            echo "::error::Tag version ($TAG_VERSION) does not match packages/cli/package.json ($CLI_VERSION)"
+            exit 1
+          fi
+          echo "Version match: $TAG_VERSION ✔"
 
-      - name: TypeScript compilation (full project with tests)
-        run: npm run build:app -w packages/core
+      - name: Build @streetjs/core
+        run: npm run clean -w packages/core && npm run build -w packages/core
 
-      - name: Run lint
+      - name: Build @streetjs/cli
+        run: npm run clean -w packages/cli && npm run build -w packages/cli
+
+      - name: Run CLI test suite
+        run: npm run test -w packages/cli
+
+      - name: Validate @streetjs/core pack (no test files, no dist/src)
+        run: |
+          PACK=$(cd packages/core && npm pack --dry-run 2>&1)
+          if echo "$PACK" | grep -q 'dist/tests/'; then
+            echo "::error::@streetjs/core pack contains dist/tests/ — test files must not be published"
+            exit 1
+          fi
+          if echo "$PACK" | grep -q 'dist/src/'; then
+            echo "::error::@streetjs/core pack contains dist/src/ — stale build artifact"
+            exit 1
+          fi
+          echo "Core pack validation: OK"
+          echo "$PACK" | grep 'total files'
+
+      - name: Validate @streetjs/cli pack (no test files, has bin + templates)
+        run: |
+          PACK=$(cd packages/cli && npm pack --dry-run 2>&1)
+          if echo "$PACK" | grep -q 'dist/tests/'; then
+            echo "::error::@streetjs/cli pack contains dist/tests/ — test files must not be published"
+            exit 1
+          fi
+          if ! echo "$PACK" | grep -q 'bin/street.js'; then
+            echo "::error::@streetjs/cli pack missing bin/street.js"
+            exit 1
+          fi
+          if ! echo "$PACK" | grep -q 'templates/'; then
+            echo "::error::@streetjs/cli pack missing templates/"
+            exit 1
+          fi
+          echo "CLI pack validation: OK"
+          echo "$PACK" | grep 'total files'
+
+      - name: Smoke test — street create
+        run: |
+          # Link CLI globally for smoke test
+          cd packages/cli && npm link && cd ../..
+          SMOKE_DIR=$(mktemp -d)
+          cd "$SMOKE_DIR"
+          street create smoke-test
+
+          # Validate required paths
+          for path in \
+            smoke-test/package.json \
+            smoke-test/tsconfig.json \
+            smoke-test/Dockerfile \
+            smoke-test/street.config.ts \
+            smoke-test/README.md \
+            smoke-test/src/main.ts \
+            smoke-test/src/controllers \
+            smoke-test/src/services \
+            smoke-test/src/repositories \
+            smoke-test/src/middleware \
+            smoke-test/src/gateways \
+            smoke-test/migrations \
+            smoke-test/uploads \
+            smoke-test/tests; do
+            if [ ! -e "$path" ]; then
+              echo "::error::Smoke test: missing $path"
+              exit 1
+            fi
+          done
+          echo "Smoke test: all required paths present ✔"
+
+      - name: Lint @streetjs/core
         run: npm run lint -w packages/core
 
-      - name: Verify library build (matches prepublishOnly)
-        run: npm run build -w packages/core
+      - name: Publish @streetjs/core to npm
+        run: npm publish -w packages/core --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Publish to npm
-        run: npm publish -w packages/core --provenance
+      - name: Publish @streetjs/cli to npm
+        run: npm publish -w packages/cli --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
