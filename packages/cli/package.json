@@ -26,7 +26,12 @@
     "include": ["dist/**/*.js"],
     "exclude": ["dist/tests/**"],
     "reporter": ["text", "lcov", "html"],
-    "all": false
+    "all": false,
+    "check-coverage": true,
+    "lines": 85,
+    "functions": 85,
+    "branches": 85,
+    "statements": 85
   },
   "dependencies": {
     "@streetjs/core": "^1.0.3"
