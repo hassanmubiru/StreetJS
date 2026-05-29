@@ -20,6 +20,8 @@ updates:
       - "github-actions"
     # Keep up to 5 open PRs for actions at any time
     open-pull-requests-limit: 5
+    cooldown:
+      default-days: 7
 
   - package-ecosystem: "npm"
     directory: "/"
@@ -45,3 +47,5 @@ updates:
     open-pull-requests-limit: 5
     # Don't bump the lockfile-only version — we want actual version bumps
     versioning-strategy: increase
+    cooldown:
+      default-days: 7
