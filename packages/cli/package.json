@@ -18,9 +18,15 @@
   "scripts": {
     "build": "tsc",
     "test": "node --test dist/tests/*.test.js",
-    "coverage": "c8 --reporter=text --reporter=lcov --reporter=html --include='dist/**/*.js' --exclude='dist/tests/**' --exclude-node-modules --all=false node --test dist/tests/argv.test.js dist/tests/create.test.js dist/tests/generate.test.js dist/tests/migrate.test.js",
+    "coverage": "c8 node --test dist/tests/argv.test.js dist/tests/create.test.js dist/tests/generate.test.js dist/tests/migrate.test.js",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
     "prepublishOnly": "npm run clean && npm run build"
+  },
+  "c8": {
+    "include": ["dist/**/*.js"],
+    "exclude": ["dist/tests/**"],
+    "reporter": ["text", "lcov", "html"],
+    "all": false
   },
   "dependencies": {
     "@streetjs/core": "^1.0.3"

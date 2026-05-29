@@ -1,0 +1,62 @@
+name: CLI Tests
+
+# Builds and runs the @streetjs/cli test suite on every push and PR.
+# No PostgreSQL required — the CLI tests operate on temporary directories.
+# Provides fast feedback on scaffolding, code generation, migration management,
+# and CLI argument parsing.
+
+"on":
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: cli-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  test:
+    name: Build & Test CLI
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build core package (CLI dependency)
+        run: npm run build -w packages/core
+
+      - name: Build CLI package
+        run: npm run build -w packages/cli
+
+      - name: Run CLI tests
+        run: npm run test -w packages/cli
+
+      - name: Run CLI coverage
+        run: npm run coverage -w packages/cli
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: cli-coverage-${{ github.sha }}
+          path: packages/cli/coverage/
