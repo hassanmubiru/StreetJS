@@ -33,14 +33,18 @@ permissions:
   contents: read
 
 env:
-  NODE_VERSION: '20'
   SUITE: ${{ inputs.suite || 'all' }}
 
 jobs:
   system-tests:
-    name: System Tests (security, memory, load, fuzz, chaos, infra)
+    name: System Tests (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20', '22']
 
     steps:
       - name: Checkout source
@@ -48,10 +52,10 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Setup Node.js ${{ env.NODE_VERSION }}
+      - name: Setup Node.js ${{ matrix.node }}
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: ${{ matrix.node }}
           cache: 'npm'
 
       - name: Install dependencies
@@ -94,7 +98,7 @@ jobs:
         if: success() || failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: system-test-results-${{ github.sha }}
+          name: system-test-results-${{ matrix.node }}-${{ github.sha }}
           path: packages/core/tests/system/system-test-results.json
 
   summary:
