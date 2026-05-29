@@ -37,7 +37,7 @@ curl http://localhost:3000/api/hello
 [![Core Tests](https://github.com/hassanmubiru/street/actions/workflows/ci-cd.yml/badge.svg?job=build-and-test)](https://github.com/hassanmubiru/street/actions/workflows/ci-cd.yml)
 [![CLI Unit Tests](https://github.com/hassanmubiru/street/actions/workflows/ci-cd.yml/badge.svg?job=test-cli-unit)](https://github.com/hassanmubiru/street/actions/workflows/ci-cd.yml)
 [![CLI Migration](https://github.com/hassanmubiru/street/actions/workflows/ci-cd.yml/badge.svg?job=migration-integration)](https://github.com/hassanmubiru/street/actions/workflows/ci-cd.yml)
-[![Memory Leak Tests](https://github.com/hassanmubiru/street/actions/workflows/memory-leak.yml/badge.svg)](https://github.com/hassanmubiru/street/actions/workflows/memory-leak.yml)
+[![Memory Leak Tests](https://github.com/hassanmubiru/street/actions/workflows/ci-cd.yml/badge.svg?job=memory-leak)](https://github.com/hassanmubiru/street/actions/workflows/ci-cd.yml)
 [![Security Lint](https://github.com/hassanmubiru/street/actions/workflows/security-lint.yml/badge.svg)](https://github.com/hassanmubiru/street/actions/workflows/security-lint.yml)
 [![Publish](https://github.com/hassanmubiru/street/actions/workflows/publish.yml/badge.svg)](https://github.com/hassanmubiru/street/actions/workflows/publish.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
