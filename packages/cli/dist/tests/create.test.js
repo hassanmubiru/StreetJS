@@ -246,7 +246,7 @@ void describe('CreateCommand', () => {
         await withTempDir(async (tmpDir) => {
             process.exitCode = 0;
             const ctx = makeContext(tmpDir, ['test-app'], { install: true });
-            const { output, restore } = captureCallbacks();
+            const { restore } = captureCallbacks();
             const cmd = new CreateCommand();
             await cmd.execute(ctx);
             restore();
