@@ -164,6 +164,91 @@ node --test packages/core/dist/tests/wire-protocol.test.js \
 
 ---
 
+## CI/CD — composite action pattern
+
+The CI/CD pipeline is consolidated into a single workflow file:
+
+```
+.github/workflows/ci-cd.yml
+```
+
+All 7 jobs use a reusable composite action that eliminates ~18 lines of boilerplate per job:
+
+```
+.github/actions/setup/action.yml
+```
+
+### What the composite action does
+
+It wraps three steps that every job needs into a single `uses:` reference:
+
+| Step | Action |
+|---|---|
+| Checkout source | `actions/checkout` with `persist-credentials: false` |
+| Setup Node.js | `actions/setup-node` with `npm` caching |
+| Install dependencies | `npm ci` with `shell: bash` |
+
+### How to use it in a new job
+
+**Simplest form** (defaults to Node 20, no registry):
+
+```yaml
+steps:
+  - uses: ./.github/actions/setup
+```
+
+**With a specific Node version** (e.g., from a matrix):
+
+```yaml
+steps:
+  - uses: ./.github/actions/setup
+    with:
+      node-version: ${{ matrix.node }}
+```
+
+**With npm registry for publish** (e.g., npmjs.com):
+
+```yaml
+steps:
+  - uses: ./.github/actions/setup
+    with:
+      node-version: '20'
+      registry-url: 'https://registry.npmjs.org'
+```
+
+### Best practices
+
+1. **Always use the composite action** rather than repeating checkout/setup/ci manually — it ensures consistent SHA pinning, caching, and security defaults across all jobs.
+2. **Pass `node-version` when using a matrix** — the default is `'20'`, so jobs relying on the default don't need to pass it explicitly, but matrix jobs must pass `${{ matrix.node }}`.
+3. **Only pass `registry-url` when publishing** — the default is empty, which leaves the default npm config intact.
+4. **Don't override `uses:` of the composite action steps** — if your job needs a different version of a step, add a separate step rather than modifying the composite action.
+5. **Pin all new `uses:` references to immutable SHAs** — the security-lint job (zizmor) will flag mutable tags in CI. See the schema test below.
+
+### Schema validation
+
+The composite action schema is validated programmatically in:
+
+```
+packages/core/tests/action-schema.test.ts
+```
+
+Run it locally:
+
+```bash
+npm run build:app -w packages/core && node --test packages/core/dist/tests/action-schema.test.js
+```
+
+This test covers:
+- Top-level structure (`name`, `description`, `inputs`, `runs: using: composite`)
+- Input defaults (`node-version: '20'`, `registry-url: ''`, both optional)
+- Step count (exactly 3 steps)
+- Each step's action, name, and `with:` values
+- SHA pinning on every `uses:` reference
+- No mutable tag references (e.g., `@v1`, `@latest`)
+- Security invariants (`persist-credentials: false`, `shell: bash`)
+
+---
+
 ## Pull request checklist
 
 - [ ] `npm run lint -w packages/core` passes with zero errors
@@ -173,6 +258,7 @@ node --test packages/core/dist/tests/wire-protocol.test.js \
 - [ ] No new runtime dependencies introduced
 - [ ] Memory bounds documented for any new data structures
 - [ ] Public API additions exported from `packages/core/src/index.ts`
+- [ ] If adding a new CI job, use `uses: ./.github/actions/setup` for the setup steps
 
 ---
 
