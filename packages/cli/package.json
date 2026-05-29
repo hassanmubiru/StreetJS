@@ -6,7 +6,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "street": "./bin/street.js"
+    "street": "bin/street.js"
   },
   "files": [
     "dist/argv.js",
@@ -33,9 +33,17 @@
     "prepublishOnly": "npm run clean && npm run build"
   },
   "c8": {
-    "include": ["dist/**/*.js"],
-    "exclude": ["dist/tests/**"],
-    "reporter": ["text", "lcov", "html"],
+    "include": [
+      "dist/**/*.js"
+    ],
+    "exclude": [
+      "dist/tests/**"
+    ],
+    "reporter": [
+      "text",
+      "lcov",
+      "html"
+    ],
     "all": false,
     "check-coverage": true,
     "lines": 85,
@@ -70,7 +78,7 @@
   "homepage": "https://hassanmubiru.github.io/street",
   "repository": {
     "type": "git",
-    "url": "https://github.com/hassanmubiru/street.git"
+    "url": "git+https://github.com/hassanmubiru/street.git"
   },
   "bugs": {
     "url": "https://github.com/hassanmubiru/street/issues"
