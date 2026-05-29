@@ -213,4 +213,135 @@ void describe('MigrateCommand', () => {
       );
     });
   });
+
+  void it('migrate:run reports count when migration files exist', async () => {
+    await withTempDir(async (tmpDir) => {
+      process.exitCode = 0;
+
+      const fs = await import('node:fs/promises');
+
+      // Create dist/main.js so the build check passes
+      await fs.mkdir(join(tmpDir, 'dist'), { recursive: true });
+      await fs.writeFile(join(tmpDir, 'dist', 'main.js'), '// placeholder', 'utf8');
+
+      // Create migration files
+      await fs.mkdir(join(tmpDir, 'migrations'), { recursive: true });
+      await fs.writeFile(join(tmpDir, 'migrations', '20250101000000_test.sql'), '-- test up', 'utf8');
+      await fs.writeFile(join(tmpDir, 'migrations', '20250101000001_add_column.sql'), '-- add column', 'utf8');
+      await fs.writeFile(join(tmpDir, 'migrations', '20250101000002_create_table.sql'), '-- create table', 'utf8');
+
+      const ctx = makeContext(tmpDir, []);
+      const { output, restore } = captureConsole();
+      const cmd = new MigrateCommand();
+
+      // This will print "Found X migration file(s)" and then attempt to connect
+      // to Postgres (which will fail). We just verify the discovery message.
+      await cmd.executeRun(ctx);
+      restore();
+
+      assert.ok(
+        output.logs.some((l) => l.includes('Found 3 migration file(s)')),
+        `Expected "Found 3 migration file(s)" in output: ${JSON.stringify(output.logs)}`,
+      );
+    });
+  });
+
+  void it('migrate:run filters out rollback files from migration count', async () => {
+    await withTempDir(async (tmpDir) => {
+      process.exitCode = 0;
+
+      const fs = await import('node:fs/promises');
+
+      // Create dist/main.js so the build check passes
+      await fs.mkdir(join(tmpDir, 'dist'), { recursive: true });
+      await fs.writeFile(join(tmpDir, 'dist', 'main.js'), '// placeholder', 'utf8');
+
+      // Create migration files — mix of .sql, .rollback.sql, and unrelated files
+      await fs.mkdir(join(tmpDir, 'migrations'), { recursive: true });
+      await fs.writeFile(join(tmpDir, 'migrations', '20250101000000_test.sql'), '-- test up', 'utf8');
+      await fs.writeFile(join(tmpDir, 'migrations', '20250101000000_test.rollback.sql'), '-- test down', 'utf8');
+      await fs.writeFile(join(tmpDir, 'migrations', 'README.md'), '# migrations', 'utf8');
+
+      const ctx = makeContext(tmpDir, []);
+      const { output, restore } = captureConsole();
+      const cmd = new MigrateCommand();
+
+      await cmd.executeRun(ctx);
+      restore();
+
+      // Only the .sql file (not .rollback.sql or README.md) should count
+      assert.ok(
+        output.logs.some((l) => l.includes('Found 1 migration file(s)')),
+        `Expected "Found 1 migration file(s)" in output: ${JSON.stringify(output.logs)}`,
+      );
+    });
+  });
+
+  void it('migrate:run reports no migrations when only rollback files exist', async () => {
+    await withTempDir(async (tmpDir) => {
+      process.exitCode = 0;
+
+      const fs = await import('node:fs/promises');
+
+      // Create dist/main.js so the build check passes
+      await fs.mkdir(join(tmpDir, 'dist'), { recursive: true });
+      await fs.writeFile(join(tmpDir, 'dist', 'main.js'), '// placeholder', 'utf8');
+
+      // Only rollback files (no .sql up files) — should report "No migration files"
+      await fs.mkdir(join(tmpDir, 'migrations'), { recursive: true });
+      await fs.writeFile(join(tmpDir, 'migrations', '20250101000000_test.rollback.sql'), '-- test down', 'utf8');
+
+      const ctx = makeContext(tmpDir, []);
+      const { output, restore } = captureConsole();
+      const cmd = new MigrateCommand();
+
+      await cmd.executeRun(ctx);
+      restore();
+
+      assert.ok(
+        output.logs.some((l) => l.includes('No migration files found')),
+        `Expected "No migration files found" in output: ${JSON.stringify(output.logs)}`,
+      );
+    });
+  });
+
+  // ── toSnakeCase in template generation ────────────────────────────────
+
+  void it('generates SQL template with snake_case table name for camelCase migration names', async () => {
+    await withTempDir(async (tmpDir) => {
+      process.exitCode = 0;
+      const ctx = makeContext(tmpDir, ['addEmailColumn']);
+      const { restore } = captureConsole();
+      const cmd = new MigrateCommand();
+      await cmd.executeCreate(ctx);
+      restore();
+
+      const files = readdirSync(join(tmpDir, 'migrations'));
+      const upFile = files.find((f) => !f.endsWith('.rollback.sql'))!;
+      const upContent = readFileSync(join(tmpDir, 'migrations', upFile), 'utf8');
+
+      // The template converts camelCase to snake_case for the table name
+      assert.ok(upContent.includes('CREATE TABLE add_email_column'),
+        `Expected snake_case table name in template: ${upContent}`);
+    });
+  });
+
+  void it('generates SQL template with snake_case table name for kebab-case migration names', async () => {
+    await withTempDir(async (tmpDir) => {
+      process.exitCode = 0;
+      const ctx = makeContext(tmpDir, ['add-email-column']);
+      const { restore } = captureConsole();
+      const cmd = new MigrateCommand();
+      await cmd.executeCreate(ctx);
+      restore();
+
+      const files = readdirSync(join(tmpDir, 'migrations'));
+      const upFile = files.find((f) => !f.endsWith('.rollback.sql'))!;
+      const upContent = readFileSync(join(tmpDir, 'migrations', upFile), 'utf8');
+
+      // Kebab-case is converted to snake_case
+      assert.ok(upContent.includes('CREATE TABLE add_email_column'),
+        `Expected snake_case table name from kebab input: ${upContent}`);
+    });
+  });
 });

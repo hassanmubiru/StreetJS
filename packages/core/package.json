@@ -101,11 +101,23 @@
     "LICENSE",
     "CHANGELOG.md"
   ],
+  "c8": {
+    "include": ["dist/**/*.js"],
+    "exclude": ["dist/tests/**"],
+    "reporter": ["text", "lcov", "html"],
+    "all": false,
+    "check-coverage": true,
+    "lines": 60,
+    "functions": 60,
+    "branches": 60,
+    "statements": 60
+  },
   "scripts": {
     "build": "tsc -p tsconfig.lib.json",
     "build:app": "tsc",
     "start": "node dist/main.js",
     "test": "node --test dist/tests/integration.test.js",
+    "coverage": "c8 node --test dist/tests/integration.test.js",
     "test:run": "tsc && node --test dist/tests/integration.test.js",
     "test:system": "tsc && node dist/tests/system/runner.js",
     "test:security": "tsc && node --test dist/tests/system/security.test.js",
@@ -162,6 +174,7 @@
   "devDependencies": {
     "@types/node": "^20.14.0",
     "@types/ws": "^8.5.10",
+    "c8": "^11.0.0",
     "typescript": "^5.4.5"
   },
   "peerDependencies": {

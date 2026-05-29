@@ -86,7 +86,7 @@ jobs:
       - name: TypeScript check & build (with tests)
         run: npm run build:app -w packages/core
 
-      - name: Run integration tests
+      - name: Run integration tests with coverage
         env:
           PG_HOST: localhost
           PG_PORT: 5432
@@ -97,7 +97,14 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           SESSION_KEY: ${{ secrets.SESSION_KEY }}
           PORT: "3001"
-        run: node --test packages/core/dist/tests/integration.test.js
+        run: npm run coverage -w packages/core
+
+      - name: Upload coverage report
+        if: success() || failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: core-coverage-${{ github.sha }}
+          path: packages/core/coverage/
 
   docker-build:
     name: Docker Build & Push
