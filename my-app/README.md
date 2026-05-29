@@ -31,13 +31,22 @@ street dev
 ## Project Structure
 
 ```
-src/
-├── controllers/    # HTTP request handlers
-├── services/       # Business logic
-├── repositories/   # Data access layer
-├── middleware/      # Custom middleware
-├── gateways/        # WebSocket handlers
-└── main.ts         # Application entry point
+my-app/
+├── src/
+│   ├── controllers/    # HTTP request handlers
+│   ├── services/       # Business logic
+│   ├── repositories/   # Data access layer
+│   ├── middleware/     # Custom middleware
+│   ├── gateways/       # WebSocket handlers
+│   └── main.ts         # Application entry point
+├── tests/              # Integration and unit tests
+├── migrations/         # SQL migration files
+├── uploads/            # File upload storage
+├── package.json
+├── tsconfig.json
+├── Dockerfile
+├── street.config.ts
+└── README.md
 ```
 
 ## Scripts
