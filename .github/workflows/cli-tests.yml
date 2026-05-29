@@ -1,7 +1,9 @@
 name: CLI Tests
 
 # Builds and runs the @streetjs/cli test suite on every push and PR.
-# No PostgreSQL required — the CLI tests operate on temporary directories.
+# The `test` job runs unit tests without external dependencies.
+# The `migration-integration` job runs migration tests against a real
+# PostgreSQL service container for full try/finally + pool coverage.
 # Provides fast feedback on scaffolding, code generation, migration management,
 # and CLI argument parsing.
 
@@ -20,6 +22,11 @@ permissions:
 
 env:
   NODE_VERSION: '20'
+  POSTGRES_DB: street_test
+  POSTGRES_USER: street
+  POSTGRES_PASSWORD: ${{ secrets.PG_PASSWORD }}
+  POSTGRES_HOST: localhost
+  POSTGRES_PORT: 5432
 
 jobs:
   test:
@@ -59,4 +66,62 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: cli-coverage-${{ github.sha }}
+          path: packages/cli/coverage/
+
+  migration-integration:
+    name: Migration Integration (Postgres)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: ${{ env.POSTGRES_DB }}
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      PG_HOST: localhost
+      PG_PORT: ${{ env.POSTGRES_PORT }}
+      PG_USER: ${{ env.POSTGRES_USER }}
+      PG_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+      PG_DATABASE: ${{ env.POSTGRES_DB }}
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build core package (CLI dependency)
+        run: npm run build -w packages/core
+
+      - name: Build CLI package
+        run: npm run build -w packages/cli
+
+      - name: Run migration integration with coverage
+        run: npm run coverage:pg -w packages/cli
+
+      - name: Upload migration coverage report
+        if: success() || failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: cli-migration-coverage-${{ github.sha }}
           path: packages/cli/coverage/
