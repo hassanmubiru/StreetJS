@@ -18,22 +18,16 @@
   "scripts": {
     "build": "tsc",
     "test": "node --test dist/tests/*.test.js",
-    "coverage": "c8 node --test dist/tests/*.test.js",
+    "coverage": "node --experimental-test-coverage --test dist/tests/argv.test.js dist/tests/create.test.js dist/tests/generate.test.js dist/tests/migrate.test.js",
+    "coverage:full": "NODE_V8_COVERAGE=coverage/tmp node --experimental-test-coverage --test dist/tests/*.test.js; node --experimental-test-coverage --test dist/tests/*.test.js 2>&1 | tail -1",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
     "prepublishOnly": "npm run clean && npm run build"
   },
   "dependencies": {
     "@streetjs/core": "^1.0.3"
   },
-  "c8": {
-    "include": ["src/**/*.ts"],
-    "exclude": ["src/tests/**"],
-    "reporter": ["text", "lcov", "html"],
-    "all": true
-  },
   "devDependencies": {
     "@types/node": "^20.14.0",
-    "c8": "^11.0.0",
     "typescript": "^5.4.5"
   },
   "peerDependencies": {

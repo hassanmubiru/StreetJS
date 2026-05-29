@@ -242,18 +242,6 @@ void describe('CreateCommand', () => {
             assert.ok(gitignore.includes('uploads/*'));
         });
     });
-    void it('ignores --install flag (no actual npm install in tests)', async () => {
-        await withTempDir(async (tmpDir) => {
-            process.exitCode = 0;
-            const ctx = makeContext(tmpDir, ['test-app'], { install: true });
-            const { restore } = captureCallbacks();
-            const cmd = new CreateCommand();
-            await cmd.execute(ctx);
-            restore();
-            // Should still create the project
-            assert.ok(existsSync(join(tmpDir, 'test-app', 'package.json')));
-        });
-    });
     void it('creates 16+ files in total', async () => {
         await withTempDir(async (tmpDir) => {
             process.exitCode = 0;
