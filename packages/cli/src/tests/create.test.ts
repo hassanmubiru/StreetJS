@@ -161,7 +161,7 @@ void describe('CreateCommand', () => {
       // Gateway
       assert.ok(existsSync(join(projectDir, 'src', 'gateways', 'chat.gateway.ts')));
       // Test file
-      assert.ok(existsSync(join(projectDir, 'src', 'tests', 'integration.test.ts')));
+      assert.ok(existsSync(join(projectDir, 'tests', 'integration.test.ts')));
     });
   });
 
