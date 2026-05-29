@@ -18,9 +18,9 @@ VERBOSE=false
 [[ "${1:-}" == "--verbose" ]] && VERBOSE=true
 
 check()  { echo -e "  ${CYAN}▸${RESET} $*"; }
-pass()   { echo -e "  ${GREEN}✔${RESET} $*"; ((PASS++)); }
-fail()   { echo -e "  ${RED}✖${RESET} $*"; ((FAIL++)); }
-warn()   { echo -e "  ${YELLOW}⚠${RESET} $*"; ((WARN++)); }
+pass()   { echo -e "  ${GREEN}✔${RESET} $*"; PASS=$((PASS + 1)); }
+fail()   { echo -e "  ${RED}✖${RESET} $*"; FAIL=$((FAIL + 1)); }
+warn()   { echo -e "  ${YELLOW}⚠${RESET} $*"; WARN=$((WARN + 1)); }
 section(){ echo -e "\n${BOLD}$*${RESET}"; }
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
