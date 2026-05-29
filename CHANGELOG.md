@@ -7,6 +7,64 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.0.4] — 2026-05-29
+
+### Fixed
+
+**@streetjs/core — publish artifact pollution (critical)**
+- `package.json` `"files"` array replaced the wildcard `"dist/**/*.js"` with
+  explicit per-subdirectory globs (`"dist/cache/**/*.js"`, `"dist/cli/**/*.js"`,
+  etc.). The wildcard was matching `dist/src/**` (stale artifact from running
+  `tsc` without `rootDir`) and `dist/tests/**` (all test files), shipping
+  ~600 kB of unwanted code to consumers. Published package is now 73.9 kB
+  (down from 205.8 kB) with 113 files (down from 305).
+- `prepublishOnly` script now runs `npm run clean` before `npm run build` to
+  guarantee `dist/src/` and `dist/tests/` are never present at publish time.
+
+**@streetjs/cli — publish artifact pollution (critical)**
+- `package.json` `"files"` array replaced `"dist/**/*.js"` with explicit paths
+  (`"dist/argv.js"`, `"dist/index.js"`, `"dist/commands/**/*.js"`) to prevent
+  `dist/tests/*.js` from being published. Package is now 24.5 kB / 43 files
+  (down from 29.5 kB / 49 files).
+- Source maps (`dist/**/*.js.map`) are now correctly included in the published
+  package — they were previously excluded by the missing glob.
+
+**@streetjs/cli — generated project structure**
+- `street create <name>` now generates `tests/` at the project root instead of
+  `src/tests/` — matches the documented expected structure.
+- `migrations/` directory now includes a `.gitkeep` so git tracks the empty
+  directory.
+- `README.md` template updated to show the correct project tree.
+
+**@streetjs/cli — version test**
+- `src/tests/index.test.ts`: `VERSION_OUTPUT` constant now reads the version
+  dynamically from `package.json` instead of being hardcoded as `'street v1.0.0'`,
+  so the test does not break on every version bump.
+
+### Changed
+
+**CI/CD — `test-and-publish` job**
+- Now publishes both `@streetjs/core` and `@streetjs/cli` (previously only core).
+- Verifies that both `packages/core/package.json` and `packages/cli/package.json`
+  versions match the git tag before publishing.
+- Added pack validation steps: asserts no `dist/tests/` or `dist/src/` in either
+  tarball, and that CLI tarball contains `bin/street.js` and `templates/`.
+- Added scaffolding smoke test: runs `street create smoke-test` and validates all
+  14 required paths exist before publishing.
+- `needs` changed from `[build-and-test]` to `[build-and-test, migration-integration]`
+  so CLI unit tests must also pass before publish.
+
+**Release tooling**
+- Added `scripts/release.sh` — interactive release script that bumps versions,
+  rebuilds, validates packs, runs smoke tests, commits, tags, and publishes.
+- Added `scripts/validate-publish.sh` — standalone pre-publish validation (9
+  sections, 30+ checks). Safe to run at any time.
+- Added `scripts/post-publish-verify.sh` — post-publish verification that polls
+  the npm registry, installs the published CLI globally, and validates the
+  generated project end-to-end.
+
+---
+
 ## [1.0.3] — 2026-05-28
 
 ### Fixed
