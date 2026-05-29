@@ -89,12 +89,18 @@ jobs:
                       continue
                   path = os.path.join(root, f)
                   try:
-                      yaml.safe_load(open(path))
+                      data = yaml.safe_load(open(path))
                   except yaml.YAMLError as e:
                       msg = str(e).replace('\n', ' | ')
                       print(f'::error title=YAML Syntax Error,file={path}::{msg}')
                       errors += 1
                       continue
+                  if '.github/workflows/' in path:
+                      if not isinstance(data, dict):
+                          print(f'::error title=Invalid Workflow,file={path}::Root must be a mapping')
+                          errors += 1
+                      elif 'name' not in data:
+                          print(f'::warning title=Missing name,file={path}::Workflow missing name key')
                   print(f'  OK: {path}')
           if errors:
               sys.exit(1)
