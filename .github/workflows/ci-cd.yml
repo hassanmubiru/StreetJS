@@ -226,9 +226,14 @@ jobs:
 
   # ── Memory leak & wire protocol tests (no external dependencies) ──────
   memory-leak:
-    name: Memory Leak Tests
+    name: Memory Leak (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20', '22']
 
     permissions:
       contents: read
@@ -239,10 +244,10 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Setup Node.js 20
+      - name: Setup Node.js ${{ matrix.node }}
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: '20'
+          node-version: ${{ matrix.node }}
           cache: 'npm'
 
       - name: Install dependencies
