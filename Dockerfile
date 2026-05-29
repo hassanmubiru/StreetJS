@@ -37,4 +37,4 @@ EXPOSE 3000
 
 ENV NODE_ENV=production
 
-ENTRYPOINT ["nodejs", "dist/src/main.js"]
+ENTRYPOINT ["nodejs", "dist/main.js"]
