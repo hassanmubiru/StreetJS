@@ -19,7 +19,6 @@
     "build": "tsc",
     "test": "node --test dist/tests/*.test.js",
     "coverage": "node --experimental-test-coverage --test dist/tests/argv.test.js dist/tests/create.test.js dist/tests/generate.test.js dist/tests/migrate.test.js",
-    "coverage:full": "NODE_V8_COVERAGE=coverage/tmp node --experimental-test-coverage --test dist/tests/*.test.js; node --experimental-test-coverage --test dist/tests/*.test.js 2>&1 | tail -1",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
     "prepublishOnly": "npm run clean && npm run build"
   },
