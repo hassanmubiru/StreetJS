@@ -77,39 +77,16 @@ describe("composite action schema — runs", () => {
     it("uses the composite runner", () => {
         assert.equal(runs.using, "composite");
     });
-    it("has exactly 3 steps", () => {
+    it("has exactly 2 steps", () => {
         assert.ok(Array.isArray(runs.steps));
-        assert.equal(runs.steps.length, 3);
+        assert.equal(runs.steps.length, 2);
     });
 });
-describe("composite action schema — step 1: checkout", () => {
+describe("composite action schema — step 1: setup-node", () => {
     const action = loadAction();
     const steps = action.runs
         .steps;
     const step = steps[0];
-    it("has a descriptive name", () => {
-        assert.equal(typeof step.name, "string");
-        assert.equal(step.name, "Checkout source");
-    });
-    it("uses actions/checkout", () => {
-        const uses = step.uses;
-        assert.ok(uses.startsWith("actions/checkout@"));
-    });
-    it("has an immutable SHA pin", () => {
-        const sha = step.uses.split("@")[1];
-        assert.match(sha, SHA_RE, `Expected 40-char SHA, got "${sha}"`);
-    });
-    it("disables persist-credentials", () => {
-        const with_ = step.with;
-        assert.ok(with_);
-        assert.equal(with_["persist-credentials"], false);
-    });
-});
-describe("composite action schema — step 2: setup-node", () => {
-    const action = loadAction();
-    const steps = action.runs
-        .steps;
-    const step = steps[1];
     it("has a descriptive name", () => {
         assert.equal(typeof step.name, "string");
         assert.ok(step.name.startsWith("Setup Node.js"));
@@ -141,11 +118,11 @@ describe("composite action schema — step 2: setup-node", () => {
         assert.equal(with_["registry-url"], "${{ inputs.registry-url }}");
     });
 });
-describe("composite action schema — step 3: install dependencies", () => {
+describe("composite action schema — step 2: install dependencies", () => {
     const action = loadAction();
     const steps = action.runs
         .steps;
-    const step = steps[2];
+    const step = steps[1];
     it("has a descriptive name", () => {
         assert.equal(typeof step.name, "string");
         assert.ok(step.name.toLowerCase().includes("install"));
