@@ -106,6 +106,16 @@ export class WebhookDispatcher {
   private processing = false;
   private stopped = false;
 
+  // Track URLs that have already been warned about to prevent log spam.
+  // Cleared every 60 seconds so recurring misconfiguration is still visible.
+  private readonly _warnedUrls = new Set<string>();
+  private readonly _warnClearTimer: NodeJS.Timeout;
+
+  constructor() {
+    this._warnClearTimer = setInterval(() => this._warnedUrls.clear(), 60_000);
+    this._warnClearTimer.unref();
+  }
+
   enqueue(target: WebhookTarget, event: string, data: unknown): boolean {
     if (this.stopped) return false;
     if (this.queue.length >= MAX_QUEUE_SIZE) {
@@ -120,8 +130,9 @@ export class WebhookDispatcher {
       id: randomId(),
     };
 
-    // Validate URL asynchronously before dispatching; drop silently on failure
-    // to avoid blocking the caller. Errors are logged.
+    // Validate URL asynchronously before dispatching; drop on failure.
+    // Each unique bad URL is only logged once per 60-second window to
+    // prevent log spam when the same misconfigured URL is called repeatedly.
     validateWebhookUrl(target.url)
       .then(() => {
         if (this.stopped) return;
@@ -129,7 +140,15 @@ export class WebhookDispatcher {
         if (!this.processing) this._drain();
       })
       .catch((err: unknown) => {
-        console.error('[webhook] URL validation failed, dropping event:', err instanceof Error ? err.message : err);
+        const msg = err instanceof Error ? err.message : String(err);
+        const key = `${target.url}::${msg}`;
+        if (!this._warnedUrls.has(key)) {
+          this._warnedUrls.add(key);
+          console.error(
+            `[webhook] URL validation failed, dropping event "${event}": ${msg}\n` +
+            `  → Fix: update the webhook target URL to use https://`
+          );
+        }
       });
 
     return true;
