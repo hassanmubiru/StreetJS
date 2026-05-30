@@ -46,11 +46,14 @@ export class MultipartParser {
                     try {
                         if (done)
                             return;
+                        // Finding 7 fix: enforce the byte limit BEFORE concatenating into
+                        // the heap buffer. This prevents a 1-byte-over-limit chunk from
+                        // being buffered before the check fires.
                         totalBytes += chunk.length;
                         if (totalBytes > this.maxBytes) {
                             done = true;
-                            req.destroy(); // no error arg — 'error' is emitted async (nextTick)
                             removeListeners();
+                            req.destroy();
                             reject(new Error('Upload too large'));
                             return;
                         }

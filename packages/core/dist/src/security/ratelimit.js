@@ -4,16 +4,20 @@
 import { StreetException } from '../http/exceptions.js';
 const MAX_KEYS = 100_000; // max distinct IPs/keys tracked
 const MAX_REQUESTS_PER_KEY = 1000; // max stored timestamps per key
+// Regex for a valid IPv4 or IPv6 address segment
+const VALID_IP_RE = /^[\w.:[\]]+$/;
 export class RateLimiter {
     // Map: key -> array of nanosecond timestamps (bounded)
     store = new Map();
     opts;
     sweepTimer;
     constructor(opts) {
+        const resolvedKeyFn = opts.keyFn ?? ((ctx) => defaultKeyFn(ctx, opts.trustProxy ?? false));
         this.opts = {
-            keyFn: defaultKeyFn,
             message: 'Too Many Requests',
+            trustProxy: false,
             ...opts,
+            keyFn: resolvedKeyFn,
         };
         // Sweep stale keys every half-window
         const sweepInterval = Math.max(opts.windowMs / 2, 5_000);
@@ -89,10 +93,26 @@ export class RateLimiter {
         this.store.clear();
     }
 }
-function defaultKeyFn(ctx) {
+function defaultKeyFn(ctx, trustProxy) {
+    // When trustProxy is false (default), always use the direct socket address.
+    // It is set by the OS/kernel and cannot be forged by the HTTP client.
+    if (!trustProxy) {
+        return ctx.req.socket.remoteAddress ?? 'unknown';
+    }
+    // trustProxy=true: take the RIGHTMOST IP added by the trusted proxy.
+    // The leftmost entries in X-Forwarded-For are client-supplied and can be
+    // forged; the rightmost entry is appended by the proxy we trust.
     const forwarded = ctx.headers['x-forwarded-for'];
-    if (forwarded)
-        return forwarded.split(',')[0]?.trim() ?? 'unknown';
+    if (forwarded) {
+        const parts = forwarded.split(',');
+        // Walk right-to-left to find the first valid-looking IP
+        for (let i = parts.length - 1; i >= 0; i--) {
+            const candidate = parts[i]?.trim() ?? '';
+            if (candidate && VALID_IP_RE.test(candidate)) {
+                return candidate;
+            }
+        }
+    }
     return ctx.req.socket.remoteAddress ?? 'unknown';
 }
 export class RateLimitException extends StreetException {

@@ -31,6 +31,17 @@ export class JwtService {
         if (parts.length !== 3)
             return null;
         const [headerB64, payloadB64, sigB64] = parts;
+        // Finding 4 fix: verify the header declares exactly HS256 / JWT.
+        // This prevents algorithm confusion (e.g. alg:none) and future
+        // accidental acceptance of tokens signed with a different algorithm.
+        try {
+            const header = JSON.parse(base64urlDecode(headerB64));
+            if (header['alg'] !== 'HS256' || header['typ'] !== 'JWT')
+                return null;
+        }
+        catch {
+            return null;
+        }
         const message = `${headerB64}.${payloadB64}`;
         const expectedSig = this._sign(message);
         // Timing-safe comparison
@@ -54,6 +65,9 @@ export class JwtService {
         }
         const now = Math.floor(Date.now() / 1000);
         if (payload.exp !== undefined && payload.exp < now)
+            return null;
+        // Finding 4 fix: enforce nbf (not-before) claim
+        if (typeof payload.nbf === 'number' && payload.nbf > now)
             return null;
         if (payload.iat !== undefined && payload.iat > now + 60)
             return null; // clock skew

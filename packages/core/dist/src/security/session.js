@@ -9,9 +9,17 @@ export class SessionManager {
     key;
     constructor(hexKey) {
         if (hexKey.length !== 64) {
-            throw new Error('Session key must be a 64-char hex string (32 bytes)');
+            throw new Error('Session key must be a 64-char hex string (32 bytes). Generate with: openssl rand -hex 32');
         }
-        this.key = Buffer.from(hexKey, 'hex');
+        const key = Buffer.from(hexKey, 'hex');
+        // Finding 10 fix: reject keys with dangerously low entropy (e.g. all-zeros default).
+        // Count distinct byte values — a real random key will have many unique bytes.
+        const uniqueBytes = new Set(key).size;
+        if (uniqueBytes < 8) {
+            throw new Error('Session key has insufficient entropy (too many repeated bytes). ' +
+                'Generate a secure key with: openssl rand -hex 32');
+        }
+        this.key = key;
     }
     /** Encrypt session data → base64 blob (iv + tag + ciphertext) */
     encrypt(data) {
