@@ -1,6 +1,7 @@
 // src/http/auth.middleware.ts
 // Bearer token authentication middleware using JwtService.
 
+import { timingSafeEqual } from 'node:crypto';
 import type { StreetContext } from '../core/context.js';
 import type { MiddlewareFn } from '../core/types.js';
 import { UnauthorizedException, ForbiddenException } from './exceptions.js';
