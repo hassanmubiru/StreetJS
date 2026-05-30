@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 import { writeFile, mkdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { randomBytes } from 'node:crypto';
+import { randomBytes, createHmac } from 'node:crypto';
 import { TelemetryTracker, telemetryMiddleware } from '../../src/telemetry/tracker.js';
 import { WebhookDispatcher, type WebhookTarget } from '../../src/webhook/dispatcher.js';
 import { generateOpenApi } from '../../src/http/openapi.js';
@@ -284,7 +284,6 @@ describe('Webhook Dispatcher — infrastructure validation', () => {
   it('HMAC signature format is sha256=<hex>', () => {
     // Verify the signing function produces the expected format
     // by checking a known value via the crypto module directly.
-    const { createHmac } = require('node:crypto') as typeof import('node:crypto');
     const body = JSON.stringify({ event: 'test', data: {}, ts: 0, id: 'abc' });
     const secret = 'my-webhook-secret';
     const expected = 'sha256=' + createHmac('sha256', secret).update(body).digest('hex');
