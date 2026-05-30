@@ -689,11 +689,17 @@ describe('Auth Middleware — security testing', () => {
     };
 
     await securityHeaders(ctx, async () => undefined);
+    // Finding 14 fix: CSP, HSTS, COOP, CORP added; X-XSS-Protection removed
+    assert.ok(headers['Content-Security-Policy']?.includes("default-src 'self'"), 'CSP header present');
+    assert.ok(headers['Strict-Transport-Security']?.includes('max-age='), 'HSTS header present');
     assert.equal(headers['X-Content-Type-Options'], 'nosniff');
     assert.equal(headers['X-Frame-Options'], 'DENY');
-    assert.equal(headers['X-XSS-Protection'], '1; mode=block');
+    assert.equal(headers['Cross-Origin-Opener-Policy'], 'same-origin');
+    assert.equal(headers['Cross-Origin-Resource-Policy'], 'same-origin');
     assert.equal(headers['Referrer-Policy'], 'strict-origin-when-cross-origin');
     assert.equal(headers['Permissions-Policy'], 'geolocation=(), microphone=(), camera=()');
+    // X-XSS-Protection is deprecated and was removed
+    assert.equal(headers['X-XSS-Protection'], undefined, 'X-XSS-Protection should not be set');
   });
 
   it('corsMiddleware handles OPTIONS preflight', async () => {
