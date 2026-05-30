@@ -77,6 +77,14 @@ export class WebhookDispatcher {
     running = 0;
     processing = false;
     stopped = false;
+    // Track URLs that have already been warned about to prevent log spam.
+    // Cleared every 60 seconds so recurring misconfiguration is still visible.
+    _warnedUrls = new Set();
+    _warnClearTimer;
+    constructor() {
+        this._warnClearTimer = setInterval(() => this._warnedUrls.clear(), 60_000);
+        this._warnClearTimer.unref();
+    }
     enqueue(target, event, data) {
         if (this.stopped)
             return false;
@@ -90,8 +98,9 @@ export class WebhookDispatcher {
             ts: Date.now(),
             id: randomId(),
         };
-        // Validate URL asynchronously before dispatching; drop silently on failure
-        // to avoid blocking the caller. Errors are logged.
+        // Validate URL asynchronously before dispatching; drop on failure.
+        // Each unique bad URL is only logged once per 60-second window to
+        // prevent log spam when the same misconfigured URL is called repeatedly.
         validateWebhookUrl(target.url)
             .then(() => {
             if (this.stopped)
@@ -101,7 +110,13 @@ export class WebhookDispatcher {
                 this._drain();
         })
             .catch((err) => {
-            console.error('[webhook] URL validation failed, dropping event:', err instanceof Error ? err.message : err);
+            const msg = err instanceof Error ? err.message : String(err);
+            const key = `${target.url}::${msg}`;
+            if (!this._warnedUrls.has(key)) {
+                this._warnedUrls.add(key);
+                console.error(`[webhook] URL validation failed, dropping event "${event}": ${msg}\n` +
+                    `  → Fix: update the webhook target URL to use https://`);
+            }
         });
         return true;
     }
@@ -155,6 +170,7 @@ export class WebhookDispatcher {
     stop() {
         this.stopped = true;
         this.queue.length = 0;
+        clearInterval(this._warnClearTimer);
     }
 }
 function signPayload(body, secret) {

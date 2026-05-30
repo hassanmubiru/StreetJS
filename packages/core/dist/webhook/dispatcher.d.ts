@@ -20,6 +20,9 @@ export declare class WebhookDispatcher {
     private running;
     private processing;
     private stopped;
+    private readonly _warnedUrls;
+    private readonly _warnClearTimer;
+    constructor();
     enqueue(target: WebhookTarget, event: string, data: unknown): boolean;
     private _drain;
     private _dispatch;
