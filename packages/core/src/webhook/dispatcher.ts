@@ -201,6 +201,7 @@ export class WebhookDispatcher {
   stop(): void {
     this.stopped = true;
     this.queue.length = 0;
+    clearInterval(this._warnClearTimer);
   }
 }
 
