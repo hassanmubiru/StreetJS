@@ -338,13 +338,9 @@ jobs:
 
       - uses: ./.github/actions/setup
 
-      - name: Run zizmor (with auto-fix)
+      - name: Run zizmor
         uses: zizmorcore/zizmor-action@5f14fd08f7cf1cb1609c1e344975f152c7ee938d # v0.5.6
         with:
-          # --fix applies auto-remediations (e.g., dependabot cooldown, unpinned
-          # image SHAs). The fixed files are checked into the PR by the developer.
-          inputs: |
-            --fix .
           min-severity: medium
           advanced-security: false
           annotations: true
