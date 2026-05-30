@@ -459,6 +459,20 @@ export class PgConnection {
       });
 
       socket.on('data', (chunk: Buffer) => {
+        // Finding 9 fix: enforce a hard cap on the receive buffer during
+        // authentication to prevent a malicious server from causing OOM.
+        // During normal query operation the pool's connection timeout and
+        // per-query row limits provide the primary protection.
+        const MAX_AUTH_BUFFER = 64 * 1024; // 64 KB — more than enough for any auth exchange
+        if (this.state === 'authenticating' &&
+            this.buffer.length + chunk.length > MAX_AUTH_BUFFER) {
+          socket.destroy(new Error('PostgreSQL auth response exceeded 64 KB limit'));
+          if (this.authReject) {
+            this.authReject(new Error('PostgreSQL auth response too large'));
+            this.authReject = null;
+          }
+          return;
+        }
         this.buffer = Buffer.concat([this.buffer, chunk]);
         this._processBuffer(opts);
       });
