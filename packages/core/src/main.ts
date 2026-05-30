@@ -20,7 +20,7 @@ import { HealthController } from './controllers/health.controller.js';
 import { ClusterCoordinator, workerHeartbeat, signalReady } from './cluster/coordinator.js';
 import { CliKernel, parseArgv } from './cli/kernel.js';
 import { MigrateCommand, UserCommand } from './cli/commands.js';
-import { securityHeaders, corsMiddleware } from './http/auth.middleware.js';
+import { securityHeaders, corsMiddleware, csrfMiddleware } from './http/auth.middleware.js';
 import { xssMiddleware } from './security/xss.js';
 import { telemetryMiddleware } from './telemetry/tracker.js';
 import { JwtService } from './security/jwt.js';
@@ -97,10 +97,17 @@ async function bootstrap(): Promise<void> {
 
   // Global middleware stack
   app.use(securityHeaders);
-  app.use(corsMiddleware(['*']));
+  // Finding A fix: use config-driven origins instead of hardcoded wildcard.
+  // In production, ALLOWED_ORIGINS env var must be set (corsOrigins getter enforces this).
+  // In development/test, falls back to ['*'] automatically.
+  app.use(corsMiddleware(config.corsOrigins));
   app.use(xssMiddleware);
   app.use(telemetryMiddleware(telemetry));
   app.use(rateLimiter.middleware());
+  // Finding C fix: wire CSRF protection for all state-changing requests.
+  // Requires session middleware to populate ctx.state['session'] with a csrf field.
+  // Safe methods (GET, HEAD, OPTIONS) are automatically exempt.
+  app.use(csrfMiddleware());
 
   // Register controllers
   const healthCtrl = container.resolve(HealthController);
