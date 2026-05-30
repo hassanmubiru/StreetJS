@@ -10,10 +10,10 @@ on:
   workflow_dispatch:
 
 # ── Permissions ───────────────────────────────────────────────────────────────
+# Minimal default: read-only contents. The deploy job declares pages: write
+# and id-token: write at job level — only it needs those permissions.
 permissions:
   contents: read
-  pages:    write
-  id-token: write
 
 # ── Concurrency ───────────────────────────────────────────────────────────────
 concurrency:
@@ -29,9 +29,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@afeafc3d1ab54a631816aba4c914a0081c12ff2f # v1.310.0
         with:
           ruby-version:      '3.3'
           bundler-cache:     true
