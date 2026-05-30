@@ -37,8 +37,8 @@
     "postgresql",
     "monorepo",
     "street-framework",
-    "streetjs",
-    ""
+    "streetjs"
+  
   ],
   "author": "street contributors",
   "license": "MIT",
