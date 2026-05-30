@@ -309,7 +309,6 @@ describe('Crypto — parameter fuzz testing', () => {
         // Finding 10 fix: all-zero keys are now rejected by the entropy check
         assert.throws(() => new SessionManager('00'.repeat(32)), /insufficient entropy/);
         // A key with sufficient entropy should be accepted
-        const { randomBytes } = require('node:crypto');
         assert.doesNotThrow(() => new SessionManager(randomBytes(32).toString('hex')));
         // Invalid lengths
         assert.throws(() => new SessionManager('00'.repeat(31)), /64-char hex/);
