@@ -155,11 +155,29 @@ export class StreetWebSocketServer {
 
   /** Attach to an existing HTTP server (upgrade handling) */
   attach(server: Server, handler: WsHandler): void {
-    server.on('upgrade', (req, socket, head) => {
+    server.on('upgrade', async (req, socket, head) => {
       if (this.wss.options.path && req.url !== this.wss.options.path) {
         socket.destroy();
         return;
       }
+
+      // Finding 11 fix: run the auth hook before accepting the upgrade.
+      // If authFn is provided and returns false (or throws), reject with 401.
+      if (this.authFn) {
+        try {
+          const allowed = await this.authFn(req);
+          if (!allowed) {
+            socket.write('HTTP/1.1 401 Unauthorized\r\nContent-Length: 0\r\nConnection: close\r\n\r\n');
+            socket.destroy();
+            return;
+          }
+        } catch {
+          socket.write('HTTP/1.1 401 Unauthorized\r\nContent-Length: 0\r\nConnection: close\r\n\r\n');
+          socket.destroy();
+          return;
+        }
+      }
+
       this.wss.handleUpgrade(req, socket, head, (ws) => {
         this.wss.emit('connection', ws, req);
         handler(new StreetSocket(ws), req);
