@@ -26,7 +26,7 @@ function deriveKey(passphrase: string, salt: Buffer): Buffer {
     N: SCRYPT_N,
     r: SCRYPT_R,
     p: SCRYPT_P,
-    maxmem: 64 * 1024 * 1024,
+    maxmem: SCRYPT_MAXMEM,
   });
 }
 
