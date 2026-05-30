@@ -20,9 +20,15 @@ export declare class WebhookDispatcher {
     private running;
     private processing;
     private stopped;
+    private readonly allowedHosts;
     private readonly _warnedUrls;
     private readonly _warnClearTimer;
-    constructor();
+    /**
+     * @param allowedHosts - Optional set of hostnames/IPs that bypass the SSRF
+     * blocklist. Use ONLY in test environments to allow localhost HTTPS servers.
+     * Never pass user-controlled values here.
+     */
+    constructor(allowedHosts?: string[]);
     enqueue(target: WebhookTarget, event: string, data: unknown): boolean;
     private _drain;
     private _dispatch;

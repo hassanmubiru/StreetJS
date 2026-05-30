@@ -41,7 +41,7 @@ function isBlockedAddress(address) {
  * - Hostname must not be a private/reserved IP literal
  * - Resolved IP must not be private/reserved (DNS rebinding protection)
  */
-async function validateWebhookUrl(url) {
+async function validateWebhookUrl(url, allowedHosts = new Set()) {
     let parsed;
     try {
         parsed = new URL(url);
@@ -53,6 +53,9 @@ async function validateWebhookUrl(url) {
         throw new Error('Webhook URLs must use HTTPS to protect payload confidentiality');
     }
     const hostname = parsed.hostname;
+    // Skip SSRF checks for explicitly allowed hosts (test environments only)
+    if (allowedHosts.has(hostname))
+        return;
     // Block bare IP literals that are private/reserved
     if (isBlockedAddress(hostname)) {
         throw new Error(`Webhook URL targets a blocked address: ${hostname}`);
@@ -77,11 +80,18 @@ export class WebhookDispatcher {
     running = 0;
     processing = false;
     stopped = false;
+    allowedHosts;
     // Track URLs that have already been warned about to prevent log spam.
     // Cleared every 60 seconds so recurring misconfiguration is still visible.
     _warnedUrls = new Set();
     _warnClearTimer;
-    constructor() {
+    /**
+     * @param allowedHosts - Optional set of hostnames/IPs that bypass the SSRF
+     * blocklist. Use ONLY in test environments to allow localhost HTTPS servers.
+     * Never pass user-controlled values here.
+     */
+    constructor(allowedHosts = []) {
+        this.allowedHosts = new Set(allowedHosts);
         this._warnClearTimer = setInterval(() => this._warnedUrls.clear(), 60_000);
         this._warnClearTimer.unref();
     }
@@ -101,7 +111,7 @@ export class WebhookDispatcher {
         // Validate URL asynchronously before dispatching; drop on failure.
         // Each unique bad URL is only logged once per 60-second window to
         // prevent log spam when the same misconfigured URL is called repeatedly.
-        validateWebhookUrl(target.url)
+        validateWebhookUrl(target.url, this.allowedHosts)
             .then(() => {
             if (this.stopped)
                 return;

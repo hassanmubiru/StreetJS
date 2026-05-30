@@ -191,58 +191,159 @@ describe('OpenAPI — spec generation validation', () => {
     });
 });
 // ═══════════════════════════════════════════════════════════════════════════════
-// 4. Webhook Dispatcher Validation
+// 4. Webhook Dispatcher — real HTTPS server, real delivery, real HMAC
 // ═══════════════════════════════════════════════════════════════════════════════
-describe('Webhook Dispatcher — infrastructure validation', () => {
-    it('enqueue() returns true synchronously for valid-looking targets', () => {
-        const dispatcher = new WebhookDispatcher();
-        // enqueue() returns true synchronously — URL validation is async.
-        // The HTTPS enforcement and SSRF checks run after the caller returns.
-        const result = dispatcher.enqueue({ url: 'https://example.com/webhook', secret: 'test-secret' }, 'user.created', { id: 'u1', name: 'Alice' });
-        assert.equal(result, true);
-        dispatcher.stop();
+//
+// Spins up a real local HTTPS server with an openssl-generated self-signed
+// certificate. The dispatcher sends real HTTPS POST requests with HMAC-SHA256
+// signatures. No mocks, no stubs — end-to-end network delivery verified.
+describe('Webhook Dispatcher — real HTTPS delivery', () => {
+    let server;
+    let port;
+    let tmpDir;
+    let caCert;
+    const received = [];
+    before(async () => {
+        const { mkdtemp } = await import('node:fs/promises');
+        const { readFileSync } = await import('node:fs');
+        const { execSync } = await import('node:child_process');
+        const { createServer: createHttpsServer } = await import('node:https');
+        // Generate a real ephemeral self-signed cert for 127.0.0.1
+        tmpDir = await mkdtemp(join(tmpdir(), 'wh-tls-'));
+        const keyPath = join(tmpDir, 'key.pem');
+        const certPath = join(tmpDir, 'cert.pem');
+        execSync(`openssl req -x509 -newkey rsa:2048 -keyout "${keyPath}" -out "${certPath}" ` +
+            `-days 1 -nodes -subj "/CN=127.0.0.1" -addext "subjectAltName=IP:127.0.0.1"`, { stdio: 'pipe' });
+        const key = readFileSync(keyPath);
+        caCert = readFileSync(certPath);
+        // Real HTTPS server — records body + X-Street-Signature header
+        server = createHttpsServer({ key, cert: caCert }, (req, res) => {
+            const chunks = [];
+            req.on('data', (c) => chunks.push(c));
+            req.on('end', () => {
+                try {
+                    const body = Buffer.concat(chunks).toString('utf8');
+                    const parsed = JSON.parse(body);
+                    received.push({
+                        ...parsed,
+                        signature: req.headers['x-street-signature'] ?? '',
+                    });
+                    res.writeHead(200);
+                    res.end('ok');
+                }
+                catch {
+                    res.writeHead(400);
+                    res.end('bad json');
+                }
+            });
+        });
+        await new Promise((resolve) => {
+            server.listen(0, '127.0.0.1', () => {
+                port = server.address().port;
+                resolve();
+            });
+        });
     });
-    it('stop() prevents further enqueuing and returns false', () => {
-        const dispatcher = new WebhookDispatcher();
-        dispatcher.stop();
-        const result = dispatcher.enqueue({ url: 'https://example.com/webhook', secret: 'x' }, 'test.event', {});
-        assert.equal(result, false, 'enqueue should return false after stop()');
+    after(async () => {
+        await new Promise((r) => server.close(() => r()));
+        const { rm } = await import('node:fs/promises');
+        await rm(tmpDir, { recursive: true, force: true });
     });
-    it('queue full — returns false once MAX_QUEUE_SIZE is reached', () => {
-        const dispatcher = new WebhookDispatcher();
-        // Bypass async validation by stopping immediately after filling —
-        // the synchronous queue-length check fires before async validation.
-        // We fill with a stopped dispatcher to avoid spawning DNS lookups.
-        // Instead, test via the public API: enqueue until false is returned.
-        // MAX_QUEUE_SIZE = 10_000. We use a target that passes the sync check.
+    it('delivers real HTTPS webhooks with correct HMAC-SHA256 signature', async () => {
+        const { Agent } = await import('node:https');
+        const { request: httpsRequest } = await import('node:https');
+        const secret = 'real-secret-' + randomBytes(8).toString('hex');
+        // Dispatcher with 127.0.0.1 in allowedHosts (bypasses SSRF blocklist for test)
+        // and a custom https.Agent that trusts our self-signed CA cert.
+        const dispatcher = new WebhookDispatcher(['127.0.0.1']);
+        const agent = new Agent({ ca: caCert });
+        // Patch the internal sendRequest to use our test agent.
+        // We do this by monkey-patching the module-level function via a
+        // subclass that overrides _dispatch to inject the agent.
+        // Since sendRequest is a module-level function (not a method), we
+        // instead directly call the real HTTPS endpoint ourselves to verify
+        // the dispatcher's payload format and HMAC, then also test the
+        // dispatcher end-to-end by patching the agent on the process level.
+        // Set NODE_EXTRA_CA_CERTS is not available at runtime, so we use
+        // a direct HTTPS call to verify the server works, then test the
+        // dispatcher's enqueue → validate → dispatch pipeline separately.
+        // Step 1: Verify the HTTPS server is reachable with our CA cert
+        const testBody = JSON.stringify({ ping: true });
+        const reachable = await new Promise((resolve) => {
+            const req = httpsRequest({
+                hostname: '127.0.0.1',
+                port,
+                path: '/webhook',
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(testBody) },
+                agent,
+            }, (res) => {
+                res.resume();
+                res.once('end', () => resolve(res.statusCode === 200));
+            });
+            req.once('error', () => resolve(false));
+            req.write(testBody);
+            req.end();
+        });
+        assert.ok(reachable, 'HTTPS test server must be reachable with self-signed cert');
+        // Step 2: Test dispatcher end-to-end — enqueue events, wait for delivery
+        // The dispatcher uses its own https.Agent (no custom CA), so it will fail
+        // TLS verification against our self-signed cert. We work around this by
+        // temporarily setting the NODE_TLS_REJECT_UNAUTHORIZED env var for the
+        // duration of this test (safe because it's a loopback address in CI).
+        const prevReject = process.env['NODE_TLS_REJECT_UNAUTHORIZED'];
+        process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+        const beforeCount = received.length;
+        try {
+            dispatcher.enqueue({ url: `https://127.0.0.1:${port}/webhook`, secret, maxRetries: 0, timeoutMs: 5000 }, 'user.created', { id: 'u1', name: 'Alice' });
+            dispatcher.enqueue({ url: `https://127.0.0.1:${port}/webhook`, secret, maxRetries: 0, timeoutMs: 5000 }, 'user.updated', { id: 'u1', name: 'Alice Updated' });
+            // Wait for async validation + dispatch (127.0.0.1 is in allowedHosts, no DNS lookup)
+            await new Promise((r) => setTimeout(r, 2000));
+        }
+        finally {
+            if (prevReject === undefined) {
+                delete process.env['NODE_TLS_REJECT_UNAUTHORIZED'];
+            }
+            else {
+                process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = prevReject;
+            }
+            dispatcher.stop();
+        }
+        const delivered = received.slice(beforeCount);
+        assert.ok(delivered.length >= 2, `Expected 2 webhook deliveries, got ${delivered.length}`);
+        // Verify event names
+        const events = delivered.map((e) => e.event);
+        assert.ok(events.includes('user.created'), 'user.created must be delivered');
+        assert.ok(events.includes('user.updated'), 'user.updated must be delivered');
+        // Verify HMAC-SHA256 signature on each delivered event
+        for (const event of delivered) {
+            const { signature, ...payload } = event;
+            const bodyStr = JSON.stringify(payload);
+            const expectedSig = 'sha256=' + createHmac('sha256', secret).update(bodyStr).digest('hex');
+            assert.equal(signature, expectedSig, `HMAC signature mismatch for event "${event.event}"`);
+        }
+    });
+    it('stop() prevents further enqueuing', () => {
+        const dispatcher = new WebhookDispatcher(['127.0.0.1']);
+        dispatcher.stop();
+        const result = dispatcher.enqueue({ url: `https://127.0.0.1:${port}/webhook`, secret: 'x' }, 'test.event', {});
+        assert.equal(result, false, 'enqueue must return false after stop()');
+    });
+    it('queue full — enqueue returns false at MAX_QUEUE_SIZE', () => {
+        const dispatcher = new WebhookDispatcher(['127.0.0.1']);
         const target = {
-            url: 'https://example.com/webhook',
+            url: `https://127.0.0.1:${port}/webhook`,
             secret: 'secret',
             timeoutMs: 100,
             maxRetries: 0,
         };
         let accepted = 0;
-        let rejected = 0;
-        // Only enqueue up to 10_050 to keep the test fast
         for (let i = 0; i < 10_050; i++) {
-            if (dispatcher.enqueue(target, 'test', { i })) {
+            if (dispatcher.enqueue(target, 'test', { i }))
                 accepted++;
-            }
-            else {
-                rejected++;
-            }
         }
-        assert.ok(accepted > 0, 'Should have accepted some items');
+        assert.ok(accepted > 0, 'Should have accepted items before queue full');
         dispatcher.stop();
-    });
-    it('HMAC signature format is sha256=<hex>', () => {
-        // Verify the signing function produces the expected format
-        // by checking a known value via the crypto module directly.
-        const body = JSON.stringify({ event: 'test', data: {}, ts: 0, id: 'abc' });
-        const secret = 'my-webhook-secret';
-        const expected = 'sha256=' + createHmac('sha256', secret).update(body).digest('hex');
-        assert.ok(expected.startsWith('sha256='), 'Signature must start with sha256=');
-        assert.equal(expected.length, 7 + 64, 'sha256= prefix + 64 hex chars');
     });
 });
 // ═══════════════════════════════════════════════════════════════════════════════
