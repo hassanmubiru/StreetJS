@@ -9,11 +9,20 @@ import { StreetException } from '../http/exceptions.js';
 const MAX_KEYS = 100_000;        // max distinct IPs/keys tracked
 const MAX_REQUESTS_PER_KEY = 1000; // max stored timestamps per key
 
+// Regex for a valid IPv4 or IPv6 address segment
+const VALID_IP_RE = /^[\w.:[\]]+$/;
+
 export interface RateLimiterOptions {
   windowMs: number;     // sliding window in ms
   maxRequests: number;  // max requests per window
   keyFn?: (ctx: StreetContext) => string;
   message?: string;
+  /**
+   * Set to true ONLY when the server sits behind a trusted reverse proxy
+   * that sets X-Forwarded-For. When false (default), the direct socket
+   * address is always used — it cannot be spoofed by the client.
+   */
+  trustProxy?: boolean;
 }
 
 export class RateLimiter {
@@ -24,9 +33,13 @@ export class RateLimiter {
 
   constructor(opts: RateLimiterOptions) {
     this.opts = {
-      keyFn: defaultKeyFn,
+      keyFn: (ctx) => defaultKeyFn(ctx, opts.trustProxy ?? false),
       message: 'Too Many Requests',
+      trustProxy: false,
       ...opts,
+      // Re-apply keyFn after spread so the trustProxy-aware default is only
+      // used when the caller did NOT supply a custom keyFn.
+      keyFn: opts.keyFn ?? ((ctx) => defaultKeyFn(ctx, opts.trustProxy ?? false)),
     };
 
     // Sweep stale keys every half-window
@@ -112,9 +125,27 @@ export class RateLimiter {
   }
 }
 
-function defaultKeyFn(ctx: StreetContext): string {
+function defaultKeyFn(ctx: StreetContext, trustProxy: boolean): string {
+  // When trustProxy is false (default), always use the direct socket address.
+  // It is set by the OS/kernel and cannot be forged by the HTTP client.
+  if (!trustProxy) {
+    return ctx.req.socket.remoteAddress ?? 'unknown';
+  }
+
+  // trustProxy=true: take the RIGHTMOST IP added by the trusted proxy.
+  // The leftmost entries in X-Forwarded-For are client-supplied and can be
+  // forged; the rightmost entry is appended by the proxy we trust.
   const forwarded = ctx.headers['x-forwarded-for'];
-  if (forwarded) return forwarded.split(',')[0]?.trim() ?? 'unknown';
+  if (forwarded) {
+    const parts = forwarded.split(',');
+    // Walk right-to-left to find the first valid-looking IP
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const candidate = parts[i]?.trim() ?? '';
+      if (candidate && VALID_IP_RE.test(candidate)) {
+        return candidate;
+      }
+    }
+  }
   return ctx.req.socket.remoteAddress ?? 'unknown';
 }
 
