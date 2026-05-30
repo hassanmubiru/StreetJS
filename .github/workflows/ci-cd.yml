@@ -306,15 +306,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
 
-      - name: Cache TypeScript build output
-        id: ts-cache
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
-        with:
-          path: packages/core/dist
-          key: ts-dist-${{ matrix.node }}-${{ hashFiles('packages/core/src/**/*.ts', 'packages/core/tests/**/*.ts', 'packages/core/tsconfig*.json') }}
-
       - name: TypeScript compilation (with tests)
-        if: steps.ts-cache.outputs.cache-hit != 'true'
         run: npm run build:app -w packages/core
 
       - name: Run ${{ matrix.suite }} tests
