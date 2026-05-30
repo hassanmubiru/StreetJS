@@ -88,7 +88,7 @@ export class JwtService {
     const now = Math.floor(Date.now() / 1000);
     if (payload.exp !== undefined && payload.exp < now) return null;
     // Finding 4 fix: enforce nbf (not-before) claim
-    if (payload.nbf !== undefined && payload.nbf > now) return null;
+    if (typeof payload.nbf === 'number' && payload.nbf > now) return null;
     if (payload.iat !== undefined && payload.iat > now + 60) return null; // clock skew
     if (options.issuer && payload.iss !== options.issuer) return null;
     if (options.audience && payload.aud !== options.audience) return null;

@@ -10,10 +10,33 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 import { readdir, readFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, resolve, sep } from 'node:path';
 import { PgPool } from './pool.js';
 import { Injectable } from '../core/container.js';
 const MIGRATIONS_TABLE = 'street_migrations';
+// Finding 5 fix: safe filename pattern — no path separators, no dotdot
+const SAFE_MIGRATION_FILENAME = /^[a-zA-Z0-9][a-zA-Z0-9_\-.]*\.sql$/;
+/**
+ * Resolve and validate that `dir` is an absolute path and that every
+ * migration file stays within it (prevents path traversal).
+ */
+function resolveAndValidateDir(dir) {
+    const resolved = resolve(dir);
+    return resolved;
+}
+function assertFileWithinDir(dir, filename) {
+    // Filename must match safe pattern — no slashes, no dotdot
+    if (!SAFE_MIGRATION_FILENAME.test(filename)) {
+        throw new Error(`Unsafe migration filename rejected: ${filename}`);
+    }
+    const fullPath = join(dir, filename);
+    // Double-check the resolved path is still inside the directory
+    const resolvedFull = resolve(fullPath);
+    if (!resolvedFull.startsWith(dir + sep) && resolvedFull !== dir) {
+        throw new Error(`Migration file escapes migrations directory: ${filename}`);
+    }
+    return resolvedFull;
+}
 let StreetMigrationRunner = class StreetMigrationRunner {
     pool;
     constructor(pool) {
@@ -21,15 +44,18 @@ let StreetMigrationRunner = class StreetMigrationRunner {
     }
     /** Run all pending migrations from the migrations directory */
     async run(migrationsDir) {
+        // Finding 5 fix: resolve and validate the directory path
+        const safeDir = resolveAndValidateDir(migrationsDir);
         await this._ensureTable();
         const appliedSet = await this._getApplied();
-        const files = await this._getMigrationFiles(migrationsDir);
+        const files = await this._getMigrationFiles(safeDir);
         for (const file of files) {
             if (appliedSet.has(file)) {
                 console.log(`[migrations] Skipping already applied: ${file}`);
                 continue;
             }
-            const fullPath = join(migrationsDir, file);
+            // Finding 5 fix: validate each filename before constructing the path
+            const fullPath = assertFileWithinDir(safeDir, file);
             const sql = await readFile(fullPath, 'utf8');
             console.log(`[migrations] Applying: ${file}`);
             await this.pool.transaction(async (conn) => {
@@ -42,11 +68,14 @@ let StreetMigrationRunner = class StreetMigrationRunner {
     }
     /** Rollback the last N migrations (requires rollback SQL files) */
     async rollback(migrationsDir, steps = 1) {
+        // Finding 5 fix: resolve and validate the directory path
+        const safeDir = resolveAndValidateDir(migrationsDir);
         const applied = await this._getAppliedOrdered();
         const toRollback = applied.slice(-steps).reverse();
         for (const name of toRollback) {
             const rollbackFile = name.replace(/\.sql$/, '.rollback.sql');
-            const fullPath = join(migrationsDir, rollbackFile);
+            // Finding 5 fix: validate rollback filename too
+            const fullPath = assertFileWithinDir(safeDir, rollbackFile);
             let sql;
             try {
                 sql = await readFile(fullPath, 'utf8');
@@ -89,7 +118,7 @@ let StreetMigrationRunner = class StreetMigrationRunner {
             return [];
         }
         return entries
-            .filter((f) => f.endsWith('.sql') && !f.endsWith('.rollback.sql'))
+            .filter((f) => f.endsWith('.sql') && !f.endsWith('.rollback.sql') && SAFE_MIGRATION_FILENAME.test(f))
             .sort(); // lexicographic = timestamp order
     }
 };

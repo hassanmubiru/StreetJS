@@ -6,6 +6,12 @@ export interface RateLimiterOptions {
     maxRequests: number;
     keyFn?: (ctx: StreetContext) => string;
     message?: string;
+    /**
+     * Set to true ONLY when the server sits behind a trusted reverse proxy
+     * that sets X-Forwarded-For. When false (default), the direct socket
+     * address is always used — it cannot be spoofed by the client.
+     */
+    trustProxy?: boolean;
 }
 export declare class RateLimiter {
     private readonly store;

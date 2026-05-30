@@ -384,6 +384,20 @@ export class PgConnection {
                 socket.write(buildStartupMessage(opts.user, opts.database));
             });
             socket.on('data', (chunk) => {
+                // Finding 9 fix: enforce a hard cap on the receive buffer during
+                // authentication to prevent a malicious server from causing OOM.
+                // During normal query operation the pool's connection timeout and
+                // per-query row limits provide the primary protection.
+                const MAX_AUTH_BUFFER = 64 * 1024; // 64 KB — more than enough for any auth exchange
+                if (this.state === 'authenticating' &&
+                    this.buffer.length + chunk.length > MAX_AUTH_BUFFER) {
+                    socket.destroy(new Error('PostgreSQL auth response exceeded 64 KB limit'));
+                    if (this.authReject) {
+                        this.authReject(new Error('PostgreSQL auth response too large'));
+                        this.authReject = null;
+                    }
+                    return;
+                }
                 this.buffer = Buffer.concat([this.buffer, chunk]);
                 this._processBuffer(opts);
             });
@@ -687,23 +701,38 @@ export class PgConnection {
         }
     }
     _parseRowDescription(body) {
+        // Finding 9 fix: add bounds checks throughout to prevent OOB reads
+        // on malformed packets from a misbehaving or malicious server.
+        if (body.length < 2)
+            return [];
         const fieldCount = body.readUInt16BE(0);
         const fields = [];
         let offset = 2;
         for (let i = 0; i < fieldCount; i++) {
+            if (offset >= body.length)
+                break;
             const nameEnd = body.indexOf(0, offset);
+            // No null terminator found, or not enough bytes for the fixed metadata
+            if (nameEnd === -1 || nameEnd + 1 + 18 > body.length)
+                break;
             const name = body.toString('utf8', offset, nameEnd);
-            offset = nameEnd + 1 + 18; // skip tableOid(4)+attNum(2)+typeOid(4)+typeSize(2)+typeMod(4)+format(2)
+            // typeOid is at nameEnd+1 (tableOid=4) + (attNum=2) = nameEnd+7
             const typeOid = body.readUInt32BE(nameEnd + 1 + 6);
+            offset = nameEnd + 1 + 18; // skip tableOid(4)+attNum(2)+typeOid(4)+typeSize(2)+typeMod(4)+format(2)
             fields.push({ name, typeOid });
         }
         return fields;
     }
     _parseDataRow(body) {
+        // Finding 9 fix: add bounds checks to prevent OOB reads on malformed packets.
+        if (body.length < 2)
+            return {};
         const colCount = body.readUInt16BE(0);
         const row = {};
         let offset = 2;
         for (let i = 0; i < colCount; i++) {
+            if (offset + 4 > body.length)
+                break; // not enough bytes for length prefix
             const len = body.readInt32BE(offset);
             offset += 4;
             const fieldName = this.fields[i]?.name ?? `col${i}`;
@@ -711,6 +740,8 @@ export class PgConnection {
                 row[fieldName] = null;
             }
             else {
+                if (len < 0 || offset + len > body.length)
+                    break; // malformed length
                 row[fieldName] = body.toString('utf8', offset, offset + len);
                 offset += len;
             }

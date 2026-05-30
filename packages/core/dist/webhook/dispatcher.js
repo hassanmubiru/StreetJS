@@ -1,11 +1,77 @@
 // src/webhook/dispatcher.ts
 // Outbound webhook dispatcher with HMAC-SHA256 signatures, retry, and bounded queue.
-import { request as httpRequest } from 'node:http';
 import { request as httpsRequest } from 'node:https';
-import { createHmac } from 'node:crypto';
+import { createHmac, randomBytes } from 'node:crypto';
 import { URL } from 'node:url';
+import { lookup } from 'node:dns/promises';
 const MAX_QUEUE_SIZE = 10_000;
 const MAX_CONCURRENT = 32;
+// ─── SSRF Protection ──────────────────────────────────────────────────────────
+// Patterns that match private, loopback, link-local, and reserved IP ranges.
+// Applied to both the URL hostname literal and the resolved IP address.
+const BLOCKED_IP_PATTERNS = [
+    /^127\./, // IPv4 loopback
+    /^0\./, // IPv4 "this" network
+    /^10\./, // RFC 1918 private
+    /^172\.(1[6-9]|2\d|3[01])\./, // RFC 1918 private
+    /^192\.168\./, // RFC 1918 private
+    /^169\.254\./, // link-local / AWS IMDS
+    /^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./, // RFC 6598 shared address
+    /^192\.0\.2\./, // TEST-NET-1
+    /^198\.51\.100\./, // TEST-NET-2
+    /^203\.0\.113\./, // TEST-NET-3
+    /^240\./, // reserved
+    /^255\./, // broadcast
+    /^::1$/, // IPv6 loopback
+    /^fc[0-9a-f]{2}:/i, // IPv6 ULA
+    /^fd[0-9a-f]{2}:/i, // IPv6 ULA
+    /^fe[89ab][0-9a-f]:/i, // IPv6 link-local
+    /^::ffff:127\./, // IPv4-mapped loopback
+    /^::ffff:10\./, // IPv4-mapped RFC1918
+    /^::ffff:172\.(1[6-9]|2\d|3[01])\./, // IPv4-mapped RFC1918
+    /^::ffff:192\.168\./, // IPv4-mapped RFC1918
+    /^::ffff:169\.254\./, // IPv4-mapped link-local
+];
+function isBlockedAddress(address) {
+    return BLOCKED_IP_PATTERNS.some((re) => re.test(address));
+}
+/**
+ * Validate a webhook URL for SSRF safety.
+ * - Must use HTTPS
+ * - Hostname must not be a private/reserved IP literal
+ * - Resolved IP must not be private/reserved (DNS rebinding protection)
+ */
+async function validateWebhookUrl(url) {
+    let parsed;
+    try {
+        parsed = new URL(url);
+    }
+    catch {
+        throw new Error(`Invalid webhook URL: ${url}`);
+    }
+    if (parsed.protocol !== 'https:') {
+        throw new Error('Webhook URLs must use HTTPS to protect payload confidentiality');
+    }
+    const hostname = parsed.hostname;
+    // Block bare IP literals that are private/reserved
+    if (isBlockedAddress(hostname)) {
+        throw new Error(`Webhook URL targets a blocked address: ${hostname}`);
+    }
+    // Resolve hostname and check the resulting IP (DNS rebinding protection)
+    try {
+        const addresses = await lookup(hostname, { all: true });
+        for (const { address } of addresses) {
+            if (isBlockedAddress(address)) {
+                throw new Error(`Webhook URL resolves to a blocked address: ${address}`);
+            }
+        }
+    }
+    catch (err) {
+        if (err instanceof Error && err.message.startsWith('Webhook URL'))
+            throw err;
+        throw new Error(`Webhook URL DNS resolution failed: ${hostname}`);
+    }
+}
 export class WebhookDispatcher {
     queue = [];
     running = 0;
@@ -24,9 +90,19 @@ export class WebhookDispatcher {
             ts: Date.now(),
             id: randomId(),
         };
-        this.queue.push({ target, payload, attempt: 0 });
-        if (!this.processing)
-            this._drain();
+        // Validate URL asynchronously before dispatching; drop silently on failure
+        // to avoid blocking the caller. Errors are logged.
+        validateWebhookUrl(target.url)
+            .then(() => {
+            if (this.stopped)
+                return;
+            this.queue.push({ target, payload, attempt: 0 });
+            if (!this.processing)
+                this._drain();
+        })
+            .catch((err) => {
+            console.error('[webhook] URL validation failed, dropping event:', err instanceof Error ? err.message : err);
+        });
         return true;
     }
     _drain() {
@@ -87,12 +163,16 @@ function signPayload(body, secret) {
 function sendRequest(url, body, signature, timeoutMs) {
     return new Promise((resolve, reject) => {
         const parsed = new URL(url);
-        const isHttps = parsed.protocol === 'https:';
-        const requester = isHttps ? httpsRequest : httpRequest;
+        // Only HTTPS is permitted (enforced by validateWebhookUrl, but double-check here)
+        if (parsed.protocol !== 'https:') {
+            reject(new Error('Only HTTPS webhook URLs are permitted'));
+            return;
+        }
+        const requester = httpsRequest;
         const bodyBuf = Buffer.from(body, 'utf8');
         const req = requester({
             hostname: parsed.hostname,
-            port: parsed.port || (isHttps ? 443 : 80),
+            port: parsed.port || 443,
             path: parsed.pathname + parsed.search,
             method: 'POST',
             headers: {
@@ -121,10 +201,8 @@ function sendRequest(url, body, signature, timeoutMs) {
         req.end();
     });
 }
+// Finding 3 fix: use cryptographically secure randomBytes instead of Math.random()
 function randomId() {
-    const bytes = new Uint8Array(16);
-    for (let i = 0; i < 16; i++)
-        bytes[i] = Math.floor(Math.random() * 256);
-    return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+    return randomBytes(16).toString('hex');
 }
 //# sourceMappingURL=dispatcher.js.map

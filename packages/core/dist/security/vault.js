@@ -7,9 +7,14 @@ const ALGO = 'aes-256-gcm';
 const IV_LEN = 12;
 const TAG_LEN = 16;
 const SALT_LEN = 32;
-const SCRYPT_N = 16384;
+// Finding 13 fix: increase scrypt work factor to meet OWASP 2023 recommendations
+// for a key-encryption-key scenario (offline, done once at startup).
+// N=131072 (2^17), r=8, p=2 → ~256 MB memory, ~1-2s on modern hardware.
+// This makes offline brute-force attacks significantly more expensive.
+const SCRYPT_N = 131072;
 const SCRYPT_R = 8;
-const SCRYPT_P = 1;
+const SCRYPT_P = 2;
+const SCRYPT_MAXMEM = 256 * 1024 * 1024; // 256 MB
 const KEY_LEN = 32;
 /** Derive a 32-byte key from a passphrase + salt using scrypt */
 function deriveKey(passphrase, salt) {
@@ -17,7 +22,7 @@ function deriveKey(passphrase, salt) {
         N: SCRYPT_N,
         r: SCRYPT_R,
         p: SCRYPT_P,
-        maxmem: 64 * 1024 * 1024,
+        maxmem: SCRYPT_MAXMEM,
     });
 }
 /** Encrypt a plaintext value using the KEK */
