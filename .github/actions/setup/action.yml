@@ -1,8 +1,8 @@
-# ── Reusable setup: checkout + Node.js + deps ────────────────────────────
-# Reduces ~18 lines of boilerplate per job down to 1. Every job in the
-# consolidated ci-cd.yml uses this instead of repeating checkout/setup/ci.
-name: Checkout & Install
-description: Checkout source, setup Node.js with caching, and install dependencies
+# ── Reusable setup: Node.js + deps ───────────────────────────────────────
+# Reduces ~12 lines of boilerplate per job down to 1. Every job in the
+# consolidated ci-cd.yml uses this after an explicit actions/checkout.
+name: Setup Node.js & Install
+description: Setup Node.js with caching and install dependencies
 
 inputs:
   node-version:
