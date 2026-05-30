@@ -43,6 +43,15 @@ export class AppConfig {
   @Config('MIGRATIONS_DIR', { required: false })
   migrationsDir: string = './migrations';
 
+  /**
+   * Comma-separated list of allowed CORS origins.
+   * In production, set this to your actual frontend domain(s).
+   * Example: ALLOWED_ORIGINS=https://app.example.com,https://admin.example.com
+   * Leave unset in development to allow all origins (wildcard).
+   */
+  @Config('ALLOWED_ORIGINS', { required: false })
+  allowedOrigins: string = '';
+
   /** Load all config values from environment */
   load(kek?: string): this {
     return loadConfig(this, kek);
@@ -62,5 +71,25 @@ export class AppConfig {
 
   get pgPortNumber(): number {
     return parseInt(this.pgPort, 10) || 5432;
+  }
+
+  /**
+   * Returns the parsed CORS origins list.
+   * Falls back to ['*'] in non-production environments so local development
+   * works without configuration. In production, ALLOWED_ORIGINS must be set.
+   */
+  get corsOrigins(): string[] {
+    if (this.allowedOrigins.trim()) {
+      return this.allowedOrigins.split(',').map((o) => o.trim()).filter(Boolean);
+    }
+    if (this.isProduction) {
+      // Fail loudly in production rather than silently allowing all origins
+      throw new Error(
+        'ALLOWED_ORIGINS must be set in production. ' +
+        'Example: ALLOWED_ORIGINS=https://app.example.com'
+      );
+    }
+    // Development / test: allow all origins
+    return ['*'];
   }
 }
