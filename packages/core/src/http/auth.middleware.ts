@@ -50,16 +50,30 @@ export async function securityHeaders(
   ctx: StreetContext,
   next: () => Promise<void>
 ): Promise<void> {
+  // Finding 14 fix: add CSP, HSTS, COOP, CORP; remove deprecated X-XSS-Protection
+  ctx.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
+  );
+  ctx.setHeader('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
   ctx.setHeader('X-Content-Type-Options', 'nosniff');
   ctx.setHeader('X-Frame-Options', 'DENY');
-  ctx.setHeader('X-XSS-Protection', '1; mode=block');
+  ctx.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  ctx.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
   ctx.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   ctx.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
   await next();
 }
 
-/** CORS middleware */
-export function corsMiddleware(origins: string[] = ['*']): MiddlewareFn {
+/** CORS middleware.
+ * Finding 8 fix: wildcard '*' is no longer the default. Callers MUST supply
+ * an explicit list of allowed origins. Pass ['*'] only for fully public,
+ * read-only APIs where CSRF is not a concern.
+ */
+export function corsMiddleware(origins: string[]): MiddlewareFn {
+  if (origins.length === 0) {
+    throw new Error('corsMiddleware: origins list must not be empty');
+  }
   return async (ctx: StreetContext, next: () => Promise<void>): Promise<void> => {
     const origin = ctx.headers['origin'] ?? '';
     const allowedOrigin = origins.includes('*') ? '*' : (origins.includes(origin) ? origin : '');
@@ -67,13 +81,72 @@ export function corsMiddleware(origins: string[] = ['*']): MiddlewareFn {
     if (allowedOrigin) {
       ctx.setHeader('Access-Control-Allow-Origin', allowedOrigin);
       ctx.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-      ctx.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      ctx.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-CSRF-Token');
       ctx.setHeader('Access-Control-Max-Age', '86400');
+      // Vary header required when reflecting a specific origin
+      if (allowedOrigin !== '*') {
+        ctx.setHeader('Vary', 'Origin');
+      }
     }
 
     if (ctx.method === 'OPTIONS') {
       ctx.send(204);
       return;
+    }
+
+    await next();
+  };
+}
+
+// ─── CSRF Protection ──────────────────────────────────────────────────────────
+
+/**
+ * Finding 8 fix: CSRF validation middleware.
+ *
+ * Validates the X-CSRF-Token request header against the csrf token stored
+ * in the encrypted session cookie. Must be used AFTER session decryption
+ * middleware has populated ctx.state['session'].
+ *
+ * Safe HTTP methods (GET, HEAD, OPTIONS) are exempt.
+ *
+ * Usage:
+ *   app.use(csrfMiddleware());
+ *
+ * The session must contain a `csrf` field set when the session was created:
+ *   const csrf = SessionManager.generateCsrf();
+ *   const session = sessionManager.encrypt({ userId, csrf });
+ */
+export function csrfMiddleware(): MiddlewareFn {
+  const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
+
+  return async (ctx: StreetContext, next: () => Promise<void>): Promise<void> => {
+    if (SAFE_METHODS.has(ctx.method)) {
+      await next();
+      return;
+    }
+
+    // Retrieve the CSRF token stored in the session (set by session middleware)
+    const session = ctx.state['session'] as Record<string, unknown> | undefined;
+    const sessionCsrf = typeof session?.['csrf'] === 'string' ? session['csrf'] : null;
+
+    if (!sessionCsrf) {
+      throw new ForbiddenException('CSRF validation failed: no session CSRF token');
+    }
+
+    const headerToken = ctx.headers['x-csrf-token'];
+    if (!headerToken) {
+      throw new ForbiddenException('CSRF validation failed: missing X-CSRF-Token header');
+    }
+
+    // Constant-time comparison to prevent timing attacks
+    const sessionBuf = Buffer.from(sessionCsrf, 'utf8');
+    const headerBuf = Buffer.from(headerToken, 'utf8');
+
+    if (sessionBuf.length !== headerBuf.length) {
+      throw new ForbiddenException('CSRF validation failed: token mismatch');
+    }
+    if (!timingSafeEqual(sessionBuf, headerBuf)) {
+      throw new ForbiddenException('CSRF validation failed: token mismatch');
     }
 
     await next();
