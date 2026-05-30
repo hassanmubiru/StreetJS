@@ -282,14 +282,14 @@ jobs:
   #            infrastructure) runs on its own runner for maximum isolation.
   # Depends:   Nothing (independent parallel job)
   # Matrix:    Node 20/22 × 6 suites = 12 runners (fail-fast disabled)
-  # Timeout:   15 min for most suites; infrastructure gets 20 min (PG warmup)
+  # Timeout:   20 minutes (build + test; infrastructure includes openssl cert gen)
   # Dispatch:  Single suite selection via workflow_dispatch input filters
   #            which suites run (the if: condition skips unmatched suites).
   # Note:      Infrastructure tests set PG_HOST="" to skip PG-dependent cases.
   system-tests:
     name: ${{ matrix.suite }} (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
-    timeout-minutes: ${{ matrix.suite == 'infrastructure' && 20 || 15 }}
+    timeout-minutes: 20
 
     strategy:
       fail-fast: false
