@@ -25,6 +25,13 @@ let AppConfig = class AppConfig {
     nodeEnv = 'development';
     uploadsDir = './uploads';
     migrationsDir = './migrations';
+    /**
+     * Comma-separated list of allowed CORS origins.
+     * In production, set this to your actual frontend domain(s).
+     * Example: ALLOWED_ORIGINS=https://app.example.com,https://admin.example.com
+     * Leave unset in development to allow all origins (wildcard).
+     */
+    allowedOrigins = '';
     /** Load all config values from environment */
     load(kek) {
         return loadConfig(this, kek);
@@ -40,6 +47,23 @@ let AppConfig = class AppConfig {
     }
     get pgPortNumber() {
         return parseInt(this.pgPort, 10) || 5432;
+    }
+    /**
+     * Returns the parsed CORS origins list.
+     * Falls back to ['*'] in non-production environments so local development
+     * works without configuration. In production, ALLOWED_ORIGINS must be set.
+     */
+    get corsOrigins() {
+        if (this.allowedOrigins.trim()) {
+            return this.allowedOrigins.split(',').map((o) => o.trim()).filter(Boolean);
+        }
+        if (this.isProduction) {
+            // Fail loudly in production rather than silently allowing all origins
+            throw new Error('ALLOWED_ORIGINS must be set in production. ' +
+                'Example: ALLOWED_ORIGINS=https://app.example.com');
+        }
+        // Development / test: allow all origins
+        return ['*'];
     }
 };
 __decorate([
@@ -90,6 +114,10 @@ __decorate([
     Config('MIGRATIONS_DIR', { required: false }),
     __metadata("design:type", String)
 ], AppConfig.prototype, "migrationsDir", void 0);
+__decorate([
+    Config('ALLOWED_ORIGINS', { required: false }),
+    __metadata("design:type", String)
+], AppConfig.prototype, "allowedOrigins", void 0);
 AppConfig = __decorate([
     Injectable()
 ], AppConfig);
