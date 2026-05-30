@@ -142,7 +142,7 @@ export class StreetMigrationRunner {
     }
 
     return entries
-      .filter((f) => f.endsWith('.sql') && !f.endsWith('.rollback.sql'))
+      .filter((f) => f.endsWith('.sql') && !f.endsWith('.rollback.sql') && SAFE_MIGRATION_FILENAME.test(f))
       .sort(); // lexicographic = timestamp order
   }
 }
