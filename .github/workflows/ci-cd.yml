@@ -311,7 +311,7 @@ jobs:
         if: env.SUITE == 'all' || env.SUITE == matrix.suite
         run: node --test packages/core/dist/tests/system/${{ matrix.suite }}.test.js
         env:
-          PG_HOST: ${{ matrix.suite == 'infrastructure' && '' || env.PG_HOST }}
+          PG_HOST: ${{ matrix.suite != 'infrastructure' && env.PG_HOST || '' }}
 
 
 
