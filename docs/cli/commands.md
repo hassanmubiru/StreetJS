@@ -4,329 +4,267 @@ title:     "CLI Commands"
 parent:    "CLI"
 nav_order: 1
 permalink: /cli/commands/
+description: "Complete reference for all street CLI commands — create, dev, build, start, test, generate, migrate."
 ---
 
 # CLI Commands
 
-street's CLI kernel enables the same binary to serve as both an HTTP server and a command-line tool. Commands are registered with the `@Command` decorator and resolved through the IoC container.
-
----
-
-## How dual-mode works
-
-`src/main.ts` inspects `process.argv` at startup:
-
-```typescript
-const args = parseArgv(process.argv);
-
-if (args.command !== null) {
-  // CLI mode: run the command, then exit
-  const cli = new CliKernel({ appName: 'street', version: '1.0.0' });
-  cli.register(MigrateCommand);
-  cli.register(UserCommand);
-  await cli.run(args);
-  await pool.close();
-  return;
-}
-
-// HTTP mode: boot the server
-await app.listen();
-```
-
-If `argv[2]` matches a registered command name, CLI mode runs. Otherwise, the HTTP server starts. No separate binary needed.
-
----
-
-## Built-in commands
-
-### `migrate`
-
-Run all pending migrations:
+Install the CLI globally:
 
 ```bash
-node dist/main.js migrate
-node dist/main.js migrate --dir ./migrations
-```
-
-| Flag | Default | Description |
-|---|---|---|
-| `--dir` | `./migrations` | Path to migrations directory |
-
-Output:
-
-```
-[cli] Running migrations from: ./migrations
-[migrations] Applying: 001_create_users.sql
-[migrations] Applied: 001_create_users.sql
-[migrations] Applying: 002_create_sessions_webhooks.sql
-[migrations] Applied: 002_create_sessions_webhooks.sql
-[migrations] All migrations complete.
-[cli] Migrations complete.
-```
-
-### `migrate:rollback`
-
-Roll back the last N migrations:
-
-```bash
-node dist/main.js migrate:rollback
-node dist/main.js migrate:rollback --steps 2
-```
-
-| Flag | Default | Description |
-|---|---|---|
-| `--steps` | `1` | Number of migrations to roll back |
-| `--dir` | `./migrations` | Path to migrations directory |
-
-### `user:create`
-
-Create a new user directly:
-
-```bash
-node dist/main.js user:create \
-  --email alice@example.com \
-  --name "Alice Smith" \
-  --password "s3cure-p@ssword!"
-```
-
-Output:
-
-```
-[cli] User created: {
-  "id": "a1b2c3d4-...",
-  "email": "alice@example.com",
-  "name": "Alice Smith",
-  "roles": ["user"],
-  "createdAt": "2024-01-15T10:23:45.123Z"
-}
-```
-
-### `user:list`
-
-List all users with pagination:
-
-```bash
-node dist/main.js user:list
-node dist/main.js user:list --page 2 --limit 10
-```
-
-Output:
-
-```
-[cli] Users (page 1, total 42):
-  a1b2c3d4-... | alice@example.com | Alice Smith
-  b2c3d4e5-... | bob@example.com   | Bob Jones
-```
-
-### `user:delete`
-
-Delete a user by UUID:
-
-```bash
-node dist/main.js user:delete --id a1b2c3d4-e5f6-7890-abcd-ef1234567890
+npm install -g @streetjs/cli
+street --version   # street v1.0.3
 ```
 
 ---
 
-## Argument parsing
+## `street create <project-name>`
 
-`parseArgv` converts `process.argv` into a structured object:
-
-```typescript
-interface ParsedArgs {
-  command: string | null;           // First positional argument
-  positional: string[];             // Remaining positional arguments
-  flags: Record<string, string | boolean>;  // --flag=value or --flag value
-}
-```
-
-### Examples
+Scaffolds a complete, production-ready Street project.
 
 ```bash
-node app.js migrate --dir ./migrations --verbose
-# → { command: 'migrate', positional: [], flags: { dir: './migrations', verbose: true } }
-
-node app.js user:create --email a@b.com --name "Alice"
-# → { command: 'user:create', positional: [], flags: { email: 'a@b.com', name: 'Alice' } }
-
-node app.js                      # No command → HTTP server mode
-# → { command: null, positional: [], flags: {} }
-
-node app.js --version            # Version flag
-# → { command: null, positional: [], flags: { version: true } }
+street create my-api
+street create my-api --install    # auto-install npm dependencies
+street create my-api -i           # shorthand
 ```
 
-### Flag parsing rules
+**Generated structure:**
 
-| Input | Result |
-|---|---|
-| `--flag` | `{ flag: true }` |
-| `--flag value` | `{ flag: 'value' }` |
-| `--flag=value` | `{ flag: 'value' }` |
-| `-f` | `{ f: true }` |
-| `-f value` | `{ f: 'value' }` |
-| `--flag --other` | `{ flag: true, other: true }` |
+```
+my-api/
+├── src/
+│   ├── main.ts
+│   ├── controllers/
+│   │   ├── example.controller.ts
+│   │   └── health.controller.ts
+│   ├── services/
+│   │   └── example.service.ts
+│   ├── repositories/
+│   │   └── example.repository.ts
+│   ├── middleware/
+│   │   └── auth.ts
+│   └── gateways/
+│       └── chat.gateway.ts
+├── tests/
+│   └── integration.test.ts
+├── migrations/
+├── uploads/
+├── docker-init/
+│   └── 001_enable_pgcrypto.sql
+├── package.json
+├── tsconfig.json
+├── street.config.ts
+├── Dockerfile
+├── docker-compose.yml
+├── .env.example
+├── .gitignore
+└── README.md
+```
+
+The generated project includes:
+- Strict TypeScript with `NodeNext` ESM
+- Full CRUD REST API with OpenAPI annotations
+- JWT authentication middleware
+- WebSocket gateway
+- PostgreSQL repository with parameterized queries
+- Multi-stage Dockerfile
+- Docker Compose with PostgreSQL
 
 ---
 
-## Writing a custom command
+## `street dev`
 
-### Step 1: Define the command class
-
-```typescript
-// src/cli/commands.ts
-import { Injectable } from '../core/container.js';
-import { Command } from '../core/decorators.js';
-import type { ParsedArgs } from './kernel.js';
-import { UserService } from '../services/user.service.js';
-
-@Injectable()
-export class ReportCommand {
-  constructor(private readonly userService: UserService) {}
-
-  @Command('report:users', 'Generate a user count report by role')
-  async userReport(args: ParsedArgs): Promise<void> {
-    const format = String(args.flags['format'] ?? 'text');
-    const result = await this.userService.findAll(1, 1000);
-
-    const byRole: Record<string, number> = {};
-    for (const user of result.items) {
-      for (const role of user.roles) {
-        byRole[role] = (byRole[role] ?? 0) + 1;
-      }
-    }
-
-    if (format === 'json') {
-      console.log(JSON.stringify({ total: result.total, byRole }, null, 2));
-    } else {
-      console.log(`Total users: ${result.total}`);
-      for (const [role, count] of Object.entries(byRole)) {
-        console.log(`  ${role.padEnd(20)} ${count}`);
-      }
-    }
-  }
-
-  @Command('report:health', 'Print database health status')
-  async healthReport(args: ParsedArgs): Promise<void> {
-    const verbose = Boolean(args.flags['verbose']);
-    const pool = container.resolve(PgPool);
-    const result = await pool.query('SELECT NOW() AS db_time, version() AS pg_version');
-    const row = result.rows[0]!;
-
-    console.log(`Database time: ${row['db_time']}`);
-    if (verbose) console.log(`PostgreSQL: ${row['pg_version']}`);
-  }
-}
-```
-
-### Step 2: Register in `main.ts`
-
-```typescript
-cli.register(MigrateCommand);
-cli.register(UserCommand);
-cli.register(ReportCommand);    // ← add your new class
-```
-
-### Step 3: Run it
+Starts the development server with hot-reload.
 
 ```bash
-node dist/main.js report:users
-# Total users: 42
-#   user                 40
-#   admin                2
+cd my-api
+street dev
+# [street] Starting development server...
+# [street] Listening on http://0.0.0.0:3000
+# [street] Watching for file changes...
+```
 
-node dist/main.js report:users --format json
-# { "total": 42, "byRole": { "user": 40, "admin": 2 } }
+- Compiles TypeScript on startup
+- Watches `src/` for changes (300ms debounce)
+- Recompiles and restarts automatically on save
+- Handles `SIGTERM`/`SIGINT` for clean shutdown
 
-node dist/main.js report:health --verbose
-# Database time: 2024-01-15T10:23:45.123Z
-# PostgreSQL: PostgreSQL 16.1 on x86_64-pc-linux-gnu, ...
+---
+
+## `street build`
+
+Compiles TypeScript for production.
+
+```bash
+cd my-api
+street build
+# [street] Building project for production...
+# [street] Build completed in 2.1s
+# [street] Output: ./dist/
+```
+
+Uses the project's `tsconfig.json`. Output goes to `./dist/`.
+
+---
+
+## `street start`
+
+Starts the production server from compiled output.
+
+```bash
+cd my-api
+street build
+street start
+# [street] Starting production server...
+# [street] Node env: production
+```
+
+Requires `dist/main.js` to exist. Run `street build` first.
+
+---
+
+## `street test`
+
+Runs the project's test suite using Node's built-in test runner.
+
+```bash
+cd my-api
+street test
+```
+
+- Compiles TypeScript first
+- Discovers `*.test.js` files in `dist/tests/`
+- Runs with `node --test`
+
+---
+
+## `street generate <type> <name>`
+
+Generates a controller, service, or repository with full boilerplate.
+
+```bash
+street generate controller users
+# [street] Generated controller: src/controllers/users.controller.ts
+
+street generate service users
+# [street] Generated service: src/services/users.service.ts
+
+street generate repository users
+# [street] Generated repository: src/repositories/users.repository.ts
+```
+
+**Valid types:** `controller`, `service`, `repository`
+
+**Name conventions:**
+
+| Input | Class | File | Route (controller) |
+|---|---|---|---|
+| `users` | `Users` | `users` | `/api/users` |
+| `blog-post` | `BlogPost` | `blog-post` | `/api/blog-posts` |
+| `user_profile` | `UserProfile` | `user-profile` | `/api/user-profiles` |
+| `category` | `Category` | `category` | `/api/categories` |
+
+Generated controllers include full CRUD endpoints (`GET /`, `GET /:id`, `POST /`, `PUT /:id`, `DELETE /:id`) with `@ApiOperation` annotations.
+
+---
+
+## `street migrate:create <name>`
+
+Creates a timestamped SQL migration file pair.
+
+```bash
+street migrate:create create_users_table
+# [street] Created migration: 20260101120000_create_users_table.sql
+# [street] Created rollback:  20260101120000_create_users_table.rollback.sql
+```
+
+Files are created in `migrations/` with a UTC timestamp prefix for deterministic ordering.
+
+**Generated up migration:**
+
+```sql
+-- Migration: create_users_table
+-- Created: 2026-01-01T12:00:00.000Z
+-- Description:
+
+-- Write your SQL migration here.
+-- Example:
+--   CREATE TABLE create_users_table (
+--     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+--     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+--     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+--   );
 ```
 
 ---
 
-## Help output
+## `street migrate:run`
 
-`--help` prints all registered commands:
+Runs all pending SQL migrations in order.
 
 ```bash
-node dist/main.js --help
+cd my-api
+street build
+street migrate:run
+```
 
-# street v1.0.0
-#
-# Commands:
-#
-#   migrate              Run pending database migrations
-#   migrate:rollback     Rollback the last N migrations
-#   user:create          Create a new user (--email --name --password)
-#   user:list            List all users (--page --limit)
-#   user:delete          Delete a user by ID (--id <uuid>)
-#   report:users         Generate a user count report by role
-#   report:health        Print database health status
-#
-# Flags:
-#
-#   --help, -h           Show this help
-#   --version, -v        Show version
+- Connects to PostgreSQL using environment variables
+- Tracks applied migrations in a `street_migrations` table
+- Skips already-applied migrations (idempotent)
+- Runs `.sql` files in timestamp order
+
+**Required environment variables:**
+
+```bash
+PG_HOST=localhost
+PG_PORT=5432
+PG_DATABASE=mydb
+PG_USER=postgres
+PG_PASSWORD=secret
 ```
 
 ---
 
-## Using the CLI in CI/CD
+## Global flags
 
-Run migrations as part of the deployment pipeline:
+```bash
+street --version    # street v1.0.3
+street --help       # show all commands
+street -v           # shorthand version
+street -h           # shorthand help
+```
+
+---
+
+## Using in CI/CD
 
 ```yaml
-# .github/workflows/ci-cd.yml
+# .github/workflows/deploy.yml
+- name: Build
+  run: npm run build
+
 - name: Run migrations
-  run: |
-    node dist/main.js migrate
+  run: street migrate:run
   env:
-    PG_HOST: localhost
-    PG_DATABASE: myapp
-    PG_USER: myapp
+    PG_HOST: ${{ secrets.PG_HOST }}
+    PG_DATABASE: ${{ secrets.PG_DATABASE }}
+    PG_USER: ${{ secrets.PG_USER }}
     PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
-    JWT_SECRET: ${{ secrets.JWT_SECRET }}
-    SESSION_KEY: ${{ secrets.SESSION_KEY }}
+
+- name: Start server
+  run: street start &
 ```
 
-Or in a Docker entrypoint:
+---
+
+## Docker entrypoint
 
 ```bash
 #!/bin/sh
 # docker-entrypoint.sh
 set -e
-
 echo "Running migrations..."
-node dist/main.js migrate
-
+street migrate:run
 echo "Starting server..."
-exec node dist/main.js
-```
-
----
-
-## Environment-aware commands
-
-Commands run with full access to `AppConfig` and all injected services. They follow the same boot sequence as the HTTP server (config loading, pool initialization) — so database connectivity is always available:
-
-```typescript
-@Command('seed:demo', 'Seed demo data for development')
-async seedDemo(args: ParsedArgs): Promise<void> {
-  const config = container.resolve(AppConfig);
-
-  if (config.isProduction) {
-    console.error('[cli] Refusing to seed demo data in production!');
-    process.exitCode = 1;
-    return;
-  }
-
-  await this.userService.register({
-    email: 'demo@example.com',
-    name: 'Demo User',
-    password: 'demo-password-123',
-  });
-
-  console.log('[cli] Demo data seeded successfully.');
-}
+exec street start
 ```
