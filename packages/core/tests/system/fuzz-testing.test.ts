@@ -353,9 +353,10 @@ describe('Crypto — parameter fuzz testing', () => {
     assert.throws(() => new SessionManager('00'.repeat(33)), /64-char hex/);
 
     // Non-hex characters — constructor only checks length (64 chars), not hex content
-    // 'zz'.repeat(32) is exactly 64 chars, so it passes length validation
-    assert.doesNotThrow(() => new SessionManager('zz'.repeat(32)));
-    // Explicitly invalid length with non-hex chars still throws
+    // 'zz'.repeat(32) is exactly 64 chars but produces an empty buffer when parsed as hex,
+    // which fails the entropy check. Use a valid hex string with sufficient entropy instead.
+    assert.doesNotThrow(() => new SessionManager(randomBytes(32).toString('hex')));
+    // Explicitly invalid length still throws
     assert.throws(() => new SessionManager('zz'.repeat(33)), /64-char hex/);
   });
 
