@@ -67,7 +67,7 @@ export class JwtService {
         if (payload.exp !== undefined && payload.exp < now)
             return null;
         // Finding 4 fix: enforce nbf (not-before) claim
-        if (payload.nbf !== undefined && payload.nbf > now)
+        if (typeof payload.nbf === 'number' && payload.nbf > now)
             return null;
         if (payload.iat !== undefined && payload.iat > now + 60)
             return null; // clock skew
