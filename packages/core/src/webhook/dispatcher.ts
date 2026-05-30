@@ -67,7 +67,7 @@ function isBlockedAddress(address: string): boolean {
  * - Hostname must not be a private/reserved IP literal
  * - Resolved IP must not be private/reserved (DNS rebinding protection)
  */
-async function validateWebhookUrl(url: string): Promise<void> {
+async function validateWebhookUrl(url: string, allowedHosts: Set<string> = new Set()): Promise<void> {
   let parsed: URL;
   try {
     parsed = new URL(url);
@@ -80,6 +80,9 @@ async function validateWebhookUrl(url: string): Promise<void> {
   }
 
   const hostname = parsed.hostname;
+
+  // Skip SSRF checks for explicitly allowed hosts (test environments only)
+  if (allowedHosts.has(hostname)) return;
 
   // Block bare IP literals that are private/reserved
   if (isBlockedAddress(hostname)) {
@@ -140,7 +143,7 @@ export class WebhookDispatcher {
     // Validate URL asynchronously before dispatching; drop on failure.
     // Each unique bad URL is only logged once per 60-second window to
     // prevent log spam when the same misconfigured URL is called repeatedly.
-    validateWebhookUrl(target.url)
+    validateWebhookUrl(target.url, this.allowedHosts)
       .then(() => {
         if (this.stopped) return;
         this.queue.push({ target, payload, attempt: 0 });
