@@ -35,7 +35,10 @@
     "http",
     "server",
     "postgresql",
-    "monorepo"
+    "monorepo",
+    "street-framework",
+    "streetjs",
+    ""
   ],
   "author": "street contributors",
   "license": "MIT",
