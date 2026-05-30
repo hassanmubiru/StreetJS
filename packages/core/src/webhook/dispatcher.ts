@@ -105,13 +105,20 @@ export class WebhookDispatcher {
   private running = 0;
   private processing = false;
   private stopped = false;
+  private readonly allowedHosts: Set<string>;
 
   // Track URLs that have already been warned about to prevent log spam.
   // Cleared every 60 seconds so recurring misconfiguration is still visible.
   private readonly _warnedUrls = new Set<string>();
   private readonly _warnClearTimer: NodeJS.Timeout;
 
-  constructor() {
+  /**
+   * @param allowedHosts - Optional set of hostnames/IPs that bypass the SSRF
+   * blocklist. Use ONLY in test environments to allow localhost HTTPS servers.
+   * Never pass user-controlled values here.
+   */
+  constructor(allowedHosts: string[] = []) {
+    this.allowedHosts = new Set(allowedHosts);
     this._warnClearTimer = setInterval(() => this._warnedUrls.clear(), 60_000);
     this._warnClearTimer.unref();
   }
