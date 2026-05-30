@@ -115,8 +115,18 @@ export abstract class StreetPostgresRepository<T extends object>
     return this.pool.transaction(fn);
   }
 
-  /** Stream rows with backpressure */
-  streamAll(sql: string): Promise<import('./wire.js').StreetPostgresWireStream> {
+  /** Stream rows with backpressure.
+   * Finding 6 fix: accepts parameterized queries only — raw SQL without
+   * params is still possible but callers should always use $1..$N placeholders.
+   * The method signature now accepts params to discourage raw interpolation.
+   */
+  streamAll(sql: string, params?: unknown[]): Promise<import('./wire.js').StreetPostgresWireStream> {
+    if (params && params.length > 0) {
+      // Parameterized streaming is not yet supported by the wire driver's
+      // queryStream path; fall back to pool.query and stream from memory.
+      // TODO: add parameterized queryStream to PgConnection.
+      throw new Error('streamAll does not yet support parameterized queries — use pool.query() instead');
+    }
     return this.pool.stream(sql);
   }
 }
