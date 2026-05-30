@@ -127,10 +127,13 @@ describe("composite action schema — step 2: setup-node", () => {
         assert.ok(with_);
         assert.equal(with_["node-version"], "${{ inputs.node-version }}");
     });
-    it("enables npm caching", () => {
+    it("does not enable npm caching (prevents cache poisoning — zizmor finding)", () => {
         const with_ = step.with;
         assert.ok(with_);
-        assert.equal(with_["cache"], "npm");
+        // cache: 'npm' is intentionally absent — setup-node's built-in npm cache
+        // caches node_modules which are later executed, creating a cache poisoning
+        // vector flagged by zizmor. npm ci is fast enough without caching.
+        assert.equal(with_["cache"], undefined);
     });
     it("passes registry-url from inputs", () => {
         const with_ = step.with;
