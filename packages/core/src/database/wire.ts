@@ -851,6 +851,9 @@ export class PgConnection {
       if (code === '\0') break;
       i++;
       const end = body.indexOf(0, i);
+      // Finding B fix: if no null terminator found, stop parsing to prevent
+      // i = -1 + 1 = 0 infinite loop on malformed error packets.
+      if (end === -1) break;
       fields[code] = body.toString('utf8', i, end);
       i = end + 1;
     }
