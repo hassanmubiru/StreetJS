@@ -52,10 +52,12 @@ name: street CI/CD
 # ── Concurrency ──────────────────────────────────────────────────────────
 # Groups all CI runs by git ref. A new push to the same branch/PR cancels
 # any in-progress runs — saves runner minutes on iterative pushes.
+# On main, we only cancel if the run is still in-progress (not if queued),
+# so infrastructure tests are not annotated as cancelled on rapid pushes.
 # The publish job uses its own concurrency group to avoid cancellation.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 # ── Permissions ──────────────────────────────────────────────────────────
 # Minimal default: read-only contents. Jobs that need write or id-token
