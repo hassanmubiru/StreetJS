@@ -213,7 +213,8 @@ await app.listen();
 | [OpenAPI](/street/core/openapi/) | Auto-generated API spec |
 | [Deployment](/street/deployment/docker/) | Docker, production, hosting |
 | [Testing](/street/testing/) | Integration tests, test runner |
-| [Examples](/street/examples/) | REST API, WebSocket chat, file upload, auth |
+| [Examples](/street/examples/) | Complete, runnable examples for common use cases |
+| [Use Cases](/street/use-cases/) | What can be built — 16 industry verticals with architecture diagrams |
 | [FAQ](/street/faq/) | Common questions |
 
 ---
