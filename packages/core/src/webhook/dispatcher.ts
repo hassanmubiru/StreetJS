@@ -1,7 +1,6 @@
 // src/webhook/dispatcher.ts
 // Outbound webhook dispatcher with HMAC-SHA256 signatures, retry, and bounded queue.
 
-import { request as httpRequest } from 'node:http';
 import { request as httpsRequest } from 'node:https';
 import { createHmac, randomBytes } from 'node:crypto';
 import { URL } from 'node:url';
