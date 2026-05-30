@@ -1,14 +1,18 @@
 # ── Site identity ─────────────────────────────────────────────────────────────
-title:       "street"
-description: "Production-grade, memory-safe TypeScript backend framework"
-url:         "https://your-org.github.io"
+title:       "Street Framework"
+description: "Production-grade, memory-safe TypeScript backend framework built on Node.js core modules. No Express. No pg. No Prisma."
+url:         "https://hassanmubiru.github.io"
 baseurl:     "/street"
 lang:        "en"
 
+# ── SEO ───────────────────────────────────────────────────────────────────────
+author:      "street contributors"
+twitter:
+  username:  streetjs
+logo:        "/assets/images/logo.png"
+
 # ── Theme ─────────────────────────────────────────────────────────────────────
-remote_theme: just-the-docs/just-the-docs
-# Or use local gem:
-# theme: just-the-docs
+remote_theme: just-the-docs/just-the-docs@v0.10.0
 
 # ── just-the-docs configuration ───────────────────────────────────────────────
 color_scheme:    dark
@@ -21,13 +25,17 @@ back_to_top_text: "Back to top"
 
 # Nav footer links
 footer_content: >
-  Copyright &copy; 2024 street contributors.
-  Distributed under the <a href="https://github.com/your-org/street/blob/main/LICENSE">MIT license.</a>
+  Copyright &copy; 2026 street contributors.
+  Distributed under the <a href="https://github.com/hassanmubiru/street/blob/main/LICENSE">MIT license.</a>
+  &nbsp;|&nbsp;
+  <a href="https://www.npmjs.com/package/@streetjs/core">npm</a>
+  &nbsp;|&nbsp;
+  <a href="https://github.com/hassanmubiru/street">GitHub</a>
 
 # Aux links (top-right navigation)
 aux_links:
   "GitHub":
-    - "https://github.com/your-org/street"
+    - "https://github.com/hassanmubiru/street"
   "npm":
     - "https://www.npmjs.com/package/@streetjs/core"
 
@@ -36,7 +44,7 @@ aux_links_new_tab: true
 # Enable "Edit on GitHub" links on each page
 gh_edit_link:           true
 gh_edit_link_text:      "Edit this page on GitHub"
-gh_edit_repository:     "https://github.com/your-org/street"
+gh_edit_repository:     "https://github.com/hassanmubiru/street"
 gh_edit_branch:         "main"
 gh_edit_source:         docs
 gh_edit_view_mode:      "edit"
@@ -44,9 +52,23 @@ gh_edit_view_mode:      "edit"
 # Code copy button
 enable_copy_code_button: true
 
-# ── Navigation order ──────────────────────────────────────────────────────────
-# Pages use front-matter nav_order to control position.
-# Top-level sections defined here for clarity.
+# ── Callouts ──────────────────────────────────────────────────────────────────
+callouts_level: quiet
+callouts:
+  highlight:
+    color: yellow
+  important:
+    title: Important
+    color: blue
+  new:
+    title: New
+    color: green
+  note:
+    title: Note
+    color: purple
+  warning:
+    title: Warning
+    color: red
 
 # ── Plugins ───────────────────────────────────────────────────────────────────
 plugins:
@@ -80,3 +102,5 @@ exclude:
   - node_modules
   - vendor
   - "*.gemspec"
+  - RELEASE_CHECKLIST.md
+  - ROLLBACK.md
