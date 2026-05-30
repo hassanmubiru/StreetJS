@@ -84,16 +84,31 @@ export interface WsServerOptions {
   path?: string;
   heartbeatIntervalMs?: number;
   maxConnections?: number;
+  /**
+   * Finding 11 fix: optional authentication hook called before the HTTP
+   * upgrade is accepted. Return true to allow the connection, false or
+   * throw to reject it with 401. Receives the raw IncomingMessage so
+   * callers can inspect cookies, Authorization headers, query params, etc.
+   *
+   * Example:
+   *   authFn: async (req) => {
+   *     const token = new URL(req.url!, 'http://x').searchParams.get('token');
+   *     return token !== null && jwt.verify(token) !== null;
+   *   }
+   */
+  authFn?: (req: IncomingMessage) => boolean | Promise<boolean>;
 }
 
 export class StreetWebSocketServer {
   private readonly wss: WebSocketServer;
   private readonly clients = new Set<WebSocket>();
   private readonly MAX_CLIENTS: number;
+  private readonly authFn: ((req: IncomingMessage) => boolean | Promise<boolean>) | undefined;
   private heartbeatTimer: NodeJS.Timeout | null = null;
 
   constructor(options: WsServerOptions = {}) {
     this.MAX_CLIENTS = options.maxConnections ?? 10_000;
+    this.authFn = options.authFn;
     this.wss = new WebSocketServer({
       noServer: true,
       path: options.path,
