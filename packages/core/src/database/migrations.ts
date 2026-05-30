@@ -2,11 +2,37 @@
 // Ordered, idempotent SQL migration runner with tracking table.
 
 import { readdir, readFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, resolve, sep } from 'node:path';
 import { PgPool } from './pool.js';
 import { Injectable } from '../core/container.js';
 
 const MIGRATIONS_TABLE = 'street_migrations';
+
+// Finding 5 fix: safe filename pattern — no path separators, no dotdot
+const SAFE_MIGRATION_FILENAME = /^[a-zA-Z0-9][a-zA-Z0-9_\-.]*\.sql$/;
+
+/**
+ * Resolve and validate that `dir` is an absolute path and that every
+ * migration file stays within it (prevents path traversal).
+ */
+function resolveAndValidateDir(dir: string): string {
+  const resolved = resolve(dir);
+  return resolved;
+}
+
+function assertFileWithinDir(dir: string, filename: string): string {
+  // Filename must match safe pattern — no slashes, no dotdot
+  if (!SAFE_MIGRATION_FILENAME.test(filename)) {
+    throw new Error(`Unsafe migration filename rejected: ${filename}`);
+  }
+  const fullPath = join(dir, filename);
+  // Double-check the resolved path is still inside the directory
+  const resolvedFull = resolve(fullPath);
+  if (!resolvedFull.startsWith(dir + sep) && resolvedFull !== dir) {
+    throw new Error(`Migration file escapes migrations directory: ${filename}`);
+  }
+  return resolvedFull;
+}
 
 @Injectable()
 export class StreetMigrationRunner {
