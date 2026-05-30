@@ -346,7 +346,6 @@ describe('Crypto — parameter fuzz testing', () => {
     assert.throws(() => new SessionManager('00'.repeat(32)), /insufficient entropy/);
 
     // A key with sufficient entropy should be accepted
-    const { randomBytes } = require('node:crypto') as typeof import('node:crypto');
     assert.doesNotThrow(() => new SessionManager(randomBytes(32).toString('hex')));
 
     // Invalid lengths
