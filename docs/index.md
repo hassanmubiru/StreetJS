@@ -739,3 +739,73 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
   .st-btn { padding: 0.6rem 1.1rem; font-size: 0.875rem; }
 }
 </style>
+
+<div class="street-page">
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     HERO
+     ══════════════════════════════════════════════════════════════════════════ -->
+<div class="st-hero">
+  <div class="st-hero-eyebrow">TypeScript Backend Framework · v1.0.5 · MIT</div>
+  <h1>
+    <span class="grad-text">The TypeScript Backend<br>That Doesn't Compromise</span>
+  </h1>
+  <p class="tagline">
+    Production-grade. Memory-safe. Native Node.js.<br>
+    No Express. No pg. No Prisma. Just TypeScript and speed.
+  </p>
+  <p class="no-deps">
+    <span>No Express</span> &nbsp;·&nbsp;
+    <span>No pg</span> &nbsp;·&nbsp;
+    <span>No Prisma</span> &nbsp;·&nbsp;
+    <span>No jsonwebtoken</span> &nbsp;·&nbsp;
+    <span>No bcrypt</span> &nbsp;·&nbsp;
+    <span>No multer</span>
+  </p>
+  <div class="st-hero-btns">
+    <a href="{{ site.baseurl }}/getting-started/installation/" class="st-btn st-btn-primary">Get Started Free →</a>
+    <a href="https://github.com/hassanmubiru/street" class="st-btn st-btn-ghost" target="_blank" rel="noopener">View on GitHub ↗</a>
+    <a href="{{ site.baseurl }}/examples/" class="st-btn st-btn-ghost">See Examples</a>
+  </div>
+  <div class="st-hero-badges">
+    <img src="https://img.shields.io/npm/v/@streetjs/core?label=%40streetjs%2Fcore&color=2563EB&style=flat-square" alt="@streetjs/core version">
+    <img src="https://img.shields.io/npm/v/@streetjs/cli?label=%40streetjs%2Fcli&color=2563EB&style=flat-square" alt="@streetjs/cli version">
+    <img src="https://img.shields.io/badge/node-%3E%3D20-22C55E?style=flat-square&logo=node.js&logoColor=white" alt="Node.js 20+">
+    <img src="https://img.shields.io/badge/TypeScript-5.0%2B-3178c6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript 5+">
+    <img src="https://img.shields.io/badge/license-MIT-94A3B8?style=flat-square" alt="MIT License">
+    <img src="https://img.shields.io/badge/deps-2-22C55E?style=flat-square" alt="2 runtime dependencies">
+    <img src="https://github.com/hassanmubiru/street/actions/workflows/ci-cd.yml/badge.svg" alt="CI status">
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     TERMINAL INSTALL
+     ══════════════════════════════════════════════════════════════════════════ -->
+<div class="st-terminal">
+  <div class="st-terminal-bar">
+    <div class="st-terminal-dot" style="background:#EF4444"></div>
+    <div class="st-terminal-dot" style="background:#F59E0B"></div>
+    <div class="st-terminal-dot" style="background:#22C55E"></div>
+    <span class="label">bash — Quick Start</span>
+  </div>
+  <div class="st-terminal-body">
+    <div><span class="prompt">$</span> <span class="cmd">npm install -g @streetjs/cli</span></div>
+    <div><span class="out"># installs the street CLI globally</span></div>
+    <div><span class="prompt">$</span> <span class="cmd">street create my-api</span></div>
+    <div><span class="out"># scaffolds a new project with TypeScript, PostgreSQL, JWT</span></div>
+    <div><span class="prompt">$</span> <span class="cmd">cd my-api &amp;&amp; npm install &amp;&amp; street dev</span></div>
+    <div><span class="hi">[street] Listening on http://0.0.0.0:3000 · Node 20 · ESM</span></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     SOCIAL PROOF BAR
+     ══════════════════════════════════════════════════════════════════════════ -->
+<div class="st-proof-bar">
+  <div class="st-proof-item"><span class="pi-val">2</span><span class="pi-label">Runtime Dependencies</span></div>
+  <div class="st-proof-item"><span class="pi-val">PG v3</span><span class="pi-label">Wire Protocol</span></div>
+  <div class="st-proof-item"><span class="pi-val">AES-256-GCM</span><span class="pi-label">Session Security</span></div>
+  <div class="st-proof-item"><span class="pi-val">Node 20+</span><span class="pi-label">ESM Native</span></div>
+  <div class="st-proof-item"><span class="pi-val">MIT</span><span class="pi-label">Open Source</span></div>
+  <div class="st-proof-item"><span class="pi-val">100K</span><span class="pi-label">IP Rate Limit Cap</span></div>
+</div>
