@@ -119,7 +119,7 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 .s-hero::before {
   content: '';
   position: absolute; inset: 0;
-  background-image: radial-gradient(circle, rgba(37,99,235,0.18) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(59,130,246,0.1) 1px, transparent 1px);
   background-size: 32px 32px;
   mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black 30%, transparent 100%);
   -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black 30%, transparent 100%);
@@ -133,9 +133,9 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
   top: -200px; left: 50%; transform: translateX(-50%);
   width: 900px; height: 600px;
   background:
-    radial-gradient(ellipse at 35% 45%, rgba(37,99,235,0.22) 0%, transparent 50%),
-    radial-gradient(ellipse at 65% 55%, rgba(99,102,241,0.16) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 80%, rgba(56,189,248,0.08) 0%, transparent 50%);
+    radial-gradient(ellipse at 35% 45%, rgba(59,130,246,0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 65% 55%, rgba(59,130,246,0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(59,130,246,0.06) 0%, transparent 50%);
   pointer-events: none;
   animation: heroOrb 10s ease-in-out infinite alternate;
 }
@@ -149,16 +149,16 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 /* Version pill */
 .s-hero-pill {
   display: inline-flex; align-items: center; gap: 0.5rem;
-  background: rgba(37,99,235,0.1); border: 1px solid rgba(37,99,235,0.28);
+  background: rgba(59,130,246,0.07); border: 1px solid rgba(59,130,246,0.15);
   border-radius: 100px; padding: 0.3rem 1rem;
-  font-size: 0.78rem; font-weight: 600; color: var(--s-sky);
+  font-size: 0.78rem; font-weight: 600; color: var(--s-accent);
   letter-spacing: 0.05em; text-transform: uppercase;
   margin-bottom: 1.75rem;
 }
 .s-hero-pill .dot {
   width: 7px; height: 7px; border-radius: 50%;
-  background: var(--s-green);
-  box-shadow: 0 0 8px var(--s-green);
+  background: var(--s-ok);
+  box-shadow: 0 0 8px var(--s-ok);
   animation: blink 2.5s ease-in-out infinite;
 }
 @keyframes blink {
@@ -188,7 +188,7 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
   color: var(--s-t3); letter-spacing: 0.03em;
   margin-bottom: 2.5rem;
 }
-.s-hero-nodeps span { color: var(--s-sky); }
+.s-hero-nodeps span { color: var(--s-accent); }
 
 /* CTA buttons */
 .s-btns {
@@ -217,7 +217,7 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 .s-btn-primary:hover {
   background: var(--s-blue-h);
   transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(37,99,235,0.45), inset 0 1px 0 rgba(255,255,255,0.1);
+  box-shadow: 0 8px 32px rgba(59,130,246,0.22), inset 0 1px 0 rgba(255,255,255,0.1);
 }
 .s-btn-ghost {
   background: rgba(255,255,255,0.04); color: var(--s-t1) !important;
@@ -226,9 +226,9 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 }
 .s-btn-ghost:hover {
   background: rgba(255,255,255,0.08);
-  border-color: rgba(37,99,235,0.5);
+  border-color: rgba(59,130,246,0.25);
   transform: translateY(-2px);
-  color: var(--s-sky) !important;
+  color: var(--s-accent) !important;
 }
 
 /* Badges */
@@ -261,10 +261,10 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
   padding: 1.4rem 1.6rem;
   font-family: var(--s-fm); font-size: 0.88rem; line-height: 2.1;
 }
-.s-term-body .p  { color: var(--s-green); user-select: none; }
+.s-term-body .p  { color: var(--s-ok); user-select: none; }
 .s-term-body .c  { color: var(--s-t1); }
 .s-term-body .cm { color: var(--s-t3); font-style: italic; }
-.s-term-body .ok { color: var(--s-sky); }
+.s-term-body .ok { color: var(--s-accent); }
 
 /* ══════════════════════════════════════════════════════════════════════════
    STAT BAR
@@ -284,7 +284,7 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 .s-stat:hover { background: var(--s-card); }
 .s-stat .sv {
   font-family: var(--s-fm); font-size: 1.5rem; font-weight: 700;
-  color: var(--s-sky); line-height: 1; margin-bottom: 0.35rem;
+  color: var(--s-accent); line-height: 1; margin-bottom: 0.35rem;
   display: block;
 }
 .s-stat .sl {
@@ -320,7 +320,7 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 .s-step .sn {
   display: inline-flex; align-items: center; justify-content: center;
   width: 44px; height: 44px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--s-blue), var(--s-indigo));
+  background: linear-gradient(135deg, var(--s-blue), var(--s-blue));
   font-size: 1.1rem; font-weight: 800; color: #fff;
   margin: 0 auto 1rem; box-shadow: var(--s-sh-blue);
 }
@@ -333,7 +333,7 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 }
 .s-step code {
   font-family: var(--s-fm); font-size: 0.8rem;
-  background: rgba(37,99,235,0.12); color: var(--s-sky);
+  background: rgba(59,130,246,0.07); color: var(--s-accent);
   padding: 0.1em 0.35em; border-radius: 4px;
 }
 </style>
@@ -355,11 +355,11 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 .s-feat::after {
   content: '';
   position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, var(--s-blue), var(--s-indigo), var(--s-sky));
+  background: linear-gradient(90deg, var(--s-blue), var(--s-blue), var(--s-accent));
   opacity: 0; transition: var(--s-t);
 }
 .s-feat:hover {
-  border-color: rgba(37,99,235,0.5);
+  border-color: rgba(59,130,246,0.25);
   background: var(--s-card-h);
   transform: translateY(-3px);
   box-shadow: var(--s-sh-blue), var(--s-sh-card);
@@ -373,7 +373,7 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 .s-feat p { font-size: 0.875rem; color: var(--s-t2); margin: 0; line-height: 1.65; }
 .s-feat code {
   font-family: var(--s-fm); font-size: 0.8rem;
-  background: rgba(56,189,248,0.1); color: var(--s-sky);
+  background: rgba(59,130,246,0.08); color: var(--s-accent);
   padding: 0.1em 0.35em; border-radius: 4px;
 }
 
@@ -391,14 +391,14 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
   display: grid; grid-template-columns: 1.2rem 1.2rem 1fr;
   align-items: start; gap: 0.6rem; transition: var(--s-t);
 }
-.s-nd:hover { border-color: rgba(37,99,235,0.4); background: var(--s-card-h); }
-.s-nd .x { color: var(--s-red); font-weight: 800; font-size: 0.85rem; margin-top: 2px; }
-.s-nd .ar { color: var(--s-green); font-weight: 700; font-size: 0.85rem; margin-top: 2px; }
+.s-nd:hover { border-color: rgba(59,130,246,0.2); background: var(--s-card-h); }
+.s-nd .x { color: var(--s-t3); font-weight: 800; font-size: 0.85rem; margin-top: 2px; }
+.s-nd .ar { color: var(--s-ok); font-weight: 700; font-size: 0.85rem; margin-top: 2px; }
 .s-nd strong { display: block; color: var(--s-t1); font-size: 0.88rem; font-weight: 600; margin-bottom: 0.2rem; }
 .s-nd span { color: var(--s-t2); font-size: 0.8rem; line-height: 1.5; }
 .s-nd code {
   font-family: var(--s-fm); font-size: 0.77rem;
-  background: rgba(56,189,248,0.1); color: var(--s-sky);
+  background: rgba(59,130,246,0.08); color: var(--s-accent);
   padding: 0.1em 0.3em; border-radius: 3px;
 }
 
@@ -423,9 +423,9 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 }
 .s-codewin-bar .lb {
   margin-left: auto; font-size: 0.68rem; font-weight: 700;
-  background: rgba(37,99,235,0.15); color: var(--s-sky);
+  background: rgba(59,130,246,0.08); color: var(--s-accent);
   padding: 0.15rem 0.55rem; border-radius: 4px;
-  border: 1px solid rgba(37,99,235,0.25);
+  border: 1px solid rgba(59,130,246,0.12);
   text-transform: uppercase; letter-spacing: 0.07em;
 }
 /* The markdown code block immediately after .s-codewin-bar gets merged in */
@@ -453,7 +453,7 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
   content: '';
   position: absolute; top: -80px; right: -80px;
   width: 400px; height: 400px;
-  background: radial-gradient(ellipse, rgba(99,102,241,0.1) 0%, transparent 65%);
+  background: radial-gradient(ellipse, rgba(59,130,246,0.06) 0%, transparent 65%);
   pointer-events: none;
 }
 .s-why-grid {
@@ -464,7 +464,7 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 .s-why-item { position: relative; }
 .s-why-item .wi-num {
   font-family: var(--s-fm); font-size: 2.5rem; font-weight: 700;
-  color: rgba(37,99,235,0.2); line-height: 1; margin-bottom: 0.5rem;
+  color: rgba(59,130,246,0.1); line-height: 1; margin-bottom: 0.5rem;
   display: block;
 }
 .s-why-item h4 {
@@ -499,14 +499,14 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
   color: var(--s-t2); vertical-align: top; line-height: 1.55;
 }
 .s-tbl tr:last-child td { border-bottom: none; }
-.s-tbl tr:hover td { background: rgba(37,99,235,0.04); }
+.s-tbl tr:hover td { background: rgba(59,130,246,0.03); }
 .s-tbl td:first-child { color: var(--s-t1); font-weight: 500; }
 .s-tbl td:nth-child(2) {
-  font-family: var(--s-fm); font-size: 0.82rem; color: var(--s-sky);
+  font-family: var(--s-fm); font-size: 0.82rem; color: var(--s-accent);
 }
 .s-tbl code {
   font-family: var(--s-fm); font-size: 0.8rem;
-  background: rgba(56,189,248,0.1); color: var(--s-sky);
+  background: rgba(59,130,246,0.08); color: var(--s-accent);
   padding: 0.1em 0.35em; border-radius: 3px;
 }
 
@@ -524,7 +524,7 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
   transition: var(--s-t);
 }
 .s-cmp-card:hover {
-  border-color: rgba(37,99,235,0.4); background: var(--s-card-h);
+  border-color: rgba(59,130,246,0.2); background: var(--s-card-h);
   transform: translateY(-2px); box-shadow: var(--s-sh-card);
 }
 .s-cmp-card .cv { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--s-t3); margin-bottom: 0.3rem; }
@@ -536,7 +536,7 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 }
 .s-cmp-card li::before {
   content: '✓'; position: absolute; left: 0;
-  color: var(--s-green); font-size: 0.72rem; font-weight: 700;
+  color: var(--s-ok); font-size: 0.72rem; font-weight: 700;
 }
 </style>
 
@@ -554,10 +554,10 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
   border-radius: var(--s-r-lg); padding: 1.4rem;
   transition: var(--s-t);
 }
-.s-rm-card:hover { border-color: rgba(37,99,235,0.4); background: var(--s-card-h); }
+.s-rm-card:hover { border-color: rgba(59,130,246,0.2); background: var(--s-card-h); }
 .s-rm-card .rv {
   font-family: var(--s-fm); font-size: 0.72rem; font-weight: 700;
-  color: var(--s-sky); text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--s-accent); text-transform: uppercase; letter-spacing: 0.1em;
   margin-bottom: 0.3rem;
 }
 .s-rm-card .rt {
@@ -574,11 +574,11 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 }
 .s-rm-card li::before {
   content: '→'; position: absolute; left: 0;
-  color: var(--s-indigo); font-size: 0.75rem;
+  color: var(--s-blue); font-size: 0.75rem;
 }
 .s-rm-done { border-color: rgba(34,197,94,0.2) !important; }
-.s-rm-done .rv { color: var(--s-green) !important; }
-.s-rm-done li::before { content: '✓'; color: var(--s-green) !important; }
+.s-rm-done .rv { color: var(--s-ok) !important; }
+.s-rm-done li::before { content: '✓'; color: var(--s-ok) !important; }
 
 /* ══════════════════════════════════════════════════════════════════════════
    DOC GRID
@@ -602,13 +602,13 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
   opacity: 0; transition: var(--s-t);
 }
 .s-doc:hover {
-  border-color: rgba(37,99,235,0.5); background: var(--s-card-h);
+  border-color: rgba(59,130,246,0.25); background: var(--s-card-h);
   transform: translateY(-2px); box-shadow: var(--s-sh-blue);
   text-decoration: none !important;
 }
 .s-doc:hover::after { opacity: 1; transform: translateY(-50%) translateX(0); }
 .s-doc .di { font-size: 1.35rem; margin-bottom: 0.45rem; display: block; line-height: 1; }
-.s-doc .dt { font-size: 0.88rem; font-weight: 700; color: var(--s-sky); margin-bottom: 0.25rem; display: block; }
+.s-doc .dt { font-size: 0.88rem; font-weight: 700; color: var(--s-accent); margin-bottom: 0.25rem; display: block; }
 .s-doc:hover .dt { color: var(--s-t1); }
 .s-doc .dd { font-size: 0.78rem; color: var(--s-t2); line-height: 1.5; }
 
@@ -623,7 +623,7 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 .s-cta-banner::before {
   content: '';
   position: absolute; inset: 0;
-  background-image: radial-gradient(circle, rgba(37,99,235,0.12) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(59,130,246,0.07) 1px, transparent 1px);
   background-size: 28px 28px;
   mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 20%, transparent 100%);
   -webkit-mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 20%, transparent 100%);
@@ -633,7 +633,7 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
   content: '';
   position: absolute; top: -100px; left: 50%; transform: translateX(-50%);
   width: 600px; height: 400px;
-  background: radial-gradient(ellipse, rgba(99,102,241,0.12) 0%, transparent 65%);
+  background: radial-gradient(ellipse, rgba(59,130,246,0.06) 0%, transparent 65%);
   pointer-events: none;
 }
 .s-cta-banner h2 {
@@ -658,8 +658,8 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
   transition: var(--s-t);
 }
 .s-cta-link:hover {
-  border-color: rgba(37,99,235,0.5); background: rgba(37,99,235,0.08);
-  transform: translateY(-2px); color: var(--s-sky) !important;
+  border-color: rgba(59,130,246,0.25); background: rgba(59,130,246,0.05);
+  transform: translateY(-2px); color: var(--s-accent) !important;
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -786,7 +786,7 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 <div class="sp s-section">
   <div class="s-eyebrow">Quick Example</div>
   <div class="s-h2">A complete production API. One file. No extra packages.</div>
-  <p class="s-sub">PostgreSQL, JWT auth, rate limiting, and auto-generated OpenAPI — all from <code style="font-family:var(--s-fm);font-size:0.85em;background:rgba(56,189,248,0.1);color:var(--s-sky);padding:0.1em 0.4em;border-radius:4px">@streetjs/core</code>.</p>
+  <p class="s-sub">PostgreSQL, JWT auth, rate limiting, and auto-generated OpenAPI — all from <code style="font-family:var(--s-fm);font-size:0.85em;background:rgba(59,130,246,0.08);color:var(--s-accent);padding:0.1em 0.4em;border-radius:4px">@streetjs/core</code>.</p>
   <div class="s-codewin">
     <div class="s-codewin-bar">
       <div class="d" style="background:#EF4444"></div>
@@ -892,7 +892,7 @@ await app.listen();
 <div class="s-section">
   <div class="s-eyebrow">Zero Bloat</div>
   <div class="s-h2">No third-party middleware stack.</div>
-  <p class="s-sub">Two runtime dependencies total: <code style="font-family:var(--s-fm);font-size:0.85em;background:rgba(56,189,248,0.1);color:var(--s-sky);padding:0.1em 0.4em;border-radius:4px">reflect-metadata</code> and <code style="font-family:var(--s-fm);font-size:0.85em;background:rgba(56,189,248,0.1);color:var(--s-sky);padding:0.1em 0.4em;border-radius:4px">ws</code>. Everything else ships with Node.js.</p>
+  <p class="s-sub">Two runtime dependencies total: <code style="font-family:var(--s-fm);font-size:0.85em;background:rgba(59,130,246,0.08);color:var(--s-accent);padding:0.1em 0.4em;border-radius:4px">reflect-metadata</code> and <code style="font-family:var(--s-fm);font-size:0.85em;background:rgba(59,130,246,0.08);color:var(--s-accent);padding:0.1em 0.4em;border-radius:4px">ws</code>. Everything else ships with Node.js.</p>
   <div class="s-nodeps">
     <div class="s-nd"><span class="x">✕</span><span class="ar">→</span><div><strong>No Express / Fastify</strong><span>Native <code>node:http</code> server with compiled-regex router and middleware pipeline</span></div></div>
     <div class="s-nd"><span class="x">✕</span><span class="ar">→</span><div><strong>No pg / postgres.js</strong><span>PostgreSQL wire protocol v3 over <code>node:net</code> with SCRAM-SHA-256 auth</span></div></div>
@@ -1020,7 +1020,7 @@ await app.listen();
 <div class="s-section">
   <div class="s-eyebrow">Roadmap</div>
   <div class="s-h2">What's coming next.</div>
-  <p class="s-sub">Street is actively developed. <a href="{{ site.baseurl }}/roadmap/" style="color:var(--s-sky);text-decoration:none">View the full roadmap →</a></p>
+  <p class="s-sub">Street is actively developed. <a href="{{ site.baseurl }}/roadmap/" style="color:var(--s-accent);text-decoration:none">View the full roadmap →</a></p>
   <div class="s-roadmap">
     <div class="s-rm-card s-rm-done">
       <div class="rv">v1.0 · Shipped ✓</div>
@@ -1139,12 +1139,12 @@ await app.listen();
       <thead><tr><th>Package</th><th>Version</th><th>Description</th></tr></thead>
       <tbody>
         <tr>
-          <td><a href="https://www.npmjs.com/package/@streetjs/core" target="_blank" rel="noopener" style="color:var(--s-sky);text-decoration:none"><code>@streetjs/core</code></a></td>
+          <td><a href="https://www.npmjs.com/package/@streetjs/core" target="_blank" rel="noopener" style="color:var(--s-accent);text-decoration:none"><code>@streetjs/core</code></a></td>
           <td><a href="https://www.npmjs.com/package/@streetjs/core" target="_blank" rel="noopener"><img src="https://img.shields.io/npm/v/@streetjs/core?style=flat-square&color=2563EB" alt="npm"></a></td>
           <td>Framework runtime — HTTP, router, DI, PostgreSQL, security, WebSocket, SSE, clustering, telemetry</td>
         </tr>
         <tr>
-          <td><a href="https://www.npmjs.com/package/@streetjs/cli" target="_blank" rel="noopener" style="color:var(--s-sky);text-decoration:none"><code>@streetjs/cli</code></a></td>
+          <td><a href="https://www.npmjs.com/package/@streetjs/cli" target="_blank" rel="noopener" style="color:var(--s-accent);text-decoration:none"><code>@streetjs/cli</code></a></td>
           <td><a href="https://www.npmjs.com/package/@streetjs/cli" target="_blank" rel="noopener"><img src="https://img.shields.io/npm/v/@streetjs/cli?style=flat-square&color=6366F1" alt="npm"></a></td>
           <td>CLI — project scaffolding, code generation, dev server with hot-reload, migration management</td>
         </tr>
