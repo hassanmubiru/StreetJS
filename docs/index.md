@@ -774,3 +774,87 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 </div>
 
 </div><!-- end .sp — pause for markdown code block -->
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     CODE EXAMPLE — unified window
+     ══════════════════════════════════════════════════════════════════════ -->
+<div class="sp s-section">
+  <div class="s-eyebrow">Quick Example</div>
+  <div class="s-h2">A complete production API. One file. No extra packages.</div>
+  <p class="s-sub">PostgreSQL, JWT auth, rate limiting, and auto-generated OpenAPI — all from <code style="font-family:var(--s-fm);font-size:0.85em;background:rgba(56,189,248,0.1);color:var(--s-sky);padding:0.1em 0.4em;border-radius:4px">@streetjs/core</code>.</p>
+  <div class="s-codewin">
+    <div class="s-codewin-bar">
+      <div class="d" style="background:#EF4444"></div>
+      <div class="d" style="background:#F59E0B"></div>
+      <div class="d" style="background:#22C55E"></div>
+      <span class="fn">src/main.ts</span>
+      <span class="lb">TypeScript</span>
+    </div>
+</div>
+
+```typescript
+import 'reflect-metadata';
+import {
+  streetApp, Injectable, Controller, Get, Post,
+  PgPool, securityHeaders, corsMiddleware,
+  RateLimiter, authMiddleware, JwtService, ApiOperation,
+} from '@streetjs/core';
+import type { StreetContext } from '@streetjs/core';
+
+// ── Service ────────────────────────────────────────────────────────────────
+@Injectable()
+class ItemService {
+  constructor(private readonly pool: PgPool) {}
+
+  async findAll() {
+    const { rows } = await this.pool.query(
+      'SELECT id, name, created_at FROM items ORDER BY created_at DESC'
+    );
+    return rows;
+  }
+
+  async create(name: string) {
+    const { rows } = await this.pool.query(
+      'INSERT INTO items (name) VALUES ($1) RETURNING *',
+      [name]  // ← parameterized — SQL injection impossible
+    );
+    return rows[0];
+  }
+}
+
+// ── Controller ─────────────────────────────────────────────────────────────
+@Controller('/api/items')
+class ItemController {
+  constructor(private readonly svc: ItemService) {}
+
+  @Get('/')
+  @ApiOperation({ summary: 'List items', tags: ['items'] })
+  async list(ctx: StreetContext): Promise<void> {
+    ctx.json({ items: await this.svc.findAll() });
+  }
+
+  @Post('/')
+  @ApiOperation({ summary: 'Create item', tags: ['items'] })
+  async create(ctx: StreetContext): Promise<void> {
+    const { name } = ctx.body as { name: string };
+    ctx.json(await this.svc.create(name), 201);
+  }
+}
+
+// ── Bootstrap ──────────────────────────────────────────────────────────────
+const jwt     = new JwtService(process.env.JWT_SECRET!);
+const limiter = new RateLimiter({ windowMs: 60_000, maxRequests: 100 });
+const app     = streetApp({ port: 3000 });
+
+app.use(securityHeaders);                              // CSP, HSTS, COOP, CORP
+app.use(corsMiddleware(['https://app.example.com']));  // explicit origin allowlist
+app.use(limiter.middleware());                         // sliding-window, 100K IP cap
+app.use(authMiddleware(jwt));                          // HMAC-SHA256, alg enforcement
+app.registerController(ItemController);
+
+await app.listen();
+// [street] Listening on http://0.0.0.0:3000
+// [street] OpenAPI → http://0.0.0.0:3000/openapi.json
+```
+
+</div><!-- end .sp -->
