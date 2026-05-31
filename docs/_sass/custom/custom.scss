@@ -228,3 +228,126 @@ pre.highlight code {
 
   &:hover { background: rgba(37, 99, 235, 0.08) !important; }
 }
+
+// ── Tables ──────────────────────────────────────────────────────────────────
+.main-content table {
+  border-collapse: collapse !important;
+  border-radius: var(--st-radius) !important;
+  overflow: hidden !important;
+  border: 1px solid var(--st-border) !important;
+  font-size: 0.875rem !important;
+  width: 100% !important;
+
+  thead tr {
+    background: var(--st-surface) !important;
+    border-bottom: 1px solid var(--st-border) !important;
+  }
+
+  th {
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+    color: var(--st-text-muted) !important;
+    padding: 0.85rem 1rem !important;
+    white-space: nowrap !important;
+  }
+
+  td {
+    padding: 0.8rem 1rem !important;
+    border-bottom: 1px solid var(--st-border) !important;
+    color: var(--st-text-secondary) !important;
+    vertical-align: top !important;
+    line-height: 1.55 !important;
+  }
+
+  tr:last-child td { border-bottom: none !important; }
+
+  tr:hover td {
+    background: rgba(37, 99, 235, 0.04) !important;
+  }
+
+  td:first-child {
+    color: var(--st-text-primary) !important;
+    font-weight: 500 !important;
+  }
+}
+
+// ── Buttons ─────────────────────────────────────────────────────────────────
+.btn,
+a.btn {
+  font-family: var(--st-font-body) !important;
+  font-weight: 600 !important;
+  border-radius: var(--st-radius) !important;
+  transition: var(--st-transition) !important;
+  text-decoration: none !important;
+}
+
+.btn-primary,
+a.btn-primary {
+  background: var(--st-blue) !important;
+  border-color: var(--st-blue) !important;
+  color: #fff !important;
+  box-shadow: var(--st-shadow-blue) !important;
+
+  &:hover {
+    background: var(--st-blue-hover) !important;
+    border-color: var(--st-blue-hover) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 24px rgba(37, 99, 235, 0.35) !important;
+  }
+}
+
+// ── Callouts ────────────────────────────────────────────────────────────────
+.callout {
+  border-radius: var(--st-radius) !important;
+  border-left-width: 3px !important;
+  font-size: 0.9rem !important;
+
+  &.callout-note    { border-left-color: var(--st-indigo) !important; }
+  &.callout-warning { border-left-color: var(--st-yellow) !important; }
+  &.callout-important { border-left-color: var(--st-blue) !important; }
+  &.callout-new     { border-left-color: var(--st-green) !important; }
+}
+
+// ── Main content typography ──────────────────────────────────────────────────
+.main-content {
+  font-family: var(--st-font-body) !important;
+  font-size: 0.9375rem !important;
+  line-height: 1.7 !important;
+
+  h1 { font-size: clamp(1.75rem, 4vw, 2.5rem) !important; margin-top: 0 !important; }
+  h2 { font-size: clamp(1.35rem, 3vw, 1.75rem) !important; margin-top: 2.5rem !important; }
+  h3 { font-size: clamp(1.1rem, 2.5vw, 1.3rem) !important; margin-top: 2rem !important; }
+
+  p { line-height: 1.75 !important; }
+
+  a {
+    color: var(--st-sky) !important;
+    text-decoration: none !important;
+    transition: var(--st-transition) !important;
+
+    &:hover {
+      color: var(--st-blue) !important;
+      text-decoration: underline !important;
+    }
+  }
+
+  // Horizontal rule
+  hr {
+    border: none !important;
+    border-top: 1px solid var(--st-border) !important;
+    margin: 2.5rem 0 !important;
+  }
+
+  // Blockquote
+  blockquote {
+    border-left: 3px solid var(--st-blue) !important;
+    background: rgba(37, 99, 235, 0.06) !important;
+    border-radius: 0 var(--st-radius-sm) var(--st-radius-sm) 0 !important;
+    padding: 1rem 1.25rem !important;
+    margin: 1.5rem 0 !important;
+    color: var(--st-text-secondary) !important;
+    font-style: normal !important;
+  }
+}
