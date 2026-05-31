@@ -67,6 +67,8 @@
   },
   "keywords": [
     "street",
+    "streetjs",
+    "street-framework",
     "framework",
     "cli",
     "scaffolding",
@@ -76,7 +78,12 @@
     "nodejs",
     "migrations",
     "dev-server",
-    "project-generator"
+    "project-generator",
+    "no-express",
+    "no-pg",
+    "no-prisma",
+    "memory-safe",
+    "production-grade"
   ],
   "author": "street contributors",
   "license": "MIT",
