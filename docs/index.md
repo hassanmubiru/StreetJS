@@ -12,41 +12,46 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 
 <style>
 /* ═══════════════════════════════════════════════════════════════════════════
-   STREET FRAMEWORK — 10/10 DESIGN SYSTEM
-   Electric Blue #2563EB + Indigo #6366F1
-   Inter 400–900 · JetBrains Mono 400–500
+   STREET FRAMEWORK — REFINED PALETTE
+   Single accent: Slate Blue #3B82F6
+   Near-monochromatic dark — no competing colors
    ═══════════════════════════════════════════════════════════════════════════ */
 :root {
-  --s-blue:        #2563EB;
-  --s-blue-h:      #1D4ED8;
-  --s-blue-a:      #1E40AF;
-  --s-indigo:      #6366F1;
-  --s-indigo-h:    #4F46E5;
-  --s-sky:         #38BDF8;
-  --s-sky-dim:     #0EA5E9;
-  --s-green:       #22C55E;
-  --s-amber:       #F59E0B;
-  --s-red:         #EF4444;
-  --s-purple:      #A855F7;
+  /* One accent — used sparingly */
+  --s-blue:        #3B82F6;
+  --s-blue-h:      #2563EB;
+  --s-blue-a:      #1D4ED8;
+  --s-blue-dim:    rgba(59,130,246,0.15);
+  --s-blue-glow:   rgba(59,130,246,0.08);
 
-  --s-bg:          #060B18;
-  --s-bg2:         #0A0F1E;
-  --s-surface:     #0D1526;
-  --s-card:        #111827;
-  --s-card-h:      #162035;
-  --s-border:      #1E2D4A;
-  --s-border-h:    #2563EB;
-  --s-border-dim:  #162035;
+  /* Surfaces — very dark, low contrast between layers */
+  --s-bg:          #080C14;
+  --s-bg2:         #0B1020;
+  --s-surface:     #0E1525;
+  --s-card:        #111927;
+  --s-card-h:      #141E2E;
+  --s-border:      #1A2540;
+  --s-border-h:    rgba(59,130,246,0.35);
+  --s-border-dim:  #131D30;
 
-  --s-t1:          #F8FAFC;
-  --s-t2:          #94A3B8;
-  --s-t3:          #475569;
-  --s-t4:          #334155;
+  /* Text — slate scale, NOT pure white */
+  --s-t1:          #CBD5E1;   /* slate-300 — primary text, not blinding */
+  --s-t2:          #64748B;   /* slate-500 — secondary */
+  --s-t3:          #3B4A5E;   /* slate-600 — muted */
+  --s-t4:          #243044;   /* barely visible */
+
+  /* Accent text — only blue, no other colors */
+  --s-accent:      #60A5FA;   /* blue-400 — links, highlights */
+  --s-accent-dim:  #3B82F6;   /* blue-500 — slightly dimmer */
+
+  /* Status — desaturated, used only in terminal */
+  --s-green:       #4ADE80;   /* only for terminal prompt dot */
+  --s-ok:          #22D3EE;   /* terminal success line */
 
   --s-r-sm:        6px;
   --s-r:           12px;
-  --s-r-lg:        18px;
-  --s-r-xl:        24px;
+  --s-r-lg:        16px;
+  --s-r-xl:        20px;
 
   --s-fh:          'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --s-fb:          'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -55,23 +60,23 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
   --s-ease:        cubic-bezier(0.4, 0, 0.2, 1);
   --s-t:           all 0.2s var(--s-ease);
 
-  --s-sh-blue:     0 4px 24px rgba(37,99,235,0.28);
-  --s-sh-lg:       0 8px 40px rgba(0,0,0,0.7);
-  --s-sh-glow:     0 0 60px rgba(37,99,235,0.12);
-  --s-sh-card:     0 2px 12px rgba(0,0,0,0.5);
+  --s-sh-blue:     0 4px 20px rgba(59,130,246,0.18);
+  --s-sh-lg:       0 8px 40px rgba(0,0,0,0.8);
+  --s-sh-glow:     0 0 50px rgba(59,130,246,0.06);
+  --s-sh-card:     0 2px 8px rgba(0,0,0,0.6);
 }
 
 .sp * { box-sizing: border-box; }
 .sp { font-family: var(--s-fb); color: var(--s-t1); line-height: 1.6; }
 
-/* ── Gradient text ─────────────────────────────────────────────────────── */
+/* ── Gradient text — subtle, not rainbow ──────────────────────────────── */
 .gt {
-  background: linear-gradient(135deg, #F8FAFC 0%, #93C5FD 40%, #818CF8 100%);
+  background: linear-gradient(135deg, #E2E8F0 0%, #94A3B8 60%, #60A5FA 100%);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 .gt-blue {
-  background: linear-gradient(135deg, #60A5FA 0%, #38BDF8 100%);
+  background: linear-gradient(135deg, #93C5FD 0%, #60A5FA 100%);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   background-clip: text;
 }
@@ -79,21 +84,21 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 /* ── Section chrome ────────────────────────────────────────────────────── */
 .s-eyebrow {
   display: inline-flex; align-items: center; gap: 0.5rem;
-  font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.14em; color: var(--s-sky);
-  background: rgba(56,189,248,0.08); border: 1px solid rgba(56,189,248,0.2);
+  font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.14em; color: var(--s-accent);
+  background: var(--s-blue-dim); border: 1px solid rgba(59,130,246,0.15);
   border-radius: 100px; padding: 0.28rem 0.85rem; margin-bottom: 0.75rem;
 }
 .s-h2 {
-  font-family: var(--s-fh); font-size: clamp(1.6rem, 3.5vw, 2.2rem);
-  font-weight: 800; letter-spacing: -0.03em; line-height: 1.15;
+  font-family: var(--s-fh); font-size: clamp(1.5rem, 3.5vw, 2rem);
+  font-weight: 700; letter-spacing: -0.03em; line-height: 1.2;
   color: var(--s-t1); margin: 0 0 0.6rem;
 }
 .s-sub {
-  font-size: 1rem; color: var(--s-t2); line-height: 1.7;
-  margin: 0 0 2.5rem; max-width: 600px;
+  font-size: 0.9375rem; color: var(--s-t2); line-height: 1.7;
+  margin: 0 0 2.5rem; max-width: 560px;
 }
-.s-section { margin-bottom: 5rem; }
+.s-section { margin-bottom: 4.5rem; }
 </style>
 
 <style>
