@@ -941,3 +941,227 @@ await app.listen();
 </div>
 
 </div><!-- end .sp -->
+
+<div class="sp">
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     COMPARISON
+     ══════════════════════════════════════════════════════════════════════ -->
+<div class="s-section">
+  <div class="s-eyebrow">Comparison</div>
+  <div class="s-h2">General-purpose. Production-grade.</div>
+  <p class="s-sub">Street is comparable in scope to Express, NestJS, Spring Boot, and ASP.NET Core — with a security-first, memory-conscious design and a fraction of the dependency surface.</p>
+  <div class="s-cmp">
+    <div class="s-cmp-card">
+      <div class="cv">vs</div><div class="cf">Express</div>
+      <ul>
+        <li>TypeScript-first, not bolted on</li>
+        <li>Explicit memory bounds</li>
+        <li>Built-in security layer</li>
+        <li>Native PostgreSQL driver</li>
+      </ul>
+    </div>
+    <div class="s-cmp-card">
+      <div class="cv">vs</div><div class="cf">Fastify</div>
+      <ul>
+        <li>Built-in auth &amp; sessions</li>
+        <li>WebSocket + SSE included</li>
+        <li>Native PostgreSQL — no plugin</li>
+        <li>2 deps, not a plugin ecosystem</li>
+      </ul>
+    </div>
+    <div class="s-cmp-card">
+      <div class="cv">vs</div><div class="cf">NestJS</div>
+      <ul>
+        <li>Lighter DI — no class-validator</li>
+        <li>Native wire protocol, not TypeORM</li>
+        <li>2 runtime deps total</li>
+        <li>Faster cold start</li>
+      </ul>
+    </div>
+    <div class="s-cmp-card">
+      <div class="cv">vs</div><div class="cf">Spring Boot</div>
+      <ul>
+        <li>Same production depth</li>
+        <li>Node.js ecosystem &amp; npm</li>
+        <li>Faster cold start, less RAM</li>
+        <li>TypeScript type safety</li>
+      </ul>
+    </div>
+    <div class="s-cmp-card">
+      <div class="cv">vs</div><div class="cf">Laravel</div>
+      <ul>
+        <li>Statically typed end-to-end</li>
+        <li>Memory-safe, no ORM overhead</li>
+        <li>Native async/await</li>
+        <li>Horizontal scaling via clustering</li>
+      </ul>
+    </div>
+    <div class="s-cmp-card">
+      <div class="cv">vs</div><div class="cf">Django</div>
+      <ul>
+        <li>Async-native, no GIL</li>
+        <li>TypeScript types everywhere</li>
+        <li>Horizontal scaling via clustering</li>
+        <li>Single language full-stack</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     ROADMAP PREVIEW
+     ══════════════════════════════════════════════════════════════════════ -->
+<div class="s-section">
+  <div class="s-eyebrow">Roadmap</div>
+  <div class="s-h2">What's coming next.</div>
+  <p class="s-sub">Street is actively developed. <a href="{{ site.baseurl }}/roadmap/" style="color:var(--s-sky);text-decoration:none">View the full roadmap →</a></p>
+  <div class="s-roadmap">
+    <div class="s-rm-card s-rm-done">
+      <div class="rv">v1.0 · Shipped ✓</div>
+      <div class="rt">Foundation</div>
+      <div class="rq">Released 2026</div>
+      <ul>
+        <li>HTTP server, router, DI container</li>
+        <li>PostgreSQL wire driver + pool</li>
+        <li>JWT, sessions, vault, rate limiter</li>
+        <li>WebSocket, SSE, clustering, CLI</li>
+      </ul>
+    </div>
+    <div class="s-rm-card">
+      <div class="rv">v1.1 · Q3 2026</div>
+      <div class="rt">Developer Experience</div>
+      <div class="rq">Target: Q3 2026</div>
+      <ul>
+        <li>Hot-reload via <code>node --watch</code></li>
+        <li><code>street generate middleware</code></li>
+        <li><code>street generate gateway</code></li>
+        <li>Better startup error messages</li>
+      </ul>
+    </div>
+    <div class="s-rm-card">
+      <div class="rv">v1.2 · Q4 2026</div>
+      <div class="rt">Database</div>
+      <div class="rq">Target: Q4 2026</div>
+      <ul>
+        <li>MySQL/MariaDB wire driver</li>
+        <li>SQLite via <code>node:sqlite</code></li>
+        <li>Type-safe query builder</li>
+        <li>Schema introspection</li>
+      </ul>
+    </div>
+    <div class="s-rm-card">
+      <div class="rv">v1.3 · Q1 2027</div>
+      <div class="rt">Observability</div>
+      <div class="rq">Target: Q1 2027</div>
+      <ul>
+        <li>OpenTelemetry integration</li>
+        <li>Structured JSON logging</li>
+        <li>Prometheus metrics endpoint</li>
+        <li>W3C traceparent propagation</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     DOCUMENTATION GRID
+     ══════════════════════════════════════════════════════════════════════ -->
+<div class="s-section">
+  <div class="s-eyebrow">Documentation</div>
+  <div class="s-h2">Everything you need to ship.</div>
+  <p class="s-sub">Comprehensive guides, API references, and real-world examples for every part of the framework.</p>
+  <div class="s-docs">
+    <a href="{{ site.baseurl }}/getting-started/installation/" class="s-doc">
+      <span class="di">🚀</span><span class="dt">Getting Started</span>
+      <span class="dd">Install, scaffold, configure, and run your first API in 60 seconds</span>
+    </a>
+    <a href="{{ site.baseurl }}/core/controllers/" class="s-doc">
+      <span class="di">🎮</span><span class="dt">Controllers</span>
+      <span class="dd">HTTP handlers, routing, context API, request validation</span>
+    </a>
+    <a href="{{ site.baseurl }}/core/dependency-injection/" class="s-doc">
+      <span class="di">💉</span><span class="dt">Dependency Injection</span>
+      <span class="dd">IoC container, constructor injection, singleton registry</span>
+    </a>
+    <a href="{{ site.baseurl }}/database/postgres-wire-driver/" class="s-doc">
+      <span class="di">🐘</span><span class="dt">PostgreSQL</span>
+      <span class="dd">Wire driver, connection pool, repositories, migrations</span>
+    </a>
+    <a href="{{ site.baseurl }}/security/" class="s-doc">
+      <span class="di">🔐</span><span class="dt">Security</span>
+      <span class="dd">JWT, sessions, rate limiting, XSS sanitizer, vault, CSRF</span>
+    </a>
+    <a href="{{ site.baseurl }}/realtime/websocket/" class="s-doc">
+      <span class="di">⚡</span><span class="dt">Real-Time</span>
+      <span class="dd">WebSocket server, SSE, typed events, heartbeat, auth hook</span>
+    </a>
+    <a href="{{ site.baseurl }}/deployment/docker/" class="s-doc">
+      <span class="di">🐳</span><span class="dt">Deployment</span>
+      <span class="dd">Docker, production config, environment variables, hosting</span>
+    </a>
+    <a href="{{ site.baseurl }}/examples/" class="s-doc">
+      <span class="di">📦</span><span class="dt">Examples</span>
+      <span class="dd">REST API, WebSocket chat, file upload, full auth flow</span>
+    </a>
+    <a href="{{ site.baseurl }}/use-cases/" class="s-doc">
+      <span class="di">🌍</span><span class="dt">Use Cases</span>
+      <span class="dd">16 industry verticals — fintech, IoT, AI, gaming, and more</span>
+    </a>
+    <a href="{{ site.baseurl }}/cli/commands/" class="s-doc">
+      <span class="di">🛠️</span><span class="dt">CLI Reference</span>
+      <span class="dd">All street commands, flags, and options documented</span>
+    </a>
+    <a href="{{ site.baseurl }}/testing/" class="s-doc">
+      <span class="di">🧪</span><span class="dt">Testing</span>
+      <span class="dd">Integration tests, test runner, real PostgreSQL test setup</span>
+    </a>
+    <a href="{{ site.baseurl }}/faq/" class="s-doc">
+      <span class="di">❓</span><span class="dt">FAQ</span>
+      <span class="dd">Common questions, migration guides, and troubleshooting</span>
+    </a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     PACKAGES
+     ══════════════════════════════════════════════════════════════════════ -->
+<div class="s-section">
+  <div class="s-eyebrow">Packages</div>
+  <div class="s-h2">Two packages. One framework.</div>
+  <div class="s-tbl-wrap">
+    <table class="s-tbl">
+      <thead><tr><th>Package</th><th>Version</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><a href="https://www.npmjs.com/package/@streetjs/core" target="_blank" rel="noopener" style="color:var(--s-sky);text-decoration:none"><code>@streetjs/core</code></a></td>
+          <td><a href="https://www.npmjs.com/package/@streetjs/core" target="_blank" rel="noopener"><img src="https://img.shields.io/npm/v/@streetjs/core?style=flat-square&color=2563EB" alt="npm"></a></td>
+          <td>Framework runtime — HTTP, router, DI, PostgreSQL, security, WebSocket, SSE, clustering, telemetry</td>
+        </tr>
+        <tr>
+          <td><a href="https://www.npmjs.com/package/@streetjs/cli" target="_blank" rel="noopener" style="color:var(--s-sky);text-decoration:none"><code>@streetjs/cli</code></a></td>
+          <td><a href="https://www.npmjs.com/package/@streetjs/cli" target="_blank" rel="noopener"><img src="https://img.shields.io/npm/v/@streetjs/cli?style=flat-square&color=6366F1" alt="npm"></a></td>
+          <td>CLI — project scaffolding, code generation, dev server with hot-reload, migration management</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     COMMUNITY CTA BANNER
+     ══════════════════════════════════════════════════════════════════════ -->
+<div class="s-cta-banner">
+  <h2><span class="gt">Built in the open.<br>Improved together.</span></h2>
+  <p>Street is MIT-licensed and actively developed. Bug reports, feature requests, and contributions are welcome from everyone.</p>
+  <div class="s-cta-links">
+    <a href="https://github.com/hassanmubiru/street" class="s-cta-link" target="_blank" rel="noopener">⭐ Star on GitHub</a>
+    <a href="https://github.com/hassanmubiru/street/issues" class="s-cta-link" target="_blank" rel="noopener">🐛 Report a Bug</a>
+    <a href="https://github.com/hassanmubiru/street/discussions" class="s-cta-link" target="_blank" rel="noopener">💬 Discussions</a>
+    <a href="{{ site.baseurl }}/contributing/" class="s-cta-link">🤝 Contribute</a>
+    <a href="{{ site.baseurl }}/changelog/" class="s-cta-link">📋 Changelog</a>
+    <a href="{{ site.baseurl }}/roadmap/" class="s-cta-link">🗺️ Roadmap</a>
+  </div>
+</div>
+
+</div><!-- end .sp -->
