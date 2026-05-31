@@ -984,3 +984,105 @@ await app.listen();
 // [street] OpenAPI spec → http://0.0.0.0:3000/openapi.json
 ```
 
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     MEMORY BOUNDS TABLE
+     ══════════════════════════════════════════════════════════════════════════ -->
+<div class="st-memory-section">
+  <div class="st-label">Memory Safety</div>
+  <div class="st-section-head">Every component has explicit bounds.</div>
+  <p class="st-section-sub">No unbounded collections. No silent memory leaks. Every limit is documented, configurable, and enforced at runtime.</p>
+  <div class="st-table-wrap">
+    <table class="st-table">
+      <thead>
+        <tr>
+          <th>Component</th>
+          <th>Default Bound</th>
+          <th>Enforcement Mechanism</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>HTTP request body</td><td>1 MB</td><td>Stream abort on overflow — configurable via <code>bodyLimit</code></td></tr>
+        <tr><td>File uploads</td><td>Disk-streamed</td><td>Chunk-by-chunk streaming, ≤128 KB heap per upload</td></tr>
+        <tr><td>DB result buffer</td><td>256 rows</td><td>Socket-level backpressure, streaming cursor API</td></tr>
+        <tr><td>LRU cache</td><td><code>maxEntries</code> cap</td><td>O(1) LRU eviction on insert when full</td></tr>
+        <tr><td>Rate limiter</td><td>100K IPs · 1K timestamps/IP</td><td>Periodic stale-entry sweep, configurable TTL</td></tr>
+        <tr><td>Telemetry history</td><td>1,440 samples</td><td>Ring buffer — oldest sample overwritten</td></tr>
+        <tr><td>WebSocket connections</td><td><code>maxConnections</code></td><td>Reject with close code 1013 (Try Again Later)</td></tr>
+        <tr><td>Connection pool</td><td><code>maxConnections</code></td><td>Bounded acquire queue with timeout</td></tr>
+        <tr><td>Auth buffer (wire)</td><td>64 KB</td><td>Hard cap during PostgreSQL auth phase</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     FRAMEWORK COMPARISON
+     ══════════════════════════════════════════════════════════════════════════ -->
+<div class="st-compare-section">
+  <div class="st-label">Comparison</div>
+  <div class="st-section-head">General-purpose. Production-grade.</div>
+  <p class="st-section-sub">Street is comparable in scope to Express, NestJS, Spring Boot, and ASP.NET Core — with a security-first, memory-conscious design and a fraction of the dependency surface.</p>
+  <div class="st-compare-grid">
+    <div class="st-compare-card">
+      <div class="cc-vs">vs</div>
+      <div class="cc-fw">Express</div>
+      <ul class="cc-points">
+        <li>TypeScript-first, not bolted on</li>
+        <li>Explicit memory bounds</li>
+        <li>Built-in security layer</li>
+        <li>Native PostgreSQL driver</li>
+      </ul>
+    </div>
+    <div class="st-compare-card">
+      <div class="cc-vs">vs</div>
+      <div class="cc-fw">Fastify</div>
+      <ul class="cc-points">
+        <li>Built-in auth &amp; sessions</li>
+        <li>WebSocket + SSE included</li>
+        <li>Native PostgreSQL — no plugin</li>
+        <li>2 deps, not a plugin ecosystem</li>
+      </ul>
+    </div>
+    <div class="st-compare-card">
+      <div class="cc-vs">vs</div>
+      <div class="cc-fw">NestJS</div>
+      <ul class="cc-points">
+        <li>Lighter DI — no class-validator</li>
+        <li>Native wire protocol, not TypeORM</li>
+        <li>2 runtime deps total</li>
+        <li>Faster cold start</li>
+      </ul>
+    </div>
+    <div class="st-compare-card">
+      <div class="cc-vs">vs</div>
+      <div class="cc-fw">Spring Boot</div>
+      <ul class="cc-points">
+        <li>Same production depth</li>
+        <li>Node.js ecosystem &amp; npm</li>
+        <li>Faster cold start, less RAM</li>
+        <li>TypeScript type safety</li>
+      </ul>
+    </div>
+    <div class="st-compare-card">
+      <div class="cc-vs">vs</div>
+      <div class="cc-fw">Laravel</div>
+      <ul class="cc-points">
+        <li>Statically typed end-to-end</li>
+        <li>Memory-safe, no ORM overhead</li>
+        <li>Native async/await</li>
+        <li>Horizontal scaling via clustering</li>
+      </ul>
+    </div>
+    <div class="st-compare-card">
+      <div class="cc-vs">vs</div>
+      <div class="cc-fw">Django</div>
+      <ul class="cc-points">
+        <li>Async-native, no GIL</li>
+        <li>TypeScript types everywhere</li>
+        <li>Horizontal scaling via clustering</li>
+        <li>Single language full-stack</li>
+      </ul>
+    </div>
+  </div>
+</div>
