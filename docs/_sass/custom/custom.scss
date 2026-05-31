@@ -65,3 +65,87 @@
   // Transitions
   --st-transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+// ── Global overrides ────────────────────────────────────────────────────────
+body {
+  font-family: var(--st-font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+// ── Headings ────────────────────────────────────────────────────────────────
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--st-font-head);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+h1 { font-weight: 800; }
+h2 { font-weight: 700; }
+h3 { font-weight: 700; }
+h4 { font-weight: 600; }
+
+// ── Code & pre ──────────────────────────────────────────────────────────────
+code, kbd, samp, pre {
+  font-family: var(--st-font-mono) !important;
+}
+
+// Inline code
+:not(pre) > code {
+  font-family: var(--st-font-mono) !important;
+  font-size: 0.85em;
+  background: rgba(37, 99, 235, 0.1) !important;
+  color: var(--st-sky) !important;
+  padding: 0.15em 0.4em !important;
+  border-radius: 4px !important;
+  border: 1px solid rgba(37, 99, 235, 0.2) !important;
+}
+
+// Code blocks
+div.highlighter-rouge,
+figure.highlight,
+pre.highlight {
+  background: #080D18 !important;
+  border: 1px solid var(--st-border) !important;
+  border-radius: var(--st-radius) !important;
+  box-shadow: var(--st-shadow-lg), var(--st-shadow-glow) !important;
+  margin: 1.5rem 0 !important;
+  overflow: hidden !important;
+}
+
+pre.highlight {
+  padding: 1.25rem 1.5rem !important;
+  margin: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  overflow-x: auto !important;
+}
+
+pre.highlight code {
+  font-family: var(--st-font-mono) !important;
+  font-size: 0.875rem !important;
+  line-height: 1.7 !important;
+  background: transparent !important;
+  color: #e2e8f0 !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+// Copy button
+.copy-code-button {
+  background: rgba(37, 99, 235, 0.15) !important;
+  border: 1px solid rgba(37, 99, 235, 0.3) !important;
+  color: var(--st-sky) !important;
+  border-radius: var(--st-radius-sm) !important;
+  font-family: var(--st-font-body) !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  transition: var(--st-transition) !important;
+
+  &:hover {
+    background: rgba(37, 99, 235, 0.25) !important;
+    border-color: var(--st-blue) !important;
+  }
+}
