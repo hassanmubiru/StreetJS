@@ -191,3 +191,139 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 }
 .st-hero .no-deps span { color: var(--st-sky); }
 </style>
+
+<style>
+/* ── Hero buttons ─────────────────────────────────────────────────────────── */
+.st-hero-btns {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 2.25rem;
+  position: relative;
+}
+.st-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.7rem 1.5rem;
+  border-radius: var(--st-radius);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none !important;
+  transition: var(--st-transition);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.st-btn-primary {
+  background: var(--st-blue);
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: var(--st-shadow-blue);
+}
+.st-btn-primary:hover {
+  background: var(--st-blue-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 28px rgba(37,99,235,0.4);
+}
+.st-btn-ghost {
+  background: rgba(255,255,255,0.04);
+  color: var(--st-text-primary) !important;
+  border: 1px solid var(--st-border);
+  backdrop-filter: blur(8px);
+}
+.st-btn-ghost:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: var(--st-blue);
+  transform: translateY(-2px);
+}
+
+/* ── Hero badges ──────────────────────────────────────────────────────────── */
+.st-hero-badges {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  position: relative;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   TERMINAL INSTALL STRIP
+   ══════════════════════════════════════════════════════════════════════════ */
+.st-terminal {
+  background: #080D18;
+  border: 1px solid var(--st-border);
+  border-radius: var(--st-radius);
+  padding: 0;
+  margin-bottom: 2.5rem;
+  overflow: hidden;
+  box-shadow: var(--st-shadow-lg);
+}
+.st-terminal-bar {
+  background: #0F1629;
+  border-bottom: 1px solid var(--st-border);
+  padding: 0.6rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.st-terminal-dot {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.st-terminal-bar .label {
+  font-family: var(--st-font-mono);
+  font-size: 0.75rem;
+  color: var(--st-text-muted);
+  margin-left: 0.5rem;
+  flex: 1;
+  text-align: center;
+}
+.st-terminal-body {
+  padding: 1.25rem 1.5rem;
+  font-family: var(--st-font-mono);
+  font-size: 0.9rem;
+  line-height: 2;
+}
+.st-terminal-body .prompt { color: var(--st-green); user-select: none; }
+.st-terminal-body .cmd    { color: var(--st-text-primary); }
+.st-terminal-body .out    { color: var(--st-text-muted); }
+.st-terminal-body .hi     { color: var(--st-sky); }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SOCIAL PROOF / STAT BAR
+   ══════════════════════════════════════════════════════════════════════════ */
+.st-proof-bar {
+  background: var(--st-surface);
+  border: 1px solid var(--st-border);
+  border-radius: var(--st-radius);
+  padding: 1rem 1.5rem;
+  margin-bottom: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  flex-wrap: wrap;
+  overflow: hidden;
+}
+.st-proof-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  border-right: 1px solid var(--st-border);
+  white-space: nowrap;
+}
+.st-proof-item:last-child { border-right: none; }
+.st-proof-item .pi-val {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--st-sky);
+  font-family: var(--st-font-mono);
+}
+.st-proof-item .pi-label {
+  font-size: 0.8rem;
+  color: var(--st-text-secondary);
+}
+</style>
