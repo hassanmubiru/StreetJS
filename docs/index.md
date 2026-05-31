@@ -453,3 +453,157 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
   border-radius: 3px;
 }
 </style>
+
+<style>
+/* ══════════════════════════════════════════════════════════════════════════
+   CODE EXAMPLE SECTION
+   ══════════════════════════════════════════════════════════════════════════ */
+.st-code-section {
+  margin-bottom: 3.5rem;
+}
+.st-code-window {
+  background: #080D18;
+  border: 1px solid var(--st-border);
+  border-radius: var(--st-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--st-shadow-lg), var(--st-shadow-glow);
+}
+.st-code-titlebar {
+  background: var(--st-surface);
+  border-bottom: 1px solid var(--st-border);
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.st-code-titlebar .dot { width: 12px; height: 12px; border-radius: 50%; }
+.st-code-titlebar .filename {
+  font-family: var(--st-font-mono);
+  font-size: 0.78rem;
+  color: var(--st-text-muted);
+  margin-left: 0.5rem;
+}
+.st-code-titlebar .lang-badge {
+  margin-left: auto;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: rgba(37,99,235,0.15);
+  color: var(--st-sky);
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid rgba(37,99,235,0.25);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MEMORY BOUNDS TABLE
+   ══════════════════════════════════════════════════════════════════════════ */
+.st-memory-section {
+  margin-bottom: 3.5rem;
+}
+.st-table-wrap {
+  overflow-x: auto;
+  border-radius: var(--st-radius);
+  border: 1px solid var(--st-border);
+}
+.st-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  background: var(--st-card);
+}
+.st-table thead tr {
+  background: var(--st-surface);
+  border-bottom: 1px solid var(--st-border);
+}
+.st-table th {
+  padding: 0.85rem 1.1rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--st-text-muted);
+  white-space: nowrap;
+}
+.st-table td {
+  padding: 0.8rem 1.1rem;
+  border-bottom: 1px solid var(--st-border);
+  color: var(--st-text-secondary);
+  vertical-align: top;
+  line-height: 1.5;
+}
+.st-table tr:last-child td { border-bottom: none; }
+.st-table tr:hover td { background: var(--st-card-hover); }
+.st-table td:first-child { color: var(--st-text-primary); font-weight: 500; }
+.st-table td:nth-child(2) {
+  font-family: var(--st-font-mono);
+  font-size: 0.82rem;
+  color: var(--st-sky);
+}
+.st-table code {
+  font-family: var(--st-font-mono);
+  font-size: 0.8rem;
+  background: rgba(56,189,248,0.1);
+  color: var(--st-sky);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   FRAMEWORK COMPARISON
+   ══════════════════════════════════════════════════════════════════════════ */
+.st-compare-section { margin-bottom: 3.5rem; }
+.st-compare-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+.st-compare-card {
+  background: var(--st-card);
+  border: 1px solid var(--st-border);
+  border-radius: var(--st-radius);
+  padding: 1.1rem 1.25rem;
+  transition: var(--st-transition);
+}
+.st-compare-card:hover {
+  border-color: var(--st-border-hover);
+  background: var(--st-card-hover);
+  transform: translateY(-2px);
+}
+.st-compare-card .cc-vs {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--st-text-muted);
+  margin-bottom: 0.4rem;
+}
+.st-compare-card .cc-fw {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--st-text-primary);
+  margin-bottom: 0.6rem;
+}
+.st-compare-card .cc-points {
+  list-style: none;
+  padding: 0; margin: 0;
+}
+.st-compare-card .cc-points li {
+  font-size: 0.8rem;
+  color: var(--st-text-secondary);
+  padding: 0.2rem 0;
+  padding-left: 1.1rem;
+  position: relative;
+  line-height: 1.5;
+}
+.st-compare-card .cc-points li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--st-green);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+</style>
