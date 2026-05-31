@@ -219,7 +219,11 @@
     "openapi",
     "scram-sha-256",
     "no-express",
-    "production-grade"
+    "no-pg",
+    "no-prisma",
+    "production-grade",
+    "streetjs",
+    "street-framework"
   ],
   "author": "street contributors",
   "license": "MIT",
