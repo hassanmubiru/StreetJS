@@ -71,7 +71,12 @@
     "cli",
     "scaffolding",
     "typescript",
-    "code-generation"
+    "code-generation",
+    "backend",
+    "nodejs",
+    "migrations",
+    "dev-server",
+    "project-generator"
   ],
   "author": "street contributors",
   "license": "MIT",
