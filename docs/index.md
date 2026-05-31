@@ -679,3 +679,98 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
   }
 }
 </style>
+
+<div class="sp">
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     HERO
+     ══════════════════════════════════════════════════════════════════════ -->
+<div class="s-hero">
+<div class="s-hero-inner">
+  <div class="s-hero-pill"><span class="dot"></span>v1.0.5 · MIT · Node 20+ · TypeScript 5</div>
+  <h1><span class="gt">Build TypeScript Backends<br>Without the Bloat</span></h1>
+  <p class="s-hero-sub">Production-grade. Memory-safe. Native Node.js.<br>Every feature built from core modules — no Express, no pg, no Prisma.</p>
+  <p class="s-hero-nodeps">
+    <span>No Express</span> &nbsp;·&nbsp;
+    <span>No pg</span> &nbsp;·&nbsp;
+    <span>No Prisma</span> &nbsp;·&nbsp;
+    <span>No jsonwebtoken</span> &nbsp;·&nbsp;
+    <span>No bcrypt</span> &nbsp;·&nbsp;
+    <span>No multer</span>
+  </p>
+  <div class="s-btns">
+    <a href="{{ site.baseurl }}/getting-started/installation/" class="s-btn s-btn-primary">Get Started →</a>
+    <a href="https://github.com/hassanmubiru/street" class="s-btn s-btn-ghost" target="_blank" rel="noopener">GitHub ↗</a>
+    <a href="{{ site.baseurl }}/examples/" class="s-btn s-btn-ghost">Examples</a>
+  </div>
+  <div class="s-badges">
+    <img src="https://img.shields.io/npm/v/@streetjs/core?label=%40streetjs%2Fcore&color=2563EB&style=flat-square" alt="core version">
+    <img src="https://img.shields.io/npm/v/@streetjs/cli?label=%40streetjs%2Fcli&color=6366F1&style=flat-square" alt="cli version">
+    <img src="https://img.shields.io/badge/node-%3E%3D20-22C55E?style=flat-square&logo=node.js&logoColor=white" alt="Node 20+">
+    <img src="https://img.shields.io/badge/TypeScript-5.0%2B-3178c6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript 5+">
+    <img src="https://img.shields.io/badge/deps-2-22C55E?style=flat-square" alt="2 deps">
+    <img src="https://img.shields.io/badge/license-MIT-94A3B8?style=flat-square" alt="MIT">
+    <img src="https://github.com/hassanmubiru/street/actions/workflows/ci-cd.yml/badge.svg" alt="CI">
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     TERMINAL
+     ══════════════════════════════════════════════════════════════════════ -->
+<div class="s-term">
+  <div class="s-term-bar">
+    <div class="d" style="background:#EF4444"></div>
+    <div class="d" style="background:#F59E0B"></div>
+    <div class="d" style="background:#22C55E"></div>
+    <span class="title">bash — Quick Start (60 seconds)</span>
+  </div>
+  <div class="s-term-body">
+    <div><span class="p">$</span> <span class="c">npm install -g @streetjs/cli</span></div>
+    <div><span class="cm"># installs the street CLI globally</span></div>
+    <div><span class="p">$</span> <span class="c">street create my-api</span></div>
+    <div><span class="cm"># scaffolds TypeScript project with PostgreSQL, JWT, Docker</span></div>
+    <div><span class="p">$</span> <span class="c">cd my-api &amp;&amp; npm install &amp;&amp; street dev</span></div>
+    <div><span class="ok">[street] Listening on http://0.0.0.0:3000 · Node 20 · ESM · OpenAPI at /openapi.json</span></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     STATS
+     ══════════════════════════════════════════════════════════════════════ -->
+<div class="s-stats">
+  <div class="s-stat"><span class="sv">2</span><span class="sl">Runtime Deps</span></div>
+  <div class="s-stat"><span class="sv">PG v3</span><span class="sl">Wire Protocol</span></div>
+  <div class="s-stat"><span class="sv">AES-256</span><span class="sl">Session Crypto</span></div>
+  <div class="s-stat"><span class="sv">SCRAM</span><span class="sl">PG Auth</span></div>
+  <div class="s-stat"><span class="sv">100K</span><span class="sl">IP Rate Cap</span></div>
+  <div class="s-stat"><span class="sv">MIT</span><span class="sl">Open Source</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     HOW IT WORKS
+     ══════════════════════════════════════════════════════════════════════ -->
+<div class="s-section">
+  <div class="s-eyebrow">How it works</div>
+  <div class="s-h2">From scaffold to production in three steps.</div>
+  <p class="s-sub">Street handles the infrastructure so you focus on your application logic.</p>
+  <div class="s-steps">
+    <div class="s-step">
+      <div class="sn">1</div>
+      <h3>Scaffold</h3>
+      <p>Run <code>street create my-api</code> to generate a complete TypeScript project with PostgreSQL, JWT auth, Docker, and migrations pre-configured.</p>
+    </div>
+    <div class="s-step">
+      <div class="sn">2</div>
+      <h3>Build</h3>
+      <p>Decorate your controllers and services. Street's IoC container wires dependencies automatically. OpenAPI spec is generated from your decorators.</p>
+    </div>
+    <div class="s-step">
+      <div class="sn">3</div>
+      <h3>Deploy</h3>
+      <p>Run <code>docker build</code> with the included multi-stage Dockerfile. Cluster mode, health endpoints, and graceful shutdown are built in.</p>
+    </div>
+  </div>
+</div>
+
+</div><!-- end .sp — pause for markdown code block -->
