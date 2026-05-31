@@ -149,3 +149,82 @@ pre.highlight code {
     border-color: var(--st-blue) !important;
   }
 }
+
+// ── Navigation ──────────────────────────────────────────────────────────────
+.site-nav {
+  font-family: var(--st-font-body);
+}
+
+.nav-list-item {
+  .nav-list-link {
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: var(--st-radius-sm);
+    transition: var(--st-transition);
+
+    &:hover {
+      color: var(--st-sky) !important;
+      background: rgba(37, 99, 235, 0.08) !important;
+    }
+
+    &.active {
+      color: var(--st-sky) !important;
+      font-weight: 600;
+      background: rgba(37, 99, 235, 0.12) !important;
+      border-left: 2px solid var(--st-blue);
+    }
+  }
+}
+
+// Site header
+.site-header {
+  border-bottom: 1px solid var(--st-border) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.site-title {
+  font-family: var(--st-font-head) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em !important;
+  font-size: 1.1rem !important;
+
+  &:hover { color: var(--st-sky) !important; }
+}
+
+// Aux links (GitHub, npm)
+.aux-nav-list-item a {
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  border-radius: var(--st-radius-sm) !important;
+  padding: 0.3rem 0.7rem !important;
+  border: 1px solid var(--st-border) !important;
+  transition: var(--st-transition) !important;
+
+  &:hover {
+    border-color: var(--st-blue) !important;
+    color: var(--st-sky) !important;
+    background: rgba(37, 99, 235, 0.08) !important;
+  }
+}
+
+// Search
+.search-input {
+  font-family: var(--st-font-body) !important;
+  border-radius: var(--st-radius) !important;
+  border: 1px solid var(--st-border) !important;
+  transition: var(--st-transition) !important;
+
+  &:focus {
+    border-color: var(--st-blue) !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
+    outline: none !important;
+  }
+}
+
+.search-results-list-item {
+  border-radius: var(--st-radius-sm) !important;
+  transition: var(--st-transition) !important;
+
+  &:hover { background: rgba(37, 99, 235, 0.08) !important; }
+}
