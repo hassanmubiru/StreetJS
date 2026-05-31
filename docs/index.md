@@ -858,3 +858,86 @@ await app.listen();
 ```
 
 </div><!-- end .sp -->
+
+<div class="sp">
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     FEATURES
+     ══════════════════════════════════════════════════════════════════════ -->
+<div class="s-section">
+  <div class="s-eyebrow">Core Capabilities</div>
+  <div class="s-h2">Everything you need. Nothing you don't.</div>
+  <p class="s-sub">Every feature is implemented directly from Node.js core modules with explicit memory bounds.</p>
+  <div class="s-features">
+    <div class="s-feat"><span class="fi">🔷</span><h3>TypeScript First</h3><p>Strict mode, NodeNext ESM, decorator metadata, full type inference. Zero <code>any</code> in the framework source. Your IDE knows everything.</p></div>
+    <div class="s-feat"><span class="fi">🛡️</span><h3>Memory-Safe by Design</h3><p>Bounded body limits, connection pools, ring-buffer telemetry, LRU eviction, WebSocket caps. Every component has an explicit ceiling.</p></div>
+    <div class="s-feat"><span class="fi">🐘</span><h3>Native PostgreSQL Driver</h3><p>Wire protocol v3 over <code>node:net</code>. SCRAM-SHA-256 auth. Streaming rows with socket-level backpressure. No <code>pg</code> dependency.</p></div>
+    <div class="s-feat"><span class="fi">💉</span><h3>Dependency Injection</h3><p>IoC container with constructor injection, singleton registry, and circular dependency detection via <code>reflect-metadata</code>.</p></div>
+    <div class="s-feat"><span class="fi">🔐</span><h3>Security Built-in</h3><p>JWT (HMAC-SHA256), AES-256-GCM sessions, scrypt vault, sliding-window rate limiter, XSS sanitizer, CSRF, CORS, CSP — all included.</p></div>
+    <div class="s-feat"><span class="fi">⚡</span><h3>Real-Time Ready</h3><p>Bounded WebSocket server with heartbeat, typed event emitter, and SSE with keep-alive. Auth hook on upgrade. No socket.io needed.</p></div>
+    <div class="s-feat"><span class="fi">📋</span><h3>OpenAPI 3.1 Auto-gen</h3><p>Spec generated from <code>@ApiOperation</code> decorators. Always in sync. Served at <code>/openapi.json</code>. No separate schema files.</p></div>
+    <div class="s-feat"><span class="fi">🔄</span><h3>Clustering &amp; Telemetry</h3><p><code>node:cluster</code> coordinator with IPC heartbeat, auto-restart, graceful shutdown, and P50/P99 latency ring-buffer tracking.</p></div>
+    <div class="s-feat"><span class="fi">🚀</span><h3>CLI Tooling</h3><p><code>street create</code>, <code>street dev</code>, <code>street generate</code>, <code>street migrate:create</code> — full project lifecycle from one binary.</p></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     ZERO DEPS
+     ══════════════════════════════════════════════════════════════════════ -->
+<div class="s-section">
+  <div class="s-eyebrow">Zero Bloat</div>
+  <div class="s-h2">No third-party middleware stack.</div>
+  <p class="s-sub">Two runtime dependencies total: <code style="font-family:var(--s-fm);font-size:0.85em;background:rgba(56,189,248,0.1);color:var(--s-sky);padding:0.1em 0.4em;border-radius:4px">reflect-metadata</code> and <code style="font-family:var(--s-fm);font-size:0.85em;background:rgba(56,189,248,0.1);color:var(--s-sky);padding:0.1em 0.4em;border-radius:4px">ws</code>. Everything else ships with Node.js.</p>
+  <div class="s-nodeps">
+    <div class="s-nd"><span class="x">✕</span><span class="ar">→</span><div><strong>No Express / Fastify</strong><span>Native <code>node:http</code> server with compiled-regex router and middleware pipeline</span></div></div>
+    <div class="s-nd"><span class="x">✕</span><span class="ar">→</span><div><strong>No pg / postgres.js</strong><span>PostgreSQL wire protocol v3 over <code>node:net</code> with SCRAM-SHA-256 auth</span></div></div>
+    <div class="s-nd"><span class="x">✕</span><span class="ar">→</span><div><strong>No Prisma / Zod</strong><span>Parameterized queries + <code>@Validate</code> decorator for runtime type checking</span></div></div>
+    <div class="s-nd"><span class="x">✕</span><span class="ar">→</span><div><strong>No jsonwebtoken</strong><span>HMAC-SHA256 via <code>node:crypto</code> with <code>timingSafeEqual</code> comparison</span></div></div>
+    <div class="s-nd"><span class="x">✕</span><span class="ar">→</span><div><strong>No bcrypt / argon2</strong><span>scrypt via <code>node:crypto</code> — memory-hard, battle-tested password hashing</span></div></div>
+    <div class="s-nd"><span class="x">✕</span><span class="ar">→</span><div><strong>No multer / busboy</strong><span>Streaming multipart parser — ≤128 KB heap per upload, disk-streamed</span></div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     WHY STREET
+     ══════════════════════════════════════════════════════════════════════ -->
+<div class="s-section">
+  <div class="s-why">
+    <div class="s-eyebrow">Why Street</div>
+    <div class="s-h2">Built for developers who care about what runs in production.</div>
+    <p class="s-sub" style="margin-bottom:0">Most Node.js frameworks layer abstractions on top of abstractions. Street takes the opposite approach: implement each component directly on Node.js core, enforce strict memory bounds, and expose a clean TypeScript API. The result is a framework where you can read and understand every line of the runtime.</p>
+    <div class="s-why-grid">
+      <div class="s-why-item"><span class="wi-num">01</span><h4>Auditable dependency tree</h4><p>Two runtime dependencies means two CVE surfaces. You can audit the entire framework in an afternoon.</p></div>
+      <div class="s-why-item"><span class="wi-num">02</span><h4>No silent memory leaks</h4><p>Every collection, buffer, and connection has an explicit bound. Heap growth is predictable and configurable.</p></div>
+      <div class="s-why-item"><span class="wi-num">03</span><h4>Security is not a plugin</h4><p>JWT, sessions, rate limiting, XSS, CSRF, CORS, CSP, and vault encryption are built in — not bolted on.</p></div>
+      <div class="s-why-item"><span class="wi-num">04</span><h4>TypeScript all the way down</h4><p>Strict mode, NodeNext ESM, decorator metadata. No <code>any</code> in the framework source. Your IDE knows everything.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     MEMORY BOUNDS
+     ══════════════════════════════════════════════════════════════════════ -->
+<div class="s-section">
+  <div class="s-eyebrow">Memory Safety</div>
+  <div class="s-h2">Every component has explicit bounds.</div>
+  <p class="s-sub">No unbounded collections. No silent memory leaks. Every limit is documented, configurable, and enforced at runtime.</p>
+  <div class="s-tbl-wrap">
+    <table class="s-tbl">
+      <thead><tr><th>Component</th><th>Default Bound</th><th>Enforcement Mechanism</th></tr></thead>
+      <tbody>
+        <tr><td>HTTP request body</td><td>1 MB</td><td>Stream abort on overflow — configurable via <code>bodyLimit</code></td></tr>
+        <tr><td>File uploads</td><td>Disk-streamed</td><td>Chunk-by-chunk streaming, ≤128 KB heap per upload</td></tr>
+        <tr><td>DB result buffer</td><td>256 rows</td><td>Socket-level backpressure, streaming cursor API</td></tr>
+        <tr><td>LRU cache</td><td><code>maxEntries</code> cap</td><td>O(1) LRU eviction on insert when full</td></tr>
+        <tr><td>Rate limiter</td><td>100K IPs · 1K timestamps/IP</td><td>Periodic stale-entry sweep, configurable TTL</td></tr>
+        <tr><td>Telemetry history</td><td>1,440 samples</td><td>Ring buffer — oldest sample overwritten</td></tr>
+        <tr><td>WebSocket connections</td><td><code>maxConnections</code></td><td>Reject with close code 1013 (Try Again Later)</td></tr>
+        <tr><td>Connection pool</td><td><code>maxConnections</code></td><td>Bounded acquire queue with configurable timeout</td></tr>
+        <tr><td>Auth buffer (wire)</td><td>64 KB</td><td>Hard cap during PostgreSQL authentication phase</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</div><!-- end .sp -->
