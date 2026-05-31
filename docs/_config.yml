@@ -1,8 +1,8 @@
 # ── Site identity ─────────────────────────────────────────────────────────────
 title:       "Street Framework"
 description: "Production-grade, memory-safe TypeScript backend framework built on Node.js core modules. No Express. No pg. No Prisma."
-url:         "https://hoverlinetech.me"
-baseurl:     ""
+url:         "https://hassanmubiru.github.io"
+baseurl:     "/street"
 lang:        "en"
 
 # ── SEO ───────────────────────────────────────────────────────────────────────
