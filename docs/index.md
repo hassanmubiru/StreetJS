@@ -116,7 +116,7 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
   display: inline-flex; align-items: center; gap: 0.5rem;
   background: rgba(59,130,246,0.06); border: 1px solid var(--s-blue);
   border-radius: 100px; padding: 0.3rem 1rem;
-  font-size: 0.78rem; font-weight: 600; color: var(--s-sky);
+  font-size: 0.78rem; font-weight: 600; color: var(--s-accent);
   letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 1.75rem;
 }
 .s-hero-pill .dot {
@@ -138,7 +138,7 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
   font-family: var(--s-fm); font-size: 0.82rem;
   color: var(--s-t3); letter-spacing: 0.03em; margin-bottom: 2.5rem;
 }
-.s-hero-nodeps span { color: var(--s-sky); }
+.s-hero-nodeps span { color: var(--s-accent); }
 
 /* CTA buttons */
 .s-btns {
@@ -169,7 +169,7 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 .s-btn-ghost:hover {
   background: rgba(255,255,255,0.06);
   border-color: rgba(59,130,246,0.25);
-  transform: translateY(-2px); color: var(--s-sky) !important;
+  transform: translateY(-2px); color: var(--s-accent) !important;
 }
 .s-badges { display: flex; gap: 0.4rem; justify-content: center; flex-wrap: wrap; }
 </style>
@@ -200,7 +200,7 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 .s-term-body .p  { color: var(--s-blue); user-select: none; }
 .s-term-body .c  { color: var(--s-t1); }
 .s-term-body .cm { color: var(--s-t3); font-style: italic; }
-.s-term-body .ok { color: var(--s-sky); }
+.s-term-body .ok { color: var(--s-accent); }
 
 /* ═══════════════════════════════════════════════════════════════════════
    STAT BAR — values in muted blue #93B4D4
@@ -445,7 +445,7 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 .s-rm-card:hover { border-color: rgba(59,130,246,0.2); background: var(--s-card-h); }
 .s-rm-card .rv {
   font-family: var(--s-fm); font-size: 0.72rem; font-weight: 700;
-  color: var(--s-sky); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.3rem;
+  color: var(--s-accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.3rem;
 }
 .s-rm-card .rt { font-size: 0.95rem; font-weight: 700; color: var(--s-t1); margin-bottom: 0.25rem; }
 .s-rm-card .rq { font-size: 0.78rem; color: var(--s-t3); margin-bottom: 0.85rem; }
@@ -537,7 +537,7 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 }
 .s-cta-link:hover {
   border-color: rgba(59,130,246,0.25); background: rgba(59,130,246,0.05);
-  transform: translateY(-2px); color: var(--s-sky) !important;
+  transform: translateY(-2px); color: var(--s-accent) !important;
 }
 </style>
 
