@@ -162,3 +162,67 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 
 .badges { display: flex; gap: 0.35rem; justify-content: center; flex-wrap: wrap; }
 </style>
+
+<style>
+/* ── Terminal ──────────────────────────────────────────────────────────── */
+.term {
+  background: #060A12; border: 1px solid var(--bd);
+  border-radius: var(--rl); overflow: hidden;
+  box-shadow: var(--sh-l); margin: 2.25rem 0;
+}
+.term-bar {
+  background: #0A1020; border-bottom: 1px solid var(--bd);
+  padding: 0.6rem 1.1rem;
+  display: flex; align-items: center; gap: 0.4rem;
+}
+.term-bar .d { width: 11px; height: 11px; border-radius: 50%; background: var(--bd); flex-shrink: 0; }
+.term-bar .ti { font-family: var(--fm); font-size: 0.72rem; color: var(--t3); margin-left: 0.5rem; flex: 1; text-align: center; }
+.term-body { padding: 1.3rem 1.5rem; font-family: var(--fm); font-size: 0.86rem; line-height: 2.1; }
+.term-body .p  { color: var(--a); user-select: none; }
+.term-body .c  { color: var(--t1); }
+.term-body .cm { color: var(--t3); }
+.term-body .ok { color: var(--ac); }
+
+/* ── Stats ─────────────────────────────────────────────────────────────── */
+.stats {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(120px,1fr));
+  gap: 1px; background: var(--bd);
+  border: 1px solid var(--bd); border-radius: var(--rl);
+  overflow: hidden; margin: 2.25rem 0;
+}
+.stat { background: var(--s0); padding: 1.3rem 1rem; text-align: center; transition: var(--tr); }
+.stat:hover { background: var(--s1); }
+.stat .sv { font-family: var(--fm); font-size: 1.35rem; font-weight: 700; color: var(--ac); line-height: 1; margin-bottom: 0.3rem; display: block; }
+.stat .sl { font-size: 0.72rem; color: var(--t3); text-transform: uppercase; letter-spacing: 0.08em; }
+
+/* ── Steps ─────────────────────────────────────────────────────────────── */
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px,1fr)); gap: 1.25rem; }
+.step {
+  background: var(--s1); border: 1px solid var(--bd);
+  border-radius: var(--rl); padding: 1.6rem 1.4rem;
+  text-align: center; transition: var(--tr);
+}
+.step:hover { border-color: var(--bd-h); transform: translateY(-3px); box-shadow: var(--sh-a); }
+.step .sn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--a); font-size: 1rem; font-weight: 700; color: #fff;
+  margin: 0 auto 1rem; box-shadow: var(--sh-a);
+}
+.step h3 { font-size: 0.95rem; font-weight: 700; color: var(--t1); margin: 0 0 0.45rem; letter-spacing: -0.01em; }
+.step p  { font-size: 0.84rem; color: var(--t2); margin: 0; line-height: 1.65; }
+.step code { font-family: var(--fm); font-size: 0.78rem; background: var(--code-bg); color: var(--ac); padding: 0.1em 0.35em; border-radius: 4px; }
+
+/* ── Features ──────────────────────────────────────────────────────────── */
+.feats { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px,1fr)); gap: 0.9rem; }
+.feat {
+  background: var(--s1); border: 1px solid var(--bd);
+  border-radius: var(--rl); padding: 1.5rem;
+  transition: var(--tr);
+}
+.feat:hover { border-color: var(--bd-h); background: var(--s2); transform: translateY(-2px); box-shadow: var(--sh-c); }
+.feat .fi { font-size: 1.6rem; margin-bottom: 0.8rem; display: block; line-height: 1; filter: grayscale(0.3) brightness(0.85); }
+.feat h3 { font-size: 0.95rem; font-weight: 700; color: var(--t1); margin: 0 0 0.45rem; letter-spacing: -0.01em; }
+.feat p  { font-size: 0.84rem; color: var(--t2); margin: 0; line-height: 1.65; }
+.feat code { font-family: var(--fm); font-size: 0.78rem; background: var(--code-bg); color: var(--ac); padding: 0.1em 0.35em; border-radius: 4px; }
+</style>
