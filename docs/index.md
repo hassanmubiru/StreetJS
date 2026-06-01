@@ -74,3 +74,91 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 }
 .sec { margin-bottom: 4rem; }
 </style>
+
+<style>
+/* ── Hero ──────────────────────────────────────────────────────────────── */
+.hero {
+  position: relative; text-align: center;
+  padding: 5.5rem 1.5rem 4.5rem;
+  background: var(--bg); border: 1px solid var(--bd);
+  border-radius: var(--rx); margin-bottom: 0; overflow: hidden;
+}
+/* subtle dot grid */
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: radial-gradient(circle, rgba(59,130,246,0.07) 1px, transparent 1px);
+  background-size: 30px 30px;
+  mask-image: radial-gradient(ellipse 75% 65% at 50% 50%, black 20%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 75% 65% at 50% 50%, black 20%, transparent 100%);
+  pointer-events: none;
+}
+/* single soft glow */
+.hero::after {
+  content: '';
+  position: absolute; top: -150px; left: 50%; transform: translateX(-50%);
+  width: 700px; height: 500px;
+  background: radial-gradient(ellipse, rgba(59,130,246,0.07) 0%, transparent 60%);
+  pointer-events: none;
+  animation: hg 12s ease-in-out infinite alternate;
+}
+@keyframes hg {
+  0%   { opacity: 0.7; transform: translateX(-50%) scale(1); }
+  100% { opacity: 1;   transform: translateX(-50%) scale(1.05); }
+}
+.hero-in { position: relative; z-index: 1; }
+
+/* version pill */
+.pill {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  background: var(--a-d); border: 1px solid var(--a-b);
+  border-radius: 100px; padding: 0.28rem 0.9rem;
+  font-size: 0.72rem; font-weight: 600; color: var(--ac);
+  letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 1.75rem;
+}
+.pill .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--a); opacity: 0.8;
+  animation: bk 3s ease-in-out infinite;
+}
+@keyframes bk { 0%,100%{opacity:0.8} 50%{opacity:0.3} }
+
+.hero h1 {
+  font-family: var(--fh);
+  font-size: clamp(2.4rem, 6.5vw, 4.4rem);
+  font-weight: 800; letter-spacing: -0.045em; line-height: 1.06;
+  margin: 0 0 1.4rem;
+}
+.hero-sub {
+  font-size: clamp(0.95rem, 2.2vw, 1.1rem);
+  color: var(--t2); line-height: 1.75;
+  max-width: 520px; margin: 0 auto 0.7rem;
+}
+.hero-nd {
+  font-family: var(--fm); font-size: 0.78rem;
+  color: var(--t3); letter-spacing: 0.03em; margin-bottom: 2.25rem;
+}
+.hero-nd span { color: var(--ac); }
+
+/* buttons */
+.btns { display: flex; gap: 0.65rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2.25rem; }
+.btn {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.68rem 1.45rem; border-radius: var(--r);
+  font-size: 0.9rem; font-weight: 600;
+  text-decoration: none !important; transition: var(--tr); white-space: nowrap;
+}
+.btn-p {
+  background: var(--a); color: #fff !important;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: var(--sh-a);
+}
+.btn-p:hover { background: var(--a-h); transform: translateY(-2px); box-shadow: 0 6px 24px rgba(59,130,246,0.28); }
+.btn-g {
+  background: rgba(255,255,255,0.03); color: var(--t1) !important;
+  border: 1px solid var(--bd);
+}
+.btn-g:hover { background: rgba(255,255,255,0.06); border-color: var(--bd-h); transform: translateY(-2px); color: var(--ac) !important; }
+
+.badges { display: flex; gap: 0.35rem; justify-content: center; flex-wrap: wrap; }
+</style>
