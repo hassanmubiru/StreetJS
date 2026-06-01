@@ -226,3 +226,149 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 .feat p  { font-size: 0.84rem; color: var(--t2); margin: 0; line-height: 1.65; }
 .feat code { font-family: var(--fm); font-size: 0.78rem; background: var(--code-bg); color: var(--ac); padding: 0.1em 0.35em; border-radius: 4px; }
 </style>
+
+<style>
+/* ── Zero deps ─────────────────────────────────────────────────────────── */
+.nodeps { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap: 0.7rem; }
+.nd {
+  background: var(--s1); border: 1px solid var(--bd);
+  border-radius: var(--r); padding: 0.95rem 1.2rem;
+  display: grid; grid-template-columns: 1rem 1fr;
+  align-items: start; gap: 0.7rem; transition: var(--tr);
+}
+.nd:hover { border-color: var(--bd-h); background: var(--s2); }
+.nd .ar { color: var(--a); font-size: 0.8rem; margin-top: 3px; }
+.nd strong { display: block; color: var(--t1); font-size: 0.875rem; font-weight: 600; margin-bottom: 0.2rem; }
+.nd span   { color: var(--t2); font-size: 0.8rem; line-height: 1.55; }
+.nd code   { font-family: var(--fm); font-size: 0.76rem; background: var(--code-bg); color: var(--ac); padding: 0.1em 0.3em; border-radius: 3px; }
+
+/* ── Code window ───────────────────────────────────────────────────────── */
+.cwin {
+  background: #060A12; border: 1px solid var(--bd);
+  border-radius: var(--rl); overflow: hidden;
+  box-shadow: var(--sh-l), 0 0 40px rgba(59,130,246,0.05);
+}
+.cwin-bar {
+  background: #0A1020; border-bottom: 1px solid var(--bd);
+  padding: 0.65rem 1.2rem;
+  display: flex; align-items: center; gap: 0.4rem;
+}
+.cwin-bar .d  { width: 11px; height: 11px; border-radius: 50%; background: var(--bd); flex-shrink: 0; }
+.cwin-bar .fn { font-family: var(--fm); font-size: 0.73rem; color: var(--t3); margin-left: 0.5rem; }
+.cwin-bar .lb { margin-left: auto; font-size: 0.67rem; font-weight: 600; background: var(--a-d); color: var(--ac); padding: 0.14rem 0.5rem; border-radius: 4px; border: 1px solid var(--a-b); text-transform: uppercase; letter-spacing: 0.07em; }
+.cwin div.highlighter-rouge, .cwin figure.highlight { margin: 0 !important; border: none !important; border-radius: 0 !important; box-shadow: none !important; }
+.cwin pre.highlight { border-radius: 0 0 var(--rl) var(--rl) !important; margin: 0 !important; border: none !important; }
+
+/* ── Why Street ────────────────────────────────────────────────────────── */
+.why {
+  background: var(--s1); border: 1px solid var(--bd);
+  border-radius: var(--rx); padding: 2.75rem 2.25rem;
+  position: relative; overflow: hidden;
+}
+.why::after {
+  content: ''; position: absolute; top: -60px; right: -60px;
+  width: 350px; height: 350px;
+  background: radial-gradient(ellipse, rgba(59,130,246,0.05) 0%, transparent 65%);
+  pointer-events: none;
+}
+.why-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px,1fr)); gap: 1.75rem; margin-top: 1.75rem; }
+.wi .wn { font-family: var(--fm); font-size: 2rem; font-weight: 700; color: rgba(59,130,246,0.12); line-height: 1; margin-bottom: 0.5rem; display: block; }
+.wi h4  { font-size: 0.95rem; font-weight: 700; color: var(--t1); margin: 0 0 0.4rem; letter-spacing: -0.01em; }
+.wi p   { font-size: 0.84rem; color: var(--t2); margin: 0; line-height: 1.65; }
+.wi code { font-family: var(--fm); font-size: 0.78rem; background: var(--code-bg); color: var(--ac); padding: 0.1em 0.3em; border-radius: 3px; }
+
+/* ── Table ─────────────────────────────────────────────────────────────── */
+.tw { overflow-x: auto; border-radius: var(--rl); border: 1px solid var(--bd); box-shadow: var(--sh-c); }
+.tb { width: 100%; border-collapse: collapse; font-size: 0.86rem; background: var(--s1); }
+.tb thead tr { background: var(--s0); border-bottom: 1px solid var(--bd); }
+.tb th { padding: 0.85rem 1.1rem; text-align: left; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--t3); white-space: nowrap; }
+.tb td { padding: 0.8rem 1.1rem; border-bottom: 1px solid rgba(28,42,62,0.6); color: var(--t2); vertical-align: top; line-height: 1.55; }
+.tb tr:last-child td { border-bottom: none; }
+.tb tr:hover td { background: rgba(59,130,246,0.03); }
+.tb td:first-child { color: var(--t1); font-weight: 500; }
+.tb td:nth-child(2) { font-family: var(--fm); font-size: 0.8rem; color: var(--ac); }
+.tb code { font-family: var(--fm); font-size: 0.78rem; background: var(--code-bg); color: var(--ac); padding: 0.1em 0.35em; border-radius: 3px; }
+</style>
+
+<style>
+/* ── Comparison ────────────────────────────────────────────────────────── */
+.cmp { display: grid; grid-template-columns: repeat(auto-fit, minmax(185px,1fr)); gap: 0.7rem; }
+.cc  { background: var(--s1); border: 1px solid var(--bd); border-radius: var(--rl); padding: 1.2rem; transition: var(--tr); }
+.cc:hover { border-color: var(--bd-h); background: var(--s2); transform: translateY(-2px); box-shadow: var(--sh-c); }
+.cc .cv { font-size: 0.67rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--t3); margin-bottom: 0.3rem; }
+.cc .cf { font-size: 0.95rem; font-weight: 700; color: var(--t1); margin-bottom: 0.7rem; }
+.cc ul  { list-style: none; padding: 0; margin: 0; }
+.cc li  { font-size: 0.79rem; color: var(--t2); padding: 0.18rem 0 0.18rem 1rem; position: relative; line-height: 1.5; }
+.cc li::before { content: '›'; position: absolute; left: 0; color: var(--a); font-size: 0.85rem; }
+
+/* ── Roadmap ───────────────────────────────────────────────────────────── */
+.rm { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px,1fr)); gap: 0.9rem; }
+.rmc { background: var(--s1); border: 1px solid var(--bd); border-radius: var(--rl); padding: 1.35rem; transition: var(--tr); }
+.rmc:hover { border-color: var(--bd-h); background: var(--s2); }
+.rmc .rv { font-family: var(--fm); font-size: 0.7rem; font-weight: 600; color: var(--a); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.3rem; }
+.rmc .rt { font-size: 0.92rem; font-weight: 700; color: var(--t1); margin-bottom: 0.2rem; }
+.rmc .rq { font-size: 0.76rem; color: var(--t3); margin-bottom: 0.8rem; }
+.rmc ul  { list-style: none; padding: 0; margin: 0; }
+.rmc li  { font-size: 0.79rem; color: var(--t2); padding: 0.18rem 0 0.18rem 1rem; position: relative; line-height: 1.5; }
+.rmc li::before { content: '›'; position: absolute; left: 0; color: var(--a); font-size: 0.85rem; }
+.rmc.done { border-color: rgba(59,130,246,0.18); }
+.rmc.done .rv { opacity: 0.7; }
+
+/* ── Doc grid ──────────────────────────────────────────────────────────── */
+.docs { display: grid; grid-template-columns: repeat(auto-fit, minmax(215px,1fr)); gap: 0.7rem; }
+.dc  {
+  background: var(--s1); border: 1px solid var(--bd);
+  border-radius: var(--rl); padding: 1.05rem 1.2rem;
+  text-decoration: none !important; display: block;
+  transition: var(--tr); position: relative; overflow: hidden;
+}
+.dc::after { content: '›'; position: absolute; right: 1rem; top: 50%; transform: translateY(-50%) translateX(5px); color: var(--a); font-size: 1.1rem; opacity: 0; transition: var(--tr); }
+.dc:hover  { border-color: var(--bd-h); background: var(--s2); transform: translateY(-2px); box-shadow: var(--sh-a); text-decoration: none !important; }
+.dc:hover::after { opacity: 1; transform: translateY(-50%) translateX(0); }
+.dc .di { font-size: 1.25rem; margin-bottom: 0.4rem; display: block; line-height: 1; filter: grayscale(0.3) brightness(0.8); }
+.dc .dt { font-size: 0.86rem; font-weight: 700; color: var(--ac); margin-bottom: 0.25rem; display: block; }
+.dc:hover .dt { color: var(--t1); }
+.dc .dd { font-size: 0.77rem; color: var(--t2); line-height: 1.5; }
+
+/* ── CTA banner ────────────────────────────────────────────────────────── */
+.cta {
+  background: var(--s1); border: 1px solid var(--bd);
+  border-radius: var(--rx); padding: 3.25rem 2rem;
+  text-align: center; position: relative; overflow: hidden;
+}
+.cta::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: radial-gradient(circle, rgba(59,130,246,0.05) 1px, transparent 1px);
+  background-size: 26px 26px;
+  mask-image: radial-gradient(ellipse 65% 65% at 50% 50%, black 10%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 65% 65% at 50% 50%, black 10%, transparent 100%);
+  pointer-events: none;
+}
+.cta h2 { font-family: var(--fh); font-size: clamp(1.5rem,3.5vw,2.1rem); font-weight: 700; letter-spacing: -0.025em; line-height: 1.2; margin: 0 0 0.7rem; position: relative; z-index: 1; }
+.cta p  { font-size: 0.9rem; color: var(--t2); max-width: 440px; margin: 0 auto 1.75rem; line-height: 1.7; position: relative; z-index: 1; }
+.cta-links { display: flex; gap: 0.65rem; justify-content: center; flex-wrap: wrap; position: relative; z-index: 1; }
+.cl {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.58rem 1.1rem;
+  background: var(--s0); border: 1px solid var(--bd);
+  border-radius: var(--r); font-size: 0.84rem; font-weight: 600;
+  color: var(--t1) !important; text-decoration: none !important; transition: var(--tr);
+}
+.cl:hover { border-color: var(--bd-h); background: var(--a-d); transform: translateY(-2px); color: var(--ac) !important; }
+
+/* ── Responsive ────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .hero { padding: 4rem 1rem 3.5rem; }
+  .hero h1 { font-size: 2.1rem; }
+  .stats { grid-template-columns: repeat(3,1fr); }
+  .why { padding: 2rem 1.25rem; }
+  .cta { padding: 2.5rem 1.25rem; }
+}
+@media (max-width: 420px) {
+  .stats { grid-template-columns: repeat(2,1fr); }
+  .btn { padding: 0.62rem 1rem; font-size: 0.85rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+</style>
