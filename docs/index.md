@@ -6,6 +6,14 @@ permalink:   /
 description: "Street — production-grade, memory-safe TypeScript backend framework built on Node.js core. Native PostgreSQL driver, JWT, WebSockets, clustering. 2 dependencies."
 ---
 
+<style>
+/* Force body background regardless of theme */
+body, .main-content, .page-content {
+  background-color: #080C14 !important;
+  color: #C8D3E0 !important;
+}
+</style>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
