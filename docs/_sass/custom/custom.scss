@@ -9,30 +9,30 @@
 
 // ── Design tokens ───────────────────────────────────────────────────────────
 :root {
-  // Brand palette
-  --st-blue:          #2563EB;
-  --st-blue-hover:    #1D4ED8;
-  --st-blue-active:   #1E40AF;
-  --st-indigo:        #6366F1;
-  --st-indigo-hover:  #4F46E5;
-  --st-sky:           #38BDF8;
-  --st-green:         #22C55E;
+  // Single accent — blue-500, used sparingly
+  --st-blue:          #3B82F6;
+  --st-blue-hover:    #2563EB;
+  --st-blue-active:   #1D4ED8;
+  --st-sky:           #93B4D4;   // muted blue for text accents, NOT bright
+
+  // Status (used only in terminal/alerts, not decoratively)
+  --st-green:         #4ADE80;
   --st-yellow:        #F59E0B;
   --st-red:           #EF4444;
   --st-info:          #3B82F6;
 
-  // Dark theme surfaces — deeper than before for 10/10 contrast
-  --st-bg:            #060B18;
-  --st-surface:       #0A0F1E;
-  --st-card:          #111827;
-  --st-card-hover:    #162035;
-  --st-border:        #1E2D4A;
-  --st-border-hover:  #2563EB;
+  // Dark theme surfaces — deeper, more contrast
+  --st-bg:            #080C14;
+  --st-surface:       #0C1220;
+  --st-card:          #101828;
+  --st-card-hover:    #141F30;
+  --st-border:        #1C2A3E;
+  --st-border-hover:  rgba(59,130,246,0.22);
 
-  // Typography
-  --st-text-primary:  #F1F5F9;
-  --st-text-secondary:#94A3B8;
-  --st-text-muted:    #475569;
+  // Text — slate scale, NOT pure white
+  --st-text-primary:  #C8D3E0;   // slate-300
+  --st-text-secondary:#5A6A80;   // slate-500
+  --st-text-muted:    #3A4A5E;   // slate-600
 
   // Spacing scale
   --st-space-1:  0.25rem;
@@ -95,21 +95,21 @@ code, kbd, samp, pre {
 :not(pre) > code {
   font-family: var(--st-font-mono) !important;
   font-size: 0.85em;
-  background: rgba(37, 99, 235, 0.1) !important;
-  color: var(--st-sky) !important;
+  background: rgba(59, 130, 246, 0.07) !important;
+  color: #93B4D4 !important;
   padding: 0.15em 0.4em !important;
   border-radius: 4px !important;
-  border: 1px solid rgba(37, 99, 235, 0.2) !important;
+  border: 1px solid rgba(59, 130, 246, 0.12) !important;
 }
 
 // Code blocks
 div.highlighter-rouge,
 figure.highlight,
 pre.highlight {
-  background: #080D18 !important;
+  background: #060A12 !important;
   border: 1px solid var(--st-border) !important;
   border-radius: var(--st-radius) !important;
-  box-shadow: var(--st-shadow-lg), var(--st-shadow-glow) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.7), 0 0 30px rgba(59,130,246,0.04) !important;
   margin: 1.5rem 0 !important;
   overflow: hidden !important;
 }
