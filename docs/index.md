@@ -551,3 +551,131 @@ await app.listen();
 ```
 
 </div><!-- end .sp -->
+
+<div class="sp">
+
+<!-- MEMORY BOUNDS -->
+<div class="sec">
+  <div class="ey">Memory Safety</div>
+  <div class="sh2">Every component has explicit bounds.</div>
+  <p class="ssub">No unbounded collections. No silent memory leaks. Every limit is documented, configurable, and enforced at runtime.</p>
+  <div class="tw">
+    <table class="tb">
+      <thead><tr><th>Component</th><th>Default Bound</th><th>Enforcement</th></tr></thead>
+      <tbody>
+        <tr><td>HTTP request body</td><td>1 MB</td><td>Stream abort on overflow — configurable via <code>bodyLimit</code></td></tr>
+        <tr><td>File uploads</td><td>Disk-streamed</td><td>Chunk-by-chunk, ≤128 KB heap per upload</td></tr>
+        <tr><td>DB result buffer</td><td>256 rows</td><td>Socket-level backpressure, streaming cursor API</td></tr>
+        <tr><td>LRU cache</td><td><code>maxEntries</code> cap</td><td>O(1) LRU eviction on insert when full</td></tr>
+        <tr><td>Rate limiter</td><td>100K IPs · 1K timestamps/IP</td><td>Periodic stale-entry sweep, configurable TTL</td></tr>
+        <tr><td>Telemetry history</td><td>1,440 samples</td><td>Ring buffer — oldest sample overwritten</td></tr>
+        <tr><td>WebSocket connections</td><td><code>maxConnections</code></td><td>Reject with close code 1013 (Try Again Later)</td></tr>
+        <tr><td>Connection pool</td><td><code>maxConnections</code></td><td>Bounded acquire queue with configurable timeout</td></tr>
+        <tr><td>Auth buffer (wire)</td><td>64 KB</td><td>Hard cap during PostgreSQL authentication phase</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- WHY STREET -->
+<div class="sec">
+  <div class="why">
+    <div class="ey">Why Street</div>
+    <div class="sh2">Built for developers who care about what runs in production.</div>
+    <p class="ssub" style="margin-bottom:0">Most Node.js frameworks layer abstractions on top of abstractions. Street takes the opposite approach: implement each component directly on Node.js core, enforce strict memory bounds, and expose a clean TypeScript API.</p>
+    <div class="why-grid">
+      <div class="wi"><span class="wn">01</span><h4>Auditable dependency tree</h4><p>Two runtime dependencies means two CVE surfaces. You can audit the entire framework in an afternoon.</p></div>
+      <div class="wi"><span class="wn">02</span><h4>No silent memory leaks</h4><p>Every collection, buffer, and connection has an explicit bound. Heap growth is predictable and configurable.</p></div>
+      <div class="wi"><span class="wn">03</span><h4>Security is not a plugin</h4><p>JWT, sessions, rate limiting, XSS, CSRF, CORS, CSP, and vault encryption are built in — not bolted on.</p></div>
+      <div class="wi"><span class="wn">04</span><h4>TypeScript all the way down</h4><p>Strict mode, NodeNext ESM, decorator metadata. No <code>any</code> in the framework source. Your IDE knows everything.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- COMPARISON -->
+<div class="sec">
+  <div class="ey">Comparison</div>
+  <div class="sh2">General-purpose. Production-grade.</div>
+  <p class="ssub">Comparable in scope to Express, NestJS, Spring Boot, and ASP.NET Core — with a security-first, memory-conscious design.</p>
+  <div class="cmp">
+    <div class="cc"><div class="cv">vs</div><div class="cf">Express</div><ul><li>TypeScript-first, not bolted on</li><li>Explicit memory bounds</li><li>Built-in security layer</li><li>Native PostgreSQL driver</li></ul></div>
+    <div class="cc"><div class="cv">vs</div><div class="cf">Fastify</div><ul><li>Built-in auth &amp; sessions</li><li>WebSocket + SSE included</li><li>Native PostgreSQL — no plugin</li><li>2 deps, not a plugin ecosystem</li></ul></div>
+    <div class="cc"><div class="cv">vs</div><div class="cf">NestJS</div><ul><li>Lighter DI — no class-validator</li><li>Native wire protocol, not TypeORM</li><li>2 runtime deps total</li><li>Faster cold start</li></ul></div>
+    <div class="cc"><div class="cv">vs</div><div class="cf">Spring Boot</div><ul><li>Same production depth</li><li>Node.js ecosystem &amp; npm</li><li>Faster cold start, less RAM</li><li>TypeScript type safety</li></ul></div>
+    <div class="cc"><div class="cv">vs</div><div class="cf">Laravel</div><ul><li>Statically typed end-to-end</li><li>Memory-safe, no ORM overhead</li><li>Native async/await</li><li>Horizontal scaling via clustering</li></ul></div>
+    <div class="cc"><div class="cv">vs</div><div class="cf">Django</div><ul><li>Async-native, no GIL</li><li>TypeScript types everywhere</li><li>Horizontal scaling via clustering</li><li>Single language full-stack</li></ul></div>
+  </div>
+</div>
+
+<!-- ROADMAP -->
+<div class="sec">
+  <div class="ey">Roadmap</div>
+  <div class="sh2">What's coming next.</div>
+  <p class="ssub"><a href="{{ site.baseurl }}/roadmap/" style="color:var(--ac);text-decoration:none">View the full roadmap →</a></p>
+  <div class="rm">
+    <div class="rmc done"><div class="rv">v1.0 · Shipped</div><div class="rt">Foundation</div><div class="rq">Released 2026</div><ul><li>HTTP server, router, DI container</li><li>PostgreSQL wire driver + pool</li><li>JWT, sessions, vault, rate limiter</li><li>WebSocket, SSE, clustering, CLI</li></ul></div>
+    <div class="rmc"><div class="rv">v1.1 · Q3 2026</div><div class="rt">Developer Experience</div><div class="rq">Target: Q3 2026</div><ul><li>Hot-reload via <code style="font-family:var(--fm);font-size:0.78em;background:var(--code-bg);color:var(--ac);padding:0.1em 0.3em;border-radius:3px">node --watch</code></li><li>street generate middleware</li><li>street generate gateway</li><li>Better startup error messages</li></ul></div>
+    <div class="rmc"><div class="rv">v1.2 · Q4 2026</div><div class="rt">Database</div><div class="rq">Target: Q4 2026</div><ul><li>MySQL/MariaDB wire driver</li><li>SQLite via node:sqlite</li><li>Type-safe query builder</li><li>Schema introspection</li></ul></div>
+    <div class="rmc"><div class="rv">v1.3 · Q1 2027</div><div class="rt">Observability</div><div class="rq">Target: Q1 2027</div><ul><li>OpenTelemetry integration</li><li>Structured JSON logging</li><li>Prometheus metrics endpoint</li><li>W3C traceparent propagation</li></ul></div>
+  </div>
+</div>
+
+<!-- DOCS GRID -->
+<div class="sec">
+  <div class="ey">Documentation</div>
+  <div class="sh2">Everything you need to ship.</div>
+  <p class="ssub">Comprehensive guides, API references, and real-world examples for every part of the framework.</p>
+  <div class="docs">
+    <a href="{{ site.baseurl }}/getting-started/installation/" class="dc"><span class="di">🚀</span><span class="dt">Getting Started</span><span class="dd">Install, scaffold, configure, and run in 60 seconds</span></a>
+    <a href="{{ site.baseurl }}/core/controllers/" class="dc"><span class="di">🎮</span><span class="dt">Controllers</span><span class="dd">HTTP handlers, routing, context API, validation</span></a>
+    <a href="{{ site.baseurl }}/core/dependency-injection/" class="dc"><span class="di">💉</span><span class="dt">Dependency Injection</span><span class="dd">IoC container, constructor injection, singletons</span></a>
+    <a href="{{ site.baseurl }}/database/postgres-wire-driver/" class="dc"><span class="di">🐘</span><span class="dt">PostgreSQL</span><span class="dd">Wire driver, connection pool, repositories, migrations</span></a>
+    <a href="{{ site.baseurl }}/security/" class="dc"><span class="di">🔐</span><span class="dt">Security</span><span class="dd">JWT, sessions, rate limiting, XSS, vault, CSRF</span></a>
+    <a href="{{ site.baseurl }}/realtime/websocket/" class="dc"><span class="di">⚡</span><span class="dt">Real-Time</span><span class="dd">WebSocket server, SSE, typed events, heartbeat</span></a>
+    <a href="{{ site.baseurl }}/deployment/docker/" class="dc"><span class="di">🐳</span><span class="dt">Deployment</span><span class="dd">Docker, production config, environment variables</span></a>
+    <a href="{{ site.baseurl }}/examples/" class="dc"><span class="di">📦</span><span class="dt">Examples</span><span class="dd">REST API, WebSocket chat, file upload, auth flow</span></a>
+    <a href="{{ site.baseurl }}/use-cases/" class="dc"><span class="di">🌍</span><span class="dt">Use Cases</span><span class="dd">16 industry verticals — fintech, IoT, AI, gaming</span></a>
+    <a href="{{ site.baseurl }}/cli/commands/" class="dc"><span class="di">🛠️</span><span class="dt">CLI Reference</span><span class="dd">All street commands, flags, and options</span></a>
+    <a href="{{ site.baseurl }}/testing/" class="dc"><span class="di">🧪</span><span class="dt">Testing</span><span class="dd">Integration tests, test runner, real PostgreSQL</span></a>
+    <a href="{{ site.baseurl }}/faq/" class="dc"><span class="di">❓</span><span class="dt">FAQ</span><span class="dd">Common questions, migration guides, troubleshooting</span></a>
+  </div>
+</div>
+
+<!-- PACKAGES -->
+<div class="sec">
+  <div class="ey">Packages</div>
+  <div class="sh2">Two packages. One framework.</div>
+  <div class="tw">
+    <table class="tb">
+      <thead><tr><th>Package</th><th>Version</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><a href="https://www.npmjs.com/package/@streetjs/core" target="_blank" rel="noopener" style="color:var(--ac);text-decoration:none"><code>@streetjs/core</code></a></td>
+          <td><a href="https://www.npmjs.com/package/@streetjs/core" target="_blank" rel="noopener"><img src="https://img.shields.io/npm/v/@streetjs/core?style=flat-square&color=3B82F6" alt="npm"></a></td>
+          <td>Framework runtime — HTTP, router, DI, PostgreSQL, security, WebSocket, SSE, clustering, telemetry</td>
+        </tr>
+        <tr>
+          <td><a href="https://www.npmjs.com/package/@streetjs/cli" target="_blank" rel="noopener" style="color:var(--ac);text-decoration:none"><code>@streetjs/cli</code></a></td>
+          <td><a href="https://www.npmjs.com/package/@streetjs/cli" target="_blank" rel="noopener"><img src="https://img.shields.io/npm/v/@streetjs/cli?style=flat-square&color=3B82F6" alt="npm"></a></td>
+          <td>CLI — project scaffolding, code generation, dev server with hot-reload, migration management</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- COMMUNITY -->
+<div class="cta">
+  <h2><span class="gt">Built in the open.<br>Improved together.</span></h2>
+  <p>Street is MIT-licensed and actively developed. Bug reports, feature requests, and contributions are welcome from everyone.</p>
+  <div class="cta-links">
+    <a href="https://github.com/hassanmubiru/street" class="cl" target="_blank" rel="noopener">⭐ Star on GitHub</a>
+    <a href="https://github.com/hassanmubiru/street/issues" class="cl" target="_blank" rel="noopener">🐛 Report a Bug</a>
+    <a href="https://github.com/hassanmubiru/street/discussions" class="cl" target="_blank" rel="noopener">💬 Discussions</a>
+    <a href="{{ site.baseurl }}/contributing/" class="cl">🤝 Contribute</a>
+    <a href="{{ site.baseurl }}/changelog/" class="cl">📋 Changelog</a>
+    <a href="{{ site.baseurl }}/roadmap/" class="cl">🗺️ Roadmap</a>
+  </div>
+</div>
+
+</div><!-- end .sp -->
