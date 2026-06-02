@@ -6,7 +6,13 @@ permalink: /changelog/
 description: "Street Framework changelog — release history for @streetjs/core and @streetjs/cli."
 ---
 
-# Changelog
+{% include doc-styles.html %}
+
+<div class="doc-header">
+<span class="dh-label">Releases</span>
+<h1>Changelog</h1>
+<p>Release history for <code>@streetjs/core</code> and <code>@streetjs/cli</code>. Follows <a href="https://keepachangelog.com">Keep a Changelog</a> and <a href="https://semver.org">Semantic Versioning</a>.</p>
+</div>
 
 All notable changes to Street Framework are documented here.
 
