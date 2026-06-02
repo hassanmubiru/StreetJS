@@ -3,10 +3,16 @@ layout:    default
 title:     "FAQ"
 nav_order: 14
 permalink: /faq/
-description: "Frequently asked questions about Street Framework — TypeScript backend, Node.js, PostgreSQL, WebSockets."
+description: "Frequently asked questions about Street Framework."
 ---
 
-# Frequently Asked Questions
+{% include doc-styles.html %}
+
+<div class="doc-header">
+<span class="dh-label">Reference</span>
+<h1>FAQ</h1>
+<p>Common questions about installation, TypeScript configuration, PostgreSQL, WebSockets, and deployment.</p>
+</div>
 
 ---
 

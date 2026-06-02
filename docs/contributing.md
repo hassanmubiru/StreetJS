@@ -6,7 +6,13 @@ permalink: /contributing/
 description: "How to contribute to Street Framework — development setup, testing, pull request process."
 ---
 
-# Contributing
+{% include doc-styles.html %}
+
+<div class="doc-header">
+<span class="dh-label">Community</span>
+<h1>Contributing</h1>
+<p>How to set up the development environment, write tests, and submit pull requests.</p>
+</div>
 
 Contributions are welcome — bug fixes, documentation improvements, new features, and test coverage. This guide covers the development setup and pull request process.
 
