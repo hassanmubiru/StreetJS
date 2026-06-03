@@ -14,6 +14,7 @@ import { InfoCommand } from './commands/info.js';
 import { DoctorCommand, EnvValidateCommand } from './commands/doctor.js';
 import { AuditCommand } from './commands/audit.js';
 import { SeedCommand } from './commands/seed.js';
+import { DiagnosticsCommand } from './commands/diagnostics.js';
 
 const VERSION = '1.0.3';
 const APP_NAME = 'street';
@@ -104,6 +105,10 @@ export async function runCli(argv: string[]): Promise<void> {
 
       case 'db:seed':
         await new SeedCommand().execute(ctx);
+        break;
+
+      case 'diagnostics':
+        await new DiagnosticsCommand().execute(ctx);
         break;
 
       default:
