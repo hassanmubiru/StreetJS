@@ -6,9 +6,8 @@
 // Run after `tsc`:
 //   node --test dist/tests/sqlite.test.js
 
-import { describe, it, after, before } from 'node:test';
+import { describe, it, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
@@ -17,18 +16,15 @@ import type { DbResult } from '../database/types.js';
 
 // ─── Shared setup ─────────────────────────────────────────────────────────────
 
-// Temp directory for test databases
-let testDir: string;
-before(() => {
-  testDir = mkdtempSync(join(tmpdir(), 'street-sqlite-test-'));
-});
-
-after(() => {
-  try { rmSync(testDir, { recursive: true, force: true }); } catch { /* ignore */ }
-});
-
+/**
+ * Generate a unique flat path in `/tmp/` for a test database.
+ * SQLite WASM (via Emscripten) on Node.js can only create files directly
+ * in `/tmp/`, not in nested subdirectories, because the Emscripten virtual
+ * filesystem does not automatically see subdirectories created on the real
+ * filesystem.
+ */
 function dbPath(name: string): string {
-  return join(testDir, `${name}.db`);
+  return join(tmpdir(), `street-sqlite-test-${name}-${Date.now()}.db`);
 }
 
 // ─── Helper ───────────────────────────────────────────────────────────────────
