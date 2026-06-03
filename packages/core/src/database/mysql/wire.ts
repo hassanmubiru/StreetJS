@@ -442,8 +442,11 @@ export class MysqlConnection {
     // Check if the server is actually MariaDB
     const version = conn.greeting?.serverVersion ?? '';
     if (version.includes('MariaDB') || version.startsWith('5.5.5-')) {
-      // Re-use the already-connected socket by transferring to a MariaDbConnection
-      const mariaConn = new MariaDbConnection();
+      // Lazy import to avoid circular dependency (mariadb.ts imports from this file).
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const { MariaDbConnection } = await import('./mariadb.js');
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      const mariaConn = new MariaDbConnection() as MysqlConnection;
       mariaConn._transferFrom(conn);
       return mariaConn;
     }
