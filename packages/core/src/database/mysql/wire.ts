@@ -632,3 +632,115 @@ export class MysqlConnection {
     }
   }
 
+
+  private _handleQueryPacket(body: Buffer, firstByte: number): void {
+    // Prepared statement response
+    if (this.pendingPrepare) {
+      this._handlePreparePacket(body, firstByte);
+      return;
+    }
+
+    // ERR packet
+    if (firstByte === 0xff) {
+      const err = parseErrPacket(body);
+      this.state = 'ready';
+      if (this.streamTarget) { this.streamTarget.finalize(err); this.streamTarget = null; }
+      else if (this.pendingQuery) { this.pendingQuery.reject(err); this.pendingQuery = null; }
+      return;
+    }
+
+    // OK packet — DML/DDL result
+    if (firstByte === 0x00 && this.colCount === 0 && !this.expectEof) {
+      const ok = parseOkPacket(body);
+      this.state = 'ready';
+      const pq = this.pendingQuery;
+      this.pendingQuery = null;
+      if (pq) {
+        pq.affectedRows = ok.affectedRows;
+        pq.lastInsertId = ok.lastInsertId;
+        pq.resolve({
+          rows: pq.rows,
+          rowCount: ok.affectedRows,
+          command: pq.command || 'OK',
+        });
+      }
+      return;
+    }
+
+    // EOF / OK that terminates column definitions or result set
+    if ((firstByte === 0xfe && body.length < 9) || (firstByte === 0x00 && this.expectEof)) {
+      if (!this.expectEof) {
+        // End of column definitions — next are rows
+        this.expectEof = true;
+        return;
+      }
+      // End of result set
+      this.state = 'ready';
+      this.expectEof = false;
+      const pq = this.pendingQuery;
+      const st = this.streamTarget;
+      this.pendingQuery = null;
+      this.streamTarget = null;
+      const cols = this.columns;
+      this.columns = [];
+      this.colCount = 0;
+      this.colsReceived = 0;
+
+      if (st) {
+        st.finalize();
+      } else if (pq) {
+        pq.resolve({
+          rows: pq.rows,
+          rowCount: pq.rows.length,
+          command: pq.command || 'SELECT',
+        });
+      }
+      void cols; // suppress unused warning
+      return;
+    }
+
+    // Column count packet (first packet of a result set)
+    if (this.colCount === 0 && this.colsReceived === 0 && !this.expectEof && firstByte !== 0x00) {
+      const { value } = readLenEncInt(body, 0);
+      this.colCount = value;
+      this.colsReceived = 0;
+      this.columns = [];
+      return;
+    }
+
+    // Column definition packet
+    if (this.colsReceived < this.colCount) {
+      const col = parseColumnDef(body);
+      this.columns.push(col);
+      this.colsReceived++;
+      return;
+    }
+
+    // Row data packet (text protocol)
+    if (this.expectEof) {
+      const row: Record<string, string | null> = {};
+      let offset = 0;
+      for (const col of this.columns) {
+        if (offset >= body.length) break;
+        if (body[offset] === 0xfb) {
+          row[col.name] = null;
+          offset += 1;
+        } else {
+          const lenEnc = readLenEncInt(body, offset);
+          offset += lenEnc.bytesRead;
+          row[col.name] = body.toString('utf8', offset, offset + lenEnc.value);
+          offset += lenEnc.value;
+        }
+      }
+      if (this.streamTarget) {
+        const canContinue = this.streamTarget.pushRow(row);
+        if (!canContinue && this.socket) {
+          this.socket.pause();
+        }
+      } else if (this.pendingQuery) {
+        this.pendingQuery.rows.push(row);
+      }
+      return;
+    }
+  }
+
