@@ -4,6 +4,7 @@
 import type { StreetContext } from '../core/context.js';
 import type { MiddlewareFn, ValidationSchema, FieldRule } from '../core/types.js';
 import { BadRequestException, NotFoundException, isStreetException } from '../http/exceptions.js';
+import { diagnosticsReporter } from '../diagnostics/reporter.js';
 
 interface CompiledRoute {
   method: string;
@@ -181,7 +182,10 @@ export async function errorHandler(ctx: StreetContext, err: unknown): Promise<vo
     ctx.json(err.toJSON(), err.status);
   } else {
     // Log the full error server-side, but never leak internal details to client
-    console.error('[street] Unhandled error:', err);
+    const correlationId = typeof ctx.state?.['correlationId'] === 'string'
+      ? ctx.state['correlationId'] as string
+      : undefined;
+    diagnosticsReporter.report(err, correlationId);
     ctx.json({ error: 'InternalException', message: 'Internal Server Error', status: 500 }, 500);
   }
 }

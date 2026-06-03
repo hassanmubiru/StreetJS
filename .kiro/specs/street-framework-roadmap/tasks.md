@@ -16,17 +16,17 @@
   - [x] 2.5 Extend `GenerateCommand.execute()` switch to route `middleware`, `gateway`, `migration` sub-types to their respective functions
   - [x] 2.6 Write tests in `packages/cli/src/tests/generate.test.ts`: verify each generator creates the correct files, verify exit 1 on duplicate, verify name validation rejects uppercase/special chars
 
-- [ ] 3. v1.1 — Configuration Validation Engine
-  - [-] 3.1 Create `packages/core/src/config/validator.ts`: define `FieldType` union (`string | number | boolean | url | port`), `ConfigFieldDef` interface, `ConfigSchema` type, `ConfigResult<S>` mapped type
-  - [~] 3.2 Implement `defineConfig<S extends ConfigSchema>(schema: S): ConfigResult<S>`: reads `process.env`, validates each field against its type and constraints, collects ALL errors before throwing, throws `ConfigValidationError` with the full error list
-  - [~] 3.3 Implement `ConfigValidationError` class extending `Error` with `errors: string[]` property
-  - [~] 3.4 Add `url` type validation (uses `new URL()`) and `port` type validation (integer 1–65535) to the field validator
-  - [~] 3.5 Apply default values only when the variable is absent; treat present-but-invalid values as errors regardless of default
-  - [~] 3.6 Export `defineConfig` and `ConfigValidationError` from `packages/core/src/index.ts`
-  - [~] 3.7 Write unit tests covering: missing required field, invalid port range, malformed URL, default applied on absent var, error on present-but-invalid var, multi-error collection
+- [x] 3. v1.1 — Configuration Validation Engine
+  - [x] 3.1 Create `packages/core/src/config/validator.ts`: define `FieldType` union (`string | number | boolean | url | port`), `ConfigFieldDef` interface, `ConfigSchema` type, `ConfigResult<S>` mapped type
+  - [x] 3.2 Implement `defineConfig<S extends ConfigSchema>(schema: S): ConfigResult<S>`: reads `process.env`, validates each field against its type and constraints, collects ALL errors before throwing, throws `ConfigValidationError` with the full error list
+  - [x] 3.3 Implement `ConfigValidationError` class extending `Error` with `errors: string[]` property
+  - [x] 3.4 Add `url` type validation (uses `new URL()`) and `port` type validation (integer 1–65535) to the field validator
+  - [x] 3.5 Apply default values only when the variable is absent; treat present-but-invalid values as errors regardless of default
+  - [x] 3.6 Export `defineConfig` and `ConfigValidationError` from `packages/core/src/index.ts`
+  - [x] 3.7 Write unit tests covering: missing required field, invalid port range, malformed URL, default applied on absent var, error on present-but-invalid var, multi-error collection
 
 - [ ] 4. v1.1 — Enhanced Error Diagnostics
-  - [~] 4.1 Create `packages/core/src/diagnostics/reporter.ts`: `DiagnosticsReporter` class extending `EventEmitter`, `DiagnosticEvent` interface with `errorClass`, `message`, `stack[]`, `correlationId`, `ts` fields
+  - [-] 4.1 Create `packages/core/src/diagnostics/reporter.ts`: `DiagnosticsReporter` class extending `EventEmitter`, `DiagnosticEvent` interface with `errorClass`, `message`, `stack[]`, `correlationId`, `ts` fields
   - [~] 4.2 Implement `DiagnosticsReporter.report(err, correlationId?)`: serialize to JSON, strip Node.js internal frames (filter lines matching `/node:internal|node_modules\/node/`), emit `diagnostic` event, write to `process.stderr`
   - [~] 4.3 Replace `console.error` in `packages/core/src/router/router.ts`'s `errorHandler` with `DiagnosticsReporter.report()`
   - [~] 4.4 Enrich `Container.resolve()` error message with the full dependency chain on resolution failure: `"Cannot resolve X → Y → Z: <reason>"`
