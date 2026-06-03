@@ -27,10 +27,13 @@ export class InfoCommand {
     rows.push({ label: 'Node.js version', value: process.version });
 
     // ── TypeScript version ────────────────────────────────────────────────
-    const tsVersion = await this.readPackageVersion(
-      resolve(ctx.cwd, 'node_modules', 'typescript', 'package.json'),
-    ) ?? '(not found)';
-    rows.push({ label: 'TypeScript version', value: `v${tsVersion}` });
+    // readPackageVersion already returns "v<version>" or null; fall back to a
+    // plain string so we don't accidentally prefix "(not found)" with "v".
+    const tsVersion =
+      await this.readPackageVersion(
+        resolve(ctx.cwd, 'node_modules', 'typescript', 'package.json'),
+      ) ?? '(not found)';
+    rows.push({ label: 'TypeScript version', value: tsVersion });
 
     // ── Operating system ──────────────────────────────────────────────────
     rows.push({ label: 'OS', value: `${platform()} ${arch()} (${release()})` });
