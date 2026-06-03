@@ -159,7 +159,6 @@ void describe('DevWatcher integration tests', () => {
         });
         return fake as unknown as ReturnType<typeof originalSpawn>;
       };
-
       try {
         const watcher = new DevWatcher({
           srcDir,
