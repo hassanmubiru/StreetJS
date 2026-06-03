@@ -214,3 +214,48 @@ export { generateManifest } from './cloud/deployment.js';
 export type { CloudPlatform, DeployConfig } from './cloud/deployment.js';
 export { VaultSecretProvider, AwsSecretsManagerProvider, GcpSecretManagerProvider } from './cloud/secret-providers.js';
 export type { SecretProvider } from './cloud/secret-providers.js';
+
+// ── Enterprise: Feature Flags ──────────────────────────────────────────────────
+export { FeatureFlagService, FEATURE_FLAGS_MIGRATION_SQL } from './enterprise/feature-flags.js';
+export type { FeatureFlagRule } from './enterprise/feature-flags.js';
+
+// ── Enterprise: Audit Logger ───────────────────────────────────────────────────
+export { AuditLogger, Sensitive, ENTERPRISE_AUDIT_MIGRATION_SQL } from './enterprise/audit-logger.js';
+export type { AuditCategory } from './enterprise/audit-logger.js';
+
+// ── Enterprise: Data Policy ────────────────────────────────────────────────────
+export { RetainFor, Encrypt, Classify, RetentionJob, ComplianceReporter } from './enterprise/data-policy.js';
+export type { DataClassificationLevel, RetentionEntityMeta, ComplianceReport } from './enterprise/data-policy.js';
+
+// ── Enterprise: Backup ────────────────────────────────────────────────────────
+export { BackupService, LocalStorageAdapter, BACKUPS_MIGRATION_SQL } from './enterprise/backup.js';
+export type { StorageAdapter, BackupRecord } from './enterprise/backup.js';
+
+// ── Platform: Distributed Cache ───────────────────────────────────────────────
+export { DistributedCache, InProcessCacheTransport, GlobalConfigService } from './platform/distributed-cache.js';
+export type { CacheTransport, DistributedCacheOptions } from './platform/distributed-cache.js';
+
+// ── Platform: Event Streaming ─────────────────────────────────────────────────
+export { EventStreamPublisher, EventStreamConsumer, InProcessStreamTransport, RealtimeAggregator } from './platform/event-streaming.js';
+export type { StreamTransport } from './platform/event-streaming.js';
+
+// ── Platform: Replication ─────────────────────────────────────────────────────
+export { ReplicationCoordinator, preferredRegionMiddleware } from './platform/replication.js';
+export type { RegionConfig } from './platform/replication.js';
+
+// ── Platform: AI ──────────────────────────────────────────────────────────────
+export { OpenAiClient, AnthropicClient, OllamaClient } from './platform/ai/llm-client.js';
+export type { LlmClient, CompletionOptions, CompletionResult } from './platform/ai/llm-client.js';
+export { ToolRegistry } from './platform/ai/tool-registry.js';
+export type { LlmFunctionDef } from './platform/ai/tool-registry.js';
+export { AgentExecutor } from './platform/ai/agent-executor.js';
+export type { AgentExecutorOptions } from './platform/ai/agent-executor.js';
+
+// ── Platform: Plugins ─────────────────────────────────────────────────────────
+export { PluginModule } from './platform/plugins/sdk.js';
+export type { SandboxedApp } from './platform/plugins/sdk.js';
+export { PluginInstaller } from './platform/plugins/registry.js';
+export type { PluginInstallerOptions } from './platform/plugins/registry.js';
+
+// ── HTTP: Edge Runtime ────────────────────────────────────────────────────────
+export { FeatureUnavailableInEdgeRuntimeError } from './http/exceptions.js';
