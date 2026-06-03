@@ -17,6 +17,7 @@ export { PgConnection, StreetPostgresWireStream } from './database/wire.js';
 export { PgPool } from './database/pool.js';
 export { StreetPostgresRepository } from './database/repository.js';
 export { StreetMigrationRunner } from './database/migrations.js';
+export { SqlitePool } from './database/sqlite/pool.js';
 // ── Security ──────────────────────────────────────────────────────────────────
 export { JwtService } from './security/jwt.js';
 export { SessionManager } from './security/session.js';

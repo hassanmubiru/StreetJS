@@ -10,12 +10,14 @@ export { authMiddleware, requireRoles, securityHeaders, corsMiddleware, } from '
 export { generateOpenApi } from './http/openapi.js';
 export { Router, notFoundHandler, errorHandler } from './router/router.js';
 export { PgConnection, StreetPostgresWireStream } from './database/wire.js';
-export type { PgRow, PgResult, PgConnectOptions } from './database/wire.js';
+export type { PgRow, PgResult, DbResult, PgConnectOptions } from './database/wire.js';
 export { PgPool } from './database/pool.js';
 export type { PoolOptions } from './database/pool.js';
 export { StreetPostgresRepository } from './database/repository.js';
 export type { IRepository } from './database/repository.js';
 export { StreetMigrationRunner } from './database/migrations.js';
+export { SqlitePool } from './database/sqlite/pool.js';
+export type { SqlitePoolOptions } from './database/sqlite/pool.js';
 export { JwtService } from './security/jwt.js';
 export type { JwtPayload, JwtOptions } from './security/jwt.js';
 export { SessionManager } from './security/session.js';
