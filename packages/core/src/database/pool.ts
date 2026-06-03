@@ -3,6 +3,7 @@
 
 import { PgConnection, type PgConnectOptions, type PgResult, type StreetPostgresWireStream } from './wire.js';
 import { Injectable } from '../core/container.js';
+import { DatabaseConnectionError } from '../http/exceptions.js';
 
 export interface PoolOptions extends PgConnectOptions {
   minConnections?: number;
