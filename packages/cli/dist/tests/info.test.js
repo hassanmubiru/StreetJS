@@ -171,6 +171,7 @@ void describe('DoctorCommand', () => {
             rmSync(tmpDir, { recursive: true, force: true });
         }
         assert.equal(process.exitCode, 1, 'Should set process.exitCode = 1 when Node.js < 20');
+        process.exitCode = undefined;
     });
     void it('detects Node.js >= 20 as a pass (no exit code set by Node check)', async () => {
         const tmpDir = mkdtempSync(join(tmpdir(), 'street-doctor-new-'));
@@ -211,6 +212,7 @@ void describe('DoctorCommand', () => {
         const allOutput = output.logs.join('\n');
         assert.ok(allOutput.includes('not found') || allOutput.includes('install TypeScript'), `Expected TypeScript missing message in output:\n${allOutput}`);
         assert.equal(process.exitCode, 1, 'Should set process.exitCode = 1 when TypeScript is missing');
+        process.exitCode = undefined;
     });
     void it('skips env var check when no .env.example is present', async () => {
         const tmpDir = mkdtempSync(join(tmpdir(), 'street-doctor-noenv-'));
@@ -247,6 +249,7 @@ void describe('DoctorCommand', () => {
             rmSync(tmpDir, { recursive: true, force: true });
         }
         assert.equal(process.exitCode, 1, 'process.exitCode should be 1 when any check fails');
+        process.exitCode = undefined;
     });
 });
 // ── AuditCommand ──────────────────────────────────────────────────────────────
@@ -316,6 +319,7 @@ void describe('AuditCommand', () => {
         assert.ok(allOutput.includes('some-lib'), `Expected 'some-lib' in table output:\n${allOutput}`);
         assert.ok(allOutput.includes('high'), `Expected 'high' severity in output:\n${allOutput}`);
         assert.ok(allOutput.includes('critical'), `Expected 'critical' severity in output:\n${allOutput}`);
+        process.exitCode = undefined;
     });
     void it('shows "No vulnerabilities found" when audit JSON has no vulnerabilities', async () => {
         process.exitCode = 0;
@@ -348,6 +352,7 @@ void describe('AuditCommand', () => {
         const criticalIdx = rows.findIndex((l) => l.includes('some-lib'));
         const highIdx = rows.findIndex((l) => l.includes('lodash'));
         assert.ok(criticalIdx < highIdx, `Expected critical row before high row. Rows:\n${rows.join('\n')}`);
+        process.exitCode = undefined;
     });
     void it('sets process.exitCode = 1 when vulnerabilities are found', async () => {
         process.exitCode = 0;
@@ -360,6 +365,7 @@ void describe('AuditCommand', () => {
             restore();
         }
         assert.equal(process.exitCode, 1, 'Should set process.exitCode = 1 when vulnerabilities are present');
+        process.exitCode = undefined;
     });
 });
 //# sourceMappingURL=info.test.js.map
