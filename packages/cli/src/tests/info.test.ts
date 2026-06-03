@@ -307,7 +307,6 @@ class MockAuditCommand extends AuditCommand {
     super();
   }
 
-  // @ts-expect-error — accessing protected method for testing purposes
   override runNpmAudit(_cwd: string): Promise<string> {
     if (this.mockCode !== 0) {
       return Promise.reject({ output: this.mockJson, code: this.mockCode });

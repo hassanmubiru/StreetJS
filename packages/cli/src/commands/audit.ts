@@ -121,7 +121,7 @@ export class AuditCommand {
     }
   }
 
-  private runNpmAudit(cwd: string): Promise<string> {
+  protected runNpmAudit(cwd: string): Promise<string> {
     return new Promise((resolve, reject) => {
       const child = spawn('npm', ['audit', '--json'], {
         cwd,
