@@ -156,22 +156,18 @@ describe('Container — dependency chain appears in DI error messages', () => {
 
   it('includes the class names in the error when resolution fails due to circular dep', () => {
     @Injectable()
-    class ServiceA {
-      constructor(public b: ServiceB) {}
-    }
+    class DepA { constructor(public b: object) {} }
 
     @Injectable()
-    class ServiceB {
-      constructor(public a: ServiceA) {}
-    }
+    class DepB { constructor(public a: object) {} }
 
-    // Manually register metadata since decorators may not emit in test
-    Reflect.defineMetadata('design:paramtypes', [ServiceB], ServiceA);
-    Reflect.defineMetadata('design:paramtypes', [ServiceA], ServiceB);
+    // Manually wire circular metadata
+    Reflect.defineMetadata('design:paramtypes', [DepB], DepA);
+    Reflect.defineMetadata('design:paramtypes', [DepA], DepB);
 
     let errorMessage = '';
     try {
-      container.resolve(ServiceA);
+      container.resolve(DepA);
     } catch (err) {
       errorMessage = (err as Error).message;
     }
@@ -179,7 +175,7 @@ describe('Container — dependency chain appears in DI error messages', () => {
     assert.ok(errorMessage.length > 0, 'expected an error to be thrown');
     // Circular dep error must mention the class names involved
     assert.ok(
-      errorMessage.includes('ServiceA') || errorMessage.includes('ServiceB'),
+      errorMessage.includes('DepA') || errorMessage.includes('DepB'),
       `Error message should mention class names, got: "${errorMessage}"`
     );
   });
