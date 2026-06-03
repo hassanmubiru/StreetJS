@@ -80,11 +80,11 @@ export class TenantPoolRegistry {
     try {
       const { PgPool } = await import('../database/pool.js');
       const pool = new PgPool({
-        host: url.hostname,
+        host: url.hostname || 'localhost',
         port: parseInt(url.port ?? '5432', 10),
-        user: url.username || undefined,
-        password: url.password || undefined,
-        database: url.pathname.replace(/^\//, '') || undefined,
+        user: url.username || 'postgres',
+        password: url.password || '',
+        database: url.pathname.replace(/^\//, '') || 'postgres',
         minConnections: 1,
         maxConnections: 5,
       });
