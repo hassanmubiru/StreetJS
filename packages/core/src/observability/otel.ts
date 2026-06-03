@@ -1,7 +1,6 @@
 // src/observability/otel.ts
 // OpenTelemetry-compatible tracer: span lifecycle, W3C traceparent, OTLP HTTP export.
 
-import { createRequire } from 'node:module';
 import * as https from 'node:https';
 import * as http from 'node:http';
 import * as crypto from 'node:crypto';
