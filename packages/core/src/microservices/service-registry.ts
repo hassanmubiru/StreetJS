@@ -1,7 +1,7 @@
 // src/microservices/service-registry.ts
 // Service discovery: service registry, static backend, and Consul backend.
 
-import { request as httpsRequest } from 'node:https';
+
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
