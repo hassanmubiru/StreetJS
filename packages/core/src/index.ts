@@ -44,6 +44,7 @@ export { PgConnection, StreetPostgresWireStream } from './database/wire.js';
 export type { PgRow, PgResult, DbResult, PgConnectOptions } from './database/wire.js';
 export { PgPool } from './database/pool.js';
 export type { PoolOptions } from './database/pool.js';
+export { onPoolExhausted } from './database/pool.js';
 export { StreetPostgresRepository } from './database/repository.js';
 export type { IRepository } from './database/repository.js';
 export { StreetMigrationRunner } from './database/migrations.js';
