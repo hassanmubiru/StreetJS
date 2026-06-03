@@ -47,7 +47,19 @@ function buildFakeServerResponse(stream: ServerHttp2Stream): ServerResponse {
   const resHeaders: Record<string, string | string[]> = {};
   let ended = false;
 
-  const fakeRes = {
+  const fakeRes: {
+    statusCode: number;
+    writableEnded: boolean;
+    setHeader(name: string, value: string | string[]): void;
+    getHeader(name: string): string | number | string[] | undefined;
+    removeHeader(name: string): void;
+    writeHead(code: number, headers?: Record<string, string | string[]>): unknown;
+    end(data?: string | Buffer): void;
+    once(event: string, fn: () => void): unknown;
+    on(event: string, fn: () => void): unknown;
+    off(event: string, fn: () => void): unknown;
+    emit(event: string): boolean;
+  } = {
     statusCode,
     writableEnded: false,
 
