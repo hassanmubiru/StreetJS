@@ -8,6 +8,9 @@ import { StartCommand } from './commands/start.js';
 import { TestCommand } from './commands/test.js';
 import { GenerateCommand } from './commands/generate.js';
 import { MigrateCommand } from './commands/migrate.js';
+import { InfoCommand } from './commands/info.js';
+import { DoctorCommand, EnvValidateCommand } from './commands/doctor.js';
+import { AuditCommand } from './commands/audit.js';
 const VERSION = '1.0.3';
 const APP_NAME = 'street';
 /**
@@ -52,6 +55,24 @@ export async function runCli(argv) {
                 break;
             case 'migrate:run':
                 await new MigrateCommand().executeRun(ctx);
+                break;
+            case 'info':
+                await new InfoCommand().execute(ctx);
+                break;
+            case 'doctor':
+                await new DoctorCommand().execute(ctx);
+                break;
+            case 'env':
+                if (ctx.args.positional[0] === 'validate') {
+                    await new EnvValidateCommand().execute(ctx);
+                }
+                else {
+                    console.error('[street] Usage: street env validate');
+                    process.exitCode = 1;
+                }
+                break;
+            case 'audit':
+                await new AuditCommand().execute(ctx);
                 break;
             default:
                 console.error(`[street] Unknown command: "${args.command}"`);
