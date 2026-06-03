@@ -208,6 +208,7 @@ void describe('DoctorCommand', () => {
     }
 
     assert.equal(process.exitCode, 1, 'Should set process.exitCode = 1 when Node.js < 20');
+    process.exitCode = undefined;
   });
 
   void it('detects Node.js >= 20 as a pass (no exit code set by Node check)', async () => {
@@ -259,6 +260,7 @@ void describe('DoctorCommand', () => {
       `Expected TypeScript missing message in output:\n${allOutput}`,
     );
     assert.equal(process.exitCode, 1, 'Should set process.exitCode = 1 when TypeScript is missing');
+    process.exitCode = undefined;
   });
 
   void it('skips env var check when no .env.example is present', async () => {
@@ -304,6 +306,7 @@ void describe('DoctorCommand', () => {
     }
 
     assert.equal(process.exitCode, 1, 'process.exitCode should be 1 when any check fails');
+    process.exitCode = undefined;
   });
 });
 
@@ -375,6 +378,7 @@ void describe('AuditCommand', () => {
     assert.ok(allOutput.includes('some-lib'), `Expected 'some-lib' in table output:\n${allOutput}`);
     assert.ok(allOutput.includes('high'), `Expected 'high' severity in output:\n${allOutput}`);
     assert.ok(allOutput.includes('critical'), `Expected 'critical' severity in output:\n${allOutput}`);
+    process.exitCode = undefined;
   });
 
   void it('shows "No vulnerabilities found" when audit JSON has no vulnerabilities', async () => {
@@ -413,6 +417,7 @@ void describe('AuditCommand', () => {
     const criticalIdx = rows.findIndex((l) => l.includes('some-lib'));
     const highIdx = rows.findIndex((l) => l.includes('lodash'));
     assert.ok(criticalIdx < highIdx, `Expected critical row before high row. Rows:\n${rows.join('\n')}`);
+    process.exitCode = undefined;
   });
 
   void it('sets process.exitCode = 1 when vulnerabilities are found', async () => {
@@ -426,5 +431,6 @@ void describe('AuditCommand', () => {
     }
 
     assert.equal(process.exitCode, 1, 'Should set process.exitCode = 1 when vulnerabilities are present');
+    process.exitCode = undefined;
   });
 });
