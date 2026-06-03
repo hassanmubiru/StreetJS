@@ -1,6 +1,5 @@
 // packages/cli/src/commands/migrate.ts
-// `street migrate:create <name>` and `street migrate:run`
-// — migration file generation and runner.
+// `street migrate:create <name>`, `street migrate:run`, and `street migrate:diff`
 
 import { mkdir, writeFile, readdir } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
