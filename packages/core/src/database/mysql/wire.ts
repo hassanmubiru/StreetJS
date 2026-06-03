@@ -839,6 +839,8 @@ export class MysqlConnection {
   private execExpectRows = false;
   private execPendingQuery: PendingQuery | null = null;
   private execStreamTarget: MysqlResultStream | null = null;
+
+  private _handleExecPacket(body: Buffer, firstByte: number): void {
     if (firstByte === 0xff) {
       const err = parseErrPacket(body);
       this.state = 'ready';
