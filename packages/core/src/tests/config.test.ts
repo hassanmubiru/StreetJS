@@ -1,7 +1,7 @@
 // src/tests/config.test.ts
 // Unit tests for the Configuration Validation Engine (defineConfig / ConfigValidationError).
 
-import { describe, it, beforeEach, afterEach } from 'node:test';
+import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
