@@ -120,12 +120,9 @@ export class RbacService {
     return false;
   }
 
-  private _isInherited(fromRole: string, targetRole: string): boolean {
-    // Check if fromRole inherits targetRole somewhere in its chain
-    const perms = this._rolePerms.get(fromRole);
-    // This doesn't directly check role inheritance — we need a separate structure
-    // For simplicity, check if target is in fromRole's inherited chain
-    return false; // role inheritance is for permissions, not for hasRole hierarchy
+  private _isInherited(_fromRole: string, _targetRole: string): boolean {
+    // Role inheritance via hasRole uses direct role name check only
+    return false;
   }
 
   /**
