@@ -404,3 +404,178 @@ void describe('GenerateCommand', () => {
     });
   });
 });
+
+// ── Standalone generator function tests (task 2.6) ───────────────────────────
+
+void describe('generateMiddleware standalone function', () => {
+  let tmpDir = '';
+
+  before(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'street-mw-test-'));
+  });
+
+  after(() => {
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('creates the correct middleware file with MiddlewareFn content', async () => {
+    await generateMiddleware('my-auth', tmpDir);
+
+    const filePath = join(tmpDir, 'src', 'middleware', 'my-auth.middleware.ts');
+    assert.ok(existsSync(filePath), 'middleware file should exist');
+
+    const content = readFileSync(filePath, 'utf8');
+    assert.ok(content.includes('MiddlewareFn'), 'content should include MiddlewareFn');
+    assert.ok(content.includes('my-auth'), 'content should include the name');
+  });
+});
+
+void describe('generateGateway standalone function', () => {
+  let tmpDir = '';
+
+  before(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'street-gw-test-'));
+  });
+
+  after(() => {
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('creates the correct gateway file with @Injectable() and onConnect', async () => {
+    await generateGateway('chat', tmpDir);
+
+    const filePath = join(tmpDir, 'src', 'gateways', 'chat.gateway.ts');
+    assert.ok(existsSync(filePath), 'gateway file should exist');
+
+    const content = readFileSync(filePath, 'utf8');
+    assert.ok(content.includes('@Injectable()'), 'content should include @Injectable()');
+    assert.ok(content.includes('onConnect'), 'content should include onConnect');
+    assert.ok(content.includes('chat'), 'content should include the name');
+  });
+});
+
+void describe('generateMigration standalone function', () => {
+  let tmpDir = '';
+
+  before(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'street-mg-test-'));
+  });
+
+  after(() => {
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('creates both up and rollback migration files with timestamp prefix', async () => {
+    await generateMigration('add-users', tmpDir);
+
+    const migrationsDir = join(tmpDir, 'migrations');
+    assert.ok(existsSync(migrationsDir), 'migrations directory should exist');
+
+    const files = readdirSync(migrationsDir);
+    const upFile = files.find((f) => f.endsWith('_add-users.sql') && !f.endsWith('.rollback.sql'));
+    const rollbackFile = files.find((f) => f.endsWith('_add-users.rollback.sql'));
+
+    assert.ok(upFile, 'should create <timestamp>_add-users.sql');
+    assert.ok(rollbackFile, 'should create <timestamp>_add-users.rollback.sql');
+
+    // Verify timestamp prefix format (14 digits: YYYYMMDDHHmmss)
+    assert.match(upFile!, /^\d{14}_add-users\.sql$/, 'up file should have 14-digit timestamp prefix');
+    assert.match(rollbackFile!, /^\d{14}_add-users\.rollback\.sql$/, 'rollback file should have 14-digit timestamp prefix');
+  });
+});
+
+void describe('generateMiddleware duplicate detection', () => {
+  let tmpDir = '';
+
+  before(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'street-dup-test-'));
+  });
+
+  after(() => {
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('calls process.exit(1) when generating the same middleware twice', async () => {
+    // First call should succeed
+    await generateMiddleware('foo', tmpDir);
+
+    // Second call should trigger process.exit(1)
+    const originalExit = process.exit;
+    let exitCode: number | undefined;
+    process.exit = ((code?: number) => {
+      exitCode = code;
+      throw new Error('process.exit called');
+    }) as typeof process.exit;
+
+    try {
+      await generateMiddleware('foo', tmpDir);
+      assert.fail('Expected process.exit to be called on duplicate');
+    } catch (err) {
+      assert.ok(err instanceof Error && err.message === 'process.exit called',
+        'should throw the process.exit sentinel error');
+      assert.strictEqual(exitCode, 1, 'process.exit should be called with code 1');
+    } finally {
+      process.exit = originalExit;
+    }
+  });
+});
+
+void describe('generateMiddleware name validation', () => {
+  let tmpDir = '';
+
+  before(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'street-val-test-'));
+  });
+
+  after(() => {
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('calls process.exit(1) and creates no file for uppercase name', async () => {
+    const originalExit = process.exit;
+    let exitCode: number | undefined;
+    process.exit = ((code?: number) => {
+      exitCode = code;
+      throw new Error('process.exit called');
+    }) as typeof process.exit;
+
+    try {
+      await generateMiddleware('MyAuth', tmpDir);
+      assert.fail('Expected process.exit to be called for uppercase name');
+    } catch (err) {
+      assert.ok(err instanceof Error && err.message === 'process.exit called',
+        'should throw the process.exit sentinel error');
+      assert.strictEqual(exitCode, 1, 'process.exit should be called with code 1');
+    } finally {
+      process.exit = originalExit;
+    }
+
+    // No file should have been created
+    const filePath = join(tmpDir, 'src', 'middleware', 'MyAuth.middleware.ts');
+    assert.ok(!existsSync(filePath), 'no file should be created for invalid name');
+  });
+
+  void it('calls process.exit(1) and creates no file for name with spaces', async () => {
+    const originalExit = process.exit;
+    let exitCode: number | undefined;
+    process.exit = ((code?: number) => {
+      exitCode = code;
+      throw new Error('process.exit called');
+    }) as typeof process.exit;
+
+    try {
+      await generateMiddleware('my auth', tmpDir);
+      assert.fail('Expected process.exit to be called for name with spaces');
+    } catch (err) {
+      assert.ok(err instanceof Error && err.message === 'process.exit called',
+        'should throw the process.exit sentinel error');
+      assert.strictEqual(exitCode, 1, 'process.exit should be called with code 1');
+    } finally {
+      process.exit = originalExit;
+    }
+
+    // No file should have been created
+    const filePath = join(tmpDir, 'src', 'middleware', 'my auth.middleware.ts');
+    assert.ok(!existsSync(filePath), 'no file should be created for invalid name');
+  });
+});
