@@ -5,6 +5,7 @@
 import { createConnection, type Socket } from 'node:net';
 import { createHash, createHmac, randomBytes, pbkdf2Sync, timingSafeEqual } from 'node:crypto';
 import { Readable } from 'node:stream';
+import type { DbResult } from './types.js';
 
 // ─── Wire Constants ────────────────────────────────────────────────────────────
 
@@ -354,11 +355,13 @@ export interface PgRow {
   [column: string]: string | null;
 }
 
-export interface PgResult {
-  rows: PgRow[];
-  command: string;
-  rowCount: number;
-}
+/**
+ * PostgreSQL query result — alias for the shared {@link DbResult} type.
+ * Maintained for backwards compatibility.
+ */
+export type PgResult = DbResult;
+
+export type { DbResult } from './types.js';
 
 // ─── Streaming result (backpressure-aware) ─────────────────────────────────────
 
