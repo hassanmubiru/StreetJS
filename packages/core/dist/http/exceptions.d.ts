@@ -34,4 +34,7 @@ export declare class DatabaseConnectionError extends StreetException {
     constructor(message?: string, suggestion?: string | undefined);
     toJSON(): object;
 }
+export declare class FeatureUnavailableInEdgeRuntimeError extends StreetException {
+    constructor(featureName?: string);
+}
 //# sourceMappingURL=exceptions.d.ts.map

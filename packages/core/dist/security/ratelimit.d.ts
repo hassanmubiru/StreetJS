@@ -27,4 +27,30 @@ export declare class RateLimiter {
 export declare class RateLimitException extends StreetException {
     constructor(message: string);
 }
+export interface RateLimitDecoratorOptions {
+    /** Maximum number of requests allowed within the window. */
+    requests: number;
+    /** Window duration in milliseconds. */
+    window: number;
+    /**
+     * Optional key name used to differentiate rate-limit buckets.
+     * When omitted, the router middleware defaults to the remote IP.
+     */
+    key?: string;
+}
+/**
+ * Method decorator that attaches rate-limit configuration metadata to a route
+ * handler.  The actual enforcement is performed by the router middleware
+ * pipeline which reads the `street:rateLimit` metadata key at dispatch time.
+ *
+ * @example
+ * ```ts
+ * @RateLimit({ requests: 100, window: 60_000 })
+ * @Post('/login')
+ * async login(ctx: StreetContext) { ... }
+ * ```
+ */
+export declare function RateLimit(opts: RateLimitDecoratorOptions): MethodDecorator;
+/** Retrieve the RateLimitDecoratorOptions stored by @RateLimit, or undefined. */
+export declare function getRateLimitMeta(target: object, propertyKey: string | symbol): RateLimitDecoratorOptions | undefined;
 //# sourceMappingURL=ratelimit.d.ts.map

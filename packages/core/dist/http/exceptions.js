@@ -75,4 +75,9 @@ export class DatabaseConnectionError extends StreetException {
         };
     }
 }
+export class FeatureUnavailableInEdgeRuntimeError extends StreetException {
+    constructor(featureName = 'Feature') {
+        super(501, `${featureName} is not available in the Edge runtime`);
+    }
+}
 //# sourceMappingURL=exceptions.js.map

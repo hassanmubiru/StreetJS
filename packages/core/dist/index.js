@@ -83,4 +83,45 @@ export { StreetSessionStore, sessionRevocationMiddleware, AuditWriter, SESSION_S
 export { JobQueue, Job, STREET_JOBS_MIGRATION_SQL, STREET_DLQ_MIGRATION_SQL, } from './jobs/queue.js';
 export { CronScheduler, CronParseError } from './jobs/scheduler.js';
 export { WorkflowEngine, STREET_WORKFLOWS_MIGRATION_SQL, } from './jobs/workflow.js';
+// ── Tenancy ───────────────────────────────────────────────────────────────────
+export { tenantMiddleware, TENANTS_MIGRATION_SQL } from './tenancy/context.js';
+export { TenantPoolRegistry } from './tenancy/pool-registry.js';
+export { TenantScopedRepository, TenantScoped } from './tenancy/tenant-scoped.js';
+export { TenantServiceImpl, QuotaEnforcer, TENANT_USAGE_MIGRATION_SQL } from './tenancy/provisioner.js';
+export { TenantMetricsRegistry, TenantMetricsView, TENANT_DAILY_STATS_MIGRATION_SQL } from './tenancy/metrics.js';
+// ── Microservices ─────────────────────────────────────────────────────────────
+export { streetHttp2App } from './microservices/http2.js';
+export { ServiceRegistry, StaticRegistry, ConsulRegistry } from './microservices/service-registry.js';
+export { CircuitBreaker, CircuitOpenError } from './microservices/circuit-breaker.js';
+export { EventBus, InProcessTransport } from './microservices/event-bus.js';
+export { SagaOrchestrator } from './microservices/saga.js';
+export { DistributedLock } from './microservices/distributed-lock.js';
+export { CommandBus, QueryBus } from './microservices/cqrs.js';
+export { EventStore, EVENTS_MIGRATION_SQL } from './microservices/event-store.js';
+// ── Cloud ─────────────────────────────────────────────────────────────────────
+export { generateManifest } from './cloud/deployment.js';
+export { VaultSecretProvider, AwsSecretsManagerProvider, GcpSecretManagerProvider } from './cloud/secret-providers.js';
+// ── Enterprise: Feature Flags ──────────────────────────────────────────────────
+export { FeatureFlagService, FEATURE_FLAGS_MIGRATION_SQL } from './enterprise/feature-flags.js';
+// ── Enterprise: Audit Logger ───────────────────────────────────────────────────
+export { AuditLogger, Sensitive, ENTERPRISE_AUDIT_MIGRATION_SQL } from './enterprise/audit-logger.js';
+// ── Enterprise: Data Policy ────────────────────────────────────────────────────
+export { RetainFor, Encrypt, Classify, RetentionJob, ComplianceReporter } from './enterprise/data-policy.js';
+// ── Enterprise: Backup ────────────────────────────────────────────────────────
+export { BackupService, LocalStorageAdapter, BACKUPS_MIGRATION_SQL } from './enterprise/backup.js';
+// ── Platform: Distributed Cache ───────────────────────────────────────────────
+export { DistributedCache, InProcessCacheTransport, GlobalConfigService } from './platform/distributed-cache.js';
+// ── Platform: Event Streaming ─────────────────────────────────────────────────
+export { EventStreamPublisher, EventStreamConsumer, InProcessStreamTransport, RealtimeAggregator } from './platform/event-streaming.js';
+// ── Platform: Replication ─────────────────────────────────────────────────────
+export { ReplicationCoordinator, preferredRegionMiddleware } from './platform/replication.js';
+// ── Platform: AI ──────────────────────────────────────────────────────────────
+export { OpenAiClient, AnthropicClient, OllamaClient } from './platform/ai/llm-client.js';
+export { ToolRegistry } from './platform/ai/tool-registry.js';
+export { AgentExecutor } from './platform/ai/agent-executor.js';
+// ── Platform: Plugins ─────────────────────────────────────────────────────────
+export { PluginModule } from './platform/plugins/sdk.js';
+export { PluginInstaller } from './platform/plugins/registry.js';
+// ── HTTP: Edge Runtime ────────────────────────────────────────────────────────
+export { FeatureUnavailableInEdgeRuntimeError } from './http/exceptions.js';
 //# sourceMappingURL=index.js.map

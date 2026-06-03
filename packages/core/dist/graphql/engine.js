@@ -296,12 +296,12 @@ export function graphqlMiddleware(engine) {
         }
         const body = ctx['body'];
         if (!body || typeof body !== 'object' || typeof body['query'] !== 'string') {
-            ctx.status(400).json({ errors: [{ message: 'Expected JSON body with "query" field' }] });
+            ctx.json({ errors: [{ message: 'Expected JSON body with "query" field' }] }, 400);
             return;
         }
         const result = await engine.execute(body['query'], body['variables'], ctx);
         const statusCode = result.errors ? 400 : 200;
-        ctx.status(statusCode).json(result);
+        ctx.json(result, statusCode);
     };
 }
 //# sourceMappingURL=engine.js.map
