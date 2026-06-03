@@ -295,3 +295,71 @@
   - [ ] 33.5 Add a nightly `CronScheduler` job that aggregates `street_tenant_usage` rows into `street_tenant_daily_stats`
   - [ ] 33.6 Write tests: Prometheus output includes `tenant_id` label, LRU eviction at 10,000 tenants, admin endpoint returns correct stats, daily aggregation job produces correct summaries
 
+
+- [ ] 34. v2.0 — HTTP/2 and gRPC Support
+  - [ ] 34.1 Create `packages/core/src/microservices/http2.ts` with `streetHttp2App(opts)`: wraps `node:http2` `createSecureServer()`; implements the same `registerController()` / `use()` / `listen()` / `close()` interface as `StreetApp`; controllers are portable between HTTP/1.1 and HTTP/2 apps
+  - [ ] 34.2 Create `packages/core/src/microservices/grpc/` directory with `proto-parser.ts`: read `.proto` file with `node:fs`, parse `service` and `message` definitions via a recursive-descent parser, produce `ServiceDefinition` and `MessageDefinition` ASTs
+  - [ ] 34.3 Create `packages/core/src/microservices/grpc/server.ts` with `GrpcServer`: `registerService(def, impl)`, `start()`, `stop()`; implement HTTP/2 framing for gRPC protocol (length-prefixed message frames) over `node:net`
+  - [ ] 34.4 Support all four RPC types: unary, server-streaming, client-streaming, bidirectional-streaming; each handler receives an `AbortSignal` from the gRPC `grpc-timeout` deadline
+  - [ ] 34.5 Enforce max message size (default 4 MB): return `RESOURCE_EXHAUSTED` status for oversized messages
+  - [ ] 34.6 Create `packages/cli/src/commands/grpc-codegen.ts` for `street generate grpc --proto ./service.proto`: invoke `proto-parser.ts`, write TypeScript type definitions for request/response messages to the output directory
+  - [ ] 34.7 Write tests: HTTP/2 server accepts requests, gRPC unary RPC round-trip, server-streaming emits multiple messages, deadline cancellation fires `AbortSignal`, message size limit enforced
+
+- [ ] 35. v2.0 — Service Discovery and Circuit Breakers
+  - [ ] 35.1 Create `packages/core/src/microservices/service-registry.ts`: `ServiceInstance`, `ServiceRegistryBackend` interface, `ServiceRegistry` class; implement `StaticRegistry` backend reading from a config object
+  - [ ] 35.2 Implement `ConsulRegistry` backend: poll Consul `/v1/catalog/service/<name>` via `node:https`, return healthy instances; refresh every 10 seconds
+  - [ ] 35.3 Create `packages/core/src/microservices/circuit-breaker.ts` with `CircuitBreaker` extending `EventEmitter`: `CircuitBreakerOptions`, `CircuitState` type, state machine (Closed → Open → Half-Open → Closed)
+  - [ ] 35.4 Implement `CircuitBreaker.execute(fn)`: in Closed state call `fn()`; in Open state throw `CircuitOpenError` immediately (no network call); in Half-Open state call `fn()` as probe
+  - [ ] 35.5 Enforce valid state transitions only: Closed→Open, Open→HalfOpen, HalfOpen→Closed, HalfOpen→Open; no other transitions possible
+  - [ ] 35.6 Emit `circuitbreaker:open` event with service name, failure count, and timestamp on Closed→Open transition
+  - [ ] 35.7 Write tests: failure threshold opens the circuit, probe failure returns to Open, probe success closes the circuit, `CircuitOpenError` thrown on Open state, invalid state transitions are unreachable
+
+- [ ] 36. v2.0 — Message Queues and Event Bus
+  - [ ] 36.1 Create `packages/core/src/microservices/event-bus.ts`: `EventBusTransport` interface, `EventEnvelope` type, `EventBus` class; default in-process transport backed by `EventEmitter`
+  - [ ] 36.2 Implement `EventBus.publish(topic, payload)`: wrap payload in envelope `{ id: randomBytes(16).hex, topic, timestamp, version: 1, payload }`; call `transport.publish()`
+  - [ ] 36.3 Implement `EventBus.subscribe(topic, handler)`: call `transport.subscribe()`; return unsubscribe function that cleans up all listeners
+  - [ ] 36.4 Create `RedisTransport` in `packages/core/src/microservices/transports/redis.ts`: use Redis Pub/Sub via `node:net` (raw RESP protocol, no redis npm package); ACK only after handler resolves; NACK on handler exception
+  - [ ] 36.5 Create `RabbitMQTransport` in `packages/core/src/microservices/transports/rabbitmq.ts`: AMQP 0-9-1 basic framing over `node:net`; support dead letter exchange routing
+  - [ ] 36.6 Write tests: in-process publish and subscribe, message envelope structure is correct, at-least-once delivery (message re-delivered after NACK), dead letter routing on exhausted retries
+
+- [ ] 37. v2.0 — Saga, Distributed Locks, CQRS, and Event Sourcing
+  - [ ] 37.1 Create `packages/core/src/microservices/saga.ts` with `SagaOrchestrator.execute(steps)`: run each `{ action, compensate }` step in sequence; on failure, run `compensate()` functions in reverse order; log compensation errors without re-throwing
+  - [ ] 37.2 Create `packages/core/src/microservices/distributed-lock.ts` with `DistributedLock` using `pg_try_advisory_lock`: `acquire(key, ttlMs?)` returns a `LockHandle`; `LockHandle.release()` calls `pg_advisory_unlock`; TTL timer auto-calls `release()` if not manually released
+  - [ ] 37.3 Create `packages/core/src/microservices/cqrs.ts` with `CommandBus` and `QueryBus`: typed `register(commandType, handler)` and `dispatch(command)` methods; handler lookup by constructor identity
+  - [ ] 37.4 Write `street_events` migration SQL: `id UUID, aggregate_id TEXT, version INT, type TEXT, payload JSONB, created_at`; add `UNIQUE (aggregate_id, version)` constraint
+  - [ ] 37.5 Create `packages/core/src/microservices/event-store.ts` with `EventStore`: `append(aggregateId, events, expectedVersion?)` validates optimistic concurrency then inserts; `load(aggregateId, fromVersion?)` reads events in version order
+  - [ ] 37.6 Write tests: saga compensation runs in reverse order on failure, distributed lock prevents concurrent acquisition, released lock allows next acquisition, event store append-order invariant (events read back in insertion order), optimistic concurrency conflict throws
+
+
+- [ ] 38. v2.1 — Container Orchestration and Cloud Runtime Adapters
+  - [ ] 38.1 Create `packages/core/src/cloud/deployment.ts` with `generateManifest(platform, config)`: produce Kubernetes `Deployment` + `Service` + `HPA` YAML, Cloud Run `service.yaml`, ECS task definition JSON, or Nomad job HCL; each includes liveness/readiness probe paths, resource limits, and env var references
+  - [ ] 38.2 Add `street deploy:init --platform <kubernetes|cloudrun|ecs|nomad>` CLI command: import the project's `street.config.ts`, call `generateManifest()`, write files to `deploy/` directory
+  - [ ] 38.3 Extract `registerShutdownHook(app, pool, opts?)` from `main.ts` as a standalone exportable function: `SIGTERM` → drain HTTP → close DB connections → exit 0; configurable `graceMs` (default 30,000)
+  - [ ] 38.4 Implement Cloud Run auto-detection: check `K_SERVICE` and `K_REVISION` env vars; when detected, switch `Logger` to GCP structured JSON format with `severity`, `message`, `timestamp`, and `httpRequest` fields
+  - [ ] 38.5 Implement `STREET_READINESS_DELAY_MS` env var: delay the readiness probe returning `up` by the configured milliseconds after startup completes
+  - [ ] 38.6 Write tests: generated Kubernetes YAML is valid YAML with correct health probe paths, Cloud Run format detection switches log format, shutdown drains in-flight requests before pool close
+
+- [ ] 39. v2.1 — Secret Providers
+  - [ ] 39.1 Create `packages/core/src/cloud/secret-providers.ts`: `SecretProvider` interface with `get(key): Promise<string>`; shared in-memory cache `Map<key, { value, expiresAt }>`
+  - [ ] 39.2 Implement `VaultSecretProvider`: KV v2 `GET /v1/<mount>/data/<key>` via `node:https` with Vault token auth; parse response JSON; never log raw secret values (use `[REDACTED]`)
+  - [ ] 39.3 Implement `AwsSecretsManagerProvider`: `GetSecretValue` API call via AWS Signature V4 signed request using `node:crypto` (HMAC-SHA256); parse JSON response
+  - [ ] 39.4 Implement `GcpSecretManagerProvider`: `GET /v1/projects/<id>/secrets/<name>/versions/latest:access` via `node:https` with service account token from instance metadata
+  - [ ] 39.5 Implement startup retry logic: on first `get()` failure, retry with exponential backoff (`1s, 2s, 4s, 8s, 10s...`) for up to 60 seconds; exit process with code 1 after timeout with descriptive error listing failed key names
+  - [ ] 39.6 Implement secret rotation: emit `rotate` event when TTL expires; connect to `PgPool` via a `onRotate` callback that recycles connections when the secret is a DB password
+  - [ ] 39.7 Write tests: cached secret returned without network call within TTL, expired cache triggers re-fetch, `[REDACTED]` appears in all log output, startup retry exhaustion exits with code 1
+
+- [ ] 40. v2.1 — Service Mesh and Auto-Scaling Metrics
+  - [ ] 40.1 Register `GET /metrics/autoscale` route in `StreetApp`: return JSON in Kubernetes External Metrics API format with `http_requests_per_second`, `active_connections`, and `queue_depth` values computed from `TelemetryTracker` and `JobQueue`
+  - [ ] 40.2 Implement service mesh detection: check `ISTIO_META_MESH_ID` and `LINKERD_PROXY_INJECTION_ENABLED` env vars on startup; when detected, set `RetryPolicy.enabled = false` for all `CircuitBreaker` instances to avoid conflicting with mesh retries
+  - [ ] 40.3 Implement `STREET_READINESS_DELAY_MS` startup delay: `HealthCheckRegistry` readiness probe returns `down` until the delay has elapsed after `app.listen()` completes
+  - [ ] 40.4 Export `/metrics/autoscale` response shape as `AutoscaleMetrics` type from `packages/core/src/index.ts`
+  - [ ] 40.5 Write tests: `/metrics/autoscale` response matches Kubernetes External Metrics API format, service mesh env var disables retries, readiness delay holds probe in `down` state
+
+- [ ] 41. v2.1 — Edge Runtime Adapter
+  - [ ] 41.1 Create `packages/edge/` workspace package with its own `package.json` (`@streetjs/edge`) and `tsconfig.json`; configure `"browser"` export condition
+  - [ ] 41.2 Create `packages/edge/src/adapter.ts` with `handleEdgeRequest(request: Request, app: StreetApp): Promise<Response>`: map Web Fetch `Request` → `StreetContext` using a synthetic `IncomingMessage`-like object; run the middleware pipeline; build a `Response` from the context's JSON/text/html output
+  - [ ] 41.3 Create `packages/edge/src/stubs.ts`: stub modules that replace `node:net`, `node:cluster`, `node:fs`, and `node:http` when bundled for edge targets; each stub's methods throw `FeatureUnavailableInEdgeRuntimeError` when called
+  - [ ] 41.4 Add `"browser"` export conditions in `packages/core/package.json` to map `node:net` imports to edge stubs for tree-shaking
+  - [ ] 41.5 Create `FeatureUnavailableInEdgeRuntimeError` in `packages/core/src/http/exceptions.ts`
+  - [ ] 41.6 Write tests: `handleEdgeRequest` routes to the correct handler, edge-incompatible features throw `FeatureUnavailableInEdgeRuntimeError` when initialized, routing/middleware/DI/JWT verify all work in edge mode
+
