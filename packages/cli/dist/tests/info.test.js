@@ -114,20 +114,23 @@ void describe('InfoCommand', () => {
         finally {
             restore();
         }
-        // Each data row starts with '  ' then a padded label then the value.
-        // Collect rows that look like info table rows (contain at least one letter
-        // followed by spaces then more non-space content).
-        const dataRows = output.logs.filter((l) => /^ {2}\w.+\s{2,}.+/.test(l));
-        assert.ok(dataRows.length >= 2, `Expected at least 2 table rows, got: ${dataRows.join('|')}`);
-        // Find the position where each value starts (first run of 2+ spaces after label).
-        // All value start columns must be equal, proving alignment.
+        // Each data row has the form: '  <label.padEnd(labelWidth)><value>'
+        // Filter rows that look like table entries: start with two spaces + a non-space char,
+        // and are not the header / blank lines.
+        const dataRows = output.logs.filter((l) => /^ {2}\S/.test(l) && !l.includes('Street Framework') && l.trim() !== '');
+        assert.ok(dataRows.length >= 3, `Expected at least 3 table rows, got: ${dataRows.join(' | ')}`);
+        // Find where each value starts: skip the 2-space prefix, skip label chars (non-space),
+        // then skip any padding spaces — the remaining position is the value start column.
         const valueStartCols = dataRows.map((row) => {
-            const trimmed = row.replace(/^\s{2}/, ''); // strip the leading 2 spaces
-            const match = /^(.+?)\s{2,}/.exec(trimmed);
-            return match ? match[1].length : -1;
+            let i = 2; // skip leading '  '
+            while (i < row.length && row[i] !== ' ')
+                i++; // skip label text
+            while (i < row.length && row[i] === ' ')
+                i++; // skip padding
+            return i;
         });
-        const uniqueCols = new Set(valueStartCols.filter((c) => c !== -1));
-        assert.equal(uniqueCols.size, 1, `Expected all value columns to be aligned, got cols: ${[...uniqueCols].join(',')}`);
+        const uniqueCols = new Set(valueStartCols);
+        assert.equal(uniqueCols.size, 1, `Expected all value columns to be aligned, got cols: ${valueStartCols.join(',')} for rows:\n${dataRows.join('\n')}`);
     });
     void it('reads project name and version from package.json', async () => {
         const pkgData = { name: 'my-awesome-app', version: '3.1.4' };

@@ -148,13 +148,18 @@ void describe('InfoCommand', () => {
     );
     assert.ok(dataRows.length >= 3, `Expected at least 3 table rows, got: ${dataRows.join(' | ')}`);
 
-    // Find where each value starts: skip the 2-space prefix, skip label chars (non-space),
-    // then skip any padding spaces — the remaining position is the value start column.
+    // Find where each value starts. The format is:
+    //   '  ' + label.padEnd(labelWidth) + value
+    // labelWidth = maxLabelLength + 2, so the gap between label text and value
+    // is always >=2 spaces. We locate the first run of >=2 consecutive spaces
+    // (starting after the 2-char row prefix) to find where the value begins.
     const valueStartCols = dataRows.map((row) => {
-      let i = 2; // skip leading '  '
-      while (i < row.length && row[i] !== ' ') i++; // skip label text
-      while (i < row.length && row[i] === ' ') i++; // skip padding
-      return i;
+      // Match 2+ consecutive spaces after the leading '  ' prefix
+      const match = /^  \S[\s\S]*?( {2,})/.exec(row);
+      if (!match || match.index === undefined) return -1;
+      // Value starts right after the matched spacing run
+      const gapStart = row.indexOf(match[1], 2);
+      return gapStart + match[1].length;
     });
 
     const uniqueCols = new Set(valueStartCols);
