@@ -59,7 +59,19 @@ export class PgPool {
     for (let i = 0; i < this.opts.minConnections; i++) {
       promises.push(this._createConnection().then(() => undefined));
     }
-    await Promise.all(promises);
+    try {
+      await Promise.all(promises);
+    } catch (err) {
+      const code = (err as NodeJS.ErrnoException).code;
+      if (code === 'ECONNREFUSED') {
+        throw new DatabaseConnectionError(
+          `Cannot connect to PostgreSQL at ${this.opts.host}:${this.opts.port}: connection refused`,
+          `Check that the database is running and that the following environment variables are correct: ` +
+            `PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE`
+        );
+      }
+      throw err;
+    }
   }
 
   private async _createConnection(): Promise<PooledConnection> {
