@@ -744,3 +744,321 @@ export class MysqlConnection {
     }
   }
 
+
+  // ─── Prepared statement packet handling ────────────────────────────────────
+  private _handlePreparePacket(body: Buffer, firstByte: number): void {
+    const pp = this.pendingPrepare!;
+
+    if (firstByte === 0xff) {
+      const err = parseErrPacket(body);
+      this.pendingPrepare = null;
+      this.state = 'ready';
+      pp.reject(err);
+      return;
+    }
+
+    // COM_STMT_PREPARE response OK: 0x00 + stmtId(4) + numCols(2) + numParams(2) + reserved(1) + warnings(2)
+    if (!pp.stmt.stmtId) {
+      if (firstByte !== 0x00) { pp.reject(new Error('Unexpected prepare response')); return; }
+      pp.stmt.stmtId = body.readUInt32LE(1);
+      pp.stmt.numParams = body.readUInt16LE(5);
+      pp.stmt.numColumns = body.readUInt16LE(7);
+      pp.stmt.paramDefs = [];
+      pp.stmt.colDefs = [];
+      pp.paramsReceived = 0;
+      pp.colsReceived = 0;
+
+      // If no params and no columns, we're done
+      if (pp.stmt.numParams === 0 && pp.stmt.numColumns === 0) {
+        this._completePrepare();
+      }
+      return;
+    }
+
+    // Receiving param defs
+    if (pp.paramsReceived < (pp.stmt.numParams ?? 0)) {
+      if (firstByte === 0xfe && body.length < 9) {
+        // EOF after params — now expecting column defs
+        return;
+      }
+      if (firstByte === 0x00 && body.length < 9) {
+        // OK-style EOF in newer protocols
+        return;
+      }
+      pp.stmt.paramDefs!.push(parseColumnDef(body));
+      pp.paramsReceived++;
+      if (pp.paramsReceived === pp.stmt.numParams && pp.stmt.numColumns === 0) {
+        // Will see EOF, then we're done
+      }
+      return;
+    }
+
+    // EOF between param defs and column defs
+    if ((firstByte === 0xfe && body.length < 9) || (firstByte === 0x00 && body.length < 9)) {
+      if (pp.colsReceived === 0 && (pp.stmt.numColumns ?? 0) === 0) {
+        this._completePrepare();
+        return;
+      }
+      // If this is the EOF after all column defs
+      if (pp.colsReceived >= (pp.stmt.numColumns ?? 0)) {
+        this._completePrepare();
+        return;
+      }
+      return;
+    }
+
+    // Receiving column defs
+    if (pp.colsReceived < (pp.stmt.numColumns ?? 0)) {
+      pp.stmt.colDefs!.push(parseColumnDef(body));
+      pp.colsReceived++;
+      if (pp.colsReceived === pp.stmt.numColumns) {
+        // Expect final EOF
+      }
+      return;
+    }
+  }
+
+  private _completePrepare(): void {
+    const pp = this.pendingPrepare!;
+    this.pendingPrepare = null;
+    this.state = 'ready';
+    pp.resolve(pp.stmt as PreparedStatement);
+  }
+
+
+  // ─── COM_STMT_EXECUTE result packets (binary protocol) ─────────────────────
+  private execColumns: ColumnDef[] = [];
+  private execColCount = 0;
+  private execColsReceived = 0;
+  private execExpectRows = false;
+  private execPendingQuery: PendingQuery | null = null;
+  private execStreamTarget: MysqlResultStream | null = null;
+
+  private _handleExecPacket(body: Buffer, firstByte: number): void {
+    if (firstByte === 0xff) {
+      const err = parseErrPacket(body);
+      this.state = 'ready';
+      const pq = this.execPendingQuery;
+      const st = this.execStreamTarget;
+      this.execPendingQuery = null;
+      this.execStreamTarget = null;
+      this._resetExecState();
+      if (st) st.finalize(err);
+      else if (pq) pq.reject(err);
+      return;
+    }
+
+    // OK — no result set (DML)
+    if (firstByte === 0x00 && this.execColCount === 0 && !this.execExpectRows) {
+      const ok = parseOkPacket(body);
+      this.state = 'ready';
+      const pq = this.execPendingQuery;
+      this.execPendingQuery = null;
+      this._resetExecState();
+      if (pq) {
+        pq.resolve({ rows: [], rowCount: ok.affectedRows, command: pq.command || 'OK' });
+      }
+      return;
+    }
+
+    // EOF/OK terminator after column defs or rows
+    if ((firstByte === 0xfe && body.length < 9) || (firstByte === 0x00 && this.execExpectRows)) {
+      if (!this.execExpectRows) {
+        this.execExpectRows = true;
+        return;
+      }
+      // End of result set
+      this.state = 'ready';
+      const pq = this.execPendingQuery;
+      const st = this.execStreamTarget;
+      this.execPendingQuery = null;
+      this.execStreamTarget = null;
+      this._resetExecState();
+      if (st) st.finalize();
+      else if (pq) pq.resolve({ rows: pq.rows, rowCount: pq.rows.length, command: pq.command || 'SELECT' });
+      return;
+    }
+
+    // Column count
+    if (this.execColCount === 0 && !this.execExpectRows) {
+      const { value } = readLenEncInt(body, 0);
+      this.execColCount = value;
+      this.execColsReceived = 0;
+      this.execColumns = [];
+      return;
+    }
+
+    // Column definitions
+    if (this.execColsReceived < this.execColCount) {
+      this.execColumns.push(parseColumnDef(body));
+      this.execColsReceived++;
+      return;
+    }
+
+    // Binary result row
+    if (this.execExpectRows) {
+      const row = this._parseBinaryRow(body, this.execColumns);
+      const st = this.execStreamTarget;
+      const pq = this.execPendingQuery;
+      if (st) {
+        const canContinue = st.pushRow(row);
+        if (!canContinue && this.socket) this.socket.pause();
+      } else if (pq) {
+        pq.rows.push(row);
+      }
+      return;
+    }
+  }
+
+  private _resetExecState(): void {
+    this.execColumns = [];
+    this.execColCount = 0;
+    this.execColsReceived = 0;
+    this.execExpectRows = false;
+  }
+
+  /** Parse a binary protocol result row. */
+  private _parseBinaryRow(body: Buffer, cols: ColumnDef[]): Record<string, string | null> {
+    const row: Record<string, string | null> = {};
+    // body[0] = 0x00 (packet header)
+    let offset = 1;
+
+    // NULL bitmap: ceil((numCols + 2) / 8) bytes
+    const numCols = cols.length;
+    const nullBitmapLen = Math.ceil((numCols + 2) / 8);
+    const nullBitmap = body.subarray(offset, offset + nullBitmapLen);
+    offset += nullBitmapLen;
+
+    for (let i = 0; i < numCols; i++) {
+      const col = cols[i]!;
+      // NULL bitmap: bit i+2 in the bitmap
+      const byteIdx = Math.floor((i + 2) / 8);
+      const bitIdx  = (i + 2) % 8;
+      if ((nullBitmap[byteIdx]! >> bitIdx) & 1) {
+        row[col.name] = null;
+        continue;
+      }
+      // Read value based on type
+      const type = col.fieldType;
+      if (offset >= body.length) { row[col.name] = null; continue; }
+      // For simplicity, read all types as lenenc strings (text representation fallback)
+      if (type === FIELD_TYPE_NULL) {
+        row[col.name] = null;
+      } else if (type === 1 /* TINY */) {
+        row[col.name] = String(body.readInt8(offset)); offset += 1;
+      } else if (type === 2 /* SHORT */ || type === 13 /* YEAR */) {
+        row[col.name] = String(body.readInt16LE(offset)); offset += 2;
+      } else if (type === 3 /* LONG */ || type === 9 /* INT24 */) {
+        row[col.name] = String(body.readInt32LE(offset)); offset += 4;
+      } else if (type === 8 /* LONGLONG */) {
+        row[col.name] = String(body.readBigInt64LE(offset)); offset += 8;
+      } else if (type === 4 /* FLOAT */) {
+        row[col.name] = String(body.readFloatLE(offset)); offset += 4;
+      } else if (type === 5 /* DOUBLE */) {
+        row[col.name] = String(body.readDoubleLE(offset)); offset += 8;
+      } else {
+        // Lenenc string for VARCHAR, TEXT, BLOB, DATE, etc.
+        const lenEnc = readLenEncInt(body, offset);
+        offset += lenEnc.bytesRead;
+        row[col.name] = body.toString('utf8', offset, offset + lenEnc.value);
+        offset += lenEnc.value;
+      }
+    }
+    return row;
+  }
+
+
+  // ─── Public API: query (task 6.4) ─────────────────────────────────────────
+  /**
+   * Execute a SQL query.
+   * - With params: uses COM_STMT_PREPARE + COM_STMT_EXECUTE (binary protocol).
+   * - Without params: uses COM_QUERY (text protocol).
+   */
+  async query(sql: string, params?: unknown[]): Promise<DbResult> {
+    if (this.state !== 'ready') throw new Error('MySQL connection not ready');
+
+    if (params && params.length > 0) {
+      return this._execPrepared(sql, params);
+    }
+
+    return this._queryText(sql);
+  }
+
+  private _queryText(sql: string): Promise<DbResult> {
+    this.state = 'query';
+    this.seq = 0;
+    // Reset text-protocol state
+    this.columns = [];
+    this.colCount = 0;
+    this.colsReceived = 0;
+    this.expectEof = false;
+
+    return new Promise<DbResult>((resolve, reject) => {
+      this.pendingQuery = { resolve, reject, rows: [], command: '', affectedRows: 0, lastInsertId: 0 };
+
+      // Derive command from SQL prefix
+      const cmd = sql.trimStart().split(/\s+/)[0]?.toUpperCase() ?? 'QUERY';
+      this.pendingQuery.command = cmd;
+
+      const sqlBuf = Buffer.from(sql, 'utf8');
+      const body = Buffer.allocUnsafe(1 + sqlBuf.length);
+      body[0] = COM_QUERY;
+      sqlBuf.copy(body, 1);
+      const pkt = wrapPacket(body, this.seq++);
+      this.socket?.write(pkt);
+    });
+  }
+
+  private async _execPrepared(sql: string, params: unknown[]): Promise<DbResult> {
+    const stmt = await this._prepare(sql);
+    try {
+      return await this._execute(stmt, params);
+    } finally {
+      this._stmtClose(stmt.stmtId);
+    }
+  }
+
+  private _prepare(sql: string): Promise<PreparedStatement> {
+    this.state = 'query';
+    this.seq = 0;
+    return new Promise<PreparedStatement>((resolve, reject) => {
+      this.pendingPrepare = {
+        resolve,
+        reject,
+        stmt: {},
+        paramsReceived: 0,
+        colsReceived: 0,
+      };
+      const sqlBuf = Buffer.from(sql, 'utf8');
+      const body = Buffer.allocUnsafe(1 + sqlBuf.length);
+      body[0] = COM_STMT_PREPARE;
+      sqlBuf.copy(body, 1);
+      const pkt = wrapPacket(body, this.seq++);
+      this.socket?.write(pkt);
+    });
+  }
+
+  private _execute(stmt: PreparedStatement, params: unknown[]): Promise<DbResult> {
+    this.state = 'query';
+    this.seq = 0;
+    this._resetExecState();
+
+    return new Promise<DbResult>((resolve, reject) => {
+      const cmd = 'SELECT';
+      this.execPendingQuery = { resolve, reject, rows: [], command: cmd, affectedRows: 0, lastInsertId: 0 };
+
+      // Override _handleQueryPacket for exec responses
+      const execBody = buildStmtExecutePacket(stmt.stmtId, params);
+      const pkt = wrapPacket(execBody, this.seq++);
+      this.socket?.write(pkt);
+    });
+  }
+
+  private _stmtClose(stmtId: number): void {
+    const body = Buffer.allocUnsafe(5);
+    body[0] = COM_STMT_CLOSE;
+    body.writeUInt32LE(stmtId, 1);
+    const pkt = wrapPacket(body, this.seq++);
+    this.socket?.write(pkt);
+  }
+
