@@ -9,8 +9,8 @@
   - [x] 1.6 Export `DevWatcher` and `WatcherOptions` from `packages/core/src/index.ts`
 
 - [ ] 2. v1.1 — Code Generators (middleware, gateway, migration)
-  - [-] 2.1 Create generator templates in `packages/cli/templates/generate/`: `middleware.ts.tpl`, `gateway.ts.tpl`, `migration-up.sql.tpl`, `migration-rollback.sql.tpl`
-  - [~] 2.2 Implement `generateMiddleware(name, cwd)` in `packages/cli/src/commands/generate.ts`: validate name with `/^[a-z][a-z0-9_-]*$/`, check target file existence (exit 1 if exists), write typed `StreetMiddleware` function scaffold to `src/middleware/<name>.middleware.ts`
+  - [x] 2.1 Create generator templates in `packages/cli/templates/generate/`: `middleware.ts.tpl`, `gateway.ts.tpl`, `migration-up.sql.tpl`, `migration-rollback.sql.tpl`
+  - [-] 2.2 Implement `generateMiddleware(name, cwd)` in `packages/cli/src/commands/generate.ts`: validate name with `/^[a-z][a-z0-9_-]*$/`, check target file existence (exit 1 if exists), write typed `StreetMiddleware` function scaffold to `src/middleware/<name>.middleware.ts`
   - [~] 2.3 Implement `generateGateway(name, cwd)`: write `@Injectable()` + `@WebSocketGateway` scaffold with `onConnect`, `onMessage`, `onDisconnect` handlers to `src/gateways/<name>.gateway.ts`
   - [~] 2.4 Implement `generateMigration(name, cwd)`: create timestamped `migrations/<timestamp>_<name>.sql` and `migrations/<timestamp>_<name>.rollback.sql` files
   - [~] 2.5 Extend `GenerateCommand.execute()` switch to route `middleware`, `gateway`, `migration` sub-types to their respective functions

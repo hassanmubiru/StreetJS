@@ -1,13 +1,20 @@
 // packages/cli/src/commands/generate.ts
-// `street generate <type> <name>` — scaffolds controllers, services, and repositories.
+// `street generate <type> <name>` — scaffolds controllers, services, repositories,
+// middleware, gateways, and migrations.
 
-import { mkdir, writeFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { mkdir, writeFile, readFile, access } from 'node:fs/promises';
+import { resolve, dirname, fileURLToPath } from 'node:path';
 import type { CliContext } from '../index.js';
 
-type GenerateType = 'controller' | 'service' | 'repository';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-const VALID_TYPES: GenerateType[] = ['controller', 'service', 'repository'];
+/** Regex for valid generator name: lowercase letter + lowercase alphanumeric/dash/underscore */
+const NAME_PATTERN = /^[a-z][a-z0-9_-]*$/;
+
+type GenerateType = 'controller' | 'service' | 'repository' | 'middleware' | 'gateway' | 'migration';
+
+const VALID_TYPES: GenerateType[] = ['controller', 'service', 'repository', 'middleware', 'gateway', 'migration'];
 
 export class GenerateCommand {
   async execute(ctx: CliContext): Promise<void> {
