@@ -400,24 +400,28 @@ void describe('generateMiddleware duplicate detection', () => {
     void it('calls process.exit(1) when generating the same middleware twice', async () => {
         // First call should succeed
         await generateMiddleware('foo', tmpDir);
-        // Second call should trigger process.exit(1)
+        // Second call should trigger process.exit(1).
+        // Note: assertNotExists() calls process.exit inside a try/catch that catches
+        // any thrown error, so the mock exit code may be swallowed. We track whether
+        // process.exit was called rather than expecting a thrown exception.
         const originalExit = process.exit;
         let exitCode;
         process.exit = ((code) => {
             exitCode = code;
+            // Throw so callers that don't catch will also stop, but assertNotExists
+            // swallows this throw — we still record exitCode above.
             throw new Error('process.exit called');
         });
         try {
             await generateMiddleware('foo', tmpDir);
-            assert.fail('Expected process.exit to be called on duplicate');
         }
-        catch (err) {
-            assert.ok(err instanceof Error && err.message === 'process.exit called', 'should throw the process.exit sentinel error');
-            assert.strictEqual(exitCode, 1, 'process.exit should be called with code 1');
+        catch (_err) {
+            // Sentinel error may propagate here if not swallowed
         }
         finally {
             process.exit = originalExit;
         }
+        assert.strictEqual(exitCode, 1, 'process.exit should have been called with code 1 on duplicate');
     });
 });
 void describe('generateMiddleware name validation', () => {
