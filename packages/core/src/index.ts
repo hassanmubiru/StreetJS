@@ -183,3 +183,34 @@ export {
   STREET_WORKFLOWS_MIGRATION_SQL,
 } from './jobs/workflow.js';
 export type { WorkflowStep, WorkflowContext } from './jobs/workflow.js';
+
+// ── Tenancy ───────────────────────────────────────────────────────────────────
+export { tenantMiddleware, TENANTS_MIGRATION_SQL } from './tenancy/context.js';
+export type { TenantContextData, TenantResolutionStrategy } from './tenancy/context.js';
+export { TenantPoolRegistry } from './tenancy/pool-registry.js';
+export { TenantScopedRepository, TenantScoped } from './tenancy/tenant-scoped.js';
+export { TenantServiceImpl, QuotaEnforcer, TENANT_USAGE_MIGRATION_SQL } from './tenancy/provisioner.js';
+export type { QuotaStatus, QuotaConfig, TenantService } from './tenancy/provisioner.js';
+export { TenantMetricsRegistry, TenantMetricsView, TENANT_DAILY_STATS_MIGRATION_SQL } from './tenancy/metrics.js';
+
+// ── Microservices ─────────────────────────────────────────────────────────────
+export { streetHttp2App } from './microservices/http2.js';
+export { ServiceRegistry, StaticRegistry, ConsulRegistry } from './microservices/service-registry.js';
+export type { ServiceInstance, ServiceRegistryBackend } from './microservices/service-registry.js';
+export { CircuitBreaker, CircuitOpenError } from './microservices/circuit-breaker.js';
+export type { CircuitState, CircuitBreakerOptions } from './microservices/circuit-breaker.js';
+export { EventBus, InProcessTransport } from './microservices/event-bus.js';
+export type { EventEnvelope, EventBusTransport } from './microservices/event-bus.js';
+export { SagaOrchestrator } from './microservices/saga.js';
+export type { SagaStep } from './microservices/saga.js';
+export { DistributedLock } from './microservices/distributed-lock.js';
+export type { LockHandle } from './microservices/distributed-lock.js';
+export { CommandBus, QueryBus } from './microservices/cqrs.js';
+export { EventStore, EVENTS_MIGRATION_SQL } from './microservices/event-store.js';
+export type { DomainEvent } from './microservices/event-store.js';
+
+// ── Cloud ─────────────────────────────────────────────────────────────────────
+export { generateManifest } from './cloud/deployment.js';
+export type { CloudPlatform, DeployConfig } from './cloud/deployment.js';
+export { VaultSecretProvider, AwsSecretsManagerProvider, GcpSecretManagerProvider } from './cloud/secret-providers.js';
+export type { SecretProvider } from './cloud/secret-providers.js';
