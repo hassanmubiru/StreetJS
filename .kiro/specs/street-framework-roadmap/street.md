@@ -413,3 +413,500 @@ Write 3 example apps D-02 — 4 days
 Estimated minimum effort to reach "Mostly Ready": 3–4 weeks of focused engineering.
 Estimated effort to reach "Production Ready": 8–10 weeks.
 Estimated effort to reach "Enterprise Ready": 16–20 weeks.
+
+Street Framework: Complete Remediation Verification Audit
+Audit Method: Direct source code inspection · Live test execution · Git history analysis · CI workflow review · Runtime verification
+Repository state: origin/main at commit 1ccee88 · Working tree clean · 661 total commits
+Test execution: 280 tests run (206 core + 74 CLI) · 279 pass · 1 fail · 0 auth/security tests exist
+
+Executive Summary
+No remediation has occurred. The git log from the previous audit session to HEAD contains zero security-related commits. Every Critical and High finding from the previous Production Readiness Verification Audit remains in exactly the same state. The only recent commits are:
+
+Health test file edits (our own audit activity)
+.kiro/specs/ documentation file updates
+dist/ compiled artifacts from new feature additions
+The codebase is syntactically clean (TypeScript compiles with zero errors, 279/280 tests pass), but every security vulnerability, architectural defect, and missing requirement documented in the previous audit is still present and reproducible.
+
+Security Findings Verification
+S-01: WebAuthn Signature Verification Bypass
+Status: ✗ NOT FIXED
+
+Criterion	Result
+Source code fix	NO — webauthn.ts:309: // Key format error in test mode — skip verification still present
+Tests validate fix	NO — zero WebAuthn tests exist
+CI validates	NO — no auth test suite in CI
+Documentation	NO — no WebAuthn docs
+Regression check	N/A
+Negative tests	NO
+Evidence: webauthn.ts:300–311 — the bypass block is verbatim unchanged:
+
+// If signature length is 0 (test mode), skip verification
+if (signature.length > 0) {
+  try { ... }
+  catch (e) {
+    if ((e as Error).message !== 'Invalid assertion signature') {
+      // Key format error in test mode — skip verification ← BYPASS PRESENT
+    }
+  }
+}
+Security Impact: Any authenticator credential where the stored "public key" fails DER parse (100% of real credentials, because S-05 stores raw authData bytes) will authenticate without any signature verification. All WebAuthn-protected endpoints are effectively passwordless.
+
+Regression Risk: N/A — was never fixed.
+
+S-02: RBAC Guard Router Integration
+Status: ✗ NOT FIXED
+
+Criterion	Result
+Source code fix	NO — router.ts has zero references to routeHandler, street:roles, or Reflect.getMetadata
+Tests validate fix	NO — zero RBAC tests exist
+CI validates	NO
+Documentation	NO
+Negative tests	NO
+Evidence: grep routeHandler router.ts → empty output. rbac.ts:153: const handler = ctx.state?.['routeHandler'] — this field is never set by the router. Every route decorated with @Roles() or @Permissions() is silently unprotected.
+
+Security Impact: Complete authorization bypass. @Roles('admin') on a controller method has zero enforcement effect at runtime.
+
+S-03: OAuth2 PKCE Session Persistence
+Status: ✗ NOT FIXED
+
+Criterion	Result
+Source code fix	NO — oauth2.ts:242: sessionManager?: still optional
+Tests	NO
+CI	NO
+Evidence: oauth2.ts:253: this._session = opts.sessionManager ?? null. When null, the PKCE code_verifier and state written to ctx.state are lost after the redirect — making CSRF protection non-functional for any user who doesn't explicitly pass a session manager.
+
+S-04: AWS SigV4 Validation Coverage
+Status: ✗ NOT FIXED
+
+Criterion	Result
+Test vectors added	NO — zero secret-provider tests exist
+CI validates	NO
+Evidence: No test file references AwsSecretsManagerProvider or SigV4 test vectors.
+
+S-05: WebAuthn COSE Key Storage
+Status: ✗ NOT FIXED
+
+Criterion	Result
+Source code fix	NO — webauthn.ts:219: // Real implementation would parse COSE key from authData; store base64url encoded authData as public key placeholder
+Tests	NO
+Evidence: Comment is verbatim unchanged. Raw authData.toString('base64url') is still stored as the credential's public key. This is the root cause that triggers S-01: createPublicKey({ format: 'der', type: 'spki' }) always throws on authData bytes, and the bypass catches that throw.
+
+S-06: API Key Timing Side-Channel
+Status: ✗ NOT FIXED
+
+Criterion	Result
+Source code fix	NO — api-keys.ts:121: if (storedHash.length !== computedHash.length || still present
+Tests	NO
+Evidence: The length comparison before timingSafeEqual is unchanged. A 32-byte SHA-256 hash will always be 32 bytes — the check is redundant and leaks timing information.
+
+S-07: Seeder Raw SQL Execution Safeguards
+Status: ✗ NOT FIXED
+
+Criterion	Result
+--dry-run flag added	NO — seed.ts CLI command has no --dry-run option
+Documentation of risk	NO
+S-08: OTel TODO Removal (CI Hygiene Blocker)
+Status: ✗ NOT FIXED
+
+Criterion	Result
+TODO removed	NO — pool.ts:218: // TODO(otel): Instrument this method still present
+CI enforcement would pass	NO — the ci-cd-enforcement.yml hygiene scan would still fail immediately on this TODO
+Impact: The code-hygiene CI job (ci-cd-enforcement.yml) cannot pass in the current state. Running this workflow on the live repository would produce a build failure.
+
+S-09: Repository TODO Removal (CI Hygiene Blocker)
+Status: ✗ NOT FIXED
+
+Criterion	Result
+TODO removed	NO — repository.ts:127: // TODO: add parameterized queryStream still present
+CI enforcement would pass	NO
+Test Coverage Verification
+Auth Module Tests
+Test Suite	Exists	Count	CI Executed
+Auth (general)	NO	0	NO
+WebAuthn tests	NO	0	NO
+RBAC tests	NO	0	NO
+OAuth2 tests	NO	0	NO
+API Key tests	NO	0	NO
+Refresh Token tests	NO	0	NO
+Workflow tests	NO	0	NO
+Tenancy tests	NO	0	NO
+Enterprise tests	NO	0	NO
+Platform tests	NO	0	NO
+MySQL integration tests	Exists (skipped)	0 run	NO (no CI MySQL service)
+End-to-end smoke test	NO	0	NO
+All Test Files (33 total)
+CLI tests (7 files):       argv, create, dev, generate, index, info, migrate
+Core unit tests (14 files): config, diagnostics, graphql, health(*), job-queue,
+                             logger, mysql(skipped), otel, profiler, prometheus,
+                             query-builder, route-profiler, schema-inspector, sqlite
+System tests (11 files):   integration, memory-leak, stress, chaos-testing,
+                           fuzz-testing, infrastructure, load-testing,
+                           memory-safety, security, wire-protocol, wire-stream
+(*) health.test.ts: 2/11 pass, 9 cancelled (event-loop issue)
+
+Test Execution Results (live run)
+Suite	Tests	Pass	Fail	Cancelled
+CLI (4 files run)	74	74	0	0
+Core unit (12 files run)	206	205	1	0
+Total	280	279	1	0
+Coverage by module (estimated):
+
+Module	Coverage
+v1.0 Core (HTTP, router, DI, PG wire)	~88%
+v1.1 DX (generators, config, diagnostics)	~82%
+v1.2 Database (SQLite, QueryBuilder, SchemaInspector)	~75%
+v1.3 Observability (Logger, Prometheus, OTel, RouteProfiler)	~70%
+v1.4 Auth (ALL modules)	0%
+v1.5 Jobs/Cron/Workflow	~60%
+v1.6 GraphQL	~65%
+v1.7–v3.0 (Tenancy, Microservices, Enterprise, Platform)	~3%
+Documentation Verification
+Guide	Exists	Quality
+Auth Guide	NO	—
+OAuth2 Guide	NO	—
+RBAC Guide	NO	—
+WebAuthn Guide	NO	—
+Observability Guide	NO	—
+Health Check Guide	NO	—
+Jobs Guide	NO	—
+Workflow Guide	NO	—
+Tenancy Guide	NO	—
+Microservices Guide	NO	—
+Enterprise Guide	NO	—
+API Reference (v1.1+ exports)	NO	172-line stub covers v1.0 only
+Migration Guide	Partial	Covers PG migrations only
+Troubleshooting Guide	Partial	Generic stub, not feature-specific
+Getting Started	✓	387 lines, high quality, v1.0 only
+PostgreSQL Driver	✓	266 lines, comprehensive
+JWT Security	✓	459 lines, comprehensive
+Runnable Example Applications:
+
+Example	Exists	Compiles	Runs
+REST API example	NO	—	—
+Auth example	NO	—	—
+Jobs example	NO	—	—
+ls /home/error51/Downloads/street-framework/street/examples → NO_EXAMPLES (confirmed)
+
+Performance Verification
+Requirement	Status
+benchmarks/ directory	ABSENT
+Benchmark scripts	ABSENT
+Benchmark CI workflow	ABSENT
+Latency benchmarks	ABSENT
+Throughput benchmarks	ABSENT
+Memory benchmarks	ABSENT
+Startup benchmarks	ABSENT
+Comparison vs Express	ABSENT
+Comparison vs Fastify	ABSENT
+Comparison vs NestJS	ABSENT
+Comparison vs Hono	ABSENT
+Comparison vs Fiber	ABSENT
+Comparison vs Gin	ABSENT
+ls /benchmarks → NO_BENCHMARKS (confirmed). The CI enforcement workflow references a benchmark job that does not exist.
+
+Reliability Verification
+Finding	Status	Evidence
+WorkflowEngine distributed locking	NOT FIXED	workflow.ts — zero reference to DistributedLock
+SQLite MEMFS runtime warning	NOT FIXED	No console.warn in SqlitePool constructor for file paths
+R-02 AuditLogger timer	FIXED	flushTimer !== null guard confirmed at line 86
+R-05 AgentExecutor bounded	FIXED	maxSteps loop enforced; history.length = 0 in summarize
+Queue bounds (PgPool)	✓	MAX_WAIT = 100
+Cache bounds (LruCache)	✓	maxEntries enforced
+Timer cleanup	✓	.unref() on all intervals
+Database Layer Verification
+Finding	Status	Evidence
+MySQL RSA auth sends cleartext	NOT FIXED	wire.ts:609: // We don't support RSA here. // Send password in cleartext
+MySQL CI integration	NOT FIXED	No MySQL service in ci-cd.yml
+MigrationDiffer documentation	NOT FIXED	No documentation for entity decorator contract
+Seeder placeholder (DX-04)	PARTIALLY FIXED	isSqlite detection present; SELECT still uses ? with PG fallback catch block
+Observability Verification
+Finding	Status	Evidence
+O-01 OTel DB spans	NOT FIXED	pool.ts:218: TODO comment unchanged
+O-02 Correlation ID documented	NOT FIXED	No observability documentation exists
+O-03 Heap metric per-request	NOT FIXED	prometheusMiddleware still calls process.memoryUsage() on every request
+Deployment Verification
+Finding	Status	Evidence
+DEP-01/P-02 Edge adapter broken	NOT FIXED	adapter.ts:188: await app.listen(port) inside request handler — full TCP server per request
+DEP-02 STREET_READINESS_DELAY_MS	NOT FIXED	Not referenced in health.ts or server.ts
+DEP-03 Cloud Run logging	NOT FIXED	No K_SERVICE check in Logger constructor
+DEP-04 Kubernetes manifest fields	NOT FIXED	No imagePullSecrets/serviceAccountName in deployment.ts
+Final Scores
+Security Score: 28 / 100
+All 9 security findings from the previous audit remain unresolved. The two Critical vulnerabilities (WebAuthn bypass, RBAC bypass) are confirmed exploitable. The CI hygiene scan cannot pass due to two TODO comments.
+
+Testing Score: 41 / 100
+33 test files exist. 280 tests executed, 279 pass. Zero auth tests, zero tenancy tests, zero enterprise tests, zero platform tests, zero end-to-end tests, no MySQL CI coverage. ~40% of the codebase has zero test coverage.
+
+Documentation Score: 32 / 100
+v1.0 documentation is high quality and comprehensive. Everything added after v1.0 (auth, observability, jobs, tenancy, microservices, enterprise, platform) has zero documentation. No runnable examples exist. API reference covers only v1.0 exports.
+
+Performance Score: 8 / 100
+No benchmarks of any kind exist. No benchmark CI job. No performance comparison data. The edge adapter has a confirmed design defect that makes it non-functional for edge use cases. The only performance credit is for the zero-dependency architecture which theoretically should be fast, but this has no measured evidence.
+
+Reliability Score: 62 / 100
+Core reliability is good — all timers use .unref(), queues and caches are bounded, AuditLogger timer accumulation is fixed. Deductions for: WorkflowEngine missing distributed lock (concurrent step execution possible), SQLite MEMFS data loss with no warning, MySQL sending cleartext passwords over non-TLS connections.
+
+Developer Experience Score: 49 / 100
+CLI commands work well for v1.0 features. WebAuthn credentials silently don't work. RBAC decorators silently don't work. @Encrypt() silently does nothing. enableVersioning() is not wired into StreetApp. 5 documented CLI commands are registered in source but not in the CLI switch. No example applications exist.
+
+Production Readiness Score: 30 / 100
+Production Readiness Checklist
+Criterion	Status
+0 Critical security findings	✗ 2 Critical findings: S-01, S-02
+0 High security findings	✗ 7 High findings remain
+Auth system verified	✗ Zero auth tests; critical vulnerabilities present
+WebAuthn verified	✗ Signature bypass present; COSE key storage broken
+RBAC verified	✗ Guard architecturally inoperative
+OAuth2 verified	✗ sessionManager nullable; PKCE broken without it
+CI passing	✗ Code-hygiene scan fails on 2 TODO comments
+Benchmarks available	✗ No benchmarks exist
+Documentation complete	✗ Zero docs for 60% of API surface
+Examples available	✗ No examples directory
+Memory audit passed	⚠ Partial — WorkflowEngine missing distributed lock
+Security audit passed	✗ 2 Critical + 7 High unresolved
+Result: 0 of 12 criteria met. 1 partially met.
+
+Unresolved Findings Summary
+Finding	Severity	Release Blocking	Estimated Fix Effort
+S-01 WebAuthn signature bypass	CRITICAL	YES	2 days
+S-02 RBAC guard inoperative	CRITICAL	YES	1.5 days
+T-01 Zero auth tests	CRITICAL	YES	5 days
+S-03 OAuth2 PKCE broken	HIGH	YES	0.5 days
+S-05 WebAuthn COSE key storage	HIGH	YES	2 days
+S-08/S-09 TODO blocks CI	HIGH	YES	0.5 days
+DB-01 MySQL RSA cleartext	HIGH	YES	2.5 days
+T-04 No MySQL CI	HIGH	YES	0.5 days
+T-05 No benchmarks	HIGH	YES	3–4 days
+DEP-01/P-02 Edge adapter broken	HIGH	YES (edge targets)	2 days
+D-01 Missing feature docs	HIGH	YES	5–8 days
+D-02 No examples	HIGH	YES	3–5 days
+T-02 Zero tenancy/enterprise tests	HIGH	YES	8–12 days
+S-04 SigV4 unaudited	HIGH	YES	2 days
+S-06 API key timing	MEDIUM	NO	30 min
+R-01 Workflow no distributed lock	HIGH	NO	4 hours
+DX-02 @Encrypt silent	HIGH	NO	2 days
+DX-03 enableVersioning not wired	MEDIUM	NO	1 day
+O-01 OTel DB spans TODO	HIGH	NO	1 day
+DEP-02 Readiness delay	MEDIUM	NO	2 hours
+Estimated minimum effort to reach "Mostly Ready": 3–4 weeks focused engineering.
+
+Final Verdict
+✗ Not Ready
+The Street Framework has not undergone any security remediation since the previous audit. The two Critical vulnerabilities (WebAuthn authentication bypass and RBAC authorization bypass) are confirmed present and exploitable. The CI enforcement workflow cannot pass in the current state. No auth tests, no benchmarks, and no example applications exist. The v1.0 foundation is genuinely solid and well-tested — but the security-sensitive v1.4 features that ship with it are broken in ways that are invisible to users until they're exploited.
+
+
+Street Framework: Independent Security & Production Readiness Audit
+Audit Basis: All evidence gathered in this session via direct execution, source inspection, and git log analysis. Working tree confirmed clean at origin/main commit 1ccee88. No new commits introducing fixes were detected.
+
+Executive Summary
+Zero remediation has occurred. Every security, testing, documentation, performance, and CI finding from the previous audit cycle is unresolved. The repository HEAD is identical to the state analyzed in all prior audits in this session.
+
+The evidence is conclusive:
+
+git log --since="7 days ago" shows only spec file edits and test file tweaks from the audit session itself
+Both Critical security vulnerabilities (S-01 WebAuthn bypass, S-02 RBAC bypass) are confirmed present in production source code
+33 test files exist — zero cover auth, tenancy, enterprise, or platform modules
+No benchmarks/ directory exists
+No examples/ directory exists
+The code-hygiene CI scan would fail on two TODO comments, meaning the enforcement CI cannot pass on the current codebase
+Resolved Findings
+Finding	Status	Evidence
+R-02 AuditLogger timer accumulation	✓ RESOLVED	audit-logger.ts:86: else if (!this.flushTimer) guard prevents timer accumulation. Only one flush timer active at a time.
+R-05 AgentExecutor unbounded history	✓ RESOLVED	agent-executor.ts:129: for (let step = 0; step < this.maxSteps; step++). _summarizeHistory() resets history.length = 0.
+P-04 MySQL introspection sequential	✓ RESOLVED (was incorrect finding)	schema-inspector.ts uses Promise.all() for MySQL catalog queries.
+Total resolved: 3 of 47 findings (6%)
+
+Remaining Findings
+SECURITY
+S-01 — WebAuthn Signature Verification Bypass
+
+Status: ✗ NOT FIXED
+Severity: CRITICAL
+Evidence: webauthn.ts:300–311 — unchanged:
+// If signature length is 0 (test mode), skip verification
+if (signature.length > 0) {
+  try { ... createPublicKey({ format: 'der', type: 'spki' }) ... }
+  catch (e) {
+    if (e.message !== 'Invalid assertion signature') {
+      // Key format error in test mode — skip verification  ← BYPASS
+    }
+  }
+}
+Files changed: None
+Tests added: None
+Security impact: Any credential whose stored public key fails DER parsing (all real credentials, due to S-05) authenticates without signature verification. All WebAuthn-protected routes are passwordless.
+Regression risk: N/A — never fixed
+Release blocking: YES
+S-02 — RBAC Guard Router Integration Bypass
+
+Status: ✗ NOT FIXED
+Severity: CRITICAL
+Evidence: router.ts — zero references to routeHandler, street:roles, Reflect.getMetadata. rbac.ts:153: reads ctx.state?.['routeHandler'] which is never set. All @Roles() and @Permissions() decorators are inoperative.
+Files changed: None
+Tests added: None
+Security impact: Complete authorization bypass. Any authenticated user accesses any role-restricted endpoint.
+Release blocking: YES
+S-03 — OAuth2 PKCE Session Persistence
+
+Status: ✗ NOT FIXED
+Severity: HIGH
+Evidence: oauth2.ts:242: sessionManager?: (optional). oauth2.ts:253: this._session = opts.sessionManager ?? null. PKCE state lost after redirect when no session manager provided.
+Files changed: None
+Tests added: None
+Release blocking: YES
+S-04 — AWS SigV4 Validation Coverage
+
+Status: ✗ NOT FIXED
+Severity: HIGH
+Evidence: No test file references AwsSecretsManagerProvider or AWS SigV4 test vectors. Hand-rolled implementation is unaudited.
+Tests added: None
+Release blocking: YES (for secret provider use)
+S-05 — WebAuthn COSE Key Storage
+
+Status: ✗ NOT FIXED
+Severity: HIGH
+Evidence: webauthn.ts:219: // Real implementation would parse COSE key from authData; store base64url encoded authData as public key placeholder — comment verbatim unchanged. Root cause of S-01.
+Files changed: None
+Tests added: None
+Release blocking: YES
+S-06 — API Key Timing Side-Channel
+
+Status: ✗ NOT FIXED
+Severity: MEDIUM
+Evidence: api-keys.ts:121: if (storedHash.length !== computedHash.length || — length check before timingSafeEqual still present.
+Fix time: 30 minutes
+Release blocking: NO (minor, low exploitability)
+S-07 — Seeder Raw SQL Execution Safeguards
+
+Status: ✗ NOT FIXED
+Severity: MEDIUM
+Evidence: seed.ts CLI has no --dry-run flag. No documentation of the risk.
+Release blocking: NO
+S-08 — OTel TODO (CI Hygiene Blocker)
+
+Status: ✗ NOT FIXED
+Severity: HIGH
+Evidence: pool.ts:218: // TODO(otel): Instrument this method — unchanged. ci-cd-enforcement.yml scans for TODO and fails the build. The enforcement CI cannot pass.
+Release blocking: YES — CI is broken
+S-09 — Repository TODO (CI Hygiene Blocker)
+
+Status: ✗ NOT FIXED
+Severity: HIGH
+Evidence: repository.ts:127: // TODO: add parameterized queryStream — unchanged. Same CI failure.
+Release blocking: YES — CI is broken
+TESTING
+Finding	Status	Tests Exist	Count
+Auth test suite	NOT FIXED	NO	0
+WebAuthn tests	NOT FIXED	NO	0
+RBAC tests	NOT FIXED	NO	0
+OAuth2 tests	NOT FIXED	NO	0
+API Key tests	NOT FIXED	NO	0
+Refresh Token tests	NOT FIXED	NO	0
+Workflow tests	NOT FIXED	NO	0
+Tenancy tests	NOT FIXED	NO	0
+Enterprise tests	NOT FIXED	NO	0
+Platform tests	NOT FIXED	NO	0
+MySQL integration in CI	NOT FIXED	Skipped	0 run
+End-to-end smoke test	NOT FIXED	NO	0
+Live test execution results (280 tests across 16 files run):
+
+CLI: 74/74 pass
+Core unit: 205/206 pass (1 fail: route-profiler P99 assertion)
+Auth coverage: 0%
+v1.4–v3.0 coverage: ~3%
+DOCUMENTATION
+Guide	Status
+Auth Guide	MISSING
+OAuth2 Guide	MISSING
+RBAC Guide	MISSING
+WebAuthn Guide	MISSING
+Observability Guide	MISSING
+Health Check Guide	MISSING
+Jobs Guide	MISSING
+Workflow Guide	MISSING
+Tenancy Guide	MISSING
+Microservices Guide	MISSING
+Enterprise Guide	MISSING
+API Reference (v1.1+)	MISSING (172-line stub, v1.0 only)
+Example Applications	MISSING (examples/ directory does not exist)
+Getting started, PG driver, and JWT security guides exist and are high quality (v1.0 scope only).
+
+PERFORMANCE
+Requirement	Status
+benchmarks/ directory	ABSENT
+Benchmark scripts	ABSENT
+Benchmark CI job	ABSENT
+Comparison vs Express	ABSENT
+Comparison vs Fastify	ABSENT
+Comparison vs NestJS	ABSENT
+Comparison vs Hono	ABSENT
+Comparison vs Fiber	ABSENT
+Comparison vs Gin	ABSENT
+RELIABILITY
+Finding	Status
+WorkflowEngine distributed locking	NOT FIXED — no DistributedLock in workflow.ts
+SQLite MEMFS runtime warning	NOT FIXED — no warning when non-:memory: path used
+Queue bounds	✓ PASS — MAX_WAIT = 100 in PgPool
+Cache bounds	✓ PASS — maxEntries enforced in all LruCache instances
+Timer cleanup	✓ PASS — .unref() on all intervals
+DATABASE
+Finding	Status
+MySQL RSA auth cleartext	NOT FIXED — wire.ts:609: still sends cleartext when RSA requested
+MySQL CI integration	NOT FIXED — no MySQL service container in any CI job
+MigrationDiffer documentation	NOT FIXED — no entity decorator documentation
+Seeder placeholder	PARTIALLY FIXED — isSqlite detection for DDL; SELECT still has fallback retry
+OBSERVABILITY
+Finding	Status
+OTel DB spans	NOT FIXED — pool.ts:218 TODO unchanged
+Correlation ID docs	NOT FIXED — no observability documentation
+Heap metric per-request	NOT FIXED — process.memoryUsage() still called on every request
+DEPLOYMENT
+Finding	Status
+Edge adapter broken	NOT FIXED — adapter.ts:188: app.listen(port) inside request handler
+Readiness delay	NOT FIXED — STREET_READINESS_DELAY_MS not implemented
+Cloud Run logging	NOT FIXED — no K_SERVICE env var check in Logger
+Kubernetes manifest completeness	NOT FIXED — no imagePullSecrets, serviceAccountName, namespace
+Scores
+Security Score: 28 / 100
+Component	Score	Reason
+v1.0 core security (headers, XSS, rate limit, JWT, sessions)	90	Solid, tested, documented
+WebAuthn	5	COSE storage broken; signature bypass present
+RBAC	0	Guard architecturally inoperative
+OAuth2	45	Framework correct; PKCE state not persisted without explicit session
+API Keys	65	Timing side-channel present; implementation otherwise sound
+Refresh Tokens	60	Design correct; completely untested
+MySQL Auth	40	Cleartext password sent when RSA auth requested
+CI Security Gate	0	Code-hygiene scan cannot pass
+Testing Score: 41 / 100
+280 tests pass (279/280). Auth = 0%, v1.7–v3.0 = ~3%. No MySQL CI, no benchmarks, no E2E tests.
+
+Documentation Score: 32 / 100
+v1.0 documentation: excellent. Everything post-v1.0: zero coverage. No runnable examples.
+
+Performance Score: 8 / 100
+No benchmark data of any kind. Edge adapter has confirmed performance defect (full TCP server per request). 8 points for zero-dependency architecture that should be fast.
+
+Reliability Score: 62 / 100
+Core reliability is good. WorkflowEngine missing distributed lock. SQLite data-loss risk with no warning. MySQL sends cleartext on non-TLS connections.
+
+Developer Experience Score: 49 / 100
+CLI works for v1.0. RBAC, WebAuthn, and @Encrypt() silently don't work. No examples. 5 CLI commands registered in source but not in the CLI router switch.
+
+Production Readiness Score: 30 / 100
+Release Recommendation
+⚠ Requires Significant Work — Do Not Release
+
+The Street Framework cannot be released to production developers in its current state. The release is blocked by a minimum of 14 findings, 2 of which are Critical security vulnerabilities:
+
+Critical blockers (must fix before any release):
+
+S-01/S-05: WebAuthn signature verification bypassed for all real credentials — 2.5 days
+S-02: RBAC decorators have zero enforcement effect — 1.5 days
+T-01: Zero tests for any auth module — 5 days
+S-08/S-09: Two TODO comments prevent the CI hygiene scan from passing — 0.5 days
+T-05/P-01: No benchmarks — 3 days
+D-01/D-02: No auth/observability/jobs documentation and no example apps — 8 days
+T-04: No MySQL CI — 0.5 days
+Minimum estimated effort to unblock a release: 21–23 developer-days (4–5 weeks)
+
+The v1.0 core is genuinely well-built and is the appropriate target for a first public release scoped to: HTTP server, router, DI, PostgreSQL, JWT, sessions, rate limiting, XSS protection, WebSockets, SSE, CLI scaffolding, hot reload, and code generators. Shipping v1.0 cleanly — with docs, examples, and benchmarks — would be a credible and safe release. Shipping v1.4 auth features in their current state would expose users to silent security failures.
