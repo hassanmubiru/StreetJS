@@ -1,6 +1,7 @@
 // src/database/pool.ts
 // Bounded PostgreSQL connection pool with health checking and backpressure.
 
+import { EventEmitter } from 'node:events';
 import { PgConnection, type PgConnectOptions, type PgResult, type StreetPostgresWireStream } from './wire.js';
 import { Injectable } from '../core/container.js';
 import { DatabaseConnectionError } from '../http/exceptions.js';
