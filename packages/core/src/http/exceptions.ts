@@ -73,3 +73,19 @@ export class ServiceUnavailableException extends StreetException {
 export function isStreetException(err: unknown): err is StreetException {
   return err instanceof StreetException;
 }
+
+export class DatabaseConnectionError extends StreetException {
+  constructor(
+    message = 'Database connection failed',
+    public readonly suggestion?: string
+  ) {
+    super(503, message);
+  }
+
+  override toJSON(): object {
+    return {
+      ...super.toJSON(),
+      ...(this.suggestion !== undefined ? { suggestion: this.suggestion } : {}),
+    };
+  }
+}
