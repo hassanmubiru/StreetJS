@@ -363,3 +363,98 @@
   - [ ] 41.5 Create `FeatureUnavailableInEdgeRuntimeError` in `packages/core/src/http/exceptions.ts`
   - [ ] 41.6 Write tests: `handleEdgeRequest` routes to the correct handler, edge-incompatible features throw `FeatureUnavailableInEdgeRuntimeError` when initialized, routing/middleware/DI/JWT verify all work in edge mode
 
+
+- [ ] 42. v2.2 — Feature Flags
+  - [ ] 42.1 Write `street_feature_flags` migration SQL: `name TEXT PRIMARY KEY, enabled BOOLEAN, rules JSONB, updated_at`
+  - [ ] 42.2 Create `packages/core/src/enterprise/feature-flags.ts` with `FeatureFlagService`: `isEnabled(flagName, context?)` reads from DB with `LruCache` (default 30s TTL); returns `false` and logs a `warn` entry if flag is not found
+  - [ ] 42.3 Implement targeting rules evaluation: `user_id` exact match, `role` membership check, `environment` match; `percentage` rule uses `SHA256(flagName + userId)[0:8] % 100` for stable per-user assignment
+  - [ ] 42.4 Implement `FeatureFlagService.invalidateCache(flagName)`: remove the flag entry from `LruCache`
+  - [ ] 42.5 Register `PATCH /admin/feature-flags/:name` route: update the DB record, call `invalidateCache()`; protect with `requireRoles('admin')`
+  - [ ] 42.6 Write tests: flag not found returns `false` without throwing, percentage rollout is stable for same user, targeting rule evaluation order, cache invalidation forces DB re-read
+
+- [ ] 43. v2.2 — Audit Logging
+  - [ ] 43.1 Write `street_audit_log` migration SQL: `id UUID, category TEXT, actor_id TEXT, action TEXT, resource TEXT, before_state JSONB, after_state JSONB, ip TEXT, user_agent TEXT, batch_id UUID, signature TEXT, created_at`; create append-only trigger that blocks `UPDATE` and `DELETE`
+  - [ ] 43.2 Create `packages/core/src/enterprise/audit-logger.ts` with `AuditLogger`: `AuditCategory`, `AuditLogOptions`, `AuditLogger` class accepting `{ pool, signingKey }`
+  - [ ] 43.3 Implement `AuditLogger.log(opts)`: write to `street_audit_log`; batch every 100 entries; sign each batch with `HMAC-SHA256(previousSignature + batchJSON)` to create a hash chain
+  - [ ] 43.4 Implement `@Sensitive()` property decorator: marks entity fields; `AuditLogger.log()` reads metadata and replaces sensitive field values with `"[REDACTED]"` in `before_state` and `after_state`
+  - [ ] 43.5 Implement `AuditLogger.export(from, to, format)`: `SELECT` from `street_audit_log` ordered by `created_at`; stream output as JSONL or CSV via a `Readable` stream
+  - [ ] 43.6 Add `street audit:export --from <date> --to <date> --format <jsonl|csv>` CLI command
+  - [ ] 43.7 Write tests: append-only trigger prevents DELETE and UPDATE, batch signature chain is verifiable, `@Sensitive` fields are redacted in audit output, JSONL export contains all entries in time range
+
+- [ ] 44. v2.2 — Data Retention, Encryption Policies, and Data Classification
+  - [ ] 44.1 Create `packages/core/src/enterprise/data-policy.ts`: `@RetainFor(duration)`, `@Encrypt()`, `@Classify(level)` property decorators; store metadata under `street:retention`, `street:encrypt`, `street:classify` keys
+  - [ ] 44.2 Implement field-level transparent encryption in repository layer: when `@Encrypt()` is present on a field, intercept `create()` and `update()` to encrypt with `AES-256-GCM` using the vault key; intercept `findById()` and `findAll()` to decrypt on retrieval
+  - [ ] 44.3 Integrate `@Classify(level)` with `Logger`: when a log entry includes entity fields, check their classification level against `LOG_CLASSIFICATION_THRESHOLD` env var; redact fields above the threshold
+  - [ ] 44.4 Create `RetentionJob` class: read all entity `@RetainFor` metadata, generate `DELETE FROM <table> WHERE created_at < NOW() - INTERVAL $1` queries, execute in batches of configurable size (default 1,000 rows)
+  - [ ] 44.5 Create `ComplianceReporter.report(entities)`: iterate entity decorator metadata, produce `ComplianceReport[]` with field name, classification level, encrypted status, and retention period
+  - [ ] 44.6 Add `street compliance:report` CLI command: call `ComplianceReporter.report()`, print formatted table
+  - [ ] 44.7 Write tests: encrypted fields round-trip (encrypt on write, decrypt on read), classified fields redacted in logs, retention job deletes rows older than period, compliance report lists all annotated fields
+
+- [ ] 45. v2.2 — Backup Framework and Disaster Recovery
+  - [ ] 45.1 Write `street_backups` migration SQL: `id UUID, size_bytes BIGINT, duration_ms INT, checksum TEXT, storage_key TEXT, created_at`
+  - [ ] 45.2 Create `packages/core/src/enterprise/backup.ts`: `StorageAdapter` interface with `write(key, stream)`, `read(key)`, `list()`; `BackupRecord` type; `BackupService` class
+  - [ ] 45.3 Implement `LocalStorageAdapter`: write/read streams to/from local filesystem path
+  - [ ] 45.4 Implement `S3StorageAdapter`: PUT/GET via AWS Signature V4 signed `node:https` requests
+  - [ ] 45.5 Implement `GcsStorageAdapter`: PUT/GET via GCP service account `node:https` requests
+  - [ ] 45.6 Implement `BackupService.backup()`: use PostgreSQL `COPY (SELECT ...) TO STDOUT` over the existing `PgConnection` to stream table data without spawning an external process; compute SHA-256 incrementally; write to `StorageAdapter`; record metadata in `street_backups`
+  - [ ] 45.7 Implement `BackupService.restore(backupId, targetPool)`: fetch stream from `StorageAdapter`, verify SHA-256 checksum (abort on mismatch), apply SQL stream to target DB
+  - [ ] 45.8 Add `street restore --backup-id <id>` CLI command; exit code 1 with expected/actual checksums on mismatch
+  - [ ] 45.9 Write tests: backup stream checksum matches stored value, corrupted backup aborts restore without modifying target DB, S3 adapter round-trip (upload then download produces identical content)
+
+
+- [ ] 46. v3.0 — Distributed Cache and Global Config Service
+  - [ ] 46.1 Create `packages/core/src/platform/distributed-cache.ts`: `CacheTransport` interface with `get`, `set`, `delete`, `subscribe`, `publish`; `DistributedCache` class; `InProcessTransport` default implementation backed by `LruCache`
+  - [ ] 46.2 Implement `RedisTransport` in `packages/core/src/platform/transports/redis.ts`: raw RESP3 protocol over `node:net`; support `GET`, `SET EX`, `DEL`, `SUBSCRIBE`, `PUBLISH` commands; no redis npm package
+  - [ ] 46.3 Implement `MemcachedTransport`: raw Memcached text protocol over `node:net`
+  - [ ] 46.4 Implement `DistributedCache.invalidate(key)`: publish invalidation message to a `street:invalidate` pub/sub channel; all nodes receive the message and evict their local copy; complete propagation within 100ms on local network
+  - [ ] 46.5 Enforce `maxMemoryMb` bound in `DistributedCache`: local in-memory replica uses `LruCache` with byte-size tracking; evicts LRU entries when `maxMemoryMb` is exceeded
+  - [ ] 46.6 Create `GlobalConfigService` extending `EventEmitter`: `get(key)`, `set(key, value)` backed by `CacheTransport`; emit `config:changed` with `{ key, oldValue, newValue }` to all connected instances via pub/sub within 500ms
+  - [ ] 46.7 Write tests: invalidation propagates to all nodes within 100ms, `maxMemoryMb` eviction triggers LRU removal, `GlobalConfigService` emits `config:changed` event, stale config is re-fetched after TTL
+
+- [ ] 47. v3.0 — Event Streaming and Realtime Analytics
+  - [ ] 47.1 Create `packages/core/src/platform/event-streaming.ts`: `StreamTransport` interface, `EventStreamPublisher` class, `EventStreamConsumer` class; `InProcessTransport` default
+  - [ ] 47.2 Implement `KafkaTransport` in `packages/core/src/platform/transports/kafka.ts`: raw Kafka protocol (Fetch API, Produce API) over `node:net`; support consumer groups; no kafkajs dependency
+  - [ ] 47.3 Implement `KinesisTransport`: `PutRecord` and `GetRecords` via AWS Signature V4 signed `node:https` requests
+  - [ ] 47.4 Implement `EventStreamConsumer` lag monitoring: compare consumer committed offset to latest partition offset; emit `stream:lag` event when lag exceeds `maxLagThreshold`
+  - [ ] 47.5 Create `packages/core/src/platform/realtime-aggregator.ts` with `RealtimeAggregator`: register sliding-window aggregation functions (count, sum, avg, min, max); compute on each window tick; push results to `SseConnection` subscribers
+  - [ ] 47.6 Write tests: published event consumed by subscriber, envelope round-trip (published payload equals consumed payload), lag event fires when consumer falls behind, aggregator correctly computes window statistics
+
+- [ ] 48. v3.0 — Multi-Region Replication
+  - [ ] 48.1 Create `packages/core/src/platform/replication.ts` with `ReplicationCoordinator`: `RegionConfig[]` constructor parameter; `getWritePool()` always returns primary; `getReadPool(preferredRegion?)` routes by weight or preference
+  - [ ] 48.2 Implement primary health monitoring: `setInterval(() => checkHealth(), healthCheckIntervalMs)` pings each region with `ConnectionDiagnostics.ping()`; detect primary failure within `healthCheckIntervalMs` (default 10s)
+  - [ ] 48.3 Implement `promotePrimary(regionName)`: update internal routing table to make the specified region primary; emit `region:promoted` event; reject write queries to the former primary
+  - [ ] 48.4 Create `preferredRegionMiddleware(coordinator)`: read `X-Preferred-Region` header; call `coordinator.getReadPool(region)` for read requests; fall back to default read pool if region unavailable
+  - [ ] 48.5 Implement `db_replication_lag_seconds` Prometheus gauge: query `pg_stat_replication` on the primary and report lag per replica; label by `region` and `replica_id`
+  - [ ] 48.6 Write tests: primary failure promotes next healthy replica within 10s, `X-Preferred-Region` routes to correct pool, replication lag metric emitted with correct labels, active-active last-write-wins resolves conflict correctly
+
+- [ ] 49. v3.0 — AI Infrastructure Toolkit and Native Agent Framework
+  - [ ] 49.1 Create `packages/core/src/platform/ai/llm-client.ts`: `LlmClient` interface, `CompletionOptions`, `CompletionResult` types; `OpenAiClient`, `AnthropicClient`, `OllamaClient` implementations using `node:https`; no SDK dependencies
+  - [ ] 49.2 Implement streaming mode in each client: parse SSE chunks from the provider's stream response; yield tokens via `AsyncIterator<string>`
+  - [ ] 49.3 Create `packages/core/src/platform/ai/tool-registry.ts` with `ToolRegistry`: `register(name, fn, schema)` stores typed tool functions with their JSON Schema descriptors; `toFunctionList()` returns `LlmFunctionDef[]` for inclusion in LLM API calls
+  - [ ] 49.4 Create `packages/core/src/platform/ai/agent-executor.ts` with `AgentExecutor`: ReAct think/act/observe loop; call LLM, parse tool calls from response, execute via `ToolRegistry`, feed result back; stop when final answer produced or `maxSteps` reached
+  - [ ] 49.5 Implement SSE step streaming: when `ctx` is provided, emit `{ type: 'thought'|'action'|'observation'|'final', content: string }` events via `createSse(ctx.res)` for each intermediate step
+  - [ ] 49.6 Implement conversation history summarization: estimate tokens as `Math.ceil(content.length / 4)`; when history exceeds `maxTokens * 0.8`, send a summarization prompt to the LLM and replace history with the summary
+  - [ ] 49.7 Implement HTTP 429 retry: catch `429` from LLM provider, parse `Retry-After` header, wait that duration, then retry; propagate `Retry-After` on the API response
+  - [ ] 49.8 Write tests: ReAct loop resolves with correct final answer, tool execution result is fed back to LLM, history summarization triggers at token limit, 429 retry respects `Retry-After`, SSE events emitted in correct order
+
+- [ ] 50. v3.0 — Plugin Marketplace and Extension SDK
+  - [ ] 50.1 Create `packages/core/src/platform/plugins/sdk.ts`: `PluginModule` abstract base class with `name`, `version`, `onInstall?`, `onLoad?`, `onUnload?` lifecycle hooks; `SandboxedApp` interface exposing only `use()`, `registerController()`, and `on()`
+  - [ ] 50.2 Implement `StreetApp.use(plugin: PluginModule)`: resolve plugin as a `SandboxedApp` proxy; record the pre-load middleware stack length; call `plugin.onLoad(sandboxedApp)`; track loaded plugins in a `Map`
+  - [ ] 50.3 Implement plugin unloading: `app.unuse(plugin)`: call `plugin.onUnload(sandboxedApp)`; verify middleware stack is restored to pre-load length; remove tracked entries
+  - [ ] 50.4 Create `packages/core/src/platform/plugins/registry.ts` with `PluginInstaller`: `install(name, version)` fetches from `registryUrl`, verifies Ed25519 marketplace signature using `node:crypto`'s `verify()` with bundled public key, verifies SHA-256 checksum, extracts to `pluginsDir`; throw on invalid signature or mismatched checksum
+  - [ ] 50.5 Add `street plugin:install <name>@<version>` CLI command: call `PluginInstaller.install()`, report verification status
+  - [ ] 50.6 Add `street plugin:list` CLI command: read `pluginsDir`, load metadata from each plugin's `package.json`, print name, version, marketplace verification status, and load status
+  - [ ] 50.7 Write tests: `onLoad` + `onUnload` restores app to pre-load state (round-trip property), invalid marketplace signature throws and refuses installation, checksum mismatch throws and refuses installation, plugin cannot access DI container internals outside `SandboxedApp` interface
+
+
+- [ ] 51. Cross-Cutting — Absolute Implementation Policy Enforcement
+  - [ ] 51.1 Add a CI step in `.github/workflows/ci-cd.yml` that scans all `.ts` files under `packages/core/src/` for `TODO`, `FIXME`, `HACK`, and `@ts-ignore` comments and fails the build if any are found
+  - [ ] 51.2 Add database integration test jobs to `.github/workflows/ci-cd.yml`: spin up real PostgreSQL 16, MySQL 8, and SQLite services; run all test suites that touch database code against live instances
+  - [ ] 51.3 Create `benchmarks/` directory with benchmark scripts for the primary request path: measure latency and throughput against Express, Fastify, NestJS, and Hono using `node:http` or `autocannon`; add benchmark job to CI that records results as a build artifact
+  - [ ] 51.4 Add a memory safety test job to CI: run `node --max-old-space-size=256` against the memory safety test suite in `packages/core/tests/system/memory-safety.test.ts`; fail if heap growth exceeds 50 MB over 10,000 requests
+  - [ ] 51.5 Add a security audit step to CI: run `npm audit --audit-level=high` and fail the build on any high or critical severity findings
+  - [ ] 51.6 Create `docs/` content stubs for each new module matching the documentation plan: `getting-started.md`, `user-guide.md`, `api-reference.md`, `cli-reference.md`, `security.md`, `migration.md`, `troubleshooting.md`, `examples/` per version milestone
+  - [ ] 51.7 Audit all new stateful classes (`DevWatcher`, `JobQueue`, `CronScheduler`, `WorkflowEngine`, `DiagnosticsServer`, `OtelTracer`, `AnalyticsService`, `TenantPoolRegistry`, `AgentExecutor`) for `destroy()`/`stop()`/`close()` method completeness and verify they are called in the graceful shutdown sequence in `main.ts`
+  - [ ] 51.8 Verify all `setInterval` and `setTimeout` timers across all new modules call `.unref()` so they do not prevent process exit
+  - [ ] 51.9 Add a backward-compatibility regression test job: after each version is completed, run the full previous-version test suite against the new codebase and fail if any existing test breaks
+  - [ ] 51.10 Create `CHANGELOG.md` entries for each shipped version following the Keep a Changelog format; automate generation from conventional commit messages in the CI release job
