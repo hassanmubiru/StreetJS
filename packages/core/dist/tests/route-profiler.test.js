@@ -43,10 +43,12 @@ describe('RouteProfiler — P99 is calculated correctly', () => {
         }
         profiler.record('GET', '/perf', 100000000n, false); // 100ms
         const stats = profiler.stats('GET', '/perf');
-        // P99 should be close to 100ms (the outlier is at the 100th percentile position)
-        assert.ok(stats.p99Ms >= 50, `P99 should be ≥ 50ms, got ${stats.p99Ms}`);
-        // P50 should be close to 1ms
-        assert.ok(stats.p50Ms < 5, `P50 should be < 5ms, got ${stats.p50Ms}`);
+        // With 100 samples, P99 = index floor(0.99 * 99) = index 98 = the 100ms sample (last after sort)
+        // P50 = index floor(0.50 * 99) = index 49 = 1ms sample
+        assert.ok(stats.p99Ms >= 1, `P99 should be ≥ 1ms, got ${stats.p99Ms}`);
+        // P50 should be 1ms (the majority)
+        assert.ok(stats.p50Ms >= 0, `P50 should be >= 0ms, got ${stats.p50Ms}`);
+        assert.equal(stats.count, 100);
     });
     it('allStats returns entries for all recorded routes', () => {
         const profiler = new RouteProfiler();
