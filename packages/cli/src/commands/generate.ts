@@ -3,7 +3,8 @@
 // middleware, gateways, and migrations.
 
 import { mkdir, writeFile, readFile, access } from 'node:fs/promises';
-import { resolve, dirname, fileURLToPath } from 'node:path';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { CliContext } from '../index.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -405,4 +406,64 @@ export async function generateMiddleware(name: string, cwd: string): Promise<voi
   await writeFile(targetPath, content, 'utf8');
 
   process.stdout.write(`[street] Created middleware: src/middleware/${name}.middleware.ts\n`);
+}
+
+/**
+ * Generate a typed WebSocket gateway scaffold.
+ * Full implementation in task 2.3.
+ *
+ * Output: `<cwd>/src/gateways/<name>.gateway.ts`
+ */
+export async function generateGateway(name: string, cwd: string): Promise<void> {
+  assertValidName(name);
+
+  const targetPath = resolve(cwd, 'src', 'gateways', `${name}.gateway.ts`);
+  await assertNotExists(targetPath);
+
+  const tplPath = resolve(templatesDir(), 'gateway.ts.tpl');
+  const tpl = await readFile(tplPath, 'utf8');
+  const content = tpl.replaceAll('{{NAME}}', name);
+
+  await mkdir(dirname(targetPath), { recursive: true });
+  await writeFile(targetPath, content, 'utf8');
+
+  process.stdout.write(`[street] Created gateway: src/gateways/${name}.gateway.ts\n`);
+}
+
+/**
+ * Generate a timestamped SQL migration pair (up + rollback).
+ * Full implementation in task 2.4.
+ *
+ * Output: `<cwd>/migrations/<timestamp>_<name>.sql` + `.rollback.sql`
+ */
+export async function generateMigration(name: string, cwd: string): Promise<void> {
+  assertValidName(name);
+
+  const timestamp = new Date().toISOString().replace(/[-T:.Z]/g, '').slice(0, 14);
+  const base = `${timestamp}_${name}`;
+
+  const upPath = resolve(cwd, 'migrations', `${base}.sql`);
+  const downPath = resolve(cwd, 'migrations', `${base}.rollback.sql`);
+
+  await assertNotExists(upPath);
+  await assertNotExists(downPath);
+
+  const upTplPath = resolve(templatesDir(), 'migration-up.sql.tpl');
+  const downTplPath = resolve(templatesDir(), 'migration-rollback.sql.tpl');
+
+  const [upTpl, downTpl] = await Promise.all([
+    readFile(upTplPath, 'utf8'),
+    readFile(downTplPath, 'utf8'),
+  ]);
+
+  const upContent = upTpl.replaceAll('{{NAME}}', name);
+  const downContent = downTpl.replaceAll('{{NAME}}', name);
+
+  await mkdir(dirname(upPath), { recursive: true });
+  await Promise.all([
+    writeFile(upPath, upContent, 'utf8'),
+    writeFile(downPath, downContent, 'utf8'),
+  ]);
+
+  process.stdout.write(`[street] Created migration:\n  migrations/${base}.sql\n  migrations/${base}.rollback.sql\n`);
 }
