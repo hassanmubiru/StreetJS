@@ -6,7 +6,7 @@
 // Run after `tsc`:
 //   node --test dist/tests/sqlite.test.js
 
-import { describe, it, after } from 'node:test';
+import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
