@@ -25,17 +25,17 @@
   - [x] 3.6 Export `defineConfig` and `ConfigValidationError` from `packages/core/src/index.ts`
   - [x] 3.7 Write unit tests covering: missing required field, invalid port range, malformed URL, default applied on absent var, error on present-but-invalid var, multi-error collection
 
-- [ ] 4. v1.1 — Enhanced Error Diagnostics
-  - [-] 4.1 Create `packages/core/src/diagnostics/reporter.ts`: `DiagnosticsReporter` class extending `EventEmitter`, `DiagnosticEvent` interface with `errorClass`, `message`, `stack[]`, `correlationId`, `ts` fields
-  - [~] 4.2 Implement `DiagnosticsReporter.report(err, correlationId?)`: serialize to JSON, strip Node.js internal frames (filter lines matching `/node:internal|node_modules\/node/`), emit `diagnostic` event, write to `process.stderr`
-  - [~] 4.3 Replace `console.error` in `packages/core/src/router/router.ts`'s `errorHandler` with `DiagnosticsReporter.report()`
-  - [~] 4.4 Enrich `Container.resolve()` error message with the full dependency chain on resolution failure: `"Cannot resolve X → Y → Z: <reason>"`
-  - [~] 4.5 Add `DatabaseConnectionError` class to `packages/core/src/http/exceptions.ts` with a `suggestion` field; throw it from `PgPool.initialize()` on `ECONNREFUSED` with relevant env var names
-  - [~] 4.6 Export `DiagnosticsReporter` and `DiagnosticEvent` from `packages/core/src/index.ts`
-  - [~] 4.7 Write tests: verify `diagnostic` event fires on unhandled route error, verify stack frames are cleaned, verify dependency chain appears in DI error messages
+- [x] 4. v1.1 — Enhanced Error Diagnostics
+  - [x] 4.1 Create `packages/core/src/diagnostics/reporter.ts`: `DiagnosticsReporter` class extending `EventEmitter`, `DiagnosticEvent` interface with `errorClass`, `message`, `stack[]`, `correlationId`, `ts` fields
+  - [x] 4.2 Implement `DiagnosticsReporter.report(err, correlationId?)`: serialize to JSON, strip Node.js internal frames (filter lines matching `/node:internal|node_modules\/node/`), emit `diagnostic` event, write to `process.stderr`
+  - [x] 4.3 Replace `console.error` in `packages/core/src/router/router.ts`'s `errorHandler` with `DiagnosticsReporter.report()`
+  - [x] 4.4 Enrich `Container.resolve()` error message with the full dependency chain on resolution failure: `"Cannot resolve X → Y → Z: <reason>"`
+  - [x] 4.5 Add `DatabaseConnectionError` class to `packages/core/src/http/exceptions.ts` with a `suggestion` field; throw it from `PgPool.initialize()` on `ECONNREFUSED` with relevant env var names
+  - [x] 4.6 Export `DiagnosticsReporter` and `DiagnosticEvent` from `packages/core/src/index.ts`
+  - [x] 4.7 Write tests: verify `diagnostic` event fires on unhandled route error, verify stack frames are cleaned, verify dependency chain appears in DI error messages
 
 - [ ] 5. v1.1 — CLI Operational Commands (info, doctor, env validate, audit)
-  - [~] 5.1 Create `packages/cli/src/commands/info.ts` with `InfoCommand`: read `package.json` for Street version, read `process.version` for Node, detect TypeScript version from `node_modules/typescript/package.json`, print aligned table
+  - [-] 5.1 Create `packages/cli/src/commands/info.ts` with `InfoCommand`: read `package.json` for Street version, read `process.version` for Node, detect TypeScript version from `node_modules/typescript/package.json`, print aligned table
   - [~] 5.2 Create `packages/cli/src/commands/doctor.ts` with `DoctorCommand`: check Node.js >= 20, TypeScript >= 5.0, required env vars from `.env.example`, attempt DB connectivity ping via `PgConnection.connect()`; print ✓/✗ per check with versions and upgrade hints
   - [~] 5.3 Create env-validate logic in `DoctorCommand` (or separate `EnvValidateCommand`): dynamic-import `street.config.ts` from the project root, call `defineConfig()`, report per-variable pass/fail, exit code 0 or 1
   - [~] 5.4 Create `packages/cli/src/commands/audit.ts` with `AuditCommand`: spawn `npm audit --json`, parse JSON output, format CVE findings as a table with package name, severity, and fix recommendation
