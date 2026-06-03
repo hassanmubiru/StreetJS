@@ -7,7 +7,7 @@ export { Controller, Get, Post, Put, Patch, Delete, Validate, ApiOperation, Conf
 export { createContext } from './core/context.js';
 // ── HTTP ──────────────────────────────────────────────────────────────────────
 export { streetApp } from './http/server.js';
-export { StreetException, BadRequestException, UnauthorizedException, ForbiddenException, NotFoundException, ConflictException, UnprocessableException, InternalException, ServiceUnavailableException, isStreetException, } from './http/exceptions.js';
+export { StreetException, BadRequestException, UnauthorizedException, ForbiddenException, NotFoundException, ConflictException, UnprocessableException, InternalException, ServiceUnavailableException, DatabaseConnectionError, isStreetException, } from './http/exceptions.js';
 export { authMiddleware, requireRoles, securityHeaders, corsMiddleware, } from './http/auth.middleware.js';
 export { generateOpenApi } from './http/openapi.js';
 // ── Router ────────────────────────────────────────────────────────────────────
@@ -38,6 +38,10 @@ export { ClusterCoordinator, workerHeartbeat, signalReady, } from './cluster/coo
 export { WebhookDispatcher } from './webhook/dispatcher.js';
 // ── Dev ───────────────────────────────────────────────────────────────────────
 export { DevWatcher } from './dev/watcher.js';
+// ── Config ────────────────────────────────────────────────────────────────────
+export { defineConfig, ConfigValidationError } from './config/validator.js';
+// ── Diagnostics ───────────────────────────────────────────────────────────────
+export { DiagnosticsReporter, diagnosticsReporter } from './diagnostics/reporter.js';
 // ── CLI ───────────────────────────────────────────────────────────────────────
 export { CliKernel, parseArgv } from './cli/kernel.js';
 //# sourceMappingURL=index.js.map

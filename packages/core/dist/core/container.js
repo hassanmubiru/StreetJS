@@ -36,10 +36,24 @@ export class Container {
             const paramTypes = Reflect.getMetadata('design:paramtypes', token) ?? [];
             const deps = paramTypes.map((dep) => {
                 if (!dep || dep === Object) {
-                    throw new Error(`Cannot resolve dependency for ${token.name}: got primitive or undefined type. ` +
+                    const chain = [...this.resolving].map((c) => c.name);
+                    chain.push(token.name);
+                    throw new Error(`Cannot resolve ${chain.join(' → ')}: got primitive or undefined type. ` +
                         `Ensure emitDecoratorMetadata is enabled and the dependency is decorated with @Injectable.`);
                 }
-                return this.resolve(dep);
+                try {
+                    return this.resolve(dep);
+                }
+                catch (inner) {
+                    const chain = [...this.resolving].map((c) => c.name);
+                    chain.push(dep.name);
+                    const reason = inner instanceof Error ? inner.message : String(inner);
+                    // Only wrap if the message doesn't already contain a chain annotation
+                    if (reason.includes(' → ') || reason.startsWith('Cannot resolve ')) {
+                        throw inner;
+                    }
+                    throw new Error(`Cannot resolve ${chain.join(' → ')}: ${reason}`);
+                }
             });
             const instance = new token(...deps);
             this.singletons.set(token, instance);
