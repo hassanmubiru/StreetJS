@@ -130,3 +130,14 @@ export type { SpanContext, Span } from './observability/otel.js';
 // ── Health Check DSL ──────────────────────────────────────────────────────────
 export { HealthCheckRegistry, registerHealthRoutes } from './observability/health.js';
 export type { CheckResult, HealthResponse, CheckType, CheckStatus, CheckFn } from './observability/health.js';
+
+// ── Structured Logging ────────────────────────────────────────────────────────
+export { Logger, correlationMiddleware } from './observability/logger.js';
+export type { LogLevel, LogEntry } from './observability/logger.js';
+
+// ── Prometheus Metrics ────────────────────────────────────────────────────────
+export { MetricsRegistry, Counter, Gauge, Histogram, MetricConflictError, prometheusMiddleware, metricsHandler } from './observability/prometheus.js';
+
+// ── Route Profiler ────────────────────────────────────────────────────────────
+export { RouteProfiler } from './diagnostics/route-profiler.js';
+export type { LatencySample, RouteStats } from './diagnostics/route-profiler.js';
