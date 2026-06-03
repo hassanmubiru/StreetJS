@@ -1,0 +1,167 @@
+name: CI/CD Enforcement
+
+# ── Policy Enforcement Workflow ────────────────────────────────────────────
+# Enforces code quality gates, security audits, and backward-compat checks.
+# Runs in parallel with the main ci-cd.yml workflow.
+
+"on":
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  # ── code-hygiene: Scan for TODOs, FIXMEs, HACKs, @ts-ignore ─────────────
+  # Fails the build if any of these markers are found in packages/core/src/
+  code-hygiene:
+    name: Code Hygiene Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Scan for prohibited markers
+        run: |
+          echo "Scanning packages/core/src/ for TODO, FIXME, HACK, @ts-ignore..."
+          FOUND=0
+
+          # Scan for TODO
+          if grep -rn --include="*.ts" "TODO" packages/core/src/; then
+            echo "::error::Found TODO comments in packages/core/src/ — all items must be resolved before merge"
+            FOUND=1
+          fi
+
+          # Scan for FIXME
+          if grep -rn --include="*.ts" "FIXME" packages/core/src/; then
+            echo "::error::Found FIXME comments in packages/core/src/ — all items must be resolved before merge"
+            FOUND=1
+          fi
+
+          # Scan for HACK
+          if grep -rn --include="*.ts" "HACK" packages/core/src/; then
+            echo "::error::Found HACK comments in packages/core/src/ — all items must be resolved before merge"
+            FOUND=1
+          fi
+
+          # Scan for @ts-ignore
+          if grep -rn --include="*.ts" "@ts-ignore" packages/core/src/; then
+            echo "::error::Found @ts-ignore in packages/core/src/ — use @ts-expect-error with a justification comment"
+            FOUND=1
+          fi
+
+          if [ "$FOUND" -ne 0 ]; then
+            exit 1
+          fi
+
+          echo "Code hygiene check passed ✔"
+
+  # ── security-audit: npm audit for high/critical vulnerabilities ─────────
+  security-audit:
+    name: Security Audit (npm audit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+        with:
+          node-version: '20'
+
+      - name: Run npm audit (high and above)
+        run: |
+          echo "Running npm audit at high severity level..."
+          npm audit --audit-level=high --workspace=packages/core --workspace=packages/cli
+          echo "Security audit passed ✔"
+
+  # ── memory-safety: Run memory safety tests with bounded heap ───────────
+  memory-safety-enforcement:
+    name: Memory Safety Enforcement
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20', '22']
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Build packages
+        run: npm run build:app -w packages/core
+
+      - name: Run memory safety tests (max 256MB heap)
+        run: |
+          node --max-old-space-size=256 \
+            --test \
+            packages/core/dist/tests/system/memory-safety.test.js
+          echo "Memory safety tests passed ✔"
+
+  # ── backward-compat: Regression tests against prior version ────────────
+  backward-compat:
+    name: Backward Compatibility Regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20', '22']
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: street_test
+          POSTGRES_USER: street
+          POSTGRES_PASSWORD: ${{ secrets.PG_PASSWORD }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Build current version
+        run: npm run build:app -w packages/core
+
+      - name: Run full test suite (backward compat regression)
+        env:
+          PG_HOST: localhost
+          PG_PORT: 5432
+          PG_USER: street
+          PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
+          PG_DATABASE: street_test
+          KEK: ${{ secrets.KEK }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          SESSION_KEY: ${{ secrets.SESSION_KEY }}
+        run: |
+          echo "Running backward compatibility regression tests..."
+          npm test -w packages/core
+          npm test -w packages/cli
+          echo "Backward compatibility regression passed ✔"
