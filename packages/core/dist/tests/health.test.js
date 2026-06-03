@@ -50,7 +50,8 @@ describe('HealthCheckRegistry', () => {
         }), { timeoutMs: 10 });
         const result = await registry.runLiveness();
         // Resolve the dangling promise to avoid test-runner cancellation
-        resolveCheck?.();
+        if (resolveCheck)
+            resolveCheck();
         assert.equal(result.status, 'degraded');
         assert.equal(result.checks['slow']?.status, 'down');
         assert.deepEqual(result.checks['slow']?.details, { reason: 'timeout' });
