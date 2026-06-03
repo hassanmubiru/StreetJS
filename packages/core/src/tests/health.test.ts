@@ -60,7 +60,7 @@ describe('HealthCheckRegistry', () => {
     const registry = new HealthCheckRegistry();
     // Check function that never resolves during the timeout window
     // Using a 10ms timeout so the test completes quickly
-    let resolveCheck: (() => void) | null = null;
+    let resolveCheck: (() => void) | undefined;
     registry.addCheck(
       'slow',
       () => new Promise<{ status: 'up' | 'down' }>((resolve) => {
