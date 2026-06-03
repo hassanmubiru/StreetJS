@@ -1,9 +1,17 @@
 // packages/cli/src/commands/dev.ts
 // `street dev` — compiles TypeScript and starts the server with file watching.
+//
+// When `--watch` is passed (or `DEV_WATCH=true` is set in the environment)
+// the command delegates to `DevWatcher` from `@streetjs/core`, which handles
+// incremental compilation, server restart, and graceful shutdown.
+//
+// Without `--watch` the command falls back to the original one-shot build +
+// server start behaviour.
 
 import { spawn } from 'node:child_process';
 import { resolve } from 'node:path';
 import { watch } from 'node:fs/promises';
+import { DevWatcher } from '@streetjs/core';
 import type { CliContext } from '../index.js';
 
 export class DevCommand {
@@ -12,6 +20,55 @@ export class DevCommand {
 
   async execute(ctx: CliContext): Promise<void> {
     const projectDir = ctx.cwd;
+
+    // ── Watch mode: delegate to DevWatcher ──────────────────────────────────
+    const watchFlagPresent =
+      ctx.args.flags['watch'] === true ||
+      ctx.args.flags['w'] === true ||
+      process.env['DEV_WATCH'] === 'true';
+
+    if (watchFlagPresent) {
+      await this.runWithDevWatcher(projectDir);
+      return;
+    }
+
+    // ── Legacy one-shot mode ─────────────────────────────────────────────────
+    await this.runLegacy(projectDir);
+  }
+
+  // ── DevWatcher-based mode ──────────────────────────────────────────────────
+
+  private async runWithDevWatcher(projectDir: string): Promise<void> {
+    const watcher = new DevWatcher({
+      srcDir: resolve(projectDir, 'src'),
+      outDir: resolve(projectDir, 'dist'),
+      drainTimeoutMs: 5000,
+      entrypoint: resolve(projectDir, 'dist', 'main.js'),
+    });
+
+    // Register signal handlers before start() so they are in place even if
+    // start() is blocked on initial compilation.
+    const onSignal = (): void => {
+      watcher.stop().then(() => {
+        process.exit(0);
+      }).catch(() => {
+        process.exit(1);
+      });
+    };
+
+    process.once('SIGINT', onSignal);
+    process.once('SIGTERM', onSignal);
+
+    await watcher.start();
+
+    // Keep the process alive — DevWatcher uses fs.watch() internally which
+    // keeps the event loop active, but we hold an explicit ref here for
+    // clarity.  The signal handlers above are the exit path.
+  }
+
+  // ── Legacy one-shot mode ───────────────────────────────────────────────────
+
+  private async runLegacy(projectDir: string): Promise<void> {
     const distDir = resolve(projectDir, 'dist');
     const srcDir = resolve(projectDir, 'src');
 
