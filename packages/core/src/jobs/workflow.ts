@@ -1,0 +1,210 @@
+// src/jobs/workflow.ts
+// Saga-pattern workflow engine backed by PostgreSQL.
+
+import type { JobQueuePool } from './queue.js';
+
+// ── Migration SQL ─────────────────────────────────────────────────────────────
+
+export const STREET_WORKFLOWS_MIGRATION_SQL = `
+CREATE TABLE IF NOT EXISTS street_workflows (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name         TEXT NOT NULL,
+  status       TEXT NOT NULL DEFAULT 'pending',
+  current_step INT NOT NULL DEFAULT 0,
+  step_outputs JSONB NOT NULL DEFAULT '{}',
+  input        JSONB NOT NULL DEFAULT '{}',
+  error        TEXT,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS street_workflows_name_status ON street_workflows (name, status);
+`;
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+export interface WorkflowContext {
+  workflowId: string;
+}
+
+export interface WorkflowStep {
+  name: string;
+  run(input: unknown, ctx: WorkflowContext): Promise<unknown>;
+  compensate?(output: unknown, ctx: WorkflowContext): Promise<void>;
+  timeoutMs?: number;
+}
+
+// ── WorkflowEngine ────────────────────────────────────────────────────────────
+
+export class WorkflowEngine {
+  private readonly pool: JobQueuePool;
+  private readonly definitions = new Map<string, WorkflowStep[]>();
+
+  constructor(pool: JobQueuePool) {
+    this.pool = pool;
+  }
+
+  /** Define a named workflow with an ordered list of steps. */
+  define(name: string, steps: WorkflowStep[]): void {
+    this.definitions.set(name, steps);
+  }
+
+  /** Start a new workflow instance and immediately resume it. Returns the workflow ID. */
+  async start(name: string, input: unknown): Promise<string> {
+    if (!this.definitions.has(name)) {
+      throw new Error(`Workflow "${name}" is not defined`);
+    }
+
+    const result = await this.pool.query(
+      `INSERT INTO street_workflows (name, input) VALUES ($1, $2::jsonb) RETURNING id`,
+      [name, JSON.stringify(input)],
+    );
+    const workflowId = result.rows[0]['id'] as string;
+    await this.resume(workflowId);
+    return workflowId;
+  }
+
+  /** Resume a workflow from its current step. */
+  async resume(workflowId: string): Promise<void> {
+    const result = await this.pool.query(
+      `SELECT name, status, current_step, step_outputs, input FROM street_workflows WHERE id=$1`,
+      [workflowId],
+    );
+
+    if (result.rows.length === 0) {
+      throw new Error(`Workflow "${workflowId}" not found`);
+    }
+
+    const row = result.rows[0];
+    const name = row['name'] as string;
+    const status = row['status'] as string;
+
+    if (status === 'completed' || status === 'failed') {
+      return; // Already terminal — nothing to do
+    }
+
+    const steps = this.definitions.get(name);
+    if (!steps) {
+      throw new Error(`Workflow definition "${name}" not found`);
+    }
+
+    const stepOutputs: Record<string, unknown> = row['step_outputs']
+      ? (JSON.parse(row['step_outputs'] as string) as Record<string, unknown>)
+      : {};
+    let currentStepIndex = parseInt(row['current_step'] as string, 10);
+    const ctx: WorkflowContext = { workflowId };
+
+    // Keep track of completed steps and their outputs for compensation
+    const completedSteps: Array<{ step: WorkflowStep; output: unknown }> = [];
+
+    // Populate already-completed steps from stored outputs
+    for (let i = 0; i < currentStepIndex; i++) {
+      const step = steps[i];
+      if (step) {
+        completedSteps.push({ step, output: stepOutputs[step.name] });
+      }
+    }
+
+    // Get initial input for this resume (output of previous step, or workflow input)
+    let currentInput: unknown = currentStepIndex === 0
+      ? (row['input'] ? JSON.parse(row['input'] as string) : undefined)
+      : (completedSteps.length > 0
+        ? completedSteps[completedSteps.length - 1].output
+        : undefined);
+
+    // Execute remaining steps
+    for (let i = currentStepIndex; i < steps.length; i++) {
+      const step = steps[i];
+
+      // Skip already-completed steps (recorded in step_outputs)
+      if (stepOutputs[step.name] !== undefined) {
+        completedSteps.push({ step, output: stepOutputs[step.name] });
+        currentStepIndex = i + 1;
+        continue;
+      }
+
+      // Mark workflow as running at this step
+      await this.pool.query(
+        `UPDATE street_workflows SET status='running', current_step=$1, updated_at=NOW() WHERE id=$2`,
+        [i, workflowId],
+      );
+
+      try {
+        const output = await this._runWithTimeout(step, currentInput, ctx);
+
+        // Persist step output
+        stepOutputs[step.name] = output;
+        await this.pool.query(
+          `UPDATE street_workflows
+           SET step_outputs=$1::jsonb, current_step=$2, updated_at=NOW()
+           WHERE id=$3`,
+          [JSON.stringify(stepOutputs), i + 1, workflowId],
+        );
+
+        completedSteps.push({ step, output });
+        currentInput = output;
+        currentStepIndex = i + 1;
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : String(err);
+
+        // Mark workflow as failed
+        await this.pool.query(
+          `UPDATE street_workflows SET status='failed', error=$1, updated_at=NOW() WHERE id=$2`,
+          [errorMsg, workflowId],
+        );
+
+        // Saga compensation: run compensate() for completed steps in reverse
+        await this._compensate(completedSteps, ctx);
+        return;
+      }
+    }
+
+    // All steps completed
+    await this.pool.query(
+      `UPDATE street_workflows SET status='completed', updated_at=NOW() WHERE id=$1`,
+      [workflowId],
+    );
+  }
+
+  // ── Internal ──────────────────────────────────────────────────────────────
+
+  private async _runWithTimeout(
+    step: WorkflowStep,
+    input: unknown,
+    ctx: WorkflowContext,
+  ): Promise<unknown> {
+    if (!step.timeoutMs) {
+      return step.run(input, ctx);
+    }
+
+    return Promise.race([
+      step.run(input, ctx),
+      new Promise<never>((_, reject) =>
+        setTimeout(
+          () => reject(new Error(`Step "${step.name}" timed out after ${step.timeoutMs}ms`)),
+          step.timeoutMs,
+        ).unref?.(),
+      ),
+    ]);
+  }
+
+  private async _compensate(
+    completedSteps: Array<{ step: WorkflowStep; output: unknown }>,
+    ctx: WorkflowContext,
+  ): Promise<void> {
+    // Run in reverse order
+    for (let i = completedSteps.length - 1; i >= 0; i--) {
+      const { step, output } = completedSteps[i];
+      if (typeof step.compensate === 'function') {
+        try {
+          await step.compensate(output, ctx);
+        } catch (compensateErr) {
+          // Log but do not re-throw — keep compensating remaining steps
+          const msg = compensateErr instanceof Error ? compensateErr.message : String(compensateErr);
+          process.stderr.write(
+            `[WorkflowEngine] Compensation error in step "${step.name}": ${msg}\n`,
+          );
+        }
+      }
+    }
+  }
+}
