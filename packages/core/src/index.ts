@@ -28,6 +28,7 @@ export {
   StreetException, BadRequestException, UnauthorizedException,
   ForbiddenException, NotFoundException, ConflictException,
   UnprocessableException, InternalException, ServiceUnavailableException,
+  DatabaseConnectionError,
   isStreetException,
 } from './http/exceptions.js';
 export {
