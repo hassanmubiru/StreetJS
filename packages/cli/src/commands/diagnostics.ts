@@ -4,7 +4,6 @@
 
 import { createConnection } from 'node:net';
 import { unlink } from 'node:fs/promises';
-import { resolve } from 'node:path';
 import type { CliContext } from '../index.js';
 
 interface RouteStats {
