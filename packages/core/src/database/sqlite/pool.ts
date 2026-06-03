@@ -37,8 +37,8 @@ interface Waiter {
   timer: NodeJS.Timeout;
 }
 
-/** Acquire-timeout for a free worker (5 s). */
-const ACQUIRE_TIMEOUT_MS = 5_000;
+/** Acquire-timeout for a free worker (10 s — workers need time to load WASM). */
+const ACQUIRE_TIMEOUT_MS = 10_000;
 
 /** Bounded size of the waiter queue (prevents unbounded memory growth). */
 const MAX_WAIT_QUEUE = 64;
@@ -50,6 +50,7 @@ export class SqlitePool {
   private readonly maxWorkers: number;
   private readonly workers: WorkerEntry[] = [];
   private readonly waitQueue: Waiter[] = [];
+  private pendingCreations = 0;
   private closed = false;
 
   /** Next message-id counter (shared across all workers; just needs to be unique). */
@@ -69,45 +70,79 @@ export class SqlitePool {
     return join(__dir, 'worker.js');
   }
 
-  private _createWorker(): WorkerEntry {
-    const worker = new Worker(this._workerPath(), {
-      workerData: { filePath: this.filePath },
-    });
+  /**
+   * Spawn a new worker and wait for it to signal `{ type: 'ready' }` before
+   * adding it to the pool.  The WASM module initialisation is async, so
+   * without this handshake the pool could send messages before the worker
+   * is listening.
+   */
+  private _createWorker(): Promise<WorkerEntry> {
+    return new Promise<WorkerEntry>((resolve, reject) => {
+      const worker = new Worker(this._workerPath(), {
+        workerData: { filePath: this.filePath },
+      });
 
-    // Surface unhandled worker errors (they do not reject individual calls)
-    worker.on('error', (err) => {
-      // Mark as not busy so the pool can remove it on the next acquire
-      entry.busy = false;
-      // Remove from pool
-      const idx = this.workers.indexOf(entry);
-      if (idx !== -1) this.workers.splice(idx, 1);
-      // Wake waiting callers — they will try to create a new worker
-      this._drainQueue();
-    });
+      const entry: WorkerEntry = { worker, busy: false };
 
-    const entry: WorkerEntry = { worker, busy: false };
-    this.workers.push(entry);
-    return entry;
+      // One-shot ready listener — removed as soon as the worker is ready
+      // or errors out during startup.
+      const onReady = (msg: { type?: string }) => {
+        if (msg.type !== 'ready') return;
+        worker.off('message', onReady);
+        worker.off('error', onStartupError);
+        this.workers.push(entry);
+
+        // After startup: surface runtime worker errors by removing the entry
+        worker.on('error', (_err: Error) => {
+          entry.busy = false;
+          const idx = this.workers.indexOf(entry);
+          if (idx !== -1) this.workers.splice(idx, 1);
+          this._drainQueue();
+        });
+
+        resolve(entry);
+      };
+
+      const onStartupError = (err: Error) => {
+        worker.off('message', onReady);
+        reject(err);
+      };
+
+      worker.on('message', onReady);
+      worker.once('error', onStartupError);
+    });
   }
 
   private _drainQueue(): void {
+    // Service waiters with existing free workers first
     while (this.waitQueue.length > 0) {
       const free = this.workers.find((e) => !e.busy);
-      if (!free) {
-        if (this.workers.length < this.maxWorkers) {
-          // Spin up a new worker to serve the waiter
-          const entry = this._createWorker();
-          const waiter = this.waitQueue.shift()!;
-          clearTimeout(waiter.timer);
-          entry.busy = true;
-          waiter.resolve(entry);
-        }
-        return;
+      if (free) {
+        const waiter = this.waitQueue.shift()!;
+        clearTimeout(waiter.timer);
+        free.busy = true;
+        waiter.resolve(free);
+      } else {
+        break;
       }
+    }
+
+    // Spin up new workers for remaining waiters if there is room
+    while (
+      this.waitQueue.length > 0 &&
+      this.workers.length + this.pendingCreations < this.maxWorkers
+    ) {
+      this.pendingCreations++;
       const waiter = this.waitQueue.shift()!;
       clearTimeout(waiter.timer);
-      free.busy = true;
-      waiter.resolve(free);
+      this._createWorker().then((entry) => {
+        entry.busy = true;
+        waiter.resolve(entry);
+      }).catch((err: Error) => {
+        waiter.reject(err);
+      }).finally(() => {
+        this.pendingCreations--;
+      });
     }
   }
 
@@ -121,11 +156,15 @@ export class SqlitePool {
       return Promise.resolve(free);
     }
 
-    // Spin up a new worker if under limit
-    if (this.workers.length < this.maxWorkers) {
-      const entry = this._createWorker();
-      entry.busy = true;
-      return Promise.resolve(entry);
+    // Spin up a new worker if under limit (accounting for in-flight creations)
+    if (this.workers.length + this.pendingCreations < this.maxWorkers) {
+      this.pendingCreations++;
+      return this._createWorker().then((entry) => {
+        entry.busy = true;
+        return entry;
+      }).finally(() => {
+        this.pendingCreations--;
+      });
     }
 
     // Wait for a worker to become free
@@ -159,7 +198,9 @@ export class SqlitePool {
   ): Promise<T> {
     const id = this.nextId++;
     return new Promise<T>((resolve, reject) => {
-      const onMessage = (response: { id: number; ok: boolean; result?: T; error?: string }) => {
+      const onMessage = (response: { id: number; type?: string; ok: boolean; result?: T; error?: string }) => {
+        // Skip the 'ready' message if it somehow arrives here
+        if (response.type === 'ready') return;
         if (response.id !== id) return;
         entry.worker.off('message', onMessage);
         if (response.ok) {
@@ -209,7 +250,7 @@ export class SqlitePool {
   ): Promise<T> {
     const entry = await this._acquire();
     try {
-      // Start the transaction
+      // Start the transaction on the worker's connection
       await this._send<DbResult>(entry, { type: 'query', sql: 'BEGIN', params: [] });
 
       // Provide a query helper that runs each statement on the same worker
@@ -222,7 +263,7 @@ export class SqlitePool {
         result = await fn(txQuery);
         await this._send<DbResult>(entry, { type: 'query', sql: 'COMMIT', params: [] });
       } catch (err) {
-        // Best-effort rollback
+        // Best-effort rollback; swallow secondary errors
         try {
           await this._send<DbResult>(entry, { type: 'query', sql: 'ROLLBACK', params: [] });
         } catch {
