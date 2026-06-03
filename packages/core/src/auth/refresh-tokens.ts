@@ -83,6 +83,8 @@ export class RefreshTokenService {
     );
 
     const accessToken = this._jwt.sign({ sub: userId }, { expiresInSeconds: Math.floor(this._accessTtlMs / 1000) });
+
+    return { accessToken, refreshToken: rawRefreshToken };
   }
 
   /**
