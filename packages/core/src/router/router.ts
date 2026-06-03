@@ -5,6 +5,7 @@ import type { StreetContext } from '../core/context.js';
 import type { MiddlewareFn, ValidationSchema, FieldRule } from '../core/types.js';
 import { BadRequestException, NotFoundException, isStreetException } from '../http/exceptions.js';
 import { diagnosticsReporter } from '../diagnostics/reporter.js';
+import type { RouteProfiler } from '../diagnostics/route-profiler.js';
 
 interface CompiledRoute {
   method: string;
@@ -13,10 +14,21 @@ interface CompiledRoute {
   middlewares: MiddlewareFn[];
   handler: (ctx: StreetContext) => Promise<void> | void;
   validate?: ValidationSchema;
+  /** Original path template (for profiler key, e.g. /users/:id) */
+  pathTemplate: string;
+}
+
+export interface RouterOptions {
+  profiler?: RouteProfiler;
 }
 
 export class Router {
   private readonly routes: CompiledRoute[] = [];
+  private readonly _profiler: RouteProfiler | undefined;
+
+  constructor(opts?: RouterOptions) {
+    this._profiler = opts?.profiler;
+  }
 
   /** Compile and register a route */
   add(
@@ -27,7 +39,7 @@ export class Router {
     validate?: ValidationSchema
   ): void {
     const { pattern, paramNames } = compilePath(path);
-    this.routes.push({ method: method.toUpperCase(), pattern, paramNames, middlewares, handler, validate });
+    this.routes.push({ method: method.toUpperCase(), pattern, paramNames, middlewares, handler, validate, pathTemplate: path });
   }
 
   /** Match a request and execute the middleware pipeline */
@@ -47,7 +59,22 @@ export class Router {
       },
     ];
 
-    await runPipeline(ctx, pipeline, 0);
+    if (this._profiler) {
+      const start = process.hrtime.bigint();
+      let isError = false;
+      try {
+        await runPipeline(ctx, pipeline, 0);
+      } catch (err) {
+        isError = true;
+        throw err;
+      } finally {
+        const latencyNs = process.hrtime.bigint() - start;
+        this._profiler.record(route.method, route.pathTemplate, latencyNs, isError);
+      }
+    } else {
+      await runPipeline(ctx, pipeline, 0);
+    }
+
     return true;
   }
 

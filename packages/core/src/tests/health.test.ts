@@ -1,0 +1,237 @@
+// src/tests/health.test.ts
+// Tests for the Health Check DSL (HealthCheckRegistry, registerHealthRoutes).
+
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
+import { createServer } from 'node:http';
+import type { IncomingMessage, ServerResponse } from 'node:http';
+
+import { HealthCheckRegistry, registerHealthRoutes } from '../observability/health.js';
+import { streetApp } from '../http/server.js';
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+/** Simple HTTP GET helper against a running server. */
+async function httpGet(
+  port: number,
+  path: string,
+): Promise<{ status: number; body: string }> {
+  return new Promise((resolve, reject) => {
+    const req = (await import('node:http')).request(
+      { hostname: '127.0.0.1', port, path, method: 'GET' },
+      (res) => {
+        const chunks: Buffer[] = [];
+        res.on('data', (c: Buffer) => chunks.push(c));
+        res.on('end', () =>
+          resolve({ status: res.statusCode ?? 0, body: Buffer.concat(chunks).toString() }),
+        );
+      },
+    );
+    req.on('error', reject);
+    req.end();
+  });
+}
+
+// Promisify httpGet – node:http.request is synchronous so we can just use it directly
+// The helper above uses dynamic import to avoid TLA issues; rewrite without it:
+function get(port: number, path: string): Promise<{ status: number; body: string }> {
+  return new Promise((resolve, reject) => {
+    const http = require('node:http') as typeof import('node:http');
+    const req = http.request(
+      { hostname: '127.0.0.1', port, path, method: 'GET' },
+      (res: IncomingMessage) => {
+        const chunks: Buffer[] = [];
+        res.on('data', (c: Buffer) => chunks.push(c));
+        res.on('end', () =>
+          resolve({ status: res.statusCode ?? 0, body: Buffer.concat(chunks).toString() }),
+        );
+      },
+    );
+    req.on('error', reject);
+    req.end();
+  });
+}
+
+// Pick a random available port range to avoid conflicts
+let testPort = 54200;
+function nextPort(): number {
+  return testPort++;
+}
+
+// ── HealthCheckRegistry unit tests ────────────────────────────────────────────
+
+describe('HealthCheckRegistry', () => {
+  it('returns ok with all up checks', async () => {
+    const registry = new HealthCheckRegistry();
+    registry.addCheck('db', async () => ({ status: 'up' }));
+    registry.addCheck('cache', async () => ({ status: 'up' }));
+
+    const result = await registry.runLiveness();
+    assert.equal(result.status, 'ok');
+    assert.equal(result.checks['db']?.status, 'up');
+    assert.equal(result.checks['cache']?.status, 'up');
+    assert.ok(typeof result.checks['db']?.durationMs === 'number');
+  });
+
+  it('returns degraded when any check is down', async () => {
+    const registry = new HealthCheckRegistry();
+    registry.addCheck('db', async () => ({ status: 'up' }));
+    registry.addCheck('broken', async () => ({ status: 'down', details: { reason: 'unreachable' } }));
+
+    const result = await registry.runLiveness();
+    assert.equal(result.status, 'degraded');
+    assert.equal(result.checks['broken']?.status, 'down');
+    assert.deepEqual(result.checks['broken']?.details, { reason: 'unreachable' });
+  });
+
+  it('marks check as down with timeout details when it times out', async () => {
+    const registry = new HealthCheckRegistry();
+    registry.addCheck(
+      'slow',
+      () => new Promise<never>(() => { /* never resolves */ }),
+      { timeoutMs: 50 },
+    );
+
+    const result = await registry.runLiveness();
+    assert.equal(result.status, 'degraded');
+    assert.equal(result.checks['slow']?.status, 'down');
+    assert.deepEqual(result.checks['slow']?.details, { reason: 'timeout' });
+  });
+
+  it('marks check as down when it throws an exception', async () => {
+    const registry = new HealthCheckRegistry();
+    registry.addCheck('throws', async () => {
+      throw new Error('connection refused');
+    });
+
+    const result = await registry.runLiveness();
+    assert.equal(result.status, 'degraded');
+    assert.equal(result.checks['throws']?.status, 'down');
+    assert.equal(
+      (result.checks['throws']?.details as Record<string, unknown>)?.['error'],
+      'connection refused',
+    );
+  });
+
+  it('separates liveness and readiness checks', async () => {
+    const registry = new HealthCheckRegistry();
+    registry.addCheck('live-check', async () => ({ status: 'up' }), { type: 'liveness' });
+    registry.addCheck('ready-check', async () => ({ status: 'down' }), { type: 'readiness' });
+
+    const liveness = await registry.runLiveness();
+    const readiness = await registry.runReadiness();
+
+    // Liveness only sees 'live-check'
+    assert.ok('live-check' in liveness.checks);
+    assert.ok(!('ready-check' in liveness.checks));
+    assert.equal(liveness.status, 'ok');
+
+    // Readiness only sees 'ready-check'
+    assert.ok('ready-check' in readiness.checks);
+    assert.ok(!('live-check' in readiness.checks));
+    assert.equal(readiness.status, 'degraded');
+  });
+
+  it('defaults type to liveness when not specified', async () => {
+    const registry = new HealthCheckRegistry();
+    registry.addCheck('implicit-live', async () => ({ status: 'up' }));
+
+    const liveness = await registry.runLiveness();
+    assert.ok('implicit-live' in liveness.checks);
+  });
+});
+
+// ── registerHealthRoutes integration tests ────────────────────────────────────
+
+describe('registerHealthRoutes', () => {
+  it('GET /health/live returns 200 when all checks are up', async () => {
+    const port = nextPort();
+    const registry = new HealthCheckRegistry();
+    registry.addCheck('db', async () => ({ status: 'up' }), { type: 'liveness' });
+
+    const app = streetApp({ port });
+    registerHealthRoutes(app, registry);
+
+    await app.listen(port);
+    try {
+      const { status, body } = await get(port, '/health/live');
+      assert.equal(status, 200);
+      const parsed = JSON.parse(body) as { status: string };
+      assert.equal(parsed.status, 'ok');
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('GET /health/live returns 503 when a check is down', async () => {
+    const port = nextPort();
+    const registry = new HealthCheckRegistry();
+    registry.addCheck('db', async () => ({ status: 'down', details: { reason: 'unreachable' } }), {
+      type: 'liveness',
+    });
+
+    const app = streetApp({ port });
+    registerHealthRoutes(app, registry);
+
+    await app.listen(port);
+    try {
+      const { status, body } = await get(port, '/health/live');
+      assert.equal(status, 503);
+      const parsed = JSON.parse(body) as { status: string; checks: Record<string, unknown> };
+      assert.equal(parsed.status, 'degraded');
+      assert.ok('db' in parsed.checks);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('GET /health/ready returns 200 when all readiness checks are up', async () => {
+    const port = nextPort();
+    const registry = new HealthCheckRegistry();
+    registry.addCheck('migration', async () => ({ status: 'up' }), { type: 'readiness' });
+
+    const app = streetApp({ port });
+    registerHealthRoutes(app, registry);
+
+    await app.listen(port);
+    try {
+      const { status } = await get(port, '/health/ready');
+      assert.equal(status, 200);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('GET /health/ready returns 503 when a readiness check is down', async () => {
+    const port = nextPort();
+    const registry = new HealthCheckRegistry();
+    registry.addCheck('migration', async () => ({ status: 'down' }), { type: 'readiness' });
+
+    const app = streetApp({ port });
+    registerHealthRoutes(app, registry);
+
+    await app.listen(port);
+    try {
+      const { status } = await get(port, '/health/ready');
+      assert.equal(status, 503);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('non-health routes are passed through to next handler', async () => {
+    const port = nextPort();
+    const registry = new HealthCheckRegistry();
+    const app = streetApp({ port });
+    registerHealthRoutes(app, registry);
+
+    await app.listen(port);
+    try {
+      // Should hit the not-found handler, not crash
+      const { status } = await get(port, '/api/users');
+      assert.equal(status, 404);
+    } finally {
+      await app.close();
+    }
+  });
+});
