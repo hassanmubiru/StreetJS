@@ -19,6 +19,8 @@ import { EventEmitter } from 'node:events';
 class FakeChildProcess extends EventEmitter {
   exitCode: number | null = null;
   killed = false;
+  stdout: NodeJS.ReadableStream = new EventEmitter() as unknown as NodeJS.ReadableStream;
+  stderr: NodeJS.ReadableStream = new EventEmitter() as unknown as NodeJS.ReadableStream;
 
   kill(signal?: NodeJS.Signals | number): boolean {
     if (this.killed) return false;
