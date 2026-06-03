@@ -419,6 +419,9 @@ export class MysqlConnection {
   private sha2State: Sha2State = 'initial';
   private sha2Seed: Buffer = Buffer.alloc(0);
 
+  // Binary-protocol exec mode flag
+  private _inExec = false;
+
   // Sequence number for outgoing packets (increments per command)
   private seq = 0;
 
