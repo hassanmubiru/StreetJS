@@ -15,11 +15,18 @@ export declare class SqlitePool {
     private readonly maxWorkers;
     private readonly workers;
     private readonly waitQueue;
+    private pendingCreations;
     private closed;
     /** Next message-id counter (shared across all workers; just needs to be unique). */
     private nextId;
     constructor(opts: SqlitePoolOptions);
     private _workerPath;
+    /**
+     * Spawn a new worker and wait for it to signal `{ type: 'ready' }` before
+     * adding it to the pool.  The WASM module initialisation is async, so
+     * without this handshake the pool could send messages before the worker
+     * is listening.
+     */
     private _createWorker;
     private _drainQueue;
     private _acquire;

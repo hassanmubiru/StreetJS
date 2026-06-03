@@ -6,6 +6,7 @@
 // the main thread via MessageChannel ports.
 //
 // Message protocol:
+//   Ready    ← { type: 'ready' }                           (worker → pool, once on startup)
 //   Request  → { id, type: 'query',       sql, params? }
 //            → { id, type: 'transaction',  ops: Array<{ sql, params? }> }
 //   Response ← { id, ok: true,  result: DbResult }
@@ -82,6 +83,8 @@ if (!isMainThread) {
         locateFile: (name) => join(__dirname, name),
     });
     db = new sqlite3.oo1.DB(filePath);
+    // Signal to the pool that this worker is ready to accept messages.
+    parentPort.postMessage({ type: 'ready' });
     parentPort.on('message', (req) => {
         if (!db) {
             const resp = { id: req.id, ok: false, error: 'Database is closed' };
