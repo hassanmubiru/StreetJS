@@ -281,3 +281,18 @@ export class PgPool {
   get size(): number { return this.connections.length; }
   get idle(): number { return this.connections.filter((p) => !p.inUse).length; }
 }
+
+/**
+ * Helper to subscribe to `pool:exhausted` events emitted by `PgPool`.
+ *
+ * @param pool  The PgPool instance to listen on.
+ * @param fn    Callback invoked with pool state at exhaustion time.
+ * @returns     An `off` function that removes the listener when called.
+ */
+export function onPoolExhausted(
+  pool: PgPool,
+  fn: (state: { total: number; idle: number; waiting: number }) => void,
+): () => void {
+  pool.events.on('pool:exhausted', fn);
+  return () => pool.events.off('pool:exhausted', fn);
+}
