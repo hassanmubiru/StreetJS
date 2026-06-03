@@ -38,7 +38,7 @@ export declare class SqlitePool {
      *
      * The callback receives a `query` helper bound to the same worker connection.
      * If the callback throws (or returns a rejected promise) the transaction is
-     * rolled back; otherwise it is committed.
+     * rolled back automatically; otherwise it is committed.
      *
      * Because each worker owns a single SQLite connection, the transaction is
      * guaranteed to run on one connection with no interleaving.

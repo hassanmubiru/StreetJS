@@ -145,7 +145,7 @@ export class SqlitePool {
      *
      * The callback receives a `query` helper bound to the same worker connection.
      * If the callback throws (or returns a rejected promise) the transaction is
-     * rolled back; otherwise it is committed.
+     * rolled back automatically; otherwise it is committed.
      *
      * Because each worker owns a single SQLite connection, the transaction is
      * guaranteed to run on one connection with no interleaving.
@@ -156,22 +156,27 @@ export class SqlitePool {
     async transaction(fn) {
         const entry = await this._acquire();
         try {
-            // Collect all ops issued inside fn via a local query helper
-            const ops = [];
-            const captureQuery = async (sql, params) => {
-                // Return a deferred DbResult placeholder; the actual execution happens
-                // atomically in the worker.  We need to collect ops first.
-                ops.push({ sql, params });
-                // Return a provisional empty result so the callback can chain calls
-                return { rows: [], rowCount: 0, command: sql.trim().split(/\s+/)[0]?.toUpperCase() ?? 'UNKNOWN' };
-            };
-            // Run the user fn to gather all ops
-            const userResult = await fn(captureQuery);
-            // Ship the ops to the worker as one atomic transaction
-            if (ops.length > 0) {
-                await this._send(entry, { type: 'transaction', ops });
+            // Start the transaction
+            await this._send(entry, { type: 'query', sql: 'BEGIN', params: [] });
+            // Provide a query helper that runs each statement on the same worker
+            // while the transaction is open, returning real results to the callback.
+            const txQuery = (sql, params) => this._send(entry, { type: 'query', sql, params: params ?? [] });
+            let result;
+            try {
+                result = await fn(txQuery);
+                await this._send(entry, { type: 'query', sql: 'COMMIT', params: [] });
             }
-            return userResult;
+            catch (err) {
+                // Best-effort rollback
+                try {
+                    await this._send(entry, { type: 'query', sql: 'ROLLBACK', params: [] });
+                }
+                catch {
+                    // Ignore rollback error
+                }
+                throw err;
+            }
+            return result;
         }
         finally {
             this._release(entry);
