@@ -58,7 +58,12 @@ export class SqlitePool {
 
   constructor(opts: SqlitePoolOptions) {
     this.filePath = opts.filePath;
-    this.maxWorkers = opts.maxWorkers ?? 4;
+    // SQLite WASM on Node.js runs each worker in its own Emscripten instance
+    // with an isolated virtual filesystem.  Sharing a single file-path across
+    // workers results in separate in-memory databases per worker.  A pool of
+    // one worker serialises all operations on a single Emscripten instance,
+    // which is the correct behaviour for file-based SQLite.
+    this.maxWorkers = opts.maxWorkers ?? 1;
   }
 
   // ── Worker management ───────────────────────────────────────────────────────
