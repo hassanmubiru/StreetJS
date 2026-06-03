@@ -1,15 +1,21 @@
 // packages/cli/src/commands/generate.ts
-// `street generate <type> <name>` — scaffolds controllers, services, and repositories.
-import { mkdir, writeFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
-const VALID_TYPES = ['controller', 'service', 'repository'];
+// `street generate <type> <name>` — scaffolds controllers, services, repositories,
+// middleware, gateways, and migrations.
+import { mkdir, writeFile, readFile, access } from 'node:fs/promises';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+/** Regex for valid generator name: lowercase letter + lowercase alphanumeric/dash/underscore */
+const NAME_PATTERN = /^[a-z][a-z0-9_-]*$/;
+const VALID_TYPES = ['controller', 'service', 'repository', 'middleware', 'gateway', 'migration'];
 export class GenerateCommand {
     async execute(ctx) {
         const genType = ctx.args.positional[0]?.toLowerCase();
         const name = ctx.args.positional[1];
         if (!genType || !VALID_TYPES.includes(genType)) {
             console.error('[street] Usage: street generate <type> <name>');
-            console.error('  Valid types: controller, service, repository');
+            console.error('  Valid types: controller, service, repository, middleware, gateway, migration');
             console.error('  Example: street generate controller users');
             process.exitCode = 1;
             return;
@@ -36,8 +42,19 @@ export class GenerateCommand {
             case 'repository':
                 await this.generateRepository(cwd, className, fileName, pluralName);
                 break;
+            case 'middleware':
+                await generateMiddleware(name, cwd);
+                break;
+            case 'gateway':
+                await generateGateway(name, cwd);
+                break;
+            case 'migration':
+                await generateMigration(name, cwd);
+                break;
         }
-        console.log(`[street] Generated ${type}: src/${this.toPlural(type)}/${fileName}.${type}.ts`);
+        if (type !== 'middleware' && type !== 'gateway' && type !== 'migration') {
+            console.log(`[street] Generated ${type}: src/${this.toPlural(type)}/${fileName}.${type}.ts`);
+        }
     }
     async generateController(cwd, className, fileName, pluralName) {
         const dir = resolve(cwd, 'src', 'controllers');
@@ -286,5 +303,99 @@ export class ${className}Repository {
         }
         return str + 's';
     }
+}
+// ── Standalone generator functions (also used by sub-commands) ───────────────
+/** Resolve the templates directory regardless of CJS/ESM layout. */
+function templatesDir() {
+    // When compiled to dist/, __dirname is packages/cli/dist/commands/
+    // Templates are at packages/cli/templates/generate/
+    return resolve(__dirname, '..', '..', 'templates', 'generate');
+}
+/**
+ * Validate a generator name against /^[a-z][a-z0-9_-]*$/.
+ * Exits process with code 1 if invalid.
+ */
+function assertValidName(name) {
+    if (!NAME_PATTERN.test(name)) {
+        process.stderr.write(`[street] Invalid name "${name}". Name must match [a-z][a-z0-9_-]*\n`);
+        process.exit(1);
+    }
+}
+/**
+ * Ensure a target file does not already exist.
+ * Exits process with code 1 if it does (non-destructive).
+ */
+async function assertNotExists(targetPath) {
+    try {
+        await access(targetPath);
+        // If access() did not throw, the file exists.
+        process.stderr.write(`[street] File already exists: ${targetPath}\nAbort — no files were overwritten.\n`);
+        process.exit(1);
+    }
+    catch {
+        // File does not exist — continue.
+    }
+}
+/**
+ * Generate a typed StreetMiddleware scaffold.
+ *
+ * Output: `<cwd>/src/middleware/<name>.middleware.ts`
+ */
+export async function generateMiddleware(name, cwd) {
+    assertValidName(name);
+    const targetPath = resolve(cwd, 'src', 'middleware', `${name}.middleware.ts`);
+    await assertNotExists(targetPath);
+    const tplPath = resolve(templatesDir(), 'middleware.ts.tpl');
+    const tpl = await readFile(tplPath, 'utf8');
+    const content = tpl.replaceAll('{{NAME}}', name);
+    await mkdir(dirname(targetPath), { recursive: true });
+    await writeFile(targetPath, content, 'utf8');
+    process.stdout.write(`[street] Created middleware: src/middleware/${name}.middleware.ts\n`);
+}
+/**
+ * Generate a typed WebSocket gateway scaffold.
+ * Full implementation in task 2.3.
+ *
+ * Output: `<cwd>/src/gateways/<name>.gateway.ts`
+ */
+export async function generateGateway(name, cwd) {
+    assertValidName(name);
+    const targetPath = resolve(cwd, 'src', 'gateways', `${name}.gateway.ts`);
+    await assertNotExists(targetPath);
+    const tplPath = resolve(templatesDir(), 'gateway.ts.tpl');
+    const tpl = await readFile(tplPath, 'utf8');
+    const content = tpl.replaceAll('{{NAME}}', name);
+    await mkdir(dirname(targetPath), { recursive: true });
+    await writeFile(targetPath, content, 'utf8');
+    process.stdout.write(`[street] Created gateway: src/gateways/${name}.gateway.ts\n`);
+}
+/**
+ * Generate a timestamped SQL migration pair (up + rollback).
+ * Full implementation in task 2.4.
+ *
+ * Output: `<cwd>/migrations/<timestamp>_<name>.sql` + `.rollback.sql`
+ */
+export async function generateMigration(name, cwd) {
+    assertValidName(name);
+    const timestamp = new Date().toISOString().replace(/[-T:.Z]/g, '').slice(0, 14);
+    const base = `${timestamp}_${name}`;
+    const upPath = resolve(cwd, 'migrations', `${base}.sql`);
+    const downPath = resolve(cwd, 'migrations', `${base}.rollback.sql`);
+    await assertNotExists(upPath);
+    await assertNotExists(downPath);
+    const upTplPath = resolve(templatesDir(), 'migration-up.sql.tpl');
+    const downTplPath = resolve(templatesDir(), 'migration-rollback.sql.tpl');
+    const [upTpl, downTpl] = await Promise.all([
+        readFile(upTplPath, 'utf8'),
+        readFile(downTplPath, 'utf8'),
+    ]);
+    const upContent = upTpl.replaceAll('{{NAME}}', name);
+    const downContent = downTpl.replaceAll('{{NAME}}', name);
+    await mkdir(dirname(upPath), { recursive: true });
+    await Promise.all([
+        writeFile(upPath, upContent, 'utf8'),
+        writeFile(downPath, downContent, 'utf8'),
+    ]);
+    process.stdout.write(`[street] Created migration:\n  migrations/${base}.sql\n  migrations/${base}.rollback.sql\n`);
 }
 //# sourceMappingURL=generate.js.map
