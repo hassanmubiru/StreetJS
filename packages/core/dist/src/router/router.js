@@ -1,6 +1,7 @@
 // src/router/router.ts
 // Compiled regex router with parameter extraction and middleware pipeline.
 import { BadRequestException, NotFoundException, isStreetException } from '../http/exceptions.js';
+import { diagnosticsReporter } from '../diagnostics/reporter.js';
 export class Router {
     routes = [];
     /** Compile and register a route */
@@ -140,7 +141,10 @@ export async function errorHandler(ctx, err) {
     }
     else {
         // Log the full error server-side, but never leak internal details to client
-        console.error('[street] Unhandled error:', err);
+        const correlationId = typeof ctx.state?.['correlationId'] === 'string'
+            ? ctx.state['correlationId']
+            : undefined;
+        diagnosticsReporter.report(err, correlationId);
         ctx.json({ error: 'InternalException', message: 'Internal Server Error', status: 500 }, 500);
     }
 }

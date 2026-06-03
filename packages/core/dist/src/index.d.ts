@@ -5,7 +5,7 @@ export type { StreetContext, AuthenticatedUser, CookieOptions, } from './core/co
 export type { Constructor, Awaitable, TokenPair, PaginatedResult, RouteMetadata, ControllerMetadata, MiddlewareFn, ValidationSchema, FieldRule, OpenApiOperation, IpcMessage, TelemetrySample, } from './core/types.js';
 export { streetApp } from './http/server.js';
 export type { StreetApp, StreetAppOptions } from './http/server.js';
-export { StreetException, BadRequestException, UnauthorizedException, ForbiddenException, NotFoundException, ConflictException, UnprocessableException, InternalException, ServiceUnavailableException, isStreetException, } from './http/exceptions.js';
+export { StreetException, BadRequestException, UnauthorizedException, ForbiddenException, NotFoundException, ConflictException, UnprocessableException, InternalException, ServiceUnavailableException, DatabaseConnectionError, isStreetException, } from './http/exceptions.js';
 export { authMiddleware, requireRoles, securityHeaders, corsMiddleware, } from './http/auth.middleware.js';
 export { generateOpenApi } from './http/openapi.js';
 export { Router, notFoundHandler, errorHandler } from './router/router.js';
@@ -41,6 +41,8 @@ export { DevWatcher } from './dev/watcher.js';
 export type { WatcherOptions } from './dev/watcher.js';
 export { defineConfig, ConfigValidationError } from './config/validator.js';
 export type { FieldType, ConfigFieldDef, ConfigSchema, ConfigResult } from './config/validator.js';
+export { DiagnosticsReporter, diagnosticsReporter } from './diagnostics/reporter.js';
+export type { DiagnosticEvent } from './diagnostics/reporter.js';
 export { CliKernel, parseArgv } from './cli/kernel.js';
 export type { ParsedArgs, CliKernelOptions } from './cli/kernel.js';
 //# sourceMappingURL=index.d.ts.map

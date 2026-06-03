@@ -29,4 +29,9 @@ export declare class ServiceUnavailableException extends StreetException {
     constructor(message?: string);
 }
 export declare function isStreetException(err: unknown): err is StreetException;
+export declare class DatabaseConnectionError extends StreetException {
+    readonly suggestion?: string | undefined;
+    constructor(message?: string, suggestion?: string | undefined);
+    toJSON(): object;
+}
 //# sourceMappingURL=exceptions.d.ts.map

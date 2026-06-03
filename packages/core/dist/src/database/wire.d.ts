@@ -1,4 +1,5 @@
 import { Readable } from 'node:stream';
+import type { DbResult } from './types.js';
 /** @internal Exported for testing. Builds a PostgreSQL Parse ('P') message. */
 export declare function buildParseMessage(query: string): Buffer;
 /** @internal Exported for testing. Builds a PostgreSQL Bind ('B') message. */
@@ -28,11 +29,12 @@ export declare function xorBuffers(a: Buffer, b: Buffer): Buffer;
 export interface PgRow {
     [column: string]: string | null;
 }
-export interface PgResult {
-    rows: PgRow[];
-    command: string;
-    rowCount: number;
-}
+/**
+ * PostgreSQL query result — alias for the shared {@link DbResult} type.
+ * Maintained for backwards compatibility.
+ */
+export type PgResult = DbResult;
+export type { DbResult } from './types.js';
 export declare class StreetPostgresWireStream extends Readable {
     private _done;
     constructor();

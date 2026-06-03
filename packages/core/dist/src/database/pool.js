@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 import { PgConnection } from './wire.js';
 import { Injectable } from '../core/container.js';
+import { DatabaseConnectionError } from '../http/exceptions.js';
 let PgPool = class PgPool {
     connections = [];
     waitQueue = [];
@@ -37,7 +38,17 @@ let PgPool = class PgPool {
         for (let i = 0; i < this.opts.minConnections; i++) {
             promises.push(this._createConnection().then(() => undefined));
         }
-        await Promise.all(promises);
+        try {
+            await Promise.all(promises);
+        }
+        catch (err) {
+            const code = err.code;
+            if (code === 'ECONNREFUSED') {
+                throw new DatabaseConnectionError(`Cannot connect to PostgreSQL at ${this.opts.host}:${this.opts.port}: connection refused`, `Check that the database is running and that the following environment variables are correct: ` +
+                    `PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE`);
+            }
+            throw err;
+        }
     }
     async _createConnection() {
         const conn = await PgConnection.connect(this.opts);
