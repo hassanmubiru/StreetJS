@@ -1,7 +1,7 @@
 # Implementation Tasks: Street Framework Roadmap v1.1 – v3.0
 
 - [ ] 1. v1.1 — Hot Reload Development Server
-  - [-] 1.1 Create `packages/core/src/dev/watcher.ts` with `DevWatcher` class: `FSWatcher` handle management, `WatcherOptions` interface, `start()` and `stop()` methods, stores all watcher handles in an array for cleanup
+  - [x] 1.1 Create `packages/core/src/dev/watcher.ts` with `DevWatcher` class: `FSWatcher` handle management, `WatcherOptions` interface, `start()` and `stop()` methods, stores all watcher handles in an array for cleanup
   - [~] 1.2 Implement incremental TypeScript compilation in `DevWatcher`: spawn `tsc --incremental` as a child process, capture stdout/stderr, return boolean success/failure from `compile()`
   - [~] 1.3 Implement graceful server restart in `DevWatcher.restartServer()`: send `SIGTERM` to the current server process, wait for drain up to `drainTimeoutMs` (default 5000ms), then spawn fresh process
   - [~] 1.4 Wire `DevWatcher` into `packages/cli/src/commands/dev.ts`: read `--watch` flag, instantiate `DevWatcher`, call `start()`, register `SIGINT`/`SIGTERM` handlers that call `stop()`
