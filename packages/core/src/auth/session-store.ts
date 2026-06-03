@@ -69,7 +69,7 @@ export class StreetSessionStore {
 
   constructor(pool: SessionStorePool) {
     this._pool = pool;
-    this._revokedCache = new LruCache<string, boolean>({ maxSize: 50_000, ttl: 5 * 60 * 1000 });
+    this._revokedCache = new LruCache<string, boolean>({ maxEntries: 50_000, ttlMs: 5 * 60 * 1000 });
   }
 
   /** Create a new session. Returns the sessionId. */

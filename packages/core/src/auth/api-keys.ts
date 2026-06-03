@@ -57,7 +57,7 @@ export class ApiKeyService {
 
   constructor(pool: ApiKeyPool) {
     this._pool = pool;
-    this._cache = new LruCache<string, ApiKey | null>({ maxSize: CACHE_MAX, ttl: CACHE_TTL_MS });
+    this._cache = new LruCache<string, ApiKey | null>({ maxEntries: CACHE_MAX, ttlMs: CACHE_TTL_MS });
   }
 
   /**
