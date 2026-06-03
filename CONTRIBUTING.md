@@ -24,6 +24,56 @@ docker run -d \
   postgres:16-alpine
 ```
 
+### SQLite WASM binary
+
+The SQLite driver uses the official pre-built SQLite WebAssembly binary from
+[`@sqlite.org/sqlite-wasm`](https://www.npmjs.com/package/@sqlite.org/sqlite-wasm).
+Two files are required at runtime (co-located with the compiled driver output):
+
+| File | Purpose |
+|---|---|
+| `sqlite3.wasm` | SQLite compiled to WebAssembly (850 KB) |
+| `sqlite3-node.mjs` | Emscripten JS glue — loads and initialises the WASM binary in Node.js |
+
+These files are **not bundled** in the source tree but are checked into
+`packages/core/src/database/sqlite/` for convenience.  To re-download them
+(e.g. to upgrade to a newer SQLite release), run:
+
+```bash
+node packages/core/src/database/sqlite/download-wasm.mjs
+```
+
+The download script fetches the files from the jsDelivr CDN and prints the
+SHA-256 checksum for verification:
+
+```
+URL: https://cdn.jsdelivr.net/npm/@sqlite.org/sqlite-wasm@3.47.2-build1/sqlite-wasm/jswasm/sqlite3.wasm
+SHA-256: 246fd886c2989ccc7959ca415f9fbb0daa01b0d99d7c8ef9f9fa37c68c345584
+```
+
+After downloading, copy both files to the `dist/database/sqlite/` directory
+before running tests (the build step does not copy binary files automatically):
+
+```bash
+cp packages/core/src/database/sqlite/sqlite3.wasm \
+   packages/core/src/database/sqlite/sqlite3-node.mjs \
+   packages/core/dist/database/sqlite/
+```
+
+#### SQLite WASM limitations on Node.js
+
+The `@sqlite.org/sqlite-wasm` Emscripten build uses an in-process virtual
+filesystem (MEMFS) for each worker thread instance.  This means:
+
+- **File-based databases are per-worker-instance** — each `worker_threads`
+  worker gets its own isolated virtual FS.  `SqlitePool` therefore defaults to
+  `maxWorkers: 1` so all operations share one Emscripten instance.
+- **In-memory databases** (`:memory:`) work as expected within a single worker.
+- **Files are not persisted to the real filesystem** by the WASM build; the
+  data lives in the worker's in-memory virtual FS for the lifetime of the
+  process.  For durable SQLite storage on Node.js >= 22.5, use
+  `node:sqlite` directly.
+
 Copy and configure environment:
 
 ```bash
