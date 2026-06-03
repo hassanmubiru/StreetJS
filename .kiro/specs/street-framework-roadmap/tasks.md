@@ -1,15 +1,15 @@
 # Implementation Tasks: Street Framework Roadmap v1.1 – v3.0
 
-- [ ] 1. v1.1 — Hot Reload Development Server
+- [x] 1. v1.1 — Hot Reload Development Server
   - [x] 1.1 Create `packages/core/src/dev/watcher.ts` with `DevWatcher` class: `FSWatcher` handle management, `WatcherOptions` interface, `start()` and `stop()` methods, stores all watcher handles in an array for cleanup
   - [x] 1.2 Implement incremental TypeScript compilation in `DevWatcher`: spawn `tsc --incremental` as a child process, capture stdout/stderr, return boolean success/failure from `compile()`
   - [x] 1.3 Implement graceful server restart in `DevWatcher.restartServer()`: send `SIGTERM` to the current server process, wait for drain up to `drainTimeoutMs` (default 5000ms), then spawn fresh process
   - [x] 1.4 Wire `DevWatcher` into `packages/cli/src/commands/dev.ts`: read `--watch` flag, instantiate `DevWatcher`, call `start()`, register `SIGINT`/`SIGTERM` handlers that call `stop()`
   - [x] 1.5 Write integration tests in `packages/cli/src/tests/dev.test.ts`: verify FSWatcher handles are closed on stop, verify recompile triggers on file save, verify error output on type errors keeps previous server running
-  - [-] 1.6 Export `DevWatcher` and `WatcherOptions` from `packages/core/src/index.ts`
+  - [x] 1.6 Export `DevWatcher` and `WatcherOptions` from `packages/core/src/index.ts`
 
 - [ ] 2. v1.1 — Code Generators (middleware, gateway, migration)
-  - [~] 2.1 Create generator templates in `packages/cli/templates/generate/`: `middleware.ts.tpl`, `gateway.ts.tpl`, `migration-up.sql.tpl`, `migration-rollback.sql.tpl`
+  - [-] 2.1 Create generator templates in `packages/cli/templates/generate/`: `middleware.ts.tpl`, `gateway.ts.tpl`, `migration-up.sql.tpl`, `migration-rollback.sql.tpl`
   - [~] 2.2 Implement `generateMiddleware(name, cwd)` in `packages/cli/src/commands/generate.ts`: validate name with `/^[a-z][a-z0-9_-]*$/`, check target file existence (exit 1 if exists), write typed `StreetMiddleware` function scaffold to `src/middleware/<name>.middleware.ts`
   - [~] 2.3 Implement `generateGateway(name, cwd)`: write `@Injectable()` + `@WebSocketGateway` scaffold with `onConnect`, `onMessage`, `onDisconnect` handlers to `src/gateways/<name>.gateway.ts`
   - [~] 2.4 Implement `generateMigration(name, cwd)`: create timestamped `migrations/<timestamp>_<name>.sql` and `migrations/<timestamp>_<name>.rollback.sql` files
