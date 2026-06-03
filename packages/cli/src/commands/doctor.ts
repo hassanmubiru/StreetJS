@@ -155,7 +155,6 @@ export class EnvValidateCommand {
       }
     }
 
-    const { defineConfig: ConfigValidationError } = await import('@streetjs/core');
     const schema = configModule?.default;
 
     if (!schema || typeof schema !== 'object') {

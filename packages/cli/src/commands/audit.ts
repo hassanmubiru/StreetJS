@@ -42,7 +42,7 @@ export class AuditCommand {
     } catch (err) {
       if (typeof err === 'object' && err !== null && 'output' in err) {
         jsonOutput = (err as { output: string }).output;
-        exitCode = (err as { code: number }).code;
+        exitCode = (err as unknown as { code: number }).code;
       } else {
         console.error('[street] Failed to run npm audit:', (err as Error).message);
         process.exitCode = 1;
