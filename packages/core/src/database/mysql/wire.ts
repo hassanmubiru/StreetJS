@@ -536,3 +536,99 @@ export class MysqlConnection {
     }
   }
 
+
+  private _handlePacket(body: Buffer): void {
+    if (body.length === 0) return;
+
+    const firstByte = body[0]!;
+
+    if (this.state === 'authenticating') {
+      this._handleAuthPacket(body, firstByte);
+      return;
+    }
+
+    if (this.state === 'query') {
+      this._handleQueryPacket(body, firstByte);
+      return;
+    }
+  }
+
+  private _handleAuthPacket(body: Buffer, firstByte: number): void {
+    const opts = this.opts!;
+
+    // First packet is the server greeting
+    if (!this.greeting) {
+      this.greeting = parseServerGreeting(body);
+      this.sha2Seed = this.greeting.authPluginData;
+      // Send HandshakeResponse
+      const plugin = this.greeting.authPluginName || PLUGIN_NATIVE;
+      let authResp: Buffer;
+      if (plugin === PLUGIN_SHA2) {
+        authResp = sha2PasswordHash(opts.password, this.sha2Seed);
+        this.sha2State = 'expect_more';
+      } else {
+        // Default: mysql_native_password
+        authResp = opts.password.length > 0
+          ? nativePasswordHash(opts.password, this.sha2Seed)
+          : Buffer.alloc(0);
+      }
+      const response = buildHandshakeResponse(opts.user, opts.database, authResp, plugin);
+      this.socket?.write(response);
+      return;
+    }
+
+    // ERR packet
+    if (firstByte === 0xff) {
+      const err = parseErrPacket(body);
+      if (this.authReject) { this.authReject(err); this.authReject = null; }
+      return;
+    }
+
+    // OK packet — auth success
+    if (firstByte === 0x00) {
+      this.state = 'ready';
+      if (this.authResolve) { this.authResolve(); this.authResolve = null; }
+      return;
+    }
+
+    // caching_sha2_password: auth-more-data (0x01 prefix)
+    if (firstByte === 0x01) {
+      const subtype = body[1];
+      if (subtype === 0x04) {
+        // Server requests full password over TLS or RSA — we don't support RSA here
+        // Send password in cleartext if server requested it (only safe over TLS)
+        const pwBuf = Buffer.concat([Buffer.from(opts.password, 'utf8'), Buffer.from([0])]);
+        const pkt = wrapPacket(pwBuf, this.seq++);
+        this.socket?.write(pkt);
+      }
+      // subtype 0x02 = fast-auth succeeded, wait for OK
+      // subtype 0x03 = full auth required
+      return;
+    }
+
+    // AuthSwitchRequest (0xfe)
+    if (firstByte === 0xfe) {
+      let offset = 1;
+      const nameEnd = body.indexOf(0, offset);
+      const newPlugin = nameEnd === -1
+        ? body.toString('utf8', offset)
+        : body.toString('utf8', offset, nameEnd);
+      offset = nameEnd + 1;
+      // new seed follows
+      const newSeed = body.subarray(offset, body.length - 1); // strip trailing null
+      this.sha2Seed = newSeed;
+
+      let authResp: Buffer;
+      if (newPlugin === PLUGIN_SHA2) {
+        authResp = sha2PasswordHash(opts.password, newSeed);
+      } else {
+        authResp = opts.password.length > 0
+          ? nativePasswordHash(opts.password, newSeed)
+          : Buffer.alloc(0);
+      }
+      const pkt = wrapPacket(authResp, this.seq++);
+      this.socket?.write(pkt);
+      return;
+    }
+  }
+
