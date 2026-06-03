@@ -3,20 +3,16 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import * as nodeHttp from 'node:http';
+import { request } from 'node:http';
 
 import { HealthCheckRegistry, registerHealthRoutes } from '../observability/health.js';
 import { streetApp } from '../http/server.js';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-/** Simple HTTP GET helper against a running server. */
-async function httpGet(
-  port: number,
-  path: string,
-): Promise<{ status: number; body: string }> {
+function get(port: number, path: string): Promise<{ status: number; body: string }> {
   return new Promise((resolve, reject) => {
-    const req = (await import('node:http')).request(
+    const req = request(
       { hostname: '127.0.0.1', port, path, method: 'GET' },
       (res) => {
         const chunks: Buffer[] = [];
@@ -31,31 +27,8 @@ async function httpGet(
   });
 }
 
-// Promisify httpGet – node:http.request is synchronous so we can just use it directly
-// The helper above uses dynamic import to avoid TLA issues; rewrite without it:
-function get(port: number, path: string): Promise<{ status: number; body: string }> {
-  return new Promise((resolve, reject) => {
-    const http = require('node:http') as typeof import('node:http');
-    const req = http.request(
-      { hostname: '127.0.0.1', port, path, method: 'GET' },
-      (res: IncomingMessage) => {
-        const chunks: Buffer[] = [];
-        res.on('data', (c: Buffer) => chunks.push(c));
-        res.on('end', () =>
-          resolve({ status: res.statusCode ?? 0, body: Buffer.concat(chunks).toString() }),
-        );
-      },
-    );
-    req.on('error', reject);
-    req.end();
-  });
-}
-
-// Pick a random available port range to avoid conflicts
 let testPort = 54200;
-function nextPort(): number {
-  return testPort++;
-}
+function nextPort(): number { return testPort++; }
 
 // ── HealthCheckRegistry unit tests ────────────────────────────────────────────
 
@@ -83,7 +56,7 @@ describe('HealthCheckRegistry', () => {
     assert.deepEqual(result.checks['broken']?.details, { reason: 'unreachable' });
   });
 
-  it('marks check as down with timeout details when it times out', async () => {
+  it('marks check as down when it times out', async () => {
     const registry = new HealthCheckRegistry();
     registry.addCheck(
       'slow',
@@ -97,11 +70,9 @@ describe('HealthCheckRegistry', () => {
     assert.deepEqual(result.checks['slow']?.details, { reason: 'timeout' });
   });
 
-  it('marks check as down when it throws an exception', async () => {
+  it('marks check as down when it throws', async () => {
     const registry = new HealthCheckRegistry();
-    registry.addCheck('throws', async () => {
-      throw new Error('connection refused');
-    });
+    registry.addCheck('throws', async () => { throw new Error('connection refused'); });
 
     const result = await registry.runLiveness();
     assert.equal(result.status, 'degraded');
@@ -120,12 +91,10 @@ describe('HealthCheckRegistry', () => {
     const liveness = await registry.runLiveness();
     const readiness = await registry.runReadiness();
 
-    // Liveness only sees 'live-check'
     assert.ok('live-check' in liveness.checks);
     assert.ok(!('ready-check' in liveness.checks));
     assert.equal(liveness.status, 'ok');
 
-    // Readiness only sees 'ready-check'
     assert.ok('ready-check' in readiness.checks);
     assert.ok(!('live-check' in readiness.checks));
     assert.equal(readiness.status, 'degraded');
@@ -134,7 +103,6 @@ describe('HealthCheckRegistry', () => {
   it('defaults type to liveness when not specified', async () => {
     const registry = new HealthCheckRegistry();
     registry.addCheck('implicit-live', async () => ({ status: 'up' }));
-
     const liveness = await registry.runLiveness();
     assert.ok('implicit-live' in liveness.checks);
   });
@@ -150,7 +118,6 @@ describe('registerHealthRoutes', () => {
 
     const app = streetApp({ port });
     registerHealthRoutes(app, registry);
-
     await app.listen(port);
     try {
       const { status, body } = await get(port, '/health/live');
@@ -171,7 +138,6 @@ describe('registerHealthRoutes', () => {
 
     const app = streetApp({ port });
     registerHealthRoutes(app, registry);
-
     await app.listen(port);
     try {
       const { status, body } = await get(port, '/health/live');
@@ -191,7 +157,6 @@ describe('registerHealthRoutes', () => {
 
     const app = streetApp({ port });
     registerHealthRoutes(app, registry);
-
     await app.listen(port);
     try {
       const { status } = await get(port, '/health/ready');
@@ -208,7 +173,6 @@ describe('registerHealthRoutes', () => {
 
     const app = streetApp({ port });
     registerHealthRoutes(app, registry);
-
     await app.listen(port);
     try {
       const { status } = await get(port, '/health/ready');
@@ -218,15 +182,13 @@ describe('registerHealthRoutes', () => {
     }
   });
 
-  it('non-health routes are passed through to next handler', async () => {
+  it('non-health routes pass through to not-found handler', async () => {
     const port = nextPort();
     const registry = new HealthCheckRegistry();
     const app = streetApp({ port });
     registerHealthRoutes(app, registry);
-
     await app.listen(port);
     try {
-      // Should hit the not-found handler, not crash
       const { status } = await get(port, '/api/users');
       assert.equal(status, 404);
     } finally {
