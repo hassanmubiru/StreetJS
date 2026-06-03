@@ -48,17 +48,17 @@ function makeTempSrcDir(): { srcDir: string; cleanup: () => void } {
 
 // ── Spawn factory: always succeeds ──────────────────────────────────────────
 
-function makeSuccessSpawn(
-  originalSpawn: typeof import('node:child_process').spawn,
-): typeof import('node:child_process').spawn {
-  // @ts-expect-error — intentional runtime override for testing
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnySpawn = (...args: any[]) => any;
+
+function makeSuccessSpawn(): AnySpawn {
   return (..._args: unknown[]): FakeChildProcess => {
     const fake = new FakeChildProcess();
     setImmediate(() => {
       fake.exitCode = 0;
       fake.emit('close', 0, null);
     });
-    return fake as unknown as ReturnType<typeof originalSpawn>;
+    return fake;
   };
 }
 
