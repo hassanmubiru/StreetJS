@@ -162,7 +162,9 @@ export function rbacGuard(service: RbacService): MiddlewareFn {
     const userRoles: string[] = (ctx.user?.roles as string[] | undefined) ?? [];
 
     // Check @Roles metadata
-    const requiredRoles: string[] = Reflect.getMetadata(ROLES_KEY, proto, methodName) ?? [];
+    const requiredRoles: string[] = methodName
+      ? (Reflect.getMetadata(ROLES_KEY, proto, methodName) as string[] | undefined) ?? []
+      : [];
     if (requiredRoles.length > 0) {
       const allowed = requiredRoles.some((role) => service.hasRole(userRoles, role));
       if (!allowed) {
@@ -171,7 +173,9 @@ export function rbacGuard(service: RbacService): MiddlewareFn {
     }
 
     // Check @Permissions metadata
-    const requiredPerms: string[] = Reflect.getMetadata(PERMISSIONS_KEY, proto, methodName) ?? [];
+    const requiredPerms: string[] = methodName
+      ? (Reflect.getMetadata(PERMISSIONS_KEY, proto, methodName) as string[] | undefined) ?? []
+      : [];
     if (requiredPerms.length > 0) {
       const allowed = requiredPerms.every((perm) => service.hasPermission(userRoles, perm));
       if (!allowed) {
