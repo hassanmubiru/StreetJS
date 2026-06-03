@@ -150,10 +150,6 @@ describe('Container — dependency chain appears in DI error messages', () => {
   let container: Container;
 
   beforeEach(() => {
-    container = new Container();
-    // Use the static getter exposed by Container
-    // We create a fresh container by accessing through Container's own reset pattern
-    // Since Container.getInstance() is a singleton, we test isolation via reset
     container = Container.getInstance();
     container.reset();
   });
