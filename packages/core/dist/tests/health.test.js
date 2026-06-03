@@ -42,10 +42,12 @@ describe('HealthCheckRegistry', () => {
     });
     it('marks check as down when it times out', async () => {
         const registry = new HealthCheckRegistry();
-        registry.addCheck('slow', () => new Promise((_, reject) => {
-            const t = setTimeout(() => reject(new Error('forced')), 10_000);
+        // Use a 10ms timeout; the check delays 500ms but will be beaten by the timeout
+        registry.addCheck('slow', () => new Promise((resolve) => {
+            // Resolve after a long delay — the health check timeout fires first
+            const t = setTimeout(() => resolve({ status: 'up' }), 500);
             t.unref();
-        }), { timeoutMs: 50 });
+        }), { timeoutMs: 20 });
         const result = await registry.runLiveness();
         assert.equal(result.status, 'degraded');
         assert.equal(result.checks['slow']?.status, 'down');
