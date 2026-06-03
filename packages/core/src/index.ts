@@ -99,6 +99,12 @@ export type { WatcherOptions } from './dev/watcher.js';
 // ── Query Builder ─────────────────────────────────────────────────────────────
 export { QueryBuilder, SqlDialect } from './database/query-builder.js';
 
+// ── Schema Inspector ──────────────────────────────────────────────────────────
+export { SchemaInspector } from './database/schema-inspector.js';
+export type {
+  ColumnMeta, IndexMeta, FkMeta, TableSchema, DatabaseSchema, QueryablePool,
+} from './database/schema-inspector.js';
+
 // ── Config ────────────────────────────────────────────────────────────────────
 export { defineConfig, ConfigValidationError } from './config/validator.js';
 export type { FieldType, ConfigFieldDef, ConfigSchema, ConfigResult } from './config/validator.js';
