@@ -23,7 +23,7 @@ export class GenerateCommand {
 
     if (!genType || !VALID_TYPES.includes(genType)) {
       console.error('[street] Usage: street generate <type> <name>');
-      console.error('  Valid types: controller, service, repository');
+      console.error('  Valid types: controller, service, repository, middleware, gateway, migration');
       console.error('  Example: street generate controller users');
       process.exitCode = 1;
       return;
@@ -54,9 +54,20 @@ export class GenerateCommand {
       case 'repository':
         await this.generateRepository(cwd, className, fileName, pluralName);
         break;
+      case 'middleware':
+        await generateMiddleware(name, cwd);
+        break;
+      case 'gateway':
+        await generateGateway(name, cwd);
+        break;
+      case 'migration':
+        await generateMigration(name, cwd);
+        break;
     }
 
-    console.log(`[street] Generated ${type}: src/${this.toPlural(type)}/${fileName}.${type}.ts`);
+    if (type !== 'middleware' && type !== 'gateway' && type !== 'migration') {
+      console.log(`[street] Generated ${type}: src/${this.toPlural(type)}/${fileName}.${type}.ts`);
+    }
   }
 
   private async generateController(
