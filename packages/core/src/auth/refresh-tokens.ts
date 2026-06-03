@@ -82,9 +82,7 @@ export class RefreshTokenService {
       [tokenHash, family, userId, expiresAt.toISOString()],
     );
 
-    const accessToken = this._jwt.sign({ sub: userId }, { expiresIn: Math.floor(this._accessTtlMs / 1000) });
-
-    return { accessToken, refreshToken: rawRefreshToken };
+    const accessToken = this._jwt.sign({ sub: userId }, { expiresInSeconds: Math.floor(this._accessTtlMs / 1000) });
   }
 
   /**
@@ -144,7 +142,7 @@ export class RefreshTokenService {
         [newHash, familyId, userId, newExpiry.toISOString()],
       );
 
-      const accessToken = this._jwt.sign({ sub: userId }, { expiresIn: Math.floor(this._accessTtlMs / 1000) });
+      const accessToken = this._jwt.sign({ sub: userId }, { expiresInSeconds: Math.floor(this._accessTtlMs / 1000) });
 
       return { accessToken, refreshToken: newRaw };
     });

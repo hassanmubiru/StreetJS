@@ -350,7 +350,7 @@ export class OAuthManager {
       const userInfo = await fetchJson<{ id: number; name?: string; email?: string; avatar_url?: string; login: string }>(
         'https://api.github.com/user',
         { headers: { Authorization: `Bearer ${tokens.accessToken}`, 'User-Agent': 'StreetFramework' } },
-      ).catch(() => ({ id: 0, login: 'unknown' }));
+      ).catch(() => ({ id: 0, login: 'unknown', name: undefined, email: undefined, avatar_url: undefined }));
 
       profile = {
         id: String(userInfo.id),
