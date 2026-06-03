@@ -1,15 +1,15 @@
 // packages/cli/src/tests/generate.test.ts
 // Unit tests for the `street generate` command — helper methods and scaffolding.
 
-import { describe, it } from 'node:test';
+import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync, existsSync, readFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
 // We import the class itself so we can exercise the private helpers
 // via the execute method which produces observable output files.
-import { GenerateCommand } from '../commands/generate.js';
+import { GenerateCommand, generateMiddleware, generateGateway, generateMigration } from '../commands/generate.js';
 
 interface CapturedOutput {
   logs: string[];
