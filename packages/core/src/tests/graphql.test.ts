@@ -113,19 +113,19 @@ const simpleSchema = parseSchema(`
   }
 `);
 
-const simpleResolvers = {
+const simpleResolvers: Record<string, Record<string, (parent: unknown, args: unknown, ctx: unknown) => unknown>> = {
   Query: {
     hello: () => 'world',
-    greet: (_p: unknown, args: Record<string, unknown>) => `Hello, ${args['name'] ?? 'stranger'}!`,
-    user: (_p: unknown, args: Record<string, unknown>) =>
-      args['id'] === '1'
+    greet: (_p: unknown, args: unknown) => `Hello, ${(args as Record<string, unknown>)['name'] ?? 'stranger'}!`,
+    user: (_p: unknown, args: unknown) =>
+      (args as Record<string, unknown>)['id'] === '1'
         ? { id: '1', name: 'Alice', email: 'alice@example.com' }
         : null,
   },
   Mutation: {
-    createUser: (_p: unknown, args: Record<string, unknown>) => ({
+    createUser: (_p: unknown, args: unknown) => ({
       id: '42',
-      name: args['name'] ?? 'Unknown',
+      name: (args as Record<string, unknown>)['name'] ?? 'Unknown',
       email: '',
     }),
   },
