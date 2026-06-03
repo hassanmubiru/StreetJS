@@ -152,14 +152,14 @@ void describe('InfoCommand', () => {
     //   '  ' + label.padEnd(labelWidth) + value
     // labelWidth = maxLabelLength + 2, so the gap between label text and value
     // is always >=2 spaces. We locate the first run of >=2 consecutive spaces
-    // (starting after the 2-char row prefix) to find where the value begins.
+    // to find where the value column begins.
+    const twoSpaces = / {2,}/g;
     const valueStartCols = dataRows.map((row) => {
-      // Match 2+ consecutive spaces after the leading '  ' prefix
-      const match = /^  \S[\s\S]*?( {2,})/.exec(row);
-      if (!match || match.index === undefined) return -1;
-      // Value starts right after the matched spacing run
-      const gapStart = row.indexOf(match[1], 2);
-      return gapStart + match[1].length;
+      // Reset lastIndex for global regex
+      twoSpaces.lastIndex = 2; // start searching after the '  ' row prefix
+      const m = twoSpaces.exec(row);
+      if (!m) return -1;
+      return m.index + m[0].length;
     });
 
     const uniqueCols = new Set(valueStartCols);
