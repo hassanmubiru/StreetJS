@@ -150,7 +150,7 @@ export function streetApp(options = {}) {
                     }
                     await method.call(instance, c);
                 };
-                router.add(routeMeta.method, fullPath, middlewares, handler, routeMeta.validate);
+                router.add(routeMeta.method, fullPath, middlewares, handler, routeMeta.validate, ctor.prototype, routeMeta.handlerName);
                 registeredRoutes.push({ method: routeMeta.method, fullPath, meta: routeMeta, controllerMeta });
             }
         },

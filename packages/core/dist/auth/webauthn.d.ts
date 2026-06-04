@@ -1,6 +1,21 @@
 export declare const WEBAUTHN_MIGRATION_SQL: string;
 /** Decode a subset of CBOR used in WebAuthn attestation/assertion objects. */
 export declare function decodeCbor(buf: Buffer): unknown;
+/**
+ * Parse the COSE-encoded credential public key from authData and return a
+ * JWK JSON string suitable for storage and later import via
+ * crypto.createPublicKey({ key: jwk, format: 'jwk' }).
+ *
+ * authData layout:
+ *   0-31   rpIdHash (32 bytes)
+ *   32     flags (1 byte)
+ *   33-36  signCount (4 bytes, big-endian)
+ *   37-52  aaguid (16 bytes)   — only when AT flag (0x40) is set
+ *   53-54  credentialIdLength (2 bytes, big-endian)
+ *   55..   credentialId (credentialIdLength bytes)
+ *   after  credentialPublicKey (CBOR-encoded COSE key)
+ */
+export declare function parseCredentialPublicKey(authData: Buffer): string;
 export interface WebAuthnConfig {
     rpName: string;
     rpId: string;
