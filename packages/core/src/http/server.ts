@@ -50,7 +50,8 @@ export function streetApp(options: StreetAppOptions = {}): StreetApp {
   const requestTimeoutMs = options.requestTimeoutMs ?? REQUEST_TIMEOUT_MS;
   const uploadsDir = options.uploadsDir ?? './uploads';
 
-  const server = createServer(async (req: IncomingMessage, res: ServerResponse) => {
+  /** The core per-request handler extracted for direct in-process dispatch. */
+  async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
     // Per-request timeout
     const reqTimeout = setTimeout(() => {
       if (!res.writableEnded) {
@@ -105,6 +106,10 @@ export function streetApp(options: StreetAppOptions = {}): StreetApp {
         await errorHandler(ctx, err);
       }
     }
+  }
+
+  const server = createServer((req: IncomingMessage, res: ServerResponse) => {
+    void handleRequest(req, res);
   });
 
   async function parseBody(
@@ -181,6 +186,10 @@ export function streetApp(options: StreetAppOptions = {}): StreetApp {
   return {
     use(mw: MiddlewareFn): void {
       globalMiddlewares.push(mw);
+    },
+
+    _handleRequest(req: IncomingMessage, res: ServerResponse): void {
+      void handleRequest(req, res);
     },
 
     registerController(ctor: Constructor): void {
