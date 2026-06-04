@@ -257,7 +257,7 @@ export class GraphQlEngine {
         }
         // Depth limit
         const depth = getDepth(op.selectionSet);
-        if (depth > this.opts.maxDepth) {
+        if (depth >= this.opts.maxDepth) {
             return { errors: [{ message: `Query depth ${depth} exceeds maximum allowed depth ${this.opts.maxDepth}` }] };
         }
         // Complexity limit
