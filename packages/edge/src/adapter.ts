@@ -151,80 +151,30 @@ export async function handleEdgeRequest(
 
 /**
  * Dispatches a synthetic Node.js request/response pair through the StreetApp.
- * Uses the app's internal HTTP server by temporarily creating a local server
- * or by invoking the request handler directly via an internal bypass.
+ * Uses the app's internal `_handleRequest` method for direct in-process dispatch
+ * without creating a TCP server.
  */
 async function dispatchToApp(
   app: StreetApp,
   req: import('node:http').IncomingMessage,
   res: import('node:http').ServerResponse
 ): Promise<void> {
-  // StreetApp does not expose a raw request handler in its public interface,
-  // so we use a one-shot local server on a random port as a lightweight bridge.
-  const http = await import('node:http');
-  const net = await import('node:net');
-
-  return new Promise<void>((resolve, reject) => {
-    // Find a free port, then start a temporary server.
-    const tempServer = http.createServer((innerReq, innerRes) => {
-      // Pipe the response back.
-      innerRes.on('finish', () => {
-        res.statusCode = innerRes.statusCode;
+  // Direct in-process dispatch using StreetApp's internal handler
+  // This avoids creating a TCP server for each edge request
+  const handler = (app as unknown as { _handleRequest?: (req: unknown, res: unknown) => void })['_handleRequest'];
+  if (typeof handler === 'function') {
+    await new Promise<void>((resolve) => {
+      const origEnd = res.end.bind(res);
+      (res as unknown as Record<string, unknown>)['end'] = (...args: unknown[]) => {
+        const r = (origEnd as (...a: unknown[]) => unknown)(...args);
         resolve();
-      });
-      innerRes.on('error', reject);
+        return r;
+      };
+      handler(req, res);
     });
-
-    // Actually, direct dispatch: spin up app on ephemeral port, make internal request
-    // For simplicity in edge contexts, emit a synthetic request event.
-    const internalServer = http.createServer();
-
-    // Get a free port
-    const testServer = net.createServer();
-    testServer.listen(0, '127.0.0.1', () => {
-      const port = (testServer.address() as net.AddressInfo).port;
-      testServer.close(async () => {
-        try {
-          await app.listen(port, '127.0.0.1');
-
-          const clientReq = http.request({
-            host: '127.0.0.1',
-            port,
-            path: req.url ?? '/',
-            method: req.method ?? 'GET',
-            headers: req.headers as Record<string, string>,
-          }, (clientRes) => {
-            res.statusCode = clientRes.statusCode ?? 200;
-            Object.entries(clientRes.headers).forEach(([k, v]) => {
-              if (v) res.setHeader(k, v as string);
-            });
-
-            const chunks: Buffer[] = [];
-            clientRes.on('data', (chunk: Buffer) => chunks.push(chunk));
-            clientRes.on('end', async () => {
-              const body = Buffer.concat(chunks);
-              res.end(body);
-              await app.close().catch(() => undefined);
-              resolve();
-            });
-            clientRes.on('error', reject);
-          });
-
-          clientReq.on('error', reject);
-
-          // Forward body
-          if (req.method !== 'GET' && req.method !== 'HEAD') {
-            req.pipe(clientReq);
-          } else {
-            clientReq.end();
-          }
-        } catch (err) {
-          reject(err);
-        }
-      });
-    });
-
-    void internalServer;
-    void tempServer;
-  });
+  } else {
+    // Fallback: if _handleRequest not available, return 501
+    res.writeHead(501, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Direct dispatch not available — StreetApp._handleRequest not found' }));
+  }
 }
