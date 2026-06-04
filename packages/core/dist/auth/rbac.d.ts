@@ -39,12 +39,13 @@ export declare class RbacService {
     hasPermission(userRoles: string[], permission: string): boolean;
 }
 /**
- * Middleware factory that reads @Roles / @Permissions metadata from the route
- * handler and enforces them against ctx.user.roles.
+ * Middleware that enforces @Roles / @Permissions requirements against
+ * ctx.user.roles.
  *
- * Because middleware runs before the handler, we attach the guard to the
- * global middleware pipeline and read metadata from the handler stored in
- * ctx.state['routeHandler'].
+ * The router bakes RBAC metadata from decorators into the compiled route at
+ * registration time and sets ctx.state['_requiredRoles'] and
+ * ctx.state['_requiredPermissions'] before running the pipeline.  This guard
+ * reads those values directly — no prototype chain traversal at request time.
  */
 export declare function rbacGuard(service: RbacService): MiddlewareFn;
 //# sourceMappingURL=rbac.d.ts.map

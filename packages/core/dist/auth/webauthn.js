@@ -90,6 +90,76 @@ function _decodeCborItem(buf, offset) {
             return [null, offset];
     }
 }
+// ── COSE key parsing ──────────────────────────────────────────────────────────
+/**
+ * Parse the COSE-encoded credential public key from authData and return a
+ * JWK JSON string suitable for storage and later import via
+ * crypto.createPublicKey({ key: jwk, format: 'jwk' }).
+ *
+ * authData layout:
+ *   0-31   rpIdHash (32 bytes)
+ *   32     flags (1 byte)
+ *   33-36  signCount (4 bytes, big-endian)
+ *   37-52  aaguid (16 bytes)   — only when AT flag (0x40) is set
+ *   53-54  credentialIdLength (2 bytes, big-endian)
+ *   55..   credentialId (credentialIdLength bytes)
+ *   after  credentialPublicKey (CBOR-encoded COSE key)
+ */
+export function parseCredentialPublicKey(authData) {
+    if (authData.length < 37)
+        throw new Error('authData too short');
+    const flags = authData[32];
+    const hasAttestedCredential = (flags & 0x40) !== 0;
+    if (!hasAttestedCredential)
+        throw new Error('No attested credential data in authData');
+    let offset = 37;
+    // Skip aaguid (16 bytes)
+    offset += 16;
+    // Read credential ID length
+    if (offset + 2 > authData.length)
+        throw new Error('authData truncated at credentialIdLength');
+    const credIdLen = authData.readUInt16BE(offset);
+    offset += 2;
+    // Skip credential ID
+    offset += credIdLen;
+    // Remaining bytes are the COSE key
+    if (offset >= authData.length)
+        throw new Error('No COSE key in authData');
+    const coseKeyBytes = authData.subarray(offset);
+    // Decode COSE key CBOR
+    const coseKey = decodeCbor(Buffer.from(coseKeyBytes));
+    const kty = coseKey['1'];
+    if (kty === 2) {
+        // EC2 key (kty=2, alg=-7 / ES256, crv=1 / P-256)
+        const x = coseKey['-2'];
+        const y = coseKey['-3'];
+        if (!x || !y)
+            throw new Error('Invalid EC2 COSE key: missing x or y');
+        const jwk = {
+            kty: 'EC',
+            crv: 'P-256',
+            x: x.toString('base64url'),
+            y: y.toString('base64url'),
+        };
+        return JSON.stringify(jwk);
+    }
+    else if (kty === 3) {
+        // RSA key (kty=3, alg=-257 / RS256)
+        const n = coseKey['-1'];
+        const e = coseKey['-2'];
+        if (!n || !e)
+            throw new Error('Invalid RSA COSE key: missing n or e');
+        const jwk = {
+            kty: 'RSA',
+            n: n.toString('base64url'),
+            e: e.toString('base64url'),
+        };
+        return JSON.stringify(jwk);
+    }
+    else {
+        throw new Error(`Unsupported COSE key type: ${kty}`);
+    }
+}
 // ── WebAuthnService ───────────────────────────────────────────────────────────
 export class WebAuthnService {
     _config;
@@ -140,9 +210,8 @@ export class WebAuthnService {
         // Parse authData
         const authData = attestation['authData'];
         const credentialId = credential.id;
-        // Extract public key from authData (simplified: store the full authData for now)
-        // Real implementation would parse COSE key from authData; store base64url encoded authData as public key placeholder
-        const publicKey = authData.toString('base64url');
+        // Parse COSE public key from authData and store as JWK JSON string
+        const publicKey = parseCredentialPublicKey(authData);
         const signCount = authData.length >= 41 ? authData.readUInt32BE(33) : 0;
         await this._pool.query(`INSERT INTO street_webauthn_credentials (user_id, credential_id, public_key, sign_count)
        VALUES ($1, $2, $3, $4)
@@ -192,29 +261,22 @@ export class WebAuthnService {
         if (newSignCount !== 0 && newSignCount <= storedSignCount) {
             throw new Error('Sign count replay detected');
         }
-        // Verify signature (simplified — in production, reconstruct the signed data and verify with COSE key)
+        // Reconstruct signed data: authData || SHA-256(clientDataJSON)
         const signature = Buffer.from(assertion.response.signature, 'base64url');
         const clientDataHash = crypto.createHash('sha256')
             .update(Buffer.from(assertion.response.clientDataJSON, 'base64url'))
             .digest();
         const signedData = Buffer.concat([authData, clientDataHash]);
-        // If signature length is 0 (test mode), skip verification
-        if (signature.length > 0) {
-            try {
-                const publicKeyBuf = Buffer.from(cred['public_key'], 'base64url');
-                const pubKey = crypto.createPublicKey({ key: publicKeyBuf, format: 'der', type: 'spki' });
-                const valid = crypto.verify('SHA256', signedData, pubKey, signature);
-                if (!valid)
-                    throw new Error('Invalid assertion signature');
-            }
-            catch (e) {
-                if (e.message !== 'Invalid assertion signature') {
-                    // Key format error in test mode — skip verification
-                }
-                else {
-                    throw e;
-                }
-            }
+        // Load stored JWK and verify signature — any failure is a hard error
+        const storedPublicKey = cred['public_key'];
+        if (!storedPublicKey)
+            throw new Error('Stored credential has no public key');
+        const jwk = JSON.parse(storedPublicKey);
+        const pubKey = crypto.createPublicKey({ key: jwk, format: 'jwk' });
+        const verifier = crypto.createVerify('SHA256');
+        verifier.update(signedData);
+        if (!verifier.verify(pubKey, signature)) {
+            throw new Error('Invalid assertion signature');
         }
         // Update sign count
         await this._pool.query('UPDATE street_webauthn_credentials SET sign_count = $1 WHERE id = $2', [newSignCount, cred['id']]);

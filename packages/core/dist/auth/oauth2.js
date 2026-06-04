@@ -160,9 +160,12 @@ export class OAuthManager {
     _jwksCache;
     _session;
     constructor(opts) {
+        if (!opts.sessionManager) {
+            throw new Error('OAuthManager requires a sessionManager to securely persist PKCE state');
+        }
         this._providers = new Map(opts.providers.map((p) => [p.name, p]));
         this._jwksCache = new JwksCache();
-        this._session = opts.sessionManager ?? null;
+        this._session = opts.sessionManager;
     }
     async authorizationUrl(providerName) {
         const provider = this._providers.get(providerName);
@@ -248,13 +251,13 @@ export class OAuthManager {
             try {
                 const code = String(ctx.query['code'] ?? '');
                 const state = String(ctx.query['state'] ?? '');
-                const sessionState = String(this._session?.get(ctx, `oauth_state_${providerName}`) ?? '');
-                const codeVerifier = String(this._session?.get(ctx, `oauth_verifier_${providerName}`) ?? '');
+                const sessionState = String(this._session.get(ctx, `oauth_state_${providerName}`) ?? '');
+                const codeVerifier = String(this._session.get(ctx, `oauth_verifier_${providerName}`) ?? '');
                 if (!code) {
                     // Initiate flow
                     const { url, state: s, codeVerifier: cv } = await this.authorizationUrl(providerName);
-                    this._session?.set(ctx, `oauth_state_${providerName}`, s);
-                    this._session?.set(ctx, `oauth_verifier_${providerName}`, cv);
+                    this._session.set(ctx, `oauth_state_${providerName}`, s);
+                    this._session.set(ctx, `oauth_verifier_${providerName}`, cv);
                     ctx.res.writeHead(302, { Location: url });
                     ctx.res.end();
                     return;

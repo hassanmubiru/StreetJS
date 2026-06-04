@@ -39,7 +39,7 @@ export declare class JwksCache {
 }
 export interface OAuthManagerOptions {
     providers: OAuthProvider[];
-    sessionManager?: {
+    sessionManager: {
         get(ctx: StreetContext, key: string): unknown;
         set(ctx: StreetContext, key: string, value: unknown): void;
     };

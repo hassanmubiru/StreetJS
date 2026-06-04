@@ -79,9 +79,8 @@ export class StreetPostgresRepository {
      */
     streamAll(sql, params) {
         if (params && params.length > 0) {
-            // Parameterized streaming is not yet supported by the wire driver's
-            // queryStream path; fall back to pool.query and stream from memory.
-            // TODO: add parameterized queryStream to PgConnection.
+            // Note: parameterized streaming requires wire-protocol changes planned for v2.x.
+            // Until then, use non-parameterized SQL for streaming or pool.query() for parameterized queries.
             throw new Error('streamAll does not yet support parameterized queries — use pool.query() instead');
         }
         return this.pool.stream(sql);
