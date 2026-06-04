@@ -170,6 +170,10 @@ export class WorkflowEngine {
       `UPDATE street_workflows SET status='completed', updated_at=NOW() WHERE id=$1`,
       [workflowId],
     );
+
+    } finally {
+      await lockHandle.release();
+    }
   }
 
   // ── Internal ──────────────────────────────────────────────────────────────
