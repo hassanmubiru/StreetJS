@@ -115,10 +115,17 @@ export class ApiKeyService {
       return null;
     }
 
-    // Constant-time hash comparison
+    // Constant-time hash comparison — SHA-256 always produces 32 bytes, but
+    // use a try/catch to handle any unexpected length mismatch gracefully.
     const storedHash = Buffer.from(row['key_hash']!, 'hex');
     const computedHash = Buffer.from(hash, 'hex');
-    if (storedHash.length !== computedHash.length || !crypto.timingSafeEqual(storedHash, computedHash)) {
+    try {
+      if (!crypto.timingSafeEqual(storedHash, computedHash)) {
+        this._cache.set(hash, null);
+        return null;
+      }
+    } catch {
+      // timingSafeEqual throws if lengths differ — treat as no-match
       this._cache.set(hash, null);
       return null;
     }

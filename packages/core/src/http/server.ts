@@ -202,7 +202,15 @@ export function streetApp(options: StreetAppOptions = {}): StreetApp {
           await (method as (ctx: StreetContext) => Promise<void>).call(instance, c);
         };
 
-        router.add(routeMeta.method, fullPath, middlewares, handler, routeMeta.validate);
+        router.add(
+          routeMeta.method,
+          fullPath,
+          middlewares,
+          handler,
+          routeMeta.validate,
+          ctor.prototype as object,
+          routeMeta.handlerName,
+        );
         registeredRoutes.push({ method: routeMeta.method, fullPath, meta: routeMeta, controllerMeta });
       }
     },

@@ -215,9 +215,9 @@ export class PgPool {
   }
 
   /** Execute a query with automatic connection management */
-  // TODO(otel): Instrument this method to create a child DB span when a parent OtelSpan is
-  // available. Implementing it properly would require passing ctx (StreetContext) into
-  // pool.query(), which is a major API change. Deferred — see task 11.6.
+  // Note: OTel child-span instrumentation for DB queries requires passing StreetContext
+  // into pool.query(), which is a significant API change planned for v2.x.
+  // Use the otelMiddleware for HTTP-level spans and correlate manually via correlationId.
   async query(sql: string, params?: unknown[]): Promise<PgResult> {
     const conn = await this.acquire();
     try {

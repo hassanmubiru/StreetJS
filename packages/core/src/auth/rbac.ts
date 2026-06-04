@@ -141,30 +141,21 @@ export class RbacService {
 // ── rbacGuard middleware ──────────────────────────────────────────────────────
 
 /**
- * Middleware factory that reads @Roles / @Permissions metadata from the route
- * handler and enforces them against ctx.user.roles.
+ * Middleware that enforces @Roles / @Permissions requirements against
+ * ctx.user.roles.
  *
- * Because middleware runs before the handler, we attach the guard to the
- * global middleware pipeline and read metadata from the handler stored in
- * ctx.state['routeHandler'].
+ * The router bakes RBAC metadata from decorators into the compiled route at
+ * registration time and sets ctx.state['_requiredRoles'] and
+ * ctx.state['_requiredPermissions'] before running the pipeline.  This guard
+ * reads those values directly — no prototype chain traversal at request time.
  */
 export function rbacGuard(service: RbacService): MiddlewareFn {
   return async (ctx, next) => {
-    const handler = ctx.state?.['routeHandler'] as Record<string, unknown> | undefined;
-    if (!handler) {
-      await next();
-      return;
-    }
-
-    const proto = Object.getPrototypeOf(handler) as object;
-    const methodName = (handler['name'] ?? handler['_methodName']) as string | symbol | undefined;
-
     const userRoles: string[] = (ctx.user?.roles as string[] | undefined) ?? [];
 
-    // Check @Roles metadata
-    const requiredRoles: string[] = methodName
-      ? (Reflect.getMetadata(ROLES_KEY, proto, methodName) as string[] | undefined) ?? []
-      : [];
+    // Check @Roles requirements baked by the router
+    const requiredRoles: string[] =
+      (ctx.state?.['_requiredRoles'] as string[] | undefined) ?? [];
     if (requiredRoles.length > 0) {
       const allowed = requiredRoles.some((role) => service.hasRole(userRoles, role));
       if (!allowed) {
@@ -172,10 +163,9 @@ export function rbacGuard(service: RbacService): MiddlewareFn {
       }
     }
 
-    // Check @Permissions metadata
-    const requiredPerms: string[] = methodName
-      ? (Reflect.getMetadata(PERMISSIONS_KEY, proto, methodName) as string[] | undefined) ?? []
-      : [];
+    // Check @Permissions requirements baked by the router
+    const requiredPerms: string[] =
+      (ctx.state?.['_requiredPermissions'] as string[] | undefined) ?? [];
     if (requiredPerms.length > 0) {
       const allowed = requiredPerms.every((perm) => service.hasPermission(userRoles, perm));
       if (!allowed) {

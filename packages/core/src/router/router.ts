@@ -1,11 +1,16 @@
 // src/router/router.ts
 // Compiled regex router with parameter extraction and middleware pipeline.
 
+import 'reflect-metadata';
 import type { StreetContext } from '../core/context.js';
 import type { MiddlewareFn, ValidationSchema, FieldRule } from '../core/types.js';
 import { BadRequestException, NotFoundException, isStreetException } from '../http/exceptions.js';
 import { diagnosticsReporter } from '../diagnostics/reporter.js';
 import type { RouteProfiler } from '../diagnostics/route-profiler.js';
+
+// Metadata keys must match rbac.ts
+const ROLES_KEY = 'street:roles';
+const PERMISSIONS_KEY = 'street:permissions';
 
 interface CompiledRoute {
   method: string;
@@ -16,6 +21,10 @@ interface CompiledRoute {
   validate?: ValidationSchema;
   /** Original path template (for profiler key, e.g. /users/:id) */
   pathTemplate: string;
+  /** Required roles baked from @Roles decorator at registration time */
+  requiredRoles: string[];
+  /** Required permissions baked from @Permissions decorator at registration time */
+  requiredPermissions: string[];
 }
 
 export interface RouterOptions {
@@ -36,10 +45,36 @@ export class Router {
     path: string,
     middlewares: MiddlewareFn[],
     handler: (ctx: StreetContext) => Promise<void> | void,
-    validate?: ValidationSchema
+    validate?: ValidationSchema,
+    /** Optional: controller prototype — used to read @Roles/@Permissions decorator metadata */
+    handlerTarget?: object,
+    /** Optional: method name on handlerTarget — used to read @Roles/@Permissions decorator metadata */
+    handlerMethodName?: string,
   ): void {
     const { pattern, paramNames } = compilePath(path);
-    this.routes.push({ method: method.toUpperCase(), pattern, paramNames, middlewares, handler, validate, pathTemplate: path });
+
+    // Bake RBAC requirements from decorator metadata at registration time so
+    // dispatch() doesn't need prototype chain traversal at request time.
+    let requiredRoles: string[] = [];
+    let requiredPermissions: string[] = [];
+    if (handlerTarget && handlerMethodName) {
+      requiredRoles =
+        (Reflect.getMetadata(ROLES_KEY, handlerTarget, handlerMethodName) as string[] | undefined) ?? [];
+      requiredPermissions =
+        (Reflect.getMetadata(PERMISSIONS_KEY, handlerTarget, handlerMethodName) as string[] | undefined) ?? [];
+    }
+
+    this.routes.push({
+      method: method.toUpperCase(),
+      pattern,
+      paramNames,
+      middlewares,
+      handler,
+      validate,
+      pathTemplate: path,
+      requiredRoles,
+      requiredPermissions,
+    });
   }
 
   /** Match a request and execute the middleware pipeline */
@@ -49,6 +84,12 @@ export class Router {
 
     const { route, params } = matched;
     ctx.params = params;
+
+    // Expose baked RBAC requirements so rbacGuard can read them without
+    // prototype chain traversal at request time.
+    if (!ctx.state) (ctx as unknown as Record<string, unknown>)['state'] = {};
+    ctx.state['_requiredRoles'] = route.requiredRoles;
+    ctx.state['_requiredPermissions'] = route.requiredPermissions;
 
     // Build pipeline: route middlewares + validation + handler
     const pipeline: MiddlewareFn[] = [

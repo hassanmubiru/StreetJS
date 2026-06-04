@@ -239,18 +239,21 @@ async function verifyIdToken(
 
 export interface OAuthManagerOptions {
   providers: OAuthProvider[];
-  sessionManager?: { get(ctx: StreetContext, key: string): unknown; set(ctx: StreetContext, key: string, value: unknown): void };
+  sessionManager: { get(ctx: StreetContext, key: string): unknown; set(ctx: StreetContext, key: string, value: unknown): void };
 }
 
 export class OAuthManager {
   private readonly _providers: Map<string, OAuthProvider>;
   private readonly _jwksCache: JwksCache;
-  private readonly _session: NonNullable<OAuthManagerOptions['sessionManager']> | null;
+  private readonly _session: NonNullable<OAuthManagerOptions['sessionManager']>;
 
   constructor(opts: OAuthManagerOptions) {
+    if (!opts.sessionManager) {
+      throw new Error('OAuthManager requires a sessionManager to securely persist PKCE state');
+    }
     this._providers = new Map(opts.providers.map((p) => [p.name, p]));
     this._jwksCache = new JwksCache();
-    this._session = opts.sessionManager ?? null;
+    this._session = opts.sessionManager;
   }
 
   async authorizationUrl(
@@ -372,14 +375,14 @@ export class OAuthManager {
       try {
         const code = String(ctx.query['code'] ?? '');
         const state = String(ctx.query['state'] ?? '');
-        const sessionState = String(this._session?.get(ctx, `oauth_state_${providerName}`) ?? '');
-        const codeVerifier = String(this._session?.get(ctx, `oauth_verifier_${providerName}`) ?? '');
+        const sessionState = String(this._session.get(ctx, `oauth_state_${providerName}`) ?? '');
+        const codeVerifier = String(this._session.get(ctx, `oauth_verifier_${providerName}`) ?? '');
 
         if (!code) {
           // Initiate flow
           const { url, state: s, codeVerifier: cv } = await this.authorizationUrl(providerName);
-          this._session?.set(ctx, `oauth_state_${providerName}`, s);
-          this._session?.set(ctx, `oauth_verifier_${providerName}`, cv);
+          this._session.set(ctx, `oauth_state_${providerName}`, s);
+          this._session.set(ctx, `oauth_verifier_${providerName}`, cv);
           ctx.res.writeHead(302, { Location: url });
           ctx.res.end();
           return;
