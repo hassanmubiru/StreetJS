@@ -82,6 +82,13 @@ export class WorkflowEngine {
       return; // Already terminal — nothing to do
     }
 
+    // Acquire a distributed lock so only one worker can advance this workflow at a time.
+    const { DistributedLock } = await import('../microservices/distributed-lock.js');
+    const lock = new DistributedLock(this.pool as unknown as Parameters<typeof DistributedLock>[0]);
+    const lockHandle = await lock.acquire(`workflow:${workflowId}`, 30_000);
+
+    try {
+
     const steps = this.definitions.get(name);
     if (!steps) {
       throw new Error(`Workflow definition "${name}" not found`);
