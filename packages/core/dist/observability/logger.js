@@ -80,17 +80,32 @@ let Logger = Logger_1 = class Logger {
         if (LEVEL_ORDER[level] < LEVEL_ORDER[this.minLevel])
             return;
         const serialisedMeta = meta ? serializeErrors(meta) : {};
-        const entry = {
-            timestamp: new Date().toISOString(),
-            level,
-            message,
-            service: this.service,
-            ...this.bindings,
-            ...serialisedMeta,
-        };
-        this.stream.write(JSON.stringify(entry) + '\n');
-        if (process.env['NODE_ENV'] === 'development') {
-            this._writePretty(level, entry);
+        const isCloudRun = Boolean(process.env['K_SERVICE']);
+        if (isCloudRun) {
+            // GCP structured logging format for Cloud Run
+            const gcpEntry = {
+                severity: level === 'error' ? 'ERROR' : level === 'warn' ? 'WARNING' : level === 'info' ? 'INFO' : 'DEBUG',
+                message,
+                service: this.service,
+                ...this.bindings,
+                ...serialisedMeta,
+                timestamp: new Date().toISOString(),
+            };
+            this.stream.write(JSON.stringify(gcpEntry) + '\n');
+        }
+        else {
+            const entry = {
+                timestamp: new Date().toISOString(),
+                level,
+                message,
+                service: this.service,
+                ...this.bindings,
+                ...serialisedMeta,
+            };
+            this.stream.write(JSON.stringify(entry) + '\n');
+            if (process.env['NODE_ENV'] === 'development') {
+                this._writePretty(level, entry);
+            }
         }
     }
     _writePretty(level, entry) {

@@ -17,7 +17,8 @@ export function streetApp(options = {}) {
     const maxBodyBytes = options.maxBodyBytes ?? MAX_BODY_BYTES;
     const requestTimeoutMs = options.requestTimeoutMs ?? REQUEST_TIMEOUT_MS;
     const uploadsDir = options.uploadsDir ?? './uploads';
-    const server = createServer(async (req, res) => {
+    /** The core per-request handler extracted for direct in-process dispatch. */
+    async function handleRequest(req, res) {
         // Per-request timeout
         const reqTimeout = setTimeout(() => {
             if (!res.writableEnded) {
@@ -67,6 +68,9 @@ export function streetApp(options = {}) {
                 await errorHandler(ctx, err);
             }
         }
+    }
+    const server = createServer((req, res) => {
+        void handleRequest(req, res);
     });
     async function parseBody(req, ctx, maxBytes, uploadsPath) {
         const method = req.method?.toUpperCase() ?? 'GET';
@@ -132,6 +136,9 @@ export function streetApp(options = {}) {
     return {
         use(mw) {
             globalMiddlewares.push(mw);
+        },
+        _handleRequest(req, res) {
+            void handleRequest(req, res);
         },
         registerController(ctor) {
             const controllerMeta = getControllerMeta(ctor);

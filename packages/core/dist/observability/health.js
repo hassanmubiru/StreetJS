@@ -3,6 +3,7 @@
 // ── HealthCheckRegistry ────────────────────────────────────────────────────────
 export class HealthCheckRegistry {
     _checks = new Map();
+    _startTime = Date.now();
     /**
      * Register a health check function.
      * Defaults: type='liveness', timeoutMs=5000.
@@ -20,6 +21,20 @@ export class HealthCheckRegistry {
     }
     /** Run all readiness checks in parallel. */
     runReadiness() {
+        const delayMs = parseInt(process.env['STREET_READINESS_DELAY_MS'] ?? '0', 10);
+        if (delayMs > 0 && Date.now() < this._startTime + delayMs) {
+            const result = {
+                status: 'degraded',
+                checks: {
+                    readiness_delay: {
+                        status: 'down',
+                        durationMs: 0,
+                        details: { reason: 'startup_delay', remainingMs: (this._startTime + delayMs) - Date.now() },
+                    },
+                },
+            };
+            return Promise.resolve(result);
+        }
         return this._run('readiness');
     }
     // ── Private helpers ─────────────────────────────────────────────────────────

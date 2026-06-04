@@ -14,6 +14,7 @@ export interface HealthResponse {
 }
 export declare class HealthCheckRegistry {
     private readonly _checks;
+    private readonly _startTime;
     /**
      * Register a health check function.
      * Defaults: type='liveness', timeoutMs=5000.

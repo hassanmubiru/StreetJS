@@ -28,6 +28,13 @@ export class SqlitePool {
         // one worker serialises all operations on a single Emscripten instance,
         // which is the correct behaviour for file-based SQLite.
         this.maxWorkers = opts.maxWorkers ?? 1;
+        // Warn when using a non-:memory: path — SQLite WASM uses Emscripten MEMFS,
+        // which does NOT persist data to the real filesystem between process restarts.
+        if (opts.filePath !== ':memory:') {
+            process.emitWarning(`SqlitePool: filePath "${opts.filePath}" will NOT persist to the real filesystem. ` +
+                'SQLite WASM uses an in-process virtual filesystem (Emscripten MEMFS). ' +
+                'Use ":memory:" for in-process databases, or node:sqlite (Node.js ≥22.5) for real persistence.', 'StreetWarning');
+        }
     }
     // ── Worker management ───────────────────────────────────────────────────────
     _workerPath() {
