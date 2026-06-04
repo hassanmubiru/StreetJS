@@ -31,6 +31,8 @@ export interface StreetApp {
   registerController(ctor: Constructor): void;
   use(mw: MiddlewareFn): void;
   openApiSpec(): object;
+  /** Internal: direct in-process request handler. Used by edge adapter and tests. */
+  _handleRequest(req: IncomingMessage, res: ServerResponse): void;
 }
 
 interface RegisteredRoute {
