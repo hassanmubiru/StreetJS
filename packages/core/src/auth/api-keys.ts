@@ -115,17 +115,13 @@ export class ApiKeyService {
       return null;
     }
 
-    // Constant-time hash comparison — SHA-256 always produces 32 bytes, but
-    // use a try/catch to handle any unexpected length mismatch gracefully.
+    // Constant-time hash comparison — both buffers are SHA-256 digests (always
+    // 32 bytes), so no length pre-check is needed or performed.  A length
+    // mismatch would indicate a programming error, not an attack, and
+    // timingSafeEqual will throw in that case which is the correct behaviour.
     const storedHash = Buffer.from(row['key_hash']!, 'hex');
     const computedHash = Buffer.from(hash, 'hex');
-    try {
-      if (!crypto.timingSafeEqual(storedHash, computedHash)) {
-        this._cache.set(hash, null);
-        return null;
-      }
-    } catch {
-      // timingSafeEqual throws if lengths differ — treat as no-match
+    if (!crypto.timingSafeEqual(storedHash, computedHash)) {
       this._cache.set(hash, null);
       return null;
     }
