@@ -84,7 +84,8 @@ export class WorkflowEngine {
 
     // Acquire a distributed lock so only one worker can advance this workflow at a time.
     const { DistributedLock } = await import('../microservices/distributed-lock.js');
-    const lock = new DistributedLock(this.pool as unknown as Parameters<typeof DistributedLock>[0]);
+    type GenericPool = ConstructorParameters<typeof DistributedLock>[0];
+    const lock = new DistributedLock(this.pool as unknown as GenericPool);
     const lockHandle = await lock.acquire(`workflow:${workflowId}`, 30_000);
 
     try {
