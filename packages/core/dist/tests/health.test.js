@@ -42,15 +42,21 @@ describe('HealthCheckRegistry', () => {
     });
     it('marks check as down when it times out', async () => {
         const registry = new HealthCheckRegistry();
-        // The check delays 200ms; the health check timeout is 15ms.
-        // We use a short but real setTimeout so the promise always settles,
-        // preventing the test runner from seeing a dangling pending promise.
+        // Track the pending timer so we can await it after runLiveness() returns,
+        // ensuring the event loop drains before the next test runs.
+        let resolveDelay;
+        const delayDrained = new Promise((r) => { resolveDelay = r; });
         registry.addCheck('slow', () => new Promise((resolve) => {
-            const t = setTimeout(() => resolve({ status: 'up' }), 200);
-            if (typeof t.unref === 'function')
-                t.unref();
+            // Short delay so the promise always settles, but long enough for the
+            // 15ms health timeout to fire first. Resolve the outer sentinel too.
+            setTimeout(() => {
+                resolve({ status: 'up' });
+                resolveDelay();
+            }, 100);
         }), { timeoutMs: 15 });
         const result = await registry.runLiveness();
+        // Wait for the check's timer to fire so the event loop drains cleanly.
+        await delayDrained;
         assert.equal(result.status, 'degraded');
         assert.equal(result.checks['slow']?.status, 'down');
         assert.deepEqual(result.checks['slow']?.details, { reason: 'timeout' });
