@@ -281,6 +281,12 @@ export function prometheusMiddleware(
     );
   }
 
+  // Collect heap usage on a background interval (not per-request)
+  const heapInterval = setInterval(() => {
+    processHeap.set(process.memoryUsage().heapUsed);
+  }, 5_000);
+  heapInterval.unref();
+
   return async (ctx, next) => {
     const startNs = process.hrtime.bigint();
 
@@ -294,9 +300,7 @@ export function prometheusMiddleware(
 
       httpRequests.inc({ method, route, status });
       httpDuration.observe(durationSec, { method, route, status });
-
-      // Update heap gauge
-      processHeap.set(process.memoryUsage().heapUsed);
+      // NOTE: heap metric is now updated by the background interval, not per-request
 
       // Update pool gauge if provided
       if (dbPoolGauge && pool) {

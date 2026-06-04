@@ -32,6 +32,7 @@ interface CheckEntry {
 
 export class HealthCheckRegistry {
   private readonly _checks = new Map<string, CheckEntry>();
+  private readonly _startTime = Date.now();
 
   /**
    * Register a health check function.
@@ -56,6 +57,20 @@ export class HealthCheckRegistry {
 
   /** Run all readiness checks in parallel. */
   runReadiness(): Promise<HealthResponse> {
+    const delayMs = parseInt(process.env['STREET_READINESS_DELAY_MS'] ?? '0', 10);
+    if (delayMs > 0 && Date.now() < this._startTime + delayMs) {
+      const result: HealthResponse = {
+        status: 'degraded',
+        checks: {
+          readiness_delay: {
+            status: 'down',
+            durationMs: 0,
+            details: { reason: 'startup_delay', remainingMs: (this._startTime + delayMs) - Date.now() },
+          },
+        },
+      };
+      return Promise.resolve(result);
+    }
     return this._run('readiness');
   }
 
