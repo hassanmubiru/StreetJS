@@ -42,18 +42,15 @@ describe('HealthCheckRegistry', () => {
     });
     it('marks check as down when it times out', async () => {
         const registry = new HealthCheckRegistry();
-        // Use an AbortController so the check function settles when aborted,
+        // The check delays 200ms; the health check timeout is 15ms.
+        // We use a short but real setTimeout so the promise always settles,
         // preventing the test runner from seeing a dangling pending promise.
-        const ac = new AbortController();
         registry.addCheck('slow', () => new Promise((resolve) => {
-            // Resolve when aborted so the promise drains cleanly
-            ac.signal.addEventListener('abort', () => resolve({ status: 'up' }), { once: true });
-        }), { timeoutMs: 10 });
+            const t = setTimeout(() => resolve({ status: 'up' }), 200);
+            if (typeof t.unref === 'function')
+                t.unref();
+        }), { timeoutMs: 15 });
         const result = await registry.runLiveness();
-        // Abort the check's pending promise so the event loop can drain
-        ac.abort();
-        // Wait a tick for the abort to propagate
-        await new Promise((r) => setImmediate(r));
         assert.equal(result.status, 'degraded');
         assert.equal(result.checks['slow']?.status, 'down');
         assert.deepEqual(result.checks['slow']?.details, { reason: 'timeout' });
