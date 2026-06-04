@@ -10,7 +10,6 @@ import * as crypto from 'node:crypto';
 import {
   WebAuthnService,
   parseCredentialPublicKey,
-  decodeCbor,
 } from '../auth/webauthn.js';
 import {
   RbacService,
@@ -231,7 +230,7 @@ describe('WebAuthnService.finishAuthentication — signature verification', () =
   async function setupCred(pool: MemoryPool, session: MemorySession, userId: string, challenge: string) {
     // Generate a real EC P-256 key pair for testing
     const { privateKey, publicKey } = crypto.generateKeyPairSync('ec', { namedCurve: 'P-256' });
-    const jwk = publicKey.export({ format: 'jwk' }) as JsonWebKey;
+    const jwk = publicKey.export({ format: 'jwk' }) as crypto.JsonWebKey;
     const credId = 'test-cred-123';
 
     await session.setChallenge(userId, challenge, Date.now() + 60_000);
@@ -567,8 +566,8 @@ describe('OAuthManager constructor', () => {
     assert.throws(
       () => new OAuthManager({
         providers: [{ name: 'github', clientId: 'id', clientSecret: 'sec', redirectUri: 'http://localhost/cb' }],
-        // sessionManager intentionally omitted — cast to force the runtime check
-        sessionManager: undefined as unknown as OAuthManager extends { _session: infer S } ? S : never,
+        // Cast to bypass TS so we can test the runtime guard
+        sessionManager: undefined as unknown as NonNullable<ConstructorParameters<typeof OAuthManager>[0]['sessionManager']>,
       }),
       /sessionManager/i,
     );
