@@ -58,20 +58,23 @@ describe('HealthCheckRegistry', () => {
 
   it('marks check as down when it times out', async () => {
     const registry = new HealthCheckRegistry();
-    // Use a manually resolvable promise; resolve it after runLiveness() returns
-    // to avoid leaving a dangling promise in the test runner.
-    let resolveCheck: ((v: { status: 'up' | 'down' }) => void) | undefined;
+    // Use an AbortController so the check function settles when aborted,
+    // preventing the test runner from seeing a dangling pending promise.
+    const ac = new AbortController();
     registry.addCheck(
       'slow',
       () => new Promise<{ status: 'up' | 'down' }>((resolve) => {
-        resolveCheck = resolve;
+        // Resolve when aborted so the promise drains cleanly
+        ac.signal.addEventListener('abort', () => resolve({ status: 'up' }), { once: true });
       }),
       { timeoutMs: 10 },
     );
 
     const result = await registry.runLiveness();
-    // Clean up the dangling promise so the event loop can drain
-    if (resolveCheck) resolveCheck({ status: 'up' });
+    // Abort the check's pending promise so the event loop can drain
+    ac.abort();
+    // Wait a tick for the abort to propagate
+    await new Promise<void>((r) => setImmediate(r));
 
     assert.equal(result.status, 'degraded');
     assert.equal(result.checks['slow']?.status, 'down');
