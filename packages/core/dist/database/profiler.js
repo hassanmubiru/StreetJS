@@ -28,9 +28,11 @@ export class ProfiledPool {
             this._profiler._record({ sql, params: params ?? [], startedAt: start, durationMs: duration });
         }
     }
-    // Forward size / idle for ConnectionDiagnostics.poolStats compatibility
+    // Forward size / idle / waiting / avgAcquireMs for ConnectionDiagnostics.poolStats compatibility
     get size() { return this._inner.size; }
     get idle() { return this._inner.idle; }
+    get waiting() { return this._inner.waiting; }
+    get avgAcquireMs() { return this._inner.avgAcquireMs; }
     /** Access the underlying (unwrapped) pool */
     get inner() { return this._inner; }
 }
@@ -107,20 +109,23 @@ export class ConnectionDiagnostics {
     /**
      * Return connection pool statistics.
      *
-     * For PgPool/ProfiledPool the `size` and `idle` getters are used.
-     * Other pool types return zeroes for fields that cannot be introspected.
+     * For PgPool/ProfiledPool the `size`, `idle`, `waiting`, and `avgAcquireMs`
+     * getters are used. Other pool types return zeroes for fields that cannot
+     * be introspected.
      */
     static poolStats(pool) {
         // Unwrap ProfiledPool to reach the underlying pool
         const inner = pool.inner ?? pool;
         const total = typeof inner.size === 'number' ? inner.size : 0;
         const idle = typeof inner.idle === 'number' ? inner.idle : 0;
+        const waiting = typeof inner.waiting === 'number' ? inner.waiting : 0;
+        const avgAcquireMs = typeof inner.avgAcquireMs === 'number' ? inner.avgAcquireMs : 0;
         return {
             total,
             idle,
             inUse: total - idle,
-            waiting: 0,
-            avgAcquireMs: 0,
+            waiting,
+            avgAcquireMs,
         };
     }
 }

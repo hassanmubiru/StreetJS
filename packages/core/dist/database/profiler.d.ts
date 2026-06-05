@@ -20,6 +20,8 @@ export interface ProfileablePool {
     query(sql: string, params?: unknown[]): Promise<DbResult>;
     size?: number;
     idle?: number;
+    waiting?: number;
+    avgAcquireMs?: number;
 }
 /**
  * A pool wrapper that records timing for every `query()` call.
@@ -32,6 +34,8 @@ export declare class ProfiledPool implements ProfileablePool {
     query(sql: string, params?: unknown[]): Promise<DbResult>;
     get size(): number | undefined;
     get idle(): number | undefined;
+    get waiting(): number | undefined;
+    get avgAcquireMs(): number | undefined;
     /** Access the underlying (unwrapped) pool */
     get inner(): ProfileablePool;
 }
@@ -72,8 +76,9 @@ export declare class ConnectionDiagnostics {
     /**
      * Return connection pool statistics.
      *
-     * For PgPool/ProfiledPool the `size` and `idle` getters are used.
-     * Other pool types return zeroes for fields that cannot be introspected.
+     * For PgPool/ProfiledPool the `size`, `idle`, `waiting`, and `avgAcquireMs`
+     * getters are used. Other pool types return zeroes for fields that cannot
+     * be introspected.
      */
     static poolStats(pool: ProfileablePool): PoolStats;
 }

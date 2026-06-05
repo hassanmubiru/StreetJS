@@ -14,6 +14,11 @@ export declare class PgPool {
     private readonly opts;
     private readonly sweepTimer;
     private closed;
+    /** Rolling window of recent successful acquire durations (ms). */
+    private static readonly ACQUIRE_SAMPLE_SIZE;
+    private readonly acquireSamples;
+    private acquireSamplesHead;
+    private acquireSamplesCount;
     /** Internal EventEmitter for pool lifecycle events (e.g. pool:exhausted). */
     readonly events: EventEmitter;
     constructor(opts: PoolOptions);
@@ -22,6 +27,7 @@ export declare class PgPool {
     private _createConnection;
     /** Acquire a free connection (or create one up to max, or wait) */
     acquire(): Promise<PgConnection>;
+    private _doAcquire;
     /** Release connection back to pool */
     release(conn: PgConnection): void;
     /** Remove a pooled connection from the connections array */
@@ -38,6 +44,12 @@ export declare class PgPool {
     close(): Promise<void>;
     get size(): number;
     get idle(): number;
+    /** Number of callers currently waiting for a connection. */
+    get waiting(): number;
+    /** Rolling average of recent successful acquire durations (ms); 0 if none recorded. */
+    get avgAcquireMs(): number;
+    /** Record a successful acquire duration into the rolling window. */
+    private _recordAcquire;
 }
 /**
  * Helper to subscribe to `pool:exhausted` events emitted by `PgPool`.

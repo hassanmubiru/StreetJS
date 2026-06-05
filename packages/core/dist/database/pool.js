@@ -9,11 +9,13 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var PgPool_1;
 import { EventEmitter } from 'node:events';
 import { PgConnection } from './wire.js';
 import { Injectable } from '../core/container.js';
 import { DatabaseConnectionError } from '../http/exceptions.js';
 let PgPool = class PgPool {
+    static { PgPool_1 = this; }
     connections = [];
     waitQueue = [];
     MAX_WAIT = 100; // bounded wait queue
@@ -21,6 +23,11 @@ let PgPool = class PgPool {
     opts;
     sweepTimer;
     closed = false;
+    /** Rolling window of recent successful acquire durations (ms). */
+    static ACQUIRE_SAMPLE_SIZE = 100;
+    acquireSamples = [];
+    acquireSamplesHead = 0;
+    acquireSamplesCount = 0;
     /** Internal EventEmitter for pool lifecycle events (e.g. pool:exhausted). */
     events = new EventEmitter();
     constructor(opts) {
@@ -61,6 +68,13 @@ let PgPool = class PgPool {
     }
     /** Acquire a free connection (or create one up to max, or wait) */
     async acquire() {
+        const start = Date.now();
+        const conn = await this._doAcquire();
+        // Record only successful acquires so timeouts/failures don't skew the average
+        this._recordAcquire(Date.now() - start);
+        return conn;
+    }
+    async _doAcquire() {
         if (this.closed)
             throw new Error('Pool is closed');
         // Find idle healthy connection, cleaning up dead ones encountered along the way
@@ -246,8 +260,27 @@ let PgPool = class PgPool {
     }
     get size() { return this.connections.length; }
     get idle() { return this.connections.filter((p) => !p.inUse).length; }
+    /** Number of callers currently waiting for a connection. */
+    get waiting() { return this.waitQueue.length; }
+    /** Rolling average of recent successful acquire durations (ms); 0 if none recorded. */
+    get avgAcquireMs() {
+        if (this.acquireSamplesCount === 0)
+            return 0;
+        let sum = 0;
+        for (let i = 0; i < this.acquireSamplesCount; i++) {
+            sum += this.acquireSamples[i] ?? 0;
+        }
+        return sum / this.acquireSamplesCount;
+    }
+    /** Record a successful acquire duration into the rolling window. */
+    _recordAcquire(durationMs) {
+        this.acquireSamples[this.acquireSamplesHead] = durationMs;
+        this.acquireSamplesHead = (this.acquireSamplesHead + 1) % PgPool_1.ACQUIRE_SAMPLE_SIZE;
+        if (this.acquireSamplesCount < PgPool_1.ACQUIRE_SAMPLE_SIZE)
+            this.acquireSamplesCount++;
+    }
 };
-PgPool = __decorate([
+PgPool = PgPool_1 = __decorate([
     Injectable(),
     __metadata("design:paramtypes", [Object])
 ], PgPool);
