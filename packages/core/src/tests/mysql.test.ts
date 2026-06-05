@@ -43,7 +43,7 @@ const opts = {
 
 
 // ─── 1. Connection ────────────────────────────────────────────────────────────
-describe('MysqlConnection — connect', () => {
+describe('MysqlConnection — connect', { skip }, () => {
   it('connects and is ready', async () => {
     const conn = await MysqlConnection.connect(opts);
     try {
@@ -51,6 +51,22 @@ describe('MysqlConnection — connect', () => {
     } finally {
       await conn.close();
     }
+  });
+
+  it('exposes a non-empty serverVersion', async () => {
+    const conn = await MysqlConnection.connect(opts);
+    try {
+      assert.equal(typeof conn.serverVersion, 'string');
+      assert.ok(conn.serverVersion.length > 0, 'expected a non-empty server version string');
+    } finally {
+      await conn.close();
+    }
+  });
+
+  it('close() marks the connection as closed', async () => {
+    const conn = await MysqlConnection.connect(opts);
+    await conn.close();
+    assert.ok(conn.isClosed);
   });
 
   it('returns MariaDbConnection for MariaDB servers', async () => {
