@@ -183,7 +183,7 @@ describe('TenantServiceImpl', () => {
         return fn({ query: async (sql, params) => pool.query(sql, params) });
       },
     };
-    const svc = new TenantServiceImpl(pool as unknown as { query(sql: string, params?: unknown[]): Promise<{ rows: Record<string, unknown>[]; rowCount: number; command: string }>; transaction?: unknown });
+    const svc = new TenantServiceImpl(pool as unknown as never);
     const id = await svc.provision({ name: 'Test Corp', plan: 'starter' });
     assert.equal(typeof id, 'string');
     assert.ok(id.length > 0);
@@ -196,7 +196,7 @@ describe('TenantServiceImpl', () => {
       },
     };
     const svc = new TenantServiceImpl(
-      pool as unknown as { query(sql: string, params?: unknown[]): Promise<{ rows: Record<string, unknown>[]; rowCount: number; command: string }>; transaction?: unknown },
+      pool as unknown as never,
       { requests: 1000 },
     );
     const status = await svc.checkQuota('tenant-1', 'requests');
@@ -211,7 +211,7 @@ describe('TenantServiceImpl', () => {
       },
     };
     const svc = new TenantServiceImpl(
-      pool as unknown as { query(sql: string, params?: unknown[]): Promise<{ rows: Record<string, unknown>[]; rowCount: number; command: string }>; transaction?: unknown },
+      pool as unknown as never,
       { requests: 100 },
     );
     const status = await svc.checkQuota('tenant-1', 'requests');
@@ -260,7 +260,7 @@ describe('QuotaEnforcer middleware', () => {
       },
     };
     const svc = new TenantServiceImpl(
-      pool as unknown as { query(sql: string, params?: unknown[]): Promise<{ rows: Record<string, unknown>[]; rowCount: number; command: string }>; transaction?: unknown },
+      pool as unknown as never,
       { api_calls: 1000 },
     );
     const mw = QuotaEnforcer(svc);
@@ -278,7 +278,7 @@ describe('QuotaEnforcer middleware', () => {
       },
     };
     const svc = new TenantServiceImpl(
-      pool as unknown as { query(sql: string, params?: unknown[]): Promise<{ rows: Record<string, unknown>[]; rowCount: number; command: string }>; transaction?: unknown },
+      pool as unknown as never,
       { api_calls: 1000 },
     );
     const mw = QuotaEnforcer(svc);
