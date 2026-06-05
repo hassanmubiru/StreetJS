@@ -71,7 +71,7 @@
   - [x] 8.6 Write tests: select with where and limit, join with subquery, idempotent build, parameterized placeholder count matches params array length, dialect-specific placeholder style
 
 - [ ] 9. v1.2 — Schema Introspection
-  - [~] 9.1 Create `packages/core/src/database/schema-inspector.ts`: define `ColumnMeta`, `IndexMeta`, `FkMeta`, `TableSchema`, `DatabaseSchema` interfaces
+  - [-] 9.1 Create `packages/core/src/database/schema-inspector.ts`: define `ColumnMeta`, `IndexMeta`, `FkMeta`, `TableSchema`, `DatabaseSchema` interfaces
   - [~] 9.2 Implement PostgreSQL introspection queries: batch `information_schema.columns`, `pg_indexes`, `information_schema.table_constraints`, `information_schema.referential_constraints` into minimal round-trips; complete within 1 second for 500-table schemas
   - [~] 9.3 Implement MySQL introspection queries using `information_schema` catalog tables
   - [~] 9.4 Implement SQLite introspection using `PRAGMA table_info()`, `PRAGMA index_list()`, `PRAGMA foreign_key_list()`
