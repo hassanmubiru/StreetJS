@@ -87,7 +87,6 @@ export class ConsulRegistry implements ServiceRegistryBackend {
         port: this._consulPort,
         path: `/v1/health/service/${encodeURIComponent(name)}?passing=true`,
         method: 'GET',
-        rejectUnauthorized: false,
       };
 
       // Use http for Consul (typically not TLS in development)
