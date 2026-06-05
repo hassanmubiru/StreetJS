@@ -82,7 +82,7 @@ describe('FeatureFlagService', () => {
   it('returns false when flag.enabled is false', async () => {
     const pool = {
       async query(_sql: string): Promise<DbResult> {
-        return { rows: [{ name: 'my-flag', enabled: false, rules: '[]' }] as unknown as Record<string, string|null>[], rowCount: 1, command: 'SELECT' };
+        return { rows: [{ name: 'my-flag', enabled: false, rules: [] }] as unknown as Record<string, string|null>[], rowCount: 1, command: 'SELECT' };
       },
     };
     const svc = new FeatureFlagService(pool);
@@ -91,7 +91,7 @@ describe('FeatureFlagService', () => {
   });
 
   it('returns true when flag is enabled with no targeting rules', async () => {
-    const pool = makePool([{ name: 'open-flag', enabled: true, rules: '[]' }]);
+    const pool = makePool([{ name: 'open-flag', enabled: true, rules: [] }]);
     const svc = new FeatureFlagService(pool);
     const result = await svc.isEnabled('open-flag');
     assert.equal(result, true);
@@ -165,7 +165,7 @@ describe('FeatureFlagService', () => {
       async query(_sql: string): Promise<DbResult> {
         callCount++;
         return {
-          rows: [{ name: 'cached-flag', enabled: true, rules: '[]' }] as unknown as Record<string, string | null>[],
+          rows: [{ name: 'cached-flag', enabled: true, rules: [] }] as unknown as Record<string, string | null>[],
           rowCount: 1,
           command: 'SELECT',
         };
