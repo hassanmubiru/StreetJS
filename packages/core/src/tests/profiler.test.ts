@@ -244,7 +244,6 @@ describe('QueryProfiler — ring buffer behaviour', () => {
 });
 
 // ─── 3. pool:exhausted event fires when pool is saturated ─────────────────────
-
 describe('pool:exhausted — event fires when pool queue is entered', () => {
   it('emits pool:exhausted with correct shape', () => {
     // Build a minimal fake pool that mirrors the PgPool event contract:
