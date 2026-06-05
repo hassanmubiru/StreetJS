@@ -52,7 +52,6 @@ export class ConsulRegistry {
                 port: this._consulPort,
                 path: `/v1/health/service/${encodeURIComponent(name)}?passing=true`,
                 method: 'GET',
-                rejectUnauthorized: false,
             };
             // Use http for Consul (typically not TLS in development)
             const http = require('node:http');
