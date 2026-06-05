@@ -75,7 +75,7 @@
   - [x] 9.2 Implement PostgreSQL introspection queries: batch `information_schema.columns`, `pg_indexes`, `information_schema.table_constraints`, `information_schema.referential_constraints` into minimal round-trips; complete within 1 second for 500-table schemas
   - [x] 9.3 Implement MySQL introspection queries using `information_schema` catalog tables
   - [x] 9.4 Implement SQLite introspection using `PRAGMA table_info()`, `PRAGMA index_list()`, `PRAGMA foreign_key_list()`
-  - [-] 9.5 Implement result caching: `Map<pool, { schema: DatabaseSchema; expiresAt: number }>` with 60-second default TTL; `invalidateCache(pool)` removes the entry
+  - [x] 9.5 Implement result caching: `Map<pool, { schema: DatabaseSchema; expiresAt: number }>` with 60-second default TTL; `invalidateCache(pool)` removes the entry
   - [~] 9.6 Write integration tests: inspect a known schema, verify all column types and nullable flags, verify 60s cache TTL, verify invalidation forces re-fetch
 
 - [ ] 10. v1.2 — Migration Diffing, Seeding, Query Profiling, and Connection Diagnostics
