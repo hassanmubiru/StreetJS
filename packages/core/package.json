@@ -112,6 +112,8 @@
     "dist/database/**/*.js.map",
     "dist/database/**/*.d.ts",
     "dist/database/**/*.d.ts.map",
+    "dist/database/sqlite/*.wasm",
+    "dist/database/sqlite/*.mjs",
     "dist/http/**/*.js",
     "dist/http/**/*.js.map",
     "dist/http/**/*.d.ts",
