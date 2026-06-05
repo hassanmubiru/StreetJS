@@ -43,9 +43,9 @@ function makeCtx(overrides: Partial<{
   let _responseData: unknown = null;
   return {
     method: 'GET',
-    path: '/api/test',
-    headers: {} as Record<string, string>,
-    state: {} as Record<string, unknown>,
+    path: overrides.path ?? '/api/test',
+    headers: (overrides.headers ?? {}) as Record<string, string>,
+    state: (overrides.state ?? {}) as Record<string, unknown>,
     params: {} as Record<string, string>,
     query: {} as Record<string, string>,
     user: undefined as unknown,
@@ -56,10 +56,9 @@ function makeCtx(overrides: Partial<{
     send: (_: number) => {},
     html: (_: string, _s = 200) => {},
     res: { statusCode: 200, setHeader: () => {}, writeHead: () => {}, end: () => {} } as unknown,
-    req: {} as unknown,
+    req: { headers: (overrides.headers ?? {}) as Record<string, string> } as unknown,
     _responseStatus: () => _responseStatus,
     _responseData: () => _responseData,
-    ...overrides,
   };
 }
 
