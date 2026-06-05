@@ -1,3 +1,4 @@
+import { EventEmitter } from 'node:events';
 import { MysqlConnection, type MysqlConnectOptions, type MysqlResultStream } from './wire.js';
 import type { DbResult } from '../types.js';
 export interface MysqlPoolOptions extends MysqlConnectOptions {
@@ -14,6 +15,8 @@ export declare class MysqlPool {
     private readonly opts;
     private readonly sweepTimer;
     private closed;
+    /** Internal EventEmitter for pool lifecycle events (e.g. pool:exhausted). */
+    readonly events: EventEmitter;
     constructor(opts: MysqlPoolOptions);
     /** Warm up minimum connections eagerly. */
     initialize(): Promise<void>;
