@@ -151,7 +151,7 @@ describe('tenantMiddleware — subdomain strategy', () => {
 describe('TenantPoolRegistry', () => {
   it('returns a pool (or null) for tenant', async () => {
     const masterPool = makePool([{ connection_string: null }]);
-    const registry = new TenantPoolRegistry(masterPool as unknown as Parameters<typeof TenantPoolRegistry>[0]);
+    const registry = new TenantPoolRegistry(masterPool as unknown as { query(sql: string, params?: unknown[]): Promise<{ rows: Record<string, string | null>[]; rowCount: number; command: string }> });
     const result = await registry.getPool('tenant-1');
     // null is valid when tenant has no connection_string
     assert.ok(result === null || typeof result === 'object');
@@ -159,7 +159,7 @@ describe('TenantPoolRegistry', () => {
 
   it('releaseIdle() does not throw', () => {
     const masterPool = makePool([]);
-    const registry = new TenantPoolRegistry(masterPool as unknown as Parameters<typeof TenantPoolRegistry>[0]);
+    const registry = new TenantPoolRegistry(masterPool as unknown as { query(sql: string, params?: unknown[]): Promise<{ rows: Record<string, string | null>[]; rowCount: number; command: string }> });
     assert.doesNotThrow(() => registry.releaseIdle(60_000));
   });
 });
@@ -183,7 +183,7 @@ describe('TenantServiceImpl', () => {
         return fn({ query: async (sql, params) => pool.query(sql, params) });
       },
     };
-    const svc = new TenantServiceImpl(pool as unknown as Parameters<typeof TenantServiceImpl>[0]);
+    const svc = new TenantServiceImpl(pool as unknown as { query(sql: string, params?: unknown[]): Promise<{ rows: Record<string, unknown>[]; rowCount: number; command: string }>; transaction?: unknown });
     const id = await svc.provision({ name: 'Test Corp', plan: 'starter' });
     assert.equal(typeof id, 'string');
     assert.ok(id.length > 0);
@@ -196,7 +196,7 @@ describe('TenantServiceImpl', () => {
       },
     };
     const svc = new TenantServiceImpl(
-      pool as unknown as Parameters<typeof TenantServiceImpl>[0],
+      pool as unknown as { query(sql: string, params?: unknown[]): Promise<{ rows: Record<string, unknown>[]; rowCount: number; command: string }>; transaction?: unknown },
       { requests: 1000 },
     );
     const status = await svc.checkQuota('tenant-1', 'requests');
@@ -211,7 +211,7 @@ describe('TenantServiceImpl', () => {
       },
     };
     const svc = new TenantServiceImpl(
-      pool as unknown as Parameters<typeof TenantServiceImpl>[0],
+      pool as unknown as { query(sql: string, params?: unknown[]): Promise<{ rows: Record<string, unknown>[]; rowCount: number; command: string }>; transaction?: unknown },
       { requests: 100 },
     );
     const status = await svc.checkQuota('tenant-1', 'requests');
@@ -260,7 +260,7 @@ describe('QuotaEnforcer middleware', () => {
       },
     };
     const svc = new TenantServiceImpl(
-      pool as unknown as Parameters<typeof TenantServiceImpl>[0],
+      pool as unknown as { query(sql: string, params?: unknown[]): Promise<{ rows: Record<string, unknown>[]; rowCount: number; command: string }>; transaction?: unknown },
       { api_calls: 1000 },
     );
     const mw = QuotaEnforcer(svc);
@@ -278,7 +278,7 @@ describe('QuotaEnforcer middleware', () => {
       },
     };
     const svc = new TenantServiceImpl(
-      pool as unknown as Parameters<typeof TenantServiceImpl>[0],
+      pool as unknown as { query(sql: string, params?: unknown[]): Promise<{ rows: Record<string, unknown>[]; rowCount: number; command: string }>; transaction?: unknown },
       { api_calls: 1000 },
     );
     const mw = QuotaEnforcer(svc);
