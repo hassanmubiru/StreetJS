@@ -58,7 +58,7 @@
   - [x] 7.1 Bundle a SQLite WASM binary (`sqlite3.wasm`) into `packages/core/src/database/sqlite/`; document the source and build steps in `CONTRIBUTING.md`
   - [x] 7.2 Create `packages/core/src/database/sqlite/worker.ts`: load and instantiate the WASM module inside a `node:worker_threads` worker; handle `query` and `transaction` messages via `MessageChannel`
   - [x] 7.3 Create `packages/core/src/database/sqlite/pool.ts` with `SqlitePool`: constructor accepts `{ filePath, maxWorkers? }`; routes queries to available worker threads; supports `query()` and `transaction()` methods
-  - [-] 7.4 Implement `DbResult` as a shared type across all three drivers (PG, MySQL, SQLite) in `packages/core/src/database/types.ts`; update existing `PgResult` to be an alias
+  - [x] 7.4 Implement `DbResult` as a shared type across all three drivers (PG, MySQL, SQLite) in `packages/core/src/database/types.ts`; update existing `PgResult` to be an alias
   - [~] 7.5 Write integration tests against a real SQLite file: create table, insert, query, transaction rollback, concurrent reads
   - [~] 7.6 Export `SqlitePool` from `packages/core/src/index.ts`
 
