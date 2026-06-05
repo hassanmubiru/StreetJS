@@ -1708,11 +1708,8 @@ describe('SessionManager — additional tests', () => {
 
 // ── Expanded JWT tests (Task 3) ───────────────────────────────────────────────
 
-import { JwtService } from '../security/jwt.js';
-import { SessionManager } from '../security/session.js';
-
 describe('JwtService — expanded', () => {
-  const jwt = new JwtService({ secret: 'test-secret-at-least-32-chars-here!!' });
+  const jwt = new JwtService('test-secret-at-least-32-chars-here!!');
 
   it('sign() returns a 3-part dot-separated token', () => {
     const token = jwt.sign({ sub: 'user1' });
