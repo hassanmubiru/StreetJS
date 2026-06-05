@@ -38,22 +38,128 @@ function assertFileWithinDir(dir, filename) {
     }
     return resolvedFull;
 }
+// ─── Reflect metadata keys ─────────────────────────────────────────────────────
+/** Column definitions: EntityColumnMeta[] (set by an @Column()/@Entity() decorator). */
+const COLUMNS_META_KEY = 'street:columns';
+/** Index definitions: EntityIndexMeta[]. */
+const INDEXES_META_KEY = 'street:indexes';
+/** Explicit table name override: string. */
+const TABLE_META_KEY = 'street:table';
+/** Primary key column names: string[]. */
+const PRIMARY_KEY_META_KEY = 'street:primaryKey';
+// ─── SQL identifier / literal safety ───────────────────────────────────────────
+/** Plain SQL identifier (table, column, index name). */
+const SAFE_IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*$/;
+/** SQL type token, allowing length/precision specifiers e.g. VARCHAR(255), NUMERIC(10,2). */
+const SAFE_SQL_TYPE = /^[A-Za-z0-9_ (),]+$/;
+/** Conservative default-expression pattern — forbids statement terminators. */
+const SAFE_DEFAULT = /^[A-Za-z0-9_'". :+\-()]*$/;
+/** Type synonyms used to avoid false-positive "type change" diffs across dialects. */
+const TYPE_SYNONYMS = {
+    INT: 'INTEGER',
+    INT4: 'INTEGER',
+    INT8: 'BIGINT',
+    BOOL: 'BOOLEAN',
+    'CHARACTER VARYING': 'VARCHAR',
+    'DOUBLE PRECISION': 'DOUBLE',
+    'TIMESTAMP WITHOUT TIME ZONE': 'TIMESTAMP',
+    'TIMESTAMP WITH TIME ZONE': 'TIMESTAMPTZ',
+};
+function assertSafeIdentifier(kind, value) {
+    if (!SAFE_IDENTIFIER.test(value)) {
+        throw new Error(`Unsafe ${kind} in entity metadata rejected: ${JSON.stringify(value)}`);
+    }
+    return value;
+}
+function assertSafeType(type) {
+    if (!SAFE_SQL_TYPE.test(type)) {
+        throw new Error(`Unsafe SQL type in entity metadata rejected: ${JSON.stringify(type)}`);
+    }
+    return type;
+}
+function renderDefault(value) {
+    if (!SAFE_DEFAULT.test(value)) {
+        throw new Error(`Unsafe column default in entity metadata rejected: ${JSON.stringify(value)}`);
+    }
+    return value;
+}
+/** Normalize a SQL type for equivalence comparison (uppercase, strip size, map synonyms). */
+function canonicalType(type) {
+    const stripped = type.trim().toUpperCase().replace(/\s*\([^)]*\)/g, '').trim();
+    return TYPE_SYNONYMS[stripped] ?? stripped;
+}
+/** Framework-managed tables that must never be proposed for DROP. */
+function isFrameworkTable(name) {
+    return name.startsWith('street_') || name.startsWith('sqlite_');
+}
+// ─── Metadata readers ──────────────────────────────────────────────────────────
+function resolveTableName(entity) {
+    const fromMeta = Reflect.getMetadata(TABLE_META_KEY, entity);
+    if (typeof fromMeta === 'string' && fromMeta)
+        return fromMeta;
+    const staticName = entity['tableName'];
+    if (typeof staticName === 'string' && staticName)
+        return staticName;
+    const ctor = entity;
+    return ctor.name ? ctor.name.toLowerCase() : '';
+}
+function readColumns(entity) {
+    return Reflect.getMetadata(COLUMNS_META_KEY, entity) ?? [];
+}
+function readIndexes(entity) {
+    return Reflect.getMetadata(INDEXES_META_KEY, entity) ?? [];
+}
+function readPrimaryKey(entity) {
+    return Reflect.getMetadata(PRIMARY_KEY_META_KEY, entity) ?? [];
+}
+// ─── DDL rendering ─────────────────────────────────────────────────────────────
+function renderColumnDef(col) {
+    const name = assertSafeIdentifier('column name', col.name);
+    const type = assertSafeType((col.type ?? 'TEXT').trim());
+    let def = `${name} ${type}`;
+    if (col.nullable === false)
+        def += ' NOT NULL';
+    if (col.default !== undefined && col.default !== null) {
+        def += ` DEFAULT ${renderDefault(col.default)}`;
+    }
+    return def;
+}
+function renderCreateTable(tableName, cols, primaryKey) {
+    const defs = cols.map(renderColumnDef);
+    if (primaryKey.length > 0) {
+        const pkCols = primaryKey.map((c) => assertSafeIdentifier('primary key column', c));
+        defs.push(`PRIMARY KEY (${pkCols.join(', ')})`);
+    }
+    return `CREATE TABLE ${tableName} (${defs.join(', ')});`;
+}
+function renderCreateIndex(tableName, idx) {
+    const name = assertSafeIdentifier('index name', idx.name);
+    const cols = idx.columns.map((c) => assertSafeIdentifier('index column', c));
+    const unique = idx.unique ? 'UNIQUE ' : '';
+    return `CREATE ${unique}INDEX ${name} ON ${tableName} (${cols.join(', ')});`;
+}
 // ─── MigrationDiffer ──────────────────────────────────────────────────────────
 /**
  * Compares the live database schema (via SchemaInspector) against the
- * column metadata registered on entity classes via @Column() decorators
- * (stored under the `"street:columns"` Reflect key).
+ * metadata registered on entity classes (column, index, table-name, and
+ * primary-key metadata stored under the `street:*` Reflect keys).
  *
- * Returns:
- *   safe        — ALTER TABLE … ADD COLUMN … for columns present in entities but not in DB
- *   destructive — ALTER TABLE … DROP COLUMN … for columns present in DB but not in entities
+ * Returns two buckets of SQL statements:
+ *   safe        — additive changes that cannot lose data: CREATE TABLE,
+ *                 ADD COLUMN (nullable or defaulted), CREATE INDEX.
+ *   destructive — changes that can lose data or fail on a populated table:
+ *                 DROP TABLE, DROP COLUMN, column type changes, and
+ *                 NOT NULL column additions without a default.
+ *
+ * Framework-managed tables (prefixed `street_`/`sqlite_`) are never proposed
+ * for DROP.
  */
 export class MigrationDiffer {
     /**
      * Diff the live schema of `pool` against the given entity constructors.
      *
-     * @param pool     Any queryable pool (PgPool, SqlitePool, etc.)
-     * @param entities Array of entity class constructors decorated with @Column()
+     * @param pool     Any queryable pool (PgPool, SqlitePool, MysqlPool, etc.)
+     * @param entities Array of entity class constructors carrying `street:*` metadata
      */
     static async diff(pool, entities) {
         // Invalidate cache so we always read the current live schema
@@ -61,36 +167,73 @@ export class MigrationDiffer {
         const liveSchema = await SchemaInspector.inspect(pool, { ttlMs: 0 });
         const safe = [];
         const destructive = [];
+        const entityTableNames = new Set();
         for (const entity of entities) {
-            // Derive table name from the entity: use a `tableName` static property,
-            // or fall back to the lowercased class name.
-            const ctor = entity;
-            const tableName = entity['tableName'] ??
-                ctor.name?.toLowerCase() ??
-                '';
+            const tableName = resolveTableName(entity);
             if (!tableName)
                 continue;
-            // Read column metadata stored under 'street:columns' by @Column() decorator
-            const entityCols = Reflect.getMetadata('street:columns', entity) ?? [];
-            const entityColNames = new Set(entityCols.map((c) => c.name));
-            // Find the corresponding live table
+            assertSafeIdentifier('table name', tableName);
+            entityTableNames.add(tableName);
+            const entityCols = readColumns(entity);
+            const entityIndexes = readIndexes(entity);
+            const primaryKey = readPrimaryKey(entity);
             const liveTable = liveSchema.tables.find((t) => t.name === tableName);
-            const liveColNames = new Set(liveTable?.columns.map((c) => c.name) ?? []);
-            // Columns in entity but not in DB → ADD COLUMN (safe)
+            // Entire table missing → CREATE TABLE (+ its indexes). Both are safe.
+            if (!liveTable) {
+                if (entityCols.length > 0) {
+                    safe.push(renderCreateTable(tableName, entityCols, primaryKey));
+                    for (const idx of entityIndexes) {
+                        safe.push(renderCreateIndex(tableName, idx));
+                    }
+                }
+                continue;
+            }
+            const liveColMap = new Map(liveTable.columns.map((c) => [c.name, c]));
+            const entityColNames = new Set(entityCols.map((c) => c.name));
             for (const col of entityCols) {
-                if (!liveColNames.has(col.name)) {
-                    const typePart = col.type ? ` ${col.type}` : ' TEXT';
-                    safe.push(`ALTER TABLE ${tableName} ADD COLUMN ${col.name}${typePart};`);
+                const liveCol = liveColMap.get(col.name);
+                if (!liveCol) {
+                    // Column missing in DB → ADD COLUMN.
+                    // A NOT NULL column without a default cannot be added to a populated
+                    // table, so it is classified destructive; otherwise it is additive.
+                    const stmt = `ALTER TABLE ${tableName} ADD COLUMN ${renderColumnDef(col)};`;
+                    const requiresValue = col.nullable === false &&
+                        (col.default === undefined || col.default === null);
+                    if (requiresValue)
+                        destructive.push(stmt);
+                    else
+                        safe.push(stmt);
+                    continue;
+                }
+                // Column exists in both → detect a type change (potential narrowing).
+                if (col.type && canonicalType(col.type) !== canonicalType(liveCol.type)) {
+                    assertSafeIdentifier('column name', col.name);
+                    const newType = assertSafeType(col.type.trim());
+                    destructive.push(`ALTER TABLE ${tableName} ALTER COLUMN ${col.name} TYPE ${newType};`);
                 }
             }
             // Columns in DB but not in entity → DROP COLUMN (destructive)
-            if (liveTable) {
-                for (const liveCol of liveTable.columns) {
-                    if (!entityColNames.has(liveCol.name)) {
-                        destructive.push(`ALTER TABLE ${tableName} DROP COLUMN ${liveCol.name};`);
-                    }
+            for (const liveCol of liveTable.columns) {
+                if (!entityColNames.has(liveCol.name)) {
+                    destructive.push(`ALTER TABLE ${tableName} DROP COLUMN ${assertSafeIdentifier('column name', liveCol.name)};`);
                 }
             }
+            // Indexes declared on the entity but absent in DB → CREATE INDEX (safe)
+            const liveIndexNames = new Set(liveTable.indexes.map((i) => i.name));
+            for (const idx of entityIndexes) {
+                if (!liveIndexNames.has(idx.name)) {
+                    safe.push(renderCreateIndex(tableName, idx));
+                }
+            }
+        }
+        // Live tables not represented by any entity → DROP TABLE (destructive),
+        // excluding framework-managed tables.
+        for (const liveTable of liveSchema.tables) {
+            if (entityTableNames.has(liveTable.name))
+                continue;
+            if (isFrameworkTable(liveTable.name))
+                continue;
+            destructive.push(`DROP TABLE ${assertSafeIdentifier('table name', liveTable.name)};`);
         }
         return { safe, destructive };
     }

@@ -3,30 +3,55 @@ import type { QueryablePool } from './schema-inspector.js';
 export interface EntityColumnMeta {
     /** Column name in the database */
     name: string;
-    /** SQL type (e.g. 'TEXT', 'INTEGER') */
+    /** SQL type (e.g. 'TEXT', 'INTEGER'). Defaults to 'TEXT' when omitted. */
     type?: string;
+    /** Whether the column accepts NULL. Defaults to true (nullable) when omitted. */
+    nullable?: boolean;
+    /** Optional column default expression rendered verbatim into the DDL. */
+    default?: string;
+}
+export interface EntityIndexMeta {
+    /** Index name. */
+    name: string;
+    /** Columns covered by the index, in declaration order. */
+    columns: string[];
+    /** Whether the index enforces uniqueness. */
+    unique?: boolean;
 }
 export interface MigrationDiff {
-    /** Safe statements — additive changes (ALTER TABLE … ADD COLUMN …) */
+    /**
+     * Safe (additive) statements — applying these cannot lose data:
+     * CREATE TABLE, ADD COLUMN for nullable/defaulted columns, CREATE INDEX.
+     */
     safe: string[];
-    /** Destructive statements — column removals (ALTER TABLE … DROP COLUMN …) */
+    /**
+     * Destructive statements — applying these can lose data or fail on a
+     * populated table: DROP TABLE, DROP COLUMN, column type changes,
+     * and NOT NULL column additions without a default.
+     */
     destructive: string[];
 }
 /**
  * Compares the live database schema (via SchemaInspector) against the
- * column metadata registered on entity classes via @Column() decorators
- * (stored under the `"street:columns"` Reflect key).
+ * metadata registered on entity classes (column, index, table-name, and
+ * primary-key metadata stored under the `street:*` Reflect keys).
  *
- * Returns:
- *   safe        — ALTER TABLE … ADD COLUMN … for columns present in entities but not in DB
- *   destructive — ALTER TABLE … DROP COLUMN … for columns present in DB but not in entities
+ * Returns two buckets of SQL statements:
+ *   safe        — additive changes that cannot lose data: CREATE TABLE,
+ *                 ADD COLUMN (nullable or defaulted), CREATE INDEX.
+ *   destructive — changes that can lose data or fail on a populated table:
+ *                 DROP TABLE, DROP COLUMN, column type changes, and
+ *                 NOT NULL column additions without a default.
+ *
+ * Framework-managed tables (prefixed `street_`/`sqlite_`) are never proposed
+ * for DROP.
  */
 export declare class MigrationDiffer {
     /**
      * Diff the live schema of `pool` against the given entity constructors.
      *
-     * @param pool     Any queryable pool (PgPool, SqlitePool, etc.)
-     * @param entities Array of entity class constructors decorated with @Column()
+     * @param pool     Any queryable pool (PgPool, SqlitePool, MysqlPool, etc.)
+     * @param entities Array of entity class constructors carrying `street:*` metadata
      */
     static diff(pool: QueryablePool, entities: object[]): Promise<MigrationDiff>;
 }
