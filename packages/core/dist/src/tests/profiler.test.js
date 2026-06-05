@@ -13,7 +13,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { SqlitePool } from '../database/sqlite/pool.js';
 import { StreetSeeder } from '../database/seeder.js';
-import { QueryProfiler } from '../database/profiler.js';
+import { QueryProfiler, ConnectionDiagnostics } from '../database/profiler.js';
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 /** Write a temp SQL seed file and return its path. */
 async function writeSeedFile(name, sql) {
@@ -250,6 +250,62 @@ describe('pool:exhausted — event fires when pool queue is entered', () => {
         off();
         pool.events.emit('pool:exhausted', { total: 2, idle: 0, waiting: 2 });
         assert.equal(fired.length, 1, 'listener should not fire after detach');
+    });
+});
+// ─── 4. ConnectionDiagnostics — ping & poolStats ──────────────────────────────
+describe('ConnectionDiagnostics.ping — sends SELECT 1 and measures round-trip', () => {
+    it('issues SELECT 1 and returns a non-negative latency', async () => {
+        let received;
+        const pool = {
+            async query(sql) {
+                received = sql;
+                await new Promise((r) => setTimeout(r, 2));
+                return { rows: [], rowCount: 0, command: 'SELECT' };
+            },
+        };
+        const { latencyMs } = await ConnectionDiagnostics.ping(pool);
+        assert.equal(received, 'SELECT 1', 'ping must send SELECT 1');
+        assert.ok(latencyMs >= 0, 'latency should be non-negative');
+    });
+});
+describe('ConnectionDiagnostics.poolStats — wires real pool stats', () => {
+    const noopQuery = async () => ({ rows: [], rowCount: 0, command: 'SELECT' });
+    it('reflects real waiting and avgAcquireMs from the pool', () => {
+        const pool = {
+            query: noopQuery,
+            size: 10,
+            idle: 4,
+            waiting: 3,
+            avgAcquireMs: 12.5,
+        };
+        const stats = ConnectionDiagnostics.poolStats(pool);
+        assert.equal(stats.total, 10);
+        assert.equal(stats.idle, 4);
+        assert.equal(stats.inUse, 6);
+        assert.equal(stats.waiting, 3);
+        assert.equal(stats.avgAcquireMs, 12.5);
+    });
+    it('unwraps ProfiledPool and reads stats from the inner pool', () => {
+        const inner = {
+            query: noopQuery,
+            size: 8,
+            idle: 2,
+            waiting: 5,
+            avgAcquireMs: 7,
+        };
+        const profiler = new QueryProfiler();
+        const wrapped = profiler.enable(inner);
+        const stats = ConnectionDiagnostics.poolStats(wrapped);
+        assert.equal(stats.total, 8);
+        assert.equal(stats.idle, 2);
+        assert.equal(stats.inUse, 6);
+        assert.equal(stats.waiting, 5);
+        assert.equal(stats.avgAcquireMs, 7);
+    });
+    it('defaults missing fields to 0 for pools that do not expose them', () => {
+        const pool = { query: noopQuery };
+        const stats = ConnectionDiagnostics.poolStats(pool);
+        assert.deepEqual(stats, { total: 0, idle: 0, inUse: 0, waiting: 0, avgAcquireMs: 0 });
     });
 });
 //# sourceMappingURL=profiler.test.js.map
