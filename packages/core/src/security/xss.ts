@@ -17,13 +17,25 @@ export function sanitizeString(input: string): string {
   if (input.length > MAX_STRING_LEN) {
     input = input.substring(0, MAX_STRING_LEN);
   }
-  return input
-    .replace(NULL_BYTES, '')
-    .replace(HTML_TAGS, '')
-    .replace(SCRIPT_PROTOCOL, '')
-    .replace(DATA_PROTOCOL, '')
-    .replace(VBSCRIPT_PROTOCOL, '')
-    .replace(DANGEROUS_ATTRS, '');
+
+  let previous: string;
+  let current = input;
+  let iterations = 0;
+  const MAX_SANITIZE_PASSES = 10;
+
+  do {
+    previous = current;
+    current = current
+      .replace(NULL_BYTES, '')
+      .replace(HTML_TAGS, '')
+      .replace(SCRIPT_PROTOCOL, '')
+      .replace(DATA_PROTOCOL, '')
+      .replace(VBSCRIPT_PROTOCOL, '')
+      .replace(DANGEROUS_ATTRS, '');
+    iterations++;
+  } while (current !== previous && iterations < MAX_SANITIZE_PASSES);
+
+  return current;
 }
 
 /** Recursively sanitize all string values in an object or array */
