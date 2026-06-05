@@ -10,7 +10,8 @@ import assert from 'node:assert/strict';
 
 import { SqlitePool } from '../database/sqlite/pool.js';
 import { SchemaInspector } from '../database/schema-inspector.js';
-import type { DatabaseSchema } from '../database/schema-inspector.js';
+import type { DatabaseSchema, QueryablePool } from '../database/schema-inspector.js';
+import type { DbResult } from '../database/types.js';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
