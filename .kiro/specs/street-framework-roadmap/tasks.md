@@ -51,7 +51,7 @@
   - [x] 6.5 Implement `MysqlConnection.queryStream(sql)`: return a `Readable` that emits row objects with backpressure via `socket.pause()`/`socket.resume()`
   - [x] 6.6 Create `packages/core/src/database/mysql/pool.ts` with `MysqlPool`: same min/max/acquire/idle-sweep API as `PgPool`
   - [x] 6.7 Create `packages/core/src/database/mysql/mariadb.ts`: `MariaDbConnection` subclass handling MariaDB-specific capability flags; `MysqlConnection.connect()` detects server greeting and returns the appropriate subclass
-  - [~] 6.8 Write integration tests against a real MySQL instance: connection, simple query, parameterized query, transaction commit, transaction rollback, concurrent queries
+  - [-] 6.8 Write integration tests against a real MySQL instance: connection, simple query, parameterized query, transaction commit, transaction rollback, concurrent queries
   - [~] 6.9 Export `MysqlConnection`, `MysqlPool`, `MariaDbConnection` from `packages/core/src/index.ts`
 
 - [ ] 7. v1.2 — SQLite Driver (WASM worker)
