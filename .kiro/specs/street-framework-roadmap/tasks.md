@@ -68,7 +68,7 @@
   - [x] 8.3 Implement `build()`: render all accumulated state into `{ sql: string; params: unknown[] }` with positional `$1`/`?` placeholders per `SqlDialect` enum
   - [x] 8.4 Add compile-time column name enforcement: `select(...cols: (keyof T & string)[])` and `where()` column parameter typed as `keyof T & string`; non-existent column produces a TypeScript error
   - [x] 8.5 Implement idempotent build: calling `build()` twice on the same unmodified builder produces identical output
-  - [~] 8.6 Write tests: select with where and limit, join with subquery, idempotent build, parameterized placeholder count matches params array length, dialect-specific placeholder style
+  - [-] 8.6 Write tests: select with where and limit, join with subquery, idempotent build, parameterized placeholder count matches params array length, dialect-specific placeholder style
 
 - [ ] 9. v1.2 — Schema Introspection
   - [~] 9.1 Create `packages/core/src/database/schema-inspector.ts`: define `ColumnMeta`, `IndexMeta`, `FkMeta`, `TableSchema`, `DatabaseSchema` interfaces
