@@ -1273,7 +1273,7 @@ describe('JwksCache', () => {
     // Fetch will fail (unreachable), should fall back to stale
     const keys = await cache.getKeys(mockUri);
     assert.equal(keys.length, 1);
-    const k = keys[0] as Record<string, unknown>;
+    const k = keys[0] as unknown as Record<string, unknown>;
     assert.equal(k['kid'], 'stale');
   });
 });
