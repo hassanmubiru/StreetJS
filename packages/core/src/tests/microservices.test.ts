@@ -322,7 +322,7 @@ describe('EventStore', () => {
 
   it('append() and load() returns events in insertion order', async () => {
     const pool = makeEventPool();
-    const store = new EventStore(pool as unknown as Parameters<typeof EventStore>[0]);
+    const store = new EventStore(pool as unknown as { query(sql: string, params?: unknown[]): Promise<{ rows: Record<string, unknown>[]; rowCount: number; command: string }> });
 
     await store.append('user-1', [
       { version: 1, type: 'UserCreated', payload: { name: 'Alice' } },
@@ -339,7 +339,7 @@ describe('EventStore', () => {
 
   it('load() with fromVersion filters events', async () => {
     const pool = makeEventPool();
-    const store = new EventStore(pool as unknown as Parameters<typeof EventStore>[0]);
+    const store = new EventStore(pool as unknown as { query(sql: string, params?: unknown[]): Promise<{ rows: Record<string, unknown>[]; rowCount: number; command: string }> });
 
     await store.append('user-2', [
       { version: 1, type: 'Created', payload: {} },
@@ -354,7 +354,7 @@ describe('EventStore', () => {
 
   it('load() returns empty array for unknown aggregateId', async () => {
     const pool = makeEventPool();
-    const store = new EventStore(pool as unknown as Parameters<typeof EventStore>[0]);
+    const store = new EventStore(pool as unknown as { query(sql: string, params?: unknown[]): Promise<{ rows: Record<string, unknown>[]; rowCount: number; command: string }> });
     const events = await store.load('nonexistent-aggregate');
     assert.deepEqual(events, []);
   });
