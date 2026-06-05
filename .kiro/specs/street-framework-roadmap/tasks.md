@@ -63,7 +63,7 @@
   - [x] 7.6 Export `SqlitePool` from `packages/core/src/index.ts`
 
 - [ ] 8. v1.2 — Type-Safe Query Builder
-  - [~] 8.1 Create `packages/core/src/database/query-builder.ts` with `QueryBuilder<T extends object>` class: internal AST state with arrays for `selects`, `wheres`, `joins`, `orderBys`, `groupBys`, `havings`; `limit` and `offset` number fields
+  - [-] 8.1 Create `packages/core/src/database/query-builder.ts` with `QueryBuilder<T extends object>` class: internal AST state with arrays for `selects`, `wheres`, `joins`, `orderBys`, `groupBys`, `havings`; `limit` and `offset` number fields
   - [~] 8.2 Implement all fluent methods: `select()`, `from()`, `where()`, `join()`, `leftJoin()`, `orderBy()`, `groupBy()`, `having()`, `limit()`, `offset()`, `subquery()`; each returns `this`
   - [~] 8.3 Implement `build()`: render all accumulated state into `{ sql: string; params: unknown[] }` with positional `$1`/`?` placeholders per `SqlDialect` enum
   - [~] 8.4 Add compile-time column name enforcement: `select(...cols: (keyof T & string)[])` and `where()` column parameter typed as `keyof T & string`; non-existent column produces a TypeScript error
