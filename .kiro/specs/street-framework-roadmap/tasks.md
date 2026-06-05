@@ -79,7 +79,7 @@
   - [x] 9.6 Write integration tests: inspect a known schema, verify all column types and nullable flags, verify 60s cache TTL, verify invalidation forces re-fetch
 
 - [ ] 10. v1.2 — Migration Diffing, Seeding, Query Profiling, and Connection Diagnostics
-  - [~] 10.1 Create `packages/core/src/database/migrations.ts` additions: `MigrationDiffer.diff(pool, entities)` reads live schema via `SchemaInspector`, compares to entity decorator metadata, returns `{ safe: string[], destructive: string[] }`
+  - [-] 10.1 Create `packages/core/src/database/migrations.ts` additions: `MigrationDiffer.diff(pool, entities)` reads live schema via `SchemaInspector`, compares to entity decorator metadata, returns `{ safe: string[], destructive: string[] }`
   - [~] 10.2 Add `street migrate:diff` CLI command: call `MigrationDiffer.diff()`, write generated SQL to timestamped file; require `--confirm-destructive` flag before writing any destructive statements
   - [~] 10.3 Create `packages/core/src/database/seeder.ts` with `StreetSeeder.run(pool, seedFile)`: wrap execution in `pool.transaction()`; track runs in `street_seed_runs` table using file content hash; skip already-applied seeds
   - [~] 10.4 Add `street db:seed <file>` CLI command wired to `StreetSeeder`
