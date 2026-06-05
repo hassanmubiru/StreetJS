@@ -62,9 +62,11 @@ export class ProfiledPool implements ProfileablePool {
     }
   }
 
-  // Forward size / idle for ConnectionDiagnostics.poolStats compatibility
+  // Forward size / idle / waiting / avgAcquireMs for ConnectionDiagnostics.poolStats compatibility
   get size(): number | undefined { return this._inner.size; }
   get idle(): number | undefined { return this._inner.idle; }
+  get waiting(): number | undefined { return this._inner.waiting; }
+  get avgAcquireMs(): number | undefined { return this._inner.avgAcquireMs; }
 
   /** Access the underlying (unwrapped) pool */
   get inner(): ProfileablePool { return this._inner; }
