@@ -84,7 +84,7 @@
   - [x] 10.3 Create `packages/core/src/database/seeder.ts` with `StreetSeeder.run(pool, seedFile)`: wrap execution in `pool.transaction()`; track runs in `street_seed_runs` table using file content hash; skip already-applied seeds
   - [x] 10.4 Add `street db:seed <file>` CLI command wired to `StreetSeeder`
   - [x] 10.5 Create `packages/core/src/database/profiler.ts` with `QueryProfiler`: ring buffer of 10,000 `QueryRecord` entries; `enable(pool)` wraps `pool.query()` with a timing decorator via composition (no prototype patching); `getSlowQueries(thresholdMs)` returns sorted results
-  - [-] 10.6 Implement `ConnectionDiagnostics.ping(pool)`: send `SELECT 1` and measure round-trip; `poolStats(pool)` returns `{ total, idle, inUse, waiting, avgAcquireMs }`
+  - [x] 10.6 Implement `ConnectionDiagnostics.ping(pool)`: send `SELECT 1` and measure round-trip; `poolStats(pool)` returns `{ total, idle, inUse, waiting, avgAcquireMs }`
   - [~] 10.7 Emit `pool:exhausted` event on `PgPool`'s internal `EventEmitter` before enqueueing a wait request when the pool is full
   - [~] 10.8 Write tests: seed runs are idempotent (same hash → skip), diff detects added column, profiler records slow queries, `pool:exhausted` fires on pool saturation
 
