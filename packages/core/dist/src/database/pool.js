@@ -9,6 +9,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+import { EventEmitter } from 'node:events';
 import { PgConnection } from './wire.js';
 import { Injectable } from '../core/container.js';
 import { DatabaseConnectionError } from '../http/exceptions.js';
@@ -20,6 +21,8 @@ let PgPool = class PgPool {
     opts;
     sweepTimer;
     closed = false;
+    /** Internal EventEmitter for pool lifecycle events (e.g. pool:exhausted). */
+    events = new EventEmitter();
     constructor(opts) {
         this.opts = {
             minConnections: opts.minConnections ?? 2,
@@ -102,6 +105,12 @@ let PgPool = class PgPool {
         if (this.waitQueue.length >= this.MAX_WAIT) {
             throw new Error('Connection pool wait queue full');
         }
+        // Emit pool:exhausted before enqueuing — listeners can log, alert, etc.
+        this.events.emit('pool:exhausted', {
+            total: this.connections.length,
+            idle: this.connections.filter((p) => !p.inUse).length,
+            waiting: this.waitQueue.length,
+        });
         return new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
                 const idx = this.waitQueue.indexOf(waitEntry);
@@ -173,6 +182,9 @@ let PgPool = class PgPool {
         return stream;
     }
     /** Execute a query with automatic connection management */
+    // Note: OTel child-span instrumentation for DB queries requires passing StreetContext
+    // into pool.query(), which is a significant API change planned for v2.x.
+    // Use the otelMiddleware for HTTP-level spans and correlate manually via correlationId.
     async query(sql, params) {
         const conn = await this.acquire();
         try {
@@ -240,4 +252,15 @@ PgPool = __decorate([
     __metadata("design:paramtypes", [Object])
 ], PgPool);
 export { PgPool };
+/**
+ * Helper to subscribe to `pool:exhausted` events emitted by `PgPool`.
+ *
+ * @param pool  The PgPool instance to listen on.
+ * @param fn    Callback invoked with pool state at exhaustion time.
+ * @returns     An `off` function that removes the listener when called.
+ */
+export function onPoolExhausted(pool, fn) {
+    pool.events.on('pool:exhausted', fn);
+    return () => pool.events.off('pool:exhausted', fn);
+}
 //# sourceMappingURL=pool.js.map

@@ -121,4 +121,25 @@ export class RateLimitException extends StreetException {
         this.name = 'RateLimitException';
     }
 }
+/**
+ * Method decorator that attaches rate-limit configuration metadata to a route
+ * handler.  The actual enforcement is performed by the router middleware
+ * pipeline which reads the `street:rateLimit` metadata key at dispatch time.
+ *
+ * @example
+ * ```ts
+ * @RateLimit({ requests: 100, window: 60_000 })
+ * @Post('/login')
+ * async login(ctx: StreetContext) { ... }
+ * ```
+ */
+export function RateLimit(opts) {
+    return (target, propertyKey) => {
+        Reflect.defineMetadata('street:rateLimit', opts, target, propertyKey);
+    };
+}
+/** Retrieve the RateLimitDecoratorOptions stored by @RateLimit, or undefined. */
+export function getRateLimitMeta(target, propertyKey) {
+    return Reflect.getMetadata('street:rateLimit', target, propertyKey);
+}
 //# sourceMappingURL=ratelimit.js.map

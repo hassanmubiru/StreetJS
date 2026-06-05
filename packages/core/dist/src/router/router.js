@@ -1,13 +1,45 @@
 // src/router/router.ts
 // Compiled regex router with parameter extraction and middleware pipeline.
+import 'reflect-metadata';
 import { BadRequestException, NotFoundException, isStreetException } from '../http/exceptions.js';
 import { diagnosticsReporter } from '../diagnostics/reporter.js';
+// Metadata keys must match rbac.ts
+const ROLES_KEY = 'street:roles';
+const PERMISSIONS_KEY = 'street:permissions';
 export class Router {
     routes = [];
+    _profiler;
+    constructor(opts) {
+        this._profiler = opts?.profiler;
+    }
     /** Compile and register a route */
-    add(method, path, middlewares, handler, validate) {
+    add(method, path, middlewares, handler, validate, 
+    /** Optional: controller prototype — used to read @Roles/@Permissions decorator metadata */
+    handlerTarget, 
+    /** Optional: method name on handlerTarget — used to read @Roles/@Permissions decorator metadata */
+    handlerMethodName) {
         const { pattern, paramNames } = compilePath(path);
-        this.routes.push({ method: method.toUpperCase(), pattern, paramNames, middlewares, handler, validate });
+        // Bake RBAC requirements from decorator metadata at registration time so
+        // dispatch() doesn't need prototype chain traversal at request time.
+        let requiredRoles = [];
+        let requiredPermissions = [];
+        if (handlerTarget && handlerMethodName) {
+            requiredRoles =
+                Reflect.getMetadata(ROLES_KEY, handlerTarget, handlerMethodName) ?? [];
+            requiredPermissions =
+                Reflect.getMetadata(PERMISSIONS_KEY, handlerTarget, handlerMethodName) ?? [];
+        }
+        this.routes.push({
+            method: method.toUpperCase(),
+            pattern,
+            paramNames,
+            middlewares,
+            handler,
+            validate,
+            pathTemplate: path,
+            requiredRoles,
+            requiredPermissions,
+        });
     }
     /** Match a request and execute the middleware pipeline */
     async dispatch(ctx) {
@@ -16,6 +48,12 @@ export class Router {
             return false;
         const { route, params } = matched;
         ctx.params = params;
+        // Expose baked RBAC requirements so rbacGuard can read them without
+        // prototype chain traversal at request time.
+        if (!ctx.state)
+            ctx['state'] = {};
+        ctx.state['_requiredRoles'] = route.requiredRoles;
+        ctx.state['_requiredPermissions'] = route.requiredPermissions;
         // Build pipeline: route middlewares + validation + handler
         const pipeline = [
             ...route.middlewares,
@@ -24,7 +62,24 @@ export class Router {
                 await route.handler(c);
             },
         ];
-        await runPipeline(ctx, pipeline, 0);
+        if (this._profiler) {
+            const start = process.hrtime.bigint();
+            let isError = false;
+            try {
+                await runPipeline(ctx, pipeline, 0);
+            }
+            catch (err) {
+                isError = true;
+                throw err;
+            }
+            finally {
+                const latencyNs = process.hrtime.bigint() - start;
+                this._profiler.record(route.method, route.pathTemplate, latencyNs, isError);
+            }
+        }
+        else {
+            await runPipeline(ctx, pipeline, 0);
+        }
         return true;
     }
     match(method, path) {

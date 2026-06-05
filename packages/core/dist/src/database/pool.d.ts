@@ -1,3 +1,4 @@
+import { EventEmitter } from 'node:events';
 import { PgConnection, type PgConnectOptions, type PgResult, type StreetPostgresWireStream } from './wire.js';
 export interface PoolOptions extends PgConnectOptions {
     minConnections?: number;
@@ -13,6 +14,8 @@ export declare class PgPool {
     private readonly opts;
     private readonly sweepTimer;
     private closed;
+    /** Internal EventEmitter for pool lifecycle events (e.g. pool:exhausted). */
+    readonly events: EventEmitter;
     constructor(opts: PoolOptions);
     /** Warm up minimum connections */
     initialize(): Promise<void>;
@@ -36,4 +39,16 @@ export declare class PgPool {
     get size(): number;
     get idle(): number;
 }
+/**
+ * Helper to subscribe to `pool:exhausted` events emitted by `PgPool`.
+ *
+ * @param pool  The PgPool instance to listen on.
+ * @param fn    Callback invoked with pool state at exhaustion time.
+ * @returns     An `off` function that removes the listener when called.
+ */
+export declare function onPoolExhausted(pool: PgPool, fn: (state: {
+    total: number;
+    idle: number;
+    waiting: number;
+}) => void): () => void;
 //# sourceMappingURL=pool.d.ts.map

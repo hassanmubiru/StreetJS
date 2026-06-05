@@ -15,8 +15,11 @@ export { Router, notFoundHandler, errorHandler } from './router/router.js';
 // ── Database ──────────────────────────────────────────────────────────────────
 export { PgConnection, StreetPostgresWireStream } from './database/wire.js';
 export { PgPool } from './database/pool.js';
+export { onPoolExhausted } from './database/pool.js';
 export { StreetPostgresRepository } from './database/repository.js';
-export { StreetMigrationRunner } from './database/migrations.js';
+export { StreetMigrationRunner, MigrationDiffer } from './database/migrations.js';
+export { StreetSeeder } from './database/seeder.js';
+export { QueryProfiler, ProfiledPool, ConnectionDiagnostics } from './database/profiler.js';
 export { SqlitePool } from './database/sqlite/pool.js';
 export { MysqlConnection, MysqlResultStream } from './database/mysql/wire.js';
 export { MysqlPool } from './database/mysql/pool.js';
@@ -52,4 +55,73 @@ export { defineConfig, ConfigValidationError } from './config/validator.js';
 export { DiagnosticsReporter, diagnosticsReporter } from './diagnostics/reporter.js';
 // ── CLI ───────────────────────────────────────────────────────────────────────
 export { CliKernel, parseArgv } from './cli/kernel.js';
+// ── Observability (OpenTelemetry-compatible) ──────────────────────────────────
+export { OtelTracer, otelMiddleware } from './observability/otel.js';
+// ── Health Check DSL ──────────────────────────────────────────────────────────
+export { HealthCheckRegistry, registerHealthRoutes } from './observability/health.js';
+// ── Structured Logging ────────────────────────────────────────────────────────
+export { Logger, correlationMiddleware } from './observability/logger.js';
+// ── Prometheus Metrics ────────────────────────────────────────────────────────
+export { MetricsRegistry, Counter, Gauge, Histogram, MetricConflictError, prometheusMiddleware, metricsHandler } from './observability/prometheus.js';
+// ── Route Profiler ────────────────────────────────────────────────────────────
+export { RouteProfiler } from './diagnostics/route-profiler.js';
+// ── Diagnostics Socket Server ─────────────────────────────────────────────────
+export { DiagnosticsServer, isStaleSocket } from './diagnostics/socket-server.js';
+// ── Auth: OAuth2 / OIDC ───────────────────────────────────────────────────────
+export { OAuthManager, JwksCache } from './auth/oauth2.js';
+// ── Auth: API Keys ────────────────────────────────────────────────────────────
+export { ApiKeyService, apiKeyMiddleware, API_KEYS_MIGRATION_SQL } from './auth/api-keys.js';
+// ── Auth: Refresh Tokens ──────────────────────────────────────────────────────
+export { RefreshTokenService, TokenReplayError, REFRESH_TOKENS_MIGRATION_SQL } from './auth/refresh-tokens.js';
+// ── Auth: RBAC ────────────────────────────────────────────────────────────────
+export { RbacService, Roles, Permissions, rbacGuard } from './auth/rbac.js';
+// ── Auth: WebAuthn / Passkeys ─────────────────────────────────────────────────
+export { WebAuthnService, decodeCbor, WEBAUTHN_MIGRATION_SQL } from './auth/webauthn.js';
+// ── Auth: Session Store & Audit ───────────────────────────────────────────────
+export { StreetSessionStore, sessionRevocationMiddleware, AuditWriter, SESSION_STORE_MIGRATION_SQL, AUDIT_LOG_MIGRATION_SQL } from './auth/session-store.js';
+// ── Jobs: Queue, Scheduler, Workflow ─────────────────────────────────────────
+export { JobQueue, Job, STREET_JOBS_MIGRATION_SQL, STREET_DLQ_MIGRATION_SQL, } from './jobs/queue.js';
+export { CronScheduler, CronParseError } from './jobs/scheduler.js';
+export { WorkflowEngine, STREET_WORKFLOWS_MIGRATION_SQL, } from './jobs/workflow.js';
+// ── Tenancy ───────────────────────────────────────────────────────────────────
+export { tenantMiddleware, TENANTS_MIGRATION_SQL } from './tenancy/context.js';
+export { TenantPoolRegistry } from './tenancy/pool-registry.js';
+export { TenantScopedRepository, TenantScoped } from './tenancy/tenant-scoped.js';
+export { TenantServiceImpl, QuotaEnforcer, TENANT_USAGE_MIGRATION_SQL } from './tenancy/provisioner.js';
+export { TenantMetricsRegistry, TenantMetricsView, TENANT_DAILY_STATS_MIGRATION_SQL } from './tenancy/metrics.js';
+// ── Microservices ─────────────────────────────────────────────────────────────
+export { streetHttp2App } from './microservices/http2.js';
+export { ServiceRegistry, StaticRegistry, ConsulRegistry } from './microservices/service-registry.js';
+export { CircuitBreaker, CircuitOpenError } from './microservices/circuit-breaker.js';
+export { EventBus, InProcessTransport } from './microservices/event-bus.js';
+export { SagaOrchestrator } from './microservices/saga.js';
+export { DistributedLock } from './microservices/distributed-lock.js';
+export { CommandBus, QueryBus } from './microservices/cqrs.js';
+export { EventStore, EVENTS_MIGRATION_SQL } from './microservices/event-store.js';
+// ── Cloud ─────────────────────────────────────────────────────────────────────
+export { generateManifest } from './cloud/deployment.js';
+export { VaultSecretProvider, AwsSecretsManagerProvider, GcpSecretManagerProvider } from './cloud/secret-providers.js';
+// ── Enterprise: Feature Flags ──────────────────────────────────────────────────
+export { FeatureFlagService, FEATURE_FLAGS_MIGRATION_SQL } from './enterprise/feature-flags.js';
+// ── Enterprise: Audit Logger ───────────────────────────────────────────────────
+export { AuditLogger, Sensitive, ENTERPRISE_AUDIT_MIGRATION_SQL } from './enterprise/audit-logger.js';
+// ── Enterprise: Data Policy ────────────────────────────────────────────────────
+export { RetainFor, Encrypt, Classify, RetentionJob, ComplianceReporter } from './enterprise/data-policy.js';
+// ── Enterprise: Backup ────────────────────────────────────────────────────────
+export { BackupService, LocalStorageAdapter, BACKUPS_MIGRATION_SQL } from './enterprise/backup.js';
+// ── Platform: Distributed Cache ───────────────────────────────────────────────
+export { DistributedCache, InProcessCacheTransport, GlobalConfigService } from './platform/distributed-cache.js';
+// ── Platform: Event Streaming ─────────────────────────────────────────────────
+export { EventStreamPublisher, EventStreamConsumer, InProcessStreamTransport, RealtimeAggregator } from './platform/event-streaming.js';
+// ── Platform: Replication ─────────────────────────────────────────────────────
+export { ReplicationCoordinator, preferredRegionMiddleware } from './platform/replication.js';
+// ── Platform: AI ──────────────────────────────────────────────────────────────
+export { OpenAiClient, AnthropicClient, OllamaClient } from './platform/ai/llm-client.js';
+export { ToolRegistry } from './platform/ai/tool-registry.js';
+export { AgentExecutor } from './platform/ai/agent-executor.js';
+// ── Platform: Plugins ─────────────────────────────────────────────────────────
+export { PluginModule } from './platform/plugins/sdk.js';
+export { PluginInstaller } from './platform/plugins/registry.js';
+// ── HTTP: Edge Runtime ────────────────────────────────────────────────────────
+export { FeatureUnavailableInEdgeRuntimeError } from './http/exceptions.js';
 //# sourceMappingURL=index.js.map

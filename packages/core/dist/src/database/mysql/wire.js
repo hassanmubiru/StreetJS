@@ -477,11 +477,24 @@ export class MysqlConnection {
         if (firstByte === 0x01) {
             const subtype = body[1];
             if (subtype === 0x04) {
-                // Server requests full password over TLS or RSA — we don't support RSA here
-                // Send password in cleartext if server requested it (only safe over TLS)
-                const pwBuf = Buffer.concat([Buffer.from(opts.password, 'utf8'), Buffer.from([0])]);
-                const pkt = wrapPacket(pwBuf, this.seq++);
-                this.socket?.write(pkt);
+                // Server requests full password in cleartext (RSA-encrypted or over TLS).
+                // Sending cleartext passwords over non-TLS connections is a security violation.
+                // We reject this auth path unless the connection was established with TLS.
+                // Since this driver uses node:net (plain TCP) and does not negotiate SSL/TLS,
+                // we MUST reject the request to prevent credential exposure.
+                const err = new Error('MySQL caching_sha2_password: server requested cleartext password transmission. ' +
+                    'This is only safe over TLS, but this connection is not TLS-encrypted. ' +
+                    'Configure your MySQL server to allow caching_sha2_password without RSA ' +
+                    '(e.g. caching_sha2_password_auto_generate_rsa_keys=OFF and require SSL), ' +
+                    'or use mysql_native_password instead.');
+                process.stderr.write(`[street/mysql] SECURITY: ${err.message}\n`);
+                if (this.authReject) {
+                    this.authReject(err);
+                    this.authReject = null;
+                }
+                this.state = 'closed';
+                this.socket?.destroy();
+                return;
             }
             // subtype 0x02 = fast-auth succeeded, wait for OK
             // subtype 0x03 = full auth required

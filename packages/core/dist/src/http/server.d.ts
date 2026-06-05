@@ -1,3 +1,4 @@
+import { type IncomingMessage, type ServerResponse } from 'node:http';
 import type { MiddlewareFn } from '../core/types.js';
 import type { Constructor } from '../core/types.js';
 export interface StreetAppOptions {
@@ -14,6 +15,8 @@ export interface StreetApp {
     registerController(ctor: Constructor): void;
     use(mw: MiddlewareFn): void;
     openApiSpec(): object;
+    /** Internal: direct in-process request handler. Used by edge adapter and tests. */
+    _handleRequest(req: IncomingMessage, res: ServerResponse): void;
 }
 export declare function streetApp(options?: StreetAppOptions): StreetApp;
 //# sourceMappingURL=server.d.ts.map
