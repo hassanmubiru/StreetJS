@@ -330,9 +330,16 @@ function parseErrPacket(body: Buffer): Error {
 // ─── Streaming result row stream ──────────────────────────────────────────────
 export class MysqlResultStream extends Readable {
   private _done = false;
+  private readonly _onResume: (() => void) | undefined;
 
-  constructor() {
+  /**
+   * @param onResume Invoked when the consumer is ready for more data (Node calls
+   *   `_read()` once the internal buffer drops below the highWaterMark). The
+   *   connection layer uses this to release socket backpressure via `resume()`.
+   */
+  constructor(onResume?: () => void) {
     super({ objectMode: true, highWaterMark: 64 });
+    this._onResume = onResume;
   }
 
   pushRow(row: Record<string, string | null>): boolean {
@@ -341,6 +348,7 @@ export class MysqlResultStream extends Readable {
   }
 
   finalize(error?: Error): void {
+    if (this._done) return;
     this._done = true;
     if (error) {
       this.destroy(error);
@@ -351,7 +359,11 @@ export class MysqlResultStream extends Readable {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _read(_size: number): void {
-    // push-mode stream — backpressure is handled by the connection layer
+    // A Readable signals it wants more data by having Node invoke `_read()`
+    // once its internal buffer falls below the highWaterMark. This — not a
+    // 'drain' event (which only Writables emit) — is the correct point to
+    // release backpressure on the upstream socket.
+    this._onResume?.();
   }
 }
 
