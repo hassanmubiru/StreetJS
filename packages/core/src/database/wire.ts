@@ -3,7 +3,7 @@
 // Pure node:net + node:crypto – no external dependencies.
 
 import { createConnection, type Socket } from 'node:net';
-import { createHash, createHmac, randomBytes, pbkdf2Sync, timingSafeEqual } from 'node:crypto';
+import { createHmac, randomBytes, pbkdf2Sync, timingSafeEqual } from 'node:crypto';
 import { Readable } from 'node:stream';
 import type { DbResult } from './types.js';
 
@@ -60,12 +60,6 @@ function buildPasswordMessage(password: string): Buffer {
   buf.writeUInt32BE(4 + pwBuf.length, 1);
   pwBuf.copy(buf, 5);
   return buf;
-}
-
-function buildMD5Password(password: string, user: string, salt: Buffer): Buffer {
-  const inner = md5(password + user);
-  const outer = 'md5' + md5(inner + salt.toString('binary'));
-  return buildPasswordMessage(outer);
 }
 
 function buildQueryMessage(sql: string): Buffer {
@@ -220,10 +214,6 @@ export function buildSyncMessage(): Buffer {
   buf[0] = 0x53; // 'S'
   buf.writeUInt32BE(4, 1);
   return buf;
-}
-
-function md5(input: string): string {
-  return createHash('md5').update(input, 'binary').digest('hex');
 }
 
 // ─── SASL / SCRAM-SHA-256 ──────────────────────────────────────────────────────
@@ -628,8 +618,11 @@ export class PgConnection {
         break;
 
       case AuthType.MD5Password: {
-        const salt = body.subarray(4, 8);
-        this.socket?.write(buildMD5Password(opts.password, opts.user, salt));
+        if (this.authReject) {
+          this.authReject(new Error('Insecure PostgreSQL MD5 authentication is not supported. Configure SCRAM-SHA-256 on the server/user.'));
+          this.authReject = null;
+        }
+        this.socket?.destroy();
         break;
       }
 
