@@ -410,7 +410,6 @@ export class SchemaInspector {
     // Columns and primary key from table_info
     // Columns: cid, name, type, notnull, dflt_value, pk
     const columns: ColumnMeta[] = [];
-    const primaryKey: string[] = [];
 
     for (const row of colResult.rows) {
       columns.push({
@@ -419,10 +418,6 @@ export class SchemaInspector {
         nullable: row['notnull'] === '0',
         default: row['dflt_value'] ?? null,
       });
-      if (row['pk'] !== '0' && row['pk'] !== null) {
-        // pk > 0 means it's part of the primary key; value indicates position
-        primaryKey.push({ pos: Number(row['pk']), name: row['name'] ?? '' } as unknown as string);
-      }
     }
 
     // Sort primary key columns by their pk position
