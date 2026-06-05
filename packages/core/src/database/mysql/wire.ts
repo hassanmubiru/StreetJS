@@ -1043,9 +1043,10 @@ export class MysqlConnection {
   }
 
   private async _execPrepared(sql: string, params: unknown[]): Promise<DbResult> {
+    const command = sql.trimStart().split(/\s+/)[0]?.toUpperCase() ?? 'QUERY';
     const stmt = await this._prepare(sql);
     try {
-      return await this._execute(stmt, params);
+      return await this._execute(stmt, params, command);
     } finally {
       this._stmtClose(stmt.stmtId);
     }
