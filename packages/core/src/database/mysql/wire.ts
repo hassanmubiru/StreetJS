@@ -1072,15 +1072,14 @@ export class MysqlConnection {
     });
   }
 
-  private _execute(stmt: PreparedStatement, params: unknown[]): Promise<DbResult> {
+  private _execute(stmt: PreparedStatement, params: unknown[], command: string): Promise<DbResult> {
     this.state = 'query';
     this.seq = 0;
     this._resetExecState();
     this._inExec = true;
 
     return new Promise<DbResult>((resolve, reject) => {
-      const cmd = 'SELECT';
-      this.execPendingQuery = { resolve, reject, rows: [], command: cmd, affectedRows: 0, lastInsertId: 0 };
+      this.execPendingQuery = { resolve, reject, rows: [], command, affectedRows: 0, lastInsertId: 0 };
 
       const execBody = buildStmtExecutePacket(stmt.stmtId, params);
       const pkt = wrapPacket(execBody, this.seq++);
