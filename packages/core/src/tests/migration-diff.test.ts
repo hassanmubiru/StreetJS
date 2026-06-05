@@ -86,6 +86,16 @@ describe('MigrationDiffer — safe additive changes', () => {
   });
 
   it('emits CREATE TABLE for an entity table missing from the DB', async () => {
+    // The live `users` table is represented by a matching entity so the only
+    // difference is the new `posts` table.
+    const users = makeEntity({
+      table: 'users',
+      columns: [
+        { name: 'id', type: 'INTEGER' },
+        { name: 'name', type: 'TEXT', nullable: false },
+        { name: 'email', type: 'TEXT' },
+      ],
+    });
     const posts = makeEntity({
       table: 'posts',
       columns: [
@@ -96,7 +106,7 @@ describe('MigrationDiffer — safe additive changes', () => {
       primaryKey: ['id'],
     });
 
-    const diff = await MigrationDiffer.diff(pool, [posts]);
+    const diff = await MigrationDiffer.diff(pool, [users, posts]);
     assert.equal(diff.destructive.length, 0);
     assert.equal(diff.safe.length, 1);
     const stmt = diff.safe[0]!;
