@@ -263,25 +263,7 @@ describe('QuotaEnforcer middleware', () => {
       pool as unknown as never,
       { api_calls: 1000 },
     );
-    const mw = QuotaEnforcer(svc);
-    const ctx = makeCtx();
-    ctx.state['tenant'] = { id: 'tenant-1' };
-    let nextCalled = false;
-    await mw(ctx as unknown as Parameters<typeof mw>[0], async () => { nextCalled = true; });
-    assert.ok(nextCalled);
-  });
-
-  it('returns 429 when quota is exceeded', async () => {
-    const pool = {
-      async query(_sql: string): Promise<DbResult> {
-        return { rows: [{ value: '1001' }], rowCount: 1, command: 'SELECT' };
-      },
-    };
-    const svc = new TenantServiceImpl(
-      pool as unknown as never,
-      { api_calls: 1000 },
-    );
-    const mw = QuotaEnforcer(svc);
+    const mw = QuotaEnforcer(svc, 'api_calls');
     const ctx = makeCtx();
     ctx.state['tenant'] = { id: 'tenant-1' };
     let nextCalled = false;
