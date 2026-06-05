@@ -912,9 +912,10 @@ export class MysqlConnection {
         });
     }
     async _execPrepared(sql, params) {
+        const command = sql.trimStart().split(/\s+/)[0]?.toUpperCase() ?? 'QUERY';
         const stmt = await this._prepare(sql);
         try {
-            return await this._execute(stmt, params);
+            return await this._execute(stmt, params, command);
         }
         finally {
             this._stmtClose(stmt.stmtId);
@@ -939,14 +940,13 @@ export class MysqlConnection {
             this.socket?.write(pkt);
         });
     }
-    _execute(stmt, params) {
+    _execute(stmt, params, command) {
         this.state = 'query';
         this.seq = 0;
         this._resetExecState();
         this._inExec = true;
         return new Promise((resolve, reject) => {
-            const cmd = 'SELECT';
-            this.execPendingQuery = { resolve, reject, rows: [], command: cmd, affectedRows: 0, lastInsertId: 0 };
+            this.execPendingQuery = { resolve, reject, rows: [], command, affectedRows: 0, lastInsertId: 0 };
             const execBody = buildStmtExecutePacket(stmt.stmtId, params);
             const pkt = wrapPacket(execBody, this.seq++);
             this.socket?.write(pkt);
