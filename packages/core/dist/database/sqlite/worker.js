@@ -86,31 +86,44 @@ if (!isMainThread) {
     // Signal to the pool that this worker is ready to accept messages.
     parentPort.postMessage({ type: 'ready' });
     parentPort.on('message', (req) => {
+        // Defensively extract the correlation id first: a malformed message must
+        // never cause the error-response construction itself to throw (which would
+        // surface as an uncaught exception and crash the worker). A non-numeric id
+        // is replaced with -1, which the pool ignores as an unmatched response.
+        const rawId = req?.id;
+        const id = typeof rawId === 'number' ? rawId : -1;
         if (!db) {
-            const resp = { id: req.id, ok: false, error: 'Database is closed' };
+            const resp = { id, ok: false, error: 'Database is closed' };
             parentPort.postMessage(resp);
             return;
         }
         let resp;
         try {
-            if (req.type === 'query') {
+            if (req?.type === 'query') {
                 const result = execOne(db, req.sql, req.params);
-                resp = { id: req.id, ok: true, result };
+                resp = { id, ok: true, result };
             }
-            else {
+            else if (req?.type === 'transaction') {
                 // transaction — run all ops atomically; return result of last op
+                if (!Array.isArray(req.ops)) {
+                    throw new Error("transaction message requires an 'ops' array");
+                }
                 let lastResult = { rows: [], rowCount: 0, command: 'BEGIN' };
                 db.transaction(() => {
                     for (const op of req.ops) {
                         lastResult = execOne(db, op.sql, op.params);
                     }
                 });
-                resp = { id: req.id, ok: true, result: lastResult };
+                resp = { id, ok: true, result: lastResult };
+            }
+            else {
+                // Unknown or malformed message — report instead of crashing.
+                throw new Error('Unknown or malformed worker message');
             }
         }
         catch (err) {
             const msg = err instanceof Error ? err.message : String(err);
-            resp = { id: req.id, ok: false, error: msg };
+            resp = { id, ok: false, error: msg };
         }
         parentPort.postMessage(resp);
     });
