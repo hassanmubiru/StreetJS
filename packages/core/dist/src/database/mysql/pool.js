@@ -1,6 +1,7 @@
 // src/database/mysql/pool.ts
 // Bounded MySQL connection pool mirroring the PgPool API.
 // Min/max connections, acquire queue, idle-sweep timer — all timers call .unref().
+import { EventEmitter } from 'node:events';
 import { MysqlConnection } from './wire.js';
 // ─── MysqlPool ────────────────────────────────────────────────────────────────
 export class MysqlPool {
@@ -11,6 +12,8 @@ export class MysqlPool {
     opts;
     sweepTimer;
     closed = false;
+    /** Internal EventEmitter for pool lifecycle events (e.g. pool:exhausted). */
+    events = new EventEmitter();
     constructor(opts) {
         this.opts = {
             minConnections: opts.minConnections ?? 2,
@@ -81,6 +84,12 @@ export class MysqlPool {
         if (this.waitQueue.length >= this.MAX_WAIT) {
             throw new Error('MysqlPool wait queue full');
         }
+        // Emit pool:exhausted before enqueuing — listeners can log, alert, etc.
+        this.events.emit('pool:exhausted', {
+            total: this.connections.length,
+            idle: this.connections.filter((p) => !p.inUse).length,
+            waiting: this.waitQueue.length,
+        });
         return new Promise((resolve, reject) => {
             const timer = setTimeout(() => {
                 const idx = this.waitQueue.indexOf(waitEntry);
