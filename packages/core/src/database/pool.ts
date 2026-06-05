@@ -294,6 +294,26 @@ export class PgPool {
 
   get size(): number { return this.connections.length; }
   get idle(): number { return this.connections.filter((p) => !p.inUse).length; }
+
+  /** Number of callers currently waiting for a connection. */
+  get waiting(): number { return this.waitQueue.length; }
+
+  /** Rolling average of recent successful acquire durations (ms); 0 if none recorded. */
+  get avgAcquireMs(): number {
+    if (this.acquireSamplesCount === 0) return 0;
+    let sum = 0;
+    for (let i = 0; i < this.acquireSamplesCount; i++) {
+      sum += this.acquireSamples[i] ?? 0;
+    }
+    return sum / this.acquireSamplesCount;
+  }
+
+  /** Record a successful acquire duration into the rolling window. */
+  private _recordAcquire(durationMs: number): void {
+    this.acquireSamples[this.acquireSamplesHead] = durationMs;
+    this.acquireSamplesHead = (this.acquireSamplesHead + 1) % PgPool.ACQUIRE_SAMPLE_SIZE;
+    if (this.acquireSamplesCount < PgPool.ACQUIRE_SAMPLE_SIZE) this.acquireSamplesCount++;
+  }
 }
 
 /**

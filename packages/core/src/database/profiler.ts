@@ -35,6 +35,8 @@ export interface ProfileablePool {
   query(sql: string, params?: unknown[]): Promise<DbResult>;
   size?: number;
   idle?: number;
+  waiting?: number;
+  avgAcquireMs?: number;
 }
 
 // ─── Profiled pool wrapper ────────────────────────────────────────────────────
