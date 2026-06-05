@@ -11,14 +11,14 @@ export interface OpenApiRouteInput {
 }
 
 export function generateOpenApi(routes: OpenApiRouteInput[]): object {
-  const paths: Record<string, Record<string, unknown>> = {};
+  const paths: Record<string, Record<string, unknown>> = Object.create(null);
 
   for (const route of routes) {
     // Convert :param to {param} style
     const openApiPath = route.path.replace(/:([a-zA-Z_][a-zA-Z0-9_]*)/g, '{$1}');
 
     if (!paths[openApiPath]) {
-      paths[openApiPath] = {};
+      paths[openApiPath] = Object.create(null);
     }
 
     const parameters: unknown[] = [];
@@ -32,7 +32,7 @@ export function generateOpenApi(routes: OpenApiRouteInput[]): object {
       });
     }
 
-    const responseMap: Record<string, unknown> = {};
+    const responseMap: Record<string, unknown> = Object.create(null);
     if (route.responses) {
       for (const [code, resp] of Object.entries(route.responses)) {
         responseMap[code] = {
