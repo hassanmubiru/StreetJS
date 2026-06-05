@@ -9,7 +9,6 @@ const DANGEROUS_ATTRS = /on\w+\s*=/gi;
 const SCRIPT_PROTOCOL = /javascript\s*:/gi;
 const DATA_PROTOCOL = /data\s*:/gi;
 const VBSCRIPT_PROTOCOL = /vbscript\s*:/gi;
-const HTML_TAGS = /<[^>]*>/g;
 const NULL_BYTES = /\x00/g;
 
 /** Sanitize a single string value */
@@ -27,7 +26,7 @@ export function sanitizeString(input: string): string {
     previous = current;
     current = current
       .replace(NULL_BYTES, '')
-      .replace(HTML_TAGS, '')
+      .replace(/[<>]/g, '')
       .replace(SCRIPT_PROTOCOL, '')
       .replace(DATA_PROTOCOL, '')
       .replace(VBSCRIPT_PROTOCOL, '')
