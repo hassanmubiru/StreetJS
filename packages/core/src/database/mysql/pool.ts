@@ -121,6 +121,13 @@ export class MysqlPool {
       throw new Error('MysqlPool wait queue full');
     }
 
+    // Emit pool:exhausted before enqueuing — listeners can log, alert, etc.
+    this.events.emit('pool:exhausted', {
+      total: this.connections.length,
+      idle: this.connections.filter((p) => !p.inUse).length,
+      waiting: this.waitQueue.length,
+    });
+
     return new Promise<MysqlConnection>((resolve, reject) => {
       const timer = setTimeout(() => {
         const idx = this.waitQueue.indexOf(waitEntry);
