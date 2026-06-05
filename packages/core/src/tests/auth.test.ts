@@ -1731,7 +1731,7 @@ describe('JwtService — expanded', () => {
 
   it('verify() returns null for wrong secret', () => {
     const token = jwt.sign({ sub: 'user1' });
-    const wrongJwt = new JwtService({ secret: 'wrong-secret-at-least-32-chars-xxx' });
+    const wrongJwt = new JwtService('wrong-secret-at-least-32-chars-xxx');
     assert.equal(wrongJwt.verify(token), null);
   });
 
@@ -1793,7 +1793,7 @@ describe('SessionManager — expanded', () => {
   });
 
   it('decrypt() returns null for blob encrypted with different key', () => {
-    const sm2 = new SessionManager({ key: 'b'.repeat(64) });
+    const sm2 = new SessionManager('b'.repeat(64));
     const blob = sm2.encrypt({ userId: 'user1' });
     assert.equal(sm.decrypt(blob), null);
   });
