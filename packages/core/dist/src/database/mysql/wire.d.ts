@@ -1,6 +1,12 @@
 import { type Socket } from 'node:net';
 import { Readable } from 'node:stream';
 import type { DbResult } from '../types.js';
+/**
+ * Compute mysql_native_password response:
+ *   SHA1(password) XOR SHA1(seed + SHA1(SHA1(password)))
+ * @internal
+ */
+export declare function nativePasswordHash(password: string, seed: Buffer): Buffer;
 interface ServerGreeting {
     protocolVersion: number;
     serverVersion: string;
