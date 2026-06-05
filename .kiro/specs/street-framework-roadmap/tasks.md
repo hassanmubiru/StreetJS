@@ -43,7 +43,7 @@
   - [x] 5.6 Write tests for `InfoCommand` (reads correct versions), `DoctorCommand` (detects old Node version as failure), `AuditCommand` (parses npm audit JSON output)
 
 
-- [ ] 6. v1.2 — MySQL Wire Protocol Driver
+- [x] 6. v1.2 — MySQL Wire Protocol Driver
   - [x] 6.1 Create `packages/core/src/database/mysql/wire.ts`: implement MySQL Client/Server Protocol v4.1 handshake over `node:net`; parse server greeting packet (capabilities, server version, auth plugin)
   - [x] 6.2 Implement `mysql_native_password` authentication: `SHA1(password) XOR SHA1(seed + SHA1(SHA1(password)))` using `node:crypto`
   - [x] 6.3 Implement `caching_sha2_password` authentication: full SHA-256 challenge-response using `node:crypto`
@@ -52,7 +52,7 @@
   - [x] 6.6 Create `packages/core/src/database/mysql/pool.ts` with `MysqlPool`: same min/max/acquire/idle-sweep API as `PgPool`
   - [x] 6.7 Create `packages/core/src/database/mysql/mariadb.ts`: `MariaDbConnection` subclass handling MariaDB-specific capability flags; `MysqlConnection.connect()` detects server greeting and returns the appropriate subclass
   - [x] 6.8 Write integration tests against a real MySQL instance: connection, simple query, parameterized query, transaction commit, transaction rollback, concurrent queries
-  - [-] 6.9 Export `MysqlConnection`, `MysqlPool`, `MariaDbConnection` from `packages/core/src/index.ts`
+  - [x] 6.9 Export `MysqlConnection`, `MysqlPool`, `MariaDbConnection` from `packages/core/src/index.ts`
 
 - [ ] 7. v1.2 — SQLite Driver (WASM worker)
   - [~] 7.1 Bundle a SQLite WASM binary (`sqlite3.wasm`) into `packages/core/src/database/sqlite/`; document the source and build steps in `CONTRIBUTING.md`
