@@ -90,6 +90,43 @@ describe('QueryBuilder — join + subquery', () => {
         assert.ok(sql.includes('INNER JOIN (SELECT'), `expected derived-table join; got: ${sql}`);
         assert.ok(sql.includes('AS o'), `expected alias o; got: ${sql}`);
     });
+    it('threads subquery + outer params in correct order (join then where)', () => {
+        // Inner subquery contributes one param (100); outer WHERE contributes one ('active').
+        // Build order is FROM → JOIN → WHERE, so inner params must precede outer params.
+        const inner = new QueryBuilder()
+            .select('user_id', 'total')
+            .from('orders')
+            .where('total', '>', 100);
+        const { sql, params } = new QueryBuilder(SqlDialect.postgres)
+            .select('id', 'name')
+            .from('users')
+            .subquery(inner, 'o')
+            .where('status', '=', 'active')
+            .build();
+        // Inner subquery param ($1) is emitted before the outer WHERE param ($2).
+        assert.equal(sql, 'SELECT id, name FROM users '
+            + 'INNER JOIN (SELECT user_id, total FROM orders WHERE total > $1) AS o '
+            + 'WHERE status = $2');
+        // Params are threaded inner-first, then outer.
+        assert.deepEqual(params, [100, 'active']);
+    });
+    it('threads subquery-as-FROM params before outer params (postgres renumbering)', () => {
+        // Two inner params followed by one outer param, verifying $1,$2,$3 ordering.
+        const inner = new QueryBuilder()
+            .select('user_id', 'total')
+            .from('orders')
+            .where('total', '>', 100)
+            .where('user_id', '=', 7);
+        const { sql, params } = new QueryBuilder(SqlDialect.postgres)
+            .select('id')
+            .subquery(inner, 'rich')
+            .where('id', '>', 0)
+            .build();
+        assert.equal(sql, 'SELECT id '
+            + 'FROM (SELECT user_id, total FROM orders WHERE total > $1 AND user_id = $2) AS rich '
+            + 'WHERE id > $3');
+        assert.deepEqual(params, [100, 7, 0]);
+    });
 });
 // ── 3. IDEMPOTENT BUILD ───────────────────────────────────────────────────────
 describe('QueryBuilder — idempotent build', () => {
@@ -106,6 +143,8 @@ describe('QueryBuilder — idempotent build', () => {
         const second = qb.build();
         assert.equal(first.sql, second.sql);
         assert.deepEqual(first.params, second.params);
+        // The full {sql, params} result objects are deeply equal across builds.
+        assert.deepEqual(first, second);
     });
     it('calling build() three times returns identical sql', () => {
         const qb = new QueryBuilder(SqlDialect.mysql)
