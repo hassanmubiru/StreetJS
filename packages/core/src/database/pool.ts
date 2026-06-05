@@ -40,6 +40,12 @@ export class PgPool {
   private readonly sweepTimer: NodeJS.Timeout;
   private closed = false;
 
+  /** Rolling window of recent successful acquire durations (ms). */
+  private static readonly ACQUIRE_SAMPLE_SIZE = 100;
+  private readonly acquireSamples: number[] = [];
+  private acquireSamplesHead = 0;
+  private acquireSamplesCount = 0;
+
   /** Internal EventEmitter for pool lifecycle events (e.g. pool:exhausted). */
   readonly events: EventEmitter = new EventEmitter();
 
@@ -87,6 +93,14 @@ export class PgPool {
 
   /** Acquire a free connection (or create one up to max, or wait) */
   async acquire(): Promise<PgConnection> {
+    const start = Date.now();
+    const conn = await this._doAcquire();
+    // Record only successful acquires so timeouts/failures don't skew the average
+    this._recordAcquire(Date.now() - start);
+    return conn;
+  }
+
+  private async _doAcquire(): Promise<PgConnection> {
     if (this.closed) throw new Error('Pool is closed');
 
     // Find idle healthy connection, cleaning up dead ones encountered along the way
