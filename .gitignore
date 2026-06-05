@@ -27,3 +27,4 @@ coverage/
 log.txt
 *.log
 *.tgz
+*.street.md
