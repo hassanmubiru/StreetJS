@@ -26,30 +26,37 @@ docker run -d \
 
 ### SQLite WASM binary
 
-The SQLite driver uses the official pre-built SQLite WebAssembly binary from
-[`@sqlite.org/sqlite-wasm`](https://www.npmjs.com/package/@sqlite.org/sqlite-wasm).
-Two files are required at runtime (co-located with the compiled driver output):
+The SQLite driver uses the official pre-built SQLite WebAssembly binary from the
+[`@sqlite.org/sqlite-wasm`](https://www.npmjs.com/package/@sqlite.org/sqlite-wasm)
+npm package, **version `3.47.2-build1` (SQLite 3.47.2)**. Two files are required
+at runtime (co-located with the compiled driver output):
 
 | File | Purpose |
 |---|---|
-| `sqlite3.wasm` | SQLite compiled to WebAssembly (850 KB) |
+| `sqlite3.wasm` | SQLite compiled to WebAssembly (850,827 bytes) |
 | `sqlite3-node.mjs` | Emscripten JS glue — loads and initialises the WASM binary in Node.js |
 
-These files are **not bundled** in the source tree but are checked into
-`packages/core/src/database/sqlite/` for convenience.  To re-download them
-(e.g. to upgrade to a newer SQLite release), run:
+Both files are **committed into the repository** at
+`packages/core/src/database/sqlite/`, so no network access or extra build step
+is needed to use the SQLite driver. To regenerate `sqlite3.wasm` (e.g. to
+upgrade to a newer SQLite release), run:
 
 ```bash
 node packages/core/src/database/sqlite/download-wasm.mjs
 ```
 
-The download script fetches the files from the jsDelivr CDN and prints the
+The script downloads **only `sqlite3.wasm`** from the jsDelivr CDN and prints its
 SHA-256 checksum for verification:
 
 ```
-URL: https://cdn.jsdelivr.net/npm/@sqlite.org/sqlite-wasm@3.47.2-build1/sqlite-wasm/jswasm/sqlite3.wasm
+URL:     https://cdn.jsdelivr.net/npm/@sqlite.org/sqlite-wasm@3.47.2-build1/sqlite-wasm/jswasm/sqlite3.wasm
 SHA-256: 246fd886c2989ccc7959ca415f9fbb0daa01b0d99d7c8ef9f9fa37c68c345584
 ```
+
+The JS glue `sqlite3-node.mjs` is taken from the same package's `jswasm/`
+directory. To bump the version, update `WASM_URL` in `download-wasm.mjs`, re-run
+it, and copy a matching `sqlite3-node.mjs` from the package. Because both files
+are checked in, the wasm binary must remain un-ignored by `.gitignore`.
 
 After downloading, copy both files to the `dist/database/sqlite/` directory
 before running tests (the build step does not copy binary files automatically):
