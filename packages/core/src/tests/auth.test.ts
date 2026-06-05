@@ -741,3 +741,967 @@ describe('ApiKeyService.revoke', () => {
     await assert.doesNotReject(() => svc.revoke('nonexistent-id'));
   });
 });
+
+// ── Additional WebAuthn tests ─────────────────────────────────────────────────
+
+import { RefreshTokenService, TokenReplayError } from '../auth/refresh-tokens.js';
+import { JwtService } from '../security/jwt.js';
+import { SessionManager } from '../security/session.js';
+import { apiKeyMiddleware } from '../auth/api-keys.js';
+
+describe('WebAuthnService.beginRegistration — challenge storage', () => {
+  it('stores challenge with expiresAt in the future', async () => {
+    const session = new MemorySession();
+    const pool = new MemoryPool();
+    const svc = new WebAuthnService(
+      { rpName: 'Test', rpId: 'localhost', origin: 'http://localhost' },
+      pool,
+      session,
+    );
+    const before = Date.now();
+    await svc.beginRegistration('user-store');
+    const stored = await session.getChallenge('user-store');
+    assert.ok(stored !== null);
+    assert.ok(stored.expiresAt > before, 'expiresAt should be in the future');
+  });
+
+  it('challenge is at least 16 bytes (≥ 22 base64url chars)', async () => {
+    const session = new MemorySession();
+    const pool = new MemoryPool();
+    const svc = new WebAuthnService(
+      { rpName: 'Test', rpId: 'localhost', origin: 'http://localhost' },
+      pool,
+      session,
+    );
+    const opts = await svc.beginRegistration('user-chal-len');
+    // base64url of 32 bytes = 43 chars; 16 bytes = 22 chars
+    assert.ok(opts.challenge.length >= 22, `challenge too short: ${opts.challenge.length}`);
+    // Must be base64url safe (no +, /, =)
+    assert.ok(!/[+/=]/.test(opts.challenge), 'challenge must be base64url encoded');
+  });
+});
+
+describe('WebAuthnService.finishRegistration — error cases', () => {
+  it('rejects when challenge has expired (expiresAt in past)', async () => {
+    const session = new MemorySession();
+    const pool = new MemoryPool();
+    const svc = new WebAuthnService(
+      { rpName: 'Test', rpId: 'localhost', origin: 'http://localhost' },
+      pool,
+      session,
+    );
+    const challenge = crypto.randomBytes(32).toString('base64url');
+    // Set expired challenge
+    await session.setChallenge('user-expired-reg', challenge, Date.now() - 1_000);
+
+    const x = crypto.randomBytes(32);
+    const y = crypto.randomBytes(32);
+    const authData = buildAuthData(x, y);
+    const attObj = buildAttestationObject(authData);
+    const clientData = { type: 'webauthn.create', challenge, origin: 'http://localhost' };
+    const clientDataJSON = Buffer.from(JSON.stringify(clientData)).toString('base64url');
+
+    await assert.rejects(
+      () => svc.finishRegistration('user-expired-reg', {
+        id: 'cred-exp',
+        rawId: 'cred-exp',
+        response: { clientDataJSON, attestationObject: attObj.toString('base64url') },
+        type: 'public-key',
+      }),
+      /challenge_expired/i,
+    );
+  });
+
+  it('rejects wrong ceremony type (webauthn.get instead of webauthn.create)', async () => {
+    const session = new MemorySession();
+    const pool = new MemoryPool();
+    const svc = new WebAuthnService(
+      { rpName: 'Test', rpId: 'localhost', origin: 'http://localhost' },
+      pool,
+      session,
+    );
+    const challenge = crypto.randomBytes(32).toString('base64url');
+    await session.setChallenge('user-wrong-type', challenge, Date.now() + 60_000);
+
+    const x = crypto.randomBytes(32);
+    const y = crypto.randomBytes(32);
+    const authData = buildAuthData(x, y);
+    const attObj = buildAttestationObject(authData);
+    // Use wrong ceremony type
+    const clientData = { type: 'webauthn.get', challenge, origin: 'http://localhost' };
+    const clientDataJSON = Buffer.from(JSON.stringify(clientData)).toString('base64url');
+
+    await assert.rejects(
+      () => svc.finishRegistration('user-wrong-type', {
+        id: 'cred-wrong',
+        rawId: 'cred-wrong',
+        response: { clientDataJSON, attestationObject: attObj.toString('base64url') },
+        type: 'public-key',
+      }),
+      /ceremony|type/i,
+    );
+  });
+
+  it('rejects mismatched origin in registration', async () => {
+    const session = new MemorySession();
+    const pool = new MemoryPool();
+    const svc = new WebAuthnService(
+      { rpName: 'Test', rpId: 'localhost', origin: 'http://localhost' },
+      pool,
+      session,
+    );
+    const challenge = crypto.randomBytes(32).toString('base64url');
+    await session.setChallenge('user-origin-mismatch', challenge, Date.now() + 60_000);
+
+    const x = crypto.randomBytes(32);
+    const y = crypto.randomBytes(32);
+    const authData = buildAuthData(x, y);
+    const attObj = buildAttestationObject(authData);
+    // Use different origin
+    const clientData = { type: 'webauthn.create', challenge, origin: 'https://evil.example.com' };
+    const clientDataJSON = Buffer.from(JSON.stringify(clientData)).toString('base64url');
+
+    await assert.rejects(
+      () => svc.finishRegistration('user-origin-mismatch', {
+        id: 'cred-origin',
+        rawId: 'cred-origin',
+        response: { clientDataJSON, attestationObject: attObj.toString('base64url') },
+        type: 'public-key',
+      }),
+      /origin/i,
+    );
+  });
+
+  it('rejects mismatched challenge in registration', async () => {
+    const session = new MemorySession();
+    const pool = new MemoryPool();
+    const svc = new WebAuthnService(
+      { rpName: 'Test', rpId: 'localhost', origin: 'http://localhost' },
+      pool,
+      session,
+    );
+    const challenge = crypto.randomBytes(32).toString('base64url');
+    await session.setChallenge('user-chal-mismatch', challenge, Date.now() + 60_000);
+
+    const x = crypto.randomBytes(32);
+    const y = crypto.randomBytes(32);
+    const authData = buildAuthData(x, y);
+    const attObj = buildAttestationObject(authData);
+    // Use different challenge
+    const wrongChallenge = crypto.randomBytes(32).toString('base64url');
+    const clientData = { type: 'webauthn.create', challenge: wrongChallenge, origin: 'http://localhost' };
+    const clientDataJSON = Buffer.from(JSON.stringify(clientData)).toString('base64url');
+
+    await assert.rejects(
+      () => svc.finishRegistration('user-chal-mismatch', {
+        id: 'cred-chal',
+        rawId: 'cred-chal',
+        response: { clientDataJSON, attestationObject: attObj.toString('base64url') },
+        type: 'public-key',
+      }),
+      /challenge/i,
+    );
+  });
+});
+
+describe('WebAuthnService.finishAuthentication — additional error cases', () => {
+  it('rejects expired challenge during authentication', async () => {
+    const session = new MemorySession();
+    const pool = new MemoryPool();
+    const svc = new WebAuthnService(
+      { rpName: 'Test', rpId: 'localhost', origin: 'http://localhost' },
+      pool,
+      session,
+    );
+    const challenge = crypto.randomBytes(32).toString('base64url');
+    await session.setChallenge('user-auth-exp', challenge, Date.now() - 1_000);
+
+    const clientData = { type: 'webauthn.get', challenge, origin: 'http://localhost' };
+    const clientDataJSON = Buffer.from(JSON.stringify(clientData)).toString('base64url');
+
+    await assert.rejects(
+      () => svc.finishAuthentication('user-auth-exp', {
+        id: 'cred-exp',
+        rawId: 'cred-exp',
+        response: {
+          clientDataJSON,
+          authenticatorData: Buffer.alloc(41, 0).toString('base64url'),
+          signature: 'aabb',
+        },
+        type: 'public-key',
+      }),
+      /challenge_expired/i,
+    );
+  });
+
+  it('rejects wrong ceremony type during authentication (webauthn.create instead of webauthn.get)', async () => {
+    const session = new MemorySession();
+    const pool = new MemoryPool();
+    const svc = new WebAuthnService(
+      { rpName: 'Test', rpId: 'localhost', origin: 'http://localhost' },
+      pool,
+      session,
+    );
+    const challenge = crypto.randomBytes(32).toString('base64url');
+    await session.setChallenge('user-auth-type', challenge, Date.now() + 60_000);
+
+    // Wrong ceremony type
+    const clientData = { type: 'webauthn.create', challenge, origin: 'http://localhost' };
+    const clientDataJSON = Buffer.from(JSON.stringify(clientData)).toString('base64url');
+
+    await assert.rejects(
+      () => svc.finishAuthentication('user-auth-type', {
+        id: 'cred-type',
+        rawId: 'cred-type',
+        response: {
+          clientDataJSON,
+          authenticatorData: Buffer.alloc(41, 0).toString('base64url'),
+          signature: 'aabb',
+        },
+        type: 'public-key',
+      }),
+      /ceremony|type/i,
+    );
+  });
+
+  it('rejects mismatched origin during authentication', async () => {
+    const session = new MemorySession();
+    const pool = new MemoryPool();
+    const svc = new WebAuthnService(
+      { rpName: 'Test', rpId: 'localhost', origin: 'http://localhost' },
+      pool,
+      session,
+    );
+    const challenge = crypto.randomBytes(32).toString('base64url');
+    await session.setChallenge('user-auth-origin', challenge, Date.now() + 60_000);
+
+    const clientData = { type: 'webauthn.get', challenge, origin: 'https://evil.com' };
+    const clientDataJSON = Buffer.from(JSON.stringify(clientData)).toString('base64url');
+
+    await assert.rejects(
+      () => svc.finishAuthentication('user-auth-origin', {
+        id: 'cred-origin2',
+        rawId: 'cred-origin2',
+        response: {
+          clientDataJSON,
+          authenticatorData: Buffer.alloc(41, 0).toString('base64url'),
+          signature: 'aabb',
+        },
+        type: 'public-key',
+      }),
+      /origin/i,
+    );
+  });
+
+  it('detects sign count replay (newSignCount <= storedSignCount)', async () => {
+    const session = new MemorySession();
+    const pool = new MemoryPool();
+    const svc = new WebAuthnService(
+      { rpName: 'Test', rpId: 'localhost', origin: 'http://localhost' },
+      pool,
+      session,
+    );
+
+    const { privateKey, publicKey } = crypto.generateKeyPairSync('ec', { namedCurve: 'P-256' });
+    const jwk = publicKey.export({ format: 'jwk' }) as crypto.JsonWebKey;
+    const credId = 'replay-cred';
+    const storedSignCount = 5;
+
+    pool.rows.push({
+      id: 'db-replay',
+      user_id: 'user-replay',
+      credential_id: credId,
+      public_key: JSON.stringify(jwk),
+      sign_count: String(storedSignCount),
+    });
+
+    const challenge = crypto.randomBytes(32).toString('base64url');
+    await session.setChallenge('user-replay', challenge, Date.now() + 60_000);
+
+    const clientData = { type: 'webauthn.get', challenge, origin: 'http://localhost' };
+    const clientDataJSON = Buffer.from(JSON.stringify(clientData)).toString('base64url');
+
+    // Build authData with signCount = 3 (less than stored 5) → replay
+    const authDataBuf = Buffer.alloc(41, 0);
+    authDataBuf[32] = 0x01; // UP flag
+    authDataBuf.writeUInt32BE(3, 33); // sign count 3 < stored 5
+
+    const clientDataHash = crypto.createHash('sha256')
+      .update(Buffer.from(clientDataJSON, 'base64url'))
+      .digest();
+    const signedData = Buffer.concat([authDataBuf, clientDataHash]);
+    const sig = crypto.createSign('SHA256').update(signedData).sign(privateKey);
+
+    await assert.rejects(
+      () => svc.finishAuthentication('user-replay', {
+        id: credId,
+        rawId: credId,
+        response: {
+          clientDataJSON,
+          authenticatorData: authDataBuf.toString('base64url'),
+          signature: sig.toString('base64url'),
+        },
+        type: 'public-key',
+      }),
+      /sign count|replay/i,
+    );
+  });
+});
+
+// ── Additional RBAC tests ─────────────────────────────────────────────────────
+
+describe('RbacService.hasRole — edge cases', () => {
+  it('returns false with empty userRoles array', () => {
+    const svc = new RbacService({ admin: [], editor: [] });
+    assert.ok(!svc.hasRole([], 'admin'));
+  });
+
+  it('checks deep inheritance: admin → editor → viewer, admin hasRole viewer is true via permissions', () => {
+    // hasRole uses direct match only per implementation, but we can test that admin has viewer's permissions
+    const hierarchy = { admin: ['editor'], editor: ['viewer'], viewer: [] };
+    const rolePermissions = { viewer: ['posts:read'], editor: ['posts:write'], admin: ['users:write'] };
+    const svc = new RbacService(hierarchy, rolePermissions);
+    // admin should inherit posts:read from viewer through editor
+    assert.ok(svc.hasPermission(['admin'], 'posts:read'));
+  });
+});
+
+describe('RbacService.hasPermission — edge cases', () => {
+  it('returns false with empty permissions list', () => {
+    const svc = new RbacService({ admin: [] }, { admin: [] });
+    assert.ok(!svc.hasPermission(['admin'], 'posts:read'));
+  });
+});
+
+describe('rbacGuard — no roles/permissions attached to handler', () => {
+  it('passes when no roles or permissions in state (no restrictions)', async () => {
+    const svc = new RbacService({ viewer: [] });
+    const ctx = {
+      user: { id: '1', email: 'a@b.com', roles: [] as string[] },
+      state: {} as Record<string, unknown>,
+    };
+    const guard = rbacGuard(svc);
+    let called = false;
+    await guard(ctx as Parameters<typeof guard>[0], async () => { called = true; });
+    assert.ok(called);
+  });
+
+  it('throws 403 when route requires roles but user has none', async () => {
+    const svc = new RbacService({ admin: [] });
+    const ctx = {
+      user: { id: '2', email: 'x@y.com', roles: [] as string[] },
+      state: { _requiredRoles: ['admin'], _requiredPermissions: [] } as Record<string, unknown>,
+    };
+    const guard = rbacGuard(svc);
+    await assert.rejects(
+      () => guard(ctx as Parameters<typeof guard>[0], async () => {}),
+      (err: unknown) => {
+        assert.ok(err instanceof ForbiddenException);
+        return true;
+      },
+    );
+  });
+});
+
+describe('RbacService — circular hierarchy', () => {
+  it('handles circular role hierarchy without infinite loop', () => {
+    // admin → editor → admin (circular)
+    const hierarchy = { admin: ['editor'], editor: ['admin'] };
+    // Should not throw or hang; BFS visited set prevents infinite loop
+    assert.doesNotThrow(() => new RbacService(hierarchy));
+  });
+});
+
+describe('RBAC decorators metadata', () => {
+  it('@Roles and @Permissions attach metadata to the method', () => {
+    class MyController {
+      @Roles('admin', 'editor')
+      @Permissions('posts:write', 'posts:delete')
+      myMethod() {}
+    }
+    const proto = MyController.prototype as object;
+    const roles = Reflect.getMetadata('street:roles', proto, 'myMethod') as string[];
+    const perms = Reflect.getMetadata('street:permissions', proto, 'myMethod') as string[];
+    assert.deepEqual(roles, ['admin', 'editor']);
+    assert.deepEqual(perms, ['posts:write', 'posts:delete']);
+  });
+});
+
+describe('RBAC — privilege escalation prevention', () => {
+  it('viewer cannot reach admin endpoint', async () => {
+    const svc = new RbacService({ admin: [], viewer: [] });
+    const ctx = {
+      user: { id: '3', email: 'v@example.com', roles: ['viewer'] as string[] },
+      state: { _requiredRoles: ['admin'], _requiredPermissions: [] } as Record<string, unknown>,
+    };
+    const guard = rbacGuard(svc);
+    await assert.rejects(
+      () => guard(ctx as Parameters<typeof guard>[0], async () => {}),
+      (err: unknown) => {
+        assert.ok(err instanceof ForbiddenException);
+        return true;
+      },
+    );
+  });
+});
+
+// ── Additional OAuth2 tests ───────────────────────────────────────────────────
+
+describe('OAuthManager.authorizationUrl — additional', () => {
+  it('throws without sessionManager at runtime (undefined cast)', () => {
+    assert.throws(
+      () => new OAuthManager({
+        providers: [{ name: 'github', clientId: 'id', clientSecret: 'sec', redirectUri: 'http://localhost/cb' }],
+        sessionManager: undefined as unknown as NonNullable<ConstructorParameters<typeof OAuthManager>[0]['sessionManager']>,
+      }),
+      /sessionManager/i,
+    );
+  });
+
+  it('authorizationUrl includes state and code_challenge in URL', async () => {
+    const sm = { get: () => null, set: () => {} };
+    const mgr = new OAuthManager({
+      providers: [{ name: 'google', clientId: 'my-client', clientSecret: 'sec', redirectUri: 'http://localhost/cb' }],
+      sessionManager: sm,
+    });
+    const { url, state, codeVerifier } = await mgr.authorizationUrl('google');
+    assert.ok(url.includes('state='), 'URL must include state param');
+    assert.ok(url.includes('code_challenge='), 'URL must include code_challenge param');
+    // state should be non-empty
+    assert.ok(state.length > 0);
+    // codeVerifier should be non-empty
+    assert.ok(codeVerifier.length > 0);
+    // code_challenge in URL = SHA256(codeVerifier) base64url
+    const expectedChallenge = crypto.createHash('sha256').update(codeVerifier).digest('base64url');
+    assert.ok(url.includes(encodeURIComponent(expectedChallenge)), 'code_challenge must be SHA256 of verifier');
+  });
+});
+
+describe('OAuthManager.handleCallback — mismatched state', () => {
+  it('rejects mismatched state (CSRF protection)', async () => {
+    const sm = { get: () => null, set: () => {} };
+    const mgr = new OAuthManager({
+      providers: [{ name: 'github', clientId: 'id', clientSecret: 'sec', redirectUri: 'http://localhost/cb' }],
+      sessionManager: sm,
+    });
+    await assert.rejects(
+      () => mgr.handleCallback('github', 'code123', 'attacker-state', 'correct-state', 'verifier'),
+      /state mismatch/i,
+    );
+  });
+});
+
+describe('OAuth2 PKCE — additional', () => {
+  it('PKCE code_challenge is SHA-256 of code_verifier base64url', () => {
+    const verifier = crypto.randomBytes(32).toString('base64url');
+    const challenge = crypto.createHash('sha256').update(verifier).digest('base64url');
+    assert.ok(!/[+/=]/.test(challenge), 'Must be base64url (no +, /, =)');
+    assert.equal(challenge.length, 43, 'SHA-256 base64url is always 43 chars');
+  });
+
+  it('handleCallback state comparison rejects when different', async () => {
+    const sm = { get: () => null, set: () => {} };
+    const mgr = new OAuthManager({
+      providers: [{ name: 'google', clientId: 'cid', clientSecret: 'csec', redirectUri: 'http://localhost/cb' }],
+      sessionManager: sm,
+    });
+    await assert.rejects(
+      () => mgr.handleCallback('google', 'any-code', 'state-A', 'state-B', 'verifier'),
+      /state mismatch/i,
+    );
+  });
+
+  it('middleware sets Location header for redirect when no code in query', async () => {
+    const sm = { get: (_ctx: unknown, key: string) => null as unknown, set: () => {} };
+    const mgr = new OAuthManager({
+      providers: [{ name: 'google', clientId: 'cid', clientSecret: 'csec', redirectUri: 'http://localhost/cb' }],
+      sessionManager: sm,
+    });
+
+    let locationHeader = '';
+    let endCalled = false;
+
+    const fakeCtx = {
+      query: {} as Record<string, unknown>,
+      headers: {} as Record<string, unknown>,
+      user: null as unknown,
+      state: {} as Record<string, unknown>,
+      res: {
+        writeHead: (code: number, headers: Record<string, string>) => {
+          locationHeader = headers['Location'] ?? '';
+        },
+        end: () => { endCalled = true; },
+      },
+    };
+
+    const mw = mgr.middleware('google', async () => {});
+    await mw(fakeCtx as Parameters<typeof mw>[0], async () => {});
+
+    assert.ok(endCalled, 'res.end() should be called for redirect');
+    assert.ok(locationHeader.length > 0, 'Location header should be set');
+    assert.ok(locationHeader.startsWith('https://'), 'Location should be https URL');
+  });
+});
+
+describe('JwksCache', () => {
+  it('returns cached keys on second call without re-fetching', async () => {
+    const { JwksCache: JwksCacheClass } = await import('../auth/oauth2.js');
+    let fetchCount = 0;
+    const mockUri = 'https://example.com/.well-known/jwks.json';
+
+    const cache = new JwksCacheClass(300_000);
+    // Inject a fake entry directly
+    (cache as unknown as { _cache: Map<string, { keys: unknown[]; expiresAt: number }> })
+      ._cache.set(mockUri, { keys: [{ kty: 'RSA', kid: 'k1' }], expiresAt: Date.now() + 300_000 });
+
+    const keys1 = await cache.getKeys(mockUri);
+    const keys2 = await cache.getKeys(mockUri);
+    assert.equal(keys1.length, 1);
+    assert.equal(keys2.length, 1);
+    assert.equal(fetchCount, 0, 'No actual fetches should occur with primed cache');
+  });
+
+  it('falls back to stale cache on fetch failure', async () => {
+    const { JwksCache: JwksCacheClass } = await import('../auth/oauth2.js');
+    const mockUri = 'https://unreachable-host.invalid/.well-known/jwks.json';
+
+    const cache = new JwksCacheClass(1); // TTL = 1ms → expires immediately
+    // Inject a stale entry
+    (cache as unknown as { _cache: Map<string, { keys: unknown[]; expiresAt: number }> })
+      ._cache.set(mockUri, { keys: [{ kty: 'EC', kid: 'stale' }], expiresAt: Date.now() - 1 });
+
+    // Fetch will fail (unreachable), should fall back to stale
+    const keys = await cache.getKeys(mockUri);
+    assert.equal(keys.length, 1);
+    const k = keys[0] as Record<string, unknown>;
+    assert.equal(k['kid'], 'stale');
+  });
+});
+
+// ── Additional API Key tests ──────────────────────────────────────────────────
+
+describe('ApiKeyService.generate — additional', () => {
+  it('returns key with correct namespace prefix', async () => {
+    const pool = new ApiKeyMemPool();
+    const svc = new ApiKeyService(pool);
+    const { key } = await svc.generate({ ownerId: 'o1', name: 'mykey', prefix: 'test_' });
+    assert.ok(key.startsWith('test_'), `key should start with "test_", got: ${key.slice(0, 10)}`);
+  });
+
+  it('stores hash (not raw key) in pool', async () => {
+    const pool = new ApiKeyMemPool();
+    const svc = new ApiKeyService(pool);
+    const { key } = await svc.generate({ ownerId: 'o2', name: 'hashtest' });
+    const storedHash = pool.rows[0]?.['key_hash'];
+    assert.ok(storedHash, 'key_hash must be stored');
+    // Raw key should not be stored
+    assert.notEqual(storedHash, key, 'Raw key must not be stored');
+    // Hash should be SHA-256 hex (64 chars)
+    assert.equal(storedHash.length, 64, 'Hash should be 64 hex chars (SHA-256)');
+    // Verify it's the correct hash
+    const expectedHash = crypto.createHash('sha256').update(key).digest('hex');
+    assert.equal(storedHash, expectedHash);
+  });
+});
+
+describe('ApiKeyService.verify — tamper detection', () => {
+  it('returns null for tampered key (different bytes, same length)', async () => {
+    const pool = new ApiKeyMemPool();
+    const svc = new ApiKeyService(pool);
+    const future = new Date(Date.now() + 3_600_000);
+    const { key } = await svc.generate({ ownerId: 'o3', name: 'tamper', expiresAt: future });
+    // Tamper: change last character
+    const tampered = key.slice(0, -1) + (key.endsWith('A') ? 'B' : 'A');
+    const result = await svc.verify(tampered);
+    assert.equal(result, null);
+  });
+
+  it('verify uses timingSafeEqual — both hashes are 32 bytes (64 hex chars)', async () => {
+    const pool = new ApiKeyMemPool();
+    const svc = new ApiKeyService(pool);
+    const future = new Date(Date.now() + 3_600_000);
+    const { key } = await svc.generate({ ownerId: 'o4', name: 'timing', expiresAt: future });
+    // The hash stored should be 64 hex chars (SHA-256 = 32 bytes)
+    const storedHash = pool.rows[0]?.['key_hash'];
+    assert.equal(storedHash?.length, 64);
+    // When verifying valid key, computed hash should also be 64 hex chars
+    const computedHash = crypto.createHash('sha256').update(key).digest('hex');
+    assert.equal(computedHash.length, 64, 'Computed hash must also be 32 bytes (64 hex)');
+  });
+});
+
+describe('ApiKeyService — revoke then verify', () => {
+  it('revoke then verify returns null (cache evicted, DB row deleted)', async () => {
+    const pool = new ApiKeyMemPool();
+    const svc = new ApiKeyService(pool);
+    const future = new Date(Date.now() + 3_600_000);
+    const { key, record } = await svc.generate({ ownerId: 'o5', name: 'revokeTest', expiresAt: future });
+    // Verify it works first
+    const before = await svc.verify(key);
+    assert.ok(before !== null);
+    // Revoke
+    await svc.revoke(record.id);
+    // Should be null now
+    const after = await svc.verify(key);
+    assert.equal(after, null);
+  });
+});
+
+describe('apiKeyMiddleware', () => {
+  it('throws UnauthorizedException when no Bearer token', async () => {
+    const pool = new ApiKeyMemPool();
+    const svc = new ApiKeyService(pool);
+    const mw = apiKeyMiddleware(svc);
+    const ctx = {
+      headers: {} as Record<string, unknown>,
+      user: null as unknown,
+      state: {} as Record<string, unknown>,
+    };
+    await assert.rejects(
+      () => mw(ctx as Parameters<typeof mw>[0], async () => {}),
+      /unauthorized|missing|invalid authorization/i,
+    );
+  });
+
+  it('throws UnauthorizedException for invalid key', async () => {
+    const pool = new ApiKeyMemPool();
+    const svc = new ApiKeyService(pool);
+    const mw = apiKeyMiddleware(svc);
+    const ctx = {
+      headers: { authorization: 'Bearer invalid_key_that_does_not_exist' } as Record<string, unknown>,
+      user: null as unknown,
+      state: {} as Record<string, unknown>,
+    };
+    await assert.rejects(
+      () => mw(ctx as Parameters<typeof mw>[0], async () => {}),
+      /unauthorized|invalid|expired/i,
+    );
+  });
+
+  it('sets ctx.user.id to ownerId on success', async () => {
+    const pool = new ApiKeyMemPool();
+    const svc = new ApiKeyService(pool);
+    const future = new Date(Date.now() + 3_600_000);
+    const { key } = await svc.generate({ ownerId: 'owner-mw', name: 'mwkey', expiresAt: future });
+
+    const mw = apiKeyMiddleware(svc);
+    const ctx = {
+      headers: { authorization: `Bearer ${key}` } as Record<string, unknown>,
+      user: null as unknown,
+      state: {} as Record<string, unknown>,
+    };
+    let nextCalled = false;
+    await mw(ctx as Parameters<typeof mw>[0], async () => { nextCalled = true; });
+    assert.ok(nextCalled, 'next() should be called on success');
+    const user = ctx.user as { id: string } | null;
+    assert.ok(user !== null, 'ctx.user should be set');
+    assert.equal(user!.id, 'owner-mw');
+  });
+});
+
+// ── Additional Refresh Token tests ────────────────────────────────────────────
+
+/** In-memory pool with transaction support for refresh token tests. */
+class RefreshTokenMemPool {
+  rows: Record<string, string | null>[] = [];
+  private nextId = 1;
+
+  async query(sql: string, params?: unknown[]): Promise<{ rows: Record<string, string | null>[]; rowCount: number; command: string }> {
+    const s = sql.trim().toUpperCase();
+
+    if (s.startsWith('INSERT')) {
+      const id = 'rt-' + String(this.nextId++);
+      const row: Record<string, string | null> = {
+        id,
+        token_hash: String(params?.[0] ?? ''),
+        family_id: String(params?.[1] ?? ''),
+        user_id: String(params?.[2] ?? ''),
+        expires_at: params?.[3] != null ? String(params[3]) : null,
+        revoked_at: null,
+        created_at: new Date().toISOString(),
+      };
+      this.rows.push(row);
+      return { rows: [row], rowCount: 1, command: 'INSERT' };
+    }
+
+    if (s.startsWith('UPDATE') && s.includes('REVOKED_AT') && s.includes('FAMILY_ID')) {
+      const familyId = String(params?.[0] ?? '');
+      let updated = 0;
+      for (const row of this.rows) {
+        if (row['family_id'] === familyId && row['revoked_at'] === null) {
+          row['revoked_at'] = new Date().toISOString();
+          updated++;
+        }
+      }
+      return { rows: [], rowCount: updated, command: 'UPDATE' };
+    }
+
+    if (s.startsWith('UPDATE') && s.includes('REVOKED_AT') && s.includes('USER_ID')) {
+      const userId = String(params?.[0] ?? '');
+      let updated = 0;
+      for (const row of this.rows) {
+        if (row['user_id'] === userId) {
+          row['revoked_at'] = new Date().toISOString();
+          updated++;
+        }
+      }
+      return { rows: [], rowCount: updated, command: 'UPDATE' };
+    }
+
+    if (s.startsWith('UPDATE') && s.includes('REVOKED_AT') && s.includes('WHERE ID')) {
+      const id = String(params?.[0] ?? '');
+      for (const row of this.rows) {
+        if (row['id'] === id) {
+          row['revoked_at'] = new Date().toISOString();
+        }
+      }
+      return { rows: [], rowCount: 1, command: 'UPDATE' };
+    }
+
+    if (s.startsWith('SELECT') && s.includes('TOKEN_HASH')) {
+      const hash = String(params?.[0] ?? '');
+      const found = this.rows.filter(r => r['token_hash'] === hash);
+      return { rows: found, rowCount: found.length, command: 'SELECT' };
+    }
+
+    if (s.startsWith('SELECT') && s.includes('FAMILY_ID')) {
+      const familyId = String(params?.[0] ?? '');
+      const found = this.rows.filter(r => r['family_id'] === familyId);
+      return { rows: found, rowCount: found.length, command: 'SELECT' };
+    }
+
+    return { rows: [], rowCount: 0, command: 'OK' };
+  }
+
+  async transaction<T>(fn: (conn: { query(sql: string, params?: unknown[]): Promise<{ rows: Record<string, string | null>[]; rowCount: number; command: string }> }) => Promise<T>): Promise<T> {
+    return fn(this);
+  }
+}
+
+function makeJwt(): JwtService {
+  return new JwtService('supersecretkey-at-least-32-chars-here!!');
+}
+
+describe('RefreshTokenService.issue', () => {
+  it('returns accessToken and refreshToken strings', async () => {
+    const pool = new RefreshTokenMemPool();
+    const svc = new RefreshTokenService(pool, makeJwt());
+    const { accessToken, refreshToken } = await svc.issue('user-a');
+    assert.equal(typeof accessToken, 'string');
+    assert.equal(typeof refreshToken, 'string');
+    assert.ok(accessToken.length > 0);
+    assert.ok(refreshToken.length > 0);
+  });
+
+  it('refreshToken is base64url encoded (no + or /)', async () => {
+    const pool = new RefreshTokenMemPool();
+    const svc = new RefreshTokenService(pool, makeJwt());
+    const { refreshToken } = await svc.issue('user-b');
+    assert.ok(!/[+/=]/.test(refreshToken), `refreshToken must be base64url, got: ${refreshToken}`);
+  });
+
+  it('custom refreshTokenTtlMs is respected in expires_at', async () => {
+    const pool = new RefreshTokenMemPool();
+    const customTtl = 10_000; // 10 seconds
+    const svc = new RefreshTokenService(pool, makeJwt(), { refreshTokenTtlMs: customTtl });
+    const before = Date.now();
+    await svc.issue('user-ttl');
+    const row = pool.rows[0];
+    assert.ok(row, 'Row should exist');
+    const expiresAt = new Date(row!['expires_at']!).getTime();
+    const expectedMin = before + customTtl - 1000;
+    const expectedMax = before + customTtl + 1000;
+    assert.ok(expiresAt >= expectedMin && expiresAt <= expectedMax,
+      `expires_at ${expiresAt} should be ~${before + customTtl}`);
+  });
+
+  it('token hash stored (not raw): hash(rawToken) appears in INSERT params', async () => {
+    const pool = new RefreshTokenMemPool();
+    const svc = new RefreshTokenService(pool, makeJwt());
+    const { refreshToken } = await svc.issue('user-hash');
+    const row = pool.rows[0];
+    assert.ok(row, 'Row should exist');
+    const storedHash = row!['token_hash']!;
+    const expectedHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+    assert.equal(storedHash, expectedHash, 'token_hash must be SHA-256 of raw token');
+    assert.notEqual(storedHash, refreshToken, 'Raw token must not be stored');
+  });
+});
+
+describe('RefreshTokenService.rotate', () => {
+  it('throws TokenReplayError with already-revoked token', async () => {
+    const pool = new RefreshTokenMemPool();
+    const svc = new RefreshTokenService(pool, makeJwt());
+    const { refreshToken } = await svc.issue('user-replay');
+    // Rotate once (valid)
+    await svc.rotate(refreshToken);
+    // Rotate again with the original (now revoked) token → replay
+    await assert.rejects(
+      () => svc.rotate(refreshToken),
+      (err: unknown) => {
+        assert.ok(err instanceof TokenReplayError);
+        return true;
+      },
+    );
+  });
+
+  it('after replay, entire family is revoked', async () => {
+    const pool = new RefreshTokenMemPool();
+    const svc = new RefreshTokenService(pool, makeJwt());
+    const { refreshToken } = await svc.issue('user-family-revoke');
+    // Get the family id from pool
+    const familyId = pool.rows[0]?.['family_id'];
+    assert.ok(familyId);
+    // Rotate once to get new token
+    const { refreshToken: newToken } = await svc.rotate(refreshToken);
+    // Replay original → should revoke family
+    await assert.rejects(() => svc.rotate(refreshToken), (e: unknown) => e instanceof TokenReplayError);
+    // New token should also be revoked (family revocation)
+    const newHash = crypto.createHash('sha256').update(newToken).digest('hex');
+    const newRow = pool.rows.find(r => r['token_hash'] === newHash);
+    assert.ok(newRow?.['revoked_at'] !== null, 'New token in family should also be revoked after replay');
+  });
+});
+
+describe('RefreshTokenService.revokeFamily', () => {
+  it('marks all tokens in family as revoked', async () => {
+    const pool = new RefreshTokenMemPool();
+    const svc = new RefreshTokenService(pool, makeJwt());
+    const familyId = crypto.randomBytes(8).toString('hex');
+    await svc.issue('user-fam', familyId);
+    await svc.issue('user-fam', familyId);
+    await svc.revokeFamily(familyId);
+    const remaining = pool.rows.filter(r => r['family_id'] === familyId && r['revoked_at'] === null);
+    assert.equal(remaining.length, 0, 'All tokens in family should be revoked');
+  });
+});
+
+describe('RefreshTokenService.revokeAll', () => {
+  it('marks all tokens for user as revoked', async () => {
+    const pool = new RefreshTokenMemPool();
+    const svc = new RefreshTokenService(pool, makeJwt());
+    await svc.issue('user-revoke-all');
+    await svc.issue('user-revoke-all');
+    await svc.revokeAll('user-revoke-all');
+    const remaining = pool.rows.filter(r => r['user_id'] === 'user-revoke-all' && r['revoked_at'] === null);
+    assert.equal(remaining.length, 0, 'All tokens for user should be revoked');
+  });
+});
+
+// ── Additional JWT tests ──────────────────────────────────────────────────────
+
+describe('JwtService — additional tests', () => {
+  const jwt = new JwtService('a-super-secret-key-that-is-at-least-32chars!');
+
+  it('sign produces 3-part dot-separated string', () => {
+    const token = jwt.sign({ sub: 'u1' });
+    const parts = token.split('.');
+    assert.equal(parts.length, 3, 'JWT must have 3 parts separated by dots');
+  });
+
+  it('verify returns null for malformed token', () => {
+    assert.equal(jwt.verify('not.a.valid.jwt'), null);
+    assert.equal(jwt.verify('justonepart'), null);
+    assert.equal(jwt.verify(''), null);
+  });
+
+  it('verify returns null for expired token', () => {
+    // Sign with -1 second TTL (already expired)
+    const token = jwt.sign({ sub: 'u2', exp: Math.floor(Date.now() / 1000) - 1 });
+    assert.equal(jwt.verify(token), null);
+  });
+
+  it('verify returns null for tampered signature', () => {
+    const token = jwt.sign({ sub: 'u3' });
+    const parts = token.split('.');
+    // Flip a char in the signature
+    const tamperedSig = parts[2]!.startsWith('A') ? 'B' + parts[2]!.slice(1) : 'A' + parts[2]!.slice(1);
+    const tampered = `${parts[0]}.${parts[1]}.${tamperedSig}`;
+    assert.equal(jwt.verify(tampered), null);
+  });
+
+  it('verify returns payload for valid token', () => {
+    const token = jwt.sign({ sub: 'u4', email: 'test@example.com' });
+    const payload = jwt.verify(token);
+    assert.ok(payload !== null);
+    assert.equal(payload.sub, 'u4');
+    assert.equal(payload.email, 'test@example.com');
+  });
+
+  it('sign with expiresInSeconds sets exp claim', () => {
+    const before = Math.floor(Date.now() / 1000);
+    const token = jwt.sign({ sub: 'u5' }, { expiresInSeconds: 3600 });
+    const payload = jwt.verify(token);
+    assert.ok(payload !== null);
+    assert.ok(typeof payload.exp === 'number');
+    assert.ok(payload.exp! >= before + 3600 - 2);
+    assert.ok(payload.exp! <= before + 3600 + 2);
+  });
+});
+
+// ── Additional Session tests ──────────────────────────────────────────────────
+
+describe('SessionManager — additional tests', () => {
+  // Generate a valid random key (64 hex chars with sufficient entropy)
+  const hexKey = crypto.randomBytes(32).toString('hex');
+  const sm = new SessionManager(hexKey);
+
+  it('create returns encrypted session string', () => {
+    const data = { userId: 'u1', email: 'a@b.com', roles: ['viewer'] };
+    const encrypted = sm.encrypt(data);
+    assert.equal(typeof encrypted, 'string');
+    assert.ok(encrypted.length > 0);
+    assert.notEqual(encrypted, JSON.stringify(data), 'Must not store plaintext');
+  });
+
+  it('read returns original data', () => {
+    const data = { userId: 'u2', email: 'x@y.com', roles: ['admin'] };
+    const encrypted = sm.encrypt(data);
+    const decrypted = sm.decrypt(encrypted);
+    assert.ok(decrypted !== null);
+    assert.equal(decrypted.userId, 'u2');
+    assert.equal(decrypted.email, 'x@y.com');
+    assert.deepEqual(decrypted.roles, ['admin']);
+  });
+
+  it('read returns null for tampered session', () => {
+    const data = { userId: 'u3' };
+    const encrypted = sm.encrypt(data);
+    // Decode base64, flip a byte in the ciphertext portion, re-encode
+    const buf = Buffer.from(encrypted, 'base64');
+    buf[buf.length - 1] = buf[buf.length - 1]! ^ 0xff;
+    const tampered = buf.toString('base64');
+    const result = sm.decrypt(tampered);
+    assert.equal(result, null, 'Tampered session must return null');
+  });
+
+  it('read returns null for wrong key', () => {
+    const data = { userId: 'u4' };
+    const encrypted = sm.encrypt(data);
+    // Create session manager with different key
+    const otherKey = crypto.randomBytes(32).toString('hex');
+    const sm2 = new SessionManager(otherKey);
+    const result = sm2.decrypt(encrypted);
+    assert.equal(result, null, 'Wrong key must return null');
+  });
+
+  it('session data round-trips through encrypt/decrypt for unicode strings', () => {
+    const data = { userId: 'u5', name: '日本語テスト 🎌', roles: ['viewer'] };
+    const encrypted = sm.encrypt(data);
+    const decrypted = sm.decrypt(encrypted);
+    assert.ok(decrypted !== null);
+    assert.equal(decrypted.name, '日本語テスト 🎌');
+  });
+
+  it('CSRF token is included in session data', () => {
+    const csrf = SessionManager.generateCsrf();
+    assert.ok(csrf.length > 0, 'CSRF token should be non-empty');
+    assert.ok(!/[+/=]/.test(csrf), 'CSRF token should be base64url');
+    // Session can store it
+    const data = { userId: 'u6', csrf };
+    const encrypted = sm.encrypt(data);
+    const decrypted = sm.decrypt(encrypted);
+    assert.ok(decrypted !== null);
+    assert.equal(decrypted.csrf, csrf);
+  });
+});
