@@ -80,7 +80,7 @@ describe('FeatureFlagService', () => {
   });
 
   it('returns false when flag.enabled is false', async () => {
-    const pool = makePool([{ name: 'my-flag', enabled: false, rules: '[]' }]);
+    const pool = makePool([{ name: 'my-flag', enabled: 'false', rules: '[]' }]);
     const svc = new FeatureFlagService(pool);
     const result = await svc.isEnabled('my-flag');
     assert.equal(result, false);
