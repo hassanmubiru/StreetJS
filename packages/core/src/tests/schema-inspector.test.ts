@@ -203,6 +203,29 @@ describe('SchemaInspector — SQLite nullable columns', () => {
     assert.ok(emailCol, 'email column must exist');
     assert.equal(emailCol.nullable, true);
   });
+
+  it('reports the nullable flag for every column across all tables', async () => {
+    const schema = await SchemaInspector.inspect(pool);
+
+    const nullableOf = (table: string, col: string): boolean => {
+      const t = schema.tables.find((x) => x.name === table);
+      assert.ok(t, `table ${table} must exist`);
+      const c = t.columns.find((x) => x.name === col);
+      assert.ok(c, `column ${table}.${col} must exist`);
+      return c.nullable;
+    };
+
+    // NOT NULL columns → nullable=false
+    assert.equal(nullableOf('users', 'name'), false);
+    assert.equal(nullableOf('posts', 'user_id'), false);
+    assert.equal(nullableOf('posts', 'title'), false);
+    assert.equal(nullableOf('memberships', 'user_id'), false);
+    assert.equal(nullableOf('memberships', 'group_id'), false);
+
+    // Columns without a NOT NULL constraint → nullable=true
+    assert.equal(nullableOf('users', 'email'), true);
+    assert.equal(nullableOf('memberships', 'role'), true);
+  });
 });
 
 // ─── 3. Cache behavior ───────────────────────────────────────────────────────
