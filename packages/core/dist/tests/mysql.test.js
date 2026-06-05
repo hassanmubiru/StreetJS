@@ -2,7 +2,8 @@
 // Integration tests for MysqlConnection and MysqlPool.
 // Requires a running MySQL/MariaDB server.
 //
-// Guard: tests are skipped when MYSQL_HOST is not set.
+// Guard: the entire suite is skipped (node:test `skip` option) when MYSQL_HOST
+// is not set — the runner reports skipped suites and exits 0.
 //
 // Environment variables:
 //   MYSQL_HOST     — hostname (required to run tests)
@@ -19,21 +20,25 @@ import { MysqlConnection } from '../database/mysql/wire.js';
 import { MysqlPool } from '../database/mysql/pool.js';
 import { MariaDbConnection } from '../database/mysql/mariadb.js';
 // ─── Guard ────────────────────────────────────────────────────────────────────
+// When MYSQL_HOST is absent the whole suite is reported as skipped via the
+// node:test `skip` option — the runner prints `# skipped` and exits 0 without
+// running any hooks or tests (no real connection is ever attempted).
 const MYSQL_HOST = process.env['MYSQL_HOST'];
-if (!MYSQL_HOST) {
-    console.log('Skipping MySQL integration tests: MYSQL_HOST not set.');
-    process.exit(0);
-}
+const skip = MYSQL_HOST
+    ? false
+    : 'MYSQL_HOST not set — skipping MySQL integration tests';
 // ─── Connection options ───────────────────────────────────────────────────────
+// The host falls back to a placeholder only to satisfy the type when the suite
+// is skipped; it is never used because skipped suites do not run their hooks.
 const opts = {
-    host: MYSQL_HOST,
+    host: MYSQL_HOST ?? '127.0.0.1',
     port: parseInt(process.env['MYSQL_PORT'] ?? '3306', 10),
     user: process.env['MYSQL_USER'] ?? 'root',
     password: process.env['MYSQL_PASSWORD'] ?? '',
     database: process.env['MYSQL_DATABASE'] ?? 'test',
 };
 // ─── 1. Connection ────────────────────────────────────────────────────────────
-describe('MysqlConnection — connect', () => {
+describe('MysqlConnection — connect', { skip }, () => {
     it('connects and is ready', async () => {
         const conn = await MysqlConnection.connect(opts);
         try {
@@ -42,6 +47,21 @@ describe('MysqlConnection — connect', () => {
         finally {
             await conn.close();
         }
+    });
+    it('exposes a non-empty serverVersion', async () => {
+        const conn = await MysqlConnection.connect(opts);
+        try {
+            assert.equal(typeof conn.serverVersion, 'string');
+            assert.ok(conn.serverVersion.length > 0, 'expected a non-empty server version string');
+        }
+        finally {
+            await conn.close();
+        }
+    });
+    it('close() marks the connection as closed', async () => {
+        const conn = await MysqlConnection.connect(opts);
+        await conn.close();
+        assert.ok(conn.isClosed);
     });
     it('returns MariaDbConnection for MariaDB servers', async () => {
         const conn = await MysqlConnection.connect(opts);
@@ -63,7 +83,7 @@ describe('MysqlConnection — connect', () => {
     });
 });
 // ─── 2. Simple query ──────────────────────────────────────────────────────────
-describe('MysqlConnection — simple query', () => {
+describe('MysqlConnection — simple query', { skip }, () => {
     let conn;
     before(async () => { conn = await MysqlConnection.connect(opts); });
     after(async () => { await conn.close(); });
@@ -84,7 +104,7 @@ describe('MysqlConnection — simple query', () => {
     });
 });
 // ─── 3. Parameterized query ───────────────────────────────────────────────────
-describe('MysqlConnection — parameterized query', () => {
+describe('MysqlConnection — parameterized query', { skip }, () => {
     let conn;
     before(async () => {
         conn = await MysqlConnection.connect(opts);
@@ -111,7 +131,7 @@ describe('MysqlConnection — parameterized query', () => {
     });
 });
 // ─── 4. Transaction commit ────────────────────────────────────────────────────
-describe('MysqlConnection — transaction commit', () => {
+describe('MysqlConnection — transaction commit', { skip }, () => {
     let conn;
     before(async () => {
         conn = await MysqlConnection.connect(opts);
@@ -130,7 +150,7 @@ describe('MysqlConnection — transaction commit', () => {
     });
 });
 // ─── 5. Transaction rollback ──────────────────────────────────────────────────
-describe('MysqlConnection — transaction rollback', () => {
+describe('MysqlConnection — transaction rollback', { skip }, () => {
     let conn;
     before(async () => {
         conn = await MysqlConnection.connect(opts);
@@ -149,7 +169,7 @@ describe('MysqlConnection — transaction rollback', () => {
     });
 });
 // ─── 6. Concurrent queries via MysqlPool ─────────────────────────────────────
-describe('MysqlPool — concurrent queries', () => {
+describe('MysqlPool — concurrent queries', { skip }, () => {
     let pool;
     before(async () => {
         pool = new MysqlPool({ ...opts, minConnections: 2, maxConnections: 5 });
@@ -189,7 +209,7 @@ describe('MysqlPool — concurrent queries', () => {
     });
 });
 // ─── 7. MysqlPool lifecycle ───────────────────────────────────────────────────
-describe('MysqlPool — lifecycle', () => {
+describe('MysqlPool — lifecycle', { skip }, () => {
     it('close() shuts down cleanly', async () => {
         const pool = new MysqlPool({ ...opts, minConnections: 1, maxConnections: 2 });
         await pool.query('SELECT 1');
