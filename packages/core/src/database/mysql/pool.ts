@@ -2,6 +2,7 @@
 // Bounded MySQL connection pool mirroring the PgPool API.
 // Min/max connections, acquire queue, idle-sweep timer — all timers call .unref().
 
+import { EventEmitter } from 'node:events';
 import { MysqlConnection, type MysqlConnectOptions, type MysqlResultStream } from './wire.js';
 import type { DbResult } from '../types.js';
 
