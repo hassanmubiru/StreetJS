@@ -74,6 +74,12 @@ void describe('runCli', () => {
       const { logs } = await captureConsole(() => runCli(['node', 'street', '--help']));
       assert.ok(logs.some((l) => l.includes('Usage:')));
       assert.ok(logs.some((l) => l.includes('Scaffold a new Street project')));
+      // The operational commands must be discoverable from help.
+      const help = logs.join('\n');
+      assert.ok(/\binfo\b/.test(help), 'help should list the "info" command');
+      assert.ok(/\bdoctor\b/.test(help), 'help should list the "doctor" command');
+      assert.ok(/env validate/.test(help), 'help should list the "env validate" command');
+      assert.ok(/\baudit\b/.test(help), 'help should list the "audit" command');
     });
   });
 
