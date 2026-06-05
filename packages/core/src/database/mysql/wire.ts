@@ -526,26 +526,30 @@ export class MysqlConnection {
       });
 
       socket.on('data', (chunk: Buffer) => this._onData(chunk));
-
-      socket.once('error', (err) => {
-        this.state = 'closed';
-        if (this.authReject) { this.authReject(err as Error); this.authReject = null; }
-        if (this.pendingQuery) { this.pendingQuery.reject(err as Error); this.pendingQuery = null; }
-        if (this.streamTarget) { this.streamTarget.finalize(err as Error); this.streamTarget = null; }
-      });
-
-      socket.once('close', () => {
-        this.state = 'closed';
-        const err = new Error('MySQL connection closed unexpectedly');
-        if (this.pendingQuery) { this.pendingQuery.reject(err); this.pendingQuery = null; }
-        if (this.streamTarget) { this.streamTarget.finalize(err); this.streamTarget = null; }
-      });
+      socket.once('error', (err: Error) => this._onSocketError(err));
+      socket.once('close', () => this._onSocketClose());
     });
   }
 
   private _onData(chunk: Buffer): void {
     this.buffer = Buffer.concat([this.buffer, chunk]);
     this._processBuffer();
+  }
+
+  /** Socket error handler — rejects any in-flight auth/query and closes state. */
+  private _onSocketError(err: Error): void {
+    this.state = 'closed';
+    if (this.authReject) { this.authReject(err); this.authReject = null; }
+    if (this.pendingQuery) { this.pendingQuery.reject(err); this.pendingQuery = null; }
+    if (this.streamTarget) { this.streamTarget.finalize(err); this.streamTarget = null; }
+  }
+
+  /** Socket close handler — rejects any in-flight query and closes state. */
+  private _onSocketClose(): void {
+    this.state = 'closed';
+    const err = new Error('MySQL connection closed unexpectedly');
+    if (this.pendingQuery) { this.pendingQuery.reject(err); this.pendingQuery = null; }
+    if (this.streamTarget) { this.streamTarget.finalize(err); this.streamTarget = null; }
   }
 
   private _processBuffer(): void {
