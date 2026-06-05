@@ -1764,8 +1764,7 @@ describe('JwtService — expanded', () => {
 // ── Expanded Session tests (Task 3) ──────────────────────────────────────────
 
 describe('SessionManager — expanded', () => {
-  const key = 'a'.repeat(64); // 64 hex chars = 32 bytes
-  const sm = new SessionManager({ key });
+  const sm = new SessionManager('a'.repeat(64)); // 64 hex chars = 32 bytes
 
   it('encrypt() returns encrypted string (not plain JSON)', () => {
     const blob = sm.encrypt({ userId: 'user1', email: 'u@test.com' });
