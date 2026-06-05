@@ -20,9 +20,9 @@ function makeCtx(overrides = {}) {
     let _responseData = null;
     return {
         method: 'GET',
-        path: '/api/test',
-        headers: {},
-        state: {},
+        path: overrides.path ?? '/api/test',
+        headers: (overrides.headers ?? {}),
+        state: (overrides.state ?? {}),
         params: {},
         query: {},
         user: undefined,
@@ -33,10 +33,9 @@ function makeCtx(overrides = {}) {
         send: (_) => { },
         html: (_, _s = 200) => { },
         res: { statusCode: 200, setHeader: () => { }, writeHead: () => { }, end: () => { } },
-        req: {},
+        req: { headers: (overrides.headers ?? {}) },
         _responseStatus: () => _responseStatus,
         _responseData: () => _responseData,
-        ...overrides,
     };
 }
 // ── Migration SQL tests ───────────────────────────────────────────────────────
