@@ -7,13 +7,13 @@
 // Uses SqlitePool with :memory: for seeder tests (no PG server required).
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { EventEmitter } from 'node:events';
 import { writeFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { SqlitePool } from '../database/sqlite/pool.js';
 import { StreetSeeder } from '../database/seeder.js';
 import { QueryProfiler, ConnectionDiagnostics } from '../database/profiler.js';
+import { PgPool, onPoolExhausted } from '../database/pool.js';
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 /** Write a temp SQL seed file and return its path. */
 async function writeSeedFile(name, sql) {
@@ -204,52 +204,82 @@ describe('QueryProfiler — ring buffer behaviour', () => {
         assert.equal(profiler.recordedCount, N);
     });
 });
-// ─── 3. pool:exhausted event fires when pool is saturated ─────────────────────
-describe('pool:exhausted — event fires when pool queue is entered', () => {
-    it('emits pool:exhausted with correct shape', () => {
-        // Build a minimal fake pool that mirrors the PgPool event contract:
-        // - has an `events` EventEmitter
-        // - emits 'pool:exhausted' before enqueuing a wait request
-        class FakeExhaustedPool extends EventEmitter {
-            events = new EventEmitter();
-            simulate() {
-                // Mirrors what PgPool.acquire() does before pushing to waitQueue
-                this.events.emit('pool:exhausted', {
-                    total: 5,
-                    idle: 0,
-                    waiting: 3,
-                });
-            }
+// ─── 3. pool:exhausted fires on a REAL PgPool when saturated ──────────────────
+//
+// These tests exercise the real PgPool and its real `events` EventEmitter — no
+// mock of the unit under test. A pool created with `maxConnections: 0` is
+// saturated from the very first acquire: PgPool can never create a connection,
+// so `acquire()` must emit 'pool:exhausted' (reporting the pre-enqueue state)
+// before pushing a waiter, which then times out. No live database is contacted
+// because no connection is ever attempted at maxConnections: 0.
+/** Connect options for a saturated pool; no DB is reached at maxConnections: 0. */
+const SATURATED_OPTS = {
+    host: '127.0.0.1',
+    port: 5432,
+    user: 'street',
+    password: 'street',
+    database: 'street',
+    maxConnections: 0,
+    acquireTimeoutMs: 50,
+};
+describe('pool:exhausted — real PgPool emits on saturation', () => {
+    it('emits pool:exhausted before enqueueing when the pool is full', async () => {
+        const pool = new PgPool({ ...SATURATED_OPTS });
+        try {
+            let received;
+            pool.events.once('pool:exhausted', (state) => {
+                received = state;
+            });
+            // Pool is at capacity (0): acquire cannot create a connection, so it must
+            // emit pool:exhausted, enqueue a waiter, then reject on acquire timeout.
+            await assert.rejects(pool.acquire(), /Connection acquire timeout/);
+            assert.ok(received !== undefined, 'pool:exhausted must be emitted on saturation');
+            assert.equal(received.total, 0, 'no connections exist at saturation');
+            assert.equal(received.idle, 0, 'no idle connections at saturation');
+            assert.equal(received.waiting, 0, 'event fires BEFORE the waiter is enqueued');
         }
-        const pool = new FakeExhaustedPool();
-        let received;
-        pool.events.on('pool:exhausted', (state) => {
-            received = state;
-        });
-        pool.simulate();
-        assert.ok(received !== undefined, 'pool:exhausted event must be emitted');
-        assert.equal(received.total, 5);
-        assert.equal(received.idle, 0);
-        assert.equal(received.waiting, 3);
+        finally {
+            await pool.close();
+        }
     });
-    it('onPoolExhausted helper attaches and detaches listener', async () => {
-        // Import onPoolExhausted from pool.js via the core package path
-        const { onPoolExhausted } = await import('../database/pool.js');
-        // Create a mock that matches the PgPool shape expected by onPoolExhausted
-        class MinimalPool {
-            events = new EventEmitter();
+    it('reports the growing queue length before each enqueue', async () => {
+        const pool = new PgPool({ ...SATURATED_OPTS });
+        try {
+            const waitingAtEmit = [];
+            pool.events.on('pool:exhausted', (state) => {
+                waitingAtEmit.push(state.waiting);
+            });
+            // Two concurrent acquires: the first sees an empty wait queue, the second
+            // sees the first waiter already enqueued.
+            const first = assert.rejects(pool.acquire(), /Connection acquire timeout/);
+            const second = assert.rejects(pool.acquire(), /Connection acquire timeout/);
+            await Promise.all([first, second]);
+            assert.equal(waitingAtEmit.length, 2, 'pool:exhausted fires once per acquire attempt');
+            assert.deepEqual(waitingAtEmit, [0, 1], 'event reports queue length before each enqueue');
         }
-        const pool = new MinimalPool();
-        const fired = [];
-        const off = onPoolExhausted(pool, (state) => {
-            fired.push(state);
-        });
-        pool.events.emit('pool:exhausted', { total: 2, idle: 0, waiting: 1 });
-        assert.equal(fired.length, 1, 'listener should fire once');
-        // Detach and verify no more events
-        off();
-        pool.events.emit('pool:exhausted', { total: 2, idle: 0, waiting: 2 });
-        assert.equal(fired.length, 1, 'listener should not fire after detach');
+        finally {
+            await pool.close();
+        }
+    });
+});
+describe('onPoolExhausted — attaches and detaches on a real PgPool', () => {
+    it('helper fires on saturation and stops after detach', async () => {
+        const pool = new PgPool({ ...SATURATED_OPTS });
+        try {
+            const fired = [];
+            const off = onPoolExhausted(pool, (state) => {
+                fired.push(state);
+            });
+            await assert.rejects(pool.acquire(), /Connection acquire timeout/);
+            assert.equal(fired.length, 1, 'listener should fire once on saturation');
+            // Detach and verify no further events are delivered.
+            off();
+            await assert.rejects(pool.acquire(), /Connection acquire timeout/);
+            assert.equal(fired.length, 1, 'listener should not fire after detach');
+        }
+        finally {
+            await pool.close();
+        }
     });
 });
 // ─── 4. ConnectionDiagnostics — ping & poolStats ──────────────────────────────
