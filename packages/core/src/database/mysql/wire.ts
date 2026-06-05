@@ -99,8 +99,13 @@ export function nativePasswordHash(password: string, seed: Buffer): Buffer {
 /**
  * Compute caching_sha2_password challenge response:
  *   XOR(SHA256(password), SHA256(SHA256(SHA256(password)) + seed))
+ *
+ * An empty password yields an empty (zero-length) response, matching the
+ * MySQL client protocol — the server treats an empty scramble as "no password".
+ * @internal
  */
-function sha2PasswordHash(password: string, seed: Buffer): Buffer {
+export function sha2PasswordHash(password: string, seed: Buffer): Buffer {
+  if (password.length === 0) return Buffer.alloc(0);
   const sha256 = (data: Buffer | string): Buffer => {
     return createHash('sha256').update(data).digest();
   };
