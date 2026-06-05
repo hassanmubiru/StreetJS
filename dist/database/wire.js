@@ -2,7 +2,7 @@
 // PostgreSQL frontend/backend wire protocol v3 implementation.
 // Pure node:net + node:crypto – no external dependencies.
 import { createConnection } from 'node:net';
-import { createHash, createHmac, randomBytes, pbkdf2Sync, timingSafeEqual } from 'node:crypto';
+import { createHmac, randomBytes, pbkdf2Sync, timingSafeEqual } from 'node:crypto';
 import { Readable } from 'node:stream';
 // ─── Wire Constants ────────────────────────────────────────────────────────────
 const PROTOCOL_VERSION = 196608; // 3.0
@@ -55,11 +55,7 @@ function buildPasswordMessage(password) {
     pwBuf.copy(buf, 5);
     return buf;
 }
-function buildMD5Password(password, user, salt) {
-    const inner = md5(password + user);
-    const outer = 'md5' + md5(inner + salt.toString('binary'));
-    return buildPasswordMessage(outer);
-}
+
 function buildQueryMessage(sql) {
     const sqlBuf = Buffer.from(sql + '\0', 'utf8');
     const buf = Buffer.allocUnsafe(1 + 4 + sqlBuf.length);
@@ -205,9 +201,7 @@ export function buildSyncMessage() {
     buf.writeUInt32BE(4, 1);
     return buf;
 }
-function md5(input) {
-    return createHash('md5').update(input, 'binary').digest('hex');
-}
+
 // ─── SASL / SCRAM-SHA-256 ──────────────────────────────────────────────────────
 /** @internal Exported for testing. Builds a SASLInitialResponse ('p') message. */
 export function buildSASLInitialResponse(mechanism, clientFirstMessage) {
@@ -540,9 +534,11 @@ export class PgConnection {
                 this.socket?.write(buildPasswordMessage(opts.password));
                 break;
             case AuthType.MD5Password: {
-                const salt = body.subarray(4, 8);
-                this.socket?.write(buildMD5Password(opts.password, opts.user, salt));
-                break;
+                if (this.authReject) {
+                    this.authReject(new Error('Server requested unsupported legacy MD5 password authentication; require SCRAM-SHA-256'));
+                    this.authReject = null;
+                }
+                return;
             }
             case AuthType.SASL: {
                 // AuthenticationSASL — server sent the list of supported SASL mechanisms
