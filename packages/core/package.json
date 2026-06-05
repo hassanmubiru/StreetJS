@@ -170,6 +170,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.lib.json",
+    "postbuild": "node -e \"const fs=require('fs');const p=require('path');const s='src/database/sqlite';const d='dist/database/sqlite';fs.mkdirSync(d,{recursive:true});for(const f of ['sqlite3.wasm','sqlite3-node.mjs'])fs.copyFileSync(p.join(s,f),p.join(d,f));\"",
     "build:app": "tsc",
     "start": "node dist/main.js",
     "test": "node --test dist/tests/integration.test.js",
