@@ -54,13 +54,13 @@
   - [x] 6.8 Write integration tests against a real MySQL instance: connection, simple query, parameterized query, transaction commit, transaction rollback, concurrent queries
   - [x] 6.9 Export `MysqlConnection`, `MysqlPool`, `MariaDbConnection` from `packages/core/src/index.ts`
 
-- [ ] 7. v1.2 — SQLite Driver (WASM worker)
+- [x] 7. v1.2 — SQLite Driver (WASM worker)
   - [x] 7.1 Bundle a SQLite WASM binary (`sqlite3.wasm`) into `packages/core/src/database/sqlite/`; document the source and build steps in `CONTRIBUTING.md`
   - [x] 7.2 Create `packages/core/src/database/sqlite/worker.ts`: load and instantiate the WASM module inside a `node:worker_threads` worker; handle `query` and `transaction` messages via `MessageChannel`
   - [x] 7.3 Create `packages/core/src/database/sqlite/pool.ts` with `SqlitePool`: constructor accepts `{ filePath, maxWorkers? }`; routes queries to available worker threads; supports `query()` and `transaction()` methods
   - [x] 7.4 Implement `DbResult` as a shared type across all three drivers (PG, MySQL, SQLite) in `packages/core/src/database/types.ts`; update existing `PgResult` to be an alias
   - [x] 7.5 Write integration tests against a real SQLite file: create table, insert, query, transaction rollback, concurrent reads
-  - [~] 7.6 Export `SqlitePool` from `packages/core/src/index.ts`
+  - [x] 7.6 Export `SqlitePool` from `packages/core/src/index.ts`
 
 - [ ] 8. v1.2 — Type-Safe Query Builder
   - [~] 8.1 Create `packages/core/src/database/query-builder.ts` with `QueryBuilder<T extends object>` class: internal AST state with arrays for `selects`, `wheres`, `joins`, `orderBys`, `groupBys`, `havings`; `limit` and `offset` number fields
