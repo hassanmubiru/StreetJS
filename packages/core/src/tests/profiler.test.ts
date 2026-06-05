@@ -248,9 +248,10 @@ describe('QueryProfiler — ring buffer behaviour', () => {
 // These tests exercise the real PgPool and its real `events` EventEmitter — no
 // mock of the unit under test. A pool created with `maxConnections: 0` is
 // saturated from the very first acquire: PgPool can never create a connection,
-// so `acquire()` must emit 'pool:exhausted' (reporting the pre-enqueue state)
-// before pushing a waiter, which then times out. No live database is contacted
-// because no connection is ever attempted at maxConnections: 0.
+// so `acquire()` synchronously emits 'pool:exhausted' (reporting the pre-enqueue
+// state) before pushing a waiter. No live database is contacted because no
+// connection is ever attempted at maxConnections: 0. The queued waiter is then
+// settled deterministically by closing the pool (no reliance on timers).
 
 /** Connect options for a saturated pool; no DB is reached at maxConnections: 0. */
 const SATURATED_OPTS = {
@@ -266,66 +267,67 @@ const SATURATED_OPTS = {
 describe('pool:exhausted — real PgPool emits on saturation', () => {
   it('emits pool:exhausted before enqueueing when the pool is full', async () => {
     const pool = new PgPool({ ...SATURATED_OPTS });
-    try {
-      let received: { total: number; idle: number; waiting: number } | undefined;
-      pool.events.once('pool:exhausted', (state: { total: number; idle: number; waiting: number }) => {
-        received = state;
-      });
 
-      // Pool is at capacity (0): acquire cannot create a connection, so it must
-      // emit pool:exhausted, enqueue a waiter, then reject on acquire timeout.
-      await assert.rejects(pool.acquire(), /Connection acquire timeout/);
+    let received: { total: number; idle: number; waiting: number } | undefined;
+    pool.events.once('pool:exhausted', (state: { total: number; idle: number; waiting: number }) => {
+      received = state;
+    });
 
-      assert.ok(received !== undefined, 'pool:exhausted must be emitted on saturation');
-      assert.equal(received.total, 0, 'no connections exist at saturation');
-      assert.equal(received.idle, 0, 'no idle connections at saturation');
-      assert.equal(received.waiting, 0, 'event fires BEFORE the waiter is enqueued');
-    } finally {
-      await pool.close();
-    }
+    // acquire() cannot create a connection at maxConnections: 0, so it emits
+    // pool:exhausted synchronously and enqueues a waiter (still pending here).
+    const pending = pool.acquire();
+    const settled = assert.rejects(pending, /Connection pool is closed/);
+
+    assert.ok(received !== undefined, 'pool:exhausted must be emitted on saturation');
+    assert.equal(received.total, 0, 'no connections exist at saturation');
+    assert.equal(received.idle, 0, 'no idle connections at saturation');
+    assert.equal(received.waiting, 0, 'event fires BEFORE the waiter is enqueued');
+
+    // Closing the pool rejects the queued waiter deterministically.
+    await pool.close();
+    await settled;
   });
 
   it('reports the growing queue length before each enqueue', async () => {
     const pool = new PgPool({ ...SATURATED_OPTS });
-    try {
-      const waitingAtEmit: number[] = [];
-      pool.events.on('pool:exhausted', (state: { waiting: number }) => {
-        waitingAtEmit.push(state.waiting);
-      });
 
-      // Two concurrent acquires: the first sees an empty wait queue, the second
-      // sees the first waiter already enqueued.
-      const first = assert.rejects(pool.acquire(), /Connection acquire timeout/);
-      const second = assert.rejects(pool.acquire(), /Connection acquire timeout/);
-      await Promise.all([first, second]);
+    const waitingAtEmit: number[] = [];
+    pool.events.on('pool:exhausted', (state: { waiting: number }) => {
+      waitingAtEmit.push(state.waiting);
+    });
 
-      assert.equal(waitingAtEmit.length, 2, 'pool:exhausted fires once per acquire attempt');
-      assert.deepEqual(waitingAtEmit, [0, 1], 'event reports queue length before each enqueue');
-    } finally {
-      await pool.close();
-    }
+    // Two acquires: the first sees an empty wait queue, the second sees the
+    // first waiter already enqueued. Both emits happen synchronously.
+    const first = assert.rejects(pool.acquire(), /Connection pool is closed/);
+    const second = assert.rejects(pool.acquire(), /Connection pool is closed/);
+
+    assert.equal(waitingAtEmit.length, 2, 'pool:exhausted fires once per acquire attempt');
+    assert.deepEqual(waitingAtEmit, [0, 1], 'event reports queue length before each enqueue');
+
+    await pool.close();
+    await Promise.all([first, second]);
   });
 });
 
 describe('onPoolExhausted — attaches and detaches on a real PgPool', () => {
   it('helper fires on saturation and stops after detach', async () => {
     const pool = new PgPool({ ...SATURATED_OPTS });
-    try {
-      const fired: Array<{ total: number; idle: number; waiting: number }> = [];
-      const off = onPoolExhausted(pool, (state) => {
-        fired.push(state);
-      });
 
-      await assert.rejects(pool.acquire(), /Connection acquire timeout/);
-      assert.equal(fired.length, 1, 'listener should fire once on saturation');
+    const fired: Array<{ total: number; idle: number; waiting: number }> = [];
+    const off = onPoolExhausted(pool, (state) => {
+      fired.push(state);
+    });
 
-      // Detach and verify no further events are delivered.
-      off();
-      await assert.rejects(pool.acquire(), /Connection acquire timeout/);
-      assert.equal(fired.length, 1, 'listener should not fire after detach');
-    } finally {
-      await pool.close();
-    }
+    const first = assert.rejects(pool.acquire(), /Connection pool is closed/);
+    assert.equal(fired.length, 1, 'listener should fire once on saturation');
+
+    // Detach and verify no further events are delivered.
+    off();
+    const second = assert.rejects(pool.acquire(), /Connection pool is closed/);
+    assert.equal(fired.length, 1, 'listener should not fire after detach');
+
+    await pool.close();
+    await Promise.all([first, second]);
   });
 });
 
