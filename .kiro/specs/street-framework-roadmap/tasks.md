@@ -94,7 +94,7 @@
   - [x] 11.2 Implement W3C `traceparent` header parsing in `OtelTracer.extractContext()` and injection in `OtelTracer.injectContext()` per the W3C Trace Context spec
   - [x] 11.3 Implement OTLP HTTP exporter in `OtelTracer`: serialize spans to OTLP JSON format, POST to `OTEL_EXPORTER_OTLP_ENDPOINT` using `node:https`; batch up to 1,000 spans; flush every 5 seconds
   - [x] 11.4 Implement retry with exponential backoff on OTLP export failure; emit a single `warn` log per drop event when the buffer overflows
-  - [-] 11.5 Create `otelMiddleware(tracer)` factory: extract context from `traceparent`, start HTTP span, call `next()`, end span with response status; store span in `ctx.state['otelSpan']`
+  - [x] 11.5 Create `otelMiddleware(tracer)` factory: extract context from `traceparent`, start HTTP span, call `next()`, end span with response status; store span in `ctx.state['otelSpan']`
   - [~] 11.6 Instrument `PgPool.query()` to create a child span when `ctx.state['otelSpan']` is present; span attributes: `db.system`, `db.statement`, duration
   - [~] 11.7 Call `OtelTracer.flush()` during graceful shutdown (before pool close) to drain buffered spans
   - [~] 11.8 Export `OtelTracer`, `otelMiddleware`, `SpanContext` from `packages/core/src/index.ts`
