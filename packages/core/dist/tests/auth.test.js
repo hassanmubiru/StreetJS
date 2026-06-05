@@ -1377,4 +1377,244 @@ describe('SessionManager — additional tests', () => {
         assert.equal(decrypted.csrf, csrf);
     });
 });
+// ── Expanded JWT tests (Task 3) ───────────────────────────────────────────────
+describe('JwtService — expanded coverage', () => {
+    const jwt = new JwtService('test-secret-at-least-32-chars-here!!');
+    it('sign() returns a 3-part dot-separated token', () => {
+        const token = jwt.sign({ sub: 'u1' });
+        assert.equal(token.split('.').length, 3);
+    });
+    it('verify() returns payload for valid token', () => {
+        const token = jwt.sign({ sub: 'u1', email: 'u@test.com' });
+        const p = jwt.verify(token);
+        assert.ok(p !== null);
+        assert.equal(p.sub, 'u1');
+        assert.equal(p.email, 'u@test.com');
+    });
+    it('verify() returns null for expired token (exp in past)', () => {
+        const token = jwt.sign({ sub: 'u1', exp: Math.floor(Date.now() / 1000) - 10 });
+        assert.equal(jwt.verify(token), null);
+    });
+    it('verify() returns null for wrong secret', () => {
+        const token = jwt.sign({ sub: 'u1' });
+        const wrong = new JwtService('wrong-secret-at-least-32-chars-xxx');
+        assert.equal(wrong.verify(token), null);
+    });
+    it('verify() returns null for malformed token (only 2 parts)', () => {
+        assert.equal(jwt.verify('header.payload'), null);
+    });
+    it('verify() returns null for token with tampered payload', () => {
+        const token = jwt.sign({ sub: 'u1' });
+        const parts = token.split('.');
+        const tampered = parts[0] + '.' + Buffer.from('{"sub":"evil","iat":0}').toString('base64url') + '.' + parts[2];
+        assert.equal(jwt.verify(tampered), null);
+    });
+    it('custom payload claims survive sign/verify round-trip', () => {
+        const token = jwt.sign({ sub: 'u1', customField: 'my-value' });
+        const p = jwt.verify(token);
+        assert.equal(p['customField'], 'my-value');
+    });
+    it('sign() with expiresInSeconds puts exp in future', () => {
+        const before = Math.floor(Date.now() / 1000);
+        const token = jwt.sign({ sub: 'u1' }, { expiresInSeconds: 3600 });
+        const p = jwt.verify(token);
+        assert.ok(p !== null);
+        assert.ok((p.exp ?? 0) > before + 3500);
+    });
+});
+// ── Expanded Session tests (Task 3) ──────────────────────────────────────────
+describe('SessionManager — expanded coverage', () => {
+    const hexKey = crypto.randomBytes(32).toString('hex');
+    const sm = new SessionManager(hexKey);
+    it('encrypt() returns a non-empty string that is not plain JSON', () => {
+        const blob = sm.encrypt({ userId: 'u1', email: 'u@test.com' });
+        assert.equal(typeof blob, 'string');
+        assert.ok(blob.length > 0);
+        // Should not be readable JSON
+        assert.throws(() => {
+            const parsed = JSON.parse(blob);
+            assert.equal(parsed.userId, 'u1'); // if this passes, encryption is broken
+        });
+    });
+    it('decrypt() returns session data for valid encrypted blob', () => {
+        const data = { userId: 'u123', roles: ['admin'], csrf: 'csrf-token' };
+        const blob = sm.encrypt(data);
+        const recovered = sm.decrypt(blob);
+        assert.ok(recovered !== null);
+        assert.equal(recovered.userId, 'u123');
+        assert.deepEqual(recovered.roles, ['admin']);
+    });
+    it('decrypt() returns null for garbage input', () => {
+        assert.equal(sm.decrypt('not-valid-base64url-content-at-all'), null);
+    });
+    it('different sessions with same data produce different blobs (random IV)', () => {
+        const data = { userId: 'same-user' };
+        const blob1 = sm.encrypt(data);
+        const blob2 = sm.encrypt(data);
+        assert.notEqual(blob1, blob2);
+    });
+    it('decrypt() returns null for blob encrypted with different key', () => {
+        const sm2 = new SessionManager(crypto.randomBytes(32).toString('hex'));
+        const blob = sm2.encrypt({ userId: 'u1' });
+        assert.equal(sm.decrypt(blob), null);
+    });
+});
+// ── Additional RBAC tests (Task 3) ────────────────────────────────────────────
+describe('RbacService — hierarchy and edge cases', () => {
+    it('admin inherits editor inherits viewer permissions (3-level chain)', () => {
+        const hierarchy = { admin: ['editor'], editor: ['viewer'], viewer: [] };
+        const perms = { admin: ['admin:action'], editor: ['edit:post'], viewer: ['view:post'] };
+        const svc = new RbacService(hierarchy, perms);
+        assert.ok(svc.hasPermission(['admin'], 'admin:action'));
+        assert.ok(svc.hasPermission(['admin'], 'edit:post'));
+        assert.ok(svc.hasPermission(['admin'], 'view:post'));
+        assert.ok(!svc.hasPermission(['viewer'], 'edit:post'));
+        assert.ok(svc.hasPermission(['viewer'], 'view:post'));
+    });
+    it('hasPermission returns false for unknown role', () => {
+        const svc = new RbacService({ admin: [] }, { admin: ['admin:read'] });
+        assert.ok(!svc.hasPermission(['ghost'], 'admin:read'));
+    });
+    it('rbacGuard passes through when no _requiredRoles in state (open route)', async () => {
+        const svc = new RbacService({});
+        const guard = rbacGuard(svc);
+        const ctx = { state: {}, user: { id: '1', email: '', roles: [] } };
+        let nextCalled = false;
+        await guard(ctx, async () => { nextCalled = true; });
+        assert.ok(nextCalled);
+    });
+    it('rbacGuard passes through when required arrays are empty', async () => {
+        const svc = new RbacService({});
+        const guard = rbacGuard(svc);
+        const ctx = {
+            state: { _requiredRoles: [], _requiredPermissions: [] },
+            user: { id: '1', email: '', roles: [] },
+        };
+        let nextCalled = false;
+        await guard(ctx, async () => { nextCalled = true; });
+        assert.ok(nextCalled);
+    });
+    it('rbacGuard throws ForbiddenException for wrong role', async () => {
+        const svc = new RbacService({ admin: [], user: [] });
+        const guard = rbacGuard(svc);
+        const ctx = {
+            state: { _requiredRoles: ['admin'], _requiredPermissions: [] },
+            user: { id: '1', email: '', roles: ['user'] },
+        };
+        await assert.rejects(() => guard(ctx, async () => { }), (err) => {
+            assert.ok(err instanceof ForbiddenException);
+            return true;
+        });
+    });
+    it('rbacGuard allows when user has any one of multiple required roles (OR logic)', async () => {
+        const svc = new RbacService({ admin: [], moderator: [], user: [] });
+        const guard = rbacGuard(svc);
+        const ctx = {
+            state: { _requiredRoles: ['admin', 'moderator'], _requiredPermissions: [] },
+            user: { id: '1', email: '', roles: ['moderator'] },
+        };
+        let nextCalled = false;
+        await guard(ctx, async () => { nextCalled = true; });
+        assert.ok(nextCalled);
+    });
+    it('rbacGuard blocks when user has no roles at all', async () => {
+        const svc = new RbacService({ admin: [] });
+        const guard = rbacGuard(svc);
+        const ctx = {
+            state: { _requiredRoles: ['admin'], _requiredPermissions: [] },
+            user: { id: '1', email: '', roles: [] },
+        };
+        await assert.rejects(() => guard(ctx, async () => { }), (err) => { assert.ok(err instanceof ForbiddenException); return true; });
+    });
+});
+// ── Additional API Key tests (Task 3) ────────────────────────────────────────
+describe('ApiKeyService — additional coverage', () => {
+    it('verify() returns null for expired key (expiresAt in the past)', async () => {
+        const pool = new ApiKeyMemPool();
+        const svc = new ApiKeyService(pool);
+        const { key } = await svc.generate({
+            ownerId: 'user1',
+            name: 'test',
+            expiresAt: new Date(Date.now() - 1000),
+        });
+        const result = await svc.verify(key);
+        assert.equal(result, null);
+    });
+    it('apiKeyMiddleware throws 401 with missing Authorization header', async () => {
+        const pool = new ApiKeyMemPool();
+        const svc = new ApiKeyService(pool);
+        const mw = apiKeyMiddleware(svc);
+        const ctx = { headers: {}, user: undefined, state: {} };
+        await assert.rejects(() => mw(ctx, async () => { }), (err) => {
+            assert.equal(err.status, 401);
+            return true;
+        });
+    });
+    it('apiKeyMiddleware throws 401 for invalid/unknown key', async () => {
+        const pool = new ApiKeyMemPool();
+        const svc = new ApiKeyService(pool);
+        const mw = apiKeyMiddleware(svc);
+        const ctx = {
+            headers: { authorization: 'Bearer invalid_key_that_does_not_exist' },
+            user: undefined,
+            state: {},
+        };
+        await assert.rejects(() => mw(ctx, async () => { }), (err) => { assert.equal(err.status, 401); return true; });
+    });
+    it('apiKeyMiddleware sets ctx.user.id to ownerId on success', async () => {
+        const pool = new ApiKeyMemPool();
+        const svc = new ApiKeyService(pool);
+        const { key } = await svc.generate({ ownerId: 'owner123', name: 'test' });
+        const mw = apiKeyMiddleware(svc);
+        const ctx = { headers: { authorization: `Bearer ${key}` }, user: undefined, state: {} };
+        await mw(ctx, async () => { });
+        assert.equal(ctx.user?.id, 'owner123');
+    });
+});
+// ── Additional WebAuthn tests (Task 3) ───────────────────────────────────────
+describe('WebAuthn — additional coverage', () => {
+    it('parseCredentialPublicKey throws for authData shorter than 37 bytes', () => {
+        const shortBuf = Buffer.alloc(30);
+        assert.throws(() => parseCredentialPublicKey(shortBuf));
+    });
+    it('beginRegistration returns challenge encoded as ≥16 base64url bytes', async () => {
+        const session = new MemorySession();
+        const pool = new MemoryPool();
+        const svc = new WebAuthnService({ rpName: 'Test', rpId: 'localhost', origin: 'http://localhost' }, pool, session);
+        const opts = await svc.beginRegistration('user1');
+        const challengeBuf = Buffer.from(opts.challenge, 'base64url');
+        assert.ok(challengeBuf.length >= 16, `Challenge should be ≥16 bytes, got ${challengeBuf.length}`);
+    });
+    it('finishAuthentication throws challenge_expired when no challenge stored', async () => {
+        const session = new MemorySession();
+        const pool = new MemoryPool();
+        const svc = new WebAuthnService({ rpName: 'Test', rpId: 'localhost', origin: 'http://localhost' }, pool, session);
+        const assertion = {
+            id: 'cred1', rawId: 'cred1',
+            response: { clientDataJSON: '', authenticatorData: '', signature: '', userHandle: '' },
+            type: 'public-key',
+        };
+        await assert.rejects(() => svc.finishAuthentication('user1', assertion), /challenge_expired/);
+    });
+    it('finishRegistration throws on wrong ceremony type', async () => {
+        const session = new MemorySession();
+        const pool = new MemoryPool();
+        const svc = new WebAuthnService({ rpName: 'Test', rpId: 'localhost', origin: 'http://localhost' }, pool, session);
+        await svc.beginRegistration('user-ceremony');
+        const fakeClientData = JSON.stringify({
+            type: 'webauthn.get', // wrong type — should be 'webauthn.create'
+            challenge: 'fake',
+            origin: 'http://localhost',
+        });
+        const credential = {
+            id: 'credId', rawId: 'credId',
+            response: {
+                clientDataJSON: Buffer.from(fakeClientData).toString('base64url'),
+                attestationObject: Buffer.from([0xa0]).toString('base64url'),
+            },
+            type: 'public-key',
+        };
+        await assert.rejects(() => svc.finishRegistration('user-ceremony', credential));
+    });
+});
 //# sourceMappingURL=auth.test.js.map
