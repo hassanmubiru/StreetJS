@@ -38,7 +38,7 @@
   - [x] 5.1 Create `packages/cli/src/commands/info.ts` with `InfoCommand`: read `package.json` for Street version, read `process.version` for Node, detect TypeScript version from `node_modules/typescript/package.json`, print aligned table
   - [x] 5.2 Create `packages/cli/src/commands/doctor.ts` with `DoctorCommand`: check Node.js >= 20, TypeScript >= 5.0, required env vars from `.env.example`, attempt DB connectivity ping via `PgConnection.connect()`; print ✓/✗ per check with versions and upgrade hints
   - [x] 5.3 Create env-validate logic in `DoctorCommand` (or separate `EnvValidateCommand`): dynamic-import `street.config.ts` from the project root, call `defineConfig()`, report per-variable pass/fail, exit code 0 or 1
-  - [~] 5.4 Create `packages/cli/src/commands/audit.ts` with `AuditCommand`: spawn `npm audit --json`, parse JSON output, format CVE findings as a table with package name, severity, and fix recommendation
+  - [-] 5.4 Create `packages/cli/src/commands/audit.ts` with `AuditCommand`: spawn `npm audit --json`, parse JSON output, format CVE findings as a table with package name, severity, and fix recommendation
   - [~] 5.5 Register all new commands (`info`, `doctor`, `env`, `audit`) in `packages/cli/src/index.ts` switch
   - [~] 5.6 Write tests for `InfoCommand` (reads correct versions), `DoctorCommand` (detects old Node version as failure), `AuditCommand` (parses npm audit JSON output)
 
