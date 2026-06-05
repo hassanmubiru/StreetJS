@@ -139,11 +139,13 @@ export class DoctorCommand {
 
 export class EnvValidateCommand {
   async execute(ctx: CliContext): Promise<void> {
+    // The CLI runs as compiled JS, so the project's `street.config.ts` is loaded
+    // from its compiled output (`street.config.js`, then `dist/street.config.js`).
     const configPath = resolve(ctx.cwd, 'street.config.js');
-    let configModule: { default?: { defineConfig?: () => unknown } } | null = null;
+    let configModule: { default?: Record<string, unknown> } | null = null;
 
     try {
-      configModule = await import(configPath) as { default?: { defineConfig?: () => unknown } };
+      configModule = await import(configPath) as { default?: Record<string, unknown> };
     } catch {
       // Try .ts compiled output
       try {
@@ -167,14 +169,19 @@ export class EnvValidateCommand {
 
     let pass = true;
     try {
-      defineConfig(schema as Parameters<typeof defineConfig>[0]);
-      console.log('[street] All environment variables are valid ✓');
+      const result = defineConfig(schema as Parameters<typeof defineConfig>[0]);
+      const keys = Object.keys(result);
+      console.log('[street] Environment validation passed:');
+      for (const key of keys) {
+        console.log(`  \x1b[32m✓\x1b[0m ${key}`);
+      }
+      console.log(`[street] All ${keys.length} environment variable(s) are valid ✓`);
     } catch (err) {
       const { ConfigValidationError: CVE } = await import('@streetjs/core');
       if (err instanceof CVE) {
         console.error('[street] Environment validation failed:');
         for (const e of err.errors) {
-          console.error(`  ✗ ${e}`);
+          console.error(`  \x1b[31m✗\x1b[0m ${e}`);
         }
       } else {
         console.error('[street] Unexpected error:', (err as Error).message);
