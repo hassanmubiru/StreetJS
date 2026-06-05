@@ -87,7 +87,7 @@ describe('FeatureFlagService', () => {
   });
 
   it('returns true when flag is enabled with no targeting rules', async () => {
-    const pool = makePool([{ name: 'open-flag', enabled: true, rules: '[]' }]);
+    const pool = makePool([{ name: 'open-flag', enabled: 'true', rules: '[]' }]);
     const svc = new FeatureFlagService(pool);
     const result = await svc.isEnabled('open-flag');
     assert.equal(result, true);
