@@ -88,8 +88,14 @@ export function nativePasswordHash(password, seed) {
 /**
  * Compute caching_sha2_password challenge response:
  *   XOR(SHA256(password), SHA256(SHA256(SHA256(password)) + seed))
+ *
+ * An empty password yields an empty (zero-length) response, matching the
+ * MySQL client protocol — the server treats an empty scramble as "no password".
+ * @internal
  */
-function sha2PasswordHash(password, seed) {
+export function sha2PasswordHash(password, seed) {
+    if (password.length === 0)
+        return Buffer.alloc(0);
     const sha256 = (data) => {
         return createHash('sha256').update(data).digest();
     };
@@ -478,11 +484,11 @@ export class MysqlConnection {
         if (firstByte === 0x01) {
             const subtype = body[1];
             if (subtype === 0x04) {
-                // Server requests full password in cleartext (RSA-encrypted or over TLS).
-                // Sending cleartext passwords over non-TLS connections is a security violation.
-                // We reject this auth path unless the connection was established with TLS.
-                // Since this driver uses node:net (plain TCP) and does not negotiate SSL/TLS,
-                // we MUST reject the request to prevent credential exposure.
+                // 0x04 = perform_full_authentication: the server's password cache missed,
+                // so it wants the full password. Over a non-TLS/unencrypted connection that
+                // means either RSA public-key encryption or cleartext transmission.
+                // This driver uses node:net (plain TCP) and does not negotiate SSL/TLS,
+                // so sending the password here would expose credentials. We MUST reject.
                 const err = new Error('MySQL caching_sha2_password: server requested cleartext password transmission. ' +
                     'This is only safe over TLS, but this connection is not TLS-encrypted. ' +
                     'Configure your MySQL server to allow caching_sha2_password without RSA ' +
@@ -497,8 +503,8 @@ export class MysqlConnection {
                 this.socket?.destroy();
                 return;
             }
-            // subtype 0x02 = fast-auth succeeded, wait for OK
-            // subtype 0x03 = full auth required
+            // 0x03 = fast_auth_success: the fast scramble matched the server's cache.
+            // No further data is required; the server follows up with an OK packet.
             return;
         }
         // AuthSwitchRequest (0xfe)
