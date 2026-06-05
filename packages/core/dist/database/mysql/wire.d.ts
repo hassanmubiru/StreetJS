@@ -13,7 +13,13 @@ interface ServerGreeting {
 }
 export declare class MysqlResultStream extends Readable {
     private _done;
-    constructor();
+    private readonly _onResume;
+    /**
+     * @param onResume Invoked when the consumer is ready for more data (Node calls
+     *   `_read()` once the internal buffer drops below the highWaterMark). The
+     *   connection layer uses this to release socket backpressure via `resume()`.
+     */
+    constructor(onResume?: () => void);
     pushRow(row: Record<string, string | null>): boolean;
     finalize(error?: Error): void;
     _read(_size: number): void;

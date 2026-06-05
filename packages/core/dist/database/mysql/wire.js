@@ -256,8 +256,15 @@ function parseErrPacket(body) {
 // ─── Streaming result row stream ──────────────────────────────────────────────
 export class MysqlResultStream extends Readable {
     _done = false;
-    constructor() {
+    _onResume;
+    /**
+     * @param onResume Invoked when the consumer is ready for more data (Node calls
+     *   `_read()` once the internal buffer drops below the highWaterMark). The
+     *   connection layer uses this to release socket backpressure via `resume()`.
+     */
+    constructor(onResume) {
         super({ objectMode: true, highWaterMark: 64 });
+        this._onResume = onResume;
     }
     pushRow(row) {
         if (this._done)
@@ -265,6 +272,8 @@ export class MysqlResultStream extends Readable {
         return this.push(row);
     }
     finalize(error) {
+        if (this._done)
+            return;
         this._done = true;
         if (error) {
             this.destroy(error);
@@ -275,7 +284,11 @@ export class MysqlResultStream extends Readable {
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _read(_size) {
-        // push-mode stream — backpressure is handled by the connection layer
+        // A Readable signals it wants more data by having Node invoke `_read()`
+        // once its internal buffer falls below the highWaterMark. This — not a
+        // 'drain' event (which only Writables emit) — is the correct point to
+        // release backpressure on the upstream socket.
+        this._onResume?.();
     }
 }
 // ─── MysqlConnection ──────────────────────────────────────────────────────────
@@ -973,9 +986,7 @@ export class MysqlConnection {
         this.colCount = 0;
         this.colsReceived = 0;
         this.expectEof = false;
-        const stream = new MysqlResultStream();
-        // When the consumer is ready for more data, resume the socket
-        stream.on('drain', () => { this.socket?.resume(); });
+        const stream = new MysqlResultStream(() => { this.socket?.resume(); });
         this.streamTarget = stream;
         this.pendingQuery = { resolve: () => { }, reject: () => { }, rows: [], command: 'SELECT', affectedRows: 0, lastInsertId: 0 };
         const sqlBuf = Buffer.from(sql, 'utf8');
