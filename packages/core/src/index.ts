@@ -278,7 +278,7 @@ export type { VersioningOptions, DeprecatedOptions } from './versioning/strategy
 
 // ── SDK Generator ─────────────────────────────────────────────────────────────
 export { generateTypescriptSdk } from './sdk-gen/typescript.js';
-export type { OpenApiSpec, OpenApiOperation } from './sdk-gen/typescript.js';
+export type { OpenApiSpec as SdkOpenApiSpec, OpenApiOperation as SdkOpenApiOperation } from './sdk-gen/typescript.js';
 export { generatePythonSdk } from './sdk-gen/python.js';
 
 // ── GraphQL: SDL Schema Parser ────────────────────────────────────────────────
