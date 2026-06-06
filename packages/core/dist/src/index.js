@@ -109,7 +109,7 @@ export { parseProto, parseProtoFile, generateGrpcTypes, protoTypeToTs } from './
 export { encodeFrame, decodeFrame, decodeFrames, parseGrpcTimeout, GrpcError, GRPC_STATUS, GRPC_MAX_MESSAGE_BYTES, jsonCodec } from './microservices/grpc/framing.js';
 // ── Cloud ─────────────────────────────────────────────────────────────────────
 export { generateManifest } from './cloud/deployment.js';
-export { VaultSecretProvider, AwsSecretsManagerProvider, GcpSecretManagerProvider } from './cloud/secret-providers.js';
+export { VaultSecretProvider, AwsSecretsManagerProvider, GcpSecretManagerProvider, AzureKeyVaultProvider, SecretRotationManager } from './cloud/secret-providers.js';
 export { registerShutdownHook, isRunningInServiceMesh, buildAutoscaleMetrics, registerAutoscaleRoute, } from './cloud/runtime.js';
 // ── Enterprise: Feature Flags ──────────────────────────────────────────────────
 export { FeatureFlagService, FEATURE_FLAGS_MIGRATION_SQL, registerFeatureFlagAdminRoute } from './enterprise/feature-flags.js';
