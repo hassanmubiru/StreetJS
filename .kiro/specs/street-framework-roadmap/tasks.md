@@ -188,7 +188,7 @@
   - [x] 21.3 Create `packages/core/src/auth/audit-writer.ts` with `AuditWriter` class; write `street_audit_log` migration SQL with `append-only` database trigger or rule
   - [x] 21.4 Implement `AuditWriter.write(record)`: inside a transaction, write the audit entry; if the write fails, re-throw so the calling transaction rolls back
   - [x] 21.5 Integrate `AuditWriter` into auth flows: call `write()` after login success, login failure, logout, token refresh, session revocation, and permission denial
-  - [~] 21.6 Write tests: revoked session returns 401 on next request, audit log entry written for each of the 6 event types, failed audit write causes transaction rollback, audit log cannot be deleted via public API
+  - [-] 21.6 Write tests: revoked session returns 401 on next request, audit log entry written for each of the 6 event types, failed audit write causes transaction rollback, audit log cannot be deleted via public API
 
 
 - [ ] 22. v1.5 — Job Queue and Cron Scheduler
