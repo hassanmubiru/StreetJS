@@ -1444,3 +1444,81 @@ describe('WorkflowEngine — resume skips already-recorded steps', () => {
     assert.deepEqual(ran, [], 'No steps should run for a completed workflow');
   });
 });
+
+// ── Tests: WorkflowEngine step timeout (Requirement 24.5) ─────────────────────
+
+describe('WorkflowEngine — step timeout', () => {
+  it('marks the workflow timed_out (not failed) and runs compensation for completed steps when a step hangs past its timeoutMs', async () => {
+    const pool = makeWorkflowPool();
+    const engine = new WorkflowEngine(pool);
+
+    const compensated: string[] = [];
+    let hangTimer: ReturnType<typeof setTimeout> | undefined;
+    const steps: WorkflowStep[] = [
+      {
+        name: 'reserve',
+        run: async () => 'reserved',
+        compensate: async () => { compensated.push('reserve'); },
+      },
+      {
+        // This step never resolves on its own — it must be cut off by timeoutMs.
+        name: 'charge',
+        timeoutMs: 20,
+        run: () => new Promise<unknown>((resolve) => {
+          hangTimer = setTimeout(() => resolve('charged'), 10_000);
+          hangTimer.unref?.();
+        }),
+        compensate: async () => { compensated.push('charge'); },
+      },
+    ];
+    engine.define('payment', steps);
+
+    const id = await engine.start('payment', null);
+
+    const wf = pool.workflows.get(id)!;
+    assert.equal(wf.status, 'timed_out', 'Hung step should leave the workflow in timed_out state');
+    assert.match(wf.error ?? '', /timed out after 20ms/, 'Error should record the timeout');
+
+    // Saga compensation runs in reverse for steps completed before the timeout.
+    // 'charge' never completed, so only 'reserve' is compensated.
+    assert.deepEqual(compensated, ['reserve'], 'Completed step should be compensated on timeout');
+
+    if (hangTimer) clearTimeout(hangTimer);
+  });
+
+  it('keeps status failed (not timed_out) for an ordinary step error', async () => {
+    const pool = makeWorkflowPool();
+    const engine = new WorkflowEngine(pool);
+
+    const compensated: string[] = [];
+    const steps: WorkflowStep[] = [
+      {
+        name: 'reserve',
+        run: async () => 'reserved',
+        compensate: async () => { compensated.push('reserve'); },
+      },
+      {
+        name: 'charge',
+        timeoutMs: 1_000, // generous timeout — the step rejects well before it
+        run: async () => { throw new Error('card declined'); },
+        compensate: async () => { compensated.push('charge'); },
+      },
+    ];
+    engine.define('payment', steps);
+
+    const id = await engine.start('payment', null);
+
+    const wf = pool.workflows.get(id)!;
+    assert.equal(wf.status, 'failed', 'A thrown error should mark the workflow failed, not timed_out');
+    assert.equal(wf.error, 'card declined', 'Error message should be recorded');
+    assert.deepEqual(compensated, ['reserve'], 'Completed step should still be compensated on failure');
+  });
+
+  it('WorkflowStepTimeoutError carries the step name and timeout duration', () => {
+    const err = new WorkflowStepTimeoutError('charge', 20);
+    assert.ok(err instanceof Error);
+    assert.equal(err.stepName, 'charge');
+    assert.equal(err.timeoutMs, 20);
+    assert.match(err.message, /Step "charge" timed out after 20ms/);
+  });
+});
