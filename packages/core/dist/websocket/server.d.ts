@@ -1,6 +1,13 @@
 import { WebSocket } from 'ws';
 import type { IncomingMessage, Server } from 'node:http';
 export type WsHandler = (socket: StreetSocket, req: IncomingMessage) => void;
+/**
+ * Raw connection handler used by {@link StreetWebSocketServer.attachProtocol}
+ * for custom subprotocol integrations (e.g. graphql-ws). Unlike {@link WsHandler}
+ * it receives the underlying {@link WebSocket} so the integration owns the full
+ * message framing.
+ */
+export type RawWsHandler = (ws: WebSocket, req: IncomingMessage) => void;
 export interface WsEvent {
     type: string;
     payload: unknown;
@@ -47,6 +54,14 @@ export declare class StreetWebSocketServer {
     private _heartbeat;
     /** Attach to an existing HTTP server (upgrade handling) */
     attach(server: Server, handler: WsHandler): void;
+    /**
+     * Attach a custom subprotocol handler to an existing HTTP server. Negotiates
+     * the given WebSocket subprotocol (e.g. `graphql-transport-ws`) during the
+     * upgrade and hands the raw {@link WebSocket} to `handler` so the caller owns
+     * the message framing. Capacity, auth, path, and heartbeat tracking are
+     * shared with the rest of the server.
+     */
+    attachProtocol(server: Server, subprotocol: string, handler: RawWsHandler): void;
     /** Broadcast a message to all connected clients */
     broadcast(type: string, payload: unknown): void;
     close(): Promise<void>;
