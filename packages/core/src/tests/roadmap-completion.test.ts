@@ -410,3 +410,60 @@ describe('@RateLimit decorator', () => {
     assert.equal(meta!.key, 'ip');
   });
 });
+
+// ── RESP codec (Redis transport protocol) ─────────────────────────────────────
+
+import { encodeCommand, RespParser } from '../transports/resp.js';
+
+describe('RESP codec', () => {
+  it('encodeCommand produces a RESP2 array of bulk strings', () => {
+    const buf = encodeCommand(['SET', 'k', 'v']);
+    assert.equal(buf.toString('utf8'), '*3\r\n$3\r\nSET\r\n$1\r\nk\r\n$1\r\nv\r\n');
+  });
+
+  it('RespParser parses simple strings, integers, bulk strings, and arrays', () => {
+    const p = new RespParser();
+    p.push(Buffer.from('+OK\r\n:42\r\n$5\r\nhello\r\n*2\r\n$3\r\nfoo\r\n$3\r\nbar\r\n', 'utf8'));
+    assert.equal(p.parse(), 'OK');
+    assert.equal(p.parse(), 42);
+    assert.equal(p.parse(), 'hello');
+    assert.deepEqual(p.parse(), ['foo', 'bar']);
+    assert.equal(p.parse(), undefined);
+  });
+
+  it('RespParser waits for incomplete frames', () => {
+    const p = new RespParser();
+    p.push(Buffer.from('$5\r\nhel', 'utf8'));
+    assert.equal(p.parse(), undefined);
+    p.push(Buffer.from('lo\r\n', 'utf8'));
+    assert.equal(p.parse(), 'hello');
+  });
+});
+
+// ── AWS SigV4 signing ─────────────────────────────────────────────────────────
+
+import { signAwsV4 } from '../enterprise/storage-adapters.js';
+
+describe('AWS SigV4 signing', () => {
+  it('produces a deterministic Authorization header for fixed inputs', () => {
+    const headers = signAwsV4({
+      method: 'GET', host: 'examplebucket.s3.us-east-1.amazonaws.com', path: '/test.txt',
+      region: 'us-east-1', service: 's3',
+      accessKeyId: 'AKIDEXAMPLE', secretAccessKey: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
+      payloadHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+      now: new Date('2013-05-24T00:00:00Z'),
+    });
+    assert.match(headers['authorization']!, /^AWS4-HMAC-SHA256 Credential=AKIDEXAMPLE\/20130524\/us-east-1\/s3\/aws4_request/);
+    assert.match(headers['authorization']!, /SignedHeaders=host;x-amz-content-sha256;x-amz-date/);
+    assert.match(headers['authorization']!, /Signature=[0-9a-f]{64}$/);
+    // Determinism: same inputs → same signature
+    const again = signAwsV4({
+      method: 'GET', host: 'examplebucket.s3.us-east-1.amazonaws.com', path: '/test.txt',
+      region: 'us-east-1', service: 's3',
+      accessKeyId: 'AKIDEXAMPLE', secretAccessKey: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
+      payloadHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+      now: new Date('2013-05-24T00:00:00Z'),
+    });
+    assert.equal(headers['authorization'], again['authorization']);
+  });
+});
