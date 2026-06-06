@@ -100,7 +100,7 @@
   - [x] 11.8 Export `OtelTracer`, `otelMiddleware`, `SpanContext` from `packages/core/src/index.ts`
   - [x] 11.9 Write integration tests: parent-child span relationship is correct, `traceparent` round-trip, buffer capped at 1,000, flush called on shutdown
 
-- [ ] 12. v1.3 — Structured Logging
+- [x] 12. v1.3 — Structured Logging
   - [x] 12.1 Create `packages/core/src/observability/logger.ts`: `Logger` class, `LogLevel` type, `LogEntry` interface with `timestamp`, `level`, `message`, `correlationId`, `service` fields
   - [x] 12.2 Implement `Logger.debug/info/warn/error(msg, meta?)`: serialize to JSON `LogEntry` and write to `outputStream` (default `process.stderr`); suppress entries below configured `level`
   - [x] 12.3 Implement `Logger.child(bindings)`: return a new `Logger` instance with bindings merged into every entry; used for per-request loggers with `correlationId` pre-set
@@ -109,7 +109,7 @@
   - [x] 12.6 Create `correlationMiddleware(logger)`: generate UUID v4 correlation ID or extract from `X-Correlation-ID` header; store in `ctx.state['correlationId']`; create child logger in `ctx.state['logger']`; set `X-Correlation-ID` response header
   - [x] 12.7 Make `Logger` injectable via the DI container by decorating it with `@Injectable()`
   - [x] 12.8 Export `Logger`, `LogLevel`, `LogEntry`, `correlationMiddleware` from `packages/core/src/index.ts`
-  - [-] 12.9 Write tests: JSON output structure, level filtering, Error serialization, correlation ID propagation to child logger, pretty formatter in dev mode
+  - [x] 12.9 Write tests: JSON output structure, level filtering, Error serialization, correlation ID propagation to child logger, pretty formatter in dev mode
 
 - [ ] 13. v1.3 — Prometheus Metrics Exporter
   - [~] 13.1 Create `packages/core/src/observability/prometheus.ts`: `MetricsRegistry`, `Counter`, `Gauge`, `Histogram` classes; `MetricConflictError` exception
