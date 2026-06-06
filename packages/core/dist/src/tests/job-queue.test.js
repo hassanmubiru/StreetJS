@@ -9,7 +9,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import 'reflect-metadata';
-import { JobQueue, Job, STREET_JOBS_MIGRATION_SQL, STREET_DLQ_MIGRATION_SQL, } from '../jobs/queue.js';
+import { JobQueue, Job, STREET_JOBS_MIGRATION_SQL, STREET_DLQ_MIGRATION_SQL, STREET_JOB_HISTORY_MIGRATION_SQL, } from '../jobs/queue.js';
 import { CronScheduler, CronParseError } from '../jobs/scheduler.js';
 import { STREET_WORKFLOWS_MIGRATION_SQL, WorkflowEngine, WorkflowStepTimeoutError, } from '../jobs/workflow.js';
 // ── Tests: Migration SQL ──────────────────────────────────────────────────────
@@ -46,6 +46,28 @@ describe('JobQueue — Migration SQL', () => {
     });
     it('STREET_DLQ_MIGRATION_SQL is idempotent (uses IF NOT EXISTS)', () => {
         assert.match(STREET_DLQ_MIGRATION_SQL, /CREATE TABLE IF NOT EXISTS/i);
+    });
+});
+// ── Tests: Job History Migration SQL ──────────────────────────────────────────
+describe('JobQueue — Job History Migration SQL', () => {
+    it('STREET_JOB_HISTORY_MIGRATION_SQL creates the street_job_history table with all required columns', () => {
+        assert.ok(STREET_JOB_HISTORY_MIGRATION_SQL.includes('street_job_history'), 'Should reference street_job_history table');
+        assert.match(STREET_JOB_HISTORY_MIGRATION_SQL, /id\s+UUID/i, 'id UUID');
+        assert.match(STREET_JOB_HISTORY_MIGRATION_SQL, /job_id\s+TEXT/i, 'job_id TEXT');
+        assert.match(STREET_JOB_HISTORY_MIGRATION_SQL, /type\s+TEXT/i, 'type TEXT');
+        assert.match(STREET_JOB_HISTORY_MIGRATION_SQL, /status\s+TEXT/i, 'status TEXT');
+        assert.match(STREET_JOB_HISTORY_MIGRATION_SQL, /duration_ms\s+INT/i, 'duration_ms INT');
+        assert.match(STREET_JOB_HISTORY_MIGRATION_SQL, /created_at\s+TIMESTAMPTZ/i, 'created_at TIMESTAMPTZ');
+    });
+    it('STREET_JOB_HISTORY_MIGRATION_SQL declares id as the primary key', () => {
+        assert.match(STREET_JOB_HISTORY_MIGRATION_SQL, /id\s+UUID\s+PRIMARY KEY/i, 'id UUID PRIMARY KEY');
+    });
+    it('STREET_JOB_HISTORY_MIGRATION_SQL adds a (type, created_at) index for per-type pruning', () => {
+        assert.match(STREET_JOB_HISTORY_MIGRATION_SQL, /CREATE INDEX[\s\S]*street_job_history\s*\(type,\s*created_at\)/i, 'Should create an index on (type, created_at)');
+    });
+    it('STREET_JOB_HISTORY_MIGRATION_SQL is idempotent (uses IF NOT EXISTS)', () => {
+        assert.match(STREET_JOB_HISTORY_MIGRATION_SQL, /CREATE TABLE IF NOT EXISTS/i);
+        assert.match(STREET_JOB_HISTORY_MIGRATION_SQL, /CREATE INDEX IF NOT EXISTS/i);
     });
 });
 // ── Tests: WorkflowEngine Migration SQL ───────────────────────────────────────
@@ -1309,6 +1331,145 @@ describe('WorkflowEngine — conditional branching', () => {
         // 'charge' threw (not compensated); 'fraudCheck' was skipped (never ran, so no
         // compensation); only the genuinely-completed 'reserve' step is compensated.
         assert.deepEqual(compensated, ['reserve'], 'A skipped conditional step must not be compensated');
+    });
+});
+// ── Tests: Job history pruning (bounded per-type history) ─────────────────────
+/**
+ * A focused mock pool that records the pruning DELETE and emulates its window
+ * semantics against an in-memory set of history rows. This lets us assert both
+ * that the query is correct (window function + bound param) and that each job
+ * type is independently bounded after pruning.
+ */
+function makeJobHistoryPrunePool(initialRows = []) {
+    const historyRows = [...initialRows];
+    const queries = [];
+    return {
+        historyRows,
+        queries,
+        async query(sql, params) {
+            queries.push({ sql, params });
+            if (sql.includes('DELETE FROM street_job_history')) {
+                const maxPerType = params[0];
+                // Keep the newest `maxPerType` rows by created_at DESC within each type;
+                // delete the rest (rn > maxPerType), mirroring the window function.
+                const keep = new Set();
+                const byType = new Map();
+                for (const r of historyRows) {
+                    const list = byType.get(r.type) ?? [];
+                    list.push({ id: r.id, created_at: r.created_at });
+                    byType.set(r.type, list);
+                }
+                for (const list of byType.values()) {
+                    list
+                        .sort((a, b) => b.created_at - a.created_at)
+                        .slice(0, maxPerType)
+                        .forEach((r) => keep.add(r.id));
+                }
+                const before = historyRows.length;
+                for (let i = historyRows.length - 1; i >= 0; i--) {
+                    if (!keep.has(historyRows[i].id))
+                        historyRows.splice(i, 1);
+                }
+                const deleted = before - historyRows.length;
+                return { rows: [], rowCount: deleted, command: 'DELETE' };
+            }
+            return { rows: [], rowCount: 0, command: 'SELECT' };
+        },
+        async transaction(fn) {
+            return fn({ query: (sql, params) => this.query(sql, params) });
+        },
+    };
+}
+describe('JobQueue.pruneJobHistory', () => {
+    it('issues a window-function DELETE keeping the newest maxPerType rows per type', async () => {
+        const pool = makeJobHistoryPrunePool();
+        const queue = new JobQueue(pool);
+        await queue.pruneJobHistory(1_000);
+        const del = pool.queries.find((q) => q.sql.includes('DELETE FROM street_job_history'));
+        assert.ok(del, 'Expected a DELETE against street_job_history');
+        assert.match(del.sql, /DELETE FROM street_job_history/i, 'targets the history table');
+        assert.match(del.sql, /ROW_NUMBER\(\)\s+OVER/i, 'uses a ROW_NUMBER() window function');
+        assert.match(del.sql, /PARTITION BY\s+type/i, 'partitions per job type');
+        assert.match(del.sql, /ORDER BY\s+created_at\s+DESC/i, 'orders newest first within each type');
+        assert.match(del.sql, /rn\s*>\s*\$1/i, 'deletes rows ranked beyond the parameterized bound');
+        assert.deepEqual(del.params, [1_000], 'binds maxPerType as the bound parameter');
+    });
+    it('bounds each type independently to at most maxPerType rows, keeping the most recent', async () => {
+        const rows = [
+            { id: 'a1', type: 'email', created_at: 1_000 },
+            { id: 'a2', type: 'email', created_at: 2_000 },
+            { id: 'a3', type: 'email', created_at: 3_000 },
+            { id: 'b1', type: 'report', created_at: 1_500 },
+            { id: 'b2', type: 'report', created_at: 2_500 },
+        ];
+        const pool = makeJobHistoryPrunePool(rows);
+        const queue = new JobQueue(pool);
+        const deleted = await queue.pruneJobHistory(1);
+        assert.equal(deleted, 3, 'Should delete all but the newest row per type');
+        const keptIds = pool.historyRows.map((r) => r.id).sort();
+        assert.deepEqual(keptIds, ['a3', 'b2'], 'Only the newest row of each type is retained');
+    });
+    it('is a no-op when every type already has fewer rows than maxPerType', async () => {
+        const rows = [
+            { id: 'a1', type: 'email', created_at: 1_000 },
+            { id: 'b1', type: 'report', created_at: 2_000 },
+        ];
+        const pool = makeJobHistoryPrunePool(rows);
+        const queue = new JobQueue(pool);
+        const deleted = await queue.pruneJobHistory(1_000);
+        assert.equal(deleted, 0, 'Nothing should be deleted when under the per-type limit');
+        assert.equal(pool.historyRows.length, 2, 'All rows retained when under the limit');
+    });
+    it('rejects a negative or non-integer maxPerType', async () => {
+        const pool = makeJobHistoryPrunePool();
+        const queue = new JobQueue(pool);
+        await assert.rejects(() => queue.pruneJobHistory(-1), /non-negative integer/);
+        await assert.rejects(() => queue.pruneJobHistory(1.5), /non-negative integer/);
+    });
+});
+describe('JobQueue.registerJobHistoryPruning', () => {
+    it('registers a nightly cron job (default 0 0 * * *, keep 1000/type) that prunes history when fired', async () => {
+        const rows = [
+            { id: 'a1', type: 'email', created_at: 1_000 },
+            { id: 'a2', type: 'email', created_at: 2_000 },
+            { id: 'a3', type: 'email', created_at: 3_000 },
+        ];
+        const pool = makeJobHistoryPrunePool(rows);
+        const queue = new JobQueue(pool);
+        const sched = new CronScheduler();
+        queue.registerJobHistoryPruning(sched, 1);
+        const jobs = sched.jobs;
+        assert.ok(jobs.has('street:job-history-prune'), 'A cron entry named street:job-history-prune should be registered');
+        await jobs.get('street:job-history-prune').fn();
+        const del = pool.queries.find((q) => q.sql.includes('DELETE FROM street_job_history'));
+        assert.ok(del, 'Firing the cron job should issue the prune DELETE');
+        assert.deepEqual(del.params, [1], 'The prune should use the configured maxPerType');
+        assert.equal(pool.historyRows.length, 1, 'History should be bounded per type after the nightly run');
+        assert.equal(pool.historyRows[0].id, 'a3', 'The most recent entry should be retained');
+    });
+    it('defaults to keeping 1000 rows per type when maxPerType is omitted', async () => {
+        const pool = makeJobHistoryPrunePool();
+        const queue = new JobQueue(pool);
+        const sched = new CronScheduler();
+        queue.registerJobHistoryPruning(sched);
+        const jobs = sched.jobs;
+        await jobs.get('street:job-history-prune').fn();
+        const del = pool.queries.find((q) => q.sql.includes('DELETE FROM street_job_history'));
+        assert.ok(del, 'Firing the cron job should issue the prune DELETE');
+        assert.deepEqual(del.params, [1_000], 'The default maxPerType should be 1000');
+    });
+    it('accepts a custom cron expression and rejects an invalid one via the scheduler', () => {
+        const pool = makeJobHistoryPrunePool();
+        const queue = new JobQueue(pool);
+        const sched = new CronScheduler();
+        assert.doesNotThrow(() => queue.registerJobHistoryPruning(sched, 500, '30 3 * * *'));
+        assert.throws(() => queue.registerJobHistoryPruning(sched, 500, 'not a cron'), (err) => err instanceof CronParseError);
+    });
+    it('rejects a negative maxPerType before registering', () => {
+        const pool = makeJobHistoryPrunePool();
+        const queue = new JobQueue(pool);
+        const sched = new CronScheduler();
+        assert.throws(() => queue.registerJobHistoryPruning(sched, -5), /non-negative integer/);
     });
 });
 //# sourceMappingURL=job-queue.test.js.map
