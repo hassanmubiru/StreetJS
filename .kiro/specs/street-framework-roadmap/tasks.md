@@ -413,10 +413,10 @@ Status markers used in this plan:
   - [~] 45.9 Write tests: backup stream checksum matches stored value, corrupted backup aborts restore without modifying target DB, S3 adapter round-trip (upload then download produces identical content)
 
 
-- [~] 46. v3.0 — Distributed Cache and Global Config Service
+- [x] 46. v3.0 — Distributed Cache and Global Config Service
   - [x] 46.1 Create `packages/core/src/platform/distributed-cache.ts`: `CacheTransport` interface with `get`, `set`, `delete`, `subscribe`, `publish`; `DistributedCache` class; `InProcessTransport` default implementation backed by `LruCache`
-  - [ ] 46.2 Implement `RedisTransport` in `packages/core/src/platform/transports/redis.ts`: raw RESP3 protocol over `node:net`; support `GET`, `SET EX`, `DEL`, `SUBSCRIBE`, `PUBLISH` commands; no redis npm package
-  - [ ] 46.3 Implement `MemcachedTransport`: raw Memcached text protocol over `node:net`
+  - [x] 46.2 Implement `RedisTransport` in `packages/core/src/platform/transports/redis.ts`: raw RESP3 protocol over `node:net`; support `GET`, `SET EX`, `DEL`, `SUBSCRIBE`, `PUBLISH` commands; no redis npm package
+  - [x] 46.3 Implement `MemcachedTransport`: raw Memcached text protocol over `node:net`
   - [x] 46.4 Implement `DistributedCache.invalidate(key)`: publish invalidation message to a `street:invalidate` pub/sub channel; all nodes receive the message and evict their local copy; complete propagation within 100ms on local network
   - [x] 46.5 Enforce `maxMemoryMb` bound in `DistributedCache`: local in-memory replica uses `LruCache` with byte-size tracking; evicts LRU entries when `maxMemoryMb` is exceeded
   - [x] 46.6 Create `GlobalConfigService` extending `EventEmitter`: `get(key)`, `set(key, value)` backed by `CacheTransport`; emit `config:changed` with `{ key, oldValue, newValue }` to all connected instances via pub/sub within 500ms
