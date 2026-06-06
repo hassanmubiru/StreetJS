@@ -37,22 +37,6 @@ export interface SessionStorePool {
   transaction<T>(fn: (conn: { query(sql: string, params?: unknown[]): Promise<{ rows: Record<string, string | null>[]; rowCount: number; command: string }> }) => Promise<T>): Promise<T>;
 }
 
-export type AuditEvent =
-  | 'login_success'
-  | 'login_failure'
-  | 'logout'
-  | 'token_refresh'
-  | 'session_revoked'
-  | 'permission_denied';
-
-export interface AuditRecord {
-  event: AuditEvent;
-  actorId?: string;
-  ip?: string;
-  userAgent?: string;
-  details?: Record<string, unknown>;
-}
-
 // ── StreetSessionStore ────────────────────────────────────────────────────────
 
 export class StreetSessionStore {
@@ -156,32 +140,4 @@ export function sessionRevocationMiddleware(store: StreetSessionStore): Middlewa
 
     await next();
   };
-}
-
-// ── AuditWriter ───────────────────────────────────────────────────────────────
-
-export class AuditWriter {
-  private readonly _pool: SessionStorePool;
-
-  constructor(pool: SessionStorePool) {
-    this._pool = pool;
-  }
-
-  /**
-   * Write an audit log entry inside a transaction.
-   * If the write fails, the calling transaction is rolled back.
-   */
-  async write(record: AuditRecord): Promise<void> {
-    await this._pool.query(
-      `INSERT INTO street_audit_log (event, actor_id, ip, user_agent, details)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [
-        record.event,
-        record.actorId ?? null,
-        record.ip ?? null,
-        record.userAgent ?? null,
-        JSON.stringify(record.details ?? {}),
-      ],
-    );
-  }
 }
