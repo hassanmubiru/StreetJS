@@ -142,4 +142,6 @@ export type { PluginInstallerOptions } from './platform/plugins/registry.js';
 export { FeatureUnavailableInEdgeRuntimeError } from './http/exceptions.js';
 export { parseSchema, typeRefToString, namedType, SchemaParseError } from './graphql/schema.js';
 export type { SchemaAst, ServiceDefinition, TypeDef, TypeDefKind, FieldDef, ArgDef, TypeRef, DirectiveNode, DirectiveArg, DirectiveDef, EnumValueDef, } from './graphql/schema.js';
+export { GraphQlEngine, graphqlMiddleware } from './graphql/engine.js';
+export type { GraphQlEngineOptions, ExecutionResult } from './graphql/engine.js';
 //# sourceMappingURL=index.d.ts.map

@@ -127,4 +127,6 @@ export { PluginInstaller } from './platform/plugins/registry.js';
 export { FeatureUnavailableInEdgeRuntimeError } from './http/exceptions.js';
 // ── GraphQL: SDL Schema Parser ────────────────────────────────────────────────
 export { parseSchema, typeRefToString, namedType, SchemaParseError } from './graphql/schema.js';
+// ── GraphQL: Execution Engine ─────────────────────────────────────────────────
+export { GraphQlEngine, graphqlMiddleware } from './graphql/engine.js';
 //# sourceMappingURL=index.js.map
