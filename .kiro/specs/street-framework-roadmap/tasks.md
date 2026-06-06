@@ -159,7 +159,7 @@
 
 - [ ] 18. v1.4 — Refresh Tokens and Token Rotation
   - [x] 18.1 Create `packages/core/src/auth/refresh-tokens.ts` with `RefreshTokenService`; write `street_refresh_tokens` migration SQL
-  - [~] 18.2 Implement `RefreshTokenService.issue(userId, familyId?)`: generate new `familyId` (if not provided) from `randomBytes(16)`, issue access token (15 min) and refresh token (30 days), store only SHA-256 hash of refresh token
+  - [-] 18.2 Implement `RefreshTokenService.issue(userId, familyId?)`: generate new `familyId` (if not provided) from `randomBytes(16)`, issue access token (15 min) and refresh token (30 days), store only SHA-256 hash of refresh token
   - [~] 18.3 Implement `RefreshTokenService.rotate(rawRefreshToken)`: inside a single `pool.transaction()`: hash the token, find and verify it, check `revoked_at IS NULL`; if already revoked → call `revokeFamily()` and throw `TokenReplayError`; otherwise atomically create new tokens and set `revoked_at` on the old one
   - [~] 18.4 Implement `RefreshTokenService.revokeFamily(familyId)`: `UPDATE street_refresh_tokens SET revoked_at = NOW() WHERE family_id = $1`
   - [~] 18.5 Export `RefreshTokenService`, `TokenReplayError` from `packages/core/src/index.ts`
