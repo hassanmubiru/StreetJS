@@ -2,6 +2,7 @@
 // PostgreSQL-backed job queue with polling, class-decorator support, and retry policies.
 
 import 'reflect-metadata';
+import type { StreetApp } from '../http/server.js';
 
 // ── Migration SQL ─────────────────────────────────────────────────────────────
 
