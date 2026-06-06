@@ -1165,3 +1165,270 @@ describe('JobQueue.registerDlqPruning', () => {
     assert.throws(() => queue.registerDlqPruning(sched, -5), /non-negative integer/);
   });
 });
+
+// ── Stateful workflow pool ────────────────────────────────────────────────────
+
+interface StoredWorkflow {
+  id: string;
+  name: string;
+  status: string;
+  current_step: number;
+  step_outputs: string; // JSON-serialized, mirroring the JSONB-as-text read convention
+  input: string;        // JSON-serialized
+  error: string | null;
+}
+
+/**
+ * A stateful in-memory pool that honours the real street_workflows persistence
+ * contract used by WorkflowEngine.resume():
+ *  - INSERT stores a pending workflow row with its serialized input.
+ *  - SELECT returns name/status/current_step/step_outputs/input as a text row
+ *    (JSONB columns are returned as strings, matching the driver convention).
+ *  - The status/current_step UPDATE and the step_outputs/current_step UPDATE
+ *    mutate the stored row exactly as Postgres would.
+ *  - Advisory lock queries (pg_try_advisory_lock / pg_advisory_unlock) succeed,
+ *    so the DistributedLock guard inside resume() can be exercised end-to-end.
+ *
+ * This lets a workflow be driven through the genuine start -> resume path and,
+ * crucially, lets a *fresh* engine call resume() against an existing row to
+ * assert restart/skip behaviour.
+ */
+function makeWorkflowPool(opts: { workflow?: Partial<StoredWorkflow> } = {}): JobQueuePool & {
+  workflows: Map<string, StoredWorkflow>;
+  queries: Array<{ sql: string; params?: unknown[] }>;
+} {
+  const workflows = new Map<string, StoredWorkflow>();
+  const queries: Array<{ sql: string; params?: unknown[] }> = [];
+  let seq = 0;
+
+  // Seed an existing workflow row when provided (used for restart tests).
+  if (opts.workflow) {
+    const wf: StoredWorkflow = {
+      id: opts.workflow.id ?? 'wf-seed',
+      name: opts.workflow.name ?? 'unknown',
+      status: opts.workflow.status ?? 'running',
+      current_step: opts.workflow.current_step ?? 0,
+      step_outputs: opts.workflow.step_outputs ?? '{}',
+      input: opts.workflow.input ?? '{}',
+      error: opts.workflow.error ?? null,
+    };
+    workflows.set(wf.id, wf);
+  }
+
+  const pool: JobQueuePool & {
+    workflows: Map<string, StoredWorkflow>;
+    queries: Array<{ sql: string; params?: unknown[] }>;
+  } = {
+    workflows,
+    queries,
+    async query(sql: string, params?: unknown[]): Promise<QueryResult> {
+      const args = (params ?? []) as unknown[];
+      queries.push({ sql, params });
+
+      // Distributed-lock advisory queries used by resume().
+      if (sql.includes('pg_try_advisory_lock')) {
+        return { rows: [{ acquired: true } as unknown as Record<string, string | null>], rowCount: 1, command: 'SELECT' };
+      }
+      if (sql.includes('pg_advisory_unlock')) {
+        return { rows: [], rowCount: 1, command: 'SELECT' };
+      }
+
+      if (sql.includes('INSERT INTO street_workflows') && sql.includes('RETURNING id')) {
+        const id = `wf-${++seq}`;
+        workflows.set(id, {
+          id,
+          name: args[0] as string,
+          status: 'pending',
+          current_step: 0,
+          step_outputs: '{}',
+          input: args[1] as string,
+          error: null,
+        });
+        return { rows: [{ id }], rowCount: 1, command: 'INSERT' };
+      }
+
+      if (sql.includes('SELECT') && sql.includes('FROM street_workflows WHERE id=')) {
+        const wf = workflows.get(args[0] as string);
+        if (!wf) return { rows: [], rowCount: 0, command: 'SELECT' };
+        return {
+          rows: [{
+            name: wf.name,
+            status: wf.status,
+            current_step: String(wf.current_step),
+            step_outputs: wf.step_outputs,
+            input: wf.input,
+          }],
+          rowCount: 1,
+          command: 'SELECT',
+        };
+      }
+
+      // UPDATE ... SET status='running', current_step=$1 ... WHERE id=$2
+      if (sql.includes("UPDATE street_workflows SET status='running'")) {
+        const wf = workflows.get(args[1] as string);
+        if (wf) {
+          wf.status = 'running';
+          wf.current_step = args[0] as number;
+        }
+        return { rows: [], rowCount: 1, command: 'UPDATE' };
+      }
+
+      // UPDATE ... SET step_outputs=$1::jsonb, current_step=$2 ... WHERE id=$3
+      if (sql.includes('SET step_outputs=')) {
+        const wf = workflows.get(args[2] as string);
+        if (wf) {
+          wf.step_outputs = args[0] as string;
+          wf.current_step = args[1] as number;
+        }
+        return { rows: [], rowCount: 1, command: 'UPDATE' };
+      }
+
+      // UPDATE ... SET status='completed' ... WHERE id=$1
+      if (sql.includes("UPDATE street_workflows SET status='completed'")) {
+        const wf = workflows.get(args[0] as string);
+        if (wf) wf.status = 'completed';
+        return { rows: [], rowCount: 1, command: 'UPDATE' };
+      }
+
+      // UPDATE ... SET status='failed', error=$1 ... WHERE id=$2
+      if (sql.includes("UPDATE street_workflows SET status='failed'")) {
+        const wf = workflows.get(args[1] as string);
+        if (wf) {
+          wf.status = 'failed';
+          wf.error = args[0] as string;
+        }
+        return { rows: [], rowCount: 1, command: 'UPDATE' };
+      }
+
+      return { rows: [], rowCount: 0, command: 'SELECT' };
+    },
+    async transaction<T>(
+      fn: (conn: { query(sql: string, params?: unknown[]): Promise<QueryResult> }) => Promise<T>,
+    ): Promise<T> {
+      return fn({ query: (sql, params) => pool.query(sql, params) });
+    },
+  };
+
+  return pool;
+}
+
+// ── Tests: WorkflowEngine step execution and persistence (Requirement 24.1) ────
+
+describe('WorkflowEngine — step execution and persistence', () => {
+  it('runs each step in order, chaining outputs, and completes the workflow', async () => {
+    const pool = makeWorkflowPool();
+    const engine = new WorkflowEngine(pool);
+
+    const seen: unknown[] = [];
+    const steps: WorkflowStep[] = [
+      { name: 'double', run: async (input) => { seen.push(input); return (input as number) * 2; } },
+      { name: 'inc', run: async (input) => { seen.push(input); return (input as number) + 1; } },
+      { name: 'stringify', run: async (input) => { seen.push(input); return `value=${input}`; } },
+    ];
+    engine.define('math', steps);
+
+    const id = await engine.start('math', 5);
+
+    // Each step received the previous step's output (5 -> 10 -> 11).
+    assert.deepEqual(seen, [5, 10, 11], 'Steps should chain outputs as inputs');
+
+    const wf = pool.workflows.get(id)!;
+    assert.equal(wf.status, 'completed', 'Workflow should be marked completed');
+    assert.equal(wf.current_step, 3, 'current_step should advance past the last step');
+
+    // step_outputs must hold the serialized output of every step, keyed by name.
+    const outputs = JSON.parse(wf.step_outputs) as Record<string, unknown>;
+    assert.deepEqual(outputs, { double: 10, inc: 11, stringify: 'value=11' });
+  });
+
+  it('persists step_outputs[stepName] and current_step incrementally after each successful step', async () => {
+    const pool = makeWorkflowPool();
+    const engine = new WorkflowEngine(pool);
+
+    // Snapshot the persisted state at the moment each step's output is recorded.
+    const snapshots: Array<{ current_step: number; outputs: Record<string, unknown> }> = [];
+    const steps: WorkflowStep[] = [
+      { name: 'a', run: async () => 'A' },
+      { name: 'b', run: async () => 'B' },
+    ];
+    engine.define('letters', steps);
+
+    // Observe each step_outputs UPDATE as it happens.
+    const originalQuery = pool.query.bind(pool);
+    (pool as { query: JobQueuePool['query'] }).query = async (sql: string, params?: unknown[]) => {
+      const res = await originalQuery(sql, params);
+      if (sql.includes('SET step_outputs=')) {
+        snapshots.push({
+          current_step: params![1] as number,
+          outputs: JSON.parse(params![0] as string) as Record<string, unknown>,
+        });
+      }
+      return res;
+    };
+
+    await engine.start('letters', null);
+
+    assert.equal(snapshots.length, 2, 'There should be one persistence write per completed step');
+    // After step 0 (a): output recorded, current_step advanced to 1.
+    assert.deepEqual(snapshots[0], { current_step: 1, outputs: { a: 'A' } });
+    // After step 1 (b): both outputs present, current_step advanced to 2.
+    assert.deepEqual(snapshots[1], { current_step: 2, outputs: { a: 'A', b: 'B' } });
+  });
+});
+
+// ── Tests: WorkflowEngine resume after restart (Requirement 24.2) ──────────────
+
+describe('WorkflowEngine — resume skips already-recorded steps', () => {
+  it('on restart, resume() reads current_step + step_outputs and does not re-run completed steps', async () => {
+    // Simulate a process that already completed step 0 ('first') before crashing:
+    // current_step=1 and step_outputs has the recorded output of 'first'.
+    const pool = makeWorkflowPool({
+      workflow: {
+        id: 'wf-restart',
+        name: 'pipeline',
+        status: 'running',
+        current_step: 1,
+        step_outputs: JSON.stringify({ first: 'first-output' }),
+        input: JSON.stringify('original-input'),
+      },
+    });
+
+    // A fresh engine (as after a restart) re-registers the definition.
+    const engine = new WorkflowEngine(pool);
+    const ran: string[] = [];
+    const inputs: unknown[] = [];
+    const steps: WorkflowStep[] = [
+      { name: 'first', run: async () => { ran.push('first'); return 'first-output'; } },
+      { name: 'second', run: async (input) => { ran.push('second'); inputs.push(input); return 'second-output'; } },
+    ];
+    engine.define('pipeline', steps);
+
+    await engine.resume('wf-restart');
+
+    // 'first' must NOT have re-executed; only 'second' runs.
+    assert.deepEqual(ran, ['second'], 'Completed step must be skipped on resume');
+    // 'second' receives the recorded output of the skipped 'first' step.
+    assert.deepEqual(inputs, ['first-output'], 'Resumed step receives the prior recorded output');
+
+    const wf = pool.workflows.get('wf-restart')!;
+    assert.equal(wf.status, 'completed', 'Workflow completes after resuming remaining steps');
+    const outputs = JSON.parse(wf.step_outputs) as Record<string, unknown>;
+    assert.deepEqual(outputs, { first: 'first-output', second: 'second-output' });
+  });
+
+  it('is a no-op for a workflow already in a terminal state', async () => {
+    const pool = makeWorkflowPool({
+      workflow: { id: 'wf-done', name: 'pipeline', status: 'completed', current_step: 2 },
+    });
+    const engine = new WorkflowEngine(pool);
+    const ran: string[] = [];
+    engine.define('pipeline', [
+      { name: 'first', run: async () => { ran.push('first'); return 1; } },
+      { name: 'second', run: async () => { ran.push('second'); return 2; } },
+    ]);
+
+    await engine.resume('wf-done');
+
+    assert.deepEqual(ran, [], 'No steps should run for a completed workflow');
+  });
+});
