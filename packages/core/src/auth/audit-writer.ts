@@ -102,3 +102,58 @@ export class AuditWriter {
     });
   }
 }
+
+// ── Auth-flow integration helpers ─────────────────────────────────────────────
+
+/**
+ * Contextual details captured for an audit event. These map onto the optional
+ * columns of {@link AuditRecord} (everything except the fixed `event`), so an
+ * application can wire an audit entry in a single call from a controller,
+ * guard, or middleware without restating the event string.
+ */
+export type AuditEventDetails = Omit<AuditRecord, 'event'>;
+
+/**
+ * Write an audit entry for an authentication-related `event`.
+ *
+ * This is the single low-level seam the per-event helpers below build on. It
+ * delegates to {@link AuditWriter.write}, so a failed write rejects and a
+ * caller running inside its own transaction will roll back.
+ */
+export function auditAuthEvent(
+  writer: AuditWriter,
+  event: AuditEvent,
+  details: AuditEventDetails = {},
+): Promise<void> {
+  return writer.write({ event, ...details });
+}
+
+/** Record a successful login (`login_success`). */
+export function auditLoginSuccess(writer: AuditWriter, details: AuditEventDetails = {}): Promise<void> {
+  return auditAuthEvent(writer, 'login_success', details);
+}
+
+/** Record a failed login attempt (`login_failure`). */
+export function auditLoginFailure(writer: AuditWriter, details: AuditEventDetails = {}): Promise<void> {
+  return auditAuthEvent(writer, 'login_failure', details);
+}
+
+/** Record a logout (`logout`). */
+export function auditLogout(writer: AuditWriter, details: AuditEventDetails = {}): Promise<void> {
+  return auditAuthEvent(writer, 'logout', details);
+}
+
+/** Record an access-token refresh / rotation (`token_refresh`). */
+export function auditTokenRefresh(writer: AuditWriter, details: AuditEventDetails = {}): Promise<void> {
+  return auditAuthEvent(writer, 'token_refresh', details);
+}
+
+/** Record a session revocation (`session_revoked`). */
+export function auditSessionRevoked(writer: AuditWriter, details: AuditEventDetails = {}): Promise<void> {
+  return auditAuthEvent(writer, 'session_revoked', details);
+}
+
+/** Record an authorization denial (`permission_denied`). */
+export function auditPermissionDenied(writer: AuditWriter, details: AuditEventDetails = {}): Promise<void> {
+  return auditAuthEvent(writer, 'permission_denied', details);
+}
