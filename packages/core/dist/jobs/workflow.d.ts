@@ -8,6 +8,16 @@ export interface WorkflowStep {
     run(input: unknown, ctx: WorkflowContext): Promise<unknown>;
     compensate?(output: unknown, ctx: WorkflowContext): Promise<void>;
     timeoutMs?: number;
+    /**
+     * Optional conditional-branching predicate (Requirement 24.4). Evaluated with
+     * the current input (the prior step's output) and the workflow context just
+     * before the step would run. When it resolves to `false`, the step's `run()`
+     * is skipped entirely: no compensation is registered for it, the current
+     * input is passed through unchanged to the next step, and the pass-through
+     * value is recorded in `step_outputs[name]` so a later `resume()` treats the
+     * step as already-handled rather than re-evaluating it.
+     */
+    condition?(input: unknown, ctx: WorkflowContext): boolean | Promise<boolean>;
 }
 /**
  * Raised when a step exceeds its configured `timeoutMs`. Carrying a dedicated

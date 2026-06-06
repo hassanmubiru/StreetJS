@@ -107,6 +107,25 @@ export class WorkflowEngine {
                     currentStepIndex = i + 1;
                     continue;
                 }
+                // Conditional branching (Requirement 24.4): if the step declares a
+                // `condition` predicate and it evaluates false for the current input and
+                // context, skip the step without running it. The prior input is passed
+                // through unchanged so the data flow continues, and the pass-through
+                // value is recorded so resume() treats the step as already-handled. A
+                // skipped step is NOT added to completedSteps, so it is never compensated.
+                if (typeof step.condition === 'function') {
+                    const shouldRun = await step.condition(currentInput, ctx);
+                    if (!shouldRun) {
+                        const passthrough = currentInput ?? null;
+                        stepOutputs[step.name] = passthrough;
+                        await this.pool.query(`UPDATE street_workflows
+             SET step_outputs=$1::jsonb, current_step=$2, updated_at=NOW()
+             WHERE id=$3`, [JSON.stringify(stepOutputs), i + 1, workflowId]);
+                        currentInput = passthrough;
+                        currentStepIndex = i + 1;
+                        continue;
+                    }
+                }
                 // Mark workflow as running at this step
                 await this.pool.query(`UPDATE street_workflows SET status='running', current_step=$1, updated_at=NOW() WHERE id=$2`, [i, workflowId]);
                 try {

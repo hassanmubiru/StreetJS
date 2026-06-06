@@ -1224,4 +1224,91 @@ describe('WorkflowEngine — Saga compensation', () => {
         }
     });
 });
+// ── Tests: WorkflowEngine conditional branching (Requirement 24.4) ────────────
+describe('WorkflowEngine — conditional branching', () => {
+    it('skips a step whose condition evaluates false and passes the prior input through unchanged', async () => {
+        const pool = makeWorkflowPool();
+        const engine = new WorkflowEngine(pool);
+        const ran = [];
+        const conditionInputs = [];
+        const steps = [
+            { name: 'prepare', run: async (input) => { ran.push('prepare'); return { amount: input }; } },
+            {
+                name: 'applyDiscount',
+                // Branch predicate sees the prior step's output; large orders only.
+                condition: (input) => {
+                    conditionInputs.push(input);
+                    return input.amount >= 100;
+                },
+                run: async (input) => {
+                    ran.push('applyDiscount');
+                    return { amount: input.amount * 0.9 };
+                },
+            },
+            { name: 'finalize', run: async (input) => { ran.push('finalize'); return input; } },
+        ];
+        engine.define('checkout', steps);
+        const id = await engine.start('checkout', 50);
+        // amount 50 < 100 → the branch predicate is false, so applyDiscount.run() is skipped.
+        assert.deepEqual(ran, ['prepare', 'finalize'], 'A step with a false condition must not run');
+        assert.deepEqual(conditionInputs, [{ amount: 50 }], 'condition receives the prior step output as input');
+        const wf = pool.workflows.get(id);
+        assert.equal(wf.status, 'completed', 'Workflow completes even when a conditional step is skipped');
+        assert.equal(wf.current_step, 3, 'current_step advances past the skipped step');
+        const outputs = JSON.parse(wf.step_outputs);
+        assert.deepEqual(outputs.prepare, { amount: 50 });
+        // Skipped step records the passed-through value (not a discounted amount)...
+        assert.deepEqual(outputs.applyDiscount, { amount: 50 }, 'Skipped step records the passed-through input');
+        // ...and the downstream step receives that unchanged value.
+        assert.deepEqual(outputs.finalize, { amount: 50 }, 'Downstream step receives the unchanged prior output');
+    });
+    it('runs a step whose condition evaluates true (branch taken) and chains its transformed output', async () => {
+        const pool = makeWorkflowPool();
+        const engine = new WorkflowEngine(pool);
+        const ran = [];
+        const steps = [
+            { name: 'prepare', run: async () => ({ amount: 200 }) },
+            {
+                name: 'applyDiscount',
+                condition: (input) => input.amount >= 100,
+                run: async (input) => {
+                    ran.push('applyDiscount');
+                    return { amount: input.amount * 0.9 };
+                },
+            },
+            { name: 'finalize', run: async (input) => { ran.push('finalize'); return input; } },
+        ];
+        engine.define('checkout', steps);
+        const id = await engine.start('checkout', null);
+        // amount 200 >= 100 → the branch is taken and applyDiscount.run() executes.
+        assert.deepEqual(ran, ['applyDiscount', 'finalize'], 'A step with a true condition must run');
+        const wf = pool.workflows.get(id);
+        assert.equal(wf.status, 'completed');
+        const outputs = JSON.parse(wf.step_outputs);
+        assert.deepEqual(outputs.applyDiscount, { amount: 180 }, 'Branch-taken step transforms the input');
+        assert.deepEqual(outputs.finalize, { amount: 180 }, 'Downstream step receives the transformed output');
+    });
+    it('does not compensate a skipped step when a later step fails', async () => {
+        const pool = makeWorkflowPool();
+        const engine = new WorkflowEngine(pool);
+        const compensated = [];
+        const steps = [
+            { name: 'reserve', run: async () => 'reserved', compensate: async () => { compensated.push('reserve'); } },
+            {
+                name: 'fraudCheck',
+                condition: () => false, // never runs
+                run: async () => 'checked',
+                compensate: async () => { compensated.push('fraudCheck'); },
+            },
+            { name: 'charge', run: async () => { throw new Error('charge failed'); }, compensate: async () => { compensated.push('charge'); } },
+        ];
+        engine.define('order', steps);
+        const id = await engine.start('order', null);
+        const wf = pool.workflows.get(id);
+        assert.equal(wf.status, 'failed', 'Workflow fails when the final step throws');
+        // 'charge' threw (not compensated); 'fraudCheck' was skipped (never ran, so no
+        // compensation); only the genuinely-completed 'reserve' step is compensated.
+        assert.deepEqual(compensated, ['reserve'], 'A skipped conditional step must not be compensated');
+    });
+});
 //# sourceMappingURL=job-queue.test.js.map
