@@ -9,7 +9,7 @@ export { KafkaClient, KafkaProtocolError } from './client.js';
 export type { KafkaClientOptions, ClusterMeta, TopicMeta, PartitionMeta, KafkaRecord } from './client.js';
 export { encodeRecordBatch, decodeRecordBatches } from './recordbatch.js';
 
-export interface ProducerOptions { batchSize?: number; lingerMs?: number; acks?: number; }
+export interface ProducerOptions { batchSize?: number; lingerMs?: number; acks?: number; idempotent?: boolean; maxRetries?: number; retryBackoffMs?: number; }
 
 interface PendingRecord { partition: number; record: KafkaRecord; resolve: () => void; reject: (e: unknown) => void; }
 
@@ -19,13 +19,37 @@ export class KafkaProducer {
   private readonly batchSize: number;
   private readonly lingerMs: number;
   private readonly acks: number;
+  private readonly idempotent: boolean;
+  private readonly maxRetries: number;
+  private readonly retryBackoffMs: number;
   private flushTimer: NodeJS.Timeout | null = null;
   private closed = false;
+  // Idempotent producer state.
+  private producerId = -1n;
+  private producerEpoch = -1;
+  private initPromise: Promise<void> | null = null;
+  private readonly sequences = new Map<string, number>();          // `${topic}/${partition}` → next baseSequence
 
   constructor(private readonly client: KafkaClient, opts: ProducerOptions = {}) {
     this.batchSize = opts.batchSize ?? 100;
     this.lingerMs = opts.lingerMs ?? 5;
-    this.acks = opts.acks ?? -1;
+    this.idempotent = opts.idempotent ?? false;
+    // Idempotent production requires acks=all.
+    this.acks = this.idempotent ? -1 : (opts.acks ?? -1);
+    this.maxRetries = opts.maxRetries ?? 3;
+    this.retryBackoffMs = opts.retryBackoffMs ?? 200;
+  }
+
+  private async _ensureProducerId(): Promise<void> {
+    if (!this.idempotent || this.producerId >= 0n) return;
+    if (!this.initPromise) {
+      this.initPromise = (async () => {
+        const { producerId, producerEpoch } = await this.client.initProducerId();
+        this.producerId = producerId;
+        this.producerEpoch = producerEpoch;
+      })();
+    }
+    await this.initPromise;
   }
 
   private async _partitionCount(topic: string): Promise<number> {
