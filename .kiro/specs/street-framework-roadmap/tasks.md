@@ -1,4 +1,15 @@
-# Implementation Tasks: Street Framework Roadmap v1.1 – v3.0
+# Implementation Plan: Street Framework Roadmap v1.1 – v3.0
+
+## Overview
+
+This plan tracks the implementation of the Street Framework roadmap across milestones v1.1 through v3.0. Tasks are grouped by version, and each group maps to the features described in the requirements and design documents.
+
+Status markers used in this plan:
+- `[x]` — completed
+- `[~]` — in progress / partially implemented
+- `[ ]` — not started
+
+## Tasks
 
 - [x] 1. v1.1 — Hot Reload Development Server
   - [x] 1.1 Create `packages/core/src/dev/watcher.ts` with `DevWatcher` class: `FSWatcher` handle management, `WatcherOptions` interface, `start()` and `stop()` methods, stores all watcher handles in an array for cleanup
