@@ -250,8 +250,8 @@ Status markers used in this plan:
   - [x] 27.1 Create `packages/core/src/versioning/strategy.ts`: `@ApiVersion(version)` class decorator that stores version string under `street:apiVersion` metadata; `VersioningOptions` interface; `VersionStrategy` union type
   - [~] 27.2 Implement URL versioning in `enableVersioning(app, { strategy: 'url' })`: read `street:apiVersion` metadata from each controller during `registerController()`; prefix the controller's routes with `/<version>/`
   - [x] 27.3 Implement header versioning in `enableVersioning(app, { strategy: 'header', headerName? })`: middleware reads `Accept: application/vnd.street.v2+json`, extracts version, rewrites internal route key for dispatch
-  - [ ] 27.4 Return HTTP 404 with available versions list when a request targets an unregistered version: `{ error: 'version_not_found', available: ['v1', 'v2'] }`
-  - [ ] 27.5 Generate separate OpenAPI spec files per version: `app.openApiSpec('v1')` returns only v1 routes; register `GET /v1/openapi.json` and `GET /v2/openapi.json`
+  - [x] 27.4 Return HTTP 404 with available versions list when a request targets an unregistered version: `{ error: 'version_not_found', available: ['v1', 'v2'] }`
+  - [x] 27.5 Generate separate OpenAPI spec files per version: `app.openApiSpec('v1')` returns only v1 routes; register `GET /v1/openapi.json` and `GET /v2/openapi.json`
   - [x] 27.6 Implement `@Deprecated({ sunset: Date })` decorator: post-dispatch middleware reads metadata and adds `Sunset` and `Deprecation` headers
   - [x] 27.7 Write tests: URL-versioned route dispatches correctly, header-versioned route dispatches correctly, unregistered version returns 404 with versions list, `@Deprecated` adds response headers
 
