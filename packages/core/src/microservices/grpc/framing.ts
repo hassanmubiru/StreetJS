@@ -5,7 +5,7 @@
 export const GRPC_MAX_MESSAGE_BYTES = 4 * 1024 * 1024; // 4 MB default
 
 /** Encode a single payload buffer into a gRPC length-prefixed frame. */
-export function encodeФrame(payload: Buffer): Buffer {
+export function encodeFrame(payload: Buffer): Buffer {
   const header = Buffer.alloc(5);
   header.writeUInt8(0, 0); // not compressed
   header.writeUInt32BE(payload.length, 1);
