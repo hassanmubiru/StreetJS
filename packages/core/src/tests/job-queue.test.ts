@@ -259,6 +259,16 @@ interface StoredJob {
   error: string | null;
 }
 
+interface DlqRow {
+  job_id: string;
+  type: string;
+  payload: unknown;
+  error: string;
+}
+
+/** A recorded transaction: the ordered list of statements executed inside one `transaction()` call. */
+type RecordedTransaction = Array<{ sql: string; params?: unknown[] }>;
+
 /**
  * A stateful in-memory pool that honours the real polling contract:
  *  - INSERT stores a pending job with its run_at.
