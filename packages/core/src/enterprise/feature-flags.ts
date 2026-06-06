@@ -45,7 +45,12 @@ export class FeatureFlagService {
     context?: { userId?: string; role?: string; environment?: string }
   ): Promise<boolean> {
     const record = await this._loadFlag(flagName);
-    if (!record) return false;
+    if (!record) {
+      // Unknown flags are treated as disabled, but logged so misconfiguration
+      // is visible rather than silently failing.
+      console.warn(`[feature-flags] Unknown flag "${flagName}" — defaulting to false`);
+      return false;
+    }
     if (!record.enabled) return false;
 
     // No rules → globally enabled
