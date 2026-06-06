@@ -89,7 +89,7 @@
   - [x] 10.8 Write tests: seed runs are idempotent (same hash → skip), diff detects added column, profiler records slow queries, `pool:exhausted` fires on pool saturation
 
 
-- [ ] 11. v1.3 — OpenTelemetry Integration
+- [x] 11. v1.3 — OpenTelemetry Integration
   - [x] 11.1 Create `packages/core/src/observability/otel.ts`: define `SpanContext`, `Span`, and `OtelTracer` interfaces; implement span lifecycle (`startSpan`, `end`) with `process.hrtime.bigint()` timing
   - [x] 11.2 Implement W3C `traceparent` header parsing in `OtelTracer.extractContext()` and injection in `OtelTracer.injectContext()` per the W3C Trace Context spec
   - [x] 11.3 Implement OTLP HTTP exporter in `OtelTracer`: serialize spans to OTLP JSON format, POST to `OTEL_EXPORTER_OTLP_ENDPOINT` using `node:https`; batch up to 1,000 spans; flush every 5 seconds
@@ -98,7 +98,7 @@
   - [x] 11.6 Instrument `PgPool.query()` to create a child span when `ctx.state['otelSpan']` is present; span attributes: `db.system`, `db.statement`, duration
   - [x] 11.7 Call `OtelTracer.flush()` during graceful shutdown (before pool close) to drain buffered spans
   - [x] 11.8 Export `OtelTracer`, `otelMiddleware`, `SpanContext` from `packages/core/src/index.ts`
-  - [~] 11.9 Write integration tests: parent-child span relationship is correct, `traceparent` round-trip, buffer capped at 1,000, flush called on shutdown
+  - [x] 11.9 Write integration tests: parent-child span relationship is correct, `traceparent` round-trip, buffer capped at 1,000, flush called on shutdown
 
 - [ ] 12. v1.3 — Structured Logging
   - [~] 12.1 Create `packages/core/src/observability/logger.ts`: `Logger` class, `LogLevel` type, `LogEntry` interface with `timestamp`, `level`, `message`, `correlationId`, `service` fields
