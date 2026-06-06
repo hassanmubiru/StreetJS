@@ -140,4 +140,6 @@ export type { SandboxedApp } from './platform/plugins/sdk.js';
 export { PluginInstaller } from './platform/plugins/registry.js';
 export type { PluginInstallerOptions } from './platform/plugins/registry.js';
 export { FeatureUnavailableInEdgeRuntimeError } from './http/exceptions.js';
+export { parseSchema, typeRefToString, namedType, SchemaParseError } from './graphql/schema.js';
+export type { SchemaAst, ServiceDefinition, TypeDef, TypeDefKind, FieldDef, ArgDef, TypeRef, DirectiveNode, DirectiveArg, DirectiveDef, EnumValueDef, } from './graphql/schema.js';
 //# sourceMappingURL=index.d.ts.map

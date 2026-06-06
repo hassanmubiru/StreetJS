@@ -125,4 +125,6 @@ export { PluginModule } from './platform/plugins/sdk.js';
 export { PluginInstaller } from './platform/plugins/registry.js';
 // ── HTTP: Edge Runtime ────────────────────────────────────────────────────────
 export { FeatureUnavailableInEdgeRuntimeError } from './http/exceptions.js';
+// ── GraphQL: SDL Schema Parser ────────────────────────────────────────────────
+export { parseSchema, typeRefToString, namedType, SchemaParseError } from './graphql/schema.js';
 //# sourceMappingURL=index.js.map
