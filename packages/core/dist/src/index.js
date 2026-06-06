@@ -116,7 +116,7 @@ export { FeatureFlagService, FEATURE_FLAGS_MIGRATION_SQL, registerFeatureFlagAdm
 // ── Enterprise: Audit Logger ───────────────────────────────────────────────────
 export { AuditLogger, Sensitive, ENTERPRISE_AUDIT_MIGRATION_SQL } from './enterprise/audit-logger.js';
 // ── Enterprise: Data Policy ────────────────────────────────────────────────────
-export { RetainFor, Encrypt, Classify, RetentionJob, ComplianceReporter } from './enterprise/data-policy.js';
+export { RetainFor, Encrypt, Classify, RetentionJob, ComplianceReporter, FieldEncryptor, redactByClassification } from './enterprise/data-policy.js';
 // ── Enterprise: Backup ────────────────────────────────────────────────────────
 export { BackupService, LocalStorageAdapter, BACKUPS_MIGRATION_SQL } from './enterprise/backup.js';
 export { S3StorageAdapter, GcsStorageAdapter, signAwsV4 } from './enterprise/storage-adapters.js';

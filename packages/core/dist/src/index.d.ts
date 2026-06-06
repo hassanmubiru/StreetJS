@@ -135,7 +135,7 @@ export { FeatureFlagService, FEATURE_FLAGS_MIGRATION_SQL, registerFeatureFlagAdm
 export type { FeatureFlagRule } from './enterprise/feature-flags.js';
 export { AuditLogger, Sensitive, ENTERPRISE_AUDIT_MIGRATION_SQL } from './enterprise/audit-logger.js';
 export type { AuditCategory } from './enterprise/audit-logger.js';
-export { RetainFor, Encrypt, Classify, RetentionJob, ComplianceReporter } from './enterprise/data-policy.js';
+export { RetainFor, Encrypt, Classify, RetentionJob, ComplianceReporter, FieldEncryptor, redactByClassification } from './enterprise/data-policy.js';
 export type { DataClassificationLevel, RetentionEntityMeta, ComplianceReport } from './enterprise/data-policy.js';
 export { BackupService, LocalStorageAdapter, BACKUPS_MIGRATION_SQL } from './enterprise/backup.js';
 export type { StorageAdapter, BackupRecord } from './enterprise/backup.js';
@@ -149,7 +149,7 @@ export type { MemcachedOptions } from './platform/transports/memcached.js';
 export { RedisClient, RespParser, encodeCommand } from './transports/resp.js';
 export type { RedisClientOptions, RespValue } from './transports/resp.js';
 export { EventStreamPublisher, EventStreamConsumer, InProcessStreamTransport, RealtimeAggregator } from './platform/event-streaming.js';
-export type { StreamTransport } from './platform/event-streaming.js';
+export type { StreamTransport, LagEvent, LagMonitorOptions } from './platform/event-streaming.js';
 export { KinesisStreamTransport } from './platform/transports/kinesis.js';
 export type { KinesisOptions } from './platform/transports/kinesis.js';
 export { ReplicationCoordinator, preferredRegionMiddleware } from './platform/replication.js';

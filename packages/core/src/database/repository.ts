@@ -3,6 +3,7 @@
 
 import { PgPool } from './pool.js';
 import type { PgConnection } from './wire.js';
+import type { FieldEncryptor } from '../enterprise/data-policy.js';
 
 // ─── Repository Interface ──────────────────────────────────────────────────────
 
