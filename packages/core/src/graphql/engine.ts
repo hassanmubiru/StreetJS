@@ -6,7 +6,11 @@
 
 import type { MiddlewareFn } from '../core/types.js';
 import type { StreetContext } from '../core/context.js';
+import type { StreetApp } from '../http/server.js';
 import type { ServiceDefinition, FieldDef } from './schema.js';
+
+/** Default HTTP path the GraphQL endpoint is served from. */
+export const DEFAULT_GRAPHQL_PATH = '/graphql';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
