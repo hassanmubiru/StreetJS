@@ -400,6 +400,13 @@ describe('GraphQlEngine — introspection guard', () => {
     const result = await engine.execute('{ __type(name: "Query") { name } }');
     assert.ok(result.errors && result.errors.length > 0);
   });
+
+  it('allows __typename when introspection=false (meta-field is not introspection)', async () => {
+    const engine = new GraphQlEngine({ schema: simpleSchema, resolvers: simpleResolvers, introspection: false });
+    const result = await engine.execute('{ __typename }');
+    assert.ok(!result.errors, 'expected no errors for __typename');
+    assert.equal((result.data as Record<string, unknown>)['__typename'], 'Query');
+  });
 });
 
 describe('GraphQlEngine — variables', () => {
