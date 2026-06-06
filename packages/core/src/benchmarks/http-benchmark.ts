@@ -1,7 +1,7 @@
 // packages/core/src/benchmarks/http-benchmark.ts
 // HTTP throughput benchmark: Street vs Express vs Fastify (using autocannon or raw http)
 
-import { createServer } from 'node:http';
+import { createServer, request as httpRequest } from 'node:http';
 import { streetApp } from '../http/server.js';
 import { Router } from '../router/router.js';
 
