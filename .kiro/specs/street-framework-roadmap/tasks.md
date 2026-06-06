@@ -149,16 +149,16 @@
   - [x] 16.7 Create built-in provider configs for Google (`accounts.google.com`), GitHub (`github.com`), and Microsoft (`login.microsoftonline.com`)
   - [x] 16.8 Write `oauth2.test.ts` integration tests: PKCE code challenge matches verifier, state round-trip, invalid state rejected with 400, JWKS cache serves stale on provider failure
 
-- [ ] 17. v1.4 — API Keys
+- [x] 17. v1.4 — API Keys
   - [x] 17.1 Create `packages/core/src/auth/api-keys.ts` with `ApiKeyService` class, `ApiKey` interface; write `street_api_keys` migration SQL file
   - [x] 17.2 Implement `ApiKeyService.generate(opts)`: generate `randomBytes(32).toString('base64url')` prefixed with configurable namespace; store `createHash('sha256').update(rawKey).digest('hex')` in DB; return the raw key once only
   - [x] 17.3 Implement `ApiKeyService.verify(rawKey)`: compute SHA-256 hash; query DB for matching hash; use `timingSafeEqual` with equal-length check; check `expiresAt`; use `LruCache` for 60-second result caching
   - [x] 17.4 Implement `ApiKeyService.revoke(id)`: delete from DB; remove from `LruCache` immediately
   - [x] 17.5 Create `apiKeyMiddleware(service)`: extract `Authorization: Bearer <key>`, call `service.verify()`, set `ctx.user`; throw `UnauthorizedException` on invalid/expired key
-  - [-] 17.6 Write tests: key generation produces correct prefix, only hash stored in DB, timing-safe comparison, revocation invalidates cache, expired key returns 401
+  - [x] 17.6 Write tests: key generation produces correct prefix, only hash stored in DB, timing-safe comparison, revocation invalidates cache, expired key returns 401
 
 - [ ] 18. v1.4 — Refresh Tokens and Token Rotation
-  - [~] 18.1 Create `packages/core/src/auth/refresh-tokens.ts` with `RefreshTokenService`; write `street_refresh_tokens` migration SQL
+  - [-] 18.1 Create `packages/core/src/auth/refresh-tokens.ts` with `RefreshTokenService`; write `street_refresh_tokens` migration SQL
   - [~] 18.2 Implement `RefreshTokenService.issue(userId, familyId?)`: generate new `familyId` (if not provided) from `randomBytes(16)`, issue access token (15 min) and refresh token (30 days), store only SHA-256 hash of refresh token
   - [~] 18.3 Implement `RefreshTokenService.rotate(rawRefreshToken)`: inside a single `pool.transaction()`: hash the token, find and verify it, check `revoked_at IS NULL`; if already revoked → call `revokeFamily()` and throw `TokenReplayError`; otherwise atomically create new tokens and set `revoked_at` on the old one
   - [~] 18.4 Implement `RefreshTokenService.revokeFamily(familyId)`: `UPDATE street_refresh_tokens SET revoked_at = NOW() WHERE family_id = $1`
