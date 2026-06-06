@@ -272,14 +272,14 @@ Status markers used in this plan:
   - [ ] 29.7 Add `street analytics report --from <date> --to <date>` CLI command
   - [x] 29.8 Write tests: per-route limiter overrides global, 429 headers are correct, analytics buffer flushes, retention pruning removes old rows
 
-- [ ] 30. v1.6 — Webhook Management
-  - [ ] 30.1 Write `street_webhook_endpoints` and `street_webhook_deliveries` migration SQL files
-  - [ ] 30.2 Create `packages/core/src/webhook/manager.ts` with `WebhookManager` class: `registerEndpoint()`, `publish()`, `deliveryLog()`, `revokeEndpoint()` methods
-  - [ ] 30.3 Implement `WebhookManager.publish(event, payload)`: query `street_webhook_endpoints` for matching event types; for each endpoint, enqueue a delivery job in `JobQueue` (re-using task 22 infrastructure)
-  - [ ] 30.4 Implement delivery: the job handler calls the existing `WebhookDispatcher`; on non-2xx response, record status and truncated body (1 KB max) in `street_webhook_deliveries`
+- [~] 30. v1.6 — Webhook Management
+  - [x] 30.1 Write `street_webhook_endpoints` and `street_webhook_deliveries` migration SQL files
+  - [x] 30.2 Create `packages/core/src/webhook/manager.ts` with `WebhookManager` class: `registerEndpoint()`, `publish()`, `deliveryLog()`, `revokeEndpoint()` methods
+  - [x] 30.3 Implement `WebhookManager.publish(event, payload)`: query `street_webhook_endpoints` for matching event types; for each endpoint, enqueue a delivery job in `JobQueue` (re-using task 22 infrastructure)
+  - [~] 30.4 Implement delivery: the job handler calls the existing `WebhookDispatcher`; on non-2xx response, record status and truncated body (1 KB max) in `street_webhook_deliveries`
   - [ ] 30.5 Implement at-least-once semantics with exponential backoff up to 72 hours; move to dead-letter state after all retries exhausted
-  - [~] 30.6 Implement `verifyIncomingWebhook(secret, signature, rawBody)`: HMAC-SHA256 constant-time comparison; reuse `signPayload` from `dispatcher.ts`
-  - [ ] 30.7 Write tests: published event delivered to matching endpoints, non-matching event skipped, delivery retry on 5xx, HMAC verification accepts valid and rejects invalid signatures
+  - [x] 30.6 Implement `verifyIncomingWebhook(secret, signature, rawBody)`: HMAC-SHA256 constant-time comparison; reuse `signPayload` from `dispatcher.ts`
+  - [x] 30.7 Write tests: published event delivered to matching endpoints, non-matching event skipped, delivery retry on 5xx, HMAC verification accepts valid and rejects invalid signatures
 
 
 - [x] 31. v1.7 — Tenant Isolation and Routing
@@ -345,26 +345,26 @@ Status markers used in this plan:
 - [~] 38. v2.1 — Container Orchestration and Cloud Runtime Adapters
   - [x] 38.1 Create `packages/core/src/cloud/deployment.ts` with `generateManifest(platform, config)`: produce Kubernetes `Deployment` + `Service` + `HPA` YAML, Cloud Run `service.yaml`, ECS task definition JSON, or Nomad job HCL; each includes liveness/readiness probe paths, resource limits, and env var references
   - [ ] 38.2 Add `street deploy:init --platform <kubernetes|cloudrun|ecs|nomad>` CLI command: import the project's `street.config.ts`, call `generateManifest()`, write files to `deploy/` directory
-  - [ ] 38.3 Extract `registerShutdownHook(app, pool, opts?)` from `main.ts` as a standalone exportable function: `SIGTERM` → drain HTTP → close DB connections → exit 0; configurable `graceMs` (default 30,000)
+  - [x] 38.3 Extract `registerShutdownHook(app, pool, opts?)` from `main.ts` as a standalone exportable function: `SIGTERM` → drain HTTP → close DB connections → exit 0; configurable `graceMs` (default 30,000)
   - [~] 38.4 Implement Cloud Run auto-detection: check `K_SERVICE` and `K_REVISION` env vars; when detected, switch `Logger` to GCP structured JSON format with `severity`, `message`, `timestamp`, and `httpRequest` fields
   - [x] 38.5 Implement `STREET_READINESS_DELAY_MS` env var: delay the readiness probe returning `up` by the configured milliseconds after startup completes
-  - [ ] 38.6 Write tests: generated Kubernetes YAML is valid YAML with correct health probe paths, Cloud Run format detection switches log format, shutdown drains in-flight requests before pool close
+  - [~] 38.6 Write tests: generated Kubernetes YAML is valid YAML with correct health probe paths, Cloud Run format detection switches log format, shutdown drains in-flight requests before pool close
 
 - [~] 39. v2.1 — Secret Providers
   - [x] 39.1 Create `packages/core/src/cloud/secret-providers.ts`: `SecretProvider` interface with `get(key): Promise<string>`; shared in-memory cache `Map<key, { value, expiresAt }>`
   - [x] 39.2 Implement `VaultSecretProvider`: KV v2 `GET /v1/<mount>/data/<key>` via `node:https` with Vault token auth; parse response JSON; never log raw secret values (use `[REDACTED]`)
   - [x] 39.3 Implement `AwsSecretsManagerProvider`: `GetSecretValue` API call via AWS Signature V4 signed request using `node:crypto` (HMAC-SHA256); parse JSON response
   - [x] 39.4 Implement `GcpSecretManagerProvider`: `GET /v1/projects/<id>/secrets/<name>/versions/latest:access` via `node:https` with service account token from instance metadata
-  - [~] 39.5 Implement startup retry logic: on first `get()` failure, retry with exponential backoff (`1s, 2s, 4s, 8s, 10s...`) for up to 60 seconds; exit process with code 1 after timeout with descriptive error listing failed key names
+  - [x] 39.5 Implement startup retry logic: on first `get()` failure, retry with exponential backoff (`1s, 2s, 4s, 8s, 10s...`) for up to 60 seconds; exit process with code 1 after timeout with descriptive error listing failed key names
   - [~] 39.6 Implement secret rotation: emit `rotate` event when TTL expires; connect to `PgPool` via a `onRotate` callback that recycles connections when the secret is a DB password
   - [ ] 39.7 Write tests: cached secret returned without network call within TTL, expired cache triggers re-fetch, `[REDACTED]` appears in all log output, startup retry exhaustion exits with code 1
 
 - [~] 40. v2.1 — Service Mesh and Auto-Scaling Metrics
-  - [ ] 40.1 Register `GET /metrics/autoscale` route in `StreetApp`: return JSON in Kubernetes External Metrics API format with `http_requests_per_second`, `active_connections`, and `queue_depth` values computed from `TelemetryTracker` and `JobQueue`
-  - [ ] 40.2 Implement service mesh detection: check `ISTIO_META_MESH_ID` and `LINKERD_PROXY_INJECTION_ENABLED` env vars on startup; when detected, set `RetryPolicy.enabled = false` for all `CircuitBreaker` instances to avoid conflicting with mesh retries
+  - [x] 40.1 Register `GET /metrics/autoscale` route in `StreetApp`: return JSON in Kubernetes External Metrics API format with `http_requests_per_second`, `active_connections`, and `queue_depth` values computed from `TelemetryTracker` and `JobQueue`
+  - [~] 40.2 Implement service mesh detection: check `ISTIO_META_MESH_ID` and `LINKERD_PROXY_INJECTION_ENABLED` env vars on startup; when detected, set `RetryPolicy.enabled = false` for all `CircuitBreaker` instances to avoid conflicting with mesh retries
   - [x] 40.3 Implement `STREET_READINESS_DELAY_MS` startup delay: `HealthCheckRegistry` readiness probe returns `down` until the delay has elapsed after `app.listen()` completes
-  - [ ] 40.4 Export `/metrics/autoscale` response shape as `AutoscaleMetrics` type from `packages/core/src/index.ts`
-  - [ ] 40.5 Write tests: `/metrics/autoscale` response matches Kubernetes External Metrics API format, service mesh env var disables retries, readiness delay holds probe in `down` state
+  - [x] 40.4 Export `/metrics/autoscale` response shape as `AutoscaleMetrics` type from `packages/core/src/index.ts`
+  - [x] 40.5 Write tests: `/metrics/autoscale` response matches Kubernetes External Metrics API format, service mesh env var disables retries, readiness delay holds probe in `down` state
 
 - [~] 41. v2.1 — Edge Runtime Adapter
   - [x] 41.1 Create `packages/edge/` workspace package with its own `package.json` (`@streetjs/edge`) and `tsconfig.json`; configure `"browser"` export condition
