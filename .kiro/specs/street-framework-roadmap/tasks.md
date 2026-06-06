@@ -307,14 +307,14 @@ Status markers used in this plan:
   - [x] 33.6 Write tests: Prometheus output includes `tenant_id` label, LRU eviction at 10,000 tenants, admin endpoint returns correct stats, daily aggregation job produces correct summaries
 
 
-- [~] 34. v2.0 — HTTP/2 and gRPC Support
+- [x] 34. v2.0 — HTTP/2 and gRPC Support
   - [x] 34.1 Create `packages/core/src/microservices/http2.ts` with `streetHttp2App(opts)`: wraps `node:http2` `createSecureServer()`; implements the same `registerController()` / `use()` / `listen()` / `close()` interface as `StreetApp`; controllers are portable between HTTP/1.1 and HTTP/2 apps
-  - [ ] 34.2 Create `packages/core/src/microservices/grpc/` directory with `proto-parser.ts`: read `.proto` file with `node:fs`, parse `service` and `message` definitions via a recursive-descent parser, produce `ServiceDefinition` and `MessageDefinition` ASTs
-  - [ ] 34.3 Create `packages/core/src/microservices/grpc/server.ts` with `GrpcServer`: `registerService(def, impl)`, `start()`, `stop()`; implement HTTP/2 framing for gRPC protocol (length-prefixed message frames) over `node:net`
-  - [ ] 34.4 Support all four RPC types: unary, server-streaming, client-streaming, bidirectional-streaming; each handler receives an `AbortSignal` from the gRPC `grpc-timeout` deadline
-  - [ ] 34.5 Enforce max message size (default 4 MB): return `RESOURCE_EXHAUSTED` status for oversized messages
-  - [ ] 34.6 Create `packages/cli/src/commands/grpc-codegen.ts` for `street generate grpc --proto ./service.proto`: invoke `proto-parser.ts`, write TypeScript type definitions for request/response messages to the output directory
-  - [ ] 34.7 Write tests: HTTP/2 server accepts requests, gRPC unary RPC round-trip, server-streaming emits multiple messages, deadline cancellation fires `AbortSignal`, message size limit enforced
+  - [x] 34.2 Create `packages/core/src/microservices/grpc/` directory with `proto-parser.ts`: read `.proto` file with `node:fs`, parse `service` and `message` definitions via a recursive-descent parser, produce `ServiceDefinition` and `MessageDefinition` ASTs
+  - [x] 34.3 Create `packages/core/src/microservices/grpc/server.ts` with `GrpcServer`: `registerService(def, impl)`, `start()`, `stop()`; implement HTTP/2 framing for gRPC protocol (length-prefixed message frames) over `node:net`
+  - [x] 34.4 Support all four RPC types: unary, server-streaming, client-streaming, bidirectional-streaming; each handler receives an `AbortSignal` from the gRPC `grpc-timeout` deadline
+  - [x] 34.5 Enforce max message size (default 4 MB): return `RESOURCE_EXHAUSTED` status for oversized messages
+  - [x] 34.6 Create `packages/cli/src/commands/grpc-codegen.ts` for `street generate grpc --proto ./service.proto`: invoke `proto-parser.ts`, write TypeScript type definitions for request/response messages to the output directory
+  - [x] 34.7 Write tests: HTTP/2 server accepts requests, gRPC unary RPC round-trip, server-streaming emits multiple messages, deadline cancellation fires `AbortSignal`, message size limit enforced
 
 - [x] 35. v2.0 — Service Discovery and Circuit Breakers
   - [x] 35.1 Create `packages/core/src/microservices/service-registry.ts`: `ServiceInstance`, `ServiceRegistryBackend` interface, `ServiceRegistry` class; implement `StaticRegistry` backend reading from a config object
@@ -329,9 +329,9 @@ Status markers used in this plan:
   - [x] 36.1 Create `packages/core/src/microservices/event-bus.ts`: `EventBusTransport` interface, `EventEnvelope` type, `EventBus` class; default in-process transport backed by `EventEmitter`
   - [x] 36.2 Implement `EventBus.publish(topic, payload)`: wrap payload in envelope `{ id: randomBytes(16).hex, topic, timestamp, version: 1, payload }`; call `transport.publish()`
   - [x] 36.3 Implement `EventBus.subscribe(topic, handler)`: call `transport.subscribe()`; return unsubscribe function that cleans up all listeners
-  - [ ] 36.4 Create `RedisTransport` in `packages/core/src/microservices/transports/redis.ts`: use Redis Pub/Sub via `node:net` (raw RESP protocol, no redis npm package); ACK only after handler resolves; NACK on handler exception
+  - [x] 36.4 Create `RedisTransport` in `packages/core/src/microservices/transports/redis.ts`: use Redis Pub/Sub via `node:net` (raw RESP protocol, no redis npm package); ACK only after handler resolves; NACK on handler exception
   - [ ] 36.5 Create `RabbitMQTransport` in `packages/core/src/microservices/transports/rabbitmq.ts`: AMQP 0-9-1 basic framing over `node:net`; support dead letter exchange routing
-  - [~] 36.6 Write tests: in-process publish and subscribe, message envelope structure is correct, at-least-once delivery (message re-delivered after NACK), dead letter routing on exhausted retries
+  - [x] 36.6 Write tests: in-process publish and subscribe, message envelope structure is correct, at-least-once delivery (message re-delivered after NACK), dead letter routing on exhausted retries
 
 - [x] 37. v2.0 — Saga, Distributed Locks, CQRS, and Event Sourcing
   - [x] 37.1 Create `packages/core/src/microservices/saga.ts` with `SagaOrchestrator.execute(steps)`: run each `{ action, compensate }` step in sequence; on failure, run `compensate()` functions in reverse order; log compensation errors without re-throwing
