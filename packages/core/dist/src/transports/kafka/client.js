@@ -107,11 +107,32 @@ export class KafkaClient {
             throw new Error(`No leader for ${topic}-${partition}`);
         return this._brokerById(pm.leader);
     }
-    /** Produce records to a topic-partition (acks=all). Returns base offset. */
+    /** Allocate a producer id + epoch for the idempotent producer (InitProducerId v0). */
+    async initProducerId() {
+        const conn = await this._anyConn();
+        const r = await conn.request(API.INIT_PRODUCER_ID, 0, (w) => {
+            w.string(null); // transactional_id (non-transactional)
+            w.int32(60_000); // transaction_timeout_ms
+        });
+        r.int32(); // throttle_time_ms
+        const err = r.int16();
+        if (err !== 0)
+            throw new KafkaProtocolError(err, 'initProducerId');
+        const producerId = r.int64();
+        const producerEpoch = r.int16();
+        return { producerId, producerEpoch };
+    }
+    /** Produce records to a topic-partition (acks=all). Returns base offset.
+     *  When idempotent fields are supplied, the RecordBatch carries the producer
+     *  id/epoch/sequence so the broker can de-duplicate retries. */
     async produce(topic, partition, records, opts = {}) {
         const leader = await this.leaderFor(topic, partition);
         const conn = await this._conn(leader.host, leader.port);
-        const batch = encodeRecordBatch(records);
+        const batch = encodeRecordBatch(records, {
+            producerId: opts.producerId,
+            producerEpoch: opts.producerEpoch,
+            baseSequence: opts.baseSequence,
+        });
         const r = await conn.request(API.PRODUCE, 3, (w) => {
             w.string(null); // transactional_id
             w.int16(opts.acks ?? -1); // acks (-1 = all)
@@ -218,17 +239,26 @@ export class KafkaClient {
         }
         return offset;
     }
-    /** Find the group coordinator broker for a consumer group. */
+    /** Find the group coordinator broker for a consumer group. Retries on
+     *  COORDINATOR_NOT_AVAILABLE (15) while the internal offsets topic initialises. */
     async findCoordinator(groupId) {
-        const conn = await this._anyConn();
-        const r = await conn.request(API.FIND_COORDINATOR, 0, (w) => { w.string(groupId); });
-        const err = r.int16();
-        if (err !== 0)
-            throw new KafkaProtocolError(err, 'findCoordinator');
-        const nodeId = r.int32();
-        const host = r.string();
-        const port = r.int32();
-        return { nodeId, host, port };
+        let lastErr;
+        for (let attempt = 0; attempt < 8; attempt++) {
+            const conn = await this._anyConn();
+            const r = await conn.request(API.FIND_COORDINATOR, 0, (w) => { w.string(groupId); });
+            const err = r.int16();
+            if (err === 0) {
+                const nodeId = r.int32();
+                const host = r.string();
+                const port = r.int32();
+                return { nodeId, host, port };
+            }
+            lastErr = new KafkaProtocolError(err, 'findCoordinator');
+            if (err !== 15)
+                throw lastErr; // only retry COORDINATOR_NOT_AVAILABLE
+            await new Promise((res) => setTimeout(res, 250 * (attempt + 1)));
+        }
+        throw lastErr instanceof Error ? lastErr : new KafkaProtocolError(15, 'findCoordinator');
     }
     /** Commit an offset for a consumer group (group offset storage). */
     async commitOffset(groupId, topic, partition, offset) {

@@ -192,5 +192,23 @@ describe('Kafka transport (integration)', () => {
         const { records } = await client.fetch(topic, 0, end, { maxWaitMs: 500 });
         assert.equal(records.length, 0);
     });
+    it('produces with the idempotent producer (InitProducerId + sequencing)', async (t) => {
+        if (!available) {
+            t.skip('Kafka broker not reachable');
+            return;
+        }
+        const topic = 'street.idem.' + randomBytes(3).toString('hex');
+        await ensureTopic(client, topic, 1);
+        const start = await client.listOffset(topic, 0, -1n);
+        const producer = new KafkaProducer(client, { idempotent: true });
+        await producer.send(topic, { key: null, value: Buffer.from('idem-1') }, 0);
+        await producer.flush();
+        await producer.send(topic, { key: null, value: Buffer.from('idem-2') }, 0);
+        await producer.flush();
+        const { records } = await client.fetch(topic, 0, start, { maxWaitMs: 3000 });
+        const values = records.map((r) => r.value?.toString('utf8'));
+        assert.ok(values.includes('idem-1') && values.includes('idem-2'), `got ${JSON.stringify(values)}`);
+        await producer.close();
+    });
 });
 //# sourceMappingURL=kafka.integration.test.js.map

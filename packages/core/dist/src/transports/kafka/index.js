@@ -11,13 +11,37 @@ export class KafkaProducer {
     batchSize;
     lingerMs;
     acks;
+    idempotent;
+    maxRetries;
+    retryBackoffMs;
     flushTimer = null;
     closed = false;
+    // Idempotent producer state.
+    producerId = -1n;
+    producerEpoch = -1;
+    initPromise = null;
+    sequences = new Map(); // `${topic}/${partition}` → next baseSequence
     constructor(client, opts = {}) {
         this.client = client;
         this.batchSize = opts.batchSize ?? 100;
         this.lingerMs = opts.lingerMs ?? 5;
-        this.acks = opts.acks ?? -1;
+        this.idempotent = opts.idempotent ?? false;
+        // Idempotent production requires acks=all.
+        this.acks = this.idempotent ? -1 : (opts.acks ?? -1);
+        this.maxRetries = opts.maxRetries ?? 3;
+        this.retryBackoffMs = opts.retryBackoffMs ?? 200;
+    }
+    async _ensureProducerId() {
+        if (!this.idempotent || this.producerId >= 0n)
+            return;
+        if (!this.initPromise) {
+            this.initPromise = (async () => {
+                const { producerId, producerEpoch } = await this.client.initProducerId();
+                this.producerId = producerId;
+                this.producerEpoch = producerEpoch;
+            })();
+        }
+        await this.initPromise;
     }
     async _partitionCount(topic) {
         const meta = await this.client.metadata([topic]);
@@ -53,6 +77,7 @@ export class KafkaProducer {
         if (!list || list.length === 0)
             return;
         this.batches.set(topic, []);
+        await this._ensureProducerId();
         // Group by partition so each Produce request targets one partition.
         const byPartition = new Map();
         for (const pr of list) {
@@ -61,14 +86,36 @@ export class KafkaProducer {
             byPartition.set(pr.partition, arr);
         }
         for (const [partition, prs] of byPartition) {
+            const key = `${topic}/${partition}`;
+            const baseSequence = this.idempotent ? (this.sequences.get(key) ?? 0) : -1;
             try {
-                await this.client.produce(topic, partition, prs.map((x) => x.record), { acks: this.acks });
+                await this._produceWithRetry(topic, partition, prs.map((x) => x.record), baseSequence);
+                if (this.idempotent)
+                    this.sequences.set(key, baseSequence + prs.length);
                 for (const pr of prs)
                     pr.resolve();
             }
             catch (err) {
                 for (const pr of prs)
                     pr.reject(err);
+            }
+        }
+    }
+    async _produceWithRetry(topic, partition, records, baseSequence) {
+        let attempt = 0;
+        for (;;) {
+            try {
+                await this.client.produce(topic, partition, records, {
+                    acks: this.acks,
+                    ...(this.idempotent ? { producerId: this.producerId, producerEpoch: this.producerEpoch, baseSequence } : {}),
+                });
+                return;
+            }
+            catch (err) {
+                if (attempt >= this.maxRetries)
+                    throw err;
+                attempt++;
+                await new Promise((r) => setTimeout(r, this.retryBackoffMs * attempt));
             }
         }
     }

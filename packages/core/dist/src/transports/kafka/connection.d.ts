@@ -19,6 +19,7 @@ export declare const API: {
     readonly OFFSET_FETCH: 9;
     readonly FIND_COORDINATOR: 10;
     readonly API_VERSIONS: 18;
+    readonly INIT_PRODUCER_ID: 22;
 };
 export declare class KafkaConnection {
     private socket;

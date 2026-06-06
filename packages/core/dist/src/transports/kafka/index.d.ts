@@ -7,6 +7,9 @@ export interface ProducerOptions {
     batchSize?: number;
     lingerMs?: number;
     acks?: number;
+    idempotent?: boolean;
+    maxRetries?: number;
+    retryBackoffMs?: number;
 }
 export declare class KafkaProducer {
     private readonly client;
@@ -15,13 +18,22 @@ export declare class KafkaProducer {
     private readonly batchSize;
     private readonly lingerMs;
     private readonly acks;
+    private readonly idempotent;
+    private readonly maxRetries;
+    private readonly retryBackoffMs;
     private flushTimer;
     private closed;
+    private producerId;
+    private producerEpoch;
+    private initPromise;
+    private readonly sequences;
     constructor(client: KafkaClient, opts?: ProducerOptions);
+    private _ensureProducerId;
     private _partitionCount;
     /** Queue a record; resolves once its batch is acknowledged by the broker. */
     send(topic: string, record: KafkaRecord, partition?: number): Promise<void>;
     private _flushTopic;
+    private _produceWithRetry;
     /** Flush all buffered records. */
     flush(): Promise<void>;
     /** Flush remaining records and stop. */

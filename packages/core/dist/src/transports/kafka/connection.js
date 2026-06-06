@@ -8,6 +8,7 @@ import { KafkaWriter, KafkaReader } from './primitives.js';
 export const API = {
     PRODUCE: 0, FETCH: 1, LIST_OFFSETS: 2, METADATA: 3,
     OFFSET_COMMIT: 8, OFFSET_FETCH: 9, FIND_COORDINATOR: 10, API_VERSIONS: 18,
+    INIT_PRODUCER_ID: 22,
 };
 export class KafkaConnection {
     socket = null;

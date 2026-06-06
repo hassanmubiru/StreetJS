@@ -38,10 +38,20 @@ export declare class KafkaClient {
     private _brokerById;
     /** Resolve the leader broker for a topic-partition. */
     leaderFor(topic: string, partition: number): Promise<KafkaBroker>;
-    /** Produce records to a topic-partition (acks=all). Returns base offset. */
+    /** Allocate a producer id + epoch for the idempotent producer (InitProducerId v0). */
+    initProducerId(): Promise<{
+        producerId: bigint;
+        producerEpoch: number;
+    }>;
+    /** Produce records to a topic-partition (acks=all). Returns base offset.
+     *  When idempotent fields are supplied, the RecordBatch carries the producer
+     *  id/epoch/sequence so the broker can de-duplicate retries. */
     produce(topic: string, partition: number, records: KafkaRecord[], opts?: {
         acks?: number;
         timeoutMs?: number;
+        producerId?: bigint;
+        producerEpoch?: number;
+        baseSequence?: number;
     }): Promise<bigint>;
     /** Fetch records from a topic-partition starting at `fetchOffset`. */
     fetch(topic: string, partition: number, fetchOffset: bigint, opts?: {
@@ -53,7 +63,8 @@ export declare class KafkaClient {
     }>;
     /** List offsets: timestamp -1 = latest (end), -2 = earliest (start). */
     listOffset(topic: string, partition: number, timestamp: bigint): Promise<bigint>;
-    /** Find the group coordinator broker for a consumer group. */
+    /** Find the group coordinator broker for a consumer group. Retries on
+     *  COORDINATOR_NOT_AVAILABLE (15) while the internal offsets topic initialises. */
     findCoordinator(groupId: string): Promise<KafkaBroker>;
     /** Commit an offset for a consumer group (group offset storage). */
     commitOffset(groupId: string, topic: string, partition: number, offset: bigint): Promise<void>;
