@@ -9,8 +9,31 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import 'reflect-metadata';
-import { JobQueue, Job } from '../jobs/queue.js';
+import { JobQueue, Job, STREET_JOBS_MIGRATION_SQL, } from '../jobs/queue.js';
 import { CronScheduler, CronParseError } from '../jobs/scheduler.js';
+// ── Tests: Migration SQL ──────────────────────────────────────────────────────
+describe('JobQueue — Migration SQL', () => {
+    it('STREET_JOBS_MIGRATION_SQL creates the street_jobs table with all required columns', () => {
+        assert.ok(STREET_JOBS_MIGRATION_SQL.includes('street_jobs'), 'Should reference street_jobs table');
+        assert.match(STREET_JOBS_MIGRATION_SQL, /id\s+UUID/i, 'id UUID');
+        assert.match(STREET_JOBS_MIGRATION_SQL, /type\s+TEXT/i, 'type TEXT');
+        assert.match(STREET_JOBS_MIGRATION_SQL, /payload\s+JSONB/i, 'payload JSONB');
+        assert.match(STREET_JOBS_MIGRATION_SQL, /status\s+TEXT/i, 'status TEXT');
+        assert.match(STREET_JOBS_MIGRATION_SQL, /attempt_count\s+INT/i, 'attempt_count INT');
+        assert.match(STREET_JOBS_MIGRATION_SQL, /run_at\s+TIMESTAMPTZ/i, 'run_at TIMESTAMPTZ');
+        assert.match(STREET_JOBS_MIGRATION_SQL, /created_at\s+TIMESTAMPTZ/i, 'created_at TIMESTAMPTZ');
+        assert.match(STREET_JOBS_MIGRATION_SQL, /worker_id\s+TEXT/i, 'worker_id TEXT');
+        assert.match(STREET_JOBS_MIGRATION_SQL, /locked_at\s+TIMESTAMPTZ/i, 'locked_at TIMESTAMPTZ');
+        assert.match(STREET_JOBS_MIGRATION_SQL, /error\s+TEXT/i, 'error TEXT');
+    });
+    it('STREET_JOBS_MIGRATION_SQL adds a (status, run_at) index for polling efficiency', () => {
+        assert.match(STREET_JOBS_MIGRATION_SQL, /CREATE INDEX[\s\S]*street_jobs\s*\(status,\s*run_at\)/i, 'Should create an index on (status, run_at)');
+    });
+    it('STREET_JOBS_MIGRATION_SQL is idempotent (uses IF NOT EXISTS)', () => {
+        assert.match(STREET_JOBS_MIGRATION_SQL, /CREATE TABLE IF NOT EXISTS/i);
+        assert.match(STREET_JOBS_MIGRATION_SQL, /CREATE INDEX IF NOT EXISTS/i);
+    });
+});
 /** Build a simple mock pool that records calls and returns configured responses. */
 function makeMockPool(opts = {}) {
     const queries = [];
