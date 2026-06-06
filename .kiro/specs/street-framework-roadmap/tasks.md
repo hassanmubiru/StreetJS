@@ -97,7 +97,7 @@
   - [x] 11.5 Create `otelMiddleware(tracer)` factory: extract context from `traceparent`, start HTTP span, call `next()`, end span with response status; store span in `ctx.state['otelSpan']`
   - [x] 11.6 Instrument `PgPool.query()` to create a child span when `ctx.state['otelSpan']` is present; span attributes: `db.system`, `db.statement`, duration
   - [x] 11.7 Call `OtelTracer.flush()` during graceful shutdown (before pool close) to drain buffered spans
-  - [-] 11.8 Export `OtelTracer`, `otelMiddleware`, `SpanContext` from `packages/core/src/index.ts`
+  - [x] 11.8 Export `OtelTracer`, `otelMiddleware`, `SpanContext` from `packages/core/src/index.ts`
   - [~] 11.9 Write integration tests: parent-child span relationship is correct, `traceparent` round-trip, buffer capped at 1,000, flush called on shutdown
 
 - [ ] 12. v1.3 — Structured Logging
