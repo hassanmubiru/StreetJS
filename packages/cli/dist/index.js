@@ -14,6 +14,8 @@ import { AuditCommand } from './commands/audit.js';
 import { SeedCommand } from './commands/seed.js';
 import { DiagnosticsCommand } from './commands/diagnostics.js';
 import { JobsDashboardCommand } from './commands/jobs-dashboard.js';
+import { DeployInitCommand } from './commands/deploy.js';
+import { PluginInstallCommand, PluginListCommand } from './commands/plugin.js';
 const VERSION = '1.0.3';
 const APP_NAME = 'street';
 /**
@@ -89,6 +91,15 @@ export async function runCli(argv) {
             case 'jobs:dashboard':
                 await new JobsDashboardCommand().execute(ctx);
                 break;
+            case 'deploy:init':
+                await new DeployInitCommand().execute(ctx);
+                break;
+            case 'plugin:install':
+                await new PluginInstallCommand().execute(ctx);
+                break;
+            case 'plugin:list':
+                await new PluginListCommand().execute(ctx);
+                break;
             default:
                 console.error(`[street] Unknown command: "${args.command}"`);
                 console.error(`Run "${APP_NAME} --help" to see available commands.`);
@@ -115,6 +126,8 @@ Commands:
   start                           Start the production server
   test                            Run the project test suite
   generate <type> <name>          Generate a controller, service, or repository
+  generate sdk --lang <ts|python> --spec <openapi.json> --output <dir>
+  generate grpc --proto <file.proto> [--output <dir>]
   migrate:create <name>           Create a new empty migration file
   migrate:run                     Run all pending migrations
   migrate:diff [--confirm-destructive]  Diff live schema vs entity metadata
@@ -125,6 +138,9 @@ Commands:
   audit                           Scan dependencies for known vulnerabilities
   diagnostics [--pid <pid>]       Live diagnostics dashboard for a running app
   jobs:dashboard [--pid <pid>]    Live job-queue dashboard for a running app
+  deploy:init --platform <k8s|cloudrun|ecs|nomad>  Write deployment manifests
+  plugin:install <name>@<version>  Install a verified marketplace plugin
+  plugin:list                     List installed plugins and their status
 
 Flags:
   --help, -h                      Show this help message

@@ -2,6 +2,10 @@ import type { CliContext } from '../index.js';
 export declare class GenerateCommand {
     execute(ctx: CliContext): Promise<void>;
     private generate;
+    /** `street generate sdk --lang <typescript|python> --spec <openapi.json> --output <dir>` */
+    private generateSdk;
+    /** `street generate grpc --proto <file.proto> --output <dir>` */
+    private generateGrpc;
     private generateController;
     private generateService;
     private generateRepository;

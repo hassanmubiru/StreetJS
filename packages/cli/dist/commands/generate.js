@@ -11,11 +11,21 @@ const NAME_PATTERN = /^[a-z][a-z0-9_-]*$/;
 const VALID_TYPES = ['controller', 'service', 'repository', 'middleware', 'gateway', 'migration'];
 export class GenerateCommand {
     async execute(ctx) {
-        const genType = ctx.args.positional[0]?.toLowerCase();
+        const rawType = ctx.args.positional[0]?.toLowerCase();
+        const genType = rawType;
         const name = ctx.args.positional[1];
+        // ── Flag-driven generators (no <name> positional) ──────────────────────
+        if (rawType === 'sdk') {
+            await this.generateSdk(ctx);
+            return;
+        }
+        if (rawType === 'grpc') {
+            await this.generateGrpc(ctx);
+            return;
+        }
         if (!genType || !VALID_TYPES.includes(genType)) {
             console.error('[street] Usage: street generate <type> <name>');
-            console.error('  Valid types: controller, service, repository, middleware, gateway, migration');
+            console.error('  Valid types: controller, service, repository, middleware, gateway, migration, sdk, grpc');
             console.error('  Example: street generate controller users');
             process.exitCode = 1;
             return;
@@ -55,6 +65,51 @@ export class GenerateCommand {
         if (type !== 'middleware' && type !== 'gateway' && type !== 'migration') {
             console.log(`[street] Generated ${type}: src/${this.toPlural(type)}/${fileName}.${type}.ts`);
         }
+    }
+    /** `street generate sdk --lang <typescript|python> --spec <openapi.json> --output <dir>` */
+    async generateSdk(ctx) {
+        const lang = String(ctx.args.flags['lang'] ?? 'typescript');
+        const specPath = String(ctx.args.flags['spec'] ?? 'openapi.json');
+        const output = String(ctx.args.flags['output'] ?? './sdk');
+        const core = await import('@streetjs/core');
+        let specRaw;
+        try {
+            specRaw = await readFile(resolve(ctx.cwd, specPath), 'utf8');
+        }
+        catch {
+            console.error(`[street] Could not read OpenAPI spec at "${specPath}". Pass --spec <path>.`);
+            process.exitCode = 1;
+            return;
+        }
+        const spec = JSON.parse(specRaw);
+        const outDir = resolve(ctx.cwd, output);
+        if (lang === 'python') {
+            await core.generatePythonSdk(spec, outDir);
+            console.log(`[street] Generated Python SDK in ${output}/ (models.py, client.py)`);
+        }
+        else {
+            await core.generateTypescriptSdk(spec, outDir);
+            console.log(`[street] Generated TypeScript SDK in ${output}/ (types.ts, api-client.ts)`);
+        }
+    }
+    /** `street generate grpc --proto <file.proto> --output <dir>` */
+    async generateGrpc(ctx) {
+        const protoPath = ctx.args.flags['proto'];
+        if (!protoPath || typeof protoPath !== 'string') {
+            console.error('[street] Usage: street generate grpc --proto <file.proto> [--output <dir>]');
+            process.exitCode = 1;
+            return;
+        }
+        const output = String(ctx.args.flags['output'] ?? './src/grpc');
+        const core = await import('@streetjs/core');
+        const ast = await core.parseProtoFile(resolve(ctx.cwd, protoPath));
+        const tsSource = core.generateGrpcTypes(ast);
+        const outDir = resolve(ctx.cwd, output);
+        await mkdir(outDir, { recursive: true });
+        const baseName = protoPath.replace(/.*\//, '').replace(/\.proto$/, '');
+        const outFile = resolve(outDir, `${baseName}.grpc.ts`);
+        await writeFile(outFile, tsSource, 'utf8');
+        console.log(`[street] Generated gRPC types: ${output}/${baseName}.grpc.ts`);
     }
     async generateController(cwd, className, fileName, pluralName) {
         const dir = resolve(cwd, 'src', 'controllers');
