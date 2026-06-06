@@ -420,12 +420,12 @@ Status markers used in this plan:
   - [x] 46.4 Implement `DistributedCache.invalidate(key)`: publish invalidation message to a `street:invalidate` pub/sub channel; all nodes receive the message and evict their local copy; complete propagation within 100ms on local network
   - [x] 46.5 Enforce `maxMemoryMb` bound in `DistributedCache`: local in-memory replica uses `LruCache` with byte-size tracking; evicts LRU entries when `maxMemoryMb` is exceeded
   - [x] 46.6 Create `GlobalConfigService` extending `EventEmitter`: `get(key)`, `set(key, value)` backed by `CacheTransport`; emit `config:changed` with `{ key, oldValue, newValue }` to all connected instances via pub/sub within 500ms
-  - [ ] 46.7 Write tests: invalidation propagates to all nodes within 100ms, `maxMemoryMb` eviction triggers LRU removal, `GlobalConfigService` emits `config:changed` event, stale config is re-fetched after TTL
+  - [x] 46.7 Write tests: invalidation propagates to all nodes within 100ms, `maxMemoryMb` eviction triggers LRU removal, `GlobalConfigService` emits `config:changed` event, stale config is re-fetched after TTL
 
 - [~] 47. v3.0 — Event Streaming and Realtime Analytics
   - [x] 47.1 Create `packages/core/src/platform/event-streaming.ts`: `StreamTransport` interface, `EventStreamPublisher` class, `EventStreamConsumer` class; `InProcessTransport` default
   - [ ] 47.2 Implement `KafkaTransport` in `packages/core/src/platform/transports/kafka.ts`: raw Kafka protocol (Fetch API, Produce API) over `node:net`; support consumer groups; no kafkajs dependency
-  - [ ] 47.3 Implement `KinesisTransport`: `PutRecord` and `GetRecords` via AWS Signature V4 signed `node:https` requests
+  - [x] 47.3 Implement `KinesisTransport`: `PutRecord` and `GetRecords` via AWS Signature V4 signed `node:https` requests
   - [~] 47.4 Implement `EventStreamConsumer` lag monitoring: compare consumer committed offset to latest partition offset; emit `stream:lag` event when lag exceeds `maxLagThreshold`
   - [x] 47.5 Create `packages/core/src/platform/realtime-aggregator.ts` with `RealtimeAggregator`: register sliding-window aggregation functions (count, sum, avg, min, max); compute on each window tick; push results to `SseConnection` subscribers
   - [ ] 47.6 Write tests: published event consumed by subscriber, envelope round-trip (published payload equals consumed payload), lag event fires when consumer falls behind, aggregator correctly computes window statistics
