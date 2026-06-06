@@ -147,7 +147,7 @@
   - [x] 16.5 Create `JwksCache` class: fetch provider JWKS on first use, cache for 5 minutes, serve from cache on subsequent calls; fall back to cached keys for up to 5 minutes if provider is unreachable
   - [x] 16.6 Implement OIDC ID token validation: decode JWT header to get `kid`, look up public key in `JwksCache`, verify RS256/ES256 signature using `node:crypto`'s `verify()`; enforce `exp`, `aud`, `iss` claims
   - [x] 16.7 Create built-in provider configs for Google (`accounts.google.com`), GitHub (`github.com`), and Microsoft (`login.microsoftonline.com`)
-  - [~] 16.8 Write `oauth2.test.ts` integration tests: PKCE code challenge matches verifier, state round-trip, invalid state rejected with 400, JWKS cache serves stale on provider failure
+  - [-] 16.8 Write `oauth2.test.ts` integration tests: PKCE code challenge matches verifier, state round-trip, invalid state rejected with 400, JWKS cache serves stale on provider failure
 
 - [ ] 17. v1.4 — API Keys
   - [~] 17.1 Create `packages/core/src/auth/api-keys.ts` with `ApiKeyService` class, `ApiKey` interface; write `street_api_keys` migration SQL file
