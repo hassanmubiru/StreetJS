@@ -281,6 +281,10 @@ export { generateTypescriptSdk } from './sdk-gen/typescript.js';
 export type { OpenApiSpec as SdkOpenApiSpec, OpenApiOperation as SdkOpenApiOperation } from './sdk-gen/typescript.js';
 export { generatePythonSdk } from './sdk-gen/python.js';
 
+// ── API Analytics ─────────────────────────────────────────────────────────────
+export { AnalyticsService, STREET_API_EVENTS_MIGRATION_SQL } from './observability/analytics.js';
+export type { AnalyticsPool, AnalyticsEvent, AnalyticsServiceOptions, AnalyticsReport, RouteReportRow } from './observability/analytics.js';
+
 // ── GraphQL: SDL Schema Parser ────────────────────────────────────────────────
 export { parseSchema, typeRefToString, namedType, SchemaParseError } from './graphql/schema.js';
 export type {
