@@ -354,6 +354,13 @@ describe('GraphQlEngine — complexity limiting', () => {
     const result = await engine.execute('{ hello }');
     assert.ok(!result.errors);
   });
+
+  it('accepts query whose complexity equals maxComplexity (boundary)', async () => {
+    // `{ hello greet(name: "x") }` accumulates weight 1 per field → complexity 2.
+    const engine = new GraphQlEngine({ schema: simpleSchema, resolvers: simpleResolvers, maxComplexity: 2 });
+    const result = await engine.execute('{ hello greet(name: "x") }');
+    assert.ok(!result.errors);
+  });
 });
 
 describe('GraphQlEngine — subscriptions', () => {
