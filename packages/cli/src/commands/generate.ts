@@ -22,9 +22,19 @@ export class GenerateCommand {
     const genType = ctx.args.positional[0]?.toLowerCase() as GenerateType | undefined;
     const name = ctx.args.positional[1];
 
+    // ── Flag-driven generators (no <name> positional) ──────────────────────
+    if (genType === 'sdk') {
+      await this.generateSdk(ctx);
+      return;
+    }
+    if (genType === 'grpc') {
+      await this.generateGrpc(ctx);
+      return;
+    }
+
     if (!genType || !VALID_TYPES.includes(genType)) {
       console.error('[street] Usage: street generate <type> <name>');
-      console.error('  Valid types: controller, service, repository, middleware, gateway, migration');
+      console.error('  Valid types: controller, service, repository, middleware, gateway, migration, sdk, grpc');
       console.error('  Example: street generate controller users');
       process.exitCode = 1;
       return;
