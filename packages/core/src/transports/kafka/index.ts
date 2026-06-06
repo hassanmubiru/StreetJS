@@ -89,3 +89,128 @@ export class KafkaProducer {
     await this.flush();
   }
 }
+
+// ── Consumer ──────────────────────────────────────────────────────────────────
+
+export interface ConsumerOptions {
+  groupId: string;
+  topic: string;
+  /** Explicit partition assignment. When omitted, all partitions are assigned. */
+  partitions?: number[];
+  /** Start at the earliest offset when no committed offset exists. Default true. */
+  fromBeginning?: boolean;
+  /** Poll wait time per fetch. Default 1000ms. */
+  pollWaitMs?: number;
+  /** Commit committed offset after each processed batch. Default true. */
+  autoCommit?: boolean;
+}
+
+export interface ConsumedMessage {
+  topic: string;
+  partition: number;
+  offset: bigint;
+  key: Buffer | null;
+  value: Buffer | null;
+}
+
+export class KafkaConsumer {
+  private running = false;
+  private readonly offsets = new Map<number, bigint>(); // partition → next offset
+
+  constructor(private readonly client: KafkaClient, private readonly opts: ConsumerOptions) {}
+
+  private async _assignedPartitions(): Promise<number[]> {
+    if (this.opts.partitions && this.opts.partitions.length > 0) return this.opts.partitions;
+    const meta = await this.client.metadata([this.opts.topic]);
+    const tm = meta.topics.find((t) => t.name === this.opts.topic);
+    return (tm?.partitions ?? []).map((p) => p.partition);
+  }
+
+  private async _startOffset(partition: number): Promise<bigint> {
+    const committed = await this.client.fetchOffset(this.opts.groupId, this.opts.topic, partition);
+    if (committed >= 0n) return committed;
+    const ts = (this.opts.fromBeginning ?? true) ? -2n : -1n; // earliest / latest
+    return this.client.listOffset(this.opts.topic, partition, ts);
+  }
+
+  /** Begin the poll loop. Returns once the consumer is initialised. */
+  async run(handler: (msg: ConsumedMessage) => Promise<void>): Promise<void> {
+    this.running = true;
+    const partitions = await this._assignedPartitions();
+    for (const p of partitions) this.offsets.set(p, await this._startOffset(p));
+
+    const autoCommit = this.opts.autoCommit ?? true;
+    const loop = async (): Promise<void> => {
+      while (this.running) {
+        let anyData = false;
+        for (const partition of partitions) {
+          if (!this.running) break;
+          const from = this.offsets.get(partition)!;
+          try {
+            const { records } = await this.client.fetch(this.opts.topic, partition, from, { maxWaitMs: this.opts.pollWaitMs ?? 1000 });
+            for (const rec of records) {
+              if (!this.running) break;
+              await handler({ topic: this.opts.topic, partition, offset: rec.offset!, key: rec.key, value: rec.value });
+              this.offsets.set(partition, rec.offset! + 1n);
+              anyData = true;
+            }
+            if (anyData && autoCommit) {
+              await this.client.commitOffset(this.opts.groupId, this.opts.topic, partition, this.offsets.get(partition)!);
+            }
+          } catch {
+            // transient fetch error; brief pause then retry
+            await new Promise((r) => setTimeout(r, 200));
+          }
+        }
+        if (!anyData) await new Promise((r) => setTimeout(r, 50));
+      }
+    };
+    void loop();
+  }
+
+  /** Manually commit the current next-offset for a partition. */
+  async commit(partition: number): Promise<void> {
+    const off = this.offsets.get(partition);
+    if (off !== undefined) await this.client.commitOffset(this.opts.groupId, this.opts.topic, partition, off);
+  }
+
+  /** Graceful shutdown: stop polling. */
+  async stop(): Promise<void> {
+    this.running = false;
+    await new Promise((r) => setTimeout(r, 60));
+  }
+}
+
+// ── StreamTransport adapter ───────────────────────────────────────────────────
+
+export class KafkaStreamTransport implements StreamTransport {
+  private readonly client: KafkaClient;
+  private readonly producer: KafkaProducer;
+  private readonly consumers: KafkaConsumer[] = [];
+
+  constructor(opts: KafkaClientOptions = {}) {
+    this.client = new KafkaClient(opts);
+    this.producer = new KafkaProducer(this.client);
+  }
+
+  async publish(topic: string, payload: unknown): Promise<void> {
+    await this.producer.send(topic, { key: null, value: Buffer.from(JSON.stringify(payload), 'utf8') });
+    await this.producer.flush();
+  }
+
+  subscribe(topic: string, groupId: string, handler: (msg: unknown) => Promise<void>): () => void {
+    const consumer = new KafkaConsumer(this.client, { groupId, topic });
+    this.consumers.push(consumer);
+    void consumer.run(async (msg) => {
+      if (!msg.value) return;
+      await handler(JSON.parse(msg.value.toString('utf8')));
+    }).catch(() => undefined);
+    return () => { void consumer.stop(); };
+  }
+
+  async close(): Promise<void> {
+    for (const c of this.consumers) await c.stop();
+    await this.producer.close();
+    this.client.close();
+  }
+}
