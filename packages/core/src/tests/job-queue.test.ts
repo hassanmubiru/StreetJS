@@ -14,7 +14,11 @@ import {
   type JobContext,
 } from '../jobs/queue.js';
 import { CronScheduler, CronParseError } from '../jobs/scheduler.js';
-import { STREET_WORKFLOWS_MIGRATION_SQL } from '../jobs/workflow.js';
+import {
+  STREET_WORKFLOWS_MIGRATION_SQL,
+  WorkflowEngine,
+  type WorkflowStep,
+} from '../jobs/workflow.js';
 
 // ── Tests: Migration SQL ──────────────────────────────────────────────────────
 
