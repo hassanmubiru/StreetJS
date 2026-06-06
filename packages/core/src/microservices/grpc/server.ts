@@ -55,7 +55,7 @@ export class GrpcServer {
   async start(): Promise<void> {
     this.server = createServer();
     this.server.on('stream', (stream, headers) => {
-      void this._handleStream(stream, headers as Record<string, string>);
+      void this._handleStream(stream as ServerHttp2Stream, headers as Record<string, string>);
     });
     await new Promise<void>((resolve) => this.server!.listen(this.port, this.host, resolve));
   }
