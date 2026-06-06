@@ -192,7 +192,7 @@
 
 
 - [ ] 22. v1.5 — Job Queue and Cron Scheduler
-  - [~] 22.1 Write `street_jobs` migration SQL: `id UUID, type TEXT, payload JSONB, status TEXT, attempt_count INT, run_at TIMESTAMPTZ, created_at TIMESTAMPTZ, worker_id TEXT, locked_at TIMESTAMPTZ, error TEXT`; add index on `(status, run_at)` for polling efficiency
+  - [-] 22.1 Write `street_jobs` migration SQL: `id UUID, type TEXT, payload JSONB, status TEXT, attempt_count INT, run_at TIMESTAMPTZ, created_at TIMESTAMPTZ, worker_id TEXT, locked_at TIMESTAMPTZ, error TEXT`; add index on `(status, run_at)` for polling efficiency
   - [~] 22.2 Create `packages/core/src/jobs/queue.ts` with `JobQueue` class: `enqueue(opts)` inserts a row; `register(type, handler)` stores handler in a `Map`; `start()` starts the polling loop; `stop()` clears the interval
   - [~] 22.3 Implement polling loop: `setInterval` runs `SELECT ... FOR UPDATE SKIP LOCKED LIMIT $concurrency`, dispatches each job to its handler, marks success (`DELETE` or `status=completed`) or failure (`UPDATE attempt_count, error`)
   - [~] 22.4 Implement `@Job('type')` class decorator: marks a class as a job handler, stores type in metadata; `JobQueue.registerClass(ctor)` reads metadata and registers the `execute(payload, ctx)` method
