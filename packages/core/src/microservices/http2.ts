@@ -206,7 +206,29 @@ export function streetHttp2App(opts: {
       globalMiddlewares.push(mw);
     },
 
-    registerController(ctor: Constructor): void {
+    async loadPlugin(plugin: import('../platform/plugins/sdk.js').PluginModule): Promise<void> {
+      const added: MiddlewareFn[] = [];
+      const sandbox: import('../platform/plugins/sdk.js').SandboxedApp = {
+        use(mw: MiddlewareFn): void { globalMiddlewares.push(mw); added.push(mw); },
+        on(): void { /* http2 app does not emit plugin events */ },
+      };
+      pluginMiddlewares.set(plugin, added);
+      if (plugin.onLoad) await plugin.onLoad(sandbox);
+    },
+
+    async unloadPlugin(plugin: import('../platform/plugins/sdk.js').PluginModule): Promise<void> {
+      const added = pluginMiddlewares.get(plugin);
+      if (!added) return;
+      const sandbox: import('../platform/plugins/sdk.js').SandboxedApp = {
+        use(): void {}, on(): void {},
+      };
+      if (plugin.onUnload) await plugin.onUnload(sandbox);
+      for (const mw of added) {
+        const idx = globalMiddlewares.indexOf(mw);
+        if (idx !== -1) globalMiddlewares.splice(idx, 1);
+      }
+      pluginMiddlewares.delete(plugin);
+    },
       const controllerMeta = getControllerMeta(ctor);
       if (!controllerMeta) {
         throw new Error(`Class ${ctor.name} is not decorated with @Controller`);
