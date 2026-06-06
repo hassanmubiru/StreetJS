@@ -84,6 +84,7 @@ export class KafkaProducer {
     const list = this.batches.get(topic);
     if (!list || list.length === 0) return;
     this.batches.set(topic, []);
+    await this._ensureProducerId();
     // Group by partition so each Produce request targets one partition.
     const byPartition = new Map<number, PendingRecord[]>();
     for (const pr of list) {
@@ -92,11 +93,31 @@ export class KafkaProducer {
       byPartition.set(pr.partition, arr);
     }
     for (const [partition, prs] of byPartition) {
+      const key = `${topic}/${partition}`;
+      const baseSequence = this.idempotent ? (this.sequences.get(key) ?? 0) : -1;
       try {
-        await this.client.produce(topic, partition, prs.map((x) => x.record), { acks: this.acks });
+        await this._produceWithRetry(topic, partition, prs.map((x) => x.record), baseSequence);
+        if (this.idempotent) this.sequences.set(key, baseSequence + prs.length);
         for (const pr of prs) pr.resolve();
       } catch (err) {
         for (const pr of prs) pr.reject(err);
+      }
+    }
+  }
+
+  private async _produceWithRetry(topic: string, partition: number, records: KafkaRecord[], baseSequence: number): Promise<void> {
+    let attempt = 0;
+    for (;;) {
+      try {
+        await this.client.produce(topic, partition, records, {
+          acks: this.acks,
+          ...(this.idempotent ? { producerId: this.producerId, producerEpoch: this.producerEpoch, baseSequence } : {}),
+        });
+        return;
+      } catch (err) {
+        if (attempt >= this.maxRetries) throw err;
+        attempt++;
+        await new Promise((r) => setTimeout(r, this.retryBackoffMs * attempt));
       }
     }
   }
