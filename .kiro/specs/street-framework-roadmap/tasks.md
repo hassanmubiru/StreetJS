@@ -512,6 +512,27 @@ Cross-Cutting (Task 51) ── CI policy enforcement, benchmarks, memory/securit
                            audits, docs, shutdown/timer audits  [depends on all]
 ```
 
+Execution waves (each wave depends on all prior waves completing):
+
+```json
+{
+  "waves": [
+    { "wave": 1, "milestone": "v1.1", "tasks": [1, 2, 3, 4, 5], "dependsOn": [] },
+    { "wave": 2, "milestone": "v1.2", "tasks": [6, 7, 8, 9, 10], "dependsOn": [1] },
+    { "wave": 3, "milestone": "v1.3", "tasks": [11, 12, 13, 14, 15], "dependsOn": [2] },
+    { "wave": 4, "milestone": "v1.4", "tasks": [16, 17, 18, 19, 20, 21], "dependsOn": [2, 3] },
+    { "wave": 5, "milestone": "v1.5", "tasks": [22, 23, 24, 25], "dependsOn": [2, 3] },
+    { "wave": 6, "milestone": "v1.6", "tasks": [26, 27, 28, 29, 30], "dependsOn": [5] },
+    { "wave": 7, "milestone": "v1.7", "tasks": [31, 32, 33], "dependsOn": [2, 3] },
+    { "wave": 8, "milestone": "v2.0", "tasks": [34, 35, 36, 37], "dependsOn": [6, 7] },
+    { "wave": 9, "milestone": "v2.1", "tasks": [38, 39, 40, 41], "dependsOn": [8] },
+    { "wave": 10, "milestone": "v2.2", "tasks": [42, 43, 44, 45], "dependsOn": [4, 7] },
+    { "wave": 11, "milestone": "v3.0", "tasks": [46, 47, 48, 49, 50], "dependsOn": [9, 10] },
+    { "wave": 12, "milestone": "cross-cutting", "tasks": [51], "dependsOn": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] }
+  ]
+}
+```
+
 ## Notes
 
 - Each task group corresponds to a roadmap version milestone defined in `requirements.md` and elaborated in `design.md`.
