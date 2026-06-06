@@ -3,6 +3,9 @@
 import * as crypto from 'node:crypto';
 import { LruCache } from '../cache/lru.js';
 import { UnauthorizedException } from '../http/exceptions.js';
+// Re-export the audit log surface from its dedicated module so existing
+// consumers (and index.ts) keep importing it from session-store unchanged.
+export { AuditWriter, AUDIT_LOG_MIGRATION_SQL } from './audit-writer.js';
 // ── Migration SQL ─────────────────────────────────────────────────────────────
 export const SESSION_STORE_MIGRATION_SQL = `
 CREATE TABLE IF NOT EXISTS street_sessions (
@@ -13,17 +16,6 @@ CREATE TABLE IF NOT EXISTS street_sessions (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS street_sessions_user_idx ON street_sessions (user_id);
-`.trim();
-export const AUDIT_LOG_MIGRATION_SQL = `
-CREATE TABLE IF NOT EXISTS street_audit_log (
-  id         TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-  event      TEXT NOT NULL,
-  actor_id   TEXT,
-  ip         TEXT,
-  user_agent TEXT,
-  details    JSONB NOT NULL DEFAULT '{}',
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
 `.trim();
 // ── StreetSessionStore ────────────────────────────────────────────────────────
 export class StreetSessionStore {
@@ -100,26 +92,5 @@ export function sessionRevocationMiddleware(store) {
         }
         await next();
     };
-}
-// ── AuditWriter ───────────────────────────────────────────────────────────────
-export class AuditWriter {
-    _pool;
-    constructor(pool) {
-        this._pool = pool;
-    }
-    /**
-     * Write an audit log entry inside a transaction.
-     * If the write fails, the calling transaction is rolled back.
-     */
-    async write(record) {
-        await this._pool.query(`INSERT INTO street_audit_log (event, actor_id, ip, user_agent, details)
-       VALUES ($1, $2, $3, $4, $5)`, [
-            record.event,
-            record.actorId ?? null,
-            record.ip ?? null,
-            record.userAgent ?? null,
-            JSON.stringify(record.details ?? {}),
-        ]);
-    }
 }
 //# sourceMappingURL=session-store.js.map
