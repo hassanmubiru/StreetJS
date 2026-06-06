@@ -136,7 +136,7 @@ export { Logger, correlationMiddleware } from './observability/logger.js';
 export type { LogLevel, LogEntry } from './observability/logger.js';
 
 // ── Prometheus Metrics ────────────────────────────────────────────────────────
-export { MetricsRegistry, Counter, Gauge, Histogram, MetricConflictError, prometheusMiddleware, metricsHandler } from './observability/prometheus.js';
+export { MetricsRegistry, Counter, Gauge, Histogram, MetricConflictError, prometheusMiddleware, metricsHandler, registerMetricsRoute, PROMETHEUS_CONTENT_TYPE } from './observability/prometheus.js';
 
 // ── Route Profiler ────────────────────────────────────────────────────────────
 export { RouteProfiler } from './diagnostics/route-profiler.js';
