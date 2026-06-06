@@ -1,0 +1,253 @@
+// tests/roadmap-partials-2.test.ts
+// Completes partial roadmap items:
+//  - 27.2  URL versioning (enableVersioning strips the version prefix)
+//  - 45.9  Backup checksum integrity + corrupted-restore abort + adapter round-trip
+//  - 48.6  Replication failover, preferred-region routing, lag metric labels
+//  - 49.8  Agent history summarization + SSE step ordering
+
+import 'reflect-metadata';
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtempSync, rmSync, readdirSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { enableVersioning } from '../versioning/strategy.js';
+import { BackupService, LocalStorageAdapter } from '../enterprise/backup.js';
+import { ReplicationCoordinator } from '../platform/replication.js';
+import { AgentExecutor } from '../platform/ai/agent-executor.js';
+import { ToolRegistry } from '../platform/ai/tool-registry.js';
+import type { LlmClient, CompletionOptions, CompletionResult } from '../platform/ai/llm-client.js';
+
+// ── 27.2 URL versioning ─────────────────────────────────────────────────────────
+
+describe('enableVersioning URL strategy (27.2)', () => {
+  it('strips a leading /vN prefix and records the version on the context', async () => {
+    const middlewares: Array<(ctx: Record<string, unknown>, next: () => Promise<void>) => Promise<void>> = [];
+    const app = { use(mw: (ctx: Record<string, unknown>, next: () => Promise<void>) => Promise<void>) { middlewares.push(mw); } };
+
+    enableVersioning(app as never, { strategy: 'url' });
+    assert.equal(middlewares.length, 1);
+
+    const ctx: Record<string, unknown> = { path: '/v2/users', headers: {} };
+    await middlewares[0]!(ctx, async () => {});
+    assert.equal(ctx['path'], '/users');
+    assert.equal(ctx['apiVersion'], 'v2');
+    assert.equal(ctx['originalPath'], '/v2/users');
+  });
+
+  it('leaves an unversioned path unchanged', async () => {
+    const middlewares: Array<(ctx: Record<string, unknown>, next: () => Promise<void>) => Promise<void>> = [];
+    const app = { use(mw: (ctx: Record<string, unknown>, next: () => Promise<void>) => Promise<void>) { middlewares.push(mw); } };
+    enableVersioning(app as never, { strategy: 'url' });
+    const ctx: Record<string, unknown> = { path: '/health', headers: {} };
+    await middlewares[0]!(ctx, async () => {});
+    assert.equal(ctx['path'], '/health');
+    assert.equal(ctx['apiVersion'], undefined);
+  });
+});
+
+// ── 45.9 Backup integrity ─────────────────────────────────────────────────────
+
+class FakeBackupPool {
+  backups = new Map<string, { checksum: string; storage_key: string }>();
+  applied: string[] = [];
+  tables: string[];
+  data: Record<string, Record<string, unknown>[]>;
+  constructor(tables: string[], data: Record<string, Record<string, unknown>[]>) {
+    this.tables = tables; this.data = data;
+  }
+  async query(sql: string, params: unknown[] = []): Promise<{ rows: Record<string, unknown>[] }> {
+    const s = sql.trim().toUpperCase();
+    if (s.startsWith('SELECT TABLENAME')) return { rows: this.tables.map((t) => ({ tablename: t })) };
+    if (s.startsWith('SELECT * FROM')) {
+      const m = /FROM "([^"]+)"/.exec(sql);
+      return { rows: m ? (this.data[m[1]!] ?? []) : [] };
+    }
+    if (s.startsWith('INSERT INTO STREET_BACKUPS')) {
+      this.backups.set(String(params[0]), { checksum: String(params[3]), storage_key: String(params[4]) });
+      return { rows: [] };
+    }
+    if (s.startsWith('SELECT CHECKSUM')) {
+      const rec = this.backups.get(String(params[0]));
+      return { rows: rec ? [rec] : [] };
+    }
+    // restore applying statements
+    this.applied.push(sql);
+    return { rows: [] };
+  }
+}
+
+describe('BackupService integrity (45.9)', () => {
+  it('records a checksum that matches the stored backup and restores successfully', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'street-backup-'));
+    try {
+      const pool = new FakeBackupPool(['users'], { users: [{ id: '1', name: 'Ada' }] });
+      const storage = new LocalStorageAdapter(dir);
+      const svc = new BackupService(pool, storage);
+
+      const id = await svc.backup();
+      const rec = pool.backups.get(id)!;
+      assert.match(rec.checksum, /^[0-9a-f]{64}$/);
+
+      // Restore verifies the checksum and applies the INSERT statements.
+      await svc.restore(id, pool);
+      assert.ok(pool.applied.some((s) => /INSERT INTO "users"/.test(s)));
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('aborts restore on a corrupted backup without applying any statements', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'street-backup-'));
+    try {
+      const pool = new FakeBackupPool(['users'], { users: [{ id: '1', name: 'Ada' }] });
+      const storage = new LocalStorageAdapter(dir);
+      const svc = new BackupService(pool, storage);
+
+      const id = await svc.backup();
+      const rec = pool.backups.get(id)!;
+      // Corrupt the stored file on disk so its checksum no longer matches.
+      const files = readdirSync(dir);
+      writeFileSync(join(dir, files[0]!), 'CORRUPTED CONTENT');
+
+      const appliedBefore = pool.applied.length;
+      await assert.rejects(svc.restore(id, pool), /checksum mismatch/i);
+      assert.equal(pool.applied.length, appliedBefore, 'no statements applied on mismatch');
+      assert.ok(rec.checksum);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('LocalStorageAdapter round-trips content identically (upload then download)', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'street-store-'));
+    try {
+      const storage = new LocalStorageAdapter(dir);
+      const { Readable } = await import('node:stream');
+      const payload = 'hello-backup-payload-\u00e9\u00e8';
+      await storage.write('blob.sql', Readable.from([Buffer.from(payload, 'utf8')]));
+      const rs = await storage.read('blob.sql');
+      const chunks: Buffer[] = [];
+      await new Promise<void>((resolve, reject) => {
+        rs.on('data', (c: Buffer) => chunks.push(c));
+        rs.on('end', resolve);
+        rs.on('error', reject);
+      });
+      assert.equal(Buffer.concat(chunks).toString('utf8'), payload);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});
+
+// ── 48.6 Replication ───────────────────────────────────────────────────────────
+
+function poolThatWorks(): { query: (sql: string, p?: unknown[]) => Promise<{ rows: Record<string, unknown>[] }> } {
+  return { async query() { return { rows: [] }; } };
+}
+
+describe('ReplicationCoordinator (48.6)', () => {
+  it('routes writes to primary and honours X-Preferred-Region for reads', () => {
+    const a = poolThatWorks(); const b = poolThatWorks();
+    const coord = new ReplicationCoordinator(
+      [{ name: 'us-east', pool: a, primary: true }, { name: 'eu-west', pool: b }],
+      { healthCheckIntervalMs: 0 },
+    );
+    assert.equal(coord.getWritePool(), a);
+    assert.equal(coord.getReadPool('eu-west'), b);
+    coord.stop();
+  });
+
+  it('promotes the next healthy replica when the primary fails health checks', async () => {
+    let primaryHealthy = true;
+    const failing = { async query() { if (!primaryHealthy) throw new Error('down'); return { rows: [] }; } };
+    const replica = poolThatWorks();
+    const coord = new ReplicationCoordinator(
+      [{ name: 'primary', pool: failing, primary: true }, { name: 'replica', pool: replica }],
+      { healthCheckIntervalMs: 15 },
+    );
+    const promoted: unknown[] = [];
+    coord.on('region:promoted', (e) => promoted.push(e));
+
+    primaryHealthy = false;
+    await new Promise((r) => setTimeout(r, 60)); // allow >=1 health tick
+
+    assert.ok(promoted.length >= 1, 'a promotion occurred');
+    // Writes now route to the promoted replica.
+    assert.equal(coord.getWritePool(), replica);
+    coord.stop();
+  });
+
+  it('reports replication lag with region and replica_id labels', async () => {
+    const primary = {
+      async query(sql: string) {
+        if (/pg_stat_replication/i.test(sql)) {
+          return { rows: [{ replica_id: 'replica-1', lag_seconds: 3 }, { replica_id: 'replica-2', lag_seconds: 0 }] };
+        }
+        return { rows: [] };
+      },
+    };
+    const coord = new ReplicationCoordinator([{ name: 'us-east', pool: primary, primary: true }], { healthCheckIntervalMs: 0 });
+    const samples: Array<{ value: number; labels?: Record<string, string> }> = [];
+    await coord.reportReplicationLag({ set: (value, labels) => samples.push({ value, labels }) });
+    assert.equal(samples.length, 2);
+    assert.deepEqual(samples[0]!.labels, { region: 'us-east', replica_id: 'replica-1' });
+    assert.equal(samples[0]!.value, 3);
+    coord.stop();
+  });
+});
+
+// ── 49.8 Agent summarization + SSE ordering ─────────────────────────────────────
+
+class ScriptedClient implements LlmClient {
+  calls: CompletionOptions[] = [];
+  constructor(private readonly replies: string[], private readonly onComplete?: (o: CompletionOptions) => void) {}
+  private i = 0;
+  async complete(opts: CompletionOptions): Promise<CompletionResult> {
+    this.calls.push(opts);
+    this.onComplete?.(opts);
+    const content = this.replies[Math.min(this.i++, this.replies.length - 1)] ?? 'FINAL ANSWER: done';
+    return { content, model: opts.model, usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 } };
+  }
+  async *stream(): AsyncIterator<string> { yield 'x'; }
+}
+
+describe('AgentExecutor (49.8)', () => {
+  it('emits SSE steps in the correct order (thought → action → observation → final)', async () => {
+    const tools = new ToolRegistry();
+    tools.register('getTime', async () => '12:00', { type: 'object', properties: {} });
+    const client = new ScriptedClient([
+      '```json\n{ "tool": "getTime", "args": {} }\n```',
+      'FINAL ANSWER: It is 12:00',
+    ]);
+    const agent = new AgentExecutor(client, tools, { maxSteps: 5 });
+
+    const events: Array<{ type: string; content: string }> = [];
+    const ctx = { res: { write: (data: string) => { events.push(JSON.parse(data.replace(/^data: /, '').trim())); } } };
+
+    const answer = await agent.run('what time is it?', ctx);
+    assert.match(answer, /12:00/);
+    const types = events.map((e) => e.type);
+    // First thought, then the action, its observation, then a thought + final.
+    assert.deepEqual(types.slice(0, 3), ['thought', 'action', 'observation']);
+    assert.equal(types[types.length - 1], 'final');
+    const obs = events.find((e) => e.type === 'observation');
+    assert.match(obs!.content, /12:00/);
+  });
+
+  it('summarizes history when the token budget threshold is exceeded', async () => {
+    const tools = new ToolRegistry();
+    let summarizeCalled = false;
+    // A reply large enough to push estimated history tokens past 0.8 * maxTokens.
+    const big = 'x'.repeat(2000);
+    const client = new ScriptedClient(
+      [`THOUGHT: ${big}\n\`\`\`json\n{ "tool": "noop", "args": {} }\n\`\`\``, 'summary text', 'FINAL ANSWER: ok'],
+      (o) => { if (typeof o.messages[0]?.content === 'string' && /Summarize the following/i.test(o.messages[0].content)) summarizeCalled = true; },
+    );
+    tools.register('noop', async () => 'y'.repeat(2000), { type: 'object', properties: {} });
+    const agent = new AgentExecutor(client, tools, { maxSteps: 4, maxTokens: 500 });
+    const answer = await agent.run('go');
+    assert.match(answer, /ok/);
+    assert.equal(summarizeCalled, true, 'summarization prompt was sent to the LLM');
+  });
+});
