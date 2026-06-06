@@ -4,6 +4,8 @@
 import 'reflect-metadata';
 import type { MiddlewareFn } from '../core/types.js';
 import { ForbiddenException } from '../http/exceptions.js';
+import type { AuditWriter } from './audit-writer.js';
+import { auditPermissionDenied } from './audit-writer.js';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -149,9 +151,40 @@ export class RbacService {
  * ctx.state['_requiredPermissions'] before running the pipeline.  This guard
  * reads those values directly — no prototype chain traversal at request time.
  */
-export function rbacGuard(service: RbacService): MiddlewareFn {
+/** Optional configuration for {@link rbacGuard}. */
+export interface RbacGuardOptions {
+  /**
+   * When provided, the guard writes a `permission_denied` audit entry before
+   * throwing {@link ForbiddenException}. Omitting it keeps the guard's
+   * behaviour and dependencies unchanged.
+   */
+  auditWriter?: AuditWriter;
+}
+
+export function rbacGuard(service: RbacService, opts?: RbacGuardOptions): MiddlewareFn {
+  const auditWriter = opts?.auditWriter;
+
   return async (ctx, next) => {
     const userRoles: string[] = (ctx.user?.roles as string[] | undefined) ?? [];
+    const actorId = (ctx.user?.id as string | undefined) ?? undefined;
+    const ip = (ctx.state?.['ip'] as string | undefined)
+      ?? (ctx.headers?.['x-forwarded-for'] as string | undefined);
+    const userAgent = ctx.headers?.['user-agent'] as string | undefined;
+
+    const denied = async (kind: 'roles' | 'permissions', required: string[]): Promise<never> => {
+      if (auditWriter) {
+        await auditPermissionDenied(auditWriter, {
+          actorId,
+          ip,
+          userAgent,
+          details: { kind, required, userRoles },
+        });
+      }
+      if (kind === 'roles') {
+        throw new ForbiddenException(`Forbidden: requires one of roles: ${required.join(', ')}`);
+      }
+      throw new ForbiddenException(`Forbidden: requires permissions: ${required.join(', ')}`);
+    };
 
     // Check @Roles requirements baked by the router
     const requiredRoles: string[] =
@@ -159,7 +192,7 @@ export function rbacGuard(service: RbacService): MiddlewareFn {
     if (requiredRoles.length > 0) {
       const allowed = requiredRoles.some((role) => service.hasRole(userRoles, role));
       if (!allowed) {
-        throw new ForbiddenException(`Forbidden: requires one of roles: ${requiredRoles.join(', ')}`);
+        await denied('roles', requiredRoles);
       }
     }
 
@@ -169,7 +202,7 @@ export function rbacGuard(service: RbacService): MiddlewareFn {
     if (requiredPerms.length > 0) {
       const allowed = requiredPerms.every((perm) => service.hasPermission(userRoles, perm));
       if (!allowed) {
-        throw new ForbiddenException(`Forbidden: requires permissions: ${requiredPerms.join(', ')}`);
+        await denied('permissions', requiredPerms);
       }
     }
 

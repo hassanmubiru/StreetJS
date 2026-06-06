@@ -3,6 +3,8 @@
 
 import * as crypto from 'node:crypto';
 import type { JwtService } from '../security/jwt.js';
+import type { AuditWriter, AuditEventDetails } from './audit-writer.js';
+import { auditTokenRefresh } from './audit-writer.js';
 
 // ── Migration SQL ─────────────────────────────────────────────────────────────
 
@@ -41,6 +43,12 @@ export interface RefreshTokenPool {
 export interface RefreshTokenServiceOptions {
   accessTokenTtlMs?: number;   // default: 15 minutes
   refreshTokenTtlMs?: number;  // default: 30 days
+  /**
+   * When provided, a `token_refresh` audit entry is written after every
+   * successful {@link RefreshTokenService.rotate} call. Omitting it leaves the
+   * service's behaviour and dependencies unchanged.
+   */
+  auditWriter?: AuditWriter;
 }
 
 // ── RefreshTokenService ───────────────────────────────────────────────────────
@@ -50,6 +58,7 @@ export class RefreshTokenService {
   private readonly _jwt: JwtService;
   private readonly _accessTtlMs: number;
   private readonly _refreshTtlMs: number;
+  private readonly _auditWriter?: AuditWriter;
 
   constructor(
     pool: RefreshTokenPool,
@@ -60,6 +69,7 @@ export class RefreshTokenService {
     this._jwt = jwt;
     this._accessTtlMs = opts?.accessTokenTtlMs ?? 15 * 60 * 1000;
     this._refreshTtlMs = opts?.refreshTokenTtlMs ?? 30 * 24 * 60 * 60 * 1000;
+    this._auditWriter = opts?.auditWriter;
   }
 
   /**
@@ -92,10 +102,13 @@ export class RefreshTokenService {
    * Atomically invalidates the old token and issues new tokens.
    * On replay (already revoked), revokes the entire family and throws TokenReplayError.
    */
-  async rotate(rawRefreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
+  async rotate(
+    rawRefreshToken: string,
+    auditContext: AuditEventDetails = {},
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     const tokenHash = crypto.createHash('sha256').update(rawRefreshToken).digest('hex');
 
-    return this._pool.transaction(async (conn) => {
+    const result = await this._pool.transaction(async (conn) => {
       // Find the token
       const found = await conn.query(
         `SELECT id, family_id, user_id, expires_at, revoked_at
@@ -146,8 +159,21 @@ export class RefreshTokenService {
 
       const accessToken = this._jwt.sign({ sub: userId }, { expiresInSeconds: Math.floor(this._accessTtlMs / 1000) });
 
-      return { accessToken, refreshToken: newRaw };
+      return { accessToken, refreshToken: newRaw, userId, familyId };
     });
+
+    // Record the successful rotation. Written after the rotation transaction
+    // commits so the audit entry reflects a completed refresh; a failed audit
+    // write still propagates to the caller.
+    if (this._auditWriter) {
+      await auditTokenRefresh(this._auditWriter, {
+        actorId: result.userId,
+        ...auditContext,
+        details: { familyId: result.familyId, ...(auditContext.details ?? {}) },
+      });
+    }
+
+    return { accessToken: result.accessToken, refreshToken: result.refreshToken };
   }
 
   /**

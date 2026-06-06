@@ -15,6 +15,8 @@ import {
   ConflictException,
 } from '../http/exceptions.js';
 import type { TokenPair, PaginatedResult } from '../core/types.js';
+import type { AuditWriter, AuditEventDetails } from '../auth/audit-writer.js';
+import { auditLoginSuccess, auditLoginFailure, auditLogout } from '../auth/audit-writer.js';
 
 const pbkdf2Async = promisify(pbkdf2);
 
@@ -26,12 +28,24 @@ const SALT_BYTES = 32;
 @Injectable()
 export class UserService {
   private readonly jwt: JwtService;
+  private _auditWriter?: AuditWriter;
 
   constructor(
     private readonly repo: UserRepository,
     private readonly config: AppConfig
   ) {
     this.jwt = new JwtService(this.config.jwtSecret);
+  }
+
+  /**
+   * Attach an {@link AuditWriter} so authentication flows emit audit entries
+   * (`login_success`, `login_failure`, `logout`). Optional: when unset, the
+   * service behaves exactly as before. Wired via a setter rather than the
+   * constructor so the DI container can resolve `UserService` without an
+   * `AuditWriter` registration.
+   */
+  setAuditWriter(writer: AuditWriter): void {
+    this._auditWriter = writer;
   }
 
   async register(dto: CreateUserDto): Promise<UserPublic> {
@@ -54,16 +68,29 @@ export class UserService {
     return toPublicUser(user);
   }
 
-  async login(dto: LoginDto): Promise<TokenPair> {
+  async login(dto: LoginDto, auditContext: AuditEventDetails = {}): Promise<TokenPair> {
     const user = await this.repo.findByEmail(dto.email.toLowerCase());
     if (!user) {
       // Constant-time: still run hash check to avoid timing leak
       await this._dummyHash();
+      if (this._auditWriter) {
+        await auditLoginFailure(this._auditWriter, {
+          ...auditContext,
+          details: { email: dto.email.toLowerCase(), reason: 'user_not_found', ...(auditContext.details ?? {}) },
+        });
+      }
       throw new UnauthorizedException('Invalid credentials');
     }
 
     const valid = await this._verifyPassword(dto.password, user.password_hash);
     if (!valid) {
+      if (this._auditWriter) {
+        await auditLoginFailure(this._auditWriter, {
+          actorId: user.id,
+          ...auditContext,
+          details: { email: dto.email.toLowerCase(), reason: 'bad_password', ...(auditContext.details ?? {}) },
+        });
+      }
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -79,7 +106,22 @@ export class UserService {
       { expiresInSeconds: 86400 * 7 }
     );
 
+    if (this._auditWriter) {
+      await auditLoginSuccess(this._auditWriter, { actorId: user.id, ...auditContext });
+    }
+
     return { accessToken, refreshToken, expiresIn: 3600 };
+  }
+
+  /**
+   * Record a logout for `userId`. When an {@link AuditWriter} is attached, a
+   * `logout` audit entry is written; otherwise this is a no-op. Session and
+   * token revocation are handled by their respective services.
+   */
+  async logout(userId: string, auditContext: AuditEventDetails = {}): Promise<void> {
+    if (this._auditWriter) {
+      await auditLogout(this._auditWriter, { actorId: userId, ...auditContext });
+    }
   }
 
   async findById(id: string): Promise<UserPublic> {

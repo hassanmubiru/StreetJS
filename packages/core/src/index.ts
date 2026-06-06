@@ -159,7 +159,7 @@ export type { RefreshTokenPool, RefreshTokenServiceOptions } from './auth/refres
 
 // ── Auth: RBAC ────────────────────────────────────────────────────────────────
 export { RbacService, Roles, Permissions, rbacGuard } from './auth/rbac.js';
-export type { RoleHierarchy } from './auth/rbac.js';
+export type { RoleHierarchy, RbacGuardOptions } from './auth/rbac.js';
 
 // ── Auth: WebAuthn / Passkeys ─────────────────────────────────────────────────
 export { WebAuthnService, decodeCbor, WEBAUTHN_MIGRATION_SQL } from './auth/webauthn.js';
@@ -167,7 +167,17 @@ export type { WebAuthnConfig, PublicKeyCredentialCreationOptionsJSON, PublicKeyC
 
 // ── Auth: Session Store & Audit ───────────────────────────────────────────────
 export { StreetSessionStore, sessionRevocationMiddleware, AuditWriter, SESSION_STORE_MIGRATION_SQL, AUDIT_LOG_MIGRATION_SQL } from './auth/session-store.js';
-export type { SessionData as ServerSessionData, SessionStorePool, AuditEvent, AuditRecord } from './auth/session-store.js';
+export type { SessionData as ServerSessionData, SessionStorePool, AuditEvent, AuditRecord, StreetSessionStoreOptions } from './auth/session-store.js';
+export {
+  auditAuthEvent,
+  auditLoginSuccess,
+  auditLoginFailure,
+  auditLogout,
+  auditTokenRefresh,
+  auditSessionRevoked,
+  auditPermissionDenied,
+} from './auth/audit-writer.js';
+export type { AuditEventDetails } from './auth/audit-writer.js';
 
 // ── Jobs: Queue, Scheduler, Workflow ─────────────────────────────────────────
 export {
