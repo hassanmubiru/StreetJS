@@ -145,7 +145,7 @@ export class VaultSecretProvider implements SecretProvider {
 
     for (let i = 0; i <= delays.length; i++) {
       try {
-        return await httpsGet(url, headers);
+        return await httpsGet(url, headers, this._tls);
       } catch (err) {
         lastErr = err as Error;
         if (i < delays.length && Date.now() + (delays[i] ?? 0) < deadline) {
