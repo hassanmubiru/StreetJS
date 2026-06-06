@@ -97,6 +97,14 @@ export type { ClusterOptions } from './cluster/coordinator.js';
 // ── Webhook ───────────────────────────────────────────────────────────────────
 export { WebhookDispatcher } from './webhook/dispatcher.js';
 export type { WebhookPayload, WebhookTarget } from './webhook/dispatcher.js';
+export {
+  WebhookManager,
+  signWebhookPayload,
+  verifyIncomingWebhook,
+  WEBHOOK_ENDPOINTS_MIGRATION_SQL,
+  WEBHOOK_DELIVERIES_MIGRATION_SQL,
+} from './webhook/manager.js';
+export type { WebhookManagerPool, WebhookManagerOptions, WebhookEndpoint, WebhookDelivery } from './webhook/manager.js';
 
 // ── Dev ───────────────────────────────────────────────────────────────────────
 export { DevWatcher } from './dev/watcher.js';
