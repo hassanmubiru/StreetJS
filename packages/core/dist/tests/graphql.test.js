@@ -277,6 +277,25 @@ describe('GraphQlEngine — depth limiting', () => {
         const result = await engine.execute('{ hello }');
         assert.ok(!result.errors);
     });
+    it('accepts query at the maxDepth boundary but rejects beyond it', async () => {
+        // `{ user { id name } }` nests one level → depth 2.
+        const query = '{ user(id: "1") { id name } }';
+        // depth (2) === maxDepth (2): allowed, since rejection is strictly `> maxDepth`.
+        const atLimit = await new GraphQlEngine({
+            schema: simpleSchema,
+            resolvers: simpleResolvers,
+            maxDepth: 2,
+        }).execute(query);
+        assert.ok(!atLimit.errors, 'query at the depth limit should be accepted');
+        // depth (2) > maxDepth (1): rejected.
+        const beyondLimit = await new GraphQlEngine({
+            schema: simpleSchema,
+            resolvers: simpleResolvers,
+            maxDepth: 1,
+        }).execute(query);
+        assert.ok(beyondLimit.errors && beyondLimit.errors.length > 0);
+        assert.ok(beyondLimit.errors[0].message.includes('depth'));
+    });
 });
 describe('GraphQlEngine — complexity limiting', () => {
     it('rejects query exceeding maxComplexity', async () => {
