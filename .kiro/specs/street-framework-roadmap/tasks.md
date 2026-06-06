@@ -272,12 +272,12 @@ Status markers used in this plan:
   - [x] 29.7 Add `street analytics report --from <date> --to <date>` CLI command
   - [x] 29.8 Write tests: per-route limiter overrides global, 429 headers are correct, analytics buffer flushes, retention pruning removes old rows
 
-- [~] 30. v1.6 — Webhook Management
+- [x] 30. v1.6 — Webhook Management
   - [x] 30.1 Write `street_webhook_endpoints` and `street_webhook_deliveries` migration SQL files
   - [x] 30.2 Create `packages/core/src/webhook/manager.ts` with `WebhookManager` class: `registerEndpoint()`, `publish()`, `deliveryLog()`, `revokeEndpoint()` methods
   - [x] 30.3 Implement `WebhookManager.publish(event, payload)`: query `street_webhook_endpoints` for matching event types; for each endpoint, enqueue a delivery job in `JobQueue` (re-using task 22 infrastructure)
-  - [~] 30.4 Implement delivery: the job handler calls the existing `WebhookDispatcher`; on non-2xx response, record status and truncated body (1 KB max) in `street_webhook_deliveries`
-  - [ ] 30.5 Implement at-least-once semantics with exponential backoff up to 72 hours; move to dead-letter state after all retries exhausted
+  - [x] 30.4 Implement delivery: the job handler calls the existing `WebhookDispatcher`; on non-2xx response, record status and truncated body (1 KB max) in `street_webhook_deliveries`
+  - [x] 30.5 Implement at-least-once semantics with exponential backoff up to 72 hours; move to dead-letter state after all retries exhausted
   - [x] 30.6 Implement `verifyIncomingWebhook(secret, signature, rawBody)`: HMAC-SHA256 constant-time comparison; reuse `signPayload` from `dispatcher.ts`
   - [x] 30.7 Write tests: published event delivered to matching endpoints, non-matching event skipped, delivery retry on 5xx, HMAC verification accepts valid and rejects invalid signatures
 
@@ -290,7 +290,7 @@ Status markers used in this plan:
   - [x] 31.5 Implement `TenantScopedRepository<T>` base class extending `StreetPostgresRepository<T>`: override SQL generation to include `AND tenant_id = $N` in all WHERE clauses and add `tenant_id = $N` to all INSERTs
   - [x] 31.6 Write tests: subdomain resolution extracts tenant from hostname, missing tenant returns 400, per-tenant pool routes queries to correct connection, `@TenantScoped` prevents cross-tenant data access
 
-- [~] 32. v1.7 — Tenant Provisioning, Billing, and Quotas
+- [x] 32. v1.7 — Tenant Provisioning, Billing, and Quotas
   - [x] 32.1 Write `street_tenant_usage` migration SQL: `tenant_id, period DATE, metric_key TEXT, value BIGINT, updated_at`
   - [x] 32.2 Create `packages/core/src/tenancy/provisioner.ts` with `TenantService.provision(opts)`: atomic transaction that INSERTs `street_tenants` row, runs tenant-specific migrations, registers the connection pool, and emits `tenant:provisioned` event
   - [x] 32.3 Implement `TenantService.checkQuota(tenantId, quotaKey)`: reads configured limits from a `QuotaConfig` map; reads current usage from `street_tenant_usage`; returns `QuotaStatus { allowed, current, limit, reset }`
