@@ -150,7 +150,7 @@
   - [x] 16.8 Write `oauth2.test.ts` integration tests: PKCE code challenge matches verifier, state round-trip, invalid state rejected with 400, JWKS cache serves stale on provider failure
 
 - [ ] 17. v1.4 — API Keys
-  - [-] 17.1 Create `packages/core/src/auth/api-keys.ts` with `ApiKeyService` class, `ApiKey` interface; write `street_api_keys` migration SQL file
+  - [x] 17.1 Create `packages/core/src/auth/api-keys.ts` with `ApiKeyService` class, `ApiKey` interface; write `street_api_keys` migration SQL file
   - [~] 17.2 Implement `ApiKeyService.generate(opts)`: generate `randomBytes(32).toString('base64url')` prefixed with configurable namespace; store `createHash('sha256').update(rawKey).digest('hex')` in DB; return the raw key once only
   - [~] 17.3 Implement `ApiKeyService.verify(rawKey)`: compute SHA-256 hash; query DB for matching hash; use `timingSafeEqual` with equal-length check; check `expiresAt`; use `LruCache` for 60-second result caching
   - [~] 17.4 Implement `ApiKeyService.revoke(id)`: delete from DB; remove from `LruCache` immediately
