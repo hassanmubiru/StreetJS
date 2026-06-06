@@ -149,3 +149,59 @@ describe('EventStreamConsumer — lag monitoring (47.4)', () => {
     assert.equal(events[0]!.lag, 9999n);
   });
 });
+
+import { StreetPostgresRepository } from '../database/repository.js';
+import type { PgPool } from '../database/pool.js';
+
+describe('Repository transparent encryption integration (44.2)', () => {
+  class Account {
+    id!: string;
+    @Encrypt() ssn!: string;
+    name!: string;
+  }
+
+  // A fake pool that stores the last INSERT params and echoes a row back.
+  class FakePool {
+    lastInsertParams: unknown[] = [];
+    store = new Map<string, Record<string, string>>();
+    async query(sql: string, params: unknown[] = []): Promise<{ rows: Record<string, string>[]; rowCount: number; command: string }> {
+      const s = sql.trim().toUpperCase();
+      if (s.startsWith('INSERT')) {
+        this.lastInsertParams = params;
+        const row = { id: 'acct-1', ssn: String(params[0]), name: String(params[1]) };
+        this.store.set('acct-1', row);
+        return { rows: [row], rowCount: 1, command: 'INSERT' };
+      }
+      if (s.startsWith('SELECT')) {
+        const row = this.store.get(String(params[0]));
+        return { rows: row ? [row] : [], rowCount: row ? 1 : 0, command: 'SELECT' };
+      }
+      return { rows: [], rowCount: 0, command: 'SELECT' };
+    }
+  }
+
+  class AccountRepo extends StreetPostgresRepository<Account> {
+    protected readonly tableName = 'accounts';
+    protected readonly encryptor = new FieldEncryptor('repo-master-key');
+    protected readonly encryptedEntity = Account;
+    protected mapRow(row: Record<string, string | null>): Account {
+      return { id: row['id']!, ssn: row['ssn']!, name: row['name']! };
+    }
+  }
+
+  it('stores ciphertext in the DB and returns plaintext to the caller', async () => {
+    const pool = new FakePool();
+    const repo = new AccountRepo(pool as unknown as PgPool);
+
+    const created = await repo.create({ ssn: '123-45-6789', name: 'Ada' });
+    // The value persisted (INSERT param) is encrypted...
+    assert.match(String(pool.lastInsertParams[0]), /^enc:v1:/);
+    // ...but the object returned to the caller is decrypted.
+    assert.equal(created.ssn, '123-45-6789');
+    assert.equal(created.name, 'Ada');
+
+    // And a subsequent read decrypts transparently.
+    const found = await repo.findById('acct-1');
+    assert.equal(found?.ssn, '123-45-6789');
+  });
+});
