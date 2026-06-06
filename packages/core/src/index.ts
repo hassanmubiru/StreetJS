@@ -275,7 +275,7 @@ export { AuditLogger, Sensitive, ENTERPRISE_AUDIT_MIGRATION_SQL } from './enterp
 export type { AuditCategory } from './enterprise/audit-logger.js';
 
 // ── Enterprise: Data Policy ────────────────────────────────────────────────────
-export { RetainFor, Encrypt, Classify, RetentionJob, ComplianceReporter } from './enterprise/data-policy.js';
+export { RetainFor, Encrypt, Classify, RetentionJob, ComplianceReporter, FieldEncryptor, redactByClassification } from './enterprise/data-policy.js';
 export type { DataClassificationLevel, RetentionEntityMeta, ComplianceReport } from './enterprise/data-policy.js';
 
 // ── Enterprise: Backup ────────────────────────────────────────────────────────
