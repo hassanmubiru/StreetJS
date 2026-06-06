@@ -170,7 +170,7 @@
   - [x] 19.2 Implement `RbacService` constructor: traverse hierarchy using BFS to build a `Map<role, Set<string>>` of flattened permissions; store at construction time for synchronous lookups
   - [x] 19.3 Implement `@Roles(...roles)` decorator: store roles on route metadata under `street:roles` key using `Reflect.defineMetadata`
   - [x] 19.4 Implement `@Permissions(...perms)` decorator: store permissions under `street:permissions` key
-  - [-] 19.5 Implement `rbacGuard(service)` middleware: read metadata from the route handler class/method; call `service.hasRole()` or `service.hasPermission()`; throw `ForbiddenException` with `{ error: 'Forbidden', required: string[] }` on failure
+  - [x] 19.5 Implement `rbacGuard(service)` middleware: read metadata from the route handler class/method; call `service.hasRole()` or `service.hasPermission()`; throw `ForbiddenException` with `{ error: 'Forbidden', required: string[] }` on failure
   - [~] 19.6 Write tests: role inheritance resolves permissions, `@Roles` guard blocks non-matching roles with 403, `@Permissions` guard blocks missing permission, synchronous resolution (no DB calls)
 
 - [ ] 20. v1.4 — WebAuthn / Passkeys
