@@ -17,6 +17,7 @@ import { JwtService } from '../security/jwt.js';
 import { AppConfig } from '../config/index.js';
 import { toPublicUser } from '../domain/user.js';
 import { NotFoundException, UnauthorizedException, ConflictException, } from '../http/exceptions.js';
+import { auditLoginSuccess, auditLoginFailure, auditLogout } from '../auth/audit-writer.js';
 const pbkdf2Async = promisify(pbkdf2);
 const HASH_ITERATIONS = 100_000;
 const HASH_KEYLEN = 64;
@@ -26,10 +27,21 @@ let UserService = class UserService {
     repo;
     config;
     jwt;
+    _auditWriter;
     constructor(repo, config) {
         this.repo = repo;
         this.config = config;
         this.jwt = new JwtService(this.config.jwtSecret);
+    }
+    /**
+     * Attach an {@link AuditWriter} so authentication flows emit audit entries
+     * (`login_success`, `login_failure`, `logout`). Optional: when unset, the
+     * service behaves exactly as before. Wired via a setter rather than the
+     * constructor so the DI container can resolve `UserService` without an
+     * `AuditWriter` registration.
+     */
+    setAuditWriter(writer) {
+        this._auditWriter = writer;
     }
     async register(dto) {
         const exists = await this.repo.emailExists(dto.email.toLowerCase());
@@ -48,15 +60,28 @@ let UserService = class UserService {
         });
         return toPublicUser(user);
     }
-    async login(dto) {
+    async login(dto, auditContext = {}) {
         const user = await this.repo.findByEmail(dto.email.toLowerCase());
         if (!user) {
             // Constant-time: still run hash check to avoid timing leak
             await this._dummyHash();
+            if (this._auditWriter) {
+                await auditLoginFailure(this._auditWriter, {
+                    ...auditContext,
+                    details: { email: dto.email.toLowerCase(), reason: 'user_not_found', ...(auditContext.details ?? {}) },
+                });
+            }
             throw new UnauthorizedException('Invalid credentials');
         }
         const valid = await this._verifyPassword(dto.password, user.password_hash);
         if (!valid) {
+            if (this._auditWriter) {
+                await auditLoginFailure(this._auditWriter, {
+                    actorId: user.id,
+                    ...auditContext,
+                    details: { email: dto.email.toLowerCase(), reason: 'bad_password', ...(auditContext.details ?? {}) },
+                });
+            }
             throw new UnauthorizedException('Invalid credentials');
         }
         let roles = ['user'];
@@ -66,7 +91,20 @@ let UserService = class UserService {
         catch { /* default */ }
         const accessToken = this.jwt.sign({ sub: user.id, email: user.email, roles }, { expiresInSeconds: 3600 });
         const refreshToken = this.jwt.sign({ sub: user.id, type: 'refresh' }, { expiresInSeconds: 86400 * 7 });
+        if (this._auditWriter) {
+            await auditLoginSuccess(this._auditWriter, { actorId: user.id, ...auditContext });
+        }
         return { accessToken, refreshToken, expiresIn: 3600 };
+    }
+    /**
+     * Record a logout for `userId`. When an {@link AuditWriter} is attached, a
+     * `logout` audit entry is written; otherwise this is a no-op. Session and
+     * token revocation are handled by their respective services.
+     */
+    async logout(userId, auditContext = {}) {
+        if (this._auditWriter) {
+            await auditLogout(this._auditWriter, { actorId: userId, ...auditContext });
+        }
     }
     async findById(id) {
         const user = await this.repo.findById(id);

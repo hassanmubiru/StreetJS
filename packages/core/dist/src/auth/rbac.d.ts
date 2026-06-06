@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import type { MiddlewareFn } from '../core/types.js';
+import type { AuditWriter } from './audit-writer.js';
 /**
  * Role hierarchy: maps each role to the roles it inherits from.
  * e.g. { admin: ['editor'], editor: ['viewer'], viewer: [] }
@@ -47,5 +48,14 @@ export declare class RbacService {
  * ctx.state['_requiredPermissions'] before running the pipeline.  This guard
  * reads those values directly — no prototype chain traversal at request time.
  */
-export declare function rbacGuard(service: RbacService): MiddlewareFn;
+/** Optional configuration for {@link rbacGuard}. */
+export interface RbacGuardOptions {
+    /**
+     * When provided, the guard writes a `permission_denied` audit entry before
+     * throwing {@link ForbiddenException}. Omitting it keeps the guard's
+     * behaviour and dependencies unchanged.
+     */
+    auditWriter?: AuditWriter;
+}
+export declare function rbacGuard(service: RbacService, opts?: RbacGuardOptions): MiddlewareFn;
 //# sourceMappingURL=rbac.d.ts.map

@@ -1,0 +1,1 @@
+{"version":3,"file":"cbor.d.ts","sourceRoot":"","sources":["../../../src/auth/cbor.ts"],"names":[],"mappings":"AAeA,OAAO,EAAE,MAAM,EAAE,MAAM,aAAa,CAAC;AAErC,8EAA8E;AAC9E,wBAAgB,UAAU,CAAC,GAAG,EAAE,MAAM,GAAG,OAAO,CAG/C;AAED,wBAAgB,eAAe,CAAC,GAAG,EAAE,MAAM,EAAE,MAAM,EAAE,MAAM,GAAG,CAAC,OAAO,EAAE,MAAM,CAAC,CAiE9E"}

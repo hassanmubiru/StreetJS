@@ -3,6 +3,10 @@
 import * as crypto from 'node:crypto';
 import { LruCache } from '../cache/lru.js';
 import { UnauthorizedException } from '../http/exceptions.js';
+// Re-export the audit log surface from its dedicated module so existing
+// consumers (and index.ts) keep importing it from session-store unchanged.
+export { AuditWriter, AUDIT_LOG_MIGRATION_SQL } from './audit-writer.js';
+export { auditAuthEvent, auditLoginSuccess, auditLoginFailure, auditLogout, auditTokenRefresh, auditSessionRevoked, auditPermissionDenied, } from './audit-writer.js';
 // ── Migration SQL ─────────────────────────────────────────────────────────────
 export const SESSION_STORE_MIGRATION_SQL = `
 CREATE TABLE IF NOT EXISTS street_sessions (
@@ -14,25 +18,17 @@ CREATE TABLE IF NOT EXISTS street_sessions (
 );
 CREATE INDEX IF NOT EXISTS street_sessions_user_idx ON street_sessions (user_id);
 `.trim();
-export const AUDIT_LOG_MIGRATION_SQL = `
-CREATE TABLE IF NOT EXISTS street_audit_log (
-  id         TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-  event      TEXT NOT NULL,
-  actor_id   TEXT,
-  ip         TEXT,
-  user_agent TEXT,
-  details    JSONB NOT NULL DEFAULT '{}',
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-`.trim();
 // ── StreetSessionStore ────────────────────────────────────────────────────────
 export class StreetSessionStore {
     _pool;
     /** LRU cache: sessionId → true (revoked) */
     _revokedCache;
-    constructor(pool) {
+    /** Optional audit writer used to record `session_revoked` events. */
+    _auditWriter;
+    constructor(pool, options) {
         this._pool = pool;
         this._revokedCache = new LruCache({ maxEntries: 50_000, ttlMs: 5 * 60 * 1000 });
+        this._auditWriter = options?.auditWriter;
     }
     /** Create a new session. Returns the sessionId. */
     async create(data) {
@@ -59,8 +55,21 @@ export class StreetSessionStore {
     }
     /** Revoke a session by ID. */
     async revoke(sessionId) {
+        // Capture the owning user before deletion so the audit entry has an actor.
+        let actorId;
+        if (this._auditWriter) {
+            const existing = await this.find(sessionId);
+            actorId = existing?.userId;
+        }
         await this._pool.query('DELETE FROM street_sessions WHERE session_id = $1', [sessionId]);
         this._revokedCache.set(sessionId, true);
+        if (this._auditWriter) {
+            await this._auditWriter.write({
+                event: 'session_revoked',
+                actorId,
+                details: { sessionId, scope: 'single' },
+            });
+        }
     }
     /** Revoke all sessions for a user. */
     async revokeAll(userId) {
@@ -70,6 +79,13 @@ export class StreetSessionStore {
             if (row['session_id']) {
                 this._revokedCache.set(row['session_id'], true);
             }
+        }
+        if (this._auditWriter) {
+            await this._auditWriter.write({
+                event: 'session_revoked',
+                actorId: userId,
+                details: { scope: 'all', count: sessions.rows.length },
+            });
         }
     }
     /** Check if a session is revoked (cache-first, DB fallback). */
@@ -100,26 +116,5 @@ export function sessionRevocationMiddleware(store) {
         }
         await next();
     };
-}
-// ── AuditWriter ───────────────────────────────────────────────────────────────
-export class AuditWriter {
-    _pool;
-    constructor(pool) {
-        this._pool = pool;
-    }
-    /**
-     * Write an audit log entry inside a transaction.
-     * If the write fails, the calling transaction is rolled back.
-     */
-    async write(record) {
-        await this._pool.query(`INSERT INTO street_audit_log (event, actor_id, ip, user_agent, details)
-       VALUES ($1, $2, $3, $4, $5)`, [
-            record.event,
-            record.actorId ?? null,
-            record.ip ?? null,
-            record.userAgent ?? null,
-            JSON.stringify(record.details ?? {}),
-        ]);
-    }
 }
 //# sourceMappingURL=session-store.js.map

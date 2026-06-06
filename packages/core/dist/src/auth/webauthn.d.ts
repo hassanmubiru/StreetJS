@@ -1,6 +1,5 @@
+export { decodeCbor } from './cbor.js';
 export declare const WEBAUTHN_MIGRATION_SQL: string;
-/** Decode a subset of CBOR used in WebAuthn attestation/assertion objects. */
-export declare function decodeCbor(buf: Buffer): unknown;
 /**
  * Parse the COSE-encoded credential public key from authData and return a
  * JWK JSON string suitable for storage and later import via

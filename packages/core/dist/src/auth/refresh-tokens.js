@@ -1,6 +1,7 @@
 // src/auth/refresh-tokens.ts
 // Refresh token issuance, rotation with replay-attack detection, and family revocation.
 import * as crypto from 'node:crypto';
+import { auditTokenRefresh } from './audit-writer.js';
 // ── Migration SQL ─────────────────────────────────────────────────────────────
 export const REFRESH_TOKENS_MIGRATION_SQL = `
 CREATE TABLE IF NOT EXISTS street_refresh_tokens (
@@ -28,11 +29,13 @@ export class RefreshTokenService {
     _jwt;
     _accessTtlMs;
     _refreshTtlMs;
+    _auditWriter;
     constructor(pool, jwt, opts) {
         this._pool = pool;
         this._jwt = jwt;
         this._accessTtlMs = opts?.accessTokenTtlMs ?? 15 * 60 * 1000;
         this._refreshTtlMs = opts?.refreshTokenTtlMs ?? 30 * 24 * 60 * 60 * 1000;
+        this._auditWriter = opts?.auditWriter;
     }
     /**
      * Issue a new access token + refresh token pair for `userId`.
@@ -53,9 +56,9 @@ export class RefreshTokenService {
      * Atomically invalidates the old token and issues new tokens.
      * On replay (already revoked), revokes the entire family and throws TokenReplayError.
      */
-    async rotate(rawRefreshToken) {
+    async rotate(rawRefreshToken, auditContext = {}) {
         const tokenHash = crypto.createHash('sha256').update(rawRefreshToken).digest('hex');
-        return this._pool.transaction(async (conn) => {
+        const result = await this._pool.transaction(async (conn) => {
             // Find the token
             const found = await conn.query(`SELECT id, family_id, user_id, expires_at, revoked_at
          FROM street_refresh_tokens WHERE token_hash = $1`, [tokenHash]);
@@ -85,8 +88,19 @@ export class RefreshTokenService {
             await conn.query(`INSERT INTO street_refresh_tokens (token_hash, family_id, user_id, expires_at)
          VALUES ($1, $2, $3, $4)`, [newHash, familyId, userId, newExpiry.toISOString()]);
             const accessToken = this._jwt.sign({ sub: userId }, { expiresInSeconds: Math.floor(this._accessTtlMs / 1000) });
-            return { accessToken, refreshToken: newRaw };
+            return { accessToken, refreshToken: newRaw, userId, familyId };
         });
+        // Record the successful rotation. Written after the rotation transaction
+        // commits so the audit entry reflects a completed refresh; a failed audit
+        // write still propagates to the caller.
+        if (this._auditWriter) {
+            await auditTokenRefresh(this._auditWriter, {
+                actorId: result.userId,
+                ...auditContext,
+                details: { familyId: result.familyId, ...(auditContext.details ?? {}) },
+            });
+        }
+        return { accessToken: result.accessToken, refreshToken: result.refreshToken };
     }
     /**
      * Revoke all refresh tokens in a family (used on replay detection or explicit logout).

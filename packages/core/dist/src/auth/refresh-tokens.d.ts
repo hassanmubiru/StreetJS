@@ -1,4 +1,5 @@
 import type { JwtService } from '../security/jwt.js';
+import type { AuditWriter, AuditEventDetails } from './audit-writer.js';
 export declare const REFRESH_TOKENS_MIGRATION_SQL: string;
 export declare class TokenReplayError extends Error {
     constructor();
@@ -20,12 +21,19 @@ export interface RefreshTokenPool {
 export interface RefreshTokenServiceOptions {
     accessTokenTtlMs?: number;
     refreshTokenTtlMs?: number;
+    /**
+     * When provided, a `token_refresh` audit entry is written after every
+     * successful {@link RefreshTokenService.rotate} call. Omitting it leaves the
+     * service's behaviour and dependencies unchanged.
+     */
+    auditWriter?: AuditWriter;
 }
 export declare class RefreshTokenService {
     private readonly _pool;
     private readonly _jwt;
     private readonly _accessTtlMs;
     private readonly _refreshTtlMs;
+    private readonly _auditWriter?;
     constructor(pool: RefreshTokenPool, jwt: JwtService, opts?: RefreshTokenServiceOptions);
     /**
      * Issue a new access token + refresh token pair for `userId`.
@@ -40,7 +48,7 @@ export declare class RefreshTokenService {
      * Atomically invalidates the old token and issues new tokens.
      * On replay (already revoked), revokes the entire family and throws TokenReplayError.
      */
-    rotate(rawRefreshToken: string): Promise<{
+    rotate(rawRefreshToken: string, auditContext?: AuditEventDetails): Promise<{
         accessToken: string;
         refreshToken: string;
     }>;

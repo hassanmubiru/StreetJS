@@ -2,6 +2,7 @@
 // RBAC: RoleHierarchy, RbacService, @Roles/@Permissions decorators, rbacGuard middleware.
 import 'reflect-metadata';
 import { ForbiddenException } from '../http/exceptions.js';
+import { auditPermissionDenied } from './audit-writer.js';
 // ── Metadata keys ─────────────────────────────────────────────────────────────
 const ROLES_KEY = 'street:roles';
 const PERMISSIONS_KEY = 'street:permissions';
@@ -108,25 +109,34 @@ export class RbacService {
         return false;
     }
 }
-// ── rbacGuard middleware ──────────────────────────────────────────────────────
-/**
- * Middleware that enforces @Roles / @Permissions requirements against
- * ctx.user.roles.
- *
- * The router bakes RBAC metadata from decorators into the compiled route at
- * registration time and sets ctx.state['_requiredRoles'] and
- * ctx.state['_requiredPermissions'] before running the pipeline.  This guard
- * reads those values directly — no prototype chain traversal at request time.
- */
-export function rbacGuard(service) {
+export function rbacGuard(service, opts) {
+    const auditWriter = opts?.auditWriter;
     return async (ctx, next) => {
         const userRoles = ctx.user?.roles ?? [];
+        const actorId = ctx.user?.id ?? undefined;
+        const ip = ctx.state?.['ip']
+            ?? ctx.headers?.['x-forwarded-for'];
+        const userAgent = ctx.headers?.['user-agent'];
+        const denied = async (kind, required) => {
+            if (auditWriter) {
+                await auditPermissionDenied(auditWriter, {
+                    actorId,
+                    ip,
+                    userAgent,
+                    details: { kind, required, userRoles },
+                });
+            }
+            if (kind === 'roles') {
+                throw new ForbiddenException(`Forbidden: requires one of roles: ${required.join(', ')}`);
+            }
+            throw new ForbiddenException(`Forbidden: requires permissions: ${required.join(', ')}`);
+        };
         // Check @Roles requirements baked by the router
         const requiredRoles = ctx.state?.['_requiredRoles'] ?? [];
         if (requiredRoles.length > 0) {
             const allowed = requiredRoles.some((role) => service.hasRole(userRoles, role));
             if (!allowed) {
-                throw new ForbiddenException(`Forbidden: requires one of roles: ${requiredRoles.join(', ')}`);
+                await denied('roles', requiredRoles);
             }
         }
         // Check @Permissions requirements baked by the router
@@ -134,7 +144,7 @@ export function rbacGuard(service) {
         if (requiredPerms.length > 0) {
             const allowed = requiredPerms.every((perm) => service.hasPermission(userRoles, perm));
             if (!allowed) {
-                throw new ForbiddenException(`Forbidden: requires permissions: ${requiredPerms.join(', ')}`);
+                await denied('permissions', requiredPerms);
             }
         }
         await next();
