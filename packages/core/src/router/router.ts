@@ -60,11 +60,27 @@ export class Router {
     // dispatch() doesn't need prototype chain traversal at request time.
     let requiredRoles: string[] = [];
     let requiredPermissions: string[] = [];
+    let rateLimitMw: MiddlewareFn | undefined;
     if (handlerTarget && handlerMethodName) {
       requiredRoles =
         (Reflect.getMetadata(ROLES_KEY, handlerTarget, handlerMethodName) as string[] | undefined) ?? [];
       requiredPermissions =
         (Reflect.getMetadata(PERMISSIONS_KEY, handlerTarget, handlerMethodName) as string[] | undefined) ?? [];
+
+      // Bake a route-scoped rate limiter from @RateLimit metadata, if present.
+      const rl = getRateLimitMeta(handlerTarget, handlerMethodName);
+      if (rl) {
+        const limiter = new RateLimiter({
+          windowMs: rl.window,
+          maxRequests: rl.requests,
+          ...(rl.key === 'user'
+            ? { keyFn: (c: StreetContext) => c.user?.id ?? c.req.socket.remoteAddress ?? 'unknown' }
+            : rl.key === 'apiKey'
+              ? { keyFn: (c: StreetContext) => (typeof c.state?.['apiKeyId'] === 'string' ? (c.state['apiKeyId'] as string) : c.req.socket.remoteAddress ?? 'unknown') }
+              : {}),
+        });
+        rateLimitMw = limiter.middleware();
+      }
     }
 
     this.routes.push({
@@ -77,6 +93,7 @@ export class Router {
       pathTemplate: path,
       requiredRoles,
       requiredPermissions,
+      rateLimitMw,
     });
   }
 
