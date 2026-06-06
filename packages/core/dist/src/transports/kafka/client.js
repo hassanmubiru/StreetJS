@@ -122,8 +122,10 @@ export class KafkaClient {
             w.int32(partition);
             w.bytes(batch); // records
         });
+        // Produce Response v3: [responses(name,[partitions(index,error_code,base_offset,log_append_time_ms)])] throttle_time_ms
         const topicCount = r.int32();
         let baseOffset = -1n;
+        let perr = 0;
         for (let i = 0; i < topicCount; i++) {
             r.string(); // name
             const pCount = r.int32();
@@ -131,13 +133,15 @@ export class KafkaClient {
                 r.int32(); // index
                 const err = r.int16();
                 const bo = r.int64();
-                r.int64(); // log_append_time
-                r.int64(); // log_start_offset
+                r.int64(); // log_append_time_ms
                 if (err !== 0)
-                    throw new KafkaProtocolError(err, 'produce');
+                    perr = err;
                 baseOffset = bo;
             }
         }
+        r.int32(); // throttle_time_ms (end of response in v1+)
+        if (perr !== 0)
+            throw new KafkaProtocolError(perr, 'produce');
         return baseOffset;
     }
     /** Fetch records from a topic-partition starting at `fetchOffset`. */

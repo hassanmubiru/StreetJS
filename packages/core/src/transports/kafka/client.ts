@@ -209,14 +209,23 @@ export class KafkaClient {
     return offset;
   }
 
-  /** Find the group coordinator broker for a consumer group. */
+  /** Find the group coordinator broker for a consumer group. Retries on
+   *  COORDINATOR_NOT_AVAILABLE (15) while the internal offsets topic initialises. */
   async findCoordinator(groupId: string): Promise<KafkaBroker> {
-    const conn = await this._anyConn();
-    const r = await conn.request(API.FIND_COORDINATOR, 0, (w: KafkaWriter) => { w.string(groupId); });
-    const err = r.int16();
-    if (err !== 0) throw new KafkaProtocolError(err, 'findCoordinator');
-    const nodeId = r.int32(); const host = r.string()!; const port = r.int32();
-    return { nodeId, host, port };
+    let lastErr: unknown;
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const conn = await this._anyConn();
+      const r = await conn.request(API.FIND_COORDINATOR, 0, (w: KafkaWriter) => { w.string(groupId); });
+      const err = r.int16();
+      if (err === 0) {
+        const nodeId = r.int32(); const host = r.string()!; const port = r.int32();
+        return { nodeId, host, port };
+      }
+      lastErr = new KafkaProtocolError(err, 'findCoordinator');
+      if (err !== 15) throw lastErr; // only retry COORDINATOR_NOT_AVAILABLE
+      await new Promise((res) => setTimeout(res, 250 * (attempt + 1)));
+    }
+    throw lastErr instanceof Error ? lastErr : new KafkaProtocolError(15, 'findCoordinator');
   }
 
   /** Commit an offset for a consumer group (group offset storage). */
