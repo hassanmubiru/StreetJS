@@ -40,7 +40,7 @@ export { sanitizeString, sanitizeDeep, escapeHtml, xssMiddleware } from './secur
 export { MultipartParser } from './multipart/parser.js';
 export type { ParsedFile, MultipartResult } from './multipart/parser.js';
 export { StreetWebSocketServer, StreetSocket } from './websocket/server.js';
-export type { WsHandler, WsEvent, WsServerOptions } from './websocket/server.js';
+export type { WsHandler, WsEvent, WsServerOptions, RawWsHandler } from './websocket/server.js';
 export { SseConnection, createSse } from './websocket/sse.js';
 export type { SseEvent } from './websocket/sse.js';
 export { LruCache } from './cache/lru.js';
@@ -143,5 +143,7 @@ export { FeatureUnavailableInEdgeRuntimeError } from './http/exceptions.js';
 export { parseSchema, typeRefToString, namedType, SchemaParseError } from './graphql/schema.js';
 export type { SchemaAst, ServiceDefinition, TypeDef, TypeDefKind, FieldDef, ArgDef, TypeRef, DirectiveNode, DirectiveArg, DirectiveDef, EnumValueDef, } from './graphql/schema.js';
 export { GraphQlEngine, graphqlMiddleware } from './graphql/engine.js';
-export type { GraphQlEngineOptions, ExecutionResult } from './graphql/engine.js';
+export type { GraphQlEngineOptions, ExecutionResult, SubscriptionSource } from './graphql/engine.js';
+export { GraphQlWsConnection, attachGraphqlWs, GRAPHQL_WS_SUBPROTOCOL, GraphQlWsMessageType, GraphQlWsCloseCode, } from './graphql/subscriptions.js';
+export type { GraphQlWsTransport, GraphQlWsConnectionOptions, GraphQlWsServerOptions, GraphQlWsMessage, } from './graphql/subscriptions.js';
 //# sourceMappingURL=index.d.ts.map
