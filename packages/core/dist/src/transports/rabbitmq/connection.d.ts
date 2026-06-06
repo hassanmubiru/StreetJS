@@ -26,7 +26,7 @@ export declare class AmqpConnection extends EventEmitter {
     private readonly confirmWaiters;
     private confirmEnabled;
     private pendingDelivery;
-    private deliverHandler;
+    private readonly consumers;
     constructor(opts?: AmqpConnectionOptions);
     private _key;
     private _send;
@@ -74,6 +74,8 @@ export declare class AmqpConnection extends EventEmitter {
     private _handleHeader;
     private _handleBody;
     private _finishDelivery;
+    /** Abruptly drop the socket to simulate a network failure (used in tests). */
+    simulateDrop(): void;
     /** Acknowledge a delivery. */
     ack(deliveryTag: bigint): void;
     /** Negatively acknowledge a delivery; `requeue` controls redelivery. */
