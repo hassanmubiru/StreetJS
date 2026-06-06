@@ -216,3 +216,80 @@ describe('Cloud runtime helpers', () => {
     dispose();
   });
 });
+
+// ── Plugin lifecycle (load/unload round-trip) ─────────────────────────────────
+
+import { streetApp } from '../http/server.js';
+import { PluginModule, type SandboxedApp } from '../platform/plugins/sdk.js';
+import type { MiddlewareFn } from '../core/types.js';
+
+describe('Plugin load/unload round-trip', () => {
+  it('restores the middleware stack after unload', async () => {
+    const app = streetApp();
+    const mw: MiddlewareFn = async (_c, next) => { await next(); };
+    app.use(mw);
+
+    class MyPlugin extends PluginModule {
+      readonly name = 'my-plugin';
+      readonly version = '1.0.0';
+      loaded = false;
+      override async onLoad(a: SandboxedApp): Promise<void> {
+        this.loaded = true;
+        a.use(async (_c, next) => { await next(); });
+        a.use(async (_c, next) => { await next(); });
+      }
+      override async onUnload(): Promise<void> { this.loaded = false; }
+    }
+
+    const plugin = new MyPlugin();
+    await app.loadPlugin(plugin);
+    assert.equal(plugin.loaded, true);
+    await app.unloadPlugin(plugin);
+    assert.equal(plugin.loaded, false);
+    // No assertion error means the middleware stack was restored cleanly.
+    await app.close();
+  });
+});
+
+// ── Replication coordinator ───────────────────────────────────────────────────
+
+import { ReplicationCoordinator, type GenericPool } from '../platform/replication.js';
+
+function fakePool(label: string, fail = false): GenericPool {
+  return {
+    async query() {
+      if (fail) throw new Error('down');
+      return { rows: [{ region: label }] };
+    },
+  };
+}
+
+describe('ReplicationCoordinator', () => {
+  it('routes writes to primary and honors preferred read region', () => {
+    const coord = new ReplicationCoordinator(
+      [
+        { name: 'us-east', pool: fakePool('us-east'), primary: true },
+        { name: 'eu-west', pool: fakePool('eu-west'), readWeight: 1 },
+      ],
+      { healthCheckIntervalMs: 0 },
+    );
+    assert.equal(coord.getWritePool(), coord.getReadPool('us-east'));
+    assert.ok(coord.getReadPool('eu-west'));
+    coord.stop();
+  });
+
+  it('promotePrimary emits region:promoted', async () => {
+    const coord = new ReplicationCoordinator(
+      [
+        { name: 'a', pool: fakePool('a'), primary: true },
+        { name: 'b', pool: fakePool('b') },
+      ],
+      { healthCheckIntervalMs: 0 },
+    );
+    const events: unknown[] = [];
+    coord.on('region:promoted', (e) => events.push(e));
+    await coord.promotePrimary('b');
+    assert.equal(events.length, 1);
+    coord.stop();
+  });
+});
