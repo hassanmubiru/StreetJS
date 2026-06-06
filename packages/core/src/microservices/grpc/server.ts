@@ -144,14 +144,42 @@ export class GrpcServer {
     }
   }
 
-  private async *_readFrames(stream: ServerHttp2Stream): AsyncGenerator<Buffer> {
-    let buffer: Buffer = Buffer.alloc(0);
-    for await (const chunk of stream) {
-      buffer = Buffer.concat([buffer, chunk as Buffer]);
-      const { frames, rest } = decodeFrames(buffer, this.maxBytes);
-      buffer = rest;
-      for (const f of frames) yield f;
+  private _readFrames(stream: ServerHttp2Stream): AsyncGenerator<Buffer> {
+    const queue: Buffer[] = [];
+    let leftover: Buffer = Buffer.alloc(0);
+    let ended = false;
+    let errored: Error | null = null;
+    let notify: (() => void) | null = null;
+    const wake = (): void => { if (notify) { const n = notify; notify = null; n(); } };
+    const maxBytes = this.maxBytes;
+
+    stream.on('data', (chunk: Buffer) => {
+      leftover = Buffer.concat([leftover, chunk]);
+      try {
+        const { frames, rest } = decodeFrames(leftover, maxBytes);
+        leftover = rest;
+        for (const f of frames) queue.push(f);
+      } catch (e) {
+        errored = e instanceof Error ? e : new Error(String(e));
+      }
+      wake();
+    });
+    stream.on('end', () => { ended = true; wake(); });
+    stream.on('error', (e: Error) => { errored = e; ended = true; wake(); });
+
+    // Event-listener based reader: stopping iteration early does NOT destroy
+    // the stream (unlike `for await (const c of stream)`), so the writable side
+    // stays open for the response.
+    async function* gen(): AsyncGenerator<Buffer> {
+      for (;;) {
+        if (errored) throw errored;
+        const next = queue.shift();
+        if (next !== undefined) { yield next; continue; }
+        if (ended) return;
+        await new Promise<void>((resolve) => { notify = resolve; });
+      }
     }
+    return gen();
   }
 }
 
