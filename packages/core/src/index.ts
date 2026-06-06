@@ -228,6 +228,15 @@ export {
   RabbitMqTransport, RabbitMqConnectionManager, RabbitMqPublisher, RabbitMqConsumer, AmqpConnection,
 } from './transports/rabbitmq/index.js';
 export type { RabbitMqOptions, ConsumerOptions, AmqpConnectionOptions, DeliveredMessage } from './transports/rabbitmq/index.js';
+export {
+  KafkaClient, KafkaProtocolError, KafkaProducer, KafkaConsumer, KafkaStreamTransport,
+  encodeRecordBatch, decodeRecordBatches,
+} from './transports/kafka/index.js';
+export type {
+  KafkaClientOptions, ClusterMeta, TopicMeta, PartitionMeta, KafkaRecord,
+  ProducerOptions as KafkaProducerOptions, ConsumerOptions as KafkaConsumerOptions,
+  ConsumedMessage as KafkaConsumedMessage,
+} from './transports/kafka/index.js';
 export { SagaOrchestrator } from './microservices/saga.js';
 export type { SagaStep } from './microservices/saga.js';
 export { DistributedLock } from './microservices/distributed-lock.js';
