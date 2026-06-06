@@ -383,14 +383,14 @@ Status markers used in this plan:
   - [ ] 42.5 Register `PATCH /admin/feature-flags/:name` route: update the DB record, call `invalidateCache()`; protect with `requireRoles('admin')`
   - [ ] 42.6 Write tests: flag not found returns `false` without throwing, percentage rollout is stable for same user, targeting rule evaluation order, cache invalidation forces DB re-read
 
-- [ ] 43. v2.2 — Audit Logging
-  - [~] 43.1 Write `street_audit_log` migration SQL: `id UUID, category TEXT, actor_id TEXT, action TEXT, resource TEXT, before_state JSONB, after_state JSONB, ip TEXT, user_agent TEXT, batch_id UUID, signature TEXT, created_at`; create append-only trigger that blocks `UPDATE` and `DELETE`
-  - [~] 43.2 Create `packages/core/src/enterprise/audit-logger.ts` with `AuditLogger`: `AuditCategory`, `AuditLogOptions`, `AuditLogger` class accepting `{ pool, signingKey }`
-  - [~] 43.3 Implement `AuditLogger.log(opts)`: write to `street_audit_log`; batch every 100 entries; sign each batch with `HMAC-SHA256(previousSignature + batchJSON)` to create a hash chain
-  - [~] 43.4 Implement `@Sensitive()` property decorator: marks entity fields; `AuditLogger.log()` reads metadata and replaces sensitive field values with `"[REDACTED]"` in `before_state` and `after_state`
+- [~] 43. v2.2 — Audit Logging
+  - [x] 43.1 Write `street_audit_log` migration SQL: `id UUID, category TEXT, actor_id TEXT, action TEXT, resource TEXT, before_state JSONB, after_state JSONB, ip TEXT, user_agent TEXT, batch_id UUID, signature TEXT, created_at`; create append-only trigger that blocks `UPDATE` and `DELETE`
+  - [x] 43.2 Create `packages/core/src/enterprise/audit-logger.ts` with `AuditLogger`: `AuditCategory`, `AuditLogOptions`, `AuditLogger` class accepting `{ pool, signingKey }`
+  - [x] 43.3 Implement `AuditLogger.log(opts)`: write to `street_audit_log`; batch every 100 entries; sign each batch with `HMAC-SHA256(previousSignature + batchJSON)` to create a hash chain
+  - [x] 43.4 Implement `@Sensitive()` property decorator: marks entity fields; `AuditLogger.log()` reads metadata and replaces sensitive field values with `"[REDACTED]"` in `before_state` and `after_state`
   - [~] 43.5 Implement `AuditLogger.export(from, to, format)`: `SELECT` from `street_audit_log` ordered by `created_at`; stream output as JSONL or CSV via a `Readable` stream
-  - [~] 43.6 Add `street audit:export --from <date> --to <date> --format <jsonl|csv>` CLI command
-  - [~] 43.7 Write tests: append-only trigger prevents DELETE and UPDATE, batch signature chain is verifiable, `@Sensitive` fields are redacted in audit output, JSONL export contains all entries in time range
+  - [ ] 43.6 Add `street audit:export --from <date> --to <date> --format <jsonl|csv>` CLI command
+  - [ ] 43.7 Write tests: append-only trigger prevents DELETE and UPDATE, batch signature chain is verifiable, `@Sensitive` fields are redacted in audit output, JSONL export contains all entries in time range
 
 - [ ] 44. v2.2 — Data Retention, Encryption Policies, and Data Classification
   - [~] 44.1 Create `packages/core/src/enterprise/data-policy.ts`: `@RetainFor(duration)`, `@Encrypt()`, `@Classify(level)` property decorators; store metadata under `street:retention`, `street:encrypt`, `street:classify` keys
