@@ -16,6 +16,8 @@ import { AuditCommand } from './commands/audit.js';
 import { SeedCommand } from './commands/seed.js';
 import { DiagnosticsCommand } from './commands/diagnostics.js';
 import { JobsDashboardCommand } from './commands/jobs-dashboard.js';
+import { DeployInitCommand } from './commands/deploy.js';
+import { PluginInstallCommand, PluginListCommand } from './commands/plugin.js';
 
 const VERSION = '1.0.3';
 const APP_NAME = 'street';
@@ -114,6 +116,18 @@ export async function runCli(argv: string[]): Promise<void> {
 
       case 'jobs:dashboard':
         await new JobsDashboardCommand().execute(ctx);
+        break;
+
+      case 'deploy:init':
+        await new DeployInitCommand().execute(ctx);
+        break;
+
+      case 'plugin:install':
+        await new PluginInstallCommand().execute(ctx);
+        break;
+
+      case 'plugin:list':
+        await new PluginListCommand().execute(ctx);
         break;
 
       default:
