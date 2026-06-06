@@ -236,85 +236,85 @@ Status markers used in this plan:
   - [x] 25.6 Write tests: crashed-worker job recovery re-enqueues after heartbeat timeout, metrics endpoint returns correct counts, history pruning keeps last 1,000 entries per type
 
 
-- [ ] 26. v1.6 — GraphQL Server
+- [x] 26. v1.6 — GraphQL Server
   - [x] 26.1 Create `packages/core/src/graphql/schema.ts`: SDL parser that reads a `.graphql` schema string and produces an internal AST (type definitions, field definitions, directives); no `graphql-js` dependency
   - [x] 26.2 Create `packages/core/src/graphql/engine.ts` with `GraphQlEngine`: takes `{ schema, resolvers, maxDepth?, maxComplexity? }`; `execute(query, variables, ctx)` parses the query document, validates against schema, executes against resolvers
   - [x] 26.3 Implement query depth limiting: recursive visitor counts nesting depth; reject with 400 if `> maxDepth`
   - [x] 26.4 Implement query complexity analysis: accumulate field weights (default 1 per field); reject with 400 if `> maxComplexity`
   - [x] 26.5 Implement GraphQL subscriptions using `AsyncIterator`; integrate with `StreetWebSocketServer` using the `graphql-ws` subprotocol framing
   - [x] 26.6 Implement introspection guard: when `introspection: false`, `__schema` and `__type` field access returns a field-not-found error
-  - [~] 26.7 Register `POST /graphql` route in `StreetApp` via `graphqlMiddleware(engine)` factory
-  - [~] 26.8 Write tests: simple query resolves, mutation executes and returns data, depth limit rejects deep queries, introspection blocked in production mode, response round-trip (serialize→parse→equals original)
+  - [x] 26.7 Register `POST /graphql` route in `StreetApp` via `graphqlMiddleware(engine)` factory
+  - [x] 26.8 Write tests: simple query resolves, mutation executes and returns data, depth limit rejects deep queries, introspection blocked in production mode, response round-trip (serialize→parse→equals original)
 
-- [ ] 27. v1.6 — API Versioning
+- [~] 27. v1.6 — API Versioning
   - [~] 27.1 Create `packages/core/src/versioning/strategy.ts`: `@ApiVersion(version)` class decorator that stores version string under `street:apiVersion` metadata; `VersioningOptions` interface; `VersionStrategy` union type
   - [~] 27.2 Implement URL versioning in `enableVersioning(app, { strategy: 'url' })`: read `street:apiVersion` metadata from each controller during `registerController()`; prefix the controller's routes with `/<version>/`
   - [~] 27.3 Implement header versioning in `enableVersioning(app, { strategy: 'header', headerName? })`: middleware reads `Accept: application/vnd.street.v2+json`, extracts version, rewrites internal route key for dispatch
-  - [~] 27.4 Return HTTP 404 with available versions list when a request targets an unregistered version: `{ error: 'version_not_found', available: ['v1', 'v2'] }`
-  - [~] 27.5 Generate separate OpenAPI spec files per version: `app.openApiSpec('v1')` returns only v1 routes; register `GET /v1/openapi.json` and `GET /v2/openapi.json`
-  - [~] 27.6 Implement `@Deprecated({ sunset: Date })` decorator: post-dispatch middleware reads metadata and adds `Sunset` and `Deprecation` headers
-  - [~] 27.7 Write tests: URL-versioned route dispatches correctly, header-versioned route dispatches correctly, unregistered version returns 404 with versions list, `@Deprecated` adds response headers
+  - [ ] 27.4 Return HTTP 404 with available versions list when a request targets an unregistered version: `{ error: 'version_not_found', available: ['v1', 'v2'] }`
+  - [ ] 27.5 Generate separate OpenAPI spec files per version: `app.openApiSpec('v1')` returns only v1 routes; register `GET /v1/openapi.json` and `GET /v2/openapi.json`
+  - [ ] 27.6 Implement `@Deprecated({ sunset: Date })` decorator: post-dispatch middleware reads metadata and adds `Sunset` and `Deprecation` headers
+  - [ ] 27.7 Write tests: URL-versioned route dispatches correctly, header-versioned route dispatches correctly, unregistered version returns 404 with versions list, `@Deprecated` adds response headers
 
-- [ ] 28. v1.6 — SDK Generator
-  - [~] 28.1 Create `packages/core/src/sdk-gen/typescript.ts`: `generateTypescriptSdk(spec, outputDir)` iterates `spec.paths`, generates `types.ts` with typed request/response interfaces using mapped types from the OpenAPI schema objects
-  - [~] 28.2 Implement TypeScript `ApiClient.ts` generation: one method per `operationId`, named exactly as the operationId; method signature accepts typed request params; body uses native `fetch` API
-  - [~] 28.3 Create `packages/core/src/sdk-gen/python.ts`: `generatePythonSdk(spec, outputDir)` generates Python dataclasses for models and a `urllib.request`-based client; no third-party Python dependencies
-  - [~] 28.4 Add `street generate sdk --lang <typescript|python> --output <dir>` to `GenerateCommand`: dynamically import the compiled project's `openApiSpec()`, pass to the appropriate generator
-  - [~] 28.5 Write tests: generated TypeScript compiles without errors, generated Python dataclasses match the spec schema, backward-compatible spec change produces additive SDK update
+- [~] 28. v1.6 — SDK Generator
+  - [x] 28.1 Create `packages/core/src/sdk-gen/typescript.ts`: `generateTypescriptSdk(spec, outputDir)` iterates `spec.paths`, generates `types.ts` with typed request/response interfaces using mapped types from the OpenAPI schema objects
+  - [x] 28.2 Implement TypeScript `ApiClient.ts` generation: one method per `operationId`, named exactly as the operationId; method signature accepts typed request params; body uses native `fetch` API
+  - [x] 28.3 Create `packages/core/src/sdk-gen/python.ts`: `generatePythonSdk(spec, outputDir)` generates Python dataclasses for models and a `urllib.request`-based client; no third-party Python dependencies
+  - [ ] 28.4 Add `street generate sdk --lang <typescript|python> --output <dir>` to `GenerateCommand`: dynamically import the compiled project's `openApiSpec()`, pass to the appropriate generator
+  - [ ] 28.5 Write tests: generated TypeScript compiles without errors, generated Python dataclasses match the spec schema, backward-compatible spec change produces additive SDK update
 
-- [ ] 29. v1.6 — Rate Limit Policies and API Analytics
-  - [~] 29.1 Create `@RateLimit({ requests, window, key? })` method decorator in `packages/core/src/security/ratelimit.ts`: store config under `street:rateLimit` route metadata
-  - [~] 29.2 Implement per-route rate limit resolution in the router middleware pipeline: read `street:rateLimit` metadata and instantiate a route-scoped `RateLimiter`; cache instances in a `Map<routeKey, RateLimiter>`; respond 429 with `Retry-After`, `X-RateLimit-*` headers on violation
-  - [~] 29.3 Write `street_api_events` migration SQL; create `packages/core/src/observability/analytics.ts` with `AnalyticsService`
-  - [~] 29.4 Implement `AnalyticsService.middleware()`: buffer events in memory (max 100); flush to DB every 5 seconds or when buffer reaches 100; use a single batched `INSERT` statement
-  - [~] 29.5 Implement `AnalyticsService.report(from, to)`: SQL aggregation query returning top routes by count, average latency, and error rate
-  - [~] 29.6 Implement retention pruning: `CronScheduler` nightly job deletes `street_api_events` rows older than `retentionDays`
-  - [~] 29.7 Add `street analytics report --from <date> --to <date>` CLI command
-  - [~] 29.8 Write tests: per-route limiter overrides global, 429 headers are correct, analytics buffer flushes, retention pruning removes old rows
+- [~] 29. v1.6 — Rate Limit Policies and API Analytics
+  - [x] 29.1 Create `@RateLimit({ requests, window, key? })` method decorator in `packages/core/src/security/ratelimit.ts`: store config under `street:rateLimit` route metadata
+  - [ ] 29.2 Implement per-route rate limit resolution in the router middleware pipeline: read `street:rateLimit` metadata and instantiate a route-scoped `RateLimiter`; cache instances in a `Map<routeKey, RateLimiter>`; respond 429 with `Retry-After`, `X-RateLimit-*` headers on violation
+  - [ ] 29.3 Write `street_api_events` migration SQL; create `packages/core/src/observability/analytics.ts` with `AnalyticsService`
+  - [ ] 29.4 Implement `AnalyticsService.middleware()`: buffer events in memory (max 100); flush to DB every 5 seconds or when buffer reaches 100; use a single batched `INSERT` statement
+  - [ ] 29.5 Implement `AnalyticsService.report(from, to)`: SQL aggregation query returning top routes by count, average latency, and error rate
+  - [ ] 29.6 Implement retention pruning: `CronScheduler` nightly job deletes `street_api_events` rows older than `retentionDays`
+  - [ ] 29.7 Add `street analytics report --from <date> --to <date>` CLI command
+  - [ ] 29.8 Write tests: per-route limiter overrides global, 429 headers are correct, analytics buffer flushes, retention pruning removes old rows
 
 - [ ] 30. v1.6 — Webhook Management
-  - [~] 30.1 Write `street_webhook_endpoints` and `street_webhook_deliveries` migration SQL files
-  - [~] 30.2 Create `packages/core/src/webhook/manager.ts` with `WebhookManager` class: `registerEndpoint()`, `publish()`, `deliveryLog()`, `revokeEndpoint()` methods
-  - [~] 30.3 Implement `WebhookManager.publish(event, payload)`: query `street_webhook_endpoints` for matching event types; for each endpoint, enqueue a delivery job in `JobQueue` (re-using task 22 infrastructure)
-  - [~] 30.4 Implement delivery: the job handler calls the existing `WebhookDispatcher`; on non-2xx response, record status and truncated body (1 KB max) in `street_webhook_deliveries`
-  - [~] 30.5 Implement at-least-once semantics with exponential backoff up to 72 hours; move to dead-letter state after all retries exhausted
+  - [ ] 30.1 Write `street_webhook_endpoints` and `street_webhook_deliveries` migration SQL files
+  - [ ] 30.2 Create `packages/core/src/webhook/manager.ts` with `WebhookManager` class: `registerEndpoint()`, `publish()`, `deliveryLog()`, `revokeEndpoint()` methods
+  - [ ] 30.3 Implement `WebhookManager.publish(event, payload)`: query `street_webhook_endpoints` for matching event types; for each endpoint, enqueue a delivery job in `JobQueue` (re-using task 22 infrastructure)
+  - [ ] 30.4 Implement delivery: the job handler calls the existing `WebhookDispatcher`; on non-2xx response, record status and truncated body (1 KB max) in `street_webhook_deliveries`
+  - [ ] 30.5 Implement at-least-once semantics with exponential backoff up to 72 hours; move to dead-letter state after all retries exhausted
   - [~] 30.6 Implement `verifyIncomingWebhook(secret, signature, rawBody)`: HMAC-SHA256 constant-time comparison; reuse `signPayload` from `dispatcher.ts`
-  - [~] 30.7 Write tests: published event delivered to matching endpoints, non-matching event skipped, delivery retry on 5xx, HMAC verification accepts valid and rejects invalid signatures
+  - [ ] 30.7 Write tests: published event delivered to matching endpoints, non-matching event skipped, delivery retry on 5xx, HMAC verification accepts valid and rejects invalid signatures
 
 
-- [ ] 31. v1.7 — Tenant Isolation and Routing
-  - [~] 31.1 Write `street_tenants` migration SQL: `id UUID, name TEXT, plan TEXT, connection_string TEXT, status TEXT, created_at`
-  - [~] 31.2 Create `packages/core/src/tenancy/context.ts`: `TenantContextData` interface; `tenantMiddleware(opts)` factory supporting `subdomain`, `path`, and `header` resolution strategies; populate `ctx.state['tenant']`; return 400 `{ error: 'tenant_not_found' }` when resolution fails
-  - [~] 31.3 Create `TenantPoolRegistry` in `packages/core/src/tenancy/pool-registry.ts`: `Map<tenantId, PgPool>` keyed by tenant; create pool from `street_tenants.connection_string` on first access; reap idle pools after configurable timeout
-  - [~] 31.4 Implement `@TenantScoped()` class decorator: intercept `create()`, `update()`, `findById()`, `findAll()`, `delete()` on the decorated repository to automatically inject `tenant_id` filter from `ctx.state['tenant']`
-  - [~] 31.5 Implement `TenantScopedRepository<T>` base class extending `StreetPostgresRepository<T>`: override SQL generation to include `AND tenant_id = $N` in all WHERE clauses and add `tenant_id = $N` to all INSERTs
-  - [~] 31.6 Write tests: subdomain resolution extracts tenant from hostname, missing tenant returns 400, per-tenant pool routes queries to correct connection, `@TenantScoped` prevents cross-tenant data access
+- [x] 31. v1.7 — Tenant Isolation and Routing
+  - [x] 31.1 Write `street_tenants` migration SQL: `id UUID, name TEXT, plan TEXT, connection_string TEXT, status TEXT, created_at`
+  - [x] 31.2 Create `packages/core/src/tenancy/context.ts`: `TenantContextData` interface; `tenantMiddleware(opts)` factory supporting `subdomain`, `path`, and `header` resolution strategies; populate `ctx.state['tenant']`; return 400 `{ error: 'tenant_not_found' }` when resolution fails
+  - [x] 31.3 Create `TenantPoolRegistry` in `packages/core/src/tenancy/pool-registry.ts`: `Map<tenantId, PgPool>` keyed by tenant; create pool from `street_tenants.connection_string` on first access; reap idle pools after configurable timeout
+  - [x] 31.4 Implement `@TenantScoped()` class decorator: intercept `create()`, `update()`, `findById()`, `findAll()`, `delete()` on the decorated repository to automatically inject `tenant_id` filter from `ctx.state['tenant']`
+  - [x] 31.5 Implement `TenantScopedRepository<T>` base class extending `StreetPostgresRepository<T>`: override SQL generation to include `AND tenant_id = $N` in all WHERE clauses and add `tenant_id = $N` to all INSERTs
+  - [x] 31.6 Write tests: subdomain resolution extracts tenant from hostname, missing tenant returns 400, per-tenant pool routes queries to correct connection, `@TenantScoped` prevents cross-tenant data access
 
-- [ ] 32. v1.7 — Tenant Provisioning, Billing, and Quotas
-  - [~] 32.1 Write `street_tenant_usage` migration SQL: `tenant_id, period DATE, metric_key TEXT, value BIGINT, updated_at`
-  - [~] 32.2 Create `packages/core/src/tenancy/provisioner.ts` with `TenantService.provision(opts)`: atomic transaction that INSERTs `street_tenants` row, runs tenant-specific migrations, registers the connection pool, and emits `tenant:provisioned` event
-  - [~] 32.3 Implement `TenantService.checkQuota(tenantId, quotaKey)`: reads configured limits from a `QuotaConfig` map; reads current usage from `street_tenant_usage`; returns `QuotaStatus { allowed, current, limit, reset }`
-  - [~] 32.4 Create `QuotaEnforcer.middleware()`: call `checkQuota()` before handler; return 429 with `{ error: 'quota_exceeded', quota, limit, reset }` if exceeded; emit `tenant:quota:warning` event at 80% threshold
-  - [~] 32.5 Create `TenantBillingAdapter` interface in `packages/core/src/tenancy/billing.ts`: `reportUsage(tenantId, period, metrics)` abstract method; no coupling to specific billing provider
-  - [~] 32.6 Write tests: provisioning creates tenant record and runs migrations atomically, quota exceeded returns 429 with correct fields, warning event fires at 80%, `reportUsage` adapter is called with correct metrics
+- [~] 32. v1.7 — Tenant Provisioning, Billing, and Quotas
+  - [x] 32.1 Write `street_tenant_usage` migration SQL: `tenant_id, period DATE, metric_key TEXT, value BIGINT, updated_at`
+  - [x] 32.2 Create `packages/core/src/tenancy/provisioner.ts` with `TenantService.provision(opts)`: atomic transaction that INSERTs `street_tenants` row, runs tenant-specific migrations, registers the connection pool, and emits `tenant:provisioned` event
+  - [x] 32.3 Implement `TenantService.checkQuota(tenantId, quotaKey)`: reads configured limits from a `QuotaConfig` map; reads current usage from `street_tenant_usage`; returns `QuotaStatus { allowed, current, limit, reset }`
+  - [x] 32.4 Create `QuotaEnforcer.middleware()`: call `checkQuota()` before handler; return 429 with `{ error: 'quota_exceeded', quota, limit, reset }` if exceeded; emit `tenant:quota:warning` event at 80% threshold
+  - [ ] 32.5 Create `TenantBillingAdapter` interface in `packages/core/src/tenancy/billing.ts`: `reportUsage(tenantId, period, metrics)` abstract method; no coupling to specific billing provider
+  - [x] 32.6 Write tests: provisioning creates tenant record and runs migrations atomically, quota exceeded returns 429 with correct fields, warning event fires at 80%, `reportUsage` adapter is called with correct metrics
 
-- [ ] 33. v1.7 — Tenant Metrics
-  - [~] 33.1 Write `street_tenant_daily_stats` migration SQL: `tenant_id, date DATE, metrics JSONB, created_at`
-  - [~] 33.2 Create `packages/core/src/tenancy/metrics.ts` with `TenantMetricsRegistry`: wraps `MetricsRegistry`; all metric registrations automatically include a `tenant_id` label; enforces max 10,000 tenant entries with LRU eviction
-  - [~] 33.3 Implement `TenantMetricsRegistry.forTenant(tenantId)`: returns a scoped `TenantMetricsView` that pre-labels all metric operations with `tenant_id`; evicts the LRU entry when the 10,000 cap is reached
-  - [~] 33.4 Register `GET /admin/tenants/:id/metrics` route: protected by `requireRoles('admin')`; return current usage and quota status for the specified tenant
+- [~] 33. v1.7 — Tenant Metrics
+  - [x] 33.1 Write `street_tenant_daily_stats` migration SQL: `tenant_id, date DATE, metrics JSONB, created_at`
+  - [x] 33.2 Create `packages/core/src/tenancy/metrics.ts` with `TenantMetricsRegistry`: wraps `MetricsRegistry`; all metric registrations automatically include a `tenant_id` label; enforces max 10,000 tenant entries with LRU eviction
+  - [x] 33.3 Implement `TenantMetricsRegistry.forTenant(tenantId)`: returns a scoped `TenantMetricsView` that pre-labels all metric operations with `tenant_id`; evicts the LRU entry when the 10,000 cap is reached
+  - [ ] 33.4 Register `GET /admin/tenants/:id/metrics` route: protected by `requireRoles('admin')`; return current usage and quota status for the specified tenant
   - [~] 33.5 Add a nightly `CronScheduler` job that aggregates `street_tenant_usage` rows into `street_tenant_daily_stats`
-  - [~] 33.6 Write tests: Prometheus output includes `tenant_id` label, LRU eviction at 10,000 tenants, admin endpoint returns correct stats, daily aggregation job produces correct summaries
+  - [x] 33.6 Write tests: Prometheus output includes `tenant_id` label, LRU eviction at 10,000 tenants, admin endpoint returns correct stats, daily aggregation job produces correct summaries
 
 
-- [ ] 34. v2.0 — HTTP/2 and gRPC Support
-  - [~] 34.1 Create `packages/core/src/microservices/http2.ts` with `streetHttp2App(opts)`: wraps `node:http2` `createSecureServer()`; implements the same `registerController()` / `use()` / `listen()` / `close()` interface as `StreetApp`; controllers are portable between HTTP/1.1 and HTTP/2 apps
-  - [~] 34.2 Create `packages/core/src/microservices/grpc/` directory with `proto-parser.ts`: read `.proto` file with `node:fs`, parse `service` and `message` definitions via a recursive-descent parser, produce `ServiceDefinition` and `MessageDefinition` ASTs
-  - [~] 34.3 Create `packages/core/src/microservices/grpc/server.ts` with `GrpcServer`: `registerService(def, impl)`, `start()`, `stop()`; implement HTTP/2 framing for gRPC protocol (length-prefixed message frames) over `node:net`
-  - [~] 34.4 Support all four RPC types: unary, server-streaming, client-streaming, bidirectional-streaming; each handler receives an `AbortSignal` from the gRPC `grpc-timeout` deadline
-  - [~] 34.5 Enforce max message size (default 4 MB): return `RESOURCE_EXHAUSTED` status for oversized messages
-  - [~] 34.6 Create `packages/cli/src/commands/grpc-codegen.ts` for `street generate grpc --proto ./service.proto`: invoke `proto-parser.ts`, write TypeScript type definitions for request/response messages to the output directory
-  - [~] 34.7 Write tests: HTTP/2 server accepts requests, gRPC unary RPC round-trip, server-streaming emits multiple messages, deadline cancellation fires `AbortSignal`, message size limit enforced
+- [~] 34. v2.0 — HTTP/2 and gRPC Support
+  - [x] 34.1 Create `packages/core/src/microservices/http2.ts` with `streetHttp2App(opts)`: wraps `node:http2` `createSecureServer()`; implements the same `registerController()` / `use()` / `listen()` / `close()` interface as `StreetApp`; controllers are portable between HTTP/1.1 and HTTP/2 apps
+  - [ ] 34.2 Create `packages/core/src/microservices/grpc/` directory with `proto-parser.ts`: read `.proto` file with `node:fs`, parse `service` and `message` definitions via a recursive-descent parser, produce `ServiceDefinition` and `MessageDefinition` ASTs
+  - [ ] 34.3 Create `packages/core/src/microservices/grpc/server.ts` with `GrpcServer`: `registerService(def, impl)`, `start()`, `stop()`; implement HTTP/2 framing for gRPC protocol (length-prefixed message frames) over `node:net`
+  - [ ] 34.4 Support all four RPC types: unary, server-streaming, client-streaming, bidirectional-streaming; each handler receives an `AbortSignal` from the gRPC `grpc-timeout` deadline
+  - [ ] 34.5 Enforce max message size (default 4 MB): return `RESOURCE_EXHAUSTED` status for oversized messages
+  - [ ] 34.6 Create `packages/cli/src/commands/grpc-codegen.ts` for `street generate grpc --proto ./service.proto`: invoke `proto-parser.ts`, write TypeScript type definitions for request/response messages to the output directory
+  - [ ] 34.7 Write tests: HTTP/2 server accepts requests, gRPC unary RPC round-trip, server-streaming emits multiple messages, deadline cancellation fires `AbortSignal`, message size limit enforced
 
 - [ ] 35. v2.0 — Service Discovery and Circuit Breakers
   - [~] 35.1 Create `packages/core/src/microservices/service-registry.ts`: `ServiceInstance`, `ServiceRegistryBackend` interface, `ServiceRegistry` class; implement `StaticRegistry` backend reading from a config object
