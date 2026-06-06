@@ -212,6 +212,17 @@ export class AuditLogger {
   }
 }
 
+function _redactSensitive(state: unknown, entityClass?: new (...args: never[]) => unknown): unknown {
+  if (!entityClass || state === null || typeof state !== 'object') return state;
+  const sensitive = (Reflect.getMetadata('street:sensitive', entityClass) as string[] | undefined) ?? [];
+  if (sensitive.length === 0) return state;
+  const out: Record<string, unknown> = { ...(state as Record<string, unknown>) };
+  for (const field of sensitive) {
+    if (field in out) out[field] = '[REDACTED]';
+  }
+  return out;
+}
+
 function _uuid(): string {
   // Generate a v4 UUID using crypto.randomUUID if available, else fallback
   if (typeof crypto !== 'undefined' && typeof (crypto as { randomUUID?: () => string }).randomUUID === 'function') {
