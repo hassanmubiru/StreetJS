@@ -209,7 +209,7 @@
   - [x] 23.6 Write tests: backoff formula `initialDelay * multiplier^attempt` is correct, DLQ receives job after exhausting retries, DLQ pruning respects max entries, delayed job not executed before `runAt`
 
 - [ ] 24. v1.5 — Workflow Engine
-  - [-] 24.1 Write `street_workflows` migration SQL: `id UUID, name TEXT, status TEXT, current_step INT, step_outputs JSONB, input JSONB, error TEXT, created_at, updated_at`
+  - [x] 24.1 Write `street_workflows` migration SQL: `id UUID, name TEXT, status TEXT, current_step INT, step_outputs JSONB, input JSONB, error TEXT, created_at, updated_at`
   - [~] 24.2 Create `packages/core/src/jobs/workflow.ts` with `WorkflowEngine`: `define(name, steps)` stores the definition; `start(name, input)` inserts a row and begins execution; `resume(workflowId)` loads row and skips completed steps
   - [~] 24.3 Implement step execution: after each step succeeds, serialize the output to `step_outputs[stepName]` and update `current_step` in the DB; if the process restarts, `resume()` reads `current_step` and skips already-recorded outputs
   - [~] 24.4 Implement step timeout: `Promise.race([step.run(input, ctx), timeoutPromise])` where `timeoutPromise` rejects after `step.timeoutMs`; on timeout, run compensation and mark workflow `timed_out`
