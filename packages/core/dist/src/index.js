@@ -102,6 +102,9 @@ export { SagaOrchestrator } from './microservices/saga.js';
 export { DistributedLock } from './microservices/distributed-lock.js';
 export { CommandBus, QueryBus } from './microservices/cqrs.js';
 export { EventStore, EVENTS_MIGRATION_SQL } from './microservices/event-store.js';
+export { GrpcServer } from './microservices/grpc/server.js';
+export { parseProto, parseProtoFile, generateGrpcTypes, protoTypeToTs } from './microservices/grpc/proto-parser.js';
+export { encodeFrame, decodeFrame, decodeFrames, parseGrpcTimeout, GrpcError, GRPC_STATUS, GRPC_MAX_MESSAGE_BYTES, jsonCodec } from './microservices/grpc/framing.js';
 // ── Cloud ─────────────────────────────────────────────────────────────────────
 export { generateManifest } from './cloud/deployment.js';
 export { VaultSecretProvider, AwsSecretsManagerProvider, GcpSecretManagerProvider } from './cloud/secret-providers.js';

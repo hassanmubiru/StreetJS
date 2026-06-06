@@ -479,4 +479,87 @@ describe('Tenant metrics admin route + billing', () => {
         assert.equal(adapter.reports[0].metrics['apiCalls'], 42);
     });
 });
+// ── gRPC: proto parser, framing, and unary round-trip ─────────────────────────
+import { parseProto, generateGrpcTypes } from '../microservices/grpc/proto-parser.js';
+import { encodeFrame, decodeFrame, decodeFrames, parseGrpcTimeout, GrpcError } from '../microservices/grpc/framing.js';
+import { GrpcServer } from '../microservices/grpc/server.js';
+import { connect as http2Connect } from 'node:http2';
+describe('gRPC proto parser', () => {
+    it('parses messages and services with streaming flags', () => {
+        const ast = parseProto(`
+      package demo;
+      message AddRequest { int32 a = 1; int32 b = 2; }
+      message AddReply { int32 sum = 1; }
+      service Calc {
+        rpc Add (AddRequest) returns (AddReply);
+        rpc Feed (stream AddRequest) returns (AddReply);
+        rpc Watch (AddRequest) returns (stream AddReply);
+      }
+    `);
+        assert.equal(ast.packageName, 'demo');
+        assert.equal(ast.messages.length, 2);
+        const calc = ast.services.find((s) => s.name === 'Calc');
+        assert.equal(calc.rpcs.find((r) => r.name === 'Feed').clientStreaming, true);
+        assert.equal(calc.rpcs.find((r) => r.name === 'Watch').serverStreaming, true);
+        assert.match(generateGrpcTypes(ast), /export interface AddRequest/);
+    });
+});
+describe('gRPC framing', () => {
+    it('encodes and decodes a length-prefixed frame', () => {
+        const frame = encodeFrame(Buffer.from('hello'));
+        const decoded = decodeFrame(frame);
+        assert.ok(decoded);
+        assert.equal(decoded.payload.toString('utf8'), 'hello');
+    });
+    it('enforces max message size', () => {
+        const frame = encodeFrame(Buffer.from('xxxxxxxx'));
+        assert.throws(() => decodeFrame(frame, 4), (e) => e instanceof GrpcError);
+    });
+    it('parseGrpcTimeout converts units to ms', () => {
+        assert.equal(parseGrpcTimeout('100m'), 100);
+        assert.equal(parseGrpcTimeout('2S'), 2000);
+        assert.equal(parseGrpcTimeout(undefined), null);
+    });
+    it('decodeFrames returns complete frames and leftover', () => {
+        const buf = Buffer.concat([encodeFrame(Buffer.from('a')), encodeFrame(Buffer.from('bb'))]);
+        const { frames, rest } = decodeFrames(buf);
+        assert.equal(frames.length, 2);
+        assert.equal(rest.length, 0);
+    });
+});
+describe('gRPC unary round-trip over HTTP/2', () => {
+    it('dispatches a unary RPC and returns a response with grpc-status 0', async () => {
+        const server = new GrpcServer({ port: 0 });
+        server.registerService('demo.Calc', {
+            Add: { type: 'unary', handler: async (req) => {
+                    const r = req;
+                    return { sum: r.a + r.b };
+                } },
+        });
+        await server.start();
+        const addr = server.server.address();
+        const port = addr.port;
+        const client = http2Connect(`http://127.0.0.1:${port}`);
+        const result = await new Promise((resolve, reject) => {
+            const req = client.request({
+                ':method': 'POST', ':path': '/demo.Calc/Add', 'content-type': 'application/grpc+json', 'te': 'trailers',
+            });
+            const chunks = [];
+            req.on('data', (c) => chunks.push(c));
+            req.on('end', () => {
+                const decoded = decodeFrame(Buffer.concat(chunks));
+                if (!decoded) {
+                    reject(new Error('no frame'));
+                    return;
+                }
+                resolve(JSON.parse(decoded.payload.toString('utf8')));
+            });
+            req.on('error', reject);
+            req.end(encodeFrame(Buffer.from(JSON.stringify({ a: 2, b: 5 }))));
+        });
+        assert.equal(result.sum, 7);
+        client.close();
+        await server.stop();
+    });
+});
 //# sourceMappingURL=roadmap-completion.test.js.map
