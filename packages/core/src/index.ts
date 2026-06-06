@@ -253,8 +253,8 @@ export { encodeFrame, decodeFrame, decodeFrames, parseGrpcTimeout, GrpcError, GR
 // ── Cloud ─────────────────────────────────────────────────────────────────────
 export { generateManifest } from './cloud/deployment.js';
 export type { CloudPlatform, DeployConfig } from './cloud/deployment.js';
-export { VaultSecretProvider, AwsSecretsManagerProvider, GcpSecretManagerProvider } from './cloud/secret-providers.js';
-export type { SecretProvider } from './cloud/secret-providers.js';
+export { VaultSecretProvider, AwsSecretsManagerProvider, GcpSecretManagerProvider, AzureKeyVaultProvider, SecretRotationManager } from './cloud/secret-providers.js';
+export type { SecretProvider, HttpClientOptions, RotationOptions } from './cloud/secret-providers.js';
 export {
   registerShutdownHook,
   isRunningInServiceMesh,
