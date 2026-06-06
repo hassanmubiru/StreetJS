@@ -156,6 +156,8 @@ Commands:
   start                           Start the production server
   test                            Run the project test suite
   generate <type> <name>          Generate a controller, service, or repository
+  generate sdk --lang <ts|python> --spec <openapi.json> --output <dir>
+  generate grpc --proto <file.proto> [--output <dir>]
   migrate:create <name>           Create a new empty migration file
   migrate:run                     Run all pending migrations
   migrate:diff [--confirm-destructive]  Diff live schema vs entity metadata
@@ -166,6 +168,9 @@ Commands:
   audit                           Scan dependencies for known vulnerabilities
   diagnostics [--pid <pid>]       Live diagnostics dashboard for a running app
   jobs:dashboard [--pid <pid>]    Live job-queue dashboard for a running app
+  deploy:init --platform <k8s|cloudrun|ecs|nomad>  Write deployment manifests
+  plugin:install <name>@<version>  Install a verified marketplace plugin
+  plugin:list                     List installed plugins and their status
 
 Flags:
   --help, -h                      Show this help message
