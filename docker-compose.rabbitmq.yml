@@ -1,0 +1,21 @@
+# docker-compose.rabbitmq.yml
+# Reproducible RabbitMQ broker for running the Street RabbitMQ integration tests.
+#
+#   docker compose -f docker-compose.rabbitmq.yml up -d
+#   RABBITMQ_HOST=127.0.0.1 RABBITMQ_PORT=5672 node --test packages/core/dist/integration/rabbitmq/*.test.js
+#   docker compose -f docker-compose.rabbitmq.yml down
+services:
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: street-rabbitmq
+    ports:
+      - "5672:5672"     # AMQP
+      - "15672:15672"   # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 10s
+      retries: 12
