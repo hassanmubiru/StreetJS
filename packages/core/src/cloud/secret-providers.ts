@@ -348,13 +348,13 @@ export class GcpSecretManagerProvider implements SecretProvider {
     const token = this._serviceAccountToken ?? (await this._fetchMetadataToken());
 
     const url =
-      `https://secretmanager.googleapis.com/v1/projects/${encodeURIComponent(this._projectId)}` +
+      `${this._endpoint}/v1/projects/${encodeURIComponent(this._projectId)}` +
       `/secrets/${encodeURIComponent(secretName)}/versions/latest:access`;
 
     const { status, body } = await httpsGet(url, {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
-    });
+    }, this._tls);
 
     if (status !== 200) {
       throw new Error(
