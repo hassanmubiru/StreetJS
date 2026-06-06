@@ -151,7 +151,7 @@
 
 - [ ] 17. v1.4 — API Keys
   - [x] 17.1 Create `packages/core/src/auth/api-keys.ts` with `ApiKeyService` class, `ApiKey` interface; write `street_api_keys` migration SQL file
-  - [~] 17.2 Implement `ApiKeyService.generate(opts)`: generate `randomBytes(32).toString('base64url')` prefixed with configurable namespace; store `createHash('sha256').update(rawKey).digest('hex')` in DB; return the raw key once only
+  - [-] 17.2 Implement `ApiKeyService.generate(opts)`: generate `randomBytes(32).toString('base64url')` prefixed with configurable namespace; store `createHash('sha256').update(rawKey).digest('hex')` in DB; return the raw key once only
   - [~] 17.3 Implement `ApiKeyService.verify(rawKey)`: compute SHA-256 hash; query DB for matching hash; use `timingSafeEqual` with equal-length check; check `expiresAt`; use `LruCache` for 60-second result caching
   - [~] 17.4 Implement `ApiKeyService.revoke(id)`: delete from DB; remove from `LruCache` immediately
   - [~] 17.5 Create `apiKeyMiddleware(service)`: extract `Authorization: Bearer <key>`, call `service.verify()`, set `ctx.user`; throw `UnauthorizedException` on invalid/expired key
