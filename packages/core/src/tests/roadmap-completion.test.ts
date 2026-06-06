@@ -172,3 +172,47 @@ describe('WebhookManager + signature verification', () => {
     assert.equal(res.delivered, 1);
   });
 });
+
+// ── Cloud runtime: autoscale + mesh + shutdown ────────────────────────────────
+
+import { buildAutoscaleMetrics, isRunningInServiceMesh, registerShutdownHook } from '../cloud/runtime.js';
+import { TelemetryTracker } from '../telemetry/tracker.js';
+
+describe('Cloud runtime helpers', () => {
+  it('buildAutoscaleMetrics returns Kubernetes External Metrics shape', () => {
+    const telemetry = new TelemetryTracker(60_000);
+    telemetry.recordRequest(1_000_000n, false);
+    const m = buildAutoscaleMetrics({ telemetry, activeConnections: () => 7, queueDepth: () => 3 }, 60);
+    assert.equal(m.kind, 'ExternalMetricValueList');
+    const names = m.items.map((i) => i.metricName);
+    assert.ok(names.includes('http_requests_per_second'));
+    assert.ok(names.includes('active_connections'));
+    assert.ok(names.includes('queue_depth'));
+    assert.equal(m.items.find((i) => i.metricName === 'active_connections')!.value, '7');
+    telemetry.destroy();
+  });
+
+  it('isRunningInServiceMesh detects Istio/Linkerd env vars', () => {
+    assert.equal(isRunningInServiceMesh({}), false);
+    assert.equal(isRunningInServiceMesh({ ISTIO_META_MESH_ID: 'mesh' }), true);
+    assert.equal(isRunningInServiceMesh({ LINKERD_PROXY_INJECTION_ENABLED: 'enabled' }), true);
+  });
+
+  it('registerShutdownHook drains app, closes resources, exits 0 on SIGTERM', async () => {
+    const order: string[] = [];
+    const app = {
+      close: async () => { order.push('app.close'); },
+    } as unknown as import('../http/server.js').StreetApp;
+    let exitCode = -1;
+    const dispose = registerShutdownHook(app, {
+      closeables: [{ close: async () => { order.push('pool.close'); } }],
+      onShutdown: () => { order.push('onShutdown'); },
+      exit: (code) => { exitCode = code; },
+    });
+    process.emit('SIGTERM');
+    await new Promise((r) => setTimeout(r, 20));
+    assert.deepEqual(order, ['app.close', 'pool.close', 'onShutdown']);
+    assert.equal(exitCode, 0);
+    dispose();
+  });
+});
