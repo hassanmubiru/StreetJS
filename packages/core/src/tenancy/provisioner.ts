@@ -163,3 +163,47 @@ export function QuotaEnforcer(
     await next();
   };
 }
+
+// ── Admin metrics route ────────────────────────────────────────────────────────
+
+interface TenantAdminCtx {
+  method: string;
+  path: string;
+  user: { roles: string[] } | null;
+  json(data: unknown, status?: number): void;
+}
+interface TenantAdminApp {
+  use(mw: (ctx: TenantAdminCtx, next: () => Promise<void>) => Promise<void>): void;
+}
+
+/**
+ * Register `GET /admin/tenants/:id/metrics` returning the current usage and
+ * quota status for a tenant. Protected by the configured admin role.
+ */
+export function registerTenantMetricsRoute(
+  app: TenantAdminApp,
+  service: TenantService,
+  opts: { quotaKeys?: string[]; adminRole?: string } = {},
+): void {
+  const adminRole = opts.adminRole ?? 'admin';
+  const quotaKeys = opts.quotaKeys ?? [];
+  const re = /^\/admin\/tenants\/([^/]+)\/metrics$/;
+
+  app.use(async (ctx, next) => {
+    const m = ctx.method === 'GET' ? re.exec(ctx.path) : null;
+    if (!m) {
+      await next();
+      return;
+    }
+    if (!ctx.user || !ctx.user.roles.includes(adminRole)) {
+      ctx.json({ error: 'Forbidden', required: [adminRole] }, 403);
+      return;
+    }
+    const tenantId = decodeURIComponent(m[1]!);
+    const quotas: Record<string, QuotaStatus> = {};
+    for (const key of quotaKeys) {
+      quotas[key] = await service.checkQuota(tenantId, key);
+    }
+    ctx.json({ tenantId, quotas });
+  });
+}
