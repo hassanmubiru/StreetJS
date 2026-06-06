@@ -9,7 +9,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import 'reflect-metadata';
-import { JobQueue, Job, STREET_JOBS_MIGRATION_SQL, STREET_DLQ_MIGRATION_SQL, STREET_JOB_HISTORY_MIGRATION_SQL, } from '../jobs/queue.js';
+import { JobQueue, Job, registerJobMetricsRoute, STREET_JOBS_MIGRATION_SQL, STREET_DLQ_MIGRATION_SQL, STREET_JOB_HISTORY_MIGRATION_SQL, } from '../jobs/queue.js';
 import { CronScheduler, CronParseError } from '../jobs/scheduler.js';
 import { STREET_WORKFLOWS_MIGRATION_SQL, WorkflowEngine, WorkflowStepTimeoutError, } from '../jobs/workflow.js';
 // ── Tests: Migration SQL ──────────────────────────────────────────────────────
@@ -1593,6 +1593,161 @@ describe('JobQueue heartbeat/reaper timer lifecycle', () => {
         assert.equal(timers.timer, null, 'Poll timer should be cleared after stop');
         assert.equal(timers.heartbeatTimer, null, 'Heartbeat timer should be cleared after stop');
         assert.equal(timers.reaperTimer, null, 'Reaper timer should be cleared after stop');
+    });
+});
+// ── Tests: JobQueue.metrics() SQL aggregation ─────────────────────────────────
+/**
+ * A mock pool that answers the three aggregation queries issued by
+ * `JobQueue.metrics()`:
+ *   1. live queue depth from street_jobs (pending / in_flight),
+ *   2. terminal counts from street_job_history (succeeded / failed),
+ *   3. per-type average duration_ms from street_job_history.
+ * Each branch is matched by the distinctive SQL it produces so the test
+ * verifies the real queries, not a guessed shape.
+ */
+function makeMetricsPool(data = {}) {
+    const queries = [];
+    return {
+        queries,
+        async query(sql, params) {
+            queries.push({ sql, params });
+            if (sql.includes('FROM street_jobs') && sql.includes("FILTER (WHERE status = 'pending')")) {
+                return {
+                    rows: [{
+                            pending: data.pending === undefined ? null : String(data.pending),
+                            in_flight: data.inFlight === undefined ? null : String(data.inFlight),
+                        }],
+                    rowCount: 1,
+                    command: 'SELECT',
+                };
+            }
+            if (sql.includes('FROM street_job_history') && sql.includes("FILTER (WHERE status = 'succeeded')")) {
+                return {
+                    rows: [{
+                            succeeded: data.succeeded === undefined ? null : String(data.succeeded),
+                            failed: data.failed === undefined ? null : String(data.failed),
+                        }],
+                    rowCount: 1,
+                    command: 'SELECT',
+                };
+            }
+            if (sql.includes('AVG(duration_ms)') && sql.includes('GROUP BY type')) {
+                const rows = (data.byType ?? []).map((r) => ({ type: r.type, avg_duration_ms: r.avg }));
+                return { rows: rows, rowCount: rows.length, command: 'SELECT' };
+            }
+            return { rows: [], rowCount: 0, command: 'SELECT' };
+        },
+        async transaction(fn) {
+            return fn({ query: (sql, params) => this.query(sql, params) });
+        },
+    };
+}
+describe('JobQueue.metrics()', () => {
+    it('returns the full { pending, inFlight, failed, succeeded, byType } shape', async () => {
+        const pool = makeMetricsPool({
+            pending: 3,
+            inFlight: 2,
+            succeeded: 10,
+            failed: 1,
+            byType: [
+                { type: 'send-email', avg: '123' },
+                { type: 'resize-image', avg: '456.7' },
+            ],
+        });
+        const queue = new JobQueue(pool);
+        const metrics = await queue.metrics();
+        assert.deepEqual(metrics, {
+            pending: 3,
+            inFlight: 2,
+            failed: 1,
+            succeeded: 10,
+            byType: {
+                'send-email': { avgDurationMs: 123 },
+                'resize-image': { avgDurationMs: 457 }, // rounded
+            },
+        });
+    });
+    it('reads pending/inFlight from street_jobs and succeeded/failed from street_job_history', async () => {
+        const pool = makeMetricsPool({ pending: 5, inFlight: 0, succeeded: 7, failed: 4 });
+        const queue = new JobQueue(pool);
+        await queue.metrics();
+        const live = pool.queries.find((q) => q.sql.includes('FROM street_jobs'));
+        assert.ok(live, 'Should aggregate live depth from street_jobs');
+        assert.match(live.sql, /FILTER \(WHERE status = 'pending'\)/, 'pending counted from street_jobs');
+        assert.match(live.sql, /FILTER \(WHERE status = 'running'\)/, 'inFlight = running counted from street_jobs');
+        const history = pool.queries.find((q) => q.sql.includes('FROM street_job_history') && q.sql.includes("status = 'succeeded'"));
+        assert.ok(history, 'Should aggregate succeeded/failed from street_job_history');
+    });
+    it('defaults missing aggregates to 0 (empty tables yield NULL counts)', async () => {
+        const pool = makeMetricsPool({}); // every COUNT/AVG comes back NULL
+        const queue = new JobQueue(pool);
+        const metrics = await queue.metrics();
+        assert.deepEqual(metrics, { pending: 0, inFlight: 0, failed: 0, succeeded: 0, byType: {} });
+    });
+    it('rounds per-type average duration to the nearest millisecond', async () => {
+        const pool = makeMetricsPool({ byType: [{ type: 'thumbnail', avg: '99.49' }, { type: 'report', avg: '99.5' }] });
+        const queue = new JobQueue(pool);
+        const metrics = await queue.metrics();
+        assert.equal(metrics.byType['thumbnail'].avgDurationMs, 99, '99.49 rounds down');
+        assert.equal(metrics.byType['report'].avgDurationMs, 100, '99.5 rounds up');
+    });
+});
+// ── Tests: registerJobMetricsRoute ────────────────────────────────────────────
+/** Minimal StreetApp-like stub capturing the single middleware registered. */
+function makeAppStub() {
+    const middlewares = [];
+    return {
+        middlewares,
+        use(mw) {
+            middlewares.push(mw);
+        },
+    };
+}
+describe('registerJobMetricsRoute', () => {
+    it('responds to GET /api/jobs/metrics with the metrics JSON and status 200', async () => {
+        const pool = makeMetricsPool({ pending: 1, inFlight: 2, succeeded: 3, failed: 0, byType: [{ type: 'x', avg: '10' }] });
+        const queue = new JobQueue(pool);
+        const app = makeAppStub();
+        registerJobMetricsRoute(app, queue);
+        assert.equal(app.middlewares.length, 1, 'Should register exactly one middleware');
+        let sent = null;
+        const ctx = {
+            method: 'GET',
+            path: '/api/jobs/metrics',
+            json(body, status) {
+                sent = { body, status };
+            },
+        };
+        let nextCalled = false;
+        await app.middlewares[0](ctx, async () => { nextCalled = true; });
+        assert.equal(nextCalled, false, 'Matching route should not fall through to next()');
+        assert.ok(sent, 'Should have written a JSON response');
+        const result = sent;
+        assert.equal(result.status, 200);
+        assert.deepEqual(result.body, {
+            pending: 1,
+            inFlight: 2,
+            failed: 0,
+            succeeded: 3,
+            byType: { x: { avgDurationMs: 10 } },
+        });
+    });
+    it('falls through to next() for non-matching requests', async () => {
+        const pool = makeMetricsPool();
+        const queue = new JobQueue(pool);
+        const app = makeAppStub();
+        registerJobMetricsRoute(app, queue);
+        let jsonCalled = false;
+        const ctx = {
+            method: 'POST',
+            path: '/api/jobs/metrics',
+            json() { jsonCalled = true; },
+        };
+        let nextCalled = false;
+        await app.middlewares[0](ctx, async () => { nextCalled = true; });
+        assert.equal(jsonCalled, false, 'Non-GET request must not produce a metrics response');
+        assert.equal(nextCalled, true, 'Should pass control to next() when the route does not match');
+        assert.equal(pool.queries.length, 0, 'No aggregation queries should run for a non-matching request');
     });
 });
 //# sourceMappingURL=job-queue.test.js.map

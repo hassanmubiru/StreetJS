@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import type { StreetApp } from '../http/server.js';
 export declare const STREET_JOBS_MIGRATION_SQL = "\nCREATE TABLE IF NOT EXISTS street_jobs (\n  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n  type         TEXT NOT NULL,\n  payload      JSONB NOT NULL DEFAULT '{}',\n  status       TEXT NOT NULL DEFAULT 'pending',\n  attempt_count INT NOT NULL DEFAULT 0,\n  run_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n  worker_id    TEXT,\n  locked_at    TIMESTAMPTZ,\n  error        TEXT\n);\nCREATE INDEX IF NOT EXISTS street_jobs_status_run_at ON street_jobs (status, run_at);\n";
 export declare const STREET_DLQ_MIGRATION_SQL = "\nCREATE TABLE IF NOT EXISTS street_dead_letter_queue (\n  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n  job_id       TEXT,\n  type         TEXT NOT NULL,\n  payload      JSONB NOT NULL DEFAULT '{}',\n  error        TEXT,\n  exhausted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()\n);\n";
 export declare const STREET_JOB_HISTORY_MIGRATION_SQL = "\nCREATE TABLE IF NOT EXISTS street_job_history (\n  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n  job_id       TEXT,\n  type         TEXT NOT NULL,\n  status       TEXT NOT NULL,\n  duration_ms  INT,\n  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()\n);\nCREATE INDEX IF NOT EXISTS street_job_history_type_created_at ON street_job_history (type, created_at);\n";
@@ -28,6 +29,26 @@ export interface JobQueuePool {
     transaction<T>(fn: (conn: {
         query(sql: string, params?: unknown[]): Promise<QueryResult>;
     }) => Promise<T>): Promise<T>;
+}
+/**
+ * Aggregated snapshot of queue health returned by `JobQueue.metrics()` and
+ * served by `registerJobMetricsRoute` at `GET /api/jobs/metrics`.
+ *
+ *  - `pending`    — jobs in `street_jobs` waiting to be picked up (status='pending').
+ *  - `inFlight`   — jobs in `street_jobs` currently being processed (status='running').
+ *  - `failed`     — terminal failures recorded in `street_job_history` (status='failed').
+ *  - `succeeded`  — successful completions recorded in `street_job_history` (status='succeeded').
+ *  - `byType`     — per-job-type rolling average execution time (ms), derived from
+ *                   `street_job_history.duration_ms`.
+ */
+export interface JobQueueMetrics {
+    pending: number;
+    inFlight: number;
+    failed: number;
+    succeeded: number;
+    byType: Record<string, {
+        avgDurationMs: number;
+    }>;
 }
 export interface JobQueueOptions {
     concurrency?: number;
@@ -115,6 +136,21 @@ export declare class JobQueue {
      * The scheduler must be started separately via `scheduler.start()`.
      */
     registerJobHistoryPruning(scheduler: DlqPruneScheduler, maxPerType?: number, cronExpression?: string): void;
+    /**
+     * Aggregate a point-in-time snapshot of queue health via SQL.
+     *
+     * Runs three aggregations:
+     *  1. Live queue depth from `street_jobs`: `pending` (status='pending') and
+     *     `inFlight` (status='running'), counted in a single scan via
+     *     `COUNT(*) FILTER (WHERE ...)`.
+     *  2. Terminal outcome counts from `street_job_history`: `succeeded`
+     *     (status='succeeded') and `failed` (status='failed').
+     *  3. Per-type average execution time from `street_job_history`, grouped by
+     *     `type` over rows with a recorded `duration_ms`.
+     *
+     * Returns the shape `{ pending, inFlight, failed, succeeded, byType: { [type]: { avgDurationMs } } }`.
+     */
+    metrics(): Promise<JobQueueMetrics>;
     /** Start the polling loop, the worker heartbeat, and the stale-job reaper. */
     start(): void;
     /** Stop the polling loop, heartbeat, and reaper. */
@@ -140,5 +176,14 @@ export declare class JobQueue {
     private _handleFailure;
     private _moveToDlq;
 }
+/**
+ * Register `GET /api/jobs/metrics` on a StreetApp instance, mirroring the
+ * `registerHealthRoutes(app, registry)` / `registerMetricsRoute(app, registry)`
+ * pattern. Responds 200 with the JSON snapshot produced by `queue.metrics()`:
+ *
+ *   { "pending": 0, "inFlight": 0, "failed": 0, "succeeded": 0,
+ *     "byType": { "send-email": { "avgDurationMs": 123 } } }
+ */
+export declare function registerJobMetricsRoute(app: StreetApp, queue: JobQueue): void;
 export {};
 //# sourceMappingURL=queue.d.ts.map

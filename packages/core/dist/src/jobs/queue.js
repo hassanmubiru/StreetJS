@@ -174,6 +174,50 @@ export class JobQueue {
             await this.pruneJobHistory(maxPerType);
         });
     }
+    /**
+     * Aggregate a point-in-time snapshot of queue health via SQL.
+     *
+     * Runs three aggregations:
+     *  1. Live queue depth from `street_jobs`: `pending` (status='pending') and
+     *     `inFlight` (status='running'), counted in a single scan via
+     *     `COUNT(*) FILTER (WHERE ...)`.
+     *  2. Terminal outcome counts from `street_job_history`: `succeeded`
+     *     (status='succeeded') and `failed` (status='failed').
+     *  3. Per-type average execution time from `street_job_history`, grouped by
+     *     `type` over rows with a recorded `duration_ms`.
+     *
+     * Returns the shape `{ pending, inFlight, failed, succeeded, byType: { [type]: { avgDurationMs } } }`.
+     */
+    async metrics() {
+        const liveResult = await this.pool.query(`SELECT
+         COUNT(*) FILTER (WHERE status = 'pending') AS pending,
+         COUNT(*) FILTER (WHERE status = 'running') AS in_flight
+       FROM street_jobs`);
+        const historyResult = await this.pool.query(`SELECT
+         COUNT(*) FILTER (WHERE status = 'succeeded') AS succeeded,
+         COUNT(*) FILTER (WHERE status = 'failed') AS failed
+       FROM street_job_history`);
+        const byTypeResult = await this.pool.query(`SELECT type, AVG(duration_ms) AS avg_duration_ms
+       FROM street_job_history
+       WHERE duration_ms IS NOT NULL
+       GROUP BY type`);
+        const liveRow = liveResult.rows[0] ?? {};
+        const historyRow = historyResult.rows[0] ?? {};
+        const byType = {};
+        for (const row of byTypeResult.rows) {
+            const type = row['type'];
+            if (type === null || type === undefined)
+                continue;
+            byType[type] = { avgDurationMs: Math.round(_toNumber(row['avg_duration_ms'])) };
+        }
+        return {
+            pending: _toNumber(liveRow['pending']),
+            inFlight: _toNumber(liveRow['in_flight']),
+            failed: _toNumber(historyRow['failed']),
+            succeeded: _toNumber(historyRow['succeeded']),
+            byType,
+        };
+    }
     /** Start the polling loop, the worker heartbeat, and the stale-job reaper. */
     start() {
         if (this.timer !== null)
@@ -342,5 +386,34 @@ export class JobQueue {
             await this.pool.query(`UPDATE street_jobs SET status='failed', error=$1 WHERE id=$2`, [err.message, jobId]).catch(() => undefined);
         }
     }
+}
+// ── Metrics route helper ───────────────────────────────────────────────────────
+/**
+ * Coerce a SQL aggregate value (PostgreSQL returns COUNT/AVG as strings, and
+ * NULL for empty groups) into a finite number, defaulting to 0.
+ */
+function _toNumber(value) {
+    if (value === null || value === undefined)
+        return 0;
+    const n = Number(value);
+    return Number.isFinite(n) ? n : 0;
+}
+/**
+ * Register `GET /api/jobs/metrics` on a StreetApp instance, mirroring the
+ * `registerHealthRoutes(app, registry)` / `registerMetricsRoute(app, registry)`
+ * pattern. Responds 200 with the JSON snapshot produced by `queue.metrics()`:
+ *
+ *   { "pending": 0, "inFlight": 0, "failed": 0, "succeeded": 0,
+ *     "byType": { "send-email": { "avgDurationMs": 123 } } }
+ */
+export function registerJobMetricsRoute(app, queue) {
+    app.use(async (ctx, next) => {
+        if (ctx.method === 'GET' && ctx.path === '/api/jobs/metrics') {
+            const metrics = await queue.metrics();
+            ctx.json(metrics, 200);
+            return;
+        }
+        await next();
+    });
 }
 //# sourceMappingURL=queue.js.map
