@@ -226,7 +226,7 @@
 
 
 - [ ] 26. v1.6 — GraphQL Server
-  - [~] 26.1 Create `packages/core/src/graphql/schema.ts`: SDL parser that reads a `.graphql` schema string and produces an internal AST (type definitions, field definitions, directives); no `graphql-js` dependency
+  - [-] 26.1 Create `packages/core/src/graphql/schema.ts`: SDL parser that reads a `.graphql` schema string and produces an internal AST (type definitions, field definitions, directives); no `graphql-js` dependency
   - [~] 26.2 Create `packages/core/src/graphql/engine.ts` with `GraphQlEngine`: takes `{ schema, resolvers, maxDepth?, maxComplexity? }`; `execute(query, variables, ctx)` parses the query document, validates against schema, executes against resolvers
   - [~] 26.3 Implement query depth limiting: recursive visitor counts nesting depth; reject with 400 if `> maxDepth`
   - [~] 26.4 Implement query complexity analysis: accumulate field weights (default 1 per field); reject with 400 if `> maxComplexity`
