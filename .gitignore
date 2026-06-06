@@ -23,6 +23,10 @@ node_modules/
 # Coverage output
 coverage/
 
+# Build output — rebuilt by CI, not source-controlled
+dist/
+packages/*/dist/
+
 # General log files
 log.txt
 *.log
