@@ -248,7 +248,7 @@ Status markers used in this plan:
 
 - [x] 27. v1.6 — API Versioning
   - [x] 27.1 Create `packages/core/src/versioning/strategy.ts`: `@ApiVersion(version)` class decorator that stores version string under `street:apiVersion` metadata; `VersioningOptions` interface; `VersionStrategy` union type
-  - [~] 27.2 Implement URL versioning in `enableVersioning(app, { strategy: 'url' })`: read `street:apiVersion` metadata from each controller during `registerController()`; prefix the controller's routes with `/<version>/`
+  - [x] 27.2 Implement URL versioning in `enableVersioning(app, { strategy: 'url' })`: read `street:apiVersion` metadata from each controller during `registerController()`; prefix the controller's routes with `/<version>/`
   - [x] 27.3 Implement header versioning in `enableVersioning(app, { strategy: 'header', headerName? })`: middleware reads `Accept: application/vnd.street.v2+json`, extracts version, rewrites internal route key for dispatch
   - [x] 27.4 Return HTTP 404 with available versions list when a request targets an unregistered version: `{ error: 'version_not_found', available: ['v1', 'v2'] }`
   - [x] 27.5 Generate separate OpenAPI spec files per version: `app.openApiSpec('v1')` returns only v1 routes; register `GET /v1/openapi.json` and `GET /v2/openapi.json`
@@ -303,7 +303,7 @@ Status markers used in this plan:
   - [x] 33.2 Create `packages/core/src/tenancy/metrics.ts` with `TenantMetricsRegistry`: wraps `MetricsRegistry`; all metric registrations automatically include a `tenant_id` label; enforces max 10,000 tenant entries with LRU eviction
   - [x] 33.3 Implement `TenantMetricsRegistry.forTenant(tenantId)`: returns a scoped `TenantMetricsView` that pre-labels all metric operations with `tenant_id`; evicts the LRU entry when the 10,000 cap is reached
   - [x] 33.4 Register `GET /admin/tenants/:id/metrics` route: protected by `requireRoles('admin')`; return current usage and quota status for the specified tenant
-  - [~] 33.5 Add a nightly `CronScheduler` job that aggregates `street_tenant_usage` rows into `street_tenant_daily_stats`
+  - [x] 33.5 Add a nightly `CronScheduler` job that aggregates `street_tenant_usage` rows into `street_tenant_daily_stats`
   - [x] 33.6 Write tests: Prometheus output includes `tenant_id` label, LRU eviction at 10,000 tenants, admin endpoint returns correct stats, daily aggregation job produces correct summaries
 
 
@@ -330,7 +330,7 @@ Status markers used in this plan:
   - [x] 36.2 Implement `EventBus.publish(topic, payload)`: wrap payload in envelope `{ id: randomBytes(16).hex, topic, timestamp, version: 1, payload }`; call `transport.publish()`
   - [x] 36.3 Implement `EventBus.subscribe(topic, handler)`: call `transport.subscribe()`; return unsubscribe function that cleans up all listeners
   - [x] 36.4 Create `RedisTransport` in `packages/core/src/microservices/transports/redis.ts`: use Redis Pub/Sub via `node:net` (raw RESP protocol, no redis npm package); ACK only after handler resolves; NACK on handler exception
-  - [ ] 36.5 Create `RabbitMQTransport` in `packages/core/src/microservices/transports/rabbitmq.ts`: AMQP 0-9-1 basic framing over `node:net`; support dead letter exchange routing
+  - [x] 36.5 Create `RabbitMQTransport` in `packages/core/src/microservices/transports/rabbitmq.ts`: AMQP 0-9-1 basic framing over `node:net`; support dead letter exchange routing
   - [x] 36.6 Write tests: in-process publish and subscribe, message envelope structure is correct, at-least-once delivery (message re-delivered after NACK), dead letter routing on exhausted retries
 
 - [x] 37. v2.0 — Saga, Distributed Locks, CQRS, and Event Sourcing
@@ -346,9 +346,9 @@ Status markers used in this plan:
   - [x] 38.1 Create `packages/core/src/cloud/deployment.ts` with `generateManifest(platform, config)`: produce Kubernetes `Deployment` + `Service` + `HPA` YAML, Cloud Run `service.yaml`, ECS task definition JSON, or Nomad job HCL; each includes liveness/readiness probe paths, resource limits, and env var references
   - [x] 38.2 Add `street deploy:init --platform <kubernetes|cloudrun|ecs|nomad>` CLI command: import the project's `street.config.ts`, call `generateManifest()`, write files to `deploy/` directory
   - [x] 38.3 Extract `registerShutdownHook(app, pool, opts?)` from `main.ts` as a standalone exportable function: `SIGTERM` → drain HTTP → close DB connections → exit 0; configurable `graceMs` (default 30,000)
-  - [~] 38.4 Implement Cloud Run auto-detection: check `K_SERVICE` and `K_REVISION` env vars; when detected, switch `Logger` to GCP structured JSON format with `severity`, `message`, `timestamp`, and `httpRequest` fields
+  - [x] 38.4 Implement Cloud Run auto-detection: check `K_SERVICE` and `K_REVISION` env vars; when detected, switch `Logger` to GCP structured JSON format with `severity`, `message`, `timestamp`, and `httpRequest` fields
   - [x] 38.5 Implement `STREET_READINESS_DELAY_MS` env var: delay the readiness probe returning `up` by the configured milliseconds after startup completes
-  - [~] 38.6 Write tests: generated Kubernetes YAML is valid YAML with correct health probe paths, Cloud Run format detection switches log format, shutdown drains in-flight requests before pool close
+  - [x] 38.6 Write tests: generated Kubernetes YAML is valid YAML with correct health probe paths, Cloud Run format detection switches log format, shutdown drains in-flight requests before pool close
 
 - [x] 39. v2.1 — Secret Providers
   - [x] 39.1 Create `packages/core/src/cloud/secret-providers.ts`: `SecretProvider` interface with `get(key): Promise<string>`; shared in-memory cache `Map<key, { value, expiresAt }>`
@@ -356,12 +356,12 @@ Status markers used in this plan:
   - [x] 39.3 Implement `AwsSecretsManagerProvider`: `GetSecretValue` API call via AWS Signature V4 signed request using `node:crypto` (HMAC-SHA256); parse JSON response
   - [x] 39.4 Implement `GcpSecretManagerProvider`: `GET /v1/projects/<id>/secrets/<name>/versions/latest:access` via `node:https` with service account token from instance metadata
   - [x] 39.5 Implement startup retry logic: on first `get()` failure, retry with exponential backoff (`1s, 2s, 4s, 8s, 10s...`) for up to 60 seconds; exit process with code 1 after timeout with descriptive error listing failed key names
-  - [~] 39.6 Implement secret rotation: emit `rotate` event when TTL expires; connect to `PgPool` via a `onRotate` callback that recycles connections when the secret is a DB password
-  - [ ] 39.7 Write tests: cached secret returned without network call within TTL, expired cache triggers re-fetch, `[REDACTED]` appears in all log output, startup retry exhaustion exits with code 1
+  - [x] 39.6 Implement secret rotation: emit `rotate` event when TTL expires; connect to `PgPool` via a `onRotate` callback that recycles connections when the secret is a DB password
+  - [x] 39.7 Write tests: cached secret returned without network call within TTL, expired cache triggers re-fetch, `[REDACTED]` appears in all log output, startup retry exhaustion exits with code 1
 
 - [x] 40. v2.1 — Service Mesh and Auto-Scaling Metrics
   - [x] 40.1 Register `GET /metrics/autoscale` route in `StreetApp`: return JSON in Kubernetes External Metrics API format with `http_requests_per_second`, `active_connections`, and `queue_depth` values computed from `TelemetryTracker` and `JobQueue`
-  - [~] 40.2 Implement service mesh detection: check `ISTIO_META_MESH_ID` and `LINKERD_PROXY_INJECTION_ENABLED` env vars on startup; when detected, set `RetryPolicy.enabled = false` for all `CircuitBreaker` instances to avoid conflicting with mesh retries
+  - [x] 40.2 Implement service mesh detection: check `ISTIO_META_MESH_ID` and `LINKERD_PROXY_INJECTION_ENABLED` env vars on startup; when detected, set `RetryPolicy.enabled = false` for all `CircuitBreaker` instances to avoid conflicting with mesh retries
   - [x] 40.3 Implement `STREET_READINESS_DELAY_MS` startup delay: `HealthCheckRegistry` readiness probe returns `down` until the delay has elapsed after `app.listen()` completes
   - [x] 40.4 Export `/metrics/autoscale` response shape as `AutoscaleMetrics` type from `packages/core/src/index.ts`
   - [x] 40.5 Write tests: `/metrics/autoscale` response matches Kubernetes External Metrics API format, service mesh env var disables retries, readiness delay holds probe in `down` state
@@ -370,7 +370,7 @@ Status markers used in this plan:
   - [x] 41.1 Create `packages/edge/` workspace package with its own `package.json` (`@streetjs/edge`) and `tsconfig.json`; configure `"browser"` export condition
   - [x] 41.2 Create `packages/edge/src/adapter.ts` with `handleEdgeRequest(request: Request, app: StreetApp): Promise<Response>`: map Web Fetch `Request` → `StreetContext` using a synthetic `IncomingMessage`-like object; run the middleware pipeline; build a `Response` from the context's JSON/text/html output
   - [x] 41.3 Create `packages/edge/src/stubs.ts`: stub modules that replace `node:net`, `node:cluster`, `node:fs`, and `node:http` when bundled for edge targets; each stub's methods throw `FeatureUnavailableInEdgeRuntimeError` when called
-  - [ ] 41.4 Add `"browser"` export conditions in `packages/core/package.json` to map `node:net` imports to edge stubs for tree-shaking
+  - [x] 41.4 Add `"browser"` export conditions in `packages/core/package.json` to map `node:net` imports to edge stubs for tree-shaking
   - [x] 41.5 Create `FeatureUnavailableInEdgeRuntimeError` in `packages/core/src/http/exceptions.ts`
   - [x] 41.6 Write tests: `handleEdgeRequest` routes to the correct handler, edge-incompatible features throw `FeatureUnavailableInEdgeRuntimeError` when initialized, routing/middleware/DI/JWT verify all work in edge mode
 
@@ -388,14 +388,14 @@ Status markers used in this plan:
   - [x] 43.2 Create `packages/core/src/enterprise/audit-logger.ts` with `AuditLogger`: `AuditCategory`, `AuditLogOptions`, `AuditLogger` class accepting `{ pool, signingKey }`
   - [x] 43.3 Implement `AuditLogger.log(opts)`: write to `street_audit_log`; batch every 100 entries; sign each batch with `HMAC-SHA256(previousSignature + batchJSON)` to create a hash chain
   - [x] 43.4 Implement `@Sensitive()` property decorator: marks entity fields; `AuditLogger.log()` reads metadata and replaces sensitive field values with `"[REDACTED]"` in `before_state` and `after_state`
-  - [~] 43.5 Implement `AuditLogger.export(from, to, format)`: `SELECT` from `street_audit_log` ordered by `created_at`; stream output as JSONL or CSV via a `Readable` stream
+  - [x] 43.5 Implement `AuditLogger.export(from, to, format)`: `SELECT` from `street_audit_log` ordered by `created_at`; stream output as JSONL or CSV via a `Readable` stream
   - [x] 43.6 Add `street audit:export --from <date> --to <date> --format <jsonl|csv>` CLI command
-  - [ ] 43.7 Write tests: append-only trigger prevents DELETE and UPDATE, batch signature chain is verifiable, `@Sensitive` fields are redacted in audit output, JSONL export contains all entries in time range
+  - [x] 43.7 Write tests: append-only trigger prevents DELETE and UPDATE, batch signature chain is verifiable, `@Sensitive` fields are redacted in audit output, JSONL export contains all entries in time range
 
 - [x] 44. v2.2 — Data Retention, Encryption Policies, and Data Classification
   - [x] 44.1 Create `packages/core/src/enterprise/data-policy.ts`: `@RetainFor(duration)`, `@Encrypt()`, `@Classify(level)` property decorators; store metadata under `street:retention`, `street:encrypt`, `street:classify` keys
-  - [~] 44.2 Implement field-level transparent encryption in repository layer: when `@Encrypt()` is present on a field, intercept `create()` and `update()` to encrypt with `AES-256-GCM` using the vault key; intercept `findById()` and `findAll()` to decrypt on retrieval
-  - [~] 44.3 Integrate `@Classify(level)` with `Logger`: when a log entry includes entity fields, check their classification level against `LOG_CLASSIFICATION_THRESHOLD` env var; redact fields above the threshold
+  - [x] 44.2 Implement field-level transparent encryption in repository layer: when `@Encrypt()` is present on a field, intercept `create()` and `update()` to encrypt with `AES-256-GCM` using the vault key; intercept `findById()` and `findAll()` to decrypt on retrieval
+  - [x] 44.3 Integrate `@Classify(level)` with `Logger`: when a log entry includes entity fields, check their classification level against `LOG_CLASSIFICATION_THRESHOLD` env var; redact fields above the threshold
   - [x] 44.4 Create `RetentionJob` class: read all entity `@RetainFor` metadata, generate `DELETE FROM <table> WHERE created_at < NOW() - INTERVAL $1` queries, execute in batches of configurable size (default 1,000 rows)
   - [x] 44.5 Create `ComplianceReporter.report(entities)`: iterate entity decorator metadata, produce `ComplianceReport[]` with field name, classification level, encrypted status, and retention period
   - [x] 44.6 Add `street compliance:report` CLI command: call `ComplianceReporter.report()`, print formatted table
@@ -410,7 +410,7 @@ Status markers used in this plan:
   - [x] 45.6 Implement `BackupService.backup()`: use PostgreSQL `COPY (SELECT ...) TO STDOUT` over the existing `PgConnection` to stream table data without spawning an external process; compute SHA-256 incrementally; write to `StorageAdapter`; record metadata in `street_backups`
   - [x] 45.7 Implement `BackupService.restore(backupId, targetPool)`: fetch stream from `StorageAdapter`, verify SHA-256 checksum (abort on mismatch), apply SQL stream to target DB
   - [x] 45.8 Add `street restore --backup-id <id>` CLI command; exit code 1 with expected/actual checksums on mismatch
-  - [~] 45.9 Write tests: backup stream checksum matches stored value, corrupted backup aborts restore without modifying target DB, S3 adapter round-trip (upload then download produces identical content)
+  - [x] 45.9 Write tests: backup stream checksum matches stored value, corrupted backup aborts restore without modifying target DB, S3 adapter round-trip (upload then download produces identical content)
 
 
 - [x] 46. v3.0 — Distributed Cache and Global Config Service
@@ -424,11 +424,11 @@ Status markers used in this plan:
 
 - [x] 47. v3.0 — Event Streaming and Realtime Analytics
   - [x] 47.1 Create `packages/core/src/platform/event-streaming.ts`: `StreamTransport` interface, `EventStreamPublisher` class, `EventStreamConsumer` class; `InProcessTransport` default
-  - [ ] 47.2 Implement `KafkaTransport` in `packages/core/src/platform/transports/kafka.ts`: raw Kafka protocol (Fetch API, Produce API) over `node:net`; support consumer groups; no kafkajs dependency
+  - [x] 47.2 Implement `KafkaTransport` in `packages/core/src/platform/transports/kafka.ts`: raw Kafka protocol (Fetch API, Produce API) over `node:net`; support consumer groups; no kafkajs dependency
   - [x] 47.3 Implement `KinesisTransport`: `PutRecord` and `GetRecords` via AWS Signature V4 signed `node:https` requests
-  - [~] 47.4 Implement `EventStreamConsumer` lag monitoring: compare consumer committed offset to latest partition offset; emit `stream:lag` event when lag exceeds `maxLagThreshold`
+  - [x] 47.4 Implement `EventStreamConsumer` lag monitoring: compare consumer committed offset to latest partition offset; emit `stream:lag` event when lag exceeds `maxLagThreshold`
   - [x] 47.5 Create `packages/core/src/platform/realtime-aggregator.ts` with `RealtimeAggregator`: register sliding-window aggregation functions (count, sum, avg, min, max); compute on each window tick; push results to `SseConnection` subscribers
-  - [ ] 47.6 Write tests: published event consumed by subscriber, envelope round-trip (published payload equals consumed payload), lag event fires when consumer falls behind, aggregator correctly computes window statistics
+  - [x] 47.6 Write tests: published event consumed by subscriber, envelope round-trip (published payload equals consumed payload), lag event fires when consumer falls behind, aggregator correctly computes window statistics
 
 - [x] 48. v3.0 — Multi-Region Replication
   - [x] 48.1 Create `packages/core/src/platform/replication.ts` with `ReplicationCoordinator`: `RegionConfig[]` constructor parameter; `getWritePool()` always returns primary; `getReadPool(preferredRegion?)` routes by weight or preference
@@ -436,7 +436,7 @@ Status markers used in this plan:
   - [x] 48.3 Implement `promotePrimary(regionName)`: update internal routing table to make the specified region primary; emit `region:promoted` event; reject write queries to the former primary
   - [x] 48.4 Create `preferredRegionMiddleware(coordinator)`: read `X-Preferred-Region` header; call `coordinator.getReadPool(region)` for read requests; fall back to default read pool if region unavailable
   - [x] 48.5 Implement `db_replication_lag_seconds` Prometheus gauge: query `pg_stat_replication` on the primary and report lag per replica; label by `region` and `replica_id`
-  - [~] 48.6 Write tests: primary failure promotes next healthy replica within 10s, `X-Preferred-Region` routes to correct pool, replication lag metric emitted with correct labels, active-active last-write-wins resolves conflict correctly
+  - [x] 48.6 Write tests: primary failure promotes next healthy replica within 10s, `X-Preferred-Region` routes to correct pool, replication lag metric emitted with correct labels, active-active last-write-wins resolves conflict correctly
 
 - [x] 49. v3.0 — AI Infrastructure Toolkit and Native Agent Framework
   - [x] 49.1 Create `packages/core/src/platform/ai/llm-client.ts`: `LlmClient` interface, `CompletionOptions`, `CompletionResult` types; `OpenAiClient`, `AnthropicClient`, `OllamaClient` implementations using `node:https`; no SDK dependencies
@@ -446,7 +446,7 @@ Status markers used in this plan:
   - [x] 49.5 Implement SSE step streaming: when `ctx` is provided, emit `{ type: 'thought'|'action'|'observation'|'final', content: string }` events via `createSse(ctx.res)` for each intermediate step
   - [x] 49.6 Implement conversation history summarization: estimate tokens as `Math.ceil(content.length / 4)`; when history exceeds `maxTokens * 0.8`, send a summarization prompt to the LLM and replace history with the summary
   - [x] 49.7 Implement HTTP 429 retry: catch `429` from LLM provider, parse `Retry-After` header, wait that duration, then retry; propagate `Retry-After` on the API response
-  - [~] 49.8 Write tests: ReAct loop resolves with correct final answer, tool execution result is fed back to LLM, history summarization triggers at token limit, 429 retry respects `Retry-After`, SSE events emitted in correct order
+  - [x] 49.8 Write tests: ReAct loop resolves with correct final answer, tool execution result is fed back to LLM, history summarization triggers at token limit, 429 retry respects `Retry-After`, SSE events emitted in correct order
 
 - [x] 50. v3.0 — Plugin Marketplace and Extension SDK
   - [x] 50.1 Create `packages/core/src/platform/plugins/sdk.ts`: `PluginModule` abstract base class with `name`, `version`, `onInstall?`, `onLoad?`, `onUnload?` lifecycle hooks; `SandboxedApp` interface exposing only `use()`, `registerController()`, and `on()`
@@ -459,16 +459,16 @@ Status markers used in this plan:
 
 
 - [x] 51. Cross-Cutting — Absolute Implementation Policy Enforcement
-  - [~] 51.1 Add a CI step in `.github/workflows/ci-cd.yml` that scans all `.ts` files under `packages/core/src/` for `TODO`, `FIXME`, `HACK`, and `@ts-ignore` comments and fails the build if any are found
-  - [~] 51.2 Add database integration test jobs to `.github/workflows/ci-cd.yml`: spin up real PostgreSQL 16, MySQL 8, and SQLite services; run all test suites that touch database code against live instances
-  - [~] 51.3 Create `benchmarks/` directory with benchmark scripts for the primary request path: measure latency and throughput against Express, Fastify, NestJS, and Hono using `node:http` or `autocannon`; add benchmark job to CI that records results as a build artifact
+  - [x] 51.1 Add a CI step in `.github/workflows/ci-cd.yml` that scans all `.ts` files under `packages/core/src/` for `TODO`, `FIXME`, `HACK`, and `@ts-ignore` comments and fails the build if any are found
+  - [x] 51.2 Add database integration test jobs to `.github/workflows/ci-cd.yml`: spin up real PostgreSQL 16, MySQL 8, and SQLite services; run all test suites that touch database code against live instances
+  - [x] 51.3 Create `benchmarks/` directory with benchmark scripts for the primary request path: measure latency and throughput against Express, Fastify, NestJS, and Hono using `node:http` or `autocannon`; add benchmark job to CI that records results as a build artifact
   - [x] 51.4 Add a memory safety test job to CI: run `node --max-old-space-size=256` against the memory safety test suite in `packages/core/tests/system/memory-safety.test.ts`; fail if heap growth exceeds 50 MB over 10,000 requests
-  - [~] 51.5 Add a security audit step to CI: run `npm audit --audit-level=high` and fail the build on any high or critical severity findings
-  - [~] 51.6 Create `docs/` content stubs for each new module matching the documentation plan: `getting-started.md`, `user-guide.md`, `api-reference.md`, `cli-reference.md`, `security.md`, `migration.md`, `troubleshooting.md`, `examples/` per version milestone
-  - [~] 51.7 Audit all new stateful classes (`DevWatcher`, `JobQueue`, `CronScheduler`, `WorkflowEngine`, `DiagnosticsServer`, `OtelTracer`, `AnalyticsService`, `TenantPoolRegistry`, `AgentExecutor`) for `destroy()`/`stop()`/`close()` method completeness and verify they are called in the graceful shutdown sequence in `main.ts`
-  - [~] 51.8 Verify all `setInterval` and `setTimeout` timers across all new modules call `.unref()` so they do not prevent process exit
-  - [~] 51.9 Add a backward-compatibility regression test job: after each version is completed, run the full previous-version test suite against the new codebase and fail if any existing test breaks
-  - [~] 51.10 Create `CHANGELOG.md` entries for each shipped version following the Keep a Changelog format; automate generation from conventional commit messages in the CI release job
+  - [x] 51.5 Add a security audit step to CI: run `npm audit --audit-level=high` and fail the build on any high or critical severity findings
+  - [x] 51.6 Create `docs/` content stubs for each new module matching the documentation plan: `getting-started.md`, `user-guide.md`, `api-reference.md`, `cli-reference.md`, `security.md`, `migration.md`, `troubleshooting.md`, `examples/` per version milestone
+  - [x] 51.7 Audit all new stateful classes (`DevWatcher`, `JobQueue`, `CronScheduler`, `WorkflowEngine`, `DiagnosticsServer`, `OtelTracer`, `AnalyticsService`, `TenantPoolRegistry`, `AgentExecutor`) for `destroy()`/`stop()`/`close()` method completeness and verify they are called in the graceful shutdown sequence in `main.ts`
+  - [x] 51.8 Verify all `setInterval` and `setTimeout` timers across all new modules call `.unref()` so they do not prevent process exit
+  - [x] 51.9 Add a backward-compatibility regression test job: after each version is completed, run the full previous-version test suite against the new codebase and fail if any existing test breaks
+  - [x] 51.10 Create `CHANGELOG.md` entries for each shipped version following the Keep a Changelog format; automate generation from conventional commit messages in the CI release job
 
 ## Task Dependency Graph
 
