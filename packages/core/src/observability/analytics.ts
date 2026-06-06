@@ -118,18 +118,9 @@ export class AnalyticsService {
     const batch = this._buffer;
     this._buffer = [];
 
-    const cols = 5;
+    const perRow = 6;
     const valuesSql: string[] = [];
     const params: unknown[] = [];
-    batch.forEach((e, i) => {
-      const b = i * cols;
-      valuesSql.push(`($${b + 1}, $${b + 2}, $${b + 3}, $${b + 4}, $${b + 5})`);
-      params.push(e.route, e.method, e.status, e.durationMs, e.userId, e.apiKeyId);
-    });
-    // Note: 6 params per row — fix indices
-    params.length = 0;
-    valuesSql.length = 0;
-    const perRow = 6;
     batch.forEach((e, i) => {
       const b = i * perRow;
       valuesSql.push(`($${b + 1}, $${b + 2}, $${b + 3}, $${b + 4}, $${b + 5}, $${b + 6})`);
@@ -150,3 +141,54 @@ export class AnalyticsService {
       throw err;
     }
   }
+
+  /** Aggregate analytics for a time window: top routes by count, avg latency, error rate. */
+  async report(from: Date, to: Date): Promise<AnalyticsReport> {
+    const result = await this._pool.query(
+      `SELECT route, method,
+              COUNT(*)                                    AS count,
+              AVG(duration_ms)                            AS avg_latency,
+              AVG(CASE WHEN status >= 400 THEN 1 ELSE 0 END) AS error_rate
+       FROM street_api_events
+       WHERE created_at >= $1 AND created_at <= $2
+       GROUP BY route, method
+       ORDER BY count DESC`,
+      [from.toISOString(), to.toISOString()],
+    );
+
+    const routes: RouteReportRow[] = result.rows.map((r) => ({
+      route: r['route'] ?? '',
+      method: r['method'] ?? '',
+      count: parseInt(r['count'] ?? '0', 10),
+      avgLatencyMs: Math.round(parseFloat(r['avg_latency'] ?? '0') * 100) / 100,
+      errorRate: Math.round(parseFloat(r['error_rate'] ?? '0') * 10000) / 10000,
+    }));
+
+    return { from: from.toISOString(), to: to.toISOString(), routes };
+  }
+
+  /** Delete events older than the configured retention period. Returns rows removed. */
+  async pruneOld(): Promise<number> {
+    const result = await this._pool.query(
+      `DELETE FROM street_api_events
+       WHERE created_at < NOW() - ($1 || ' days')::interval`,
+      [String(this._retentionDays)],
+    );
+    return result.rowCount;
+  }
+
+  /** Stop the flush timer and flush any remaining buffered events. */
+  async close(): Promise<void> {
+    this._closed = true;
+    if (this._flushTimer) {
+      clearInterval(this._flushTimer);
+      this._flushTimer = null;
+    }
+    await this.flush();
+  }
+}
+
+function statusOf(ctx: StreetContext): number {
+  const res = ctx.res as unknown as { statusCode?: number };
+  return typeof res.statusCode === 'number' && res.statusCode > 0 ? res.statusCode : 200;
+}
