@@ -260,7 +260,7 @@ Status markers used in this plan:
   - [x] 28.2 Implement TypeScript `ApiClient.ts` generation: one method per `operationId`, named exactly as the operationId; method signature accepts typed request params; body uses native `fetch` API
   - [x] 28.3 Create `packages/core/src/sdk-gen/python.ts`: `generatePythonSdk(spec, outputDir)` generates Python dataclasses for models and a `urllib.request`-based client; no third-party Python dependencies
   - [ ] 28.4 Add `street generate sdk --lang <typescript|python> --output <dir>` to `GenerateCommand`: dynamically import the compiled project's `openApiSpec()`, pass to the appropriate generator
-  - [ ] 28.5 Write tests: generated TypeScript compiles without errors, generated Python dataclasses match the spec schema, backward-compatible spec change produces additive SDK update
+  - [x] 28.5 Write tests: generated TypeScript compiles without errors, generated Python dataclasses match the spec schema, backward-compatible spec change produces additive SDK update
 
 - [~] 29. v1.6 — Rate Limit Policies and API Analytics
   - [x] 29.1 Create `@RateLimit({ requests, window, key? })` method decorator in `packages/core/src/security/ratelimit.ts`: store config under `street:rateLimit` route metadata
