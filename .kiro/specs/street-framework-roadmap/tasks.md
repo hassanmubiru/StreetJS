@@ -115,7 +115,7 @@
   - [x] 13.1 Create `packages/core/src/observability/prometheus.ts`: `MetricsRegistry`, `Counter`, `Gauge`, `Histogram` classes; `MetricConflictError` exception
   - [x] 13.2 Implement `Counter.inc(labels?, value?)`, `Gauge.set(value, labels?)`, `Histogram.observe(value, labels?)`: store label-keyed values in `Map<string, number>` (synchronous, event-loop-safe)
   - [x] 13.3 Implement `MetricsRegistry.collect()`: render all registered metrics to Prometheus text exposition format 0.0.4 with correct `# HELP`, `# TYPE`, and metric lines; return as `string`
-  - [~] 13.4 Register default metrics: `http_requests_total` (counter), `http_request_duration_seconds` (histogram with buckets 0.005–10), `process_heap_bytes` (gauge), `db_pool_connections` (gauge) in `prometheusMiddleware(registry, pool?)`
+  - [x] 13.4 Register default metrics: `http_requests_total` (counter), `http_request_duration_seconds` (histogram with buckets 0.005–10), `process_heap_bytes` (gauge), `db_pool_connections` (gauge) in `prometheusMiddleware(registry, pool?)`
   - [~] 13.5 Throw `MetricConflictError` synchronously at registration time if a metric name is already registered
   - [~] 13.6 Register `GET /metrics` route in `StreetApp` when `prometheusMiddleware` is used; set correct `Content-Type` header
   - [~] 13.7 Export `MetricsRegistry`, `prometheusMiddleware`, `MetricConflictError` from `packages/core/src/index.ts`
