@@ -17,6 +17,20 @@ CREATE TABLE IF NOT EXISTS street_audit_log (
   signature TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Append-only enforcement: reject any UPDATE or DELETE on the audit log so
+-- entries can never be altered or removed once written (tamper-evidence).
+CREATE OR REPLACE FUNCTION street_audit_log_append_only()
+RETURNS TRIGGER AS $$
+BEGIN
+  RAISE EXCEPTION 'street_audit_log is append-only: % is not permitted', TG_OP;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS street_audit_log_no_update ON street_audit_log;
+CREATE TRIGGER street_audit_log_no_update
+  BEFORE UPDATE OR DELETE ON street_audit_log
+  FOR EACH ROW EXECUTE FUNCTION street_audit_log_append_only();
 `;
 const BATCH_SIZE = 100;
 /**
