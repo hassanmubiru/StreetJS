@@ -176,15 +176,20 @@ function parseArgValue(raw: string): unknown {
 
 // ─── Depth / Complexity ───────────────────────────────────────────────────────
 
+/**
+ * Recursively compute the maximum nesting depth of a selection set.
+ * The root selection set counts as depth 1; each nested selection set adds 1.
+ * Example: `{ a }` → 1, `{ a { b } }` → 2, `{ a { b { c } } }` → 3.
+ */
 function getDepth(ss: SelectionSet): number {
   let max = 0;
   for (const f of ss.fields) {
     if (f.selectionSet) {
-      const d = 1 + getDepth(f.selectionSet);
+      const d = getDepth(f.selectionSet);
       if (d > max) max = d;
     }
   }
-  return max;
+  return max + 1;
 }
 
 function getComplexity(ss: SelectionSet): number {
@@ -320,9 +325,9 @@ export class GraphQlEngine {
       return { errors: [{ message: 'Introspection is disabled' }] };
     }
 
-    // Depth limit
+    // Depth limit — reject queries whose nesting depth exceeds maxDepth.
     const depth = getDepth(op.selectionSet);
-    if (depth >= this.opts.maxDepth) {
+    if (depth > this.opts.maxDepth) {
       return { errors: [{ message: `Query depth ${depth} exceeds maximum allowed depth ${this.opts.maxDepth}` }] };
     }
 
