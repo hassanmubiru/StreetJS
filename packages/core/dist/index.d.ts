@@ -67,7 +67,7 @@ export { HealthCheckRegistry, registerHealthRoutes } from './observability/healt
 export type { CheckResult, HealthResponse, CheckType, CheckStatus, CheckFn } from './observability/health.js';
 export { Logger, correlationMiddleware } from './observability/logger.js';
 export type { LogLevel, LogEntry } from './observability/logger.js';
-export { MetricsRegistry, Counter, Gauge, Histogram, MetricConflictError, prometheusMiddleware, metricsHandler } from './observability/prometheus.js';
+export { MetricsRegistry, Counter, Gauge, Histogram, MetricConflictError, prometheusMiddleware, metricsHandler, registerMetricsRoute, PROMETHEUS_CONTENT_TYPE } from './observability/prometheus.js';
 export { RouteProfiler } from './diagnostics/route-profiler.js';
 export type { LatencySample, RouteStats } from './diagnostics/route-profiler.js';
 export { DiagnosticsServer, isStaleSocket } from './diagnostics/socket-server.js';

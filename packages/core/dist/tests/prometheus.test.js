@@ -3,8 +3,27 @@
 // metricsHandler and MetricConflictError (tasks 13.1–13.8).
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { MetricsRegistry, Counter, Gauge, Histogram, MetricConflictError, prometheusMiddleware, metricsHandler, } from '../observability/prometheus.js';
+import { request } from 'node:http';
+import { MetricsRegistry, Counter, Gauge, Histogram, MetricConflictError, prometheusMiddleware, metricsHandler, registerMetricsRoute, PROMETHEUS_CONTENT_TYPE, } from '../observability/prometheus.js';
+import { streetApp } from '../http/server.js';
 // ── Helpers ───────────────────────────────────────────────────────────────────
+let testPort = 54300;
+function nextPort() { return testPort++; }
+function httpGet(port, path) {
+    return new Promise((resolve, reject) => {
+        const req = request({ hostname: '127.0.0.1', port, path, method: 'GET' }, (res) => {
+            const chunks = [];
+            res.on('data', (c) => chunks.push(c));
+            res.on('end', () => resolve({
+                status: res.statusCode ?? 0,
+                body: Buffer.concat(chunks).toString(),
+                contentType: res.headers['content-type'] ?? '',
+            }));
+        });
+        req.on('error', reject);
+        req.end();
+    });
+}
 /** Minimal StreetContext for middleware tests. */
 function makeCtx(opts = {}) {
     const statusCode = opts.statusCode ?? 200;
@@ -15,7 +34,21 @@ function makeCtx(opts = {}) {
         req: {},
         res: {
             statusCode,
+            writableEnded: false,
             setHeader(name, value) { sentHeaders[name] = value; },
+            writeHead(status, headers) {
+                sentStatus = status;
+                if (headers) {
+                    for (const [k, v] of Object.entries(headers))
+                        sentHeaders[k] = v;
+                }
+                return this;
+            },
+            end(data) {
+                if (typeof data === 'string')
+                    bodyText = data;
+                this.writableEnded = true;
+            },
         },
         path: opts.path ?? '/test',
         method: opts.method ?? 'GET',
@@ -245,14 +278,79 @@ describe('metricsHandler (13.6)', () => {
         assert.ok(body.includes('# HELP my_counter'), body);
         assert.ok(body.includes('# TYPE my_counter counter'), body);
     });
-    it('sets Content-Type to Prometheus text', async () => {
+    it('sets Content-Type to the Prometheus exposition format 0.0.4', async () => {
         const registry = new MetricsRegistry();
         const handler = metricsHandler(registry);
         const ctx = makeCtx();
         await handler(ctx, async () => { });
-        // The res.setHeader is called inside the handler
-        const resHeaders = ctx.res;
-        assert.ok(resHeaders !== undefined);
+        const headers = ctx._headers();
+        assert.equal(headers['Content-Type'], PROMETHEUS_CONTENT_TYPE);
+        assert.equal(headers['Content-Type'], 'text/plain; version=0.0.4; charset=utf-8');
+    });
+    it('writes a 200 status with the collected body', async () => {
+        const registry = new MetricsRegistry();
+        registry.gauge('g', 'a gauge').set(7);
+        const handler = metricsHandler(registry);
+        const ctx = makeCtx();
+        await handler(ctx, async () => { });
+        const status = ctx._status();
+        const body = ctx._body();
+        assert.equal(status, 200);
+        assert.ok(body.includes('g 7'), body);
+    });
+});
+// ── 13.6 — registerMetricsRoute integration (real StreetApp) ──────────────────
+describe('registerMetricsRoute (13.6)', () => {
+    it('GET /metrics serves the exposition with the Prometheus Content-Type', async () => {
+        const port = nextPort();
+        const registry = new MetricsRegistry();
+        const app = streetApp({ port });
+        registerMetricsRoute(app, registry);
+        await app.listen(port);
+        try {
+            const res = await httpGet(port, '/metrics');
+            assert.equal(res.status, 200);
+            assert.equal(res.contentType, 'text/plain; version=0.0.4; charset=utf-8');
+            // Default metrics registered by prometheusMiddleware should be present.
+            assert.ok(res.body.includes('http_requests_total'), res.body);
+            assert.ok(res.body.includes('process_heap_bytes'), res.body);
+        }
+        finally {
+            await app.close();
+        }
+    });
+    it('records request metrics and exposes db_pool_connections when a pool is given', async () => {
+        const port = nextPort();
+        const registry = new MetricsRegistry();
+        const app = streetApp({ port });
+        registerMetricsRoute(app, registry, { idleCount: 3, activeCount: 2, waitingCount: 0 });
+        await app.listen(port);
+        try {
+            // First scrape records its own request via the prometheus middleware.
+            await httpGet(port, '/metrics');
+            const res = await httpGet(port, '/metrics');
+            assert.equal(res.status, 200);
+            assert.equal(res.contentType, 'text/plain; version=0.0.4; charset=utf-8');
+            assert.ok(res.body.includes('db_pool_connections'), res.body);
+            assert.ok(res.body.includes('http_requests_total{'), res.body);
+        }
+        finally {
+            await app.close();
+        }
+    });
+    it('non-metrics routes fall through to the not-found handler', async () => {
+        const port = nextPort();
+        const registry = new MetricsRegistry();
+        const app = streetApp({ port });
+        registerMetricsRoute(app, registry);
+        await app.listen(port);
+        try {
+            const res = await httpGet(port, '/not-metrics');
+            assert.equal(res.status, 404);
+        }
+        finally {
+            await app.close();
+        }
     });
 });
 //# sourceMappingURL=prometheus.test.js.map

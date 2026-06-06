@@ -1,6 +1,11 @@
 // src/observability/prometheus.ts
 // Prometheus text exposition format 0.0.4 — Counter, Gauge, Histogram, MetricsRegistry.
 // Also provides prometheusMiddleware and metricsHandler factories.
+/**
+ * Content-Type for the Prometheus text exposition format (version 0.0.4).
+ * Used by `metricsHandler` and `registerMetricsRoute`.
+ */
+export const PROMETHEUS_CONTENT_TYPE = 'text/plain; version=0.0.4; charset=utf-8';
 // ── Errors ────────────────────────────────────────────────────────────────────
 export class MetricConflictError extends Error {
     constructor(name) {
@@ -250,13 +255,54 @@ export function prometheusMiddleware(registry, pool) {
 // ── metricsHandler ────────────────────────────────────────────────────────────
 /**
  * Returns a MiddlewareFn that responds with the Prometheus text exposition.
- * Wire this to a `GET /metrics` route in your application.
+ * Wire this to a `GET /metrics` route in your application (see
+ * `registerMetricsRoute`).
+ *
+ * The response is written directly to the underlying response so the
+ * Prometheus-specific Content-Type (`text/plain; version=0.0.4; charset=utf-8`)
+ * is preserved. `ctx.text()` would otherwise overwrite it with a generic
+ * `text/plain; charset=utf-8` header.
  */
 export function metricsHandler(registry) {
     return async (ctx, _next) => {
+        if (ctx.sent || ctx.res.writableEnded)
+            return;
         const body = registry.collect();
-        ctx.res.setHeader('Content-Type', 'text/plain; version=0.0.4; charset=utf-8');
-        ctx.text(body, 200);
+        ctx.res.writeHead(200, {
+            'Content-Type': PROMETHEUS_CONTENT_TYPE,
+            'Content-Length': Buffer.byteLength(body, 'utf8').toString(),
+        });
+        ctx.res.end(body);
     };
+}
+/**
+ * Wire Prometheus into a StreetApp in a single call, mirroring the
+ * `registerHealthRoutes(app, registry)` pattern:
+ *
+ *   1. Installs `prometheusMiddleware(registry, pool)` so default HTTP +
+ *      process (and optional DB pool) metrics are recorded per request.
+ *   2. Registers `GET /metrics` to serve the exposition produced by
+ *      `metricsHandler(registry)` with the correct Content-Type
+ *      (`text/plain; version=0.0.4; charset=utf-8`).
+ *
+ * Call this once per registry. Combining it with a separate
+ * `prometheusMiddleware(registry)` call on the same registry throws
+ * `MetricConflictError`, since the default metrics would be registered twice.
+ *
+ * @param app      - The StreetApp to register the route + middleware on.
+ * @param registry - The MetricsRegistry that holds the metrics to expose.
+ * @param pool     - Optional connection pool with stats for the
+ *                   `db_pool_connections` gauge.
+ */
+export function registerMetricsRoute(app, registry, pool) {
+    app.use(prometheusMiddleware(registry, pool));
+    const handler = metricsHandler(registry);
+    app.use(async (ctx, next) => {
+        if (ctx.method === 'GET' && ctx.path === '/metrics') {
+            await handler(ctx, next);
+            return;
+        }
+        await next();
+    });
 }
 //# sourceMappingURL=prometheus.js.map
