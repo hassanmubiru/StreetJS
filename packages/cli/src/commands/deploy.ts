@@ -31,7 +31,7 @@ export class DeployInitCommand {
       replicas: 2,
       env: ['NODE_ENV', 'PG_HOST', 'PG_PORT', 'PG_DATABASE'],
     };
-    const manifest = core.generateManifest(platform as core.CloudPlatform, config as core.DeployConfig);
+    const manifest = core.generateManifest(platform as CloudPlatform, config as DeployConfig);
 
     const dir = resolve(ctx.cwd, 'deploy');
     await mkdir(dir, { recursive: true });
