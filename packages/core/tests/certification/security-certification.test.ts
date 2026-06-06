@@ -40,7 +40,7 @@ describe('SECURITY — JWT', () => {
   });
 
   it('rejects an expired token', () => {
-    const token = jwt.sign({ sub: 'u1' }, { expiresInSec: -10 });
+    const token = jwt.sign({ sub: 'u1' }, { expiresInSeconds: -10 });
     assert.equal(jwt.verify(token), null);
   });
 });
