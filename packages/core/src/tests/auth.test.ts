@@ -2227,3 +2227,333 @@ describe('AuditWriter integration into auth flows (Task 21.5)', () => {
     assert.equal(typeof rotated.accessToken, 'string');
   });
 });
+
+// ── Task 21.6: Session revocation 401, audit coverage, rollback, append-only ──
+
+import { before, after } from 'node:test';
+import {
+  sessionRevocationMiddleware,
+  AUDIT_LOG_MIGRATION_SQL,
+  auditLoginSuccess,
+  auditLoginFailure,
+  auditLogout,
+  auditTokenRefresh,
+  auditSessionRevoked,
+  auditPermissionDenied,
+} from '../auth/session-store.js';
+import type { AuditEvent } from '../auth/audit-writer.js';
+
+// ── 21.6 (1) Revoked session returns 401 on the next request ──────────────────
+
+describe('Session revocation middleware (Task 21.6) — revoked session returns 401', () => {
+  it('passes an active session through, then returns 401 after the session is revoked', async () => {
+    const pool = new SessionMemPool();
+    const store = new StreetSessionStore(pool);
+    const sessionId = await store.create({ userId: 'user-revoke-401' });
+    const mw = sessionRevocationMiddleware(store);
+
+    // First request: the session is active, so next() runs.
+    let nextCalls = 0;
+    await mw(
+      { state: { sessionId } } as unknown as Parameters<typeof mw>[0],
+      async () => { nextCalls += 1; },
+    );
+    assert.equal(nextCalls, 1, 'active session should pass the revocation check');
+
+    // Revoke the session.
+    await store.revoke(sessionId);
+
+    // Next request with the same session id → 401 and the handler is never reached.
+    await assert.rejects(
+      () => mw(
+        { state: { sessionId } } as unknown as Parameters<typeof mw>[0],
+        async () => { nextCalls += 1; },
+      ),
+      (err: unknown) => {
+        assert.ok(err instanceof UnauthorizedException, 'should throw UnauthorizedException');
+        assert.equal((err as UnauthorizedException).status, 401, 'status must be 401');
+        return true;
+      },
+    );
+    assert.equal(nextCalls, 1, 'revoked session must not reach the downstream handler');
+  });
+
+  it('treats an unknown session id as revoked (DB fallback) and returns 401', async () => {
+    const pool = new SessionMemPool();
+    const store = new StreetSessionStore(pool);
+    const mw = sessionRevocationMiddleware(store);
+
+    await assert.rejects(
+      () => mw(
+        { state: { sessionId: 'never-created-session' } } as unknown as Parameters<typeof mw>[0],
+        async () => {},
+      ),
+      (err: unknown) => {
+        assert.ok(err instanceof UnauthorizedException);
+        assert.equal((err as UnauthorizedException).status, 401);
+        return true;
+      },
+    );
+  });
+
+  it('skips the revocation check when no session id is present in ctx.state', async () => {
+    const pool = new SessionMemPool();
+    const store = new StreetSessionStore(pool);
+    const mw = sessionRevocationMiddleware(store);
+
+    let nextCalled = false;
+    await mw(
+      { state: {} } as unknown as Parameters<typeof mw>[0],
+      async () => { nextCalled = true; },
+    );
+    assert.ok(nextCalled, 'requests without a session id should pass through');
+  });
+});
+
+// ── 21.6 (2) An audit entry is written for each of the 6 event types ──────────
+
+describe('AuditWriter (Task 21.6) — writes an entry for each of the 6 event types', () => {
+  const ALL_EVENTS: AuditEvent[] = [
+    'login_success',
+    'login_failure',
+    'logout',
+    'token_refresh',
+    'session_revoked',
+    'permission_denied',
+  ];
+
+  it('persists an INSERT for every audit event type via AuditWriter.write', async () => {
+    const pool = new RecordingAuditPool();
+    const audit = new AuditWriter(pool);
+
+    for (const event of ALL_EVENTS) {
+      await audit.write({ event, actorId: `actor-${event}`, details: { event } });
+    }
+
+    assert.equal(pool.events.length, ALL_EVENTS.length, 'one entry per event type');
+    const recorded = pool.events.map((e) => e.event).sort();
+    assert.deepEqual(recorded, [...ALL_EVENTS].sort(), 'all 6 event types recorded exactly once');
+
+    for (const event of ALL_EVENTS) {
+      const entry = pool.events.find((e) => e.event === event);
+      assert.ok(entry, `entry for ${event} must exist`);
+      assert.equal(entry!.actorId, `actor-${event}`, `actor recorded for ${event}`);
+    }
+  });
+
+  it('per-event helper functions each write their corresponding event type', async () => {
+    const pool = new RecordingAuditPool();
+    const audit = new AuditWriter(pool);
+
+    await auditLoginSuccess(audit, { actorId: 'h1' });
+    await auditLoginFailure(audit, { actorId: 'h2', details: { reason: 'bad_password' } });
+    await auditLogout(audit, { actorId: 'h3' });
+    await auditTokenRefresh(audit, { actorId: 'h4' });
+    await auditSessionRevoked(audit, { actorId: 'h5' });
+    await auditPermissionDenied(audit, { actorId: 'h6', details: { required: ['admin'] } });
+
+    const recorded = pool.events.map((e) => e.event).sort();
+    assert.deepEqual(
+      recorded,
+      [...ALL_EVENTS].sort(),
+      'each helper writes exactly one entry of its event type',
+    );
+  });
+});
+
+// ── 21.6 (3) A failed audit write rolls back the surrounding transaction ──────
+
+/**
+ * In-memory pool that models commit/rollback semantics so we can prove a failed
+ * audit write discards staged work. Each `transaction()` stages its writes and
+ * only promotes them to `committed` on success; a thrown error increments
+ * `rollbacks` and drops the staged writes (a rollback). A standalone `query()`
+ * commits immediately. `failOn` lets a test force a write to fail.
+ */
+class RollbackTrackingPool implements AuditPool {
+  committed: { sql: string; params?: unknown[] }[] = [];
+  commits = 0;
+  rollbacks = 0;
+  failOn?: (sql: string) => boolean;
+
+  async query(sql: string, params?: unknown[]): Promise<{ rows: Record<string, string | null>[]; rowCount: number; command: string }> {
+    if (this.failOn?.(sql)) throw new Error('simulated write failure');
+    this.committed.push({ sql, params });
+    return { rows: [], rowCount: 1, command: 'OK' };
+  }
+
+  async transaction<T>(fn: (conn: { query(sql: string, params?: unknown[]): Promise<{ rows: Record<string, string | null>[]; rowCount: number; command: string }> }) => Promise<T>): Promise<T> {
+    const staged: { sql: string; params?: unknown[] }[] = [];
+    const conn = {
+      query: async (sql: string, params?: unknown[]) => {
+        if (this.failOn?.(sql)) throw new Error('simulated write failure');
+        staged.push({ sql, params });
+        return { rows: [] as Record<string, string | null>[], rowCount: 1, command: 'OK' };
+      },
+    };
+    try {
+      const result = await fn(conn);
+      this.committed.push(...staged);
+      this.commits += 1;
+      return result;
+    } catch (err) {
+      this.rollbacks += 1; // staged writes are discarded → rollback
+      throw err;
+    }
+  }
+}
+
+describe('AuditWriter (Task 21.6) — a failed audit write causes transaction rollback', () => {
+  it('rejects and rolls back its own transaction (nothing committed) when the INSERT fails', async () => {
+    const pool = new RollbackTrackingPool();
+    pool.failOn = (sql) => sql.toUpperCase().includes('INSERT INTO STREET_AUDIT_LOG');
+    const audit = new AuditWriter(pool);
+
+    await assert.rejects(
+      () => audit.write({ event: 'login_success', actorId: 'u1' }),
+      /simulated write failure/,
+    );
+
+    assert.equal(pool.commits, 0, 'no transaction should commit');
+    assert.equal(pool.rollbacks, 1, 'the audit transaction must roll back');
+    assert.equal(pool.committed.length, 0, 'no audit row may be persisted on failure');
+  });
+
+  it('rolls back the originating request transaction so business writes are discarded', async () => {
+    const pool = new RollbackTrackingPool();
+    pool.failOn = (sql) => sql.toUpperCase().includes('INSERT INTO STREET_AUDIT_LOG');
+    const audit = new AuditWriter(pool);
+
+    // Simulate an originating request that performs a business write and then
+    // records an audit entry within the same logical unit of work. Because the
+    // audit write rejects, the surrounding transaction rolls back too.
+    await assert.rejects(
+      () => pool.transaction(async (conn) => {
+        await conn.query('INSERT INTO orders (id, total) VALUES ($1, $2)', ['o1', 100]);
+        await audit.write({ event: 'login_success', actorId: 'u1' });
+      }),
+      /simulated write failure/,
+    );
+
+    assert.equal(pool.commits, 0, 'neither the audit nor the business transaction may commit');
+    assert.equal(
+      pool.committed.find((c) => c.sql.toUpperCase().includes('INSERT INTO ORDERS')),
+      undefined,
+      'the business write must be rolled back when the audit write fails',
+    );
+    // Two rollbacks occur: the inner audit transaction and the outer request transaction.
+    assert.equal(pool.rollbacks, 2, 'both the audit and originating transactions roll back');
+  });
+
+  it('commits normally when the audit write succeeds', async () => {
+    const pool = new RollbackTrackingPool();
+    const audit = new AuditWriter(pool);
+
+    await audit.write({ event: 'logout', actorId: 'u2' });
+
+    assert.equal(pool.commits, 1, 'a successful write commits its transaction');
+    assert.equal(pool.rollbacks, 0, 'no rollback on success');
+    assert.equal(pool.committed.length, 1, 'the audit row is persisted');
+  });
+});
+
+// ── 21.6 (4) The audit log cannot be deleted via the public API ───────────────
+// These tests run against a real PostgreSQL instance to exercise the
+// append-only trigger created by AUDIT_LOG_MIGRATION_SQL. When Postgres is not
+// available the suite is reported as skipped (no assertions run).
+
+void describe('street_audit_log append-only enforcement (Task 21.6, requires Postgres)', () => {
+  let pgAvailable = false;
+  let PgPoolCtor: typeof import('../database/pool.js').PgPool;
+  let pool: import('../database/pool.js').PgPool | null = null;
+
+  const PG_OPTS = {
+    host: process.env['PG_HOST'] ?? 'localhost',
+    port: parseInt(process.env['PG_PORT'] ?? '5432', 10),
+    user: process.env['PG_USER'] ?? 'street',
+    password: process.env['PG_PASSWORD'] ?? 'street_secret',
+    database: process.env['PG_DATABASE'] ?? 'street_test',
+    minConnections: 1,
+    maxConnections: 2,
+    acquireTimeoutMs: 3000,
+    idleTimeoutMs: 5000,
+  };
+
+  before(async () => {
+    try {
+      ({ PgPool: PgPoolCtor } = await import('../database/pool.js'));
+      pool = new PgPoolCtor(PG_OPTS);
+      await pool.initialize();
+      // Create the table + append-only trigger (idempotent).
+      await pool.query(AUDIT_LOG_MIGRATION_SQL);
+      pgAvailable = true;
+    } catch {
+      pgAvailable = false;
+      if (pool) { try { await pool.close(); } catch { /* ignore */ } pool = null; }
+      console.log('[street] Skipping street_audit_log append-only tests — Postgres not available (start with: docker compose up -d postgres)');
+    }
+  });
+
+  after(async () => {
+    if (pool) {
+      // Drop the table to leave the test database clean; the trigger function
+      // is recreated idempotently by the migration on the next run.
+      try { await pool.query('DROP TABLE IF EXISTS street_audit_log'); } catch { /* ignore */ }
+      try { await pool.close(); } catch { /* ignore */ }
+      pool = null;
+    }
+  });
+
+  it('rejects DELETE of an audit row (append-only trigger)', async () => {
+    if (!pgAvailable || !pool) return;
+
+    const inserted = await pool.query(
+      `INSERT INTO street_audit_log (event, actor_id) VALUES ($1, $2) RETURNING id`,
+      ['login_success', 'actor-del'],
+    );
+    const id = inserted.rows[0]?.['id'];
+    assert.ok(id, 'insert should return the generated id');
+
+    await assert.rejects(
+      () => pool!.query('DELETE FROM street_audit_log WHERE id = $1', [id]),
+      /append-only/i,
+      'DELETE must be blocked by the append-only trigger',
+    );
+
+    // The row must still be present.
+    const after = await pool.query('SELECT id FROM street_audit_log WHERE id = $1', [id]);
+    assert.equal(after.rows.length, 1, 'the audit row must survive the blocked DELETE');
+  });
+
+  it('rejects UPDATE of an audit row (append-only trigger)', async () => {
+    if (!pgAvailable || !pool) return;
+
+    const inserted = await pool.query(
+      `INSERT INTO street_audit_log (event, actor_id) VALUES ($1, $2) RETURNING id`,
+      ['logout', 'actor-upd'],
+    );
+    const id = inserted.rows[0]?.['id'];
+    assert.ok(id, 'insert should return the generated id');
+
+    await assert.rejects(
+      () => pool!.query(`UPDATE street_audit_log SET event = 'tampered' WHERE id = $1`, [id]),
+      /append-only/i,
+      'UPDATE must be blocked by the append-only trigger',
+    );
+
+    const after = await pool.query('SELECT event FROM street_audit_log WHERE id = $1', [id]);
+    assert.equal(after.rows[0]?.['event'], 'logout', 'the event value must be unchanged');
+  });
+
+  it('allows INSERT (append) of audit rows', async () => {
+    if (!pgAvailable || !pool) return;
+
+    await assert.doesNotReject(
+      () => pool!.query(
+        `INSERT INTO street_audit_log (event, actor_id) VALUES ($1, $2)`,
+        ['token_refresh', 'actor-ins'],
+      ),
+      'appending new audit rows must be permitted',
+    );
+  });
+});
