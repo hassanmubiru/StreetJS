@@ -467,8 +467,9 @@ describe('Tenant metrics admin route + billing', () => {
         assert.equal(status, 403);
         let body = null;
         await mw({ method: 'GET', path: '/admin/tenants/t1/metrics', user: { roles: ['admin'] }, json: (d) => { body = d; } }, async () => { });
-        assert.equal(body.tenantId, 't1');
-        assert.ok('maxRequestsPerDay' in body.quotas);
+        const b = body;
+        assert.equal(b.tenantId, 't1');
+        assert.ok('maxRequestsPerDay' in b.quotas);
     });
     it('InMemoryBillingAdapter records reported usage', async () => {
         const adapter = new InMemoryBillingAdapter();
