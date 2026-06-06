@@ -7,6 +7,52 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [Unreleased]
+
+### Added
+
+**Messaging transports (from scratch, zero dependencies)**
+- `RabbitMqTransport` / `RabbitMqConnectionManager` / `RabbitMqPublisher` /
+  `RabbitMqConsumer` — a full AMQP 0-9-1 client over `node:net` with publisher
+  confirms, dead-letter routing, reconnect with backoff, heartbeats, and an
+  `EventBusTransport` adapter. Verified against a real broker via
+  `docker-compose.rabbitmq.yml` and a runnable integration suite.
+- `KafkaClient` / `KafkaProducer` / `KafkaConsumer` / `KafkaStreamTransport` —
+  the Kafka binary protocol over `node:net` (Metadata v1, Produce v3, Fetch v4,
+  ListOffsets v1, FindCoordinator v0, OffsetCommit v2, OffsetFetch v1,
+  InitProducerId v0), RecordBatch v2 with CRC32C, a batching + idempotent
+  producer, and a consumer-group offset-committing consumer. Verified against a
+  real broker via `docker-compose.kafka.yml` and a runnable integration suite.
+
+**Browser / edge builds**
+- `"browser"` export conditions in `@streetjs/core` mapping the main entry to a
+  node-free `dist/browser.js` and Node-only subpaths to a throwing stub.
+  Validated by an esbuild-based browser-bundle compatibility test suite.
+
+**Cloud & enterprise**
+- `AzureKeyVaultProvider` secret provider and `SecretRotationManager` (TTL-based
+  rotation with `rotate` events + `onRotate` for pool connection recycling);
+  contract tests for Vault/AWS/Azure/GCP via a local mock-server harness, plus
+  non-retryable (4xx) error classification.
+- `FieldEncryptor` transparent AES-256-GCM field encryption wired into the
+  repository layer, and `redactByClassification` for classification-aware log
+  redaction.
+- `TenantUsageAggregator` nightly usage→daily-stats aggregation job.
+- `EventStreamConsumer` lag monitoring (`stream:lag` events).
+- `AuditLogger` append-only trigger in the migration, `@Sensitive` redaction in
+  `log()`, and a public `flush()`.
+
+### Fixed
+- `BackupService.restore()` no longer drops the first data statement when it
+  shares a segment with the backup's leading comment header.
+
+### CI
+- New workflows: `rabbitmq-integration.yml`, `kafka-integration.yml`,
+  `browser-compat.yml`; a `policy-checks` job (placeholder-marker scan +
+  high-severity `npm audit`) added to `ci-cd.yml`.
+
+---
+
 ## [1.0.4] — 2026-05-29
 
 ### Fixed
