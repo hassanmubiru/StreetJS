@@ -250,4 +250,56 @@ export function otelMiddleware(tracer) {
         }
     };
 }
+/**
+ * A pool wrapper that creates an OpenTelemetry child span for every `query()`
+ * call — but only when an active parent span is present (mirroring "when
+ * `ctx.state['otelSpan']` is present"). The child span inherits the parent's
+ * trace, carries `db.system='postgresql'` and `db.statement=<sql>` attributes,
+ * and is ended (recording duration) after the query resolves or rejects.
+ *
+ * Composition only — no prototype patching. All other access goes through the
+ * underlying pool via the `inner` accessor.
+ */
+export class OtelInstrumentedPool {
+    _inner;
+    _tracer;
+    _getActiveSpan;
+    constructor(_inner, _tracer, _getActiveSpan) {
+        this._inner = _inner;
+        this._tracer = _tracer;
+        this._getActiveSpan = _getActiveSpan;
+    }
+    async query(sql, params) {
+        const parent = this._getActiveSpan();
+        // No active parent span → do not create a DB span; forward unchanged.
+        if (parent === undefined) {
+            return this._inner.query(sql, params);
+        }
+        const span = this._tracer.startSpan('db.query', parent.context, parent.context.spanId);
+        span.attributes['db.system'] = 'postgresql';
+        span.attributes['db.statement'] = sql;
+        try {
+            return await this._inner.query(sql, params);
+        }
+        finally {
+            // end() records duration (endNs - startNs) on both resolve and reject.
+            span.end();
+        }
+    }
+    /** Access the underlying (unwrapped) pool. */
+    get inner() { return this._inner; }
+}
+/**
+ * Wrap `pool` so each `query()` emits an OTel child span when `getActiveSpan()`
+ * returns an active parent span. Least-invasive composition wrapper that avoids
+ * a breaking change to `PgPool.query()`.
+ *
+ * @param pool          The pool to instrument.
+ * @param tracer        The `OtelTracer` used to create child spans.
+ * @param getActiveSpan Resolver returning the active parent span, or `undefined`.
+ * @returns             An `OtelInstrumentedPool` delegating to `pool`.
+ */
+export function instrumentPoolWithOtel(pool, tracer, getActiveSpan) {
+    return new OtelInstrumentedPool(pool, tracer, getActiveSpan);
+}
 //# sourceMappingURL=otel.js.map

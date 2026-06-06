@@ -1,4 +1,5 @@
 import type { MiddlewareFn } from '../core/types.js';
+import type { DbResult } from '../database/types.js';
 export interface SpanContext {
     traceId: string;
     spanId: string;
@@ -50,4 +51,48 @@ export declare class OtelTracer {
  * Stores the span in ctx.state['otelSpan'].
  */
 export declare function otelMiddleware(tracer: OtelTracer): MiddlewareFn;
+/**
+ * Minimal pool surface required to instrument database queries.
+ * Satisfied by `PgPool`, `ProfiledPool`, `MysqlPool`, and `SqlitePool` — the
+ * same duck-typed `query()` shape used by `QueryablePool`/`ProfileablePool`.
+ */
+export interface OtelInstrumentablePool {
+    query(sql: string, params?: unknown[]): Promise<DbResult>;
+}
+/**
+ * Resolves the currently-active parent span, or `undefined` when no span is
+ * active. Typically wired to `() => ctx.state['otelSpan'] as Span | undefined`
+ * so that DB spans are only emitted within an instrumented HTTP request.
+ */
+export type ActiveSpanResolver = () => Span | undefined;
+/**
+ * A pool wrapper that creates an OpenTelemetry child span for every `query()`
+ * call — but only when an active parent span is present (mirroring "when
+ * `ctx.state['otelSpan']` is present"). The child span inherits the parent's
+ * trace, carries `db.system='postgresql'` and `db.statement=<sql>` attributes,
+ * and is ended (recording duration) after the query resolves or rejects.
+ *
+ * Composition only — no prototype patching. All other access goes through the
+ * underlying pool via the `inner` accessor.
+ */
+export declare class OtelInstrumentedPool implements OtelInstrumentablePool {
+    private readonly _inner;
+    private readonly _tracer;
+    private readonly _getActiveSpan;
+    constructor(_inner: OtelInstrumentablePool, _tracer: OtelTracer, _getActiveSpan: ActiveSpanResolver);
+    query(sql: string, params?: unknown[]): Promise<DbResult>;
+    /** Access the underlying (unwrapped) pool. */
+    get inner(): OtelInstrumentablePool;
+}
+/**
+ * Wrap `pool` so each `query()` emits an OTel child span when `getActiveSpan()`
+ * returns an active parent span. Least-invasive composition wrapper that avoids
+ * a breaking change to `PgPool.query()`.
+ *
+ * @param pool          The pool to instrument.
+ * @param tracer        The `OtelTracer` used to create child spans.
+ * @param getActiveSpan Resolver returning the active parent span, or `undefined`.
+ * @returns             An `OtelInstrumentedPool` delegating to `pool`.
+ */
+export declare function instrumentPoolWithOtel(pool: OtelInstrumentablePool, tracer: OtelTracer, getActiveSpan: ActiveSpanResolver): OtelInstrumentedPool;
 //# sourceMappingURL=otel.d.ts.map
