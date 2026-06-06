@@ -213,7 +213,9 @@ function getComplexity(ss: SelectionSet): number {
 
 // ─── Introspection Guard ──────────────────────────────────────────────────────
 
-const INTROSPECTION_FIELDS = new Set(['__schema', '__type', '__typename']);
+// `__typename` is a meta-field that is always available per the GraphQL spec
+// and is NOT considered introspection, so it is intentionally excluded here.
+const INTROSPECTION_FIELDS = new Set(['__schema', '__type']);
 
 function usesIntrospection(ss: SelectionSet): boolean {
   for (const f of ss.fields) {
