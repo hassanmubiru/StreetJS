@@ -22,7 +22,7 @@ export type RespValue = string | number | null | RespValue[];
  * pull complete replies. Returns `undefined` when more data is needed.
  */
 export class RespParser {
-  private buf = Buffer.alloc(0);
+  private buf: Buffer = Buffer.alloc(0);
 
   push(chunk: Buffer): void {
     this.buf = this.buf.length === 0 ? chunk : Buffer.concat([this.buf, chunk]);
