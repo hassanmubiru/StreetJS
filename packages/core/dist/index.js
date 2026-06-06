@@ -129,4 +129,6 @@ export { FeatureUnavailableInEdgeRuntimeError } from './http/exceptions.js';
 export { parseSchema, typeRefToString, namedType, SchemaParseError } from './graphql/schema.js';
 // ── GraphQL: Execution Engine ─────────────────────────────────────────────────
 export { GraphQlEngine, graphqlMiddleware } from './graphql/engine.js';
+// ── GraphQL: Subscriptions (graphql-ws) ───────────────────────────────────────
+export { GraphQlWsConnection, attachGraphqlWs, GRAPHQL_WS_SUBPROTOCOL, GraphQlWsMessageType, GraphQlWsCloseCode, } from './graphql/subscriptions.js';
 //# sourceMappingURL=index.js.map

@@ -140,6 +140,56 @@ export class StreetWebSocketServer {
             });
         });
     }
+    /**
+     * Attach a custom subprotocol handler to an existing HTTP server. Negotiates
+     * the given WebSocket subprotocol (e.g. `graphql-transport-ws`) during the
+     * upgrade and hands the raw {@link WebSocket} to `handler` so the caller owns
+     * the message framing. Capacity, auth, path, and heartbeat tracking are
+     * shared with the rest of the server.
+     */
+    attachProtocol(server, subprotocol, handler) {
+        const protoWss = new WebSocketServer({
+            noServer: true,
+            maxPayload: 512 * 1024,
+            handleProtocols: (protocols) => (protocols.has(subprotocol) ? subprotocol : false),
+        });
+        server.on('upgrade', async (req, socket, head) => {
+            // Only handle the configured path; leave other upgrades to their handlers.
+            if (this.wss.options.path && req.url !== this.wss.options.path) {
+                return;
+            }
+            if (this.authFn) {
+                try {
+                    const allowed = await this.authFn(req);
+                    if (!allowed) {
+                        socket.write('HTTP/1.1 401 Unauthorized\r\nContent-Length: 0\r\nConnection: close\r\n\r\n');
+                        socket.destroy();
+                        return;
+                    }
+                }
+                catch {
+                    socket.write('HTTP/1.1 401 Unauthorized\r\nContent-Length: 0\r\nConnection: close\r\n\r\n');
+                    socket.destroy();
+                    return;
+                }
+            }
+            protoWss.handleUpgrade(req, socket, head, (ws) => {
+                if (this.clients.size >= this.MAX_CLIENTS) {
+                    ws.close(1013, 'Server at capacity');
+                    return;
+                }
+                ws.isAlive = true;
+                this.clients.add(ws);
+                ws.on('pong', () => { ws.isAlive = true; });
+                ws.on('close', () => this.clients.delete(ws));
+                ws.on('error', () => {
+                    this.clients.delete(ws);
+                    ws.terminate();
+                });
+                handler(ws, req);
+            });
+        });
+    }
     /** Broadcast a message to all connected clients */
     broadcast(type, payload) {
         const msg = JSON.stringify({ type, payload, ts: Date.now() });
