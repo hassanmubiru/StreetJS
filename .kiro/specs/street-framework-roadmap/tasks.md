@@ -203,7 +203,7 @@
 - [ ] 23. v1.5 — Delayed Jobs, Retry Policies, and Dead Letter Queues
   - [x] 23.1 Write `street_dead_letter_queue` migration SQL: `id, job_id, type, payload JSONB, error TEXT, exhausted_at TIMESTAMPTZ, created_at`
   - [x] 23.2 Implement `RetryPolicy` interface and per-job-type retry config: `maxAttempts`, `initialDelayMs`, `backoffMultiplier`, `maxDelayMs`; register policies via `JobQueue.setRetryPolicy(type, policy)`
-  - [~] 23.3 Implement geometric backoff in the polling loop: on job failure, compute `Math.min(initialDelayMs * Math.pow(backoffMultiplier, attempt), maxDelayMs)`, update `run_at = NOW() + interval`; increment `attempt_count`
+  - [-] 23.3 Implement geometric backoff in the polling loop: on job failure, compute `Math.min(initialDelayMs * Math.pow(backoffMultiplier, attempt), maxDelayMs)`, update `run_at = NOW() + interval`; increment `attempt_count`
   - [~] 23.4 Implement DLQ promotion: when `attempt_count >= maxAttempts`, `INSERT INTO street_dead_letter_queue` and `DELETE FROM street_jobs` in the same transaction
   - [~] 23.5 Implement DLQ pruning: `CronScheduler` runs a nightly job that `DELETE FROM street_dead_letter_queue WHERE id NOT IN (SELECT id FROM street_dead_letter_queue ORDER BY created_at DESC LIMIT $maxEntries)`
   - [~] 23.6 Write tests: backoff formula `initialDelay * multiplier^attempt` is correct, DLQ receives job after exhausting retries, DLQ pruning respects max entries, delayed job not executed before `runAt`
