@@ -278,3 +278,7 @@ export type {
   SchemaAst, ServiceDefinition, TypeDef, TypeDefKind, FieldDef, ArgDef,
   TypeRef, DirectiveNode, DirectiveArg, DirectiveDef, EnumValueDef,
 } from './graphql/schema.js';
+
+// ── GraphQL: Execution Engine ─────────────────────────────────────────────────
+export { GraphQlEngine, graphqlMiddleware } from './graphql/engine.js';
+export type { GraphQlEngineOptions, ExecutionResult } from './graphql/engine.js';
