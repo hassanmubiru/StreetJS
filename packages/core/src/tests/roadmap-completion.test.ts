@@ -596,7 +596,7 @@ describe('gRPC unary round-trip over HTTP/2', () => {
   it('dispatches a unary RPC and returns a response with grpc-status 0', async () => {
     const server = new GrpcServer({ port: 0 });
     server.registerService('demo.Calc', {
-      Add: { type: 'unary', handler: async (req) => {
+      Add: { type: 'unary', handler: async (req: unknown) => {
         const r = req as { a: number; b: number };
         return { sum: r.a + r.b };
       } },
