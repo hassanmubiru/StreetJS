@@ -1743,3 +1743,177 @@ describe('WorkflowEngine — conditional branching', () => {
     assert.deepEqual(compensated, ['reserve'], 'A skipped conditional step must not be compensated');
   });
 });
+
+// ── Tests: Job history pruning (bounded per-type history) ─────────────────────
+
+/**
+ * A focused mock pool that records the pruning DELETE and emulates its window
+ * semantics against an in-memory set of history rows. This lets us assert both
+ * that the query is correct (window function + bound param) and that each job
+ * type is independently bounded after pruning.
+ */
+function makeJobHistoryPrunePool(
+  initialRows: Array<{ id: string; type: string; created_at: number }> = [],
+): JobQueuePool & {
+  historyRows: Array<{ id: string; type: string; created_at: number }>;
+  queries: Array<{ sql: string; params?: unknown[] }>;
+} {
+  const historyRows = [...initialRows];
+  const queries: Array<{ sql: string; params?: unknown[] }> = [];
+
+  return {
+    historyRows,
+    queries,
+    async query(sql: string, params?: unknown[]): Promise<QueryResult> {
+      queries.push({ sql, params });
+
+      if (sql.includes('DELETE FROM street_job_history')) {
+        const maxPerType = (params as unknown[])[0] as number;
+        // Keep the newest `maxPerType` rows by created_at DESC within each type;
+        // delete the rest (rn > maxPerType), mirroring the window function.
+        const keep = new Set<string>();
+        const byType = new Map<string, Array<{ id: string; created_at: number }>>();
+        for (const r of historyRows) {
+          const list = byType.get(r.type) ?? [];
+          list.push({ id: r.id, created_at: r.created_at });
+          byType.set(r.type, list);
+        }
+        for (const list of byType.values()) {
+          list
+            .sort((a, b) => b.created_at - a.created_at)
+            .slice(0, maxPerType)
+            .forEach((r) => keep.add(r.id));
+        }
+        const before = historyRows.length;
+        for (let i = historyRows.length - 1; i >= 0; i--) {
+          if (!keep.has(historyRows[i].id)) historyRows.splice(i, 1);
+        }
+        const deleted = before - historyRows.length;
+        return { rows: [], rowCount: deleted, command: 'DELETE' };
+      }
+
+      return { rows: [], rowCount: 0, command: 'SELECT' };
+    },
+    async transaction<T>(fn: (conn: { query(sql: string, params?: unknown[]): Promise<QueryResult> }) => Promise<T>): Promise<T> {
+      return fn({ query: (sql, params) => this.query(sql, params) });
+    },
+  };
+}
+
+describe('JobQueue.pruneJobHistory', () => {
+  it('issues a window-function DELETE keeping the newest maxPerType rows per type', async () => {
+    const pool = makeJobHistoryPrunePool();
+    const queue = new JobQueue(pool);
+
+    await queue.pruneJobHistory(1_000);
+
+    const del = pool.queries.find((q) => q.sql.includes('DELETE FROM street_job_history'));
+    assert.ok(del, 'Expected a DELETE against street_job_history');
+    assert.match(del!.sql, /DELETE FROM street_job_history/i, 'targets the history table');
+    assert.match(del!.sql, /ROW_NUMBER\(\)\s+OVER/i, 'uses a ROW_NUMBER() window function');
+    assert.match(del!.sql, /PARTITION BY\s+type/i, 'partitions per job type');
+    assert.match(del!.sql, /ORDER BY\s+created_at\s+DESC/i, 'orders newest first within each type');
+    assert.match(del!.sql, /rn\s*>\s*\$1/i, 'deletes rows ranked beyond the parameterized bound');
+    assert.deepEqual(del!.params, [1_000], 'binds maxPerType as the bound parameter');
+  });
+
+  it('bounds each type independently to at most maxPerType rows, keeping the most recent', async () => {
+    const rows = [
+      { id: 'a1', type: 'email', created_at: 1_000 },
+      { id: 'a2', type: 'email', created_at: 2_000 },
+      { id: 'a3', type: 'email', created_at: 3_000 },
+      { id: 'b1', type: 'report', created_at: 1_500 },
+      { id: 'b2', type: 'report', created_at: 2_500 },
+    ];
+    const pool = makeJobHistoryPrunePool(rows);
+    const queue = new JobQueue(pool);
+
+    const deleted = await queue.pruneJobHistory(1);
+
+    assert.equal(deleted, 3, 'Should delete all but the newest row per type');
+    const keptIds = pool.historyRows.map((r) => r.id).sort();
+    assert.deepEqual(keptIds, ['a3', 'b2'], 'Only the newest row of each type is retained');
+  });
+
+  it('is a no-op when every type already has fewer rows than maxPerType', async () => {
+    const rows = [
+      { id: 'a1', type: 'email', created_at: 1_000 },
+      { id: 'b1', type: 'report', created_at: 2_000 },
+    ];
+    const pool = makeJobHistoryPrunePool(rows);
+    const queue = new JobQueue(pool);
+
+    const deleted = await queue.pruneJobHistory(1_000);
+
+    assert.equal(deleted, 0, 'Nothing should be deleted when under the per-type limit');
+    assert.equal(pool.historyRows.length, 2, 'All rows retained when under the limit');
+  });
+
+  it('rejects a negative or non-integer maxPerType', async () => {
+    const pool = makeJobHistoryPrunePool();
+    const queue = new JobQueue(pool);
+
+    await assert.rejects(() => queue.pruneJobHistory(-1), /non-negative integer/);
+    await assert.rejects(() => queue.pruneJobHistory(1.5), /non-negative integer/);
+  });
+});
+
+describe('JobQueue.registerJobHistoryPruning', () => {
+  it('registers a nightly cron job (default 0 0 * * *, keep 1000/type) that prunes history when fired', async () => {
+    const rows = [
+      { id: 'a1', type: 'email', created_at: 1_000 },
+      { id: 'a2', type: 'email', created_at: 2_000 },
+      { id: 'a3', type: 'email', created_at: 3_000 },
+    ];
+    const pool = makeJobHistoryPrunePool(rows);
+    const queue = new JobQueue(pool);
+    const sched = new CronScheduler();
+
+    queue.registerJobHistoryPruning(sched, 1);
+
+    const jobs = (sched as unknown as { jobs: Map<string, { fn: () => Promise<void> }> }).jobs;
+    assert.ok(jobs.has('street:job-history-prune'), 'A cron entry named street:job-history-prune should be registered');
+
+    await jobs.get('street:job-history-prune')!.fn();
+
+    const del = pool.queries.find((q) => q.sql.includes('DELETE FROM street_job_history'));
+    assert.ok(del, 'Firing the cron job should issue the prune DELETE');
+    assert.deepEqual(del!.params, [1], 'The prune should use the configured maxPerType');
+    assert.equal(pool.historyRows.length, 1, 'History should be bounded per type after the nightly run');
+    assert.equal(pool.historyRows[0].id, 'a3', 'The most recent entry should be retained');
+  });
+
+  it('defaults to keeping 1000 rows per type when maxPerType is omitted', async () => {
+    const pool = makeJobHistoryPrunePool();
+    const queue = new JobQueue(pool);
+    const sched = new CronScheduler();
+
+    queue.registerJobHistoryPruning(sched);
+
+    const jobs = (sched as unknown as { jobs: Map<string, { fn: () => Promise<void> }> }).jobs;
+    await jobs.get('street:job-history-prune')!.fn();
+
+    const del = pool.queries.find((q) => q.sql.includes('DELETE FROM street_job_history'));
+    assert.ok(del, 'Firing the cron job should issue the prune DELETE');
+    assert.deepEqual(del!.params, [1_000], 'The default maxPerType should be 1000');
+  });
+
+  it('accepts a custom cron expression and rejects an invalid one via the scheduler', () => {
+    const pool = makeJobHistoryPrunePool();
+    const queue = new JobQueue(pool);
+    const sched = new CronScheduler();
+
+    assert.doesNotThrow(() => queue.registerJobHistoryPruning(sched, 500, '30 3 * * *'));
+    assert.throws(
+      () => queue.registerJobHistoryPruning(sched, 500, 'not a cron'),
+      (err: unknown) => err instanceof CronParseError,
+    );
+  });
+
+  it('rejects a negative maxPerType before registering', () => {
+    const pool = makeJobHistoryPrunePool();
+    const queue = new JobQueue(pool);
+    const sched = new CronScheduler();
+    assert.throws(() => queue.registerJobHistoryPruning(sched, -5), /non-negative integer/);
+  });
+});
