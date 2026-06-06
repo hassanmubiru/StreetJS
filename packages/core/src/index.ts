@@ -67,8 +67,8 @@ export type { JwtPayload, JwtOptions } from './security/jwt.js';
 export { SessionManager } from './security/session.js';
 export type { SessionData } from './security/session.js';
 export { encryptSecret, decryptSecret, loadConfig, constantTimeEqual } from './security/vault.js';
-export { RateLimiter, RateLimitException } from './security/ratelimit.js';
-export type { RateLimiterOptions } from './security/ratelimit.js';
+export { RateLimiter, RateLimitException, RateLimit, getRateLimitMeta } from './security/ratelimit.js';
+export type { RateLimiterOptions, RateLimitDecoratorOptions } from './security/ratelimit.js';
 export { sanitizeString, sanitizeDeep, escapeHtml, xssMiddleware } from './security/xss.js';
 
 // ── Multipart ─────────────────────────────────────────────────────────────────
