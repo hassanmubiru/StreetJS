@@ -291,7 +291,7 @@ export type { PluginInstallerOptions } from './platform/plugins/registry.js';
 export { FeatureUnavailableInEdgeRuntimeError } from './http/exceptions.js';
 
 // ── API Versioning ────────────────────────────────────────────────────────────
-export { ApiVersion, Deprecated, enableVersioning, getApiVersion, getDeprecatedMeta } from './versioning/strategy.js';
+export { ApiVersion, Deprecated, enableVersioning, getApiVersion, getDeprecatedMeta, versionGuard, filterOpenApiByVersion, registerVersionedOpenApi } from './versioning/strategy.js';
 export type { VersioningOptions, DeprecatedOptions } from './versioning/strategy.js';
 
 // ── SDK Generator ─────────────────────────────────────────────────────────────
