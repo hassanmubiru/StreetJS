@@ -166,7 +166,7 @@
   - [x] 18.6 Write tests: rotation invalidates old token, replay attack revokes whole family, rotation invariant (old token invalid after rotation, new token valid), configurable lifetimes respected
 
 - [ ] 19. v1.4 — RBAC and Permission Decorators
-  - [-] 19.1 Create `packages/core/src/auth/rbac.ts`: `RoleHierarchy` type, `RbacService` class, `@Roles()` and `@Permissions()` method decorators, `rbacGuard(service)` middleware factory
+  - [x] 19.1 Create `packages/core/src/auth/rbac.ts`: `RoleHierarchy` type, `RbacService` class, `@Roles()` and `@Permissions()` method decorators, `rbacGuard(service)` middleware factory
   - [~] 19.2 Implement `RbacService` constructor: traverse hierarchy using BFS to build a `Map<role, Set<string>>` of flattened permissions; store at construction time for synchronous lookups
   - [~] 19.3 Implement `@Roles(...roles)` decorator: store roles on route metadata under `street:roles` key using `Reflect.defineMetadata`
   - [~] 19.4 Implement `@Permissions(...perms)` decorator: store permissions under `street:permissions` key
