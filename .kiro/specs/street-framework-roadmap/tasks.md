@@ -112,7 +112,7 @@
   - [x] 12.9 Write tests: JSON output structure, level filtering, Error serialization, correlation ID propagation to child logger, pretty formatter in dev mode
 
 - [ ] 13. v1.3 — Prometheus Metrics Exporter
-  - [~] 13.1 Create `packages/core/src/observability/prometheus.ts`: `MetricsRegistry`, `Counter`, `Gauge`, `Histogram` classes; `MetricConflictError` exception
+  - [-] 13.1 Create `packages/core/src/observability/prometheus.ts`: `MetricsRegistry`, `Counter`, `Gauge`, `Histogram` classes; `MetricConflictError` exception
   - [~] 13.2 Implement `Counter.inc(labels?, value?)`, `Gauge.set(value, labels?)`, `Histogram.observe(value, labels?)`: store label-keyed values in `Map<string, number>` (synchronous, event-loop-safe)
   - [~] 13.3 Implement `MetricsRegistry.collect()`: render all registered metrics to Prometheus text exposition format 0.0.4 with correct `# HELP`, `# TYPE`, and metric lines; return as `string`
   - [~] 13.4 Register default metrics: `http_requests_total` (counter), `http_request_duration_seconds` (histogram with buckets 0.005–10), `process_heap_bytes` (gauge), `db_pool_connections` (gauge) in `prometheusMiddleware(registry, pool?)`
