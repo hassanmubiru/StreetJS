@@ -312,17 +312,24 @@ export class AwsSecretsManagerProvider implements SecretProvider {
 export class GcpSecretManagerProvider implements SecretProvider {
   private readonly _projectId: string;
   private readonly _serviceAccountToken: string | undefined;
+  private readonly _endpoint: string;
   private readonly _cache = new Map<string, CacheEntry>();
   private readonly _ttlMs: number;
+  private readonly _tls: HttpClientOptions;
 
   constructor(opts: {
     projectId: string;
     serviceAccountToken?: string;
     cacheTtlMs?: number;
+    /** Override the Secret Manager endpoint (private endpoint or test server). */
+    endpoint?: string;
+    tls?: HttpClientOptions;
   }) {
     this._projectId = opts.projectId;
     this._serviceAccountToken = opts.serviceAccountToken;
+    this._endpoint = (opts.endpoint ?? 'https://secretmanager.googleapis.com').replace(/\/$/, '');
     this._ttlMs = opts.cacheTtlMs ?? DEFAULT_CACHE_TTL_MS;
+    this._tls = opts.tls ?? {};
   }
 
   async get(key: string): Promise<string> {
