@@ -137,6 +137,7 @@ export function streetHttp2App(opts: {
 } & StreetAppOptions = {}): StreetApp {
   const router = new Router();
   const globalMiddlewares: MiddlewareFn[] = [];
+  const pluginMiddlewares = new Map<import('../platform/plugins/sdk.js').PluginModule, MiddlewareFn[]>();
   const registeredRoutes: RegisteredRoute[] = [];
 
   const server: Http2SecureServer = createSecureServer({
