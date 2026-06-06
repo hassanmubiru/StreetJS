@@ -5,9 +5,11 @@ import { describe, it, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createConnection } from 'node:net';
 import { unlink } from 'node:fs/promises';
+import { writeFileSync, rmSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 
 import { RouteProfiler } from '../diagnostics/route-profiler.js';
-import { DiagnosticsServer } from '../diagnostics/socket-server.js';
+import { DiagnosticsServer, isStaleSocket } from '../diagnostics/socket-server.js';
 
 // ── RouteProfiler ─────────────────────────────────────────────────────────────
 
