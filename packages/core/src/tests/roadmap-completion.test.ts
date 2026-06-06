@@ -467,3 +467,71 @@ describe('AWS SigV4 signing', () => {
     assert.equal(headers['authorization'], again['authorization']);
   });
 });
+
+// ── Versioning guard + per-version OpenAPI ────────────────────────────────────
+
+import { versionGuard, filterOpenApiByVersion, registerVersionedOpenApi } from '../versioning/strategy.js';
+
+describe('Versioning guard + per-version OpenAPI', () => {
+  it('versionGuard returns 404 with available versions for unknown version', async () => {
+    const mws: Array<(ctx: unknown, next: () => Promise<void>) => Promise<void>> = [];
+    versionGuard({ use: (mw) => mws.push(mw as never) }, ['v1', 'v2']);
+    const mw = mws[0]!;
+    let body: unknown = null; let status = 0;
+    await mw({ method: 'GET', path: '/v9/users', json: (d: unknown, s = 200) => { body = d; status = s; } }, async () => {});
+    assert.equal(status, 404);
+    assert.deepEqual(body, { error: 'version_not_found', available: ['v1', 'v2'] });
+
+    // Known version passes through
+    let passed = false;
+    await mw({ method: 'GET', path: '/v1/users', json: () => {} }, async () => { passed = true; });
+    assert.equal(passed, true);
+  });
+
+  it('filterOpenApiByVersion keeps only matching paths', () => {
+    const spec = { openapi: '3.1.0', paths: { '/v1/users': {}, '/v2/users': {} } };
+    const v1 = filterOpenApiByVersion(spec, 'v1') as { paths: Record<string, unknown> };
+    assert.deepEqual(Object.keys(v1.paths), ['/v1/users']);
+  });
+
+  it('registerVersionedOpenApi serves a filtered spec per version', async () => {
+    const mws: Array<(ctx: unknown, next: () => Promise<void>) => Promise<void>> = [];
+    registerVersionedOpenApi({ use: (mw) => mws.push(mw as never) }, ['v1'], () => ({ paths: { '/v1/a': {}, '/v2/b': {} } }));
+    let body: { paths: Record<string, unknown> } | null = null;
+    await mws[0]!({ method: 'GET', path: '/v1/openapi.json', json: (d: unknown) => { body = d as never; } }, async () => {});
+    assert.ok(body);
+    assert.deepEqual(Object.keys(body!.paths), ['/v1/a']);
+  });
+});
+
+// ── Tenant admin route + billing adapter ──────────────────────────────────────
+
+import { TenantServiceImpl, registerTenantMetricsRoute, type QuotaConfig } from '../tenancy/provisioner.js';
+import { InMemoryBillingAdapter } from '../tenancy/billing.js';
+
+describe('Tenant metrics admin route + billing', () => {
+  it('admin route enforces role and returns quota status', async () => {
+    const fakePool = { async query() { return { rows: [], rowCount: 0, command: 'SELECT' }; } };
+    const svc = new TenantServiceImpl(fakePool, { maxRequestsPerDay: 1000 } as QuotaConfig);
+    const mws: Array<(ctx: unknown, next: () => Promise<void>) => Promise<void>> = [];
+    registerTenantMetricsRoute({ use: (mw) => mws.push(mw as never) }, svc, { quotaKeys: ['maxRequestsPerDay'] });
+    const mw = mws[0]!;
+
+    let status = 0;
+    await mw({ method: 'GET', path: '/admin/tenants/t1/metrics', user: { roles: ['user'] }, json: (_d: unknown, s = 200) => { status = s; } }, async () => {});
+    assert.equal(status, 403);
+
+    let body: { tenantId: string; quotas: Record<string, unknown> } | null = null;
+    await mw({ method: 'GET', path: '/admin/tenants/t1/metrics', user: { roles: ['admin'] }, json: (d: unknown) => { body = d as never; } }, async () => {});
+    assert.equal(body!.tenantId, 't1');
+    assert.ok('maxRequestsPerDay' in body!.quotas);
+  });
+
+  it('InMemoryBillingAdapter records reported usage', async () => {
+    const adapter = new InMemoryBillingAdapter();
+    const period = { start: new Date(0), end: new Date() };
+    await adapter.reportUsage('t1', period, { apiCalls: 42 });
+    assert.equal(adapter.reports.length, 1);
+    assert.equal(adapter.reports[0]!.metrics['apiCalls'], 42);
+  });
+});
