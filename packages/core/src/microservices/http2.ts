@@ -229,6 +229,8 @@ export function streetHttp2App(opts: {
       }
       pluginMiddlewares.delete(plugin);
     },
+
+    registerController(ctor: Constructor): void {
       const controllerMeta = getControllerMeta(ctor);
       if (!controllerMeta) {
         throw new Error(`Class ${ctor.name} is not decorated with @Controller`);
