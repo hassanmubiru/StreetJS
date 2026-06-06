@@ -238,14 +238,16 @@ describe('AgentExecutor (49.8)', () => {
   it('summarizes history when the token budget threshold is exceeded', async () => {
     const tools = new ToolRegistry();
     let summarizeCalled = false;
-    // A reply large enough to push estimated history tokens past 0.8 * maxTokens.
-    const big = 'x'.repeat(2000);
+    const toolCall = '```json\n{ "tool": "noop", "args": {} }\n```';
+    // Several tool-call rounds grow the history beyond the 4-message window so
+    // _summarizeHistory has middle messages to compress, while the big tool
+    // outputs push estimated tokens past the 0.8 * maxTokens threshold.
     const client = new ScriptedClient(
-      [`THOUGHT: ${big}\n\`\`\`json\n{ "tool": "noop", "args": {} }\n\`\`\``, 'summary text', 'FINAL ANSWER: ok'],
+      [toolCall, toolCall, toolCall, toolCall, 'summary text', 'FINAL ANSWER: ok'],
       (o) => { if (typeof o.messages[0]?.content === 'string' && /Summarize the following/i.test(o.messages[0].content)) summarizeCalled = true; },
     );
     tools.register('noop', async () => 'y'.repeat(2000), { type: 'object', properties: {} });
-    const agent = new AgentExecutor(client, tools, { maxSteps: 4, maxTokens: 500 });
+    const agent = new AgentExecutor(client, tools, { maxSteps: 8, maxTokens: 200 });
     const answer = await agent.run('go');
     assert.match(answer, /ok/);
     assert.equal(summarizeCalled, true, 'summarization prompt was sent to the LLM');

@@ -186,11 +186,12 @@ export class BackupService {
 
     const sql = Buffer.concat(sqlChunks).toString('utf8');
 
-    // Execute each statement
+    // Execute each statement. Strip SQL comment lines so a leading comment
+    // block (e.g. the backup header) doesn't swallow the first real statement.
     const statements = sql
       .split(/;(\s*\n|\s*$)/)
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0 && !s.startsWith('--'));
+      .map((s) => s.split('\n').filter((line) => !line.trim().startsWith('--')).join('\n').trim())
+      .filter((s) => s.length > 0);
 
     for (const stmt of statements) {
       await dest.query(stmt);
