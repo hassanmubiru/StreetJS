@@ -163,7 +163,7 @@
   - [x] 18.3 Implement `RefreshTokenService.rotate(rawRefreshToken)`: inside a single `pool.transaction()`: hash the token, find and verify it, check `revoked_at IS NULL`; if already revoked → call `revokeFamily()` and throw `TokenReplayError`; otherwise atomically create new tokens and set `revoked_at` on the old one
   - [x] 18.4 Implement `RefreshTokenService.revokeFamily(familyId)`: `UPDATE street_refresh_tokens SET revoked_at = NOW() WHERE family_id = $1`
   - [x] 18.5 Export `RefreshTokenService`, `TokenReplayError` from `packages/core/src/index.ts`
-  - [~] 18.6 Write tests: rotation invalidates old token, replay attack revokes whole family, rotation invariant (old token invalid after rotation, new token valid), configurable lifetimes respected
+  - [-] 18.6 Write tests: rotation invalidates old token, replay attack revokes whole family, rotation invariant (old token invalid after rotation, new token valid), configurable lifetimes respected
 
 - [ ] 19. v1.4 — RBAC and Permission Decorators
   - [~] 19.1 Create `packages/core/src/auth/rbac.ts`: `RoleHierarchy` type, `RbacService` class, `@Roles()` and `@Permissions()` method decorators, `rbacGuard(service)` middleware factory
