@@ -26,6 +26,8 @@ interface CompiledRoute {
   requiredRoles: string[];
   /** Required permissions baked from @Permissions decorator at registration time */
   requiredPermissions: string[];
+  /** Optional per-route rate limiter baked from @RateLimit decorator */
+  rateLimitMw?: MiddlewareFn;
 }
 
 export interface RouterOptions {
