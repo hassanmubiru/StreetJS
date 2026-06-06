@@ -124,8 +124,8 @@ export { CliKernel, parseArgv } from './cli/kernel.js';
 export type { ParsedArgs, CliKernelOptions } from './cli/kernel.js';
 
 // ── Observability (OpenTelemetry-compatible) ──────────────────────────────────
-export { OtelTracer, otelMiddleware } from './observability/otel.js';
-export type { SpanContext, Span } from './observability/otel.js';
+export { OtelTracer, otelMiddleware, OtelInstrumentedPool, instrumentPoolWithOtel } from './observability/otel.js';
+export type { SpanContext, Span, OtelInstrumentablePool, ActiveSpanResolver } from './observability/otel.js';
 
 // ── Health Check DSL ──────────────────────────────────────────────────────────
 export { HealthCheckRegistry, registerHealthRoutes } from './observability/health.js';
