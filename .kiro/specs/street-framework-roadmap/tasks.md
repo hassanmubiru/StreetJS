@@ -122,7 +122,7 @@
   - [x] 13.8 Write tests: Prometheus text format is valid, concurrent scrapes produce consistent snapshots, conflict detection, default metrics are present
 
 - [ ] 14. v1.3 — Health Check DSL
-  - [~] 14.1 Create `packages/core/src/observability/health.ts`: `HealthCheckRegistry`, `CheckFn`, `CheckResult`, `HealthResponse`, `CheckType` types
+  - [-] 14.1 Create `packages/core/src/observability/health.ts`: `HealthCheckRegistry`, `CheckFn`, `CheckResult`, `HealthResponse`, `CheckType` types
   - [~] 14.2 Implement `HealthCheckRegistry.addCheck(name, fn, opts)`: store checks in a `Map<string, { fn, type, timeoutMs }>`
   - [~] 14.3 Implement `HealthCheckRegistry.runLiveness()` and `runReadiness()`: execute all matching checks in parallel with `Promise.allSettled()`; wrap each in `Promise.race([fn(), timeoutPromise])`; mark any that reject or time out as `down`; return `HealthResponse`
   - [~] 14.4 Create `registerHealthRoutes(app, registry)`: register `GET /health/live` and `GET /health/ready` on `StreetApp`; respond 200 on all `up`, 503 on any `down`
