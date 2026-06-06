@@ -103,7 +103,7 @@
 - [ ] 12. v1.3 — Structured Logging
   - [x] 12.1 Create `packages/core/src/observability/logger.ts`: `Logger` class, `LogLevel` type, `LogEntry` interface with `timestamp`, `level`, `message`, `correlationId`, `service` fields
   - [x] 12.2 Implement `Logger.debug/info/warn/error(msg, meta?)`: serialize to JSON `LogEntry` and write to `outputStream` (default `process.stderr`); suppress entries below configured `level`
-  - [~] 12.3 Implement `Logger.child(bindings)`: return a new `Logger` instance with bindings merged into every entry; used for per-request loggers with `correlationId` pre-set
+  - [-] 12.3 Implement `Logger.child(bindings)`: return a new `Logger` instance with bindings merged into every entry; used for per-request loggers with `correlationId` pre-set
   - [~] 12.4 Implement `Error` serialization: if any `meta` value is an `Error` instance, replace it with `{ name, message, stack }` before `JSON.stringify`
   - [~] 12.5 Implement dev pretty-formatter: when `NODE_ENV=development`, output colorized single-line text to the terminal in addition to JSON to `outputStream`
   - [~] 12.6 Create `correlationMiddleware(logger)`: generate UUID v4 correlation ID or extract from `X-Correlation-ID` header; store in `ctx.state['correlationId']`; create child logger in `ctx.state['logger']`; set `X-Correlation-ID` response header
