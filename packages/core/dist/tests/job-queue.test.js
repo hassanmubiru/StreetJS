@@ -721,4 +721,124 @@ describe('JobQueue polling loop — DLQ promotion (attempt_count >= maxAttempts)
         assert.ok(pool.jobs.has(id), 'Job must remain (DELETE rolled back) when the DLQ INSERT fails');
     });
 });
+// ── Tests: DLQ pruning (bounded dead letter queue) ───────────────────────────
+/**
+ * A focused mock pool that records the pruning DELETE and emulates its semantics
+ * against an in-memory set of DLQ rows. This lets us assert both that the query
+ * is correct (shape + bound param) and that the table is bounded after pruning.
+ */
+function makeDlqPrunePool(initialRows = []) {
+    const dlqRows = [...initialRows];
+    const queries = [];
+    return {
+        dlqRows,
+        queries,
+        async query(sql, params) {
+            queries.push({ sql, params });
+            if (sql.includes('DELETE FROM street_dead_letter_queue')) {
+                const limit = params[0];
+                // Keep the newest `limit` rows by created_at DESC; delete the rest.
+                const keep = new Set([...dlqRows]
+                    .sort((a, b) => b.created_at - a.created_at)
+                    .slice(0, limit)
+                    .map((r) => r.id));
+                const before = dlqRows.length;
+                for (let i = dlqRows.length - 1; i >= 0; i--) {
+                    if (!keep.has(dlqRows[i].id))
+                        dlqRows.splice(i, 1);
+                }
+                const deleted = before - dlqRows.length;
+                return { rows: [], rowCount: deleted, command: 'DELETE' };
+            }
+            return { rows: [], rowCount: 0, command: 'SELECT' };
+        },
+        async transaction(fn) {
+            return fn({ query: (sql, params) => this.query(sql, params) });
+        },
+    };
+}
+describe('JobQueue.pruneDeadLetterQueue', () => {
+    it('issues the correct bounded DELETE ... WHERE id NOT IN (SELECT ... ORDER BY created_at DESC LIMIT $1)', async () => {
+        const pool = makeDlqPrunePool();
+        const queue = new JobQueue(pool);
+        await queue.pruneDeadLetterQueue(100);
+        const del = pool.queries.find((q) => q.sql.includes('DELETE FROM street_dead_letter_queue'));
+        assert.ok(del, 'Expected a DELETE against street_dead_letter_queue');
+        assert.match(del.sql, /DELETE FROM street_dead_letter_queue/i, 'targets the DLQ table');
+        assert.match(del.sql, /WHERE\s+id\s+NOT\s+IN/i, 'uses WHERE id NOT IN');
+        assert.match(del.sql, /SELECT\s+id\s+FROM\s+street_dead_letter_queue/i, 'inner SELECT on the DLQ table');
+        assert.match(del.sql, /ORDER BY\s+created_at\s+DESC/i, 'keeps newest by created_at DESC');
+        assert.match(del.sql, /LIMIT\s+\$1/i, 'bounds the kept set with a parameterized LIMIT');
+        assert.deepEqual(del.params, [100], 'binds maxEntries as the LIMIT parameter');
+    });
+    it('bounds the table to at most maxEntries rows, keeping the most recent entries', async () => {
+        // 5 rows with ascending created_at; ids r1..r5 (r5 is newest).
+        const rows = [
+            { id: 'r1', created_at: 1_000 },
+            { id: 'r2', created_at: 2_000 },
+            { id: 'r3', created_at: 3_000 },
+            { id: 'r4', created_at: 4_000 },
+            { id: 'r5', created_at: 5_000 },
+        ];
+        const pool = makeDlqPrunePool(rows);
+        const queue = new JobQueue(pool);
+        const deleted = await queue.pruneDeadLetterQueue(2);
+        assert.equal(deleted, 3, 'Should delete the 3 oldest rows');
+        assert.equal(pool.dlqRows.length, 2, 'Table must be bounded to maxEntries rows');
+        const keptIds = pool.dlqRows.map((r) => r.id).sort();
+        assert.deepEqual(keptIds, ['r4', 'r5'], 'The two most recent rows must be retained');
+    });
+    it('is a no-op when the table already has fewer rows than maxEntries', async () => {
+        const rows = [
+            { id: 'r1', created_at: 1_000 },
+            { id: 'r2', created_at: 2_000 },
+        ];
+        const pool = makeDlqPrunePool(rows);
+        const queue = new JobQueue(pool);
+        const deleted = await queue.pruneDeadLetterQueue(10);
+        assert.equal(deleted, 0, 'Nothing should be deleted when under the limit');
+        assert.equal(pool.dlqRows.length, 2, 'All rows retained when under the limit');
+    });
+    it('rejects a negative or non-integer maxEntries', async () => {
+        const pool = makeDlqPrunePool();
+        const queue = new JobQueue(pool);
+        await assert.rejects(() => queue.pruneDeadLetterQueue(-1), /non-negative integer/);
+        await assert.rejects(() => queue.pruneDeadLetterQueue(1.5), /non-negative integer/);
+    });
+});
+describe('JobQueue.registerDlqPruning', () => {
+    it('registers a nightly cron job (default 0 0 * * *) that prunes the DLQ when fired', async () => {
+        const pool = makeDlqPrunePool([
+            { id: 'r1', created_at: 1_000 },
+            { id: 'r2', created_at: 2_000 },
+            { id: 'r3', created_at: 3_000 },
+        ]);
+        const queue = new JobQueue(pool);
+        const sched = new CronScheduler();
+        queue.registerDlqPruning(sched, 1);
+        // Confirm a job was registered under the expected name with the default schedule.
+        const jobs = sched.jobs;
+        assert.ok(jobs.has('street:dlq-prune'), 'A cron entry named street:dlq-prune should be registered');
+        // Fire the registered function directly and verify the prune ran and bounded the table.
+        await jobs.get('street:dlq-prune').fn();
+        const del = pool.queries.find((q) => q.sql.includes('DELETE FROM street_dead_letter_queue'));
+        assert.ok(del, 'Firing the cron job should issue the prune DELETE');
+        assert.deepEqual(del.params, [1], 'The prune should use the configured maxEntries');
+        assert.equal(pool.dlqRows.length, 1, 'DLQ should be bounded to maxEntries after the nightly run');
+        assert.equal(pool.dlqRows[0].id, 'r3', 'The most recent entry should be retained');
+    });
+    it('accepts a custom cron expression and rejects an invalid one via the scheduler', () => {
+        const pool = makeDlqPrunePool();
+        const queue = new JobQueue(pool);
+        const sched = new CronScheduler();
+        assert.doesNotThrow(() => queue.registerDlqPruning(sched, 500, '30 3 * * *'));
+        assert.throws(() => queue.registerDlqPruning(sched, 500, 'not a cron'), (err) => err instanceof CronParseError);
+    });
+    it('rejects a negative maxEntries before registering', () => {
+        const pool = makeDlqPrunePool();
+        const queue = new JobQueue(pool);
+        const sched = new CronScheduler();
+        assert.throws(() => queue.registerDlqPruning(sched, -5), /non-negative integer/);
+    });
+});
 //# sourceMappingURL=job-queue.test.js.map

@@ -34,6 +34,14 @@ export interface JobQueueOptions {
     workerId?: string;
 }
 /**
+ * Structural view of the cron scheduler used for DLQ pruning. Kept as a minimal
+ * interface (rather than a hard import of `CronScheduler`) so the queue stays
+ * loosely coupled and free of import cycles, mirroring the `JobQueuePool` shape.
+ */
+export interface DlqPruneScheduler {
+    register(expression: string, name: string, fn: () => Promise<void>): void;
+}
+/**
  * Class decorator that marks a class as a job handler for the given type.
  * The class must implement `execute(payload, ctx): Promise<void>`.
  */
@@ -60,6 +68,21 @@ export declare class JobQueue {
     }): void;
     /** Set a retry policy for a specific job type. */
     setRetryPolicy(type: string, policy: RetryPolicy): void;
+    /**
+     * Prune the dead letter queue down to at most `maxEntries` rows, keeping the
+     * most recent entries (by `created_at`). Returns the number of rows deleted.
+     *
+     * Bounded by construction: the inner SELECT retains exactly the newest
+     * `maxEntries` ids, and the DELETE removes everything else in a single
+     * statement, so the table never exceeds `maxEntries` rows after a prune.
+     */
+    pruneDeadLetterQueue(maxEntries: number): Promise<number>;
+    /**
+     * Register a nightly cron job on the given scheduler that prunes the dead
+     * letter queue to at most `maxEntries` rows. Defaults to midnight every day
+     * ('0 0 * * *'). The scheduler must be started separately via `scheduler.start()`.
+     */
+    registerDlqPruning(scheduler: DlqPruneScheduler, maxEntries: number, cronExpression?: string): void;
     /** Start the polling loop. */
     start(): void;
     /** Stop the polling loop. */

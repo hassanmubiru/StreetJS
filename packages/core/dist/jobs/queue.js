@@ -82,6 +82,39 @@ export class JobQueue {
     setRetryPolicy(type, policy) {
         this.retryPolicies.set(type, policy);
     }
+    /**
+     * Prune the dead letter queue down to at most `maxEntries` rows, keeping the
+     * most recent entries (by `created_at`). Returns the number of rows deleted.
+     *
+     * Bounded by construction: the inner SELECT retains exactly the newest
+     * `maxEntries` ids, and the DELETE removes everything else in a single
+     * statement, so the table never exceeds `maxEntries` rows after a prune.
+     */
+    async pruneDeadLetterQueue(maxEntries) {
+        if (!Number.isInteger(maxEntries) || maxEntries < 0) {
+            throw new Error(`pruneDeadLetterQueue: maxEntries must be a non-negative integer, got ${maxEntries}`);
+        }
+        const result = await this.pool.query(`DELETE FROM street_dead_letter_queue
+       WHERE id NOT IN (
+         SELECT id FROM street_dead_letter_queue
+         ORDER BY created_at DESC
+         LIMIT $1
+       )`, [maxEntries]);
+        return result.rowCount;
+    }
+    /**
+     * Register a nightly cron job on the given scheduler that prunes the dead
+     * letter queue to at most `maxEntries` rows. Defaults to midnight every day
+     * ('0 0 * * *'). The scheduler must be started separately via `scheduler.start()`.
+     */
+    registerDlqPruning(scheduler, maxEntries, cronExpression = '0 0 * * *') {
+        if (!Number.isInteger(maxEntries) || maxEntries < 0) {
+            throw new Error(`registerDlqPruning: maxEntries must be a non-negative integer, got ${maxEntries}`);
+        }
+        scheduler.register(cronExpression, 'street:dlq-prune', async () => {
+            await this.pruneDeadLetterQueue(maxEntries);
+        });
+    }
     /** Start the polling loop. */
     start() {
         if (this.timer !== null)
