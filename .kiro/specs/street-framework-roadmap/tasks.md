@@ -232,7 +232,7 @@
   - [x] 26.4 Implement query complexity analysis: accumulate field weights (default 1 per field); reject with 400 if `> maxComplexity`
   - [x] 26.5 Implement GraphQL subscriptions using `AsyncIterator`; integrate with `StreetWebSocketServer` using the `graphql-ws` subprotocol framing
   - [x] 26.6 Implement introspection guard: when `introspection: false`, `__schema` and `__type` field access returns a field-not-found error
-  - [~] 26.7 Register `POST /graphql` route in `StreetApp` via `graphqlMiddleware(engine)` factory
+  - [-] 26.7 Register `POST /graphql` route in `StreetApp` via `graphqlMiddleware(engine)` factory
   - [~] 26.8 Write tests: simple query resolves, mutation executes and returns data, depth limit rejects deep queries, introspection blocked in production mode, response round-trip (serialize→parse→equals original)
 
 - [ ] 27. v1.6 — API Versioning
