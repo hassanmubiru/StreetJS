@@ -448,14 +448,14 @@ Status markers used in this plan:
   - [~] 49.7 Implement HTTP 429 retry: catch `429` from LLM provider, parse `Retry-After` header, wait that duration, then retry; propagate `Retry-After` on the API response
   - [ ] 49.8 Write tests: ReAct loop resolves with correct final answer, tool execution result is fed back to LLM, history summarization triggers at token limit, 429 retry respects `Retry-After`, SSE events emitted in correct order
 
-- [ ] 50. v3.0 — Plugin Marketplace and Extension SDK
-  - [~] 50.1 Create `packages/core/src/platform/plugins/sdk.ts`: `PluginModule` abstract base class with `name`, `version`, `onInstall?`, `onLoad?`, `onUnload?` lifecycle hooks; `SandboxedApp` interface exposing only `use()`, `registerController()`, and `on()`
-  - [~] 50.2 Implement `StreetApp.use(plugin: PluginModule)`: resolve plugin as a `SandboxedApp` proxy; record the pre-load middleware stack length; call `plugin.onLoad(sandboxedApp)`; track loaded plugins in a `Map`
-  - [~] 50.3 Implement plugin unloading: `app.unuse(plugin)`: call `plugin.onUnload(sandboxedApp)`; verify middleware stack is restored to pre-load length; remove tracked entries
-  - [~] 50.4 Create `packages/core/src/platform/plugins/registry.ts` with `PluginInstaller`: `install(name, version)` fetches from `registryUrl`, verifies Ed25519 marketplace signature using `node:crypto`'s `verify()` with bundled public key, verifies SHA-256 checksum, extracts to `pluginsDir`; throw on invalid signature or mismatched checksum
-  - [~] 50.5 Add `street plugin:install <name>@<version>` CLI command: call `PluginInstaller.install()`, report verification status
-  - [~] 50.6 Add `street plugin:list` CLI command: read `pluginsDir`, load metadata from each plugin's `package.json`, print name, version, marketplace verification status, and load status
-  - [~] 50.7 Write tests: `onLoad` + `onUnload` restores app to pre-load state (round-trip property), invalid marketplace signature throws and refuses installation, checksum mismatch throws and refuses installation, plugin cannot access DI container internals outside `SandboxedApp` interface
+- [~] 50. v3.0 — Plugin Marketplace and Extension SDK
+  - [x] 50.1 Create `packages/core/src/platform/plugins/sdk.ts`: `PluginModule` abstract base class with `name`, `version`, `onInstall?`, `onLoad?`, `onUnload?` lifecycle hooks; `SandboxedApp` interface exposing only `use()`, `registerController()`, and `on()`
+  - [ ] 50.2 Implement `StreetApp.use(plugin: PluginModule)`: resolve plugin as a `SandboxedApp` proxy; record the pre-load middleware stack length; call `plugin.onLoad(sandboxedApp)`; track loaded plugins in a `Map`
+  - [ ] 50.3 Implement plugin unloading: `app.unuse(plugin)`: call `plugin.onUnload(sandboxedApp)`; verify middleware stack is restored to pre-load length; remove tracked entries
+  - [x] 50.4 Create `packages/core/src/platform/plugins/registry.ts` with `PluginInstaller`: `install(name, version)` fetches from `registryUrl`, verifies Ed25519 marketplace signature using `node:crypto`'s `verify()` with bundled public key, verifies SHA-256 checksum, extracts to `pluginsDir`; throw on invalid signature or mismatched checksum
+  - [ ] 50.5 Add `street plugin:install <name>@<version>` CLI command: call `PluginInstaller.install()`, report verification status
+  - [ ] 50.6 Add `street plugin:list` CLI command: read `pluginsDir`, load metadata from each plugin's `package.json`, print name, version, marketplace verification status, and load status
+  - [ ] 50.7 Write tests: `onLoad` + `onUnload` restores app to pre-load state (round-trip property), invalid marketplace signature throws and refuses installation, checksum mismatch throws and refuses installation, plugin cannot access DI container internals outside `SandboxedApp` interface
 
 
 - [ ] 51. Cross-Cutting — Absolute Implementation Policy Enforcement
