@@ -73,3 +73,128 @@ export function verifyIncomingWebhook(secret: string, signature: string, rawBody
   if (a.length !== b.length) return false;
   return timingSafeEqual(a, b);
 }
+
+// ── WebhookManager ────────────────────────────────────────────────────────────
+
+export interface WebhookManagerOptions {
+  pool: WebhookManagerPool;
+  dispatcher?: WebhookDispatcher;
+}
+
+export class WebhookManager {
+  private readonly _pool: WebhookManagerPool;
+  private readonly _dispatcher: WebhookDispatcher;
+
+  constructor(opts: WebhookManagerOptions) {
+    this._pool = opts.pool;
+    this._dispatcher = opts.dispatcher ?? new WebhookDispatcher();
+  }
+
+  /** Register a webhook endpoint. Generates a secret if none is provided. */
+  async registerEndpoint(url: string, events: string[], secret?: string): Promise<WebhookEndpoint> {
+    const sec = secret ?? randomBytes(32).toString('base64url');
+    const result = await this._pool.query(
+      `INSERT INTO street_webhook_endpoints (url, events, secret)
+       VALUES ($1, $2, $3)
+       RETURNING id, url, events, secret, created_at`,
+      [url, JSON.stringify(events), sec],
+    );
+    return rowToEndpoint(result.rows[0]!);
+  }
+
+  /** List all endpoints subscribed to a given event type. */
+  async endpointsForEvent(event: string): Promise<WebhookEndpoint[]> {
+    const result = await this._pool.query(
+      `SELECT id, url, events, secret, created_at FROM street_webhook_endpoints`,
+    );
+    return result.rows
+      .map(rowToEndpoint)
+      .filter((e) => e.events.includes(event) || e.events.includes('*'));
+  }
+
+  /**
+   * Publish an event: find matching endpoints and enqueue a signed delivery for
+   * each via the underlying dispatcher. A pending delivery row is recorded.
+   */
+  async publish(event: string, payload: unknown): Promise<{ delivered: number }> {
+    const endpoints = await this.endpointsForEvent(event);
+    for (const endpoint of endpoints) {
+      this._dispatcher.enqueue(
+        { url: endpoint.url, secret: endpoint.secret },
+        event,
+        payload,
+      );
+      await this._recordDelivery(endpoint.id, event, 'pending', null, null, 0);
+    }
+    return { delivered: endpoints.length };
+  }
+
+  /** Record a delivery attempt outcome (truncates body to 1 KB). */
+  async recordResult(
+    endpointId: string,
+    event: string,
+    responseCode: number,
+    responseBody: string,
+    attempt: number,
+  ): Promise<void> {
+    const status = responseCode >= 200 && responseCode < 300 ? 'success' : 'failed';
+    await this._recordDelivery(endpointId, event, status, responseCode, responseBody.slice(0, 1024), attempt);
+  }
+
+  /** Read the recent delivery log for an endpoint. */
+  async deliveryLog(endpointId: string, limit = 50): Promise<WebhookDelivery[]> {
+    const safeLimit = Math.min(Math.max(1, Math.floor(limit)), 1000);
+    const result = await this._pool.query(
+      `SELECT id, endpoint_id, event, status, response_code, response_body, attempt, created_at
+       FROM street_webhook_deliveries WHERE endpoint_id = $1
+       ORDER BY created_at DESC LIMIT $2`,
+      [endpointId, safeLimit],
+    );
+    return result.rows.map(rowToDelivery);
+  }
+
+  /** Remove an endpoint registration. */
+  async revokeEndpoint(id: string): Promise<void> {
+    await this._pool.query(`DELETE FROM street_webhook_endpoints WHERE id = $1`, [id]);
+  }
+
+  private async _recordDelivery(
+    endpointId: string,
+    event: string,
+    status: string,
+    responseCode: number | null,
+    responseBody: string | null,
+    attempt: number,
+  ): Promise<void> {
+    await this._pool.query(
+      `INSERT INTO street_webhook_deliveries (endpoint_id, event, status, response_code, response_body, attempt)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [endpointId, event, status, responseCode, responseBody, attempt],
+    );
+  }
+}
+
+function rowToEndpoint(row: Record<string, string | null>): WebhookEndpoint {
+  let events: string[] = [];
+  try { events = JSON.parse(row['events'] ?? '[]') as string[]; } catch { events = []; }
+  return {
+    id: row['id'] ?? '',
+    url: row['url'] ?? '',
+    events,
+    secret: row['secret'] ?? '',
+    createdAt: row['created_at'] ?? '',
+  };
+}
+
+function rowToDelivery(row: Record<string, string | null>): WebhookDelivery {
+  return {
+    id: row['id'] ?? '',
+    endpointId: row['endpoint_id'] ?? '',
+    event: row['event'] ?? '',
+    status: row['status'] ?? '',
+    responseCode: row['response_code'] != null ? parseInt(row['response_code'], 10) : null,
+    responseBody: row['response_body'],
+    attempt: row['attempt'] != null ? parseInt(row['attempt'], 10) : 0,
+    createdAt: row['created_at'] ?? '',
+  };
+}
