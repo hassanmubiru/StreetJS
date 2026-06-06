@@ -234,7 +234,7 @@ export type { DomainEvent } from './microservices/event-store.js';
 export { GrpcServer } from './microservices/grpc/server.js';
 export type { GrpcServerOptions, GrpcCallContext, MethodRegistration } from './microservices/grpc/server.js';
 export { parseProto, parseProtoFile, generateGrpcTypes, protoTypeToTs } from './microservices/grpc/proto-parser.js';
-export type { ProtoAst, ServiceDefinition, RpcDefinition, MessageDefinition, FieldDef } from './microservices/grpc/proto-parser.js';
+export type { ProtoAst, ServiceDefinition as GrpcServiceDefinition, RpcDefinition, MessageDefinition, FieldDef as GrpcFieldDef } from './microservices/grpc/proto-parser.js';
 export { encodeFrame, decodeFrame, decodeFrames, parseGrpcTimeout, GrpcError, GRPC_STATUS, GRPC_MAX_MESSAGE_BYTES, jsonCodec } from './microservices/grpc/framing.js';
 
 // ── Cloud ─────────────────────────────────────────────────────────────────────
