@@ -305,4 +305,71 @@ describe('AgentExecutor ReAct loop', () => {
         assert.ok(types.includes('final'));
     });
 });
+// ── Feature Flags admin + targeting ───────────────────────────────────────────
+import { FeatureFlagService, registerFeatureFlagAdminRoute } from '../enterprise/feature-flags.js';
+class FakeFlagPool {
+    store = new Map();
+    async query(sql, params = []) {
+        const s = sql.trim().toUpperCase();
+        if (s.startsWith('INSERT')) {
+            this.store.set(String(params[0]), { name: String(params[0]), enabled: Boolean(params[1]), rules: JSON.parse(String(params[2])) });
+            return { rows: [] };
+        }
+        if (s.startsWith('SELECT')) {
+            const rec = this.store.get(String(params[0]));
+            return { rows: rec ? [rec] : [] };
+        }
+        return { rows: [] };
+    }
+}
+describe('FeatureFlagService', () => {
+    it('percentage rollout is stable for the same user', async () => {
+        const pool = new FakeFlagPool();
+        const svc = new FeatureFlagService(pool);
+        await svc.setFlag('beta', true, [{ type: 'percentage', value: 50 }]);
+        const first = await svc.isEnabled('beta', { userId: 'user-123' });
+        const second = await svc.isEnabled('beta', { userId: 'user-123' });
+        assert.equal(first, second);
+    });
+    it('unknown flag returns false', async () => {
+        const svc = new FeatureFlagService(new FakeFlagPool());
+        assert.equal(await svc.isEnabled('does-not-exist'), false);
+    });
+    it('admin route requires admin role and toggles the flag', async () => {
+        const pool = new FakeFlagPool();
+        const svc = new FeatureFlagService(pool);
+        const mws = [];
+        registerFeatureFlagAdminRoute({ use: (mw) => mws.push(mw) }, svc);
+        const mw = mws[0];
+        // Non-admin → 403
+        let status = 0;
+        await mw({ method: 'PATCH', path: '/admin/feature-flags/beta', body: { enabled: true }, user: { roles: ['user'] }, json: (_d, s = 200) => { status = s; } }, async () => { });
+        assert.equal(status, 403);
+        // Admin → toggles
+        let okBody = null;
+        await mw({ method: 'PATCH', path: '/admin/feature-flags/beta', body: { enabled: true }, user: { roles: ['admin'] }, json: (d) => { okBody = d; } }, async () => { });
+        assert.deepEqual(okBody, { name: 'beta', enabled: true });
+        assert.equal(await svc.isEnabled('beta'), true);
+    });
+});
+// ── @RateLimit decorator metadata ─────────────────────────────────────────────
+import { RateLimit, getRateLimitMeta } from '../security/ratelimit.js';
+describe('@RateLimit decorator', () => {
+    it('stores rate-limit metadata readable by the router', () => {
+        class Ctrl {
+            async handler() { }
+        }
+        __decorate([
+            RateLimit({ requests: 100, window: 60_000, key: 'ip' }),
+            __metadata("design:type", Function),
+            __metadata("design:paramtypes", []),
+            __metadata("design:returntype", Promise)
+        ], Ctrl.prototype, "handler", null);
+        const meta = getRateLimitMeta(Ctrl.prototype, 'handler');
+        assert.ok(meta);
+        assert.equal(meta.requests, 100);
+        assert.equal(meta.window, 60_000);
+        assert.equal(meta.key, 'ip');
+    });
+});
 //# sourceMappingURL=roadmap-completion.test.js.map
