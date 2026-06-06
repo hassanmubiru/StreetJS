@@ -498,9 +498,9 @@ describe('Versioning guard + per-version OpenAPI', () => {
     const mws: Array<(ctx: unknown, next: () => Promise<void>) => Promise<void>> = [];
     registerVersionedOpenApi({ use: (mw) => mws.push(mw as never) }, ['v1'], () => ({ paths: { '/v1/a': {}, '/v2/b': {} } }));
     let body: { paths: Record<string, unknown> } | null = null;
-    await mws[0]!({ method: 'GET', path: '/v1/openapi.json', json: (d: unknown) => { body = d as never; } }, async () => {});
+    await mws[0]!({ method: 'GET', path: '/v1/openapi.json', json: (d: unknown) => { body = d as { paths: Record<string, unknown> }; } }, async () => {});
     assert.ok(body);
-    assert.deepEqual(Object.keys(body!.paths), ['/v1/a']);
+    assert.deepEqual(Object.keys((body as unknown as { paths: Record<string, unknown> }).paths), ['/v1/a']);
   });
 });
 
@@ -522,9 +522,10 @@ describe('Tenant metrics admin route + billing', () => {
     assert.equal(status, 403);
 
     let body: { tenantId: string; quotas: Record<string, unknown> } | null = null;
-    await mw({ method: 'GET', path: '/admin/tenants/t1/metrics', user: { roles: ['admin'] }, json: (d: unknown) => { body = d as never; } }, async () => {});
-    assert.equal(body!.tenantId, 't1');
-    assert.ok('maxRequestsPerDay' in body!.quotas);
+    await mw({ method: 'GET', path: '/admin/tenants/t1/metrics', user: { roles: ['admin'] }, json: (d: unknown) => { body = d as { tenantId: string; quotas: Record<string, unknown> }; } }, async () => {});
+    const b = body as unknown as { tenantId: string; quotas: Record<string, unknown> };
+    assert.equal(b.tenantId, 't1');
+    assert.ok('maxRequestsPerDay' in b.quotas);
   });
 
   it('InMemoryBillingAdapter records reported usage', async () => {
