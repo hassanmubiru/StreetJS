@@ -70,6 +70,15 @@ export interface JobQueueOptions {
   workerId?: string;
 }
 
+/**
+ * Structural view of the cron scheduler used for DLQ pruning. Kept as a minimal
+ * interface (rather than a hard import of `CronScheduler`) so the queue stays
+ * loosely coupled and free of import cycles, mirroring the `JobQueuePool` shape.
+ */
+export interface DlqPruneScheduler {
+  register(expression: string, name: string, fn: () => Promise<void>): void;
+}
+
 // ── @Job decorator ────────────────────────────────────────────────────────────
 
 const JOB_TYPE_META = 'street:jobType';
