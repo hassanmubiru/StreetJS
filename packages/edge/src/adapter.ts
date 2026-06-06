@@ -82,8 +82,6 @@ export async function handleEdgeRequest(
     statusCode: 200,
     statusMessage: 'OK',
     headersSent: false,
-    writableEnded: false,
-    writableFinished: false,
     sent: false,
     locals: {},
     getHeader(name: string): string | undefined {
