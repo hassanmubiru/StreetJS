@@ -18,7 +18,7 @@ import { WebAuthnService, parseCredentialPublicKey, } from '../auth/webauthn.js'
 import { RbacService, rbacGuard, Roles, Permissions, } from '../auth/rbac.js';
 import { OAuthManager } from '../auth/oauth2.js';
 import { ApiKeyService } from '../auth/api-keys.js';
-import { ForbiddenException } from '../http/exceptions.js';
+import { ForbiddenException, UnauthorizedException } from '../http/exceptions.js';
 // ── CBOR encoding helpers ─────────────────────────────────────────────────────
 /** Encode a small unsigned integer as a CBOR byte. */
 function cborUint(n) {
@@ -1560,6 +1560,30 @@ describe('ApiKeyService — additional coverage', () => {
             state: {},
         };
         await assert.rejects(() => mw(ctx, async () => { }), (err) => { assert.equal(err.status, 401); return true; });
+    });
+    it('apiKeyMiddleware throws UnauthorizedException (401) for an expired key', async () => {
+        const pool = new ApiKeyMemPool();
+        const svc = new ApiKeyService(pool);
+        // Generate a key that is already expired.
+        const { key } = await svc.generate({
+            ownerId: 'expired-owner',
+            name: 'expiredViaMiddleware',
+            expiresAt: new Date(Date.now() - 1000),
+        });
+        const mw = apiKeyMiddleware(svc);
+        const ctx = {
+            headers: { authorization: `Bearer ${key}` },
+            user: undefined,
+            state: {},
+        };
+        let nextCalled = false;
+        await assert.rejects(() => mw(ctx, async () => { nextCalled = true; }), (err) => {
+            assert.ok(err instanceof UnauthorizedException);
+            assert.equal(err.status, 401);
+            return true;
+        });
+        assert.equal(nextCalled, false, 'next() must not run for an expired key');
+        assert.equal(ctx.user, undefined, 'ctx.user must not be set for an expired key');
     });
     it('apiKeyMiddleware sets ctx.user.id to ownerId on success', async () => {
         const pool = new ApiKeyMemPool();
