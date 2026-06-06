@@ -10,6 +10,7 @@ import {
   Job,
   STREET_JOBS_MIGRATION_SQL,
   STREET_DLQ_MIGRATION_SQL,
+  STREET_JOB_HISTORY_MIGRATION_SQL,
   type JobQueuePool,
   type JobContext,
 } from '../jobs/queue.js';

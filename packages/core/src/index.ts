@@ -185,6 +185,7 @@ export {
   Job,
   STREET_JOBS_MIGRATION_SQL,
   STREET_DLQ_MIGRATION_SQL,
+  STREET_JOB_HISTORY_MIGRATION_SQL,
 } from './jobs/queue.js';
 export type { JobHandler, JobContext, RetryPolicy, JobQueuePool, DlqPruneScheduler } from './jobs/queue.js';
 export { CronScheduler, CronParseError } from './jobs/scheduler.js';
