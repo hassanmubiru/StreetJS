@@ -19,19 +19,37 @@ export class StreetPostgresRepository {
                 'Only letters, digits, underscores, and dots are allowed.');
         }
     }
+    /**
+     * Optional transparent field-level encryption. Subclasses that set both
+     * `encryptor` and `encryptedEntity` get automatic AES-256-GCM encryption of
+     * `@Encrypt()`-annotated fields on `create()`/`update()` and decryption on
+     * `findById()`/`findAll()`. Defaults to undefined (no encryption).
+     */
+    encryptor;
+    encryptedEntity;
+    _encrypt(data) {
+        if (!this.encryptor || !this.encryptedEntity)
+            return data;
+        return this.encryptor.encryptEntity(this.encryptedEntity, data);
+    }
+    _decrypt(entity) {
+        if (!this.encryptor || !this.encryptedEntity)
+            return entity;
+        return this.encryptor.decryptEntity(this.encryptedEntity, entity);
+    }
     async findById(id) {
         this._assertSafeTableName();
         const result = await this.pool.query(`SELECT * FROM ${this.tableName} WHERE id = $1 LIMIT 1`, [id]);
         if (result.rows.length === 0)
             return null;
-        return this.mapRow(result.rows[0]);
+        return this._decrypt(this.mapRow(result.rows[0]));
     }
     async findAll(limit = 20, offset = 0) {
         this._assertSafeTableName();
         const safeLimit = Math.min(Math.max(1, Math.floor(limit)), 1000);
         const safeOffset = Math.max(0, Math.floor(offset));
         const result = await this.pool.query(`SELECT * FROM ${this.tableName} ORDER BY created_at DESC LIMIT $1 OFFSET $2`, [safeLimit, safeOffset]);
-        return result.rows.map((r) => this.mapRow(r));
+        return result.rows.map((r) => this._decrypt(this.mapRow(r)));
     }
     async count() {
         this._assertSafeTableName();
@@ -40,6 +58,7 @@ export class StreetPostgresRepository {
     }
     async create(data) {
         this._assertSafeTableName();
+        data = this._encrypt(data);
         const keys = Object.keys(data).filter((k) => data[k] !== undefined);
         const columns = keys.map((k) => `"${k}"`).join(', ');
         const placeholders = keys.map((_, i) => `$${i + 1}`).join(', ');
@@ -48,12 +67,13 @@ export class StreetPostgresRepository {
         const row = result.rows[0];
         if (!row)
             throw new Error('Insert returned no rows');
-        return this.mapRow(row);
+        return this._decrypt(this.mapRow(row));
     }
     async update(id, data) {
         this._assertSafeTableName();
         if (Object.keys(data).length === 0)
             return this.findById(id);
+        data = this._encrypt(data);
         const entries = Object.entries(data).filter(([, v]) => v !== undefined);
         const setClauses = entries.map(([k], i) => `"${k}" = $${i + 1}`).join(', ');
         const params = entries.map(([, v]) => v);
@@ -61,7 +81,7 @@ export class StreetPostgresRepository {
         const result = await this.pool.query(`UPDATE ${this.tableName} SET ${setClauses} WHERE id = $${params.length} RETURNING *`, params);
         if (result.rows.length === 0)
             return null;
-        return this.mapRow(result.rows[0]);
+        return this._decrypt(this.mapRow(result.rows[0]));
     }
     async delete(id) {
         this._assertSafeTableName();

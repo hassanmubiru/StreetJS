@@ -1,5 +1,6 @@
 import { PgPool } from './pool.js';
 import type { PgConnection } from './wire.js';
+import type { FieldEncryptor } from '../enterprise/data-policy.js';
 export interface IRepository<T> {
     findById(id: string): Promise<T | null>;
     findAll(limit: number, offset: number): Promise<T[]>;
@@ -15,6 +16,16 @@ export declare abstract class StreetPostgresRepository<T extends object> impleme
     /** Validate tableName on first use (abstract property not available in constructor) */
     private _assertSafeTableName;
     protected abstract mapRow(row: Record<string, string | null>): T;
+    /**
+     * Optional transparent field-level encryption. Subclasses that set both
+     * `encryptor` and `encryptedEntity` get automatic AES-256-GCM encryption of
+     * `@Encrypt()`-annotated fields on `create()`/`update()` and decryption on
+     * `findById()`/`findAll()`. Defaults to undefined (no encryption).
+     */
+    protected readonly encryptor?: FieldEncryptor;
+    protected readonly encryptedEntity?: new (...a: never[]) => unknown;
+    private _encrypt;
+    private _decrypt;
     findById(id: string): Promise<T | null>;
     findAll(limit?: number, offset?: number): Promise<T[]>;
     count(): Promise<number>;
