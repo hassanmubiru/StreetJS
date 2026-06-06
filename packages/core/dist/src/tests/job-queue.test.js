@@ -603,6 +603,15 @@ describe('JobQueue polling loop — geometric backoff on failure', () => {
         assert.equal(after2.attempt_count, 2, 'attempt_count should increment to 2');
         const expectedDelay2 = Math.min(policy.initialDelayMs * Math.pow(policy.backoffMultiplier, 1), policy.maxDelayMs);
         assert.equal(after2.run_at.getTime(), Date.now() + expectedDelay2, 'run_at should be NOW() + 2000ms after the second failure');
+        // Advance to when the second retry becomes due (2000ms later) for the third failure.
+        // attempt 2 -> delay = 1000 * 2^2 = 4000ms, proving the exponent grows with the attempt.
+        await advancePolls(t.mock.timers, 2_000, 100);
+        const after3 = pool.jobs.get(id);
+        assert.ok(after3, 'Job should still be retained after the third failure');
+        assert.equal(after3.attempt_count, 3, 'attempt_count should increment to 3');
+        const expectedDelay3 = Math.min(policy.initialDelayMs * Math.pow(policy.backoffMultiplier, 2), policy.maxDelayMs);
+        assert.equal(expectedDelay3, 4000, 'Sanity: third backoff is 1000 * 2^2 = 4000ms (uncapped)');
+        assert.equal(after3.run_at.getTime(), Date.now() + expectedDelay3, 'run_at should be NOW() + 4000ms after the third failure (geometric growth)');
         queue.stop();
     });
     it('caps the rescheduled backoff delay at maxDelayMs', async (t) => {
