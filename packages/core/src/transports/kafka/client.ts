@@ -105,6 +105,166 @@ export class KafkaClient {
     return this._brokerById(pm.leader);
   }
 
+  /** Produce records to a topic-partition (acks=all). Returns base offset. */
+  async produce(topic: string, partition: number, records: KafkaRecord[], opts: { acks?: number; timeoutMs?: number } = {}): Promise<bigint> {
+    const leader = await this.leaderFor(topic, partition);
+    const conn = await this._conn(leader.host, leader.port);
+    const batch = encodeRecordBatch(records);
+    const r = await conn.request(API.PRODUCE, 3, (w: KafkaWriter) => {
+      w.string(null);                  // transactional_id
+      w.int16(opts.acks ?? -1);        // acks (-1 = all)
+      w.int32(opts.timeoutMs ?? 30_000);
+      w.int32(1);                      // topic count
+      w.string(topic);
+      w.int32(1);                      // partition count
+      w.int32(partition);
+      w.bytes(batch);                  // records
+    });
+    const topicCount = r.int32();
+    let baseOffset = -1n;
+    for (let i = 0; i < topicCount; i++) {
+      r.string(); // name
+      const pCount = r.int32();
+      for (let p = 0; p < pCount; p++) {
+        r.int32(); // index
+        const err = r.int16();
+        const bo = r.int64();
+        r.int64(); // log_append_time
+        r.int64(); // log_start_offset
+        if (err !== 0) throw new KafkaProtocolError(err, 'produce');
+        baseOffset = bo;
+      }
+    }
+    return baseOffset;
+  }
+
+  /** Fetch records from a topic-partition starting at `fetchOffset`. */
+  async fetch(topic: string, partition: number, fetchOffset: bigint, opts: { maxWaitMs?: number; maxBytes?: number } = {}): Promise<{ records: KafkaRecord[]; highWatermark: bigint }> {
+    const leader = await this.leaderFor(topic, partition);
+    const conn = await this._conn(leader.host, leader.port);
+    const maxBytes = opts.maxBytes ?? 1_048_576;
+    const r = await conn.request(API.FETCH, 4, (w: KafkaWriter) => {
+      w.int32(-1);                     // replica_id
+      w.int32(opts.maxWaitMs ?? 1000); // max_wait_ms
+      w.int32(1);                      // min_bytes
+      w.int32(maxBytes);               // max_bytes
+      w.int8(0);                       // isolation_level (read_uncommitted)
+      w.int32(1);                      // topic count
+      w.string(topic);
+      w.int32(1);                      // partition count
+      w.int32(partition);
+      w.int64(fetchOffset);            // fetch_offset
+      w.int32(maxBytes);               // partition_max_bytes
+    });
+    r.int32(); // throttle_time_ms
+    const topicCount = r.int32();
+    let records: KafkaRecord[] = [];
+    let highWatermark = 0n;
+    for (let i = 0; i < topicCount; i++) {
+      r.string(); // topic
+      const pCount = r.int32();
+      for (let p = 0; p < pCount; p++) {
+        r.int32(); // partition
+        const err = r.int16();
+        highWatermark = r.int64();
+        r.int64(); // last_stable_offset
+        const abortedCount = r.int32();
+        for (let a = 0; a < Math.max(0, abortedCount); a++) { r.int64(); r.int64(); }
+        const recordSet = r.bytes();
+        if (err !== 0) throw new KafkaProtocolError(err, 'fetch');
+        if (recordSet && recordSet.length > 0) {
+          records = records.concat(decodeRecordBatches(recordSet).filter((rec) => (rec.offset ?? 0n) >= fetchOffset));
+        }
+      }
+    }
+    return { records, highWatermark };
+  }
+
+  /** List offsets: timestamp -1 = latest (end), -2 = earliest (start). */
+  async listOffset(topic: string, partition: number, timestamp: bigint): Promise<bigint> {
+    const leader = await this.leaderFor(topic, partition);
+    const conn = await this._conn(leader.host, leader.port);
+    const r = await conn.request(API.LIST_OFFSETS, 1, (w: KafkaWriter) => {
+      w.int32(-1);     // replica_id
+      w.int32(1);      // topic count
+      w.string(topic);
+      w.int32(1);      // partition count
+      w.int32(partition);
+      w.int64(timestamp);
+    });
+    const topicCount = r.int32();
+    let offset = -1n;
+    for (let i = 0; i < topicCount; i++) {
+      r.string();
+      const pCount = r.int32();
+      for (let p = 0; p < pCount; p++) {
+        r.int32(); const err = r.int16(); r.int64(); const off = r.int64();
+        if (err !== 0) throw new KafkaProtocolError(err, 'listOffsets');
+        offset = off;
+      }
+    }
+    return offset;
+  }
+
+  /** Find the group coordinator broker for a consumer group. */
+  async findCoordinator(groupId: string): Promise<KafkaBroker> {
+    const conn = await this._anyConn();
+    const r = await conn.request(API.FIND_COORDINATOR, 0, (w: KafkaWriter) => { w.string(groupId); });
+    const err = r.int16();
+    if (err !== 0) throw new KafkaProtocolError(err, 'findCoordinator');
+    const nodeId = r.int32(); const host = r.string()!; const port = r.int32();
+    return { nodeId, host, port };
+  }
+
+  /** Commit an offset for a consumer group (group offset storage). */
+  async commitOffset(groupId: string, topic: string, partition: number, offset: bigint): Promise<void> {
+    const coord = await this.findCoordinator(groupId);
+    const conn = await this._conn(coord.host, coord.port);
+    const r = await conn.request(API.OFFSET_COMMIT, 2, (w: KafkaWriter) => {
+      w.string(groupId);
+      w.int32(-1);       // generation_id
+      w.string('');      // member_id
+      w.int64(-1n);      // retention_time_ms
+      w.int32(1);        // topic count
+      w.string(topic);
+      w.int32(1);        // partition count
+      w.int32(partition);
+      w.int64(offset);
+      w.string(null);    // committed metadata
+    });
+    const topicCount = r.int32();
+    for (let i = 0; i < topicCount; i++) {
+      r.string();
+      const pCount = r.int32();
+      for (let p = 0; p < pCount; p++) { r.int32(); const err = r.int16(); if (err !== 0) throw new KafkaProtocolError(err, 'offsetCommit'); }
+    }
+  }
+
+  /** Fetch the committed offset for a consumer group (-1 if none). */
+  async fetchOffset(groupId: string, topic: string, partition: number): Promise<bigint> {
+    const coord = await this.findCoordinator(groupId);
+    const conn = await this._conn(coord.host, coord.port);
+    const r = await conn.request(API.OFFSET_FETCH, 1, (w: KafkaWriter) => {
+      w.string(groupId);
+      w.int32(1);    // topic count
+      w.string(topic);
+      w.int32(1);    // partition count
+      w.int32(partition);
+    });
+    const topicCount = r.int32();
+    let committed = -1n;
+    for (let i = 0; i < topicCount; i++) {
+      r.string();
+      const pCount = r.int32();
+      for (let p = 0; p < pCount; p++) {
+        r.int32(); const off = r.int64(); r.string(); const err = r.int16();
+        if (err !== 0) throw new KafkaProtocolError(err, 'offsetFetch');
+        committed = off;
+      }
+    }
+    return committed;
+  }
+
   close(): void {
     for (const c of this.connections.values()) c.close();
     this.connections.clear();
