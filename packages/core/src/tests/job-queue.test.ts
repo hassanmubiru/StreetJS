@@ -284,52 +284,60 @@ describe('CronScheduler.register — invalid expressions', () => {
 
 // ── Tests: Single-instance guard ──────────────────────────────────────────────
 
-describe('CronScheduler single-instance guard', () => {
-  it('does not run the job concurrently when it is already running', async () => {
-    let concurrentCalls = 0;
-    let maxConcurrent = 0;
-    let callCount = 0;
+/**
+ * Minimal structural view of CronScheduler internals so we can exercise the real
+ * `_fire` guard against the real entry state (rather than simulating it).
+ */
+interface SchedulerInternals {
+  started: boolean;
+  jobs: Map<string, { running: boolean; timer: ReturnType<typeof setTimeout> | null }>;
+  _fire(entry: unknown): Promise<void>;
+}
 
+describe('CronScheduler single-instance guard', () => {
+  it('skips a second invocation while the same job is still running (real _fire guard)', async () => {
     const sched = new CronScheduler();
 
-    // We test the guard by directly accessing the private _fire method
-    // by using the scheduler's internal state. Instead, we inject a slow job
-    // and verify the guard using the scheduler's public API.
+    let calls = 0;
+    let active = 0;
+    let maxConcurrent = 0;
+    let release!: () => void;
+    const gate = new Promise<void>((res) => {
+      release = res;
+    });
 
-    // Simulate: manually call _fire twice while already running
-    // We test this indirectly by checking that the running flag prevents re-entry.
-    // The actual guard test checks the observable behavior: second invocation is skipped.
+    sched.register('* * * * *', 'slow', async () => {
+      calls++;
+      active++;
+      if (active > maxConcurrent) maxConcurrent = active;
+      await gate; // hold the job "running" until we release it
+      active--;
+    });
 
-    let running = false;
-    const slowFn = async () => {
-      concurrentCalls++;
-      if (concurrentCalls > maxConcurrent) maxConcurrent = concurrentCalls;
-      running = true;
-      callCount++;
-      // Simulate slow job
-      await new Promise((res) => setTimeout(res, 200));
-      running = false;
-      concurrentCalls--;
-    };
+    const internal = sched as unknown as SchedulerInternals;
+    internal.started = true; // _fire returns early unless started
+    const entry = internal.jobs.get('slow');
+    assert.ok(entry, 'Expected the registered entry to exist');
 
-    // Register a minute-based cron that would fire soon
-    // We can't easily test the real scheduler timing in unit tests,
-    // so we test the guard by verifying the behavior when called rapidly
-    sched.register('* * * * *', 'guarded-job', slowFn);
+    // First fire begins execution and suspends on the gate while running.
+    const p1 = internal._fire(entry);
+    assert.equal(calls, 1, 'First fire should invoke the job exactly once');
+    assert.equal(entry!.running, true, 'Entry should be flagged as running');
 
-    // Start but stop very quickly — the actual timing test is below via simulation
-    sched.start();
+    // Second fire while still running must be skipped by the guard.
+    const p2 = internal._fire(entry);
+    assert.equal(calls, 1, 'Guard must prevent a second concurrent invocation');
+    assert.equal(maxConcurrent, 1, 'At most one instance may run at a time');
+
+    // Release the first invocation and let both settle.
+    release();
+    await Promise.all([p1, p2]);
+
+    assert.equal(calls, 1, 'No additional invocation should have occurred after completion');
+    assert.equal(maxConcurrent, 1, 'Concurrency never exceeded one');
+    assert.equal(entry!.running, false, 'Entry should no longer be running');
+
     sched.stop();
-
-    // Direct guard test: invoke the internal fire method by simulating rapid calls
-    // Since the guard is on the 'running' flag, we call the same async function twice fast
-    const p1 = slowFn();
-    assert.equal(running, true, 'First call should have set running=true');
-    // In a real scheduler, while running=true, the next tick would be skipped
-    // This tests that the function itself runs, and we verify max concurrency is 1
-    // by ensuring we never call it again while it is running in the scheduler
-    await p1;
-    assert.equal(maxConcurrent, 1, 'Only one instance should run at a time');
   });
 });
 
