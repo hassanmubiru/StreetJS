@@ -79,6 +79,8 @@ export class AuditLogger {
   async log(opts: AuditEntry): Promise<void> {
     const entry: BatchEntry = {
       ...opts,
+      beforeState: _redactSensitive(opts.beforeState, opts.entityClass),
+      afterState: _redactSensitive(opts.afterState, opts.entityClass),
       id: _uuid(),
       batchId: '',       // assigned at flush time
       createdAt: new Date(),
@@ -95,6 +97,11 @@ export class AuditLogger {
       }, 5_000);
       this.flushTimer.unref();
     }
+  }
+
+  /** Force-flush any pending entries to the database. */
+  async flush(): Promise<void> {
+    await this._flush();
   }
 
   private async _flush(): Promise<void> {
