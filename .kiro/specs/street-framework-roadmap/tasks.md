@@ -469,3 +469,52 @@ Status markers used in this plan:
   - [~] 51.8 Verify all `setInterval` and `setTimeout` timers across all new modules call `.unref()` so they do not prevent process exit
   - [~] 51.9 Add a backward-compatibility regression test job: after each version is completed, run the full previous-version test suite against the new codebase and fail if any existing test breaks
   - [~] 51.10 Create `CHANGELOG.md` entries for each shipped version following the Keep a Changelog format; automate generation from conventional commit messages in the CI release job
+
+## Task Dependency Graph
+
+Milestones build sequentially; each version depends on the foundational work shipped in the previous one. Within a milestone, the listed task groups can largely proceed in parallel except where a shared primitive is required.
+
+```
+v1.1 (Tasks 1–5)   ── Dev server, generators, config, diagnostics, CLI ops
+        │
+        ▼
+v1.2 (Tasks 6–10)  ── DB drivers (MySQL/SQLite), query builder, introspection,
+        │              migrations/seeding/profiling  [needs v1.1 config + diagnostics]
+        ▼
+v1.3 (Tasks 11–15) ── OTel, logging, Prometheus, health checks, request profiler
+        │              [needs v1.2 PgPool instrumentation hooks]
+        ▼
+v1.4 (Tasks 16–21) ── OAuth2/OIDC, API keys, refresh tokens, RBAC, WebAuthn,
+        │              session/audit  [needs v1.2 DB + v1.3 logging/diagnostics]
+        ▼
+v1.5 (Tasks 22–25) ── Job queue, cron, retries/DLQ, workflows, distributed jobs
+        │              [needs v1.2 DB + v1.3 diagnostics socket]
+        ▼
+v1.6 (Tasks 26–30) ── GraphQL, API versioning, SDK gen, rate limits/analytics,
+        │              webhooks  [needs v1.5 JobQueue for webhook delivery]
+        ▼
+v1.7 (Tasks 31–33) ── Tenant isolation, provisioning/billing/quotas, tenant metrics
+        │              [needs v1.2 pools + v1.3 metrics]
+        ▼
+v2.0 (Tasks 34–37) ── HTTP/2 & gRPC, service discovery/circuit breakers,
+        │              message queues/event bus, saga/locks/CQRS/event sourcing
+        ▼
+v2.1 (Tasks 38–41) ── Orchestration/cloud adapters, secret providers,
+        │              service mesh/autoscale, edge runtime  [needs v2.0 microservices]
+        ▼
+v2.2 (Tasks 42–45) ── Feature flags, audit logging, data policies, backup/DR
+        │              [needs v1.4 auth + v1.7 tenancy]
+        ▼
+v3.0 (Tasks 46–50) ── Distributed cache/global config, event streaming,
+        │              multi-region replication, AI toolkit, plugin marketplace
+        ▼
+Cross-Cutting (Task 51) ── CI policy enforcement, benchmarks, memory/security
+                           audits, docs, shutdown/timer audits  [depends on all]
+```
+
+## Notes
+
+- Each task group corresponds to a roadmap version milestone defined in `requirements.md` and elaborated in `design.md`.
+- Task 51 (Cross-Cutting policy enforcement) spans every milestone and should be revisited as each version completes; its sub-tasks gate the release of the corresponding version.
+- Database-dependent features (auth, jobs, tenancy, audit, backup) all build on the driver and pool work delivered in v1.2 (Tasks 6–10).
+- Observability hooks added in v1.3 (Tasks 11–15) are reused by later diagnostics, job dashboards, tenant metrics, and multi-region lag reporting.
