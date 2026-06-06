@@ -269,10 +269,17 @@ export type { S3StorageOptions, GcsStorageOptions, SigV4Input } from './enterpri
 // ── Platform: Distributed Cache ───────────────────────────────────────────────
 export { DistributedCache, InProcessCacheTransport, GlobalConfigService } from './platform/distributed-cache.js';
 export type { CacheTransport, DistributedCacheOptions } from './platform/distributed-cache.js';
+export { RedisCacheTransport } from './platform/transports/redis.js';
+export { MemcachedTransport } from './platform/transports/memcached.js';
+export type { MemcachedOptions } from './platform/transports/memcached.js';
+export { RedisClient, RespParser, encodeCommand } from './transports/resp.js';
+export type { RedisClientOptions, RespValue } from './transports/resp.js';
 
 // ── Platform: Event Streaming ─────────────────────────────────────────────────
 export { EventStreamPublisher, EventStreamConsumer, InProcessStreamTransport, RealtimeAggregator } from './platform/event-streaming.js';
 export type { StreamTransport } from './platform/event-streaming.js';
+export { KinesisStreamTransport } from './platform/transports/kinesis.js';
+export type { KinesisOptions } from './platform/transports/kinesis.js';
 
 // ── Platform: Replication ─────────────────────────────────────────────────────
 export { ReplicationCoordinator, preferredRegionMiddleware } from './platform/replication.js';
