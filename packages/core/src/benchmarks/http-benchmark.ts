@@ -38,8 +38,7 @@ export async function runHttpBenchmark(
   let completed = 0;
   const deadline = Date.now() + durationMs;
 
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const http = require('node:http') as typeof import('node:http');
+  const http = { request: httpRequest };
 
   await new Promise<void>((resolve) => {
     let inFlight = 0;
