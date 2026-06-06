@@ -44,6 +44,24 @@ describe('JobQueue — Migration SQL', () => {
     assert.match(STREET_JOBS_MIGRATION_SQL, /CREATE TABLE IF NOT EXISTS/i);
     assert.match(STREET_JOBS_MIGRATION_SQL, /CREATE INDEX IF NOT EXISTS/i);
   });
+
+  it('STREET_DLQ_MIGRATION_SQL creates the street_dead_letter_queue table with all required columns', () => {
+    assert.ok(
+      STREET_DLQ_MIGRATION_SQL.includes('street_dead_letter_queue'),
+      'Should reference street_dead_letter_queue table',
+    );
+    assert.match(STREET_DLQ_MIGRATION_SQL, /id\s+UUID/i, 'id UUID');
+    assert.match(STREET_DLQ_MIGRATION_SQL, /job_id\s+TEXT/i, 'job_id TEXT');
+    assert.match(STREET_DLQ_MIGRATION_SQL, /type\s+TEXT/i, 'type TEXT');
+    assert.match(STREET_DLQ_MIGRATION_SQL, /payload\s+JSONB/i, 'payload JSONB');
+    assert.match(STREET_DLQ_MIGRATION_SQL, /error\s+TEXT/i, 'error TEXT');
+    assert.match(STREET_DLQ_MIGRATION_SQL, /exhausted_at\s+TIMESTAMPTZ/i, 'exhausted_at TIMESTAMPTZ');
+    assert.match(STREET_DLQ_MIGRATION_SQL, /created_at\s+TIMESTAMPTZ/i, 'created_at TIMESTAMPTZ');
+  });
+
+  it('STREET_DLQ_MIGRATION_SQL is idempotent (uses IF NOT EXISTS)', () => {
+    assert.match(STREET_DLQ_MIGRATION_SQL, /CREATE TABLE IF NOT EXISTS/i);
+  });
 });
 
 // ── Mock pool helpers ─────────────────────────────────────────────────────────
