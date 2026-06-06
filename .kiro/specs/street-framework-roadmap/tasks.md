@@ -316,14 +316,14 @@ Status markers used in this plan:
   - [ ] 34.6 Create `packages/cli/src/commands/grpc-codegen.ts` for `street generate grpc --proto ./service.proto`: invoke `proto-parser.ts`, write TypeScript type definitions for request/response messages to the output directory
   - [ ] 34.7 Write tests: HTTP/2 server accepts requests, gRPC unary RPC round-trip, server-streaming emits multiple messages, deadline cancellation fires `AbortSignal`, message size limit enforced
 
-- [ ] 35. v2.0 — Service Discovery and Circuit Breakers
-  - [~] 35.1 Create `packages/core/src/microservices/service-registry.ts`: `ServiceInstance`, `ServiceRegistryBackend` interface, `ServiceRegistry` class; implement `StaticRegistry` backend reading from a config object
-  - [~] 35.2 Implement `ConsulRegistry` backend: poll Consul `/v1/catalog/service/<name>` via `node:https`, return healthy instances; refresh every 10 seconds
-  - [~] 35.3 Create `packages/core/src/microservices/circuit-breaker.ts` with `CircuitBreaker` extending `EventEmitter`: `CircuitBreakerOptions`, `CircuitState` type, state machine (Closed → Open → Half-Open → Closed)
-  - [~] 35.4 Implement `CircuitBreaker.execute(fn)`: in Closed state call `fn()`; in Open state throw `CircuitOpenError` immediately (no network call); in Half-Open state call `fn()` as probe
-  - [~] 35.5 Enforce valid state transitions only: Closed→Open, Open→HalfOpen, HalfOpen→Closed, HalfOpen→Open; no other transitions possible
-  - [~] 35.6 Emit `circuitbreaker:open` event with service name, failure count, and timestamp on Closed→Open transition
-  - [~] 35.7 Write tests: failure threshold opens the circuit, probe failure returns to Open, probe success closes the circuit, `CircuitOpenError` thrown on Open state, invalid state transitions are unreachable
+- [x] 35. v2.0 — Service Discovery and Circuit Breakers
+  - [x] 35.1 Create `packages/core/src/microservices/service-registry.ts`: `ServiceInstance`, `ServiceRegistryBackend` interface, `ServiceRegistry` class; implement `StaticRegistry` backend reading from a config object
+  - [x] 35.2 Implement `ConsulRegistry` backend: poll Consul `/v1/catalog/service/<name>` via `node:https`, return healthy instances; refresh every 10 seconds
+  - [x] 35.3 Create `packages/core/src/microservices/circuit-breaker.ts` with `CircuitBreaker` extending `EventEmitter`: `CircuitBreakerOptions`, `CircuitState` type, state machine (Closed → Open → Half-Open → Closed)
+  - [x] 35.4 Implement `CircuitBreaker.execute(fn)`: in Closed state call `fn()`; in Open state throw `CircuitOpenError` immediately (no network call); in Half-Open state call `fn()` as probe
+  - [x] 35.5 Enforce valid state transitions only: Closed→Open, Open→HalfOpen, HalfOpen→Closed, HalfOpen→Open; no other transitions possible
+  - [x] 35.6 Emit `circuitbreaker:open` event with service name, failure count, and timestamp on Closed→Open transition
+  - [x] 35.7 Write tests: failure threshold opens the circuit, probe failure returns to Open, probe success closes the circuit, `CircuitOpenError` thrown on Open state, invalid state transitions are unreachable
 
 - [ ] 36. v2.0 — Message Queues and Event Bus
   - [~] 36.1 Create `packages/core/src/microservices/event-bus.ts`: `EventBusTransport` interface, `EventEnvelope` type, `EventBus` class; default in-process transport backed by `EventEmitter`
