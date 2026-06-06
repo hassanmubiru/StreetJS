@@ -70,6 +70,24 @@ export class FeatureFlagService {
     this.cache.delete(flagName);
   }
 
+  /**
+   * Upsert a flag's enabled state (and optionally its rules) and invalidate the
+   * cache so the next read reflects the change immediately.
+   */
+  async setFlag(
+    flagName: string,
+    enabled: boolean,
+    rules?: FeatureFlagRule[],
+  ): Promise<void> {
+    await this.pool.query(
+      `INSERT INTO street_feature_flags (name, enabled, rules, updated_at)
+       VALUES ($1, $2, $3, NOW())
+       ON CONFLICT (name) DO UPDATE SET enabled = $2, rules = $3, updated_at = NOW()`,
+      [flagName, enabled, JSON.stringify(rules ?? [])],
+    );
+    this.invalidateCache(flagName);
+  }
+
   private async _loadFlag(flagName: string): Promise<FlagRecord | null> {
     const cached = this.cache.get(flagName);
     if (cached && Date.now() < cached.expiresAt) {
@@ -131,4 +149,51 @@ export class FeatureFlagService {
         return false;
     }
   }
+}
+
+// ── Admin route ───────────────────────────────────────────────────────────────
+
+interface FlagAdminApp {
+  use(mw: (ctx: FlagAdminCtx, next: () => Promise<void>) => Promise<void>): void;
+}
+
+interface FlagAdminCtx {
+  method: string;
+  path: string;
+  body: unknown;
+  user: { roles: string[] } | null;
+  json(data: unknown, status?: number): void;
+}
+
+/**
+ * Register `PATCH /admin/feature-flags/:name` to toggle a flag and invalidate
+ * its cache. The caller supplies the admin role required (default `admin`).
+ * The route is matched via a path prefix so it works on any StreetApp.
+ */
+export function registerFeatureFlagAdminRoute(
+  app: FlagAdminApp,
+  service: FeatureFlagService,
+  opts: { adminRole?: string } = {},
+): void {
+  const adminRole = opts.adminRole ?? 'admin';
+  const prefix = '/admin/feature-flags/';
+
+  app.use(async (ctx, next) => {
+    if (ctx.method !== 'PATCH' || !ctx.path.startsWith(prefix)) {
+      await next();
+      return;
+    }
+    if (!ctx.user || !ctx.user.roles.includes(adminRole)) {
+      ctx.json({ error: 'Forbidden', required: [adminRole] }, 403);
+      return;
+    }
+    const name = decodeURIComponent(ctx.path.slice(prefix.length));
+    const body = (ctx.body ?? {}) as { enabled?: boolean; rules?: FeatureFlagRule[] };
+    if (typeof body.enabled !== 'boolean') {
+      ctx.json({ error: 'bad_request', message: 'enabled (boolean) is required' }, 400);
+      return;
+    }
+    await service.setFlag(name, body.enabled, body.rules);
+    ctx.json({ name, enabled: body.enabled });
+  });
 }
