@@ -157,13 +157,13 @@
   - [x] 17.5 Create `apiKeyMiddleware(service)`: extract `Authorization: Bearer <key>`, call `service.verify()`, set `ctx.user`; throw `UnauthorizedException` on invalid/expired key
   - [x] 17.6 Write tests: key generation produces correct prefix, only hash stored in DB, timing-safe comparison, revocation invalidates cache, expired key returns 401
 
-- [ ] 18. v1.4 — Refresh Tokens and Token Rotation
+- [x] 18. v1.4 — Refresh Tokens and Token Rotation
   - [x] 18.1 Create `packages/core/src/auth/refresh-tokens.ts` with `RefreshTokenService`; write `street_refresh_tokens` migration SQL
   - [x] 18.2 Implement `RefreshTokenService.issue(userId, familyId?)`: generate new `familyId` (if not provided) from `randomBytes(16)`, issue access token (15 min) and refresh token (30 days), store only SHA-256 hash of refresh token
   - [x] 18.3 Implement `RefreshTokenService.rotate(rawRefreshToken)`: inside a single `pool.transaction()`: hash the token, find and verify it, check `revoked_at IS NULL`; if already revoked → call `revokeFamily()` and throw `TokenReplayError`; otherwise atomically create new tokens and set `revoked_at` on the old one
   - [x] 18.4 Implement `RefreshTokenService.revokeFamily(familyId)`: `UPDATE street_refresh_tokens SET revoked_at = NOW() WHERE family_id = $1`
   - [x] 18.5 Export `RefreshTokenService`, `TokenReplayError` from `packages/core/src/index.ts`
-  - [-] 18.6 Write tests: rotation invalidates old token, replay attack revokes whole family, rotation invariant (old token invalid after rotation, new token valid), configurable lifetimes respected
+  - [x] 18.6 Write tests: rotation invalidates old token, replay attack revokes whole family, rotation invariant (old token invalid after rotation, new token valid), configurable lifetimes respected
 
 - [ ] 19. v1.4 — RBAC and Permission Decorators
   - [~] 19.1 Create `packages/core/src/auth/rbac.ts`: `RoleHierarchy` type, `RbacService` class, `@Roles()` and `@Permissions()` method decorators, `rbacGuard(service)` middleware factory
