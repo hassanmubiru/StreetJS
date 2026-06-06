@@ -19,7 +19,7 @@ import {
 } from '../auth/rbac.js';
 import { OAuthManager } from '../auth/oauth2.js';
 import { ApiKeyService } from '../auth/api-keys.js';
-import { ForbiddenException } from '../http/exceptions.js';
+import { ForbiddenException, UnauthorizedException } from '../http/exceptions.js';
 
 // ── CBOR encoding helpers ─────────────────────────────────────────────────────
 
