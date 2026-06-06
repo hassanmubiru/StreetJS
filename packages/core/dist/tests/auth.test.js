@@ -1641,4 +1641,157 @@ describe('WebAuthn — additional coverage', () => {
         await assert.rejects(() => svc.finishRegistration('user-ceremony', credential));
     });
 });
+// ── AuditWriter integration into auth flows (Task 21.5) ───────────────────────
+import { AuditWriter } from '../auth/audit-writer.js';
+import { RefreshTokenService as RefreshTokenServiceAudit } from '../auth/refresh-tokens.js';
+import { StreetSessionStore } from '../auth/session-store.js';
+import { UserService } from '../services/user.service.js';
+/** In-memory AuditPool that records every audit INSERT for assertions. */
+class RecordingAuditPool {
+    events = [];
+    async query(sql, params) {
+        if (sql.trim().toUpperCase().startsWith('INSERT INTO STREET_AUDIT_LOG')) {
+            const details = typeof params?.[4] === 'string' ? JSON.parse(params[4]) : {};
+            this.events.push({
+                event: String(params?.[0] ?? ''),
+                actorId: params?.[1] != null ? String(params[1]) : null,
+                details: details,
+            });
+            return { rows: [], rowCount: 1, command: 'INSERT' };
+        }
+        return { rows: [], rowCount: 0, command: 'OK' };
+    }
+    async transaction(fn) {
+        return fn(this);
+    }
+}
+/** Minimal session-store pool that records a single session and supports revoke. */
+class SessionMemPool {
+    sessions = new Map();
+    async query(sql, params) {
+        const s = sql.trim().toUpperCase();
+        if (s.startsWith('INSERT INTO STREET_SESSIONS')) {
+            this.sessions.set(String(params?.[0]), { user_id: String(params?.[1]), expires_at: String(params?.[3]) });
+            return { rows: [], rowCount: 1, command: 'INSERT' };
+        }
+        if (s.startsWith('SELECT') && s.includes('WHERE SESSION_ID')) {
+            const row = this.sessions.get(String(params?.[0]));
+            if (!row)
+                return { rows: [], rowCount: 0, command: 'SELECT' };
+            return { rows: [{ user_id: row.user_id, data: '{}', expires_at: row.expires_at }], rowCount: 1, command: 'SELECT' };
+        }
+        if (s.startsWith('DELETE') && s.includes('WHERE SESSION_ID')) {
+            this.sessions.delete(String(params?.[0]));
+            return { rows: [], rowCount: 1, command: 'DELETE' };
+        }
+        return { rows: [], rowCount: 0, command: 'OK' };
+    }
+    async transaction(fn) {
+        return fn(this);
+    }
+}
+describe('AuditWriter integration into auth flows (Task 21.5)', () => {
+    function makeUserService(audit, user) {
+        const repo = {
+            findByEmail: async (_email) => user,
+        };
+        const config = { jwtSecret: 'a-super-secret-key-that-is-at-least-32chars!' };
+        const svc = new UserService(repo, config);
+        svc.setAuditWriter(audit);
+        return svc;
+    }
+    // Compute a valid PBKDF2 hash matching UserService's scheme for the password.
+    async function makeHash(password) {
+        const { pbkdf2 } = await import('node:crypto');
+        const { promisify } = await import('node:util');
+        const pbkdf2Async = promisify(pbkdf2);
+        const salt = crypto.randomBytes(32);
+        const hash = await pbkdf2Async(password, salt, 100_000, 64, 'sha512');
+        return `${salt.toString('hex')}:${hash.toString('hex')}`;
+    }
+    it('writes login_success on successful login', async () => {
+        const pool = new RecordingAuditPool();
+        const audit = new AuditWriter(pool);
+        const passwordHash = await makeHash('correct-horse');
+        const svc = makeUserService(audit, { id: 'u1', email: 'a@b.com', password_hash: passwordHash, roles: '["user"]' });
+        await svc.login({ email: 'a@b.com', password: 'correct-horse' }, { ip: '1.2.3.4' });
+        const ev = pool.events.find((e) => e.event === 'login_success');
+        assert.ok(ev, 'login_success audit entry should be written');
+        assert.equal(ev.actorId, 'u1');
+    });
+    it('writes login_failure on bad password', async () => {
+        const pool = new RecordingAuditPool();
+        const audit = new AuditWriter(pool);
+        const passwordHash = await makeHash('correct-horse');
+        const svc = makeUserService(audit, { id: 'u1', email: 'a@b.com', password_hash: passwordHash, roles: '["user"]' });
+        await assert.rejects(() => svc.login({ email: 'a@b.com', password: 'wrong' }), UnauthorizedException);
+        const ev = pool.events.find((e) => e.event === 'login_failure');
+        assert.ok(ev, 'login_failure audit entry should be written');
+        assert.equal(ev.details['reason'], 'bad_password');
+    });
+    it('writes login_failure when user not found', async () => {
+        const pool = new RecordingAuditPool();
+        const audit = new AuditWriter(pool);
+        const svc = makeUserService(audit, null);
+        await assert.rejects(() => svc.login({ email: 'missing@b.com', password: 'x' }), UnauthorizedException);
+        const ev = pool.events.find((e) => e.event === 'login_failure');
+        assert.ok(ev, 'login_failure audit entry should be written');
+        assert.equal(ev.details['reason'], 'user_not_found');
+    });
+    it('writes logout', async () => {
+        const pool = new RecordingAuditPool();
+        const audit = new AuditWriter(pool);
+        const svc = makeUserService(audit, null);
+        await svc.logout('u1', { ip: '1.2.3.4' });
+        const ev = pool.events.find((e) => e.event === 'logout');
+        assert.ok(ev, 'logout audit entry should be written');
+        assert.equal(ev.actorId, 'u1');
+    });
+    it('writes token_refresh after rotation', async () => {
+        const auditPool = new RecordingAuditPool();
+        const audit = new AuditWriter(auditPool);
+        const tokenPool = new RefreshTokenMemPool();
+        const svc = new RefreshTokenServiceAudit(tokenPool, makeJwt(), { auditWriter: audit });
+        const { refreshToken } = await svc.issue('user-refresh');
+        await svc.rotate(refreshToken, { ip: '5.6.7.8' });
+        const ev = auditPool.events.find((e) => e.event === 'token_refresh');
+        assert.ok(ev, 'token_refresh audit entry should be written');
+        assert.equal(ev.actorId, 'user-refresh');
+    });
+    it('writes session_revoked on session revoke', async () => {
+        const auditPool = new RecordingAuditPool();
+        const audit = new AuditWriter(auditPool);
+        const sessionPool = new SessionMemPool();
+        const store = new StreetSessionStore(sessionPool, { auditWriter: audit });
+        const sessionId = await store.create({ userId: 'u9' });
+        await store.revoke(sessionId);
+        const ev = auditPool.events.find((e) => e.event === 'session_revoked');
+        assert.ok(ev, 'session_revoked audit entry should be written');
+        assert.equal(ev.actorId, 'u9');
+    });
+    it('writes permission_denied when rbacGuard blocks a request', async () => {
+        const auditPool = new RecordingAuditPool();
+        const audit = new AuditWriter(auditPool);
+        const svc = new RbacService({ admin: [], viewer: [] });
+        const guard = rbacGuard(svc, { auditWriter: audit });
+        const ctx = {
+            user: { id: 'u3', email: '', roles: ['viewer'] },
+            headers: { 'user-agent': 'test-agent' },
+            state: { _requiredRoles: ['admin'], _requiredPermissions: [] },
+        };
+        await assert.rejects(() => guard(ctx, async () => { }), ForbiddenException);
+        const ev = auditPool.events.find((e) => e.event === 'permission_denied');
+        assert.ok(ev, 'permission_denied audit entry should be written');
+        assert.equal(ev.actorId, 'u3');
+        assert.deepEqual(ev.details['required'], ['admin']);
+    });
+    it('does not write audit entries when no AuditWriter is attached (backward compatible)', async () => {
+        const tokenPool = new RefreshTokenMemPool();
+        const svc = new RefreshTokenServiceAudit(tokenPool, makeJwt());
+        const { refreshToken } = await svc.issue('user-noaudit');
+        // Should not throw despite no audit writer
+        const rotated = await svc.rotate(refreshToken);
+        assert.equal(typeof rotated.accessToken, 'string');
+    });
+});
 //# sourceMappingURL=auth.test.js.map

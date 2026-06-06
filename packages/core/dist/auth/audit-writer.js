@@ -57,4 +57,38 @@ export class AuditWriter {
         });
     }
 }
+/**
+ * Write an audit entry for an authentication-related `event`.
+ *
+ * This is the single low-level seam the per-event helpers below build on. It
+ * delegates to {@link AuditWriter.write}, so a failed write rejects and a
+ * caller running inside its own transaction will roll back.
+ */
+export function auditAuthEvent(writer, event, details = {}) {
+    return writer.write({ event, ...details });
+}
+/** Record a successful login (`login_success`). */
+export function auditLoginSuccess(writer, details = {}) {
+    return auditAuthEvent(writer, 'login_success', details);
+}
+/** Record a failed login attempt (`login_failure`). */
+export function auditLoginFailure(writer, details = {}) {
+    return auditAuthEvent(writer, 'login_failure', details);
+}
+/** Record a logout (`logout`). */
+export function auditLogout(writer, details = {}) {
+    return auditAuthEvent(writer, 'logout', details);
+}
+/** Record an access-token refresh / rotation (`token_refresh`). */
+export function auditTokenRefresh(writer, details = {}) {
+    return auditAuthEvent(writer, 'token_refresh', details);
+}
+/** Record a session revocation (`session_revoked`). */
+export function auditSessionRevoked(writer, details = {}) {
+    return auditAuthEvent(writer, 'session_revoked', details);
+}
+/** Record an authorization denial (`permission_denied`). */
+export function auditPermissionDenied(writer, details = {}) {
+    return auditAuthEvent(writer, 'permission_denied', details);
+}
 //# sourceMappingURL=audit-writer.js.map

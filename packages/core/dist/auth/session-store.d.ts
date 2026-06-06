@@ -1,6 +1,9 @@
 import type { MiddlewareFn } from '../core/types.js';
 export { AuditWriter, AUDIT_LOG_MIGRATION_SQL } from './audit-writer.js';
 export type { AuditEvent, AuditRecord, AuditPool } from './audit-writer.js';
+export { auditAuthEvent, auditLoginSuccess, auditLoginFailure, auditLogout, auditTokenRefresh, auditSessionRevoked, auditPermissionDenied, } from './audit-writer.js';
+export type { AuditEventDetails } from './audit-writer.js';
+import type { AuditWriter as AuditWriterType } from './audit-writer.js';
 export declare const SESSION_STORE_MIGRATION_SQL: string;
 export interface SessionData {
     userId: string;
@@ -21,11 +24,22 @@ export interface SessionStorePool {
         }>;
     }) => Promise<T>): Promise<T>;
 }
+/** Optional configuration for {@link StreetSessionStore}. */
+export interface StreetSessionStoreOptions {
+    /**
+     * When provided, the store emits a `session_revoked` audit entry on every
+     * {@link StreetSessionStore.revoke} and {@link StreetSessionStore.revokeAll}
+     * call. Omitting it keeps the store's behaviour and dependencies unchanged.
+     */
+    auditWriter?: AuditWriterType;
+}
 export declare class StreetSessionStore {
     private readonly _pool;
     /** LRU cache: sessionId → true (revoked) */
     private readonly _revokedCache;
-    constructor(pool: SessionStorePool);
+    /** Optional audit writer used to record `session_revoked` events. */
+    private readonly _auditWriter?;
+    constructor(pool: SessionStorePool, options?: StreetSessionStoreOptions);
     /** Create a new session. Returns the sessionId. */
     create(data: SessionData): Promise<string>;
     /** Find a session by ID. Returns null if not found or expired. */
