@@ -113,7 +113,7 @@ export async function handleEdgeRequest(
         responseChunks.push(Buffer.isBuffer(data) ? data : Buffer.from(String(data), 'utf8'));
       }
       statusCode = serverResponse.statusCode;
-      resStream.end();
+      // Signal completion without re-entering this overridden end().
       resStream.emit('finish');
     },
     flushHeaders() { /* no-op for edge */ },
