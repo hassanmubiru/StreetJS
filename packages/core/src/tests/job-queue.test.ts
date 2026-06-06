@@ -1917,3 +1917,173 @@ describe('JobQueue.registerJobHistoryPruning', () => {
     assert.throws(() => queue.registerJobHistoryPruning(sched, -5), /non-negative integer/);
   });
 });
+
+// ── Tests: Worker heartbeat ───────────────────────────────────────────────────
+
+/** Structural view of JobQueue internals used to drive the heartbeat/reaper directly. */
+interface JobQueueInternals {
+  inFlight: Set<string>;
+  _heartbeat(): Promise<void>;
+  _reapStaleJobs(): Promise<number>;
+}
+
+/** A recording pool that captures every query without mutating any state. */
+function makeRecordingPool(): JobQueuePool & { queries: Array<{ sql: string; params?: unknown[] }> } {
+  const queries: Array<{ sql: string; params?: unknown[] }> = [];
+  return {
+    queries,
+    async query(sql: string, params?: unknown[]): Promise<QueryResult> {
+      queries.push({ sql, params });
+      return { rows: [], rowCount: 0, command: 'UPDATE' };
+    },
+    async transaction<T>(fn: (conn: { query(sql: string, params?: unknown[]): Promise<QueryResult> }) => Promise<T>): Promise<T> {
+      return fn({ query: (sql, params) => this.query(sql, params) });
+    },
+  };
+}
+
+describe('JobQueue worker heartbeat', () => {
+  it('refreshes locked_at only for this worker\'s tracked in-flight jobs', async () => {
+    const pool = makeRecordingPool();
+    const queue = new JobQueue(pool, { workerId: 'worker-A' });
+    const internal = queue as unknown as JobQueueInternals;
+
+    internal.inFlight.add('job-1');
+    internal.inFlight.add('job-2');
+
+    await internal._heartbeat();
+
+    const beat = pool.queries.find((q) => /UPDATE street_jobs[\s\S]*SET locked_at = NOW\(\)/.test(q.sql));
+    assert.ok(beat, 'Heartbeat should issue an UPDATE that sets locked_at = NOW()');
+    assert.match(beat!.sql, /status = 'running'/, 'Should only touch running jobs');
+    assert.match(beat!.sql, /worker_id = \$1/, 'Should scope to this worker');
+    assert.match(beat!.sql, /id = ANY\(\$2\)/, 'Should target the tracked in-flight ids');
+
+    const params = beat!.params as unknown[];
+    assert.equal(params[0], 'worker-A', 'worker_id param should be this worker');
+    assert.deepEqual(params[1], ['job-1', 'job-2'], 'Should heartbeat exactly the tracked ids');
+  });
+
+  it('issues no query when there are no in-flight jobs', async () => {
+    const pool = makeRecordingPool();
+    const queue = new JobQueue(pool);
+    const internal = queue as unknown as JobQueueInternals;
+
+    await internal._heartbeat();
+
+    assert.equal(pool.queries.length, 0, 'No heartbeat query should run with an empty in-flight set');
+  });
+});
+
+// ── Tests: Stale-job reaper ───────────────────────────────────────────────────
+
+interface ReapableJob {
+  id: string;
+  status: string;
+  worker_id: string | null;
+  locked_at: Date | null;
+}
+
+/**
+ * A pool that honours the reaper contract: it re-enqueues running jobs whose
+ * `locked_at` is older than the threshold encoded in the query params.
+ */
+function makeReaperPool(jobs: ReapableJob[]): JobQueuePool & {
+  jobs: ReapableJob[];
+  queries: Array<{ sql: string; params?: unknown[] }>;
+} {
+  const queries: Array<{ sql: string; params?: unknown[] }> = [];
+  return {
+    jobs,
+    queries,
+    async query(sql: string, params?: unknown[]): Promise<QueryResult> {
+      queries.push({ sql, params });
+      if (sql.includes('UPDATE street_jobs') && sql.includes("status='pending'") && sql.includes('locked_at <')) {
+        const thresholdMs = Number((params ?? [])[0]);
+        const cutoff = Date.now() - thresholdMs;
+        let reaped = 0;
+        for (const j of jobs) {
+          if (j.status === 'running' && j.locked_at !== null && j.locked_at.getTime() < cutoff) {
+            j.status = 'pending';
+            j.worker_id = null;
+            j.locked_at = null;
+            reaped++;
+          }
+        }
+        return { rows: [], rowCount: reaped, command: 'UPDATE' };
+      }
+      return { rows: [], rowCount: 0, command: 'UPDATE' };
+    },
+    async transaction<T>(fn: (conn: { query(sql: string, params?: unknown[]): Promise<QueryResult> }) => Promise<T>): Promise<T> {
+      return fn({ query: (sql, params) => this.query(sql, params) });
+    },
+  };
+}
+
+describe('JobQueue stale-job reaper', () => {
+  it('re-enqueues running jobs whose lock is older than the threshold, leaving fresh ones alone', async () => {
+    const now = Date.now();
+    const jobs: ReapableJob[] = [
+      { id: 'stale', status: 'running', worker_id: 'dead-worker', locked_at: new Date(now - 3 * 60_000) },
+      { id: 'fresh', status: 'running', worker_id: 'live-worker', locked_at: new Date(now - 30_000) },
+      { id: 'pending', status: 'pending', worker_id: null, locked_at: null },
+    ];
+    const pool = makeReaperPool(jobs);
+    const queue = new JobQueue(pool); // default 2-minute threshold
+    const internal = queue as unknown as JobQueueInternals;
+
+    const reaped = await internal._reapStaleJobs();
+
+    assert.equal(reaped, 1, 'Exactly the stale job should be re-enqueued');
+
+    const stale = jobs.find((j) => j.id === 'stale')!;
+    assert.equal(stale.status, 'pending', 'Stale job should be reset to pending');
+    assert.equal(stale.worker_id, null, 'Stale job worker_id should be cleared');
+    assert.equal(stale.locked_at, null, 'Stale job locked_at should be cleared');
+
+    const fresh = jobs.find((j) => j.id === 'fresh')!;
+    assert.equal(fresh.status, 'running', 'A freshly heartbeated job must not be reaped');
+    assert.equal(fresh.worker_id, 'live-worker', 'Fresh job ownership should be preserved');
+  });
+
+  it('uses the configurable stale threshold in the query params (default 2 minutes)', async () => {
+    const poolDefault = makeReaperPool([]);
+    const internalDefault = new JobQueue(poolDefault) as unknown as JobQueueInternals;
+    await internalDefault._reapStaleJobs();
+    const reapDefault = poolDefault.queries.find((q) => q.sql.includes('locked_at <'));
+    assert.ok(reapDefault, 'Reaper should issue the stale-job UPDATE');
+    assert.deepEqual(reapDefault!.params, ['120000'], 'Default stale threshold should be 2 minutes');
+
+    const poolCustom = makeReaperPool([]);
+    const internalCustom = new JobQueue(poolCustom, { staleJobThresholdMs: 45_000 }) as unknown as JobQueueInternals;
+    await internalCustom._reapStaleJobs();
+    const reapCustom = poolCustom.queries.find((q) => q.sql.includes('locked_at <'));
+    assert.deepEqual(reapCustom!.params, ['45000'], 'Custom stale threshold should be honoured');
+  });
+});
+
+// ── Tests: heartbeat & reaper timer lifecycle ─────────────────────────────────
+
+describe('JobQueue heartbeat/reaper timer lifecycle', () => {
+  it('starts heartbeat and reaper timers on start() and clears them on stop()', () => {
+    const pool = makeRecordingPool();
+    const queue = new JobQueue(pool, { pollIntervalMs: 1_000, heartbeatIntervalMs: 30_000, reaperIntervalMs: 60_000 });
+    const timers = queue as unknown as {
+      timer: unknown;
+      heartbeatTimer: unknown;
+      reaperTimer: unknown;
+    };
+
+    assert.equal(timers.heartbeatTimer, null, 'Heartbeat timer should be inactive before start');
+    assert.equal(timers.reaperTimer, null, 'Reaper timer should be inactive before start');
+
+    queue.start();
+    assert.notEqual(timers.heartbeatTimer, null, 'Heartbeat timer should be active after start');
+    assert.notEqual(timers.reaperTimer, null, 'Reaper timer should be active after start');
+
+    queue.stop();
+    assert.equal(timers.timer, null, 'Poll timer should be cleared after stop');
+    assert.equal(timers.heartbeatTimer, null, 'Heartbeat timer should be cleared after stop');
+    assert.equal(timers.reaperTimer, null, 'Reaper timer should be cleared after stop');
+  });
+});
