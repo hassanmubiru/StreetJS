@@ -205,8 +205,10 @@ export class AwsSecretsManagerProvider implements SecretProvider {
 
   private async _fetchSecret(secretId: string): Promise<string> {
     const service = 'secretsmanager';
-    const host = `${service}.${this._region}.amazonaws.com`;
-    const endpoint = `https://${host}`;
+    const defaultHost = `${service}.${this._region}.amazonaws.com`;
+    const endpoint = this._endpoint ? this._endpoint.replace(/\/$/, '') : `https://${defaultHost}`;
+    // The signed `host` header must match the Host actually sent on the wire.
+    const host = new URL(endpoint).host;
 
     const body = JSON.stringify({ SecretId: secretId });
     const now = new Date();
