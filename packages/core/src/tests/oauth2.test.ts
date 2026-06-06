@@ -156,8 +156,10 @@ describe('JwksCache — serves stale keys on provider failure', () => {
     server = http.createServer((_req, res) => {
       requestCount += 1;
       if (mode === 'fail') {
-        res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end('{"error":"provider down"}');
+        // Respond with a non-JSON body so the JWKS fetch rejects (the helper
+        // parses the body as JSON), simulating an unreachable/broken provider.
+        res.writeHead(500, { 'Content-Type': 'text/plain' });
+        res.end('Internal Server Error — provider down');
         return;
       }
       res.writeHead(200, { 'Content-Type': 'application/json' });
