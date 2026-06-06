@@ -70,8 +70,6 @@ export async function handleEdgeRequest(request, app) {
         statusCode: 200,
         statusMessage: 'OK',
         headersSent: false,
-        writableEnded: false,
-        writableFinished: false,
         sent: false,
         locals: {},
         getHeader(name) {
@@ -103,8 +101,7 @@ export async function handleEdgeRequest(request, app) {
                 responseChunks.push(Buffer.isBuffer(data) ? data : Buffer.from(String(data), 'utf8'));
             }
             statusCode = serverResponse.statusCode;
-            serverResponse.writableEnded = true;
-            serverResponse.writableFinished = true;
+            resStream.end();
             resStream.emit('finish');
         },
         flushHeaders() { },
