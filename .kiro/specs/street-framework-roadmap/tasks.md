@@ -255,11 +255,11 @@ Status markers used in this plan:
   - [x] 27.6 Implement `@Deprecated({ sunset: Date })` decorator: post-dispatch middleware reads metadata and adds `Sunset` and `Deprecation` headers
   - [x] 27.7 Write tests: URL-versioned route dispatches correctly, header-versioned route dispatches correctly, unregistered version returns 404 with versions list, `@Deprecated` adds response headers
 
-- [~] 28. v1.6 — SDK Generator
+- [x] 28. v1.6 — SDK Generator
   - [x] 28.1 Create `packages/core/src/sdk-gen/typescript.ts`: `generateTypescriptSdk(spec, outputDir)` iterates `spec.paths`, generates `types.ts` with typed request/response interfaces using mapped types from the OpenAPI schema objects
   - [x] 28.2 Implement TypeScript `ApiClient.ts` generation: one method per `operationId`, named exactly as the operationId; method signature accepts typed request params; body uses native `fetch` API
   - [x] 28.3 Create `packages/core/src/sdk-gen/python.ts`: `generatePythonSdk(spec, outputDir)` generates Python dataclasses for models and a `urllib.request`-based client; no third-party Python dependencies
-  - [ ] 28.4 Add `street generate sdk --lang <typescript|python> --output <dir>` to `GenerateCommand`: dynamically import the compiled project's `openApiSpec()`, pass to the appropriate generator
+  - [x] 28.4 Add `street generate sdk --lang <typescript|python> --output <dir>` to `GenerateCommand`: dynamically import the compiled project's `openApiSpec()`, pass to the appropriate generator
   - [x] 28.5 Write tests: generated TypeScript compiles without errors, generated Python dataclasses match the spec schema, backward-compatible spec change produces additive SDK update
 
 - [~] 29. v1.6 — Rate Limit Policies and API Analytics
