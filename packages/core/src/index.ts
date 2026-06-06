@@ -262,6 +262,8 @@ export type { DataClassificationLevel, RetentionEntityMeta, ComplianceReport } f
 // ── Enterprise: Backup ────────────────────────────────────────────────────────
 export { BackupService, LocalStorageAdapter, BACKUPS_MIGRATION_SQL } from './enterprise/backup.js';
 export type { StorageAdapter, BackupRecord } from './enterprise/backup.js';
+export { S3StorageAdapter, GcsStorageAdapter, signAwsV4 } from './enterprise/storage-adapters.js';
+export type { S3StorageOptions, GcsStorageOptions, SigV4Input } from './enterprise/storage-adapters.js';
 
 // ── Platform: Distributed Cache ───────────────────────────────────────────────
 export { DistributedCache, InProcessCacheTransport, GlobalConfigService } from './platform/distributed-cache.js';
