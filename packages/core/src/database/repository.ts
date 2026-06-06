@@ -93,6 +93,7 @@ export abstract class StreetPostgresRepository<T extends object>
 
   async create(data: Partial<T>): Promise<T> {
     this._assertSafeTableName();
+    data = this._encrypt(data);
     const keys = Object.keys(data).filter((k) => data[k as keyof T] !== undefined);
     const columns = keys.map((k) => `"${k}"`).join(', ');
     const placeholders = keys.map((_, i) => `$${i + 1}`).join(', ');
@@ -103,12 +104,13 @@ export abstract class StreetPostgresRepository<T extends object>
     );
     const row = result.rows[0];
     if (!row) throw new Error('Insert returned no rows');
-    return this.mapRow(row as Record<string, string | null>);
+    return this._decrypt(this.mapRow(row as Record<string, string | null>));
   }
 
   async update(id: string, data: Partial<T>): Promise<T | null> {
     this._assertSafeTableName();
     if (Object.keys(data).length === 0) return this.findById(id);
+    data = this._encrypt(data);
     const entries = Object.entries(data).filter(([, v]) => v !== undefined);
     const setClauses = entries.map(([k], i) => `"${k}" = $${i + 1}`).join(', ');
     const params = entries.map(([, v]) => v);
@@ -118,7 +120,7 @@ export abstract class StreetPostgresRepository<T extends object>
       params
     );
     if (result.rows.length === 0) return null;
-    return this.mapRow(result.rows[0] as Record<string, string | null>);
+    return this._decrypt(this.mapRow(result.rows[0] as Record<string, string | null>));
   }
 
   async delete(id: string): Promise<boolean> {
