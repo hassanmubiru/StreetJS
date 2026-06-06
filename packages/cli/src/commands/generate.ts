@@ -81,6 +81,53 @@ export class GenerateCommand {
     }
   }
 
+  /** `street generate sdk --lang <typescript|python> --spec <openapi.json> --output <dir>` */
+  private async generateSdk(ctx: CliContext): Promise<void> {
+    const lang = String(ctx.args.flags['lang'] ?? 'typescript');
+    const specPath = String(ctx.args.flags['spec'] ?? 'openapi.json');
+    const output = String(ctx.args.flags['output'] ?? './sdk');
+    const core = await import('@streetjs/core');
+
+    let specRaw: string;
+    try {
+      specRaw = await readFile(resolve(ctx.cwd, specPath), 'utf8');
+    } catch {
+      console.error(`[street] Could not read OpenAPI spec at "${specPath}". Pass --spec <path>.`);
+      process.exitCode = 1;
+      return;
+    }
+    const spec = JSON.parse(specRaw) as Parameters<typeof core.generateTypescriptSdk>[0];
+    const outDir = resolve(ctx.cwd, output);
+
+    if (lang === 'python') {
+      await core.generatePythonSdk(spec, outDir);
+      console.log(`[street] Generated Python SDK in ${output}/ (models.py, client.py)`);
+    } else {
+      await core.generateTypescriptSdk(spec, outDir);
+      console.log(`[street] Generated TypeScript SDK in ${output}/ (types.ts, api-client.ts)`);
+    }
+  }
+
+  /** `street generate grpc --proto <file.proto> --output <dir>` */
+  private async generateGrpc(ctx: CliContext): Promise<void> {
+    const protoPath = ctx.args.flags['proto'];
+    if (!protoPath || typeof protoPath !== 'string') {
+      console.error('[street] Usage: street generate grpc --proto <file.proto> [--output <dir>]');
+      process.exitCode = 1;
+      return;
+    }
+    const output = String(ctx.args.flags['output'] ?? './src/grpc');
+    const core = await import('@streetjs/core');
+    const ast = await core.parseProtoFile(resolve(ctx.cwd, protoPath));
+    const tsSource = core.generateGrpcTypes(ast);
+    const outDir = resolve(ctx.cwd, output);
+    await mkdir(outDir, { recursive: true });
+    const baseName = protoPath.replace(/.*\//, '').replace(/\.proto$/, '');
+    const outFile = resolve(outDir, `${baseName}.grpc.ts`);
+    await writeFile(outFile, tsSource, 'utf8');
+    console.log(`[street] Generated gRPC types: ${output}/${baseName}.grpc.ts`);
+  }
+
   private async generateController(
     cwd: string,
     className: string,
