@@ -298,11 +298,11 @@ Status markers used in this plan:
   - [x] 32.5 Create `TenantBillingAdapter` interface in `packages/core/src/tenancy/billing.ts`: `reportUsage(tenantId, period, metrics)` abstract method; no coupling to specific billing provider
   - [x] 32.6 Write tests: provisioning creates tenant record and runs migrations atomically, quota exceeded returns 429 with correct fields, warning event fires at 80%, `reportUsage` adapter is called with correct metrics
 
-- [~] 33. v1.7 — Tenant Metrics
+- [x] 33. v1.7 — Tenant Metrics
   - [x] 33.1 Write `street_tenant_daily_stats` migration SQL: `tenant_id, date DATE, metrics JSONB, created_at`
   - [x] 33.2 Create `packages/core/src/tenancy/metrics.ts` with `TenantMetricsRegistry`: wraps `MetricsRegistry`; all metric registrations automatically include a `tenant_id` label; enforces max 10,000 tenant entries with LRU eviction
   - [x] 33.3 Implement `TenantMetricsRegistry.forTenant(tenantId)`: returns a scoped `TenantMetricsView` that pre-labels all metric operations with `tenant_id`; evicts the LRU entry when the 10,000 cap is reached
-  - [ ] 33.4 Register `GET /admin/tenants/:id/metrics` route: protected by `requireRoles('admin')`; return current usage and quota status for the specified tenant
+  - [x] 33.4 Register `GET /admin/tenants/:id/metrics` route: protected by `requireRoles('admin')`; return current usage and quota status for the specified tenant
   - [~] 33.5 Add a nightly `CronScheduler` job that aggregates `street_tenant_usage` rows into `street_tenant_daily_stats`
   - [x] 33.6 Write tests: Prometheus output includes `tenant_id` label, LRU eviction at 10,000 tenants, admin endpoint returns correct stats, daily aggregation job produces correct summaries
 
