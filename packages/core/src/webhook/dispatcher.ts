@@ -18,6 +18,12 @@ export interface WebhookTarget {
   secret: string;
   timeoutMs?: number;
   maxRetries?: number;
+  /**
+   * Optional TLS settings for endpoints served by a private/corporate CA.
+   * `ca` supplies trusted certificate(s); `rejectUnauthorized` should remain
+   * true in production (default).
+   */
+  tls?: { ca?: string | Buffer | Array<string | Buffer>; rejectUnauthorized?: boolean };
 }
 
 export interface WebhookJob {
@@ -188,7 +194,7 @@ export class WebhookDispatcher {
     const maxRetries = target.maxRetries ?? 3;
 
     try {
-      const statusCode = await sendRequest(target.url, body, sig, timeoutMs);
+      const statusCode = await sendRequest(target.url, body, sig, timeoutMs, target.tls);
       if (statusCode >= 200 && statusCode < 300) {
         return; // success
       }
