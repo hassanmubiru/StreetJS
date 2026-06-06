@@ -438,15 +438,15 @@ Status markers used in this plan:
   - [~] 48.5 Implement `db_replication_lag_seconds` Prometheus gauge: query `pg_stat_replication` on the primary and report lag per replica; label by `region` and `replica_id`
   - [ ] 48.6 Write tests: primary failure promotes next healthy replica within 10s, `X-Preferred-Region` routes to correct pool, replication lag metric emitted with correct labels, active-active last-write-wins resolves conflict correctly
 
-- [ ] 49. v3.0 — AI Infrastructure Toolkit and Native Agent Framework
-  - [~] 49.1 Create `packages/core/src/platform/ai/llm-client.ts`: `LlmClient` interface, `CompletionOptions`, `CompletionResult` types; `OpenAiClient`, `AnthropicClient`, `OllamaClient` implementations using `node:https`; no SDK dependencies
+- [~] 49. v3.0 — AI Infrastructure Toolkit and Native Agent Framework
+  - [x] 49.1 Create `packages/core/src/platform/ai/llm-client.ts`: `LlmClient` interface, `CompletionOptions`, `CompletionResult` types; `OpenAiClient`, `AnthropicClient`, `OllamaClient` implementations using `node:https`; no SDK dependencies
   - [~] 49.2 Implement streaming mode in each client: parse SSE chunks from the provider's stream response; yield tokens via `AsyncIterator<string>`
-  - [~] 49.3 Create `packages/core/src/platform/ai/tool-registry.ts` with `ToolRegistry`: `register(name, fn, schema)` stores typed tool functions with their JSON Schema descriptors; `toFunctionList()` returns `LlmFunctionDef[]` for inclusion in LLM API calls
-  - [~] 49.4 Create `packages/core/src/platform/ai/agent-executor.ts` with `AgentExecutor`: ReAct think/act/observe loop; call LLM, parse tool calls from response, execute via `ToolRegistry`, feed result back; stop when final answer produced or `maxSteps` reached
+  - [x] 49.3 Create `packages/core/src/platform/ai/tool-registry.ts` with `ToolRegistry`: `register(name, fn, schema)` stores typed tool functions with their JSON Schema descriptors; `toFunctionList()` returns `LlmFunctionDef[]` for inclusion in LLM API calls
+  - [x] 49.4 Create `packages/core/src/platform/ai/agent-executor.ts` with `AgentExecutor`: ReAct think/act/observe loop; call LLM, parse tool calls from response, execute via `ToolRegistry`, feed result back; stop when final answer produced or `maxSteps` reached
   - [~] 49.5 Implement SSE step streaming: when `ctx` is provided, emit `{ type: 'thought'|'action'|'observation'|'final', content: string }` events via `createSse(ctx.res)` for each intermediate step
   - [~] 49.6 Implement conversation history summarization: estimate tokens as `Math.ceil(content.length / 4)`; when history exceeds `maxTokens * 0.8`, send a summarization prompt to the LLM and replace history with the summary
   - [~] 49.7 Implement HTTP 429 retry: catch `429` from LLM provider, parse `Retry-After` header, wait that duration, then retry; propagate `Retry-After` on the API response
-  - [~] 49.8 Write tests: ReAct loop resolves with correct final answer, tool execution result is fed back to LLM, history summarization triggers at token limit, 429 retry respects `Retry-After`, SSE events emitted in correct order
+  - [ ] 49.8 Write tests: ReAct loop resolves with correct final answer, tool execution result is fed back to LLM, history summarization triggers at token limit, 429 retry respects `Retry-After`, SSE events emitted in correct order
 
 - [ ] 50. v3.0 — Plugin Marketplace and Extension SDK
   - [~] 50.1 Create `packages/core/src/platform/plugins/sdk.ts`: `PluginModule` abstract base class with `name`, `version`, `onInstall?`, `onLoad?`, `onUnload?` lifecycle hooks; `SandboxedApp` interface exposing only `use()`, `registerController()`, and `on()`
