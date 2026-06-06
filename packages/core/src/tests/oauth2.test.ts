@@ -149,7 +149,7 @@ describe('JwksCache — serves stale keys on provider failure', () => {
 
   // A valid RSA public JWK to serve, tagged with a kid we can assert on.
   const { publicKey } = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
-  const baseJwk = publicKey.export({ format: 'jwk' }) as JsonWebKey;
+  const baseJwk = publicKey.export({ format: 'jwk' }) as Record<string, unknown>;
   const servedKey = { ...baseJwk, kid: 'street-test-key-1', use: 'sig', alg: 'RS256' };
 
   before(async () => {
