@@ -339,12 +339,12 @@ describe('Webhook Dispatcher — real HTTPS delivery', () => {
     const beforeCount = received.length;
     try {
       dispatcher.enqueue(
-        { url: `http://127.0.0.1:${port}/webhook`, secret, maxRetries: 0, timeoutMs: 5000 },
+        { url: `https://127.0.0.1:${port}/webhook`, secret, maxRetries: 0, timeoutMs: 5000, tls: { ca: caCert } },
         'user.created',
         { id: 'u1', name: 'Alice' }
       );
       dispatcher.enqueue(
-        { url: `http://127.0.0.1:${port}/webhook`, secret, maxRetries: 0, timeoutMs: 5000 },
+        { url: `https://127.0.0.1:${port}/webhook`, secret, maxRetries: 0, timeoutMs: 5000, tls: { ca: caCert } },
         'user.updated',
         { id: 'u1', name: 'Alice Updated' }
       );

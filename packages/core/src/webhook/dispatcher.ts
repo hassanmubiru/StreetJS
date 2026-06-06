@@ -229,7 +229,8 @@ function sendRequest(
   url: string,
   body: string,
   signature: string,
-  timeoutMs: number
+  timeoutMs: number,
+  tls?: { ca?: string | Buffer | Array<string | Buffer>; rejectUnauthorized?: boolean }
 ): Promise<number> {
   return new Promise((resolve, reject) => {
     const parsed = new URL(url);
@@ -255,6 +256,8 @@ function sendRequest(
           'User-Agent': 'Street-Webhook/1.0',
         },
         timeout: timeoutMs,
+        ...(tls?.ca ? { ca: tls.ca } : {}),
+        ...(tls?.rejectUnauthorized === false ? { rejectUnauthorized: false } : {}),
       },
       (res) => {
         // Drain response to free socket
