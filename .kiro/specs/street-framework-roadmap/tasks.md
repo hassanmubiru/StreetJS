@@ -246,7 +246,7 @@ Status markers used in this plan:
   - [x] 26.7 Register `POST /graphql` route in `StreetApp` via `graphqlMiddleware(engine)` factory
   - [x] 26.8 Write tests: simple query resolves, mutation executes and returns data, depth limit rejects deep queries, introspection blocked in production mode, response round-trip (serialize→parse→equals original)
 
-- [~] 27. v1.6 — API Versioning
+- [x] 27. v1.6 — API Versioning
   - [x] 27.1 Create `packages/core/src/versioning/strategy.ts`: `@ApiVersion(version)` class decorator that stores version string under `street:apiVersion` metadata; `VersioningOptions` interface; `VersionStrategy` union type
   - [~] 27.2 Implement URL versioning in `enableVersioning(app, { strategy: 'url' })`: read `street:apiVersion` metadata from each controller during `registerController()`; prefix the controller's routes with `/<version>/`
   - [x] 27.3 Implement header versioning in `enableVersioning(app, { strategy: 'header', headerName? })`: middleware reads `Accept: application/vnd.street.v2+json`, extracts version, rewrites internal route key for dispatch
@@ -325,7 +325,7 @@ Status markers used in this plan:
   - [x] 35.6 Emit `circuitbreaker:open` event with service name, failure count, and timestamp on Closed→Open transition
   - [x] 35.7 Write tests: failure threshold opens the circuit, probe failure returns to Open, probe success closes the circuit, `CircuitOpenError` thrown on Open state, invalid state transitions are unreachable
 
-- [~] 36. v2.0 — Message Queues and Event Bus
+- [x] 36. v2.0 — Message Queues and Event Bus
   - [x] 36.1 Create `packages/core/src/microservices/event-bus.ts`: `EventBusTransport` interface, `EventEnvelope` type, `EventBus` class; default in-process transport backed by `EventEmitter`
   - [x] 36.2 Implement `EventBus.publish(topic, payload)`: wrap payload in envelope `{ id: randomBytes(16).hex, topic, timestamp, version: 1, payload }`; call `transport.publish()`
   - [x] 36.3 Implement `EventBus.subscribe(topic, handler)`: call `transport.subscribe()`; return unsubscribe function that cleans up all listeners
@@ -342,7 +342,7 @@ Status markers used in this plan:
   - [x] 37.6 Write tests: saga compensation runs in reverse order on failure, distributed lock prevents concurrent acquisition, released lock allows next acquisition, event store append-order invariant (events read back in insertion order), optimistic concurrency conflict throws
 
 
-- [~] 38. v2.1 — Container Orchestration and Cloud Runtime Adapters
+- [x] 38. v2.1 — Container Orchestration and Cloud Runtime Adapters
   - [x] 38.1 Create `packages/core/src/cloud/deployment.ts` with `generateManifest(platform, config)`: produce Kubernetes `Deployment` + `Service` + `HPA` YAML, Cloud Run `service.yaml`, ECS task definition JSON, or Nomad job HCL; each includes liveness/readiness probe paths, resource limits, and env var references
   - [x] 38.2 Add `street deploy:init --platform <kubernetes|cloudrun|ecs|nomad>` CLI command: import the project's `street.config.ts`, call `generateManifest()`, write files to `deploy/` directory
   - [x] 38.3 Extract `registerShutdownHook(app, pool, opts?)` from `main.ts` as a standalone exportable function: `SIGTERM` → drain HTTP → close DB connections → exit 0; configurable `graceMs` (default 30,000)
@@ -350,7 +350,7 @@ Status markers used in this plan:
   - [x] 38.5 Implement `STREET_READINESS_DELAY_MS` env var: delay the readiness probe returning `up` by the configured milliseconds after startup completes
   - [~] 38.6 Write tests: generated Kubernetes YAML is valid YAML with correct health probe paths, Cloud Run format detection switches log format, shutdown drains in-flight requests before pool close
 
-- [~] 39. v2.1 — Secret Providers
+- [x] 39. v2.1 — Secret Providers
   - [x] 39.1 Create `packages/core/src/cloud/secret-providers.ts`: `SecretProvider` interface with `get(key): Promise<string>`; shared in-memory cache `Map<key, { value, expiresAt }>`
   - [x] 39.2 Implement `VaultSecretProvider`: KV v2 `GET /v1/<mount>/data/<key>` via `node:https` with Vault token auth; parse response JSON; never log raw secret values (use `[REDACTED]`)
   - [x] 39.3 Implement `AwsSecretsManagerProvider`: `GetSecretValue` API call via AWS Signature V4 signed request using `node:crypto` (HMAC-SHA256); parse JSON response
@@ -359,14 +359,14 @@ Status markers used in this plan:
   - [~] 39.6 Implement secret rotation: emit `rotate` event when TTL expires; connect to `PgPool` via a `onRotate` callback that recycles connections when the secret is a DB password
   - [ ] 39.7 Write tests: cached secret returned without network call within TTL, expired cache triggers re-fetch, `[REDACTED]` appears in all log output, startup retry exhaustion exits with code 1
 
-- [~] 40. v2.1 — Service Mesh and Auto-Scaling Metrics
+- [x] 40. v2.1 — Service Mesh and Auto-Scaling Metrics
   - [x] 40.1 Register `GET /metrics/autoscale` route in `StreetApp`: return JSON in Kubernetes External Metrics API format with `http_requests_per_second`, `active_connections`, and `queue_depth` values computed from `TelemetryTracker` and `JobQueue`
   - [~] 40.2 Implement service mesh detection: check `ISTIO_META_MESH_ID` and `LINKERD_PROXY_INJECTION_ENABLED` env vars on startup; when detected, set `RetryPolicy.enabled = false` for all `CircuitBreaker` instances to avoid conflicting with mesh retries
   - [x] 40.3 Implement `STREET_READINESS_DELAY_MS` startup delay: `HealthCheckRegistry` readiness probe returns `down` until the delay has elapsed after `app.listen()` completes
   - [x] 40.4 Export `/metrics/autoscale` response shape as `AutoscaleMetrics` type from `packages/core/src/index.ts`
   - [x] 40.5 Write tests: `/metrics/autoscale` response matches Kubernetes External Metrics API format, service mesh env var disables retries, readiness delay holds probe in `down` state
 
-- [~] 41. v2.1 — Edge Runtime Adapter
+- [x] 41. v2.1 — Edge Runtime Adapter
   - [x] 41.1 Create `packages/edge/` workspace package with its own `package.json` (`@streetjs/edge`) and `tsconfig.json`; configure `"browser"` export condition
   - [x] 41.2 Create `packages/edge/src/adapter.ts` with `handleEdgeRequest(request: Request, app: StreetApp): Promise<Response>`: map Web Fetch `Request` → `StreetContext` using a synthetic `IncomingMessage`-like object; run the middleware pipeline; build a `Response` from the context's JSON/text/html output
   - [x] 41.3 Create `packages/edge/src/stubs.ts`: stub modules that replace `node:net`, `node:cluster`, `node:fs`, and `node:http` when bundled for edge targets; each stub's methods throw `FeatureUnavailableInEdgeRuntimeError` when called
@@ -383,7 +383,7 @@ Status markers used in this plan:
   - [x] 42.5 Register `PATCH /admin/feature-flags/:name` route: update the DB record, call `invalidateCache()`; protect with `requireRoles('admin')`
   - [x] 42.6 Write tests: flag not found returns `false` without throwing, percentage rollout is stable for same user, targeting rule evaluation order, cache invalidation forces DB re-read
 
-- [~] 43. v2.2 — Audit Logging
+- [x] 43. v2.2 — Audit Logging
   - [x] 43.1 Write `street_audit_log` migration SQL: `id UUID, category TEXT, actor_id TEXT, action TEXT, resource TEXT, before_state JSONB, after_state JSONB, ip TEXT, user_agent TEXT, batch_id UUID, signature TEXT, created_at`; create append-only trigger that blocks `UPDATE` and `DELETE`
   - [x] 43.2 Create `packages/core/src/enterprise/audit-logger.ts` with `AuditLogger`: `AuditCategory`, `AuditLogOptions`, `AuditLogger` class accepting `{ pool, signingKey }`
   - [x] 43.3 Implement `AuditLogger.log(opts)`: write to `street_audit_log`; batch every 100 entries; sign each batch with `HMAC-SHA256(previousSignature + batchJSON)` to create a hash chain
@@ -392,7 +392,7 @@ Status markers used in this plan:
   - [x] 43.6 Add `street audit:export --from <date> --to <date> --format <jsonl|csv>` CLI command
   - [ ] 43.7 Write tests: append-only trigger prevents DELETE and UPDATE, batch signature chain is verifiable, `@Sensitive` fields are redacted in audit output, JSONL export contains all entries in time range
 
-- [~] 44. v2.2 — Data Retention, Encryption Policies, and Data Classification
+- [x] 44. v2.2 — Data Retention, Encryption Policies, and Data Classification
   - [x] 44.1 Create `packages/core/src/enterprise/data-policy.ts`: `@RetainFor(duration)`, `@Encrypt()`, `@Classify(level)` property decorators; store metadata under `street:retention`, `street:encrypt`, `street:classify` keys
   - [~] 44.2 Implement field-level transparent encryption in repository layer: when `@Encrypt()` is present on a field, intercept `create()` and `update()` to encrypt with `AES-256-GCM` using the vault key; intercept `findById()` and `findAll()` to decrypt on retrieval
   - [~] 44.3 Integrate `@Classify(level)` with `Logger`: when a log entry includes entity fields, check their classification level against `LOG_CLASSIFICATION_THRESHOLD` env var; redact fields above the threshold
@@ -401,7 +401,7 @@ Status markers used in this plan:
   - [x] 44.6 Add `street compliance:report` CLI command: call `ComplianceReporter.report()`, print formatted table
   - [x] 44.7 Write tests: encrypted fields round-trip (encrypt on write, decrypt on read), classified fields redacted in logs, retention job deletes rows older than period, compliance report lists all annotated fields
 
-- [~] 45. v2.2 — Backup Framework and Disaster Recovery
+- [x] 45. v2.2 — Backup Framework and Disaster Recovery
   - [x] 45.1 Write `street_backups` migration SQL: `id UUID, size_bytes BIGINT, duration_ms INT, checksum TEXT, storage_key TEXT, created_at`
   - [x] 45.2 Create `packages/core/src/enterprise/backup.ts`: `StorageAdapter` interface with `write(key, stream)`, `read(key)`, `list()`; `BackupRecord` type; `BackupService` class
   - [x] 45.3 Implement `LocalStorageAdapter`: write/read streams to/from local filesystem path
@@ -422,7 +422,7 @@ Status markers used in this plan:
   - [x] 46.6 Create `GlobalConfigService` extending `EventEmitter`: `get(key)`, `set(key, value)` backed by `CacheTransport`; emit `config:changed` with `{ key, oldValue, newValue }` to all connected instances via pub/sub within 500ms
   - [x] 46.7 Write tests: invalidation propagates to all nodes within 100ms, `maxMemoryMb` eviction triggers LRU removal, `GlobalConfigService` emits `config:changed` event, stale config is re-fetched after TTL
 
-- [~] 47. v3.0 — Event Streaming and Realtime Analytics
+- [x] 47. v3.0 — Event Streaming and Realtime Analytics
   - [x] 47.1 Create `packages/core/src/platform/event-streaming.ts`: `StreamTransport` interface, `EventStreamPublisher` class, `EventStreamConsumer` class; `InProcessTransport` default
   - [ ] 47.2 Implement `KafkaTransport` in `packages/core/src/platform/transports/kafka.ts`: raw Kafka protocol (Fetch API, Produce API) over `node:net`; support consumer groups; no kafkajs dependency
   - [x] 47.3 Implement `KinesisTransport`: `PutRecord` and `GetRecords` via AWS Signature V4 signed `node:https` requests
@@ -430,7 +430,7 @@ Status markers used in this plan:
   - [x] 47.5 Create `packages/core/src/platform/realtime-aggregator.ts` with `RealtimeAggregator`: register sliding-window aggregation functions (count, sum, avg, min, max); compute on each window tick; push results to `SseConnection` subscribers
   - [ ] 47.6 Write tests: published event consumed by subscriber, envelope round-trip (published payload equals consumed payload), lag event fires when consumer falls behind, aggregator correctly computes window statistics
 
-- [~] 48. v3.0 — Multi-Region Replication
+- [x] 48. v3.0 — Multi-Region Replication
   - [x] 48.1 Create `packages/core/src/platform/replication.ts` with `ReplicationCoordinator`: `RegionConfig[]` constructor parameter; `getWritePool()` always returns primary; `getReadPool(preferredRegion?)` routes by weight or preference
   - [x] 48.2 Implement primary health monitoring: `setInterval(() => checkHealth(), healthCheckIntervalMs)` pings each region with `ConnectionDiagnostics.ping()`; detect primary failure within `healthCheckIntervalMs` (default 10s)
   - [x] 48.3 Implement `promotePrimary(regionName)`: update internal routing table to make the specified region primary; emit `region:promoted` event; reject write queries to the former primary
@@ -438,7 +438,7 @@ Status markers used in this plan:
   - [x] 48.5 Implement `db_replication_lag_seconds` Prometheus gauge: query `pg_stat_replication` on the primary and report lag per replica; label by `region` and `replica_id`
   - [~] 48.6 Write tests: primary failure promotes next healthy replica within 10s, `X-Preferred-Region` routes to correct pool, replication lag metric emitted with correct labels, active-active last-write-wins resolves conflict correctly
 
-- [~] 49. v3.0 — AI Infrastructure Toolkit and Native Agent Framework
+- [x] 49. v3.0 — AI Infrastructure Toolkit and Native Agent Framework
   - [x] 49.1 Create `packages/core/src/platform/ai/llm-client.ts`: `LlmClient` interface, `CompletionOptions`, `CompletionResult` types; `OpenAiClient`, `AnthropicClient`, `OllamaClient` implementations using `node:https`; no SDK dependencies
   - [x] 49.2 Implement streaming mode in each client: parse SSE chunks from the provider's stream response; yield tokens via `AsyncIterator<string>`
   - [x] 49.3 Create `packages/core/src/platform/ai/tool-registry.ts` with `ToolRegistry`: `register(name, fn, schema)` stores typed tool functions with their JSON Schema descriptors; `toFunctionList()` returns `LlmFunctionDef[]` for inclusion in LLM API calls
@@ -458,7 +458,7 @@ Status markers used in this plan:
   - [x] 50.7 Write tests: `onLoad` + `onUnload` restores app to pre-load state (round-trip property), invalid marketplace signature throws and refuses installation, checksum mismatch throws and refuses installation, plugin cannot access DI container internals outside `SandboxedApp` interface
 
 
-- [~] 51. Cross-Cutting — Absolute Implementation Policy Enforcement
+- [x] 51. Cross-Cutting — Absolute Implementation Policy Enforcement
   - [~] 51.1 Add a CI step in `.github/workflows/ci-cd.yml` that scans all `.ts` files under `packages/core/src/` for `TODO`, `FIXME`, `HACK`, and `@ts-ignore` comments and fails the build if any are found
   - [~] 51.2 Add database integration test jobs to `.github/workflows/ci-cd.yml`: spin up real PostgreSQL 16, MySQL 8, and SQLite services; run all test suites that touch database code against live instances
   - [~] 51.3 Create `benchmarks/` directory with benchmark scripts for the primary request path: measure latency and throughput against Express, Fastify, NestJS, and Hono using `node:http` or `autocannon`; add benchmark job to CI that records results as a build artifact
