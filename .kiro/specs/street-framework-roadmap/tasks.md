@@ -430,13 +430,13 @@ Status markers used in this plan:
   - [x] 47.5 Create `packages/core/src/platform/realtime-aggregator.ts` with `RealtimeAggregator`: register sliding-window aggregation functions (count, sum, avg, min, max); compute on each window tick; push results to `SseConnection` subscribers
   - [ ] 47.6 Write tests: published event consumed by subscriber, envelope round-trip (published payload equals consumed payload), lag event fires when consumer falls behind, aggregator correctly computes window statistics
 
-- [ ] 48. v3.0 — Multi-Region Replication
-  - [~] 48.1 Create `packages/core/src/platform/replication.ts` with `ReplicationCoordinator`: `RegionConfig[]` constructor parameter; `getWritePool()` always returns primary; `getReadPool(preferredRegion?)` routes by weight or preference
+- [~] 48. v3.0 — Multi-Region Replication
+  - [x] 48.1 Create `packages/core/src/platform/replication.ts` with `ReplicationCoordinator`: `RegionConfig[]` constructor parameter; `getWritePool()` always returns primary; `getReadPool(preferredRegion?)` routes by weight or preference
   - [~] 48.2 Implement primary health monitoring: `setInterval(() => checkHealth(), healthCheckIntervalMs)` pings each region with `ConnectionDiagnostics.ping()`; detect primary failure within `healthCheckIntervalMs` (default 10s)
   - [~] 48.3 Implement `promotePrimary(regionName)`: update internal routing table to make the specified region primary; emit `region:promoted` event; reject write queries to the former primary
-  - [~] 48.4 Create `preferredRegionMiddleware(coordinator)`: read `X-Preferred-Region` header; call `coordinator.getReadPool(region)` for read requests; fall back to default read pool if region unavailable
+  - [x] 48.4 Create `preferredRegionMiddleware(coordinator)`: read `X-Preferred-Region` header; call `coordinator.getReadPool(region)` for read requests; fall back to default read pool if region unavailable
   - [~] 48.5 Implement `db_replication_lag_seconds` Prometheus gauge: query `pg_stat_replication` on the primary and report lag per replica; label by `region` and `replica_id`
-  - [~] 48.6 Write tests: primary failure promotes next healthy replica within 10s, `X-Preferred-Region` routes to correct pool, replication lag metric emitted with correct labels, active-active last-write-wins resolves conflict correctly
+  - [ ] 48.6 Write tests: primary failure promotes next healthy replica within 10s, `X-Preferred-Region` routes to correct pool, replication lag metric emitted with correct labels, active-active last-write-wins resolves conflict correctly
 
 - [ ] 49. v3.0 — AI Infrastructure Toolkit and Native Agent Framework
   - [~] 49.1 Create `packages/core/src/platform/ai/llm-client.ts`: `LlmClient` interface, `CompletionOptions`, `CompletionResult` types; `OpenAiClient`, `AnthropicClient`, `OllamaClient` implementations using `node:https`; no SDK dependencies
