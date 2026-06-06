@@ -80,6 +80,12 @@ export interface JobQueueOptions {
   concurrency?: number;
   pollIntervalMs?: number;
   workerId?: string;
+  /** How often this worker refreshes `locked_at` on its in-flight jobs. Default: 30s. */
+  heartbeatIntervalMs?: number;
+  /** How often the background reaper scans for stale jobs. Default: 60s. */
+  reaperIntervalMs?: number;
+  /** A running job whose `locked_at` is older than this is considered stale and re-enqueued. Default: 2 minutes. */
+  staleJobThresholdMs?: number;
 }
 
 /**
@@ -112,15 +118,25 @@ export class JobQueue {
   private readonly concurrency: number;
   private readonly pollIntervalMs: number;
   private readonly workerId: string;
+  private readonly heartbeatIntervalMs: number;
+  private readonly reaperIntervalMs: number;
+  private readonly staleJobThresholdMs: number;
   private readonly handlers = new Map<string, JobHandler>();
   private readonly retryPolicies = new Map<string, RetryPolicy>();
+  /** Ids of jobs this worker is currently executing; targeted by the heartbeat. */
+  private readonly inFlight = new Set<string>();
   private timer: ReturnType<typeof setInterval> | null = null;
+  private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
+  private reaperTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor(pool: JobQueuePool, opts?: JobQueueOptions) {
     this.pool = pool;
     this.concurrency = opts?.concurrency ?? 5;
     this.pollIntervalMs = opts?.pollIntervalMs ?? 1_000;
     this.workerId = opts?.workerId ?? `worker-${process.pid}`;
+    this.heartbeatIntervalMs = opts?.heartbeatIntervalMs ?? 30_000;
+    this.reaperIntervalMs = opts?.reaperIntervalMs ?? 60_000;
+    this.staleJobThresholdMs = opts?.staleJobThresholdMs ?? 120_000;
   }
 
   /** Enqueue a new job, returning the generated job id. */
@@ -251,7 +267,7 @@ export class JobQueue {
     });
   }
 
-  /** Start the polling loop. */
+  /** Start the polling loop, the worker heartbeat, and the stale-job reaper. */
   start(): void {
     if (this.timer !== null) return;
     this.timer = setInterval(() => {
@@ -259,13 +275,35 @@ export class JobQueue {
     }, this.pollIntervalMs);
     // Allow Node.js to exit even if the interval is still active
     this.timer.unref();
+
+    // Heartbeat: refresh locked_at on this worker's in-flight jobs so other
+    // workers' reapers don't reclaim jobs that are still being processed.
+    this.heartbeatTimer = setInterval(() => {
+      void this._heartbeat();
+    }, this.heartbeatIntervalMs);
+    this.heartbeatTimer.unref();
+
+    // Reaper: re-enqueue jobs whose owning worker has gone silent (crashed
+    // worker recovery).
+    this.reaperTimer = setInterval(() => {
+      void this._reapStaleJobs();
+    }, this.reaperIntervalMs);
+    this.reaperTimer.unref();
   }
 
-  /** Stop the polling loop. */
+  /** Stop the polling loop, heartbeat, and reaper. */
   stop(): void {
     if (this.timer !== null) {
       clearInterval(this.timer);
       this.timer = null;
+    }
+    if (this.heartbeatTimer !== null) {
+      clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = null;
+    }
+    if (this.reaperTimer !== null) {
+      clearInterval(this.reaperTimer);
+      this.reaperTimer = null;
     }
   }
 
