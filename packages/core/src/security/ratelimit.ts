@@ -51,11 +51,16 @@ export class RateLimiter {
       const key = this.opts.keyFn(ctx);
       const allowed = this._check(key);
 
+      const resetSeconds = Math.ceil(this.opts.windowMs / 1000);
+      ctx.setHeader('X-RateLimit-Limit', String(this.opts.maxRequests));
+      ctx.setHeader('X-RateLimit-Reset', String(resetSeconds));
+
       if (!allowed) {
+        ctx.setHeader('Retry-After', String(resetSeconds));
+        ctx.setHeader('X-RateLimit-Remaining', '0');
         throw new RateLimitException(this.opts.message);
       }
 
-      ctx.setHeader('X-RateLimit-Limit', String(this.opts.maxRequests));
       const remaining = this._remaining(key);
       ctx.setHeader('X-RateLimit-Remaining', String(remaining));
 
