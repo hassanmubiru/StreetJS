@@ -183,7 +183,7 @@
   - [x] 20.7 Write tests: expired challenge returns 400 with `challenge_expired`, signature verification rejects tampered assertion, sign count replay protection, round-trip registration + authentication
 
 - [ ] 21. v1.4 — Session Revocation and Audit Trails
-  - [~] 21.1 Create `packages/core/src/auth/session-store.ts` with `StreetSessionStore`: backed by `street_sessions` DB table; `create(data)`, `find(sessionId)`, `revoke(sessionId)`, `revokeAll(userId)` methods; write migration SQL
+  - [-] 21.1 Create `packages/core/src/auth/session-store.ts` with `StreetSessionStore`: backed by `street_sessions` DB table; `create(data)`, `find(sessionId)`, `revoke(sessionId)`, `revokeAll(userId)` methods; write migration SQL
   - [~] 21.2 Implement revocation check middleware: on every authenticated request, check session ID against a `LruCache<string, boolean>` revocation set (DB fallback on cache miss); throw `UnauthorizedException` if revoked
   - [~] 21.3 Create `packages/core/src/auth/audit-writer.ts` with `AuditWriter` class; write `street_audit_log` migration SQL with `append-only` database trigger or rule
   - [~] 21.4 Implement `AuditWriter.write(record)`: inside a transaction, write the audit entry; if the write fails, re-throw so the calling transaction rolls back
