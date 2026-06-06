@@ -12,6 +12,8 @@ import type { Constructor } from '../core/types.js';
 import { getControllerMeta, getRoutesMeta } from '../core/decorators.js';
 import { MultipartParser } from '../multipart/parser.js';
 import { generateOpenApi } from './openapi.js';
+import { EventEmitter } from 'node:events';
+import type { PluginModule, SandboxedApp } from '../platform/plugins/sdk.js';
 
 const MAX_BODY_BYTES = 1024 * 1024; // 1 MB JSON body limit
 const REQUEST_TIMEOUT_MS = 30_000;
@@ -31,6 +33,10 @@ export interface StreetApp {
   registerController(ctor: Constructor): void;
   use(mw: MiddlewareFn): void;
   openApiSpec(): object;
+  /** Load a marketplace plugin: runs onLoad with a sandboxed app view. */
+  loadPlugin(plugin: PluginModule): Promise<void>;
+  /** Unload a plugin: runs onUnload and restores the middleware stack. */
+  unloadPlugin(plugin: PluginModule): Promise<void>;
   /** Internal: direct in-process request handler. Used by edge adapter and tests. */
   _handleRequest(req: IncomingMessage, res: ServerResponse): void;
 }
@@ -49,6 +55,8 @@ export function streetApp(options: StreetAppOptions = {}): StreetApp {
   const maxBodyBytes = options.maxBodyBytes ?? MAX_BODY_BYTES;
   const requestTimeoutMs = options.requestTimeoutMs ?? REQUEST_TIMEOUT_MS;
   const uploadsDir = options.uploadsDir ?? './uploads';
+  const pluginEvents = new EventEmitter();
+  const pluginMiddlewares = new Map<PluginModule, MiddlewareFn[]>();
 
   /** The core per-request handler extracted for direct in-process dispatch. */
   async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
@@ -186,6 +194,40 @@ export function streetApp(options: StreetAppOptions = {}): StreetApp {
   return {
     use(mw: MiddlewareFn): void {
       globalMiddlewares.push(mw);
+    },
+
+    async loadPlugin(plugin: PluginModule): Promise<void> {
+      if (pluginMiddlewares.has(plugin)) {
+        throw new Error(`Plugin "${plugin.name}" is already loaded`);
+      }
+      const added: MiddlewareFn[] = [];
+      const sandbox: SandboxedApp = {
+        use(mw: MiddlewareFn): void {
+          globalMiddlewares.push(mw);
+          added.push(mw);
+        },
+        on(event: string, handler: (...args: unknown[]) => void): void {
+          pluginEvents.on(event, handler);
+        },
+      };
+      pluginMiddlewares.set(plugin, added);
+      if (plugin.onLoad) await plugin.onLoad(sandbox);
+    },
+
+    async unloadPlugin(plugin: PluginModule): Promise<void> {
+      const added = pluginMiddlewares.get(plugin);
+      if (!added) return;
+      const sandbox: SandboxedApp = {
+        use(): void { /* no-op during unload */ },
+        on(): void { /* no-op during unload */ },
+      };
+      if (plugin.onUnload) await plugin.onUnload(sandbox);
+      // Restore the middleware stack to its pre-load state.
+      for (const mw of added) {
+        const idx = globalMiddlewares.indexOf(mw);
+        if (idx !== -1) globalMiddlewares.splice(idx, 1);
+      }
+      pluginMiddlewares.delete(plugin);
     },
 
     _handleRequest(req: IncomingMessage, res: ServerResponse): void {
