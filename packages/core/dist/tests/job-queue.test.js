@@ -258,13 +258,15 @@ function makeStatefulPool() {
                 return { rows: [], rowCount: 1, command: 'DELETE' };
             }
             if (sql.includes("UPDATE street_jobs") && sql.includes("status='pending'")) {
-                // retry re-scheduling
+                // retry re-scheduling: mirror `run_at = NOW() + ($delay || ' milliseconds')::interval`
                 const id = args[3];
                 const job = jobs.get(id);
                 if (job) {
                     job.status = 'pending';
                     job.attempt_count = args[0];
                     job.error = args[1];
+                    const delayMs = Number(args[2]);
+                    job.run_at = new Date(Date.now() + delayMs);
                     job.worker_id = null;
                     job.locked_at = null;
                 }
@@ -515,6 +517,61 @@ describe('JobQueue.setRetryPolicy', () => {
         const policies = queue.retryPolicies;
         assert.equal(policies.get('a').maxAttempts, 2);
         assert.equal(policies.get('b').maxAttempts, 7);
+    });
+});
+// ── Tests: geometric backoff applied in the polling loop ──────────────────────
+describe('JobQueue polling loop — geometric backoff on failure', () => {
+    it('reschedules run_at to NOW() + initialDelay*multiplier^attempt, increments attempt_count, and clears the lock', async (t) => {
+        const T0 = 1_700_000_000_000;
+        t.mock.timers.enable({ apis: ['setInterval', 'Date'], now: T0 });
+        const pool = makeStatefulPool();
+        const queue = new JobQueue(pool, { pollIntervalMs: 100, concurrency: 5 });
+        const policy = { maxAttempts: 5, initialDelayMs: 1000, backoffMultiplier: 2, maxDelayMs: 10_000 };
+        queue.setRetryPolicy('flaky', policy);
+        queue.register('flaky', async () => {
+            throw new Error('boom');
+        });
+        const id = await queue.enqueue({ type: 'flaky' });
+        // First failure: attempt 0 -> delay = 1000 * 2^0 = 1000ms.
+        queue.start();
+        await advancePolls(t.mock.timers, 100, 100);
+        const after1 = pool.jobs.get(id);
+        assert.ok(after1, 'Job with remaining attempts must be retained');
+        assert.equal(after1.attempt_count, 1, 'attempt_count should increment to 1');
+        assert.equal(after1.status, 'pending', 'Job should be rescheduled as pending');
+        assert.equal(after1.worker_id, null, 'worker_id must be cleared on reschedule');
+        assert.equal(after1.locked_at, null, 'locked_at must be cleared on reschedule');
+        const expectedDelay1 = Math.min(policy.initialDelayMs * Math.pow(policy.backoffMultiplier, 0), policy.maxDelayMs);
+        assert.equal(after1.run_at.getTime(), Date.now() + expectedDelay1, 'run_at should be NOW() + 1000ms after the first failure');
+        // Advance to when the retry becomes due (1000ms later) for the second failure.
+        // attempt 1 -> delay = 1000 * 2^1 = 2000ms.
+        await advancePolls(t.mock.timers, 1_000, 100);
+        const after2 = pool.jobs.get(id);
+        assert.ok(after2, 'Job should still be retained after the second failure');
+        assert.equal(after2.attempt_count, 2, 'attempt_count should increment to 2');
+        const expectedDelay2 = Math.min(policy.initialDelayMs * Math.pow(policy.backoffMultiplier, 1), policy.maxDelayMs);
+        assert.equal(after2.run_at.getTime(), Date.now() + expectedDelay2, 'run_at should be NOW() + 2000ms after the second failure');
+        queue.stop();
+    });
+    it('caps the rescheduled backoff delay at maxDelayMs', async (t) => {
+        const T0 = 1_700_000_000_000;
+        t.mock.timers.enable({ apis: ['setInterval', 'Date'], now: T0 });
+        const pool = makeStatefulPool();
+        const queue = new JobQueue(pool, { pollIntervalMs: 100, concurrency: 5 });
+        // initialDelay*multiplier^0 = 5000 already exceeds maxDelayMs=1000, so the
+        // very first retry must be capped.
+        const policy = { maxAttempts: 5, initialDelayMs: 5000, backoffMultiplier: 2, maxDelayMs: 1000 };
+        queue.setRetryPolicy('capped', policy);
+        queue.register('capped', async () => {
+            throw new Error('nope');
+        });
+        const id = await queue.enqueue({ type: 'capped' });
+        queue.start();
+        await advancePolls(t.mock.timers, 100, 100);
+        queue.stop();
+        const job = pool.jobs.get(id);
+        assert.ok(job, 'Job should be retained for retry');
+        assert.equal(job.run_at.getTime(), Date.now() + policy.maxDelayMs, 'run_at delay should be capped at maxDelayMs');
     });
 });
 //# sourceMappingURL=job-queue.test.js.map
