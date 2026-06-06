@@ -26,6 +26,20 @@ interface CacheEntry {
 
 const DEFAULT_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
+// A fetch error that knows whether retrying could help. 4xx responses (auth,
+// not-found, bad request) are not retried; network errors and 5xx/429 are.
+class SecretFetchError extends Error {
+  constructor(message: string, readonly retryable: boolean) {
+    super(message);
+    this.name = 'SecretFetchError';
+  }
+}
+
+function isRetryable(err: unknown): boolean {
+  if (err instanceof SecretFetchError) return err.retryable;
+  return true; // network/transport errors are retryable
+}
+
 // ── HTTP(S) helper ────────────────────────────────────────────────────────────
 // Chooses node:http for `http:` URLs (dev/test endpoints) and node:https
 // otherwise. A custom CA bundle can be supplied for private TLS endpoints.
@@ -257,8 +271,9 @@ export class AwsSecretsManagerProvider implements SecretProvider {
     }, Buffer.from(body, 'utf8'), this._tls);
 
     if (status !== 200) {
-      throw new Error(
+      throw new SecretFetchError(
         `AwsSecretsManagerProvider: HTTP ${status} for secret "${secretId}". Body: [REDACTED]`,
+        status >= 500 || status === 429,
       );
     }
 
