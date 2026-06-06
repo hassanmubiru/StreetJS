@@ -185,6 +185,102 @@ describe('DiagnosticsServer — sends JSON on connection', () => {
   });
 });
 
+// ── DiagnosticsServer — job queue metrics in snapshot (task 25.4) ───────────────
+
+describe('DiagnosticsServer — includes job queue metrics in snapshot', () => {
+  const socketPath = `/tmp/street-test-diag-jobs-${process.pid}.sock`;
+
+  after(async () => {
+    await unlink(socketPath).catch(() => undefined);
+  });
+
+  it('includes a jobs field when a job-metrics source is provided', async () => {
+    const profiler = new RouteProfiler();
+    const jobMetrics = {
+      pending: 3,
+      inFlight: 1,
+      failed: 2,
+      succeeded: 42,
+      byType: { 'email.send': { avgDurationMs: 12.5 } },
+    };
+    // Structural JobMetricsSource — no real JobQueue/DB required.
+    const jobQueue = { metrics: async () => jobMetrics };
+
+    const server = new DiagnosticsServer({ socketPath, profiler, jobQueue });
+    server.start();
+
+    try {
+      const snapshot = await new Promise<string>((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error('timeout waiting for snapshot')), 3000);
+        timer.unref();
+
+        const client = createConnection(socketPath);
+        let buf = '';
+
+        client.on('data', (chunk: Buffer) => {
+          buf += chunk.toString();
+          const newline = buf.indexOf('\n');
+          if (newline >= 0) {
+            clearTimeout(timer);
+            client.destroy();
+            resolve(buf.slice(0, newline));
+          }
+        });
+
+        client.on('error', (err) => {
+          clearTimeout(timer);
+          reject(err);
+        });
+      });
+
+      const parsed = JSON.parse(snapshot) as { jobs: typeof jobMetrics | null };
+
+      assert.ok(parsed.jobs !== null, 'snapshot.jobs should be present');
+      assert.deepEqual(parsed.jobs, jobMetrics, 'snapshot.jobs should match the source metrics');
+    } finally {
+      server.stop();
+    }
+  });
+
+  it('sets jobs to null when no job-metrics source is provided', async () => {
+    const profiler = new RouteProfiler();
+    const sockPath = `/tmp/street-test-diag-nojobs-${process.pid}.sock`;
+    const server = new DiagnosticsServer({ socketPath: sockPath, profiler });
+    server.start();
+
+    try {
+      const snapshot = await new Promise<string>((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error('timeout waiting for snapshot')), 3000);
+        timer.unref();
+
+        const client = createConnection(sockPath);
+        let buf = '';
+
+        client.on('data', (chunk: Buffer) => {
+          buf += chunk.toString();
+          const newline = buf.indexOf('\n');
+          if (newline >= 0) {
+            clearTimeout(timer);
+            client.destroy();
+            resolve(buf.slice(0, newline));
+          }
+        });
+
+        client.on('error', (err) => {
+          clearTimeout(timer);
+          reject(err);
+        });
+      });
+
+      const parsed = JSON.parse(snapshot) as { jobs: unknown };
+      assert.equal(parsed.jobs, null, 'snapshot.jobs should be null when no source is configured');
+    } finally {
+      server.stop();
+      await unlink(sockPath).catch(() => undefined);
+    }
+  });
+});
+
 // ── isStaleSocket — stale socket is cleaned up ──────────────────────────────────
 
 describe('isStaleSocket — stale socket detection', () => {
