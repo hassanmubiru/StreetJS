@@ -6,6 +6,14 @@ import type { IncomingMessage, Server } from 'node:http';
 
 export type WsHandler = (socket: StreetSocket, req: IncomingMessage) => void;
 
+/**
+ * Raw connection handler used by {@link StreetWebSocketServer.attachProtocol}
+ * for custom subprotocol integrations (e.g. graphql-ws). Unlike {@link WsHandler}
+ * it receives the underlying {@link WebSocket} so the integration owns the full
+ * message framing.
+ */
+export type RawWsHandler = (ws: WebSocket, req: IncomingMessage) => void;
+
 export interface WsEvent {
   type: string;
   payload: unknown;
@@ -181,6 +189,59 @@ export class StreetWebSocketServer {
       this.wss.handleUpgrade(req, socket, head, (ws) => {
         this.wss.emit('connection', ws, req);
         handler(new StreetSocket(ws), req);
+      });
+    });
+  }
+
+  /**
+   * Attach a custom subprotocol handler to an existing HTTP server. Negotiates
+   * the given WebSocket subprotocol (e.g. `graphql-transport-ws`) during the
+   * upgrade and hands the raw {@link WebSocket} to `handler` so the caller owns
+   * the message framing. Capacity, auth, path, and heartbeat tracking are
+   * shared with the rest of the server.
+   */
+  attachProtocol(server: Server, subprotocol: string, handler: RawWsHandler): void {
+    const protoWss = new WebSocketServer({
+      noServer: true,
+      maxPayload: 512 * 1024,
+      handleProtocols: (protocols: Set<string>) => (protocols.has(subprotocol) ? subprotocol : false),
+    });
+
+    server.on('upgrade', async (req, socket, head) => {
+      // Only handle the configured path; leave other upgrades to their handlers.
+      if (this.wss.options.path && req.url !== this.wss.options.path) {
+        return;
+      }
+
+      if (this.authFn) {
+        try {
+          const allowed = await this.authFn(req);
+          if (!allowed) {
+            socket.write('HTTP/1.1 401 Unauthorized\r\nContent-Length: 0\r\nConnection: close\r\n\r\n');
+            socket.destroy();
+            return;
+          }
+        } catch {
+          socket.write('HTTP/1.1 401 Unauthorized\r\nContent-Length: 0\r\nConnection: close\r\n\r\n');
+          socket.destroy();
+          return;
+        }
+      }
+
+      protoWss.handleUpgrade(req, socket, head, (ws) => {
+        if (this.clients.size >= this.MAX_CLIENTS) {
+          ws.close(1013, 'Server at capacity');
+          return;
+        }
+        ws.isAlive = true;
+        this.clients.add(ws);
+        ws.on('pong', () => { ws.isAlive = true; });
+        ws.on('close', () => this.clients.delete(ws));
+        ws.on('error', () => {
+          this.clients.delete(ws);
+          ws.terminate();
+        });
+        handler(ws, req);
       });
     });
   }

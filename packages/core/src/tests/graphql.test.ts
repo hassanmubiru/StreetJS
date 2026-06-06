@@ -6,6 +6,13 @@ import assert from 'node:assert/strict';
 
 import { parseSchema, typeRefToString, namedType, SchemaParseError } from '../graphql/schema.js';
 import { GraphQlEngine } from '../graphql/engine.js';
+import {
+  GraphQlWsConnection,
+  GraphQlWsMessageType,
+  GraphQlWsCloseCode,
+  type GraphQlWsTransport,
+  type GraphQlWsMessage,
+} from '../graphql/subscriptions.js';
 
 // ─── Schema Parser Tests ──────────────────────────────────────────────────────
 
@@ -400,5 +407,207 @@ describe('GraphQlEngine — variables', () => {
     const engine = new GraphQlEngine({ schema: simpleSchema, resolvers: simpleResolvers });
     const result = await engine.execute('{ greet(name: $name) }', { name: 'Dave' });
     assert.deepEqual(result, { data: { greet: 'Hello, Dave!' } });
+  });
+});
+
+// ─── Subscription Engine Tests ────────────────────────────────────────────────
+
+const subSchema = parseSchema(`
+  type Query { _: Boolean }
+  type Message { id: ID text: String }
+  type Subscription {
+    counter: Int
+    onMessage: Message
+  }
+`);
+
+describe('GraphQlEngine — executeSubscription', () => {
+  it('yields multiple events from an async-generator resolver', async () => {
+    const resolvers: Record<string, Record<string, (p: unknown, a: unknown, c: unknown) => unknown>> = {
+      Subscription: {
+        counter: async function* () {
+          yield 1;
+          yield 2;
+          yield 3;
+        },
+      },
+    };
+    const engine = new GraphQlEngine({ schema: subSchema, resolvers });
+    const results: unknown[] = [];
+    for await (const r of engine.executeSubscription('subscription { counter }')) {
+      results.push(r);
+    }
+    assert.deepEqual(results, [
+      { data: { counter: 1 } },
+      { data: { counter: 2 } },
+      { data: { counter: 3 } },
+    ]);
+  });
+
+  it('maps source events through a nested selection set', async () => {
+    const resolvers: Record<string, Record<string, (p: unknown, a: unknown, c: unknown) => unknown>> = {
+      Subscription: {
+        onMessage: async function* () {
+          yield { id: '1', text: 'hello' };
+          yield { id: '2', text: 'world' };
+        },
+      },
+    };
+    const engine = new GraphQlEngine({ schema: subSchema, resolvers });
+    const results: unknown[] = [];
+    for await (const r of engine.executeSubscription('subscription { onMessage { id text } }')) {
+      results.push(r);
+    }
+    assert.deepEqual(results, [
+      { data: { onMessage: { id: '1', text: 'hello' } } },
+      { data: { onMessage: { id: '2', text: 'world' } } },
+    ]);
+  });
+
+  it('errors when used with a non-subscription operation', async () => {
+    const engine = new GraphQlEngine({ schema: subSchema, resolvers: {} });
+    const results: Array<{ errors?: Array<{ message: string }> }> = [];
+    for await (const r of engine.executeSubscription('{ counter }')) results.push(r);
+    assert.equal(results.length, 1);
+    assert.ok(results[0]!.errors && results[0]!.errors.length > 0);
+  });
+
+  it('errors when the resolver does not return an async iterable', async () => {
+    const resolvers: Record<string, Record<string, (p: unknown, a: unknown, c: unknown) => unknown>> = {
+      Subscription: { counter: () => 42 },
+    };
+    const engine = new GraphQlEngine({ schema: subSchema, resolvers });
+    const results: Array<{ errors?: Array<{ message: string }> }> = [];
+    for await (const r of engine.executeSubscription('subscription { counter }')) results.push(r);
+    assert.equal(results.length, 1);
+    assert.ok(results[0]!.errors && results[0]!.errors.length > 0);
+  });
+});
+
+// ─── graphql-ws Protocol Lifecycle Tests ──────────────────────────────────────
+
+/** A fake transport that records sent frames and close events for assertions. */
+class FakeTransport implements GraphQlWsTransport {
+  readonly sent: GraphQlWsMessage[] = [];
+  closeCode: number | undefined;
+  closeReason: string | undefined;
+
+  send(data: string): void {
+    this.sent.push(JSON.parse(data) as GraphQlWsMessage);
+  }
+  close(code: number, reason: string): void {
+    this.closeCode = code;
+    this.closeReason = reason;
+  }
+}
+
+/** Wait until `predicate` is satisfied or a small timeout elapses. */
+async function waitFor(predicate: () => boolean): Promise<void> {
+  for (let i = 0; i < 100 && !predicate(); i++) {
+    await new Promise((r) => setTimeout(r, 5));
+  }
+}
+
+describe('graphql-ws — connection lifecycle', () => {
+  it('acks connection_init then streams subscribe -> next* -> complete', async () => {
+    const resolvers: Record<string, Record<string, (p: unknown, a: unknown, c: unknown) => unknown>> = {
+      Subscription: {
+        counter: async function* () {
+          yield 10;
+          yield 20;
+        },
+      },
+    };
+    const engine = new GraphQlEngine({ schema: subSchema, resolvers });
+    const transport = new FakeTransport();
+    const conn = new GraphQlWsConnection(engine, transport, { connectionInitWaitTimeoutMs: 0 });
+
+    await conn.handleMessage({ type: GraphQlWsMessageType.ConnectionInit });
+    assert.deepEqual(transport.sent[0], { type: GraphQlWsMessageType.ConnectionAck });
+
+    await conn.handleMessage({
+      id: 'sub1',
+      type: GraphQlWsMessageType.Subscribe,
+      payload: { query: 'subscription { counter }' },
+    });
+
+    await waitFor(() => transport.sent.some((m) => m.type === GraphQlWsMessageType.Complete));
+
+    const next = transport.sent.filter((m) => m.type === GraphQlWsMessageType.Next);
+    assert.deepEqual(next.map((m) => m.payload), [
+      { data: { counter: 10 } },
+      { data: { counter: 20 } },
+    ]);
+
+    const last = transport.sent[transport.sent.length - 1]!;
+    assert.equal(last.type, GraphQlWsMessageType.Complete);
+    assert.equal(last.id, 'sub1');
+    assert.equal(conn.activeSubscriptions, 0);
+  });
+
+  it('responds to ping with pong echoing the payload', async () => {
+    const engine = new GraphQlEngine({ schema: subSchema, resolvers: {} });
+    const transport = new FakeTransport();
+    const conn = new GraphQlWsConnection(engine, transport, { connectionInitWaitTimeoutMs: 0 });
+    await conn.handleMessage({ type: GraphQlWsMessageType.Ping, payload: { n: 1 } });
+    assert.deepEqual(transport.sent[0], { type: GraphQlWsMessageType.Pong, payload: { n: 1 } });
+  });
+
+  it('closes with 4401 when subscribing before connection_init', async () => {
+    const engine = new GraphQlEngine({ schema: subSchema, resolvers: {} });
+    const transport = new FakeTransport();
+    const conn = new GraphQlWsConnection(engine, transport, { connectionInitWaitTimeoutMs: 0 });
+    await conn.handleMessage({
+      id: 'x',
+      type: GraphQlWsMessageType.Subscribe,
+      payload: { query: 'subscription { counter }' },
+    });
+    assert.equal(transport.closeCode, GraphQlWsCloseCode.Unauthorized);
+  });
+
+  it('closes with 4429 on a duplicate connection_init', async () => {
+    const engine = new GraphQlEngine({ schema: subSchema, resolvers: {} });
+    const transport = new FakeTransport();
+    const conn = new GraphQlWsConnection(engine, transport, { connectionInitWaitTimeoutMs: 0 });
+    await conn.handleMessage({ type: GraphQlWsMessageType.ConnectionInit });
+    await conn.handleMessage({ type: GraphQlWsMessageType.ConnectionInit });
+    assert.equal(transport.closeCode, GraphQlWsCloseCode.TooManyInitRequests);
+  });
+
+  it('stops a subscription when the client sends complete', async () => {
+    let cancelled = false;
+    const resolvers: Record<string, Record<string, (p: unknown, a: unknown, c: unknown) => unknown>> = {
+      Subscription: {
+        counter: async function* () {
+          try {
+            let i = 0;
+            // Effectively infinite stream paced by timers.
+            while (true) {
+              await new Promise((r) => setTimeout(r, 5));
+              yield i++;
+            }
+          } finally {
+            cancelled = true;
+          }
+        },
+      },
+    };
+    const engine = new GraphQlEngine({ schema: subSchema, resolvers });
+    const transport = new FakeTransport();
+    const conn = new GraphQlWsConnection(engine, transport, { connectionInitWaitTimeoutMs: 0 });
+
+    await conn.handleMessage({ type: GraphQlWsMessageType.ConnectionInit });
+    await conn.handleMessage({
+      id: 's',
+      type: GraphQlWsMessageType.Subscribe,
+      payload: { query: 'subscription { counter }' },
+    });
+
+    await waitFor(() => transport.sent.some((m) => m.type === GraphQlWsMessageType.Next));
+    await conn.handleMessage({ id: 's', type: GraphQlWsMessageType.Complete });
+
+    await waitFor(() => cancelled);
+    assert.equal(cancelled, true);
+    assert.equal(conn.activeSubscriptions, 0);
   });
 });

@@ -25,6 +25,16 @@ export interface ExecutionResult {
   errors?: Array<{ message: string }>;
 }
 
+/**
+ * A subscription source: any async iterable (e.g. produced by an async
+ * generator resolver) or a synchronous iterable of source events. A
+ * subscription field resolver returns one of these from the resolver map.
+ */
+export type SubscriptionSource =
+  | AsyncIterable<unknown>
+  | AsyncIterator<unknown>
+  | Iterable<unknown>;
+
 // ─── Tiny Query Parser ────────────────────────────────────────────────────────
 
 interface SelectionSet {
@@ -289,11 +299,15 @@ export class GraphQlEngine {
     };
   }
 
-  async execute(
+  /**
+   * Parse a query document, select the first operation, and run the shared
+   * introspection/depth/complexity guards. Returns either the prepared
+   * operation or a fully-formed error result.
+   */
+  private prepare(
     query: string,
     variables?: Record<string, unknown>,
-    ctx?: unknown,
-  ): Promise<ExecutionResult> {
+  ): { op: OperationDef } | { error: ExecutionResult } {
     // Substitute variables into query (basic support)
     let queryStr = query;
     if (variables) {
@@ -306,45 +320,53 @@ export class GraphQlEngine {
     try {
       ops = parseDocument(queryStr);
     } catch (e) {
-      return { errors: [{ message: `Parse error: ${e instanceof Error ? e.message : String(e)}` }] };
+      return { error: { errors: [{ message: `Parse error: ${e instanceof Error ? e.message : String(e)}` }] } };
     }
 
     if (ops.length === 0) {
-      return { errors: [{ message: 'No operations found in query document' }] };
+      return { error: { errors: [{ message: 'No operations found in query document' }] } };
     }
 
     const op = ops[0]!;
 
-    // Subscriptions not supported
-    if (op.operation === 'subscription') {
-      return { errors: [{ message: 'Subscriptions not supported' }] };
-    }
-
     // Introspection guard
     if (!this.opts.introspection && usesIntrospection(op.selectionSet)) {
-      return { errors: [{ message: 'Introspection is disabled' }] };
+      return { error: { errors: [{ message: 'Introspection is disabled' }] } };
     }
 
     // Depth limit — reject queries whose nesting depth exceeds maxDepth.
     const depth = getDepth(op.selectionSet);
     if (depth > this.opts.maxDepth) {
-      return { errors: [{ message: `Query depth ${depth} exceeds maximum allowed depth ${this.opts.maxDepth}` }] };
+      return { error: { errors: [{ message: `Query depth ${depth} exceeds maximum allowed depth ${this.opts.maxDepth}` }] } };
     }
 
     // Complexity limit
     const complexity = getComplexity(op.selectionSet);
     if (complexity > this.opts.maxComplexity) {
-      return { errors: [{ message: `Query complexity ${complexity} exceeds maximum allowed complexity ${this.opts.maxComplexity}` }] };
+      return { error: { errors: [{ message: `Query complexity ${complexity} exceeds maximum allowed complexity ${this.opts.maxComplexity}` }] } };
+    }
+
+    return { op };
+  }
+
+  async execute(
+    query: string,
+    variables?: Record<string, unknown>,
+    ctx?: unknown,
+  ): Promise<ExecutionResult> {
+    const prepared = this.prepare(query, variables);
+    if ('error' in prepared) return prepared.error;
+    const { op } = prepared;
+
+    // Subscriptions are streamed via executeSubscription(), not execute().
+    if (op.operation === 'subscription') {
+      return { errors: [{ message: 'Subscriptions not supported' }] };
     }
 
     // Determine root type name
     const { schema, resolvers } = this.opts;
-    let rootTypeName: string;
-    if (op.operation === 'mutation') {
-      rootTypeName = schema.mutationType ?? 'Mutation';
-    } else {
-      rootTypeName = schema.queryType ?? 'Query';
-    }
+    const rootTypeName =
+      op.operation === 'mutation' ? schema.mutationType ?? 'Mutation' : schema.queryType ?? 'Query';
 
     try {
       const data = await executeSelectionSet(
@@ -360,6 +382,114 @@ export class GraphQlEngine {
       return { errors: [{ message: e instanceof Error ? e.message : String(e) }] };
     }
   }
+
+  /**
+   * Execute a GraphQL subscription operation, returning an async iterator of
+   * {@link ExecutionResult} — one per source event produced by the
+   * subscription field's resolver.
+   *
+   * The subscription field resolver in the resolver map must return a
+   * {@link SubscriptionSource} (an async iterable/iterator, e.g. an async
+   * generator, or a sync iterable). Each source event is mapped through the
+   * remaining selection set: if the field has a sub-selection, the event is
+   * resolved as the parent object of that selection; otherwise the raw event
+   * value is used. Errors during preparation or per-event resolution are
+   * yielded as `{ errors: [...] }` results.
+   */
+  async *executeSubscription(
+    query: string,
+    variables?: Record<string, unknown>,
+    ctx?: unknown,
+  ): AsyncGenerator<ExecutionResult, void, unknown> {
+    const prepared = this.prepare(query, variables);
+    if ('error' in prepared) {
+      yield prepared.error;
+      return;
+    }
+    const { op } = prepared;
+
+    if (op.operation !== 'subscription') {
+      yield { errors: [{ message: 'executeSubscription requires a subscription operation' }] };
+      return;
+    }
+
+    const rootFields = op.selectionSet.fields;
+    if (rootFields.length !== 1) {
+      yield { errors: [{ message: 'A subscription operation must have exactly one root field' }] };
+      return;
+    }
+
+    const { schema, resolvers } = this.opts;
+    const rootTypeName = schema.subscriptionType ?? 'Subscription';
+    const field = rootFields[0]!;
+    const key = field.alias ?? field.name;
+
+    const resolver = resolvers[rootTypeName]?.[field.name];
+    if (!resolver) {
+      yield { errors: [{ message: `No subscription resolver for field "${field.name}"` }] };
+      return;
+    }
+
+    // Obtain the source event stream from the subscription resolver.
+    let source: SubscriptionSource;
+    try {
+      source = (await Promise.resolve(resolver(null, field.args, ctx))) as SubscriptionSource;
+    } catch (e) {
+      yield { errors: [{ message: e instanceof Error ? e.message : String(e) }] };
+      return;
+    }
+
+    if (source === null || source === undefined || typeof source !== 'object') {
+      yield { errors: [{ message: `Subscription resolver for "${field.name}" did not return an async iterable` }] };
+      return;
+    }
+
+    // Resolve the nested return type name for selection-set events.
+    const schemaType = schema.types.find((t) => t.name === rootTypeName);
+    const fieldDef: FieldDef | undefined = schemaType?.fields.find((f) => f.name === field.name);
+    const nestedTypeName = fieldDef ? stripModifiers(fieldDef.type) : 'Unknown';
+
+    for await (const event of toAsyncIterable(source)) {
+      try {
+        let value: unknown = event;
+        if (field.selectionSet && event !== null && event !== undefined) {
+          value = await executeSelectionSet(
+            field.selectionSet,
+            nestedTypeName,
+            event,
+            resolvers,
+            ctx,
+            schema,
+          );
+        }
+        yield { data: { [key]: value ?? null } };
+      } catch (e) {
+        yield { errors: [{ message: e instanceof Error ? e.message : String(e) }] };
+      }
+    }
+  }
+}
+
+/** Normalise any {@link SubscriptionSource} into an async iterable. */
+function toAsyncIterable(source: SubscriptionSource): AsyncIterable<unknown> {
+  if (typeof (source as AsyncIterable<unknown>)[Symbol.asyncIterator] === 'function') {
+    return source as AsyncIterable<unknown>;
+  }
+  if (typeof (source as Iterable<unknown>)[Symbol.iterator] === 'function') {
+    const iterable = source as Iterable<unknown>;
+    return (async function* () {
+      for (const item of iterable) yield item;
+    })();
+  }
+  // Bare iterator object exposing next(): wrap into an async iterable.
+  const iterator = source as AsyncIterator<unknown>;
+  return (async function* () {
+    while (true) {
+      const res = await Promise.resolve(iterator.next());
+      if (res.done) return;
+      yield res.value;
+    }
+  })();
 }
 
 // ─── Middleware Factory ───────────────────────────────────────────────────────

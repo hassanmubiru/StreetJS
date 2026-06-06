@@ -77,7 +77,7 @@ export type { ParsedFile, MultipartResult } from './multipart/parser.js';
 
 // ── WebSocket + SSE ───────────────────────────────────────────────────────────
 export { StreetWebSocketServer, StreetSocket } from './websocket/server.js';
-export type { WsHandler, WsEvent, WsServerOptions } from './websocket/server.js';
+export type { WsHandler, WsEvent, WsServerOptions, RawWsHandler } from './websocket/server.js';
 export { SseConnection, createSse } from './websocket/sse.js';
 export type { SseEvent } from './websocket/sse.js';
 
@@ -281,4 +281,19 @@ export type {
 
 // ── GraphQL: Execution Engine ─────────────────────────────────────────────────
 export { GraphQlEngine, graphqlMiddleware } from './graphql/engine.js';
-export type { GraphQlEngineOptions, ExecutionResult } from './graphql/engine.js';
+export type { GraphQlEngineOptions, ExecutionResult, SubscriptionSource } from './graphql/engine.js';
+
+// ── GraphQL: Subscriptions (graphql-ws) ───────────────────────────────────────
+export {
+  GraphQlWsConnection,
+  attachGraphqlWs,
+  GRAPHQL_WS_SUBPROTOCOL,
+  GraphQlWsMessageType,
+  GraphQlWsCloseCode,
+} from './graphql/subscriptions.js';
+export type {
+  GraphQlWsTransport,
+  GraphQlWsConnectionOptions,
+  GraphQlWsServerOptions,
+  GraphQlWsMessage,
+} from './graphql/subscriptions.js';

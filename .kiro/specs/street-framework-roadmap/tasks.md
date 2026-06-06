@@ -229,8 +229,8 @@
   - [x] 26.1 Create `packages/core/src/graphql/schema.ts`: SDL parser that reads a `.graphql` schema string and produces an internal AST (type definitions, field definitions, directives); no `graphql-js` dependency
   - [x] 26.2 Create `packages/core/src/graphql/engine.ts` with `GraphQlEngine`: takes `{ schema, resolvers, maxDepth?, maxComplexity? }`; `execute(query, variables, ctx)` parses the query document, validates against schema, executes against resolvers
   - [x] 26.3 Implement query depth limiting: recursive visitor counts nesting depth; reject with 400 if `> maxDepth`
-  - [-] 26.4 Implement query complexity analysis: accumulate field weights (default 1 per field); reject with 400 if `> maxComplexity`
-  - [~] 26.5 Implement GraphQL subscriptions using `AsyncIterator`; integrate with `StreetWebSocketServer` using the `graphql-ws` subprotocol framing
+  - [x] 26.4 Implement query complexity analysis: accumulate field weights (default 1 per field); reject with 400 if `> maxComplexity`
+  - [-] 26.5 Implement GraphQL subscriptions using `AsyncIterator`; integrate with `StreetWebSocketServer` using the `graphql-ws` subprotocol framing
   - [~] 26.6 Implement introspection guard: when `introspection: false`, `__schema` and `__type` field access returns a field-not-found error
   - [~] 26.7 Register `POST /graphql` route in `StreetApp` via `graphqlMiddleware(engine)` factory
   - [~] 26.8 Write tests: simple query resolves, mutation executes and returns data, depth limit rejects deep queries, introspection blocked in production mode, response round-trip (serialize→parse→equals original)
