@@ -204,6 +204,53 @@ export class JobQueue {
     });
   }
 
+  /**
+   * Prune the job history table down to at most `maxPerType` rows per job type,
+   * keeping the most recent rows (by `created_at`) for each type. Returns the
+   * number of rows deleted.
+   *
+   * Uses a window function (ROW_NUMBER() OVER (PARTITION BY type ORDER BY
+   * created_at DESC)) to rank rows within each type, then deletes everything
+   * ranked beyond `maxPerType`. This bounds each type independently in a single
+   * statement so no type ever exceeds `maxPerType` rows after a prune.
+   */
+  async pruneJobHistory(maxPerType: number): Promise<number> {
+    if (!Number.isInteger(maxPerType) || maxPerType < 0) {
+      throw new Error(`pruneJobHistory: maxPerType must be a non-negative integer, got ${maxPerType}`);
+    }
+    const result = await this.pool.query(
+      `DELETE FROM street_job_history
+       WHERE id IN (
+         SELECT id FROM (
+           SELECT id, ROW_NUMBER() OVER (PARTITION BY type ORDER BY created_at DESC) AS rn
+           FROM street_job_history
+         ) ranked
+         WHERE ranked.rn > $1
+       )`,
+      [maxPerType],
+    );
+    return result.rowCount;
+  }
+
+  /**
+   * Register a nightly cron job on the given scheduler that prunes the job
+   * history to at most `maxPerType` rows per job type. Defaults to keeping the
+   * last 1,000 rows per type and running at midnight every day ('0 0 * * *').
+   * The scheduler must be started separately via `scheduler.start()`.
+   */
+  registerJobHistoryPruning(
+    scheduler: DlqPruneScheduler,
+    maxPerType = 1_000,
+    cronExpression = '0 0 * * *',
+  ): void {
+    if (!Number.isInteger(maxPerType) || maxPerType < 0) {
+      throw new Error(`registerJobHistoryPruning: maxPerType must be a non-negative integer, got ${maxPerType}`);
+    }
+    scheduler.register(cronExpression, 'street:job-history-prune', async () => {
+      await this.pruneJobHistory(maxPerType);
+    });
+  }
+
   /** Start the polling loop. */
   start(): void {
     if (this.timer !== null) return;
