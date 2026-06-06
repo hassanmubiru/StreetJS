@@ -56,7 +56,7 @@ export { DiagnosticsReporter, diagnosticsReporter } from './diagnostics/reporter
 // ── CLI ───────────────────────────────────────────────────────────────────────
 export { CliKernel, parseArgv } from './cli/kernel.js';
 // ── Observability (OpenTelemetry-compatible) ──────────────────────────────────
-export { OtelTracer, otelMiddleware } from './observability/otel.js';
+export { OtelTracer, otelMiddleware, OtelInstrumentedPool, instrumentPoolWithOtel } from './observability/otel.js';
 // ── Health Check DSL ──────────────────────────────────────────────────────────
 export { HealthCheckRegistry, registerHealthRoutes } from './observability/health.js';
 // ── Structured Logging ────────────────────────────────────────────────────────

@@ -61,8 +61,8 @@ export { DiagnosticsReporter, diagnosticsReporter } from './diagnostics/reporter
 export type { DiagnosticEvent } from './diagnostics/reporter.js';
 export { CliKernel, parseArgv } from './cli/kernel.js';
 export type { ParsedArgs, CliKernelOptions } from './cli/kernel.js';
-export { OtelTracer, otelMiddleware } from './observability/otel.js';
-export type { SpanContext, Span } from './observability/otel.js';
+export { OtelTracer, otelMiddleware, OtelInstrumentedPool, instrumentPoolWithOtel } from './observability/otel.js';
+export type { SpanContext, Span, OtelInstrumentablePool, ActiveSpanResolver } from './observability/otel.js';
 export { HealthCheckRegistry, registerHealthRoutes } from './observability/health.js';
 export type { CheckResult, HealthResponse, CheckType, CheckStatus, CheckFn } from './observability/health.js';
 export { Logger, correlationMiddleware } from './observability/logger.js';
