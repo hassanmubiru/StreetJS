@@ -139,7 +139,7 @@
   - [x] 15.7 Write tests: ring buffer caps at 10,000 samples, P99 is calculated correctly, socket server sends JSON on connection, stale socket is cleaned up
 
 
-- [ ] 16. v1.4 — OAuth2 and OpenID Connect
+- [x] 16. v1.4 — OAuth2 and OpenID Connect
   - [x] 16.1 Create `packages/core/src/auth/oauth2.ts`: `OAuthProvider`, `OAuthProfile`, `OAuthTokens`, `OAuthSuccessCallback` interfaces; `OAuthManager` class
   - [x] 16.2 Implement PKCE generation: `code_verifier` = 32 random bytes as base64url; `code_challenge` = `S256` (SHA-256 of verifier) using `node:crypto`; store both in the encrypted session before redirect
   - [x] 16.3 Implement `OAuthManager.authorizationUrl(provider)`: construct the provider's authorization URL with `response_type=code`, `client_id`, `redirect_uri`, `scope`, `state`, and `code_challenge` params
@@ -147,10 +147,10 @@
   - [x] 16.5 Create `JwksCache` class: fetch provider JWKS on first use, cache for 5 minutes, serve from cache on subsequent calls; fall back to cached keys for up to 5 minutes if provider is unreachable
   - [x] 16.6 Implement OIDC ID token validation: decode JWT header to get `kid`, look up public key in `JwksCache`, verify RS256/ES256 signature using `node:crypto`'s `verify()`; enforce `exp`, `aud`, `iss` claims
   - [x] 16.7 Create built-in provider configs for Google (`accounts.google.com`), GitHub (`github.com`), and Microsoft (`login.microsoftonline.com`)
-  - [-] 16.8 Write `oauth2.test.ts` integration tests: PKCE code challenge matches verifier, state round-trip, invalid state rejected with 400, JWKS cache serves stale on provider failure
+  - [x] 16.8 Write `oauth2.test.ts` integration tests: PKCE code challenge matches verifier, state round-trip, invalid state rejected with 400, JWKS cache serves stale on provider failure
 
 - [ ] 17. v1.4 — API Keys
-  - [~] 17.1 Create `packages/core/src/auth/api-keys.ts` with `ApiKeyService` class, `ApiKey` interface; write `street_api_keys` migration SQL file
+  - [-] 17.1 Create `packages/core/src/auth/api-keys.ts` with `ApiKeyService` class, `ApiKey` interface; write `street_api_keys` migration SQL file
   - [~] 17.2 Implement `ApiKeyService.generate(opts)`: generate `randomBytes(32).toString('base64url')` prefixed with configurable namespace; store `createHash('sha256').update(rawKey).digest('hex')` in DB; return the raw key once only
   - [~] 17.3 Implement `ApiKeyService.verify(rawKey)`: compute SHA-256 hash; query DB for matching hash; use `timingSafeEqual` with equal-length check; check `expiresAt`; use `LruCache` for 60-second result caching
   - [~] 17.4 Implement `ApiKeyService.revoke(id)`: delete from DB; remove from `LruCache` immediately
