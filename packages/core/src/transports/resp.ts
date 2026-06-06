@@ -76,3 +76,108 @@ export class RespParser {
     }
   }
 }
+
+// ── RedisClient ───────────────────────────────────────────────────────────────
+
+export interface RedisClientOptions {
+  host?: string;
+  port?: number;
+  password?: string;
+}
+
+/**
+ * A minimal Redis client. A single connection multiplexes command replies in
+ * FIFO order; a separate connection is used per subscription (Redis requires a
+ * dedicated connection in subscribe mode).
+ */
+export class RedisClient {
+  private readonly host: string;
+  private readonly port: number;
+  private readonly password: string | undefined;
+  private socket: Socket | null = null;
+  private readonly parser = new RespParser();
+  private readonly pending: Array<(v: RespValue) => void> = [];
+  private connected = false;
+
+  constructor(opts: RedisClientOptions = {}) {
+    this.host = opts.host ?? '127.0.0.1';
+    this.port = opts.port ?? 6379;
+    this.password = opts.password;
+  }
+
+  async connect(): Promise<void> {
+    if (this.connected) return;
+    await new Promise<void>((resolve, reject) => {
+      const sock = createConnection({ host: this.host, port: this.port }, () => resolve());
+      sock.on('error', reject);
+      sock.on('data', (chunk: Buffer) => {
+        this.parser.push(chunk);
+        let reply = this.parser.parse();
+        while (reply !== undefined) {
+          const cb = this.pending.shift();
+          if (cb) cb(reply);
+          reply = this.parser.parse();
+        }
+      });
+      this.socket = sock;
+    });
+    this.connected = true;
+    if (this.password) await this.command(['AUTH', this.password]);
+  }
+
+  command(args: (string | number)[]): Promise<RespValue> {
+    if (!this.socket) throw new Error('RedisClient not connected');
+    return new Promise<RespValue>((resolve) => {
+      this.pending.push(resolve);
+      this.socket!.write(encodeCommand(args));
+    });
+  }
+
+  async get(key: string): Promise<string | null> {
+    const r = await this.command(['GET', key]);
+    return typeof r === 'string' ? r : null;
+  }
+
+  async set(key: string, value: string, ttlMs?: number): Promise<void> {
+    if (ttlMs && ttlMs > 0) await this.command(['SET', key, value, 'PX', Math.floor(ttlMs)]);
+    else await this.command(['SET', key, value]);
+  }
+
+  async del(key: string): Promise<void> {
+    await this.command(['DEL', key]);
+  }
+
+  async publish(channel: string, message: string): Promise<void> {
+    await this.command(['PUBLISH', channel, message]);
+  }
+
+  /** Open a dedicated subscription connection and invoke handler per message. */
+  async subscribe(channel: string, handler: (message: string) => void): Promise<() => void> {
+    const sub = new RedisClient({ host: this.host, port: this.port, password: this.password });
+    const parser = new RespParser();
+    await new Promise<void>((resolve, reject) => {
+      const sock = createConnection({ host: this.host, port: this.port }, () => resolve());
+      sock.on('error', reject);
+      sock.on('data', (chunk: Buffer) => {
+        parser.push(chunk);
+        let reply = parser.parse();
+        while (reply !== undefined) {
+          if (Array.isArray(reply) && reply[0] === 'message' && typeof reply[2] === 'string') {
+            handler(reply[2]);
+          }
+          reply = parser.parse();
+        }
+      });
+      (sub as unknown as { socket: Socket }).socket = sock;
+      sub.connected = true;
+    });
+    await sub.command(['SUBSCRIBE', channel]);
+    return () => sub.close();
+  }
+
+  close(): void {
+    this.socket?.destroy();
+    this.socket = null;
+    this.connected = false;
+  }
+}
