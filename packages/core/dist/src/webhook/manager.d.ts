@@ -57,6 +57,24 @@ export declare class WebhookManager {
     deliveryLog(endpointId: string, limit?: number): Promise<WebhookDelivery[]>;
     /** Remove an endpoint registration. */
     revokeEndpoint(id: string): Promise<void>;
+    /**
+     * Compute the exponential-backoff delay (ms) for a given attempt, capped so
+     * the cumulative retry window does not exceed ~72 hours.
+     * delay = min(initialDelayMs * 2^attempt, maxDelayMs).
+     */
+    static backoffMs(attempt: number, initialDelayMs?: number, maxDelayMs?: number): number;
+    /** Maximum delivery window: deliveries stop being retried after 72 hours. */
+    static readonly MAX_RETRY_WINDOW_MS: number;
+    /**
+     * Deliver a single attempt result. When `attempt` reaches `maxAttempts` (or
+     * the cumulative backoff would exceed the 72h window) and the response is not
+     * 2xx, the delivery is recorded with status `dead_letter` (at-least-once:
+     * retried until exhaustion, then parked rather than dropped).
+     */
+    recordAttempt(endpointId: string, event: string, responseCode: number, responseBody: string, attempt: number, maxAttempts?: number): Promise<{
+        status: string;
+        nextDelayMs: number | null;
+    }>;
     private _recordDelivery;
 }
 //# sourceMappingURL=manager.d.ts.map

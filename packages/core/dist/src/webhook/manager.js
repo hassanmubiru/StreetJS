@@ -94,6 +94,34 @@ export class WebhookManager {
     async revokeEndpoint(id) {
         await this._pool.query(`DELETE FROM street_webhook_endpoints WHERE id = $1`, [id]);
     }
+    /**
+     * Compute the exponential-backoff delay (ms) for a given attempt, capped so
+     * the cumulative retry window does not exceed ~72 hours.
+     * delay = min(initialDelayMs * 2^attempt, maxDelayMs).
+     */
+    static backoffMs(attempt, initialDelayMs = 1_000, maxDelayMs = 6 * 60 * 60 * 1000) {
+        return Math.min(initialDelayMs * Math.pow(2, attempt), maxDelayMs);
+    }
+    /** Maximum delivery window: deliveries stop being retried after 72 hours. */
+    static MAX_RETRY_WINDOW_MS = 72 * 60 * 60 * 1000;
+    /**
+     * Deliver a single attempt result. When `attempt` reaches `maxAttempts` (or
+     * the cumulative backoff would exceed the 72h window) and the response is not
+     * 2xx, the delivery is recorded with status `dead_letter` (at-least-once:
+     * retried until exhaustion, then parked rather than dropped).
+     */
+    async recordAttempt(endpointId, event, responseCode, responseBody, attempt, maxAttempts = 20) {
+        const ok = responseCode >= 200 && responseCode < 300;
+        if (ok) {
+            await this._recordDelivery(endpointId, event, 'success', responseCode, responseBody.slice(0, 1024), attempt);
+            return { status: 'success', nextDelayMs: null };
+        }
+        const nextDelay = WebhookManager.backoffMs(attempt);
+        const exhausted = attempt + 1 >= maxAttempts || nextDelay >= WebhookManager.MAX_RETRY_WINDOW_MS;
+        const status = exhausted ? 'dead_letter' : 'retrying';
+        await this._recordDelivery(endpointId, event, status, responseCode, responseBody.slice(0, 1024), attempt);
+        return { status, nextDelayMs: exhausted ? null : nextDelay };
+    }
     async _recordDelivery(endpointId, event, status, responseCode, responseBody, attempt) {
         await this._pool.query(`INSERT INTO street_webhook_deliveries (endpoint_id, event, status, response_code, response_body, attempt)
        VALUES ($1, $2, $3, $4, $5, $6)`, [endpointId, event, status, responseCode, responseBody, attempt]);
