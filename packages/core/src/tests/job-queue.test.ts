@@ -8,11 +8,13 @@ import 'reflect-metadata';
 import {
   JobQueue,
   Job,
+  registerJobMetricsRoute,
   STREET_JOBS_MIGRATION_SQL,
   STREET_DLQ_MIGRATION_SQL,
   STREET_JOB_HISTORY_MIGRATION_SQL,
   type JobQueuePool,
   type JobContext,
+  type JobQueueMetrics,
 } from '../jobs/queue.js';
 import { CronScheduler, CronParseError } from '../jobs/scheduler.js';
 import {
