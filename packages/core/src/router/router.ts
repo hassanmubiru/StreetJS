@@ -6,6 +6,7 @@ import type { StreetContext } from '../core/context.js';
 import type { MiddlewareFn, ValidationSchema, FieldRule } from '../core/types.js';
 import { BadRequestException, NotFoundException, isStreetException } from '../http/exceptions.js';
 import { diagnosticsReporter } from '../diagnostics/reporter.js';
+import { RateLimiter, getRateLimitMeta } from '../security/ratelimit.js';
 import type { RouteProfiler } from '../diagnostics/route-profiler.js';
 
 // Metadata keys must match rbac.ts
