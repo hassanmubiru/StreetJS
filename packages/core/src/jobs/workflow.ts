@@ -177,10 +177,14 @@ export class WorkflowEngine {
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : String(err);
 
-        // Mark workflow as failed
+        // A timeout is a distinct terminal state from an ordinary failure:
+        // mark the workflow `timed_out` (Requirement 24.5) rather than `failed`,
+        // but still run Saga compensation for the steps completed so far.
+        const status = err instanceof WorkflowStepTimeoutError ? 'timed_out' : 'failed';
+
         await this.pool.query(
-          `UPDATE street_workflows SET status='failed', error=$1, updated_at=NOW() WHERE id=$2`,
-          [errorMsg, workflowId],
+          `UPDATE street_workflows SET status=$1, error=$2, updated_at=NOW() WHERE id=$3`,
+          [status, errorMsg, workflowId],
         );
 
         // Saga compensation: run compensate() for completed steps in reverse
