@@ -1,6 +1,6 @@
 // packages/core/src/benchmarks/http-benchmark.ts
 // HTTP throughput benchmark: Street vs Express vs Fastify (using autocannon or raw http)
-import { createServer } from 'node:http';
+import { createServer, request as httpRequest } from 'node:http';
 import { streetApp } from '../http/server.js';
 import { Router } from '../router/router.js';
 /** Measure startup time for a Street app */
@@ -19,8 +19,7 @@ export async function runHttpBenchmark(label, port, durationMs = 5000, concurren
     const results = [];
     let completed = 0;
     const deadline = Date.now() + durationMs;
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const http = require('node:http');
+    const http = { request: httpRequest };
     await new Promise((resolve) => {
         let inFlight = 0;
         function fire() {
