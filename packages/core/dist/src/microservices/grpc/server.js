@@ -114,15 +114,51 @@ export class GrpcServer {
             finish(code, err instanceof Error ? err.message : String(err));
         }
     }
-    async *_readFrames(stream) {
-        let buffer = Buffer.alloc(0);
-        for await (const chunk of stream) {
-            buffer = Buffer.concat([buffer, chunk]);
-            const { frames, rest } = decodeFrames(buffer, this.maxBytes);
-            buffer = rest;
-            for (const f of frames)
-                yield f;
+    _readFrames(stream) {
+        const queue = [];
+        let leftover = Buffer.alloc(0);
+        let ended = false;
+        let errored = null;
+        let notify = null;
+        const wake = () => { if (notify) {
+            const n = notify;
+            notify = null;
+            n();
+        } };
+        const maxBytes = this.maxBytes;
+        stream.on('data', (chunk) => {
+            leftover = Buffer.concat([leftover, chunk]);
+            try {
+                const { frames, rest } = decodeFrames(leftover, maxBytes);
+                leftover = rest;
+                for (const f of frames)
+                    queue.push(f);
+            }
+            catch (e) {
+                errored = e instanceof Error ? e : new Error(String(e));
+            }
+            wake();
+        });
+        stream.on('end', () => { ended = true; wake(); });
+        stream.on('error', (e) => { errored = e; ended = true; wake(); });
+        // Event-listener based reader: stopping iteration early does NOT destroy
+        // the stream (unlike `for await (const c of stream)`), so the writable side
+        // stays open for the response.
+        async function* gen() {
+            for (;;) {
+                if (errored)
+                    throw errored;
+                const next = queue.shift();
+                if (next !== undefined) {
+                    yield next;
+                    continue;
+                }
+                if (ended)
+                    return;
+                await new Promise((resolve) => { notify = resolve; });
+            }
         }
+        return gen();
     }
 }
 async function firstOf(it) {
