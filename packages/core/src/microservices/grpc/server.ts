@@ -66,21 +66,37 @@ export class GrpcServer {
     this.server = null;
   }
 
-  private _respondTrailers(stream: ServerHttp2Stream, code: number, message?: string): void {
-    if (!stream.headersSent) {
-      stream.respond({ [constants.HTTP2_HEADER_STATUS]: 200, 'content-type': 'application/grpc+json' });
-    }
-    stream.close(); // end DATA
-    try {
-      stream.sendTrailers({ 'grpc-status': String(code), ...(message ? { 'grpc-message': message } : {}) });
-    } catch { /* stream may already be closed */ }
-  }
-
   private async _handleStream(stream: ServerHttp2Stream, headers: Record<string, string>): Promise<void> {
     const path = headers[constants.HTTP2_HEADER_PATH] ?? '';
     const reg = this.methods.get(path);
+
+    // Deferred trailer state: respond once with waitForTrailers, then send the
+    // grpc-status trailer when the DATA stream ends.
+    let finalCode = 0;
+    let finalMessage: string | undefined;
+    let responded = false;
+    const begin = (): void => {
+      if (responded) return;
+      responded = true;
+      stream.respond(
+        { [constants.HTTP2_HEADER_STATUS]: 200, 'content-type': 'application/grpc+json' },
+        { waitForTrailers: true },
+      );
+      stream.once('wantTrailers', () => {
+        try {
+          stream.sendTrailers({ 'grpc-status': String(finalCode), ...(finalMessage ? { 'grpc-message': finalMessage } : {}) });
+        } catch { /* already closed */ }
+      });
+    };
+    const finish = (code: number, message?: string): void => {
+      finalCode = code;
+      finalMessage = message;
+      begin();
+      stream.end();
+    };
+
     if (!reg) {
-      this._respondTrailers(stream, 5, `method not found: ${path}`); // NOT_FOUND
+      finish(5, `method not found: ${path}`); // NOT_FOUND
       return;
     }
 
@@ -96,6 +112,7 @@ export class GrpcServer {
 
     const incoming = this._readFrames(stream);
     const writeMsg = (msg: unknown): void => {
+      begin();
       stream.write(encodeFrame(this.codec.encode(msg)));
     };
 
@@ -105,15 +122,12 @@ export class GrpcServer {
         const request = first === undefined ? null : this.codec.decode(first);
         if (reg.type === 'unary') {
           const response = await (reg.handler as UnaryHandler)(request, ctx);
-          stream.respond({ [constants.HTTP2_HEADER_STATUS]: 200, 'content-type': 'application/grpc+json' });
           writeMsg(response);
         } else {
-          stream.respond({ [constants.HTTP2_HEADER_STATUS]: 200, 'content-type': 'application/grpc+json' });
           await (reg.handler as ServerStreamHandler)(request, writeMsg, ctx);
         }
       } else {
         const requests = mapAsync(incoming, (b) => this.codec.decode(b));
-        stream.respond({ [constants.HTTP2_HEADER_STATUS]: 200, 'content-type': 'application/grpc+json' });
         if (reg.type === 'client-stream') {
           const response = await (reg.handler as ClientStreamHandler)(requests, ctx);
           writeMsg(response);
@@ -122,11 +136,11 @@ export class GrpcServer {
         }
       }
       if (timer) clearTimeout(timer);
-      this._respondTrailers(stream, controller.signal.aborted ? 4 : 0, controller.signal.aborted ? 'deadline exceeded' : undefined);
+      finish(controller.signal.aborted ? 4 : 0, controller.signal.aborted ? 'deadline exceeded' : undefined);
     } catch (err) {
       if (timer) clearTimeout(timer);
       const code = err instanceof GrpcError ? err.code : 13; // INTERNAL
-      this._respondTrailers(stream, code, err instanceof Error ? err.message : String(err));
+      finish(code, err instanceof Error ? err.message : String(err));
     }
   }
 
