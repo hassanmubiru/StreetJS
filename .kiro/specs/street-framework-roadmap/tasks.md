@@ -264,13 +264,13 @@ Status markers used in this plan:
 
 - [~] 29. v1.6 — Rate Limit Policies and API Analytics
   - [x] 29.1 Create `@RateLimit({ requests, window, key? })` method decorator in `packages/core/src/security/ratelimit.ts`: store config under `street:rateLimit` route metadata
-  - [ ] 29.2 Implement per-route rate limit resolution in the router middleware pipeline: read `street:rateLimit` metadata and instantiate a route-scoped `RateLimiter`; cache instances in a `Map<routeKey, RateLimiter>`; respond 429 with `Retry-After`, `X-RateLimit-*` headers on violation
-  - [ ] 29.3 Write `street_api_events` migration SQL; create `packages/core/src/observability/analytics.ts` with `AnalyticsService`
-  - [ ] 29.4 Implement `AnalyticsService.middleware()`: buffer events in memory (max 100); flush to DB every 5 seconds or when buffer reaches 100; use a single batched `INSERT` statement
-  - [ ] 29.5 Implement `AnalyticsService.report(from, to)`: SQL aggregation query returning top routes by count, average latency, and error rate
-  - [ ] 29.6 Implement retention pruning: `CronScheduler` nightly job deletes `street_api_events` rows older than `retentionDays`
+  - [x] 29.2 Implement per-route rate limit resolution in the router middleware pipeline: read `street:rateLimit` metadata and instantiate a route-scoped `RateLimiter`; cache instances in a `Map<routeKey, RateLimiter>`; respond 429 with `Retry-After`, `X-RateLimit-*` headers on violation
+  - [x] 29.3 Write `street_api_events` migration SQL; create `packages/core/src/observability/analytics.ts` with `AnalyticsService`
+  - [x] 29.4 Implement `AnalyticsService.middleware()`: buffer events in memory (max 100); flush to DB every 5 seconds or when buffer reaches 100; use a single batched `INSERT` statement
+  - [x] 29.5 Implement `AnalyticsService.report(from, to)`: SQL aggregation query returning top routes by count, average latency, and error rate
+  - [x] 29.6 Implement retention pruning: `CronScheduler` nightly job deletes `street_api_events` rows older than `retentionDays`
   - [ ] 29.7 Add `street analytics report --from <date> --to <date>` CLI command
-  - [ ] 29.8 Write tests: per-route limiter overrides global, 429 headers are correct, analytics buffer flushes, retention pruning removes old rows
+  - [x] 29.8 Write tests: per-route limiter overrides global, 429 headers are correct, analytics buffer flushes, retention pruning removes old rows
 
 - [ ] 30. v1.6 — Webhook Management
   - [ ] 30.1 Write `street_webhook_endpoints` and `street_webhook_deliveries` migration SQL files
