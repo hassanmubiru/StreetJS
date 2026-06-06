@@ -123,3 +123,79 @@ export class AmqpReader {
 
   get remaining(): Buffer { return this.buf.subarray(this.offset); }
 }
+
+// ── Frame framing ─────────────────────────────────────────────────────────────
+
+/** Wrap a payload in an AMQP frame: [type][channel][size][payload][0xCE]. */
+export function buildFrame(type: number, channel: number, payload: Buffer): Buffer {
+  const head = Buffer.alloc(7);
+  head.writeUInt8(type, 0);
+  head.writeUInt16BE(channel, 1);
+  head.writeUInt32BE(payload.length, 3);
+  return Buffer.concat([head, payload, Buffer.from([FRAME_END])]);
+}
+
+/** Build a METHOD frame: payload = [class-id][method-id][args]. */
+export function buildMethodFrame(channel: number, classId: number, methodId: number, args: Buffer): Buffer {
+  const head = new AmqpWriter().shortUint(classId).shortUint(methodId).build();
+  return buildFrame(FRAME_METHOD, channel, Buffer.concat([head, args]));
+}
+
+/** Build a content HEADER frame for Basic.Publish. */
+export function buildHeaderFrame(channel: number, classId: number, bodySize: number, properties: Record<string, unknown> = {}): Buffer {
+  const w = new AmqpWriter();
+  w.shortUint(classId);   // class-id
+  w.shortUint(0);         // weight (always 0)
+  w.longLong(BigInt(bodySize));
+  // Property flags + properties. We support content-type, delivery-mode, content-encoding.
+  let flags = 0;
+  const propWriter = new AmqpWriter();
+  const contentType = properties['contentType'];
+  const deliveryMode = properties['deliveryMode'];
+  if (typeof contentType === 'string') { flags |= 0x8000; propWriter.shortStr(contentType); }
+  if (typeof deliveryMode === 'number') { flags |= 0x1000; propWriter.octet(deliveryMode); }
+  w.shortUint(flags);
+  return buildFrame(FRAME_HEADER, channel, Buffer.concat([w.build(), propWriter.build()]));
+}
+
+/** Build a BODY frame. */
+export function buildBodyFrame(channel: number, body: Buffer): Buffer {
+  return buildFrame(FRAME_BODY, channel, body);
+}
+
+/** Build a HEARTBEAT frame (channel 0, empty payload). */
+export function buildHeartbeat(): Buffer {
+  return buildFrame(FRAME_HEARTBEAT, 0, Buffer.alloc(0));
+}
+
+// ── Incremental frame decoder ─────────────────────────────────────────────────
+
+/** Accumulates socket bytes and yields complete frames. */
+export class FrameDecoder {
+  private buf: Buffer = Buffer.alloc(0);
+
+  push(chunk: Buffer): void {
+    this.buf = this.buf.length === 0 ? chunk : Buffer.concat([this.buf, chunk]);
+  }
+
+  next(): RawFrame | null {
+    if (this.buf.length < 7) return null;
+    const type = this.buf.readUInt8(0);
+    const channel = this.buf.readUInt16BE(1);
+    const size = this.buf.readUInt32BE(3);
+    if (this.buf.length < 7 + size + 1) return null;
+    const payload = this.buf.subarray(7, 7 + size);
+    const end = this.buf.readUInt8(7 + size);
+    if (end !== FRAME_END) throw new Error(`AMQP frame end byte mismatch: 0x${end.toString(16)}`);
+    this.buf = this.buf.subarray(7 + size + 1);
+    return { type, channel, payload };
+  }
+}
+
+/** Parse the class-id/method-id prefix of a METHOD frame payload. */
+export function readMethodHeader(payload: Buffer): { classId: number; methodId: number; reader: AmqpReader } {
+  const reader = new AmqpReader(payload);
+  const classId = reader.shortUint();
+  const methodId = reader.shortUint();
+  return { classId, methodId, reader };
+}
