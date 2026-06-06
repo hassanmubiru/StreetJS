@@ -295,7 +295,7 @@ Status markers used in this plan:
   - [x] 32.2 Create `packages/core/src/tenancy/provisioner.ts` with `TenantService.provision(opts)`: atomic transaction that INSERTs `street_tenants` row, runs tenant-specific migrations, registers the connection pool, and emits `tenant:provisioned` event
   - [x] 32.3 Implement `TenantService.checkQuota(tenantId, quotaKey)`: reads configured limits from a `QuotaConfig` map; reads current usage from `street_tenant_usage`; returns `QuotaStatus { allowed, current, limit, reset }`
   - [x] 32.4 Create `QuotaEnforcer.middleware()`: call `checkQuota()` before handler; return 429 with `{ error: 'quota_exceeded', quota, limit, reset }` if exceeded; emit `tenant:quota:warning` event at 80% threshold
-  - [ ] 32.5 Create `TenantBillingAdapter` interface in `packages/core/src/tenancy/billing.ts`: `reportUsage(tenantId, period, metrics)` abstract method; no coupling to specific billing provider
+  - [x] 32.5 Create `TenantBillingAdapter` interface in `packages/core/src/tenancy/billing.ts`: `reportUsage(tenantId, period, metrics)` abstract method; no coupling to specific billing provider
   - [x] 32.6 Write tests: provisioning creates tenant record and runs migrations atomically, quota exceeded returns 429 with correct fields, warning event fires at 80%, `reportUsage` adapter is called with correct metrics
 
 - [~] 33. v1.7 — Tenant Metrics
