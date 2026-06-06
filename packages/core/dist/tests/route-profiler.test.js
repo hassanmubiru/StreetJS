@@ -4,8 +4,10 @@ import { describe, it, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createConnection } from 'node:net';
 import { unlink } from 'node:fs/promises';
+import { writeFileSync, rmSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { RouteProfiler } from '../diagnostics/route-profiler.js';
-import { DiagnosticsServer } from '../diagnostics/socket-server.js';
+import { DiagnosticsServer, isStaleSocket } from '../diagnostics/socket-server.js';
 // ── RouteProfiler ─────────────────────────────────────────────────────────────
 describe('RouteProfiler — ring buffer caps at 10,000 samples', () => {
     it('does not grow beyond 10,000 samples per route', () => {
@@ -146,6 +148,37 @@ describe('DiagnosticsServer — sends JSON on connection', () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
         // Socket file should be gone — check stop() completed without error
         assert.ok(true, 'stop() completed without error');
+    });
+});
+// ── isStaleSocket — stale socket is cleaned up ──────────────────────────────────
+describe('isStaleSocket — stale socket detection', () => {
+    // Find a PID that is definitely not alive by spawning a trivial child and
+    // reusing its PID after it has fully exited. The OS will not have reassigned
+    // it within the test window, so process.kill(pid, 0) reports ESRCH (dead).
+    const exited = spawnSync(process.execPath, ['-e', 'process.exit(0)']);
+    const deadPid = exited.pid;
+    const staleSocketPath = `/tmp/street-${deadPid}.sock`;
+    const livePid = process.pid;
+    const liveSocketPath = `/tmp/street-${livePid}.sock`;
+    after(() => {
+        rmSync(staleSocketPath, { force: true });
+        rmSync(liveSocketPath, { force: true });
+    });
+    it('returns true for an existing socket whose owning process is dead', async () => {
+        assert.ok(typeof deadPid === 'number' && deadPid > 0, 'expected a valid child PID');
+        writeFileSync(staleSocketPath, '');
+        const stale = await isStaleSocket(staleSocketPath);
+        assert.equal(stale, true, `expected socket for dead PID ${deadPid} to be stale`);
+    });
+    it('returns false for an existing socket whose owning process is alive', async () => {
+        writeFileSync(liveSocketPath, '');
+        const stale = await isStaleSocket(liveSocketPath);
+        assert.equal(stale, false, `expected socket for live PID ${livePid} to not be stale`);
+    });
+    it('returns false when the socket file does not exist', async () => {
+        rmSync(staleSocketPath, { force: true });
+        const stale = await isStaleSocket(staleSocketPath);
+        assert.equal(stale, false, 'expected a missing socket file to not be reported as stale');
     });
 });
 //# sourceMappingURL=route-profiler.test.js.map
