@@ -80,9 +80,14 @@ export class WorkflowEngine {
             // Execute remaining steps
             for (let i = currentStepIndex; i < steps.length; i++) {
                 const step = steps[i];
-                // Skip already-completed steps (recorded in step_outputs)
+                // Skip already-completed steps (recorded in step_outputs). This makes
+                // resume() robust even if current_step lags behind step_outputs after a
+                // crash: we propagate the recorded output as the next step's input so the
+                // chain continues from exactly the right place without re-execution.
                 if (stepOutputs[step.name] !== undefined) {
-                    completedSteps.push({ step, output: stepOutputs[step.name] });
+                    const recordedOutput = stepOutputs[step.name];
+                    completedSteps.push({ step, output: recordedOutput });
+                    currentInput = recordedOutput;
                     currentStepIndex = i + 1;
                     continue;
                 }
