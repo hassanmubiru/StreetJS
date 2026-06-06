@@ -202,13 +202,22 @@ describe('Delayed job', () => {
  * and assert run_at gating behaviour. NOW() is resolved via Date.now(), so the
  * test can drive time deterministically with mock timers.
  */
-function makeStatefulPool() {
+function makeStatefulPool(opts = {}) {
     const jobs = new Map();
+    const dlq = [];
+    const transactions = [];
+    let currentTxn = null;
     let seq = 0;
     const pool = {
         jobs,
+        dlq,
+        transactions,
         async query(sql, params) {
             const args = (params ?? []);
+            // Record the statement against the active transaction (if any) so tests can
+            // assert that related writes occurred within a single transaction.
+            if (currentTxn)
+                currentTxn.push({ sql, params });
             if (sql.includes('INSERT INTO street_jobs') && sql.includes('RETURNING id')) {
                 const id = `job-${++seq}`;
                 const type = args[0];
@@ -226,6 +235,18 @@ function makeStatefulPool() {
                     error: null,
                 });
                 return { rows: [{ id }], rowCount: 1, command: 'INSERT' };
+            }
+            if (sql.includes('INSERT INTO street_dead_letter_queue')) {
+                if (opts.failDlqInsert) {
+                    throw new Error('simulated DLQ insert failure');
+                }
+                dlq.push({
+                    job_id: args[0],
+                    type: args[1],
+                    payload: args[2],
+                    error: args[3],
+                });
+                return { rows: [], rowCount: 1, command: 'INSERT' };
             }
             if (sql.includes('FOR UPDATE SKIP LOCKED')) {
                 const now = Date.now();
@@ -257,7 +278,7 @@ function makeStatefulPool() {
                 jobs.delete(id);
                 return { rows: [], rowCount: 1, command: 'DELETE' };
             }
-            if (sql.includes("UPDATE street_jobs") && sql.includes("status='pending'")) {
+            if (sql.includes('UPDATE street_jobs') && sql.includes("status='pending'")) {
                 // retry re-scheduling: mirror `run_at = NOW() + ($delay || ' milliseconds')::interval`
                 const id = args[3];
                 const job = jobs.get(id);
@@ -272,10 +293,41 @@ function makeStatefulPool() {
                 }
                 return { rows: [], rowCount: 1, command: 'UPDATE' };
             }
+            if (sql.includes("UPDATE street_jobs SET status='failed'")) {
+                const id = args[1];
+                const job = jobs.get(id);
+                if (job) {
+                    job.status = 'failed';
+                    job.error = args[0];
+                }
+                return { rows: [], rowCount: 1, command: 'UPDATE' };
+            }
             return { rows: [], rowCount: 0, command: 'SELECT' };
         },
         async transaction(fn) {
-            return fn({ query: (sql, params) => pool.query(sql, params) });
+            // Snapshot state so we can roll back atomically if the callback throws,
+            // mirroring real BEGIN/COMMIT/ROLLBACK semantics.
+            const jobsSnapshot = new Map([...jobs.entries()].map(([k, v]) => [k, { ...v }]));
+            const dlqSnapshot = dlq.length;
+            const stmts = [];
+            const previousTxn = currentTxn;
+            currentTxn = stmts;
+            try {
+                const result = await fn({ query: (sql, params) => pool.query(sql, params) });
+                transactions.push(stmts);
+                return result;
+            }
+            catch (err) {
+                // Roll back: restore the jobs map and trim any DLQ rows appended in this txn.
+                jobs.clear();
+                for (const [k, v] of jobsSnapshot)
+                    jobs.set(k, v);
+                dlq.length = dlqSnapshot;
+                throw err;
+            }
+            finally {
+                currentTxn = previousTxn;
+            }
         },
     };
     return pool;
@@ -572,6 +624,101 @@ describe('JobQueue polling loop — geometric backoff on failure', () => {
         const job = pool.jobs.get(id);
         assert.ok(job, 'Job should be retained for retry');
         assert.equal(job.run_at.getTime(), Date.now() + policy.maxDelayMs, 'run_at delay should be capped at maxDelayMs');
+    });
+});
+// ── Tests: DLQ promotion on retry exhaustion ─────────────────────────────────
+describe('JobQueue polling loop — DLQ promotion (attempt_count >= maxAttempts)', () => {
+    it('moves a job with no retry policy (maxAttempts defaults to 1) straight to the DLQ on first failure', async (t) => {
+        const T0 = 1_700_000_000_000;
+        t.mock.timers.enable({ apis: ['setInterval', 'Date'], now: T0 });
+        const pool = makeStatefulPool();
+        const queue = new JobQueue(pool, { pollIntervalMs: 100, concurrency: 5 });
+        queue.register('permanent-fail', async () => {
+            throw new Error('cannot recover');
+        });
+        const id = await queue.enqueue({ type: 'permanent-fail', payload: { foo: 'bar' } });
+        assert.ok(pool.jobs.has(id), 'Job should be persisted before polling');
+        queue.start();
+        await advancePolls(t.mock.timers, 100, 100); // one poll cycle: fails and exhausts (maxAttempts=1)
+        queue.stop();
+        assert.ok(!pool.jobs.has(id), 'Exhausted job must be removed from street_jobs');
+        assert.equal(pool.dlq.length, 1, 'Exhausted job must be inserted into the DLQ');
+        assert.equal(pool.dlq[0].job_id, id, 'DLQ row should preserve the original job id');
+        assert.equal(pool.dlq[0].type, 'permanent-fail', 'DLQ row should preserve the job type');
+        assert.equal(pool.dlq[0].error, 'cannot recover', 'DLQ row should preserve the final error message');
+    });
+    it('moves a job to the DLQ only after exhausting all retry attempts', async (t) => {
+        const T0 = 1_700_000_000_000;
+        t.mock.timers.enable({ apis: ['setInterval', 'Date'], now: T0 });
+        const pool = makeStatefulPool();
+        const queue = new JobQueue(pool, { pollIntervalMs: 100, concurrency: 5 });
+        const policy = { maxAttempts: 3, initialDelayMs: 100, backoffMultiplier: 2, maxDelayMs: 10_000 };
+        queue.setRetryPolicy('flaky', policy);
+        queue.register('flaky', async () => {
+            throw new Error('still broken');
+        });
+        const id = await queue.enqueue({ type: 'flaky' });
+        queue.start();
+        // Attempt 0 -> fails, reschedules (attempt_count = 1), delay = 100ms.
+        await advancePolls(t.mock.timers, 100, 100);
+        assert.ok(pool.jobs.has(id), 'Job should still be queued after first failure (attempts remain)');
+        assert.equal(pool.dlq.length, 0, 'Job should not be in DLQ before exhausting retries');
+        assert.equal(pool.jobs.get(id).attempt_count, 1);
+        // Attempt 1 -> fails, reschedules (attempt_count = 2), delay = 200ms.
+        await advancePolls(t.mock.timers, 200, 100);
+        assert.ok(pool.jobs.has(id), 'Job should still be queued after second failure');
+        assert.equal(pool.dlq.length, 0, 'Job should still not be in DLQ');
+        assert.equal(pool.jobs.get(id).attempt_count, 2);
+        // Attempt 2 -> fails, attempt_count would reach 3 >= maxAttempts -> DLQ promotion.
+        await advancePolls(t.mock.timers, 400, 100);
+        queue.stop();
+        assert.ok(!pool.jobs.has(id), 'Job must be removed from street_jobs after exhausting retries');
+        assert.equal(pool.dlq.length, 1, 'Job must land in the DLQ after exhausting retries');
+        assert.equal(pool.dlq[0].job_id, id);
+        assert.equal(pool.dlq[0].error, 'still broken');
+    });
+    it('performs the DLQ INSERT and the street_jobs DELETE within a single transaction', async (t) => {
+        const T0 = 1_700_000_000_000;
+        t.mock.timers.enable({ apis: ['setInterval', 'Date'], now: T0 });
+        const pool = makeStatefulPool();
+        const queue = new JobQueue(pool, { pollIntervalMs: 100, concurrency: 5 });
+        queue.register('to-dlq', async () => {
+            throw new Error('boom');
+        });
+        const id = await queue.enqueue({ type: 'to-dlq' });
+        queue.start();
+        await advancePolls(t.mock.timers, 100, 100);
+        queue.stop();
+        // Exactly one transaction should have been opened for the DLQ promotion.
+        assert.equal(pool.transactions.length, 1, 'DLQ promotion should occur in exactly one transaction');
+        const txn = pool.transactions[0];
+        const insertStmt = txn.find((s) => s.sql.includes('INSERT INTO street_dead_letter_queue'));
+        const deleteStmt = txn.find((s) => s.sql.includes('DELETE FROM street_jobs'));
+        assert.ok(insertStmt, 'The transaction must contain the DLQ INSERT');
+        assert.ok(deleteStmt, 'The transaction must contain the street_jobs DELETE');
+        // Both writes must target the same job id within that one transaction.
+        assert.equal(insertStmt.params[0], id, 'DLQ INSERT must reference the job id');
+        assert.equal(deleteStmt.params[0], id, 'DELETE must reference the same job id');
+        // The INSERT must precede the DELETE (insert into DLQ, then remove from queue).
+        assert.ok(txn.indexOf(insertStmt) < txn.indexOf(deleteStmt), 'INSERT into DLQ should happen before DELETE from street_jobs in the same transaction');
+    });
+    it('rolls back the DELETE atomically if the DLQ INSERT fails (no partial promotion)', async (t) => {
+        const T0 = 1_700_000_000_000;
+        t.mock.timers.enable({ apis: ['setInterval', 'Date'], now: T0 });
+        // Configure the pool so the DLQ INSERT throws inside the transaction.
+        const pool = makeStatefulPool({ failDlqInsert: true });
+        const queue = new JobQueue(pool, { pollIntervalMs: 100, concurrency: 5 });
+        queue.register('to-dlq', async () => {
+            throw new Error('boom');
+        });
+        const id = await queue.enqueue({ type: 'to-dlq' });
+        queue.start();
+        await advancePolls(t.mock.timers, 100, 100);
+        queue.stop();
+        // The transaction failed, so the DELETE must have been rolled back: the job
+        // must NOT have been removed by a half-completed promotion.
+        assert.equal(pool.dlq.length, 0, 'No DLQ row should be committed when the INSERT fails');
+        assert.ok(pool.jobs.has(id), 'Job must remain (DELETE rolled back) when the DLQ INSERT fails');
     });
 });
 //# sourceMappingURL=job-queue.test.js.map
