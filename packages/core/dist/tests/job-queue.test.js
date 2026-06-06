@@ -9,7 +9,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import 'reflect-metadata';
-import { JobQueue, Job, STREET_JOBS_MIGRATION_SQL, STREET_DLQ_MIGRATION_SQL, } from '../jobs/queue.js';
+import { JobQueue, Job, STREET_JOBS_MIGRATION_SQL, STREET_DLQ_MIGRATION_SQL, STREET_JOB_HISTORY_MIGRATION_SQL, } from '../jobs/queue.js';
 import { CronScheduler, CronParseError } from '../jobs/scheduler.js';
 import { STREET_WORKFLOWS_MIGRATION_SQL, WorkflowEngine, WorkflowStepTimeoutError, } from '../jobs/workflow.js';
 // ── Tests: Migration SQL ──────────────────────────────────────────────────────
@@ -46,6 +46,28 @@ describe('JobQueue — Migration SQL', () => {
     });
     it('STREET_DLQ_MIGRATION_SQL is idempotent (uses IF NOT EXISTS)', () => {
         assert.match(STREET_DLQ_MIGRATION_SQL, /CREATE TABLE IF NOT EXISTS/i);
+    });
+});
+// ── Tests: Job History Migration SQL ──────────────────────────────────────────
+describe('JobQueue — Job History Migration SQL', () => {
+    it('STREET_JOB_HISTORY_MIGRATION_SQL creates the street_job_history table with all required columns', () => {
+        assert.ok(STREET_JOB_HISTORY_MIGRATION_SQL.includes('street_job_history'), 'Should reference street_job_history table');
+        assert.match(STREET_JOB_HISTORY_MIGRATION_SQL, /id\s+UUID/i, 'id UUID');
+        assert.match(STREET_JOB_HISTORY_MIGRATION_SQL, /job_id\s+TEXT/i, 'job_id TEXT');
+        assert.match(STREET_JOB_HISTORY_MIGRATION_SQL, /type\s+TEXT/i, 'type TEXT');
+        assert.match(STREET_JOB_HISTORY_MIGRATION_SQL, /status\s+TEXT/i, 'status TEXT');
+        assert.match(STREET_JOB_HISTORY_MIGRATION_SQL, /duration_ms\s+INT/i, 'duration_ms INT');
+        assert.match(STREET_JOB_HISTORY_MIGRATION_SQL, /created_at\s+TIMESTAMPTZ/i, 'created_at TIMESTAMPTZ');
+    });
+    it('STREET_JOB_HISTORY_MIGRATION_SQL declares id as the primary key', () => {
+        assert.match(STREET_JOB_HISTORY_MIGRATION_SQL, /id\s+UUID\s+PRIMARY KEY/i, 'id UUID PRIMARY KEY');
+    });
+    it('STREET_JOB_HISTORY_MIGRATION_SQL adds a (type, created_at) index for per-type pruning', () => {
+        assert.match(STREET_JOB_HISTORY_MIGRATION_SQL, /CREATE INDEX[\s\S]*street_job_history\s*\(type,\s*created_at\)/i, 'Should create an index on (type, created_at)');
+    });
+    it('STREET_JOB_HISTORY_MIGRATION_SQL is idempotent (uses IF NOT EXISTS)', () => {
+        assert.match(STREET_JOB_HISTORY_MIGRATION_SQL, /CREATE TABLE IF NOT EXISTS/i);
+        assert.match(STREET_JOB_HISTORY_MIGRATION_SQL, /CREATE INDEX IF NOT EXISTS/i);
     });
 });
 // ── Tests: WorkflowEngine Migration SQL ───────────────────────────────────────
@@ -1309,6 +1331,268 @@ describe('WorkflowEngine — conditional branching', () => {
         // 'charge' threw (not compensated); 'fraudCheck' was skipped (never ran, so no
         // compensation); only the genuinely-completed 'reserve' step is compensated.
         assert.deepEqual(compensated, ['reserve'], 'A skipped conditional step must not be compensated');
+    });
+});
+// ── Tests: Job history pruning (bounded per-type history) ─────────────────────
+/**
+ * A focused mock pool that records the pruning DELETE and emulates its window
+ * semantics against an in-memory set of history rows. This lets us assert both
+ * that the query is correct (window function + bound param) and that each job
+ * type is independently bounded after pruning.
+ */
+function makeJobHistoryPrunePool(initialRows = []) {
+    const historyRows = [...initialRows];
+    const queries = [];
+    return {
+        historyRows,
+        queries,
+        async query(sql, params) {
+            queries.push({ sql, params });
+            if (sql.includes('DELETE FROM street_job_history')) {
+                const maxPerType = params[0];
+                // Keep the newest `maxPerType` rows by created_at DESC within each type;
+                // delete the rest (rn > maxPerType), mirroring the window function.
+                const keep = new Set();
+                const byType = new Map();
+                for (const r of historyRows) {
+                    const list = byType.get(r.type) ?? [];
+                    list.push({ id: r.id, created_at: r.created_at });
+                    byType.set(r.type, list);
+                }
+                for (const list of byType.values()) {
+                    list
+                        .sort((a, b) => b.created_at - a.created_at)
+                        .slice(0, maxPerType)
+                        .forEach((r) => keep.add(r.id));
+                }
+                const before = historyRows.length;
+                for (let i = historyRows.length - 1; i >= 0; i--) {
+                    if (!keep.has(historyRows[i].id))
+                        historyRows.splice(i, 1);
+                }
+                const deleted = before - historyRows.length;
+                return { rows: [], rowCount: deleted, command: 'DELETE' };
+            }
+            return { rows: [], rowCount: 0, command: 'SELECT' };
+        },
+        async transaction(fn) {
+            return fn({ query: (sql, params) => this.query(sql, params) });
+        },
+    };
+}
+describe('JobQueue.pruneJobHistory', () => {
+    it('issues a window-function DELETE keeping the newest maxPerType rows per type', async () => {
+        const pool = makeJobHistoryPrunePool();
+        const queue = new JobQueue(pool);
+        await queue.pruneJobHistory(1_000);
+        const del = pool.queries.find((q) => q.sql.includes('DELETE FROM street_job_history'));
+        assert.ok(del, 'Expected a DELETE against street_job_history');
+        assert.match(del.sql, /DELETE FROM street_job_history/i, 'targets the history table');
+        assert.match(del.sql, /ROW_NUMBER\(\)\s+OVER/i, 'uses a ROW_NUMBER() window function');
+        assert.match(del.sql, /PARTITION BY\s+type/i, 'partitions per job type');
+        assert.match(del.sql, /ORDER BY\s+created_at\s+DESC/i, 'orders newest first within each type');
+        assert.match(del.sql, /rn\s*>\s*\$1/i, 'deletes rows ranked beyond the parameterized bound');
+        assert.deepEqual(del.params, [1_000], 'binds maxPerType as the bound parameter');
+    });
+    it('bounds each type independently to at most maxPerType rows, keeping the most recent', async () => {
+        const rows = [
+            { id: 'a1', type: 'email', created_at: 1_000 },
+            { id: 'a2', type: 'email', created_at: 2_000 },
+            { id: 'a3', type: 'email', created_at: 3_000 },
+            { id: 'b1', type: 'report', created_at: 1_500 },
+            { id: 'b2', type: 'report', created_at: 2_500 },
+        ];
+        const pool = makeJobHistoryPrunePool(rows);
+        const queue = new JobQueue(pool);
+        const deleted = await queue.pruneJobHistory(1);
+        assert.equal(deleted, 3, 'Should delete all but the newest row per type');
+        const keptIds = pool.historyRows.map((r) => r.id).sort();
+        assert.deepEqual(keptIds, ['a3', 'b2'], 'Only the newest row of each type is retained');
+    });
+    it('is a no-op when every type already has fewer rows than maxPerType', async () => {
+        const rows = [
+            { id: 'a1', type: 'email', created_at: 1_000 },
+            { id: 'b1', type: 'report', created_at: 2_000 },
+        ];
+        const pool = makeJobHistoryPrunePool(rows);
+        const queue = new JobQueue(pool);
+        const deleted = await queue.pruneJobHistory(1_000);
+        assert.equal(deleted, 0, 'Nothing should be deleted when under the per-type limit');
+        assert.equal(pool.historyRows.length, 2, 'All rows retained when under the limit');
+    });
+    it('rejects a negative or non-integer maxPerType', async () => {
+        const pool = makeJobHistoryPrunePool();
+        const queue = new JobQueue(pool);
+        await assert.rejects(() => queue.pruneJobHistory(-1), /non-negative integer/);
+        await assert.rejects(() => queue.pruneJobHistory(1.5), /non-negative integer/);
+    });
+});
+describe('JobQueue.registerJobHistoryPruning', () => {
+    it('registers a nightly cron job (default 0 0 * * *, keep 1000/type) that prunes history when fired', async () => {
+        const rows = [
+            { id: 'a1', type: 'email', created_at: 1_000 },
+            { id: 'a2', type: 'email', created_at: 2_000 },
+            { id: 'a3', type: 'email', created_at: 3_000 },
+        ];
+        const pool = makeJobHistoryPrunePool(rows);
+        const queue = new JobQueue(pool);
+        const sched = new CronScheduler();
+        queue.registerJobHistoryPruning(sched, 1);
+        const jobs = sched.jobs;
+        assert.ok(jobs.has('street:job-history-prune'), 'A cron entry named street:job-history-prune should be registered');
+        await jobs.get('street:job-history-prune').fn();
+        const del = pool.queries.find((q) => q.sql.includes('DELETE FROM street_job_history'));
+        assert.ok(del, 'Firing the cron job should issue the prune DELETE');
+        assert.deepEqual(del.params, [1], 'The prune should use the configured maxPerType');
+        assert.equal(pool.historyRows.length, 1, 'History should be bounded per type after the nightly run');
+        assert.equal(pool.historyRows[0].id, 'a3', 'The most recent entry should be retained');
+    });
+    it('defaults to keeping 1000 rows per type when maxPerType is omitted', async () => {
+        const pool = makeJobHistoryPrunePool();
+        const queue = new JobQueue(pool);
+        const sched = new CronScheduler();
+        queue.registerJobHistoryPruning(sched);
+        const jobs = sched.jobs;
+        await jobs.get('street:job-history-prune').fn();
+        const del = pool.queries.find((q) => q.sql.includes('DELETE FROM street_job_history'));
+        assert.ok(del, 'Firing the cron job should issue the prune DELETE');
+        assert.deepEqual(del.params, [1_000], 'The default maxPerType should be 1000');
+    });
+    it('accepts a custom cron expression and rejects an invalid one via the scheduler', () => {
+        const pool = makeJobHistoryPrunePool();
+        const queue = new JobQueue(pool);
+        const sched = new CronScheduler();
+        assert.doesNotThrow(() => queue.registerJobHistoryPruning(sched, 500, '30 3 * * *'));
+        assert.throws(() => queue.registerJobHistoryPruning(sched, 500, 'not a cron'), (err) => err instanceof CronParseError);
+    });
+    it('rejects a negative maxPerType before registering', () => {
+        const pool = makeJobHistoryPrunePool();
+        const queue = new JobQueue(pool);
+        const sched = new CronScheduler();
+        assert.throws(() => queue.registerJobHistoryPruning(sched, -5), /non-negative integer/);
+    });
+});
+/** A recording pool that captures every query without mutating any state. */
+function makeRecordingPool() {
+    const queries = [];
+    return {
+        queries,
+        async query(sql, params) {
+            queries.push({ sql, params });
+            return { rows: [], rowCount: 0, command: 'UPDATE' };
+        },
+        async transaction(fn) {
+            return fn({ query: (sql, params) => this.query(sql, params) });
+        },
+    };
+}
+describe('JobQueue worker heartbeat', () => {
+    it('refreshes locked_at only for this worker\'s tracked in-flight jobs', async () => {
+        const pool = makeRecordingPool();
+        const queue = new JobQueue(pool, { workerId: 'worker-A' });
+        const internal = queue;
+        internal.inFlight.add('job-1');
+        internal.inFlight.add('job-2');
+        await internal._heartbeat();
+        const beat = pool.queries.find((q) => /UPDATE street_jobs[\s\S]*SET locked_at = NOW\(\)/.test(q.sql));
+        assert.ok(beat, 'Heartbeat should issue an UPDATE that sets locked_at = NOW()');
+        assert.match(beat.sql, /status = 'running'/, 'Should only touch running jobs');
+        assert.match(beat.sql, /worker_id = \$1/, 'Should scope to this worker');
+        assert.match(beat.sql, /id = ANY\(\$2\)/, 'Should target the tracked in-flight ids');
+        const params = beat.params;
+        assert.equal(params[0], 'worker-A', 'worker_id param should be this worker');
+        assert.deepEqual(params[1], ['job-1', 'job-2'], 'Should heartbeat exactly the tracked ids');
+    });
+    it('issues no query when there are no in-flight jobs', async () => {
+        const pool = makeRecordingPool();
+        const queue = new JobQueue(pool);
+        const internal = queue;
+        await internal._heartbeat();
+        assert.equal(pool.queries.length, 0, 'No heartbeat query should run with an empty in-flight set');
+    });
+});
+/**
+ * A pool that honours the reaper contract: it re-enqueues running jobs whose
+ * `locked_at` is older than the threshold encoded in the query params.
+ */
+function makeReaperPool(jobs) {
+    const queries = [];
+    return {
+        jobs,
+        queries,
+        async query(sql, params) {
+            queries.push({ sql, params });
+            if (sql.includes('UPDATE street_jobs') && sql.includes("status='pending'") && sql.includes('locked_at <')) {
+                const thresholdMs = Number((params ?? [])[0]);
+                const cutoff = Date.now() - thresholdMs;
+                let reaped = 0;
+                for (const j of jobs) {
+                    if (j.status === 'running' && j.locked_at !== null && j.locked_at.getTime() < cutoff) {
+                        j.status = 'pending';
+                        j.worker_id = null;
+                        j.locked_at = null;
+                        reaped++;
+                    }
+                }
+                return { rows: [], rowCount: reaped, command: 'UPDATE' };
+            }
+            return { rows: [], rowCount: 0, command: 'UPDATE' };
+        },
+        async transaction(fn) {
+            return fn({ query: (sql, params) => this.query(sql, params) });
+        },
+    };
+}
+describe('JobQueue stale-job reaper', () => {
+    it('re-enqueues running jobs whose lock is older than the threshold, leaving fresh ones alone', async () => {
+        const now = Date.now();
+        const jobs = [
+            { id: 'stale', status: 'running', worker_id: 'dead-worker', locked_at: new Date(now - 3 * 60_000) },
+            { id: 'fresh', status: 'running', worker_id: 'live-worker', locked_at: new Date(now - 30_000) },
+            { id: 'pending', status: 'pending', worker_id: null, locked_at: null },
+        ];
+        const pool = makeReaperPool(jobs);
+        const queue = new JobQueue(pool); // default 2-minute threshold
+        const internal = queue;
+        const reaped = await internal._reapStaleJobs();
+        assert.equal(reaped, 1, 'Exactly the stale job should be re-enqueued');
+        const stale = jobs.find((j) => j.id === 'stale');
+        assert.equal(stale.status, 'pending', 'Stale job should be reset to pending');
+        assert.equal(stale.worker_id, null, 'Stale job worker_id should be cleared');
+        assert.equal(stale.locked_at, null, 'Stale job locked_at should be cleared');
+        const fresh = jobs.find((j) => j.id === 'fresh');
+        assert.equal(fresh.status, 'running', 'A freshly heartbeated job must not be reaped');
+        assert.equal(fresh.worker_id, 'live-worker', 'Fresh job ownership should be preserved');
+    });
+    it('uses the configurable stale threshold in the query params (default 2 minutes)', async () => {
+        const poolDefault = makeReaperPool([]);
+        const internalDefault = new JobQueue(poolDefault);
+        await internalDefault._reapStaleJobs();
+        const reapDefault = poolDefault.queries.find((q) => q.sql.includes('locked_at <'));
+        assert.ok(reapDefault, 'Reaper should issue the stale-job UPDATE');
+        assert.deepEqual(reapDefault.params, ['120000'], 'Default stale threshold should be 2 minutes');
+        const poolCustom = makeReaperPool([]);
+        const internalCustom = new JobQueue(poolCustom, { staleJobThresholdMs: 45_000 });
+        await internalCustom._reapStaleJobs();
+        const reapCustom = poolCustom.queries.find((q) => q.sql.includes('locked_at <'));
+        assert.deepEqual(reapCustom.params, ['45000'], 'Custom stale threshold should be honoured');
+    });
+});
+// ── Tests: heartbeat & reaper timer lifecycle ─────────────────────────────────
+describe('JobQueue heartbeat/reaper timer lifecycle', () => {
+    it('starts heartbeat and reaper timers on start() and clears them on stop()', () => {
+        const pool = makeRecordingPool();
+        const queue = new JobQueue(pool, { pollIntervalMs: 1_000, heartbeatIntervalMs: 30_000, reaperIntervalMs: 60_000 });
+        const timers = queue;
+        assert.equal(timers.heartbeatTimer, null, 'Heartbeat timer should be inactive before start');
+        assert.equal(timers.reaperTimer, null, 'Reaper timer should be inactive before start');
+        queue.start();
+        assert.notEqual(timers.heartbeatTimer, null, 'Heartbeat timer should be active after start');
+        assert.notEqual(timers.reaperTimer, null, 'Reaper timer should be active after start');
+        queue.stop();
+        assert.equal(timers.timer, null, 'Poll timer should be cleared after stop');
+        assert.equal(timers.heartbeatTimer, null, 'Heartbeat timer should be cleared after stop');
+        assert.equal(timers.reaperTimer, null, 'Reaper timer should be cleared after stop');
     });
 });
 //# sourceMappingURL=job-queue.test.js.map

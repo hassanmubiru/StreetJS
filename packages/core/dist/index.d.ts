@@ -85,7 +85,7 @@ export { StreetSessionStore, sessionRevocationMiddleware, AuditWriter, SESSION_S
 export type { SessionData as ServerSessionData, SessionStorePool, AuditEvent, AuditRecord, StreetSessionStoreOptions } from './auth/session-store.js';
 export { auditAuthEvent, auditLoginSuccess, auditLoginFailure, auditLogout, auditTokenRefresh, auditSessionRevoked, auditPermissionDenied, } from './auth/audit-writer.js';
 export type { AuditEventDetails } from './auth/audit-writer.js';
-export { JobQueue, Job, STREET_JOBS_MIGRATION_SQL, STREET_DLQ_MIGRATION_SQL, } from './jobs/queue.js';
+export { JobQueue, Job, STREET_JOBS_MIGRATION_SQL, STREET_DLQ_MIGRATION_SQL, STREET_JOB_HISTORY_MIGRATION_SQL, } from './jobs/queue.js';
 export type { JobHandler, JobContext, RetryPolicy, JobQueuePool, DlqPruneScheduler } from './jobs/queue.js';
 export { CronScheduler, CronParseError } from './jobs/scheduler.js';
 export { WorkflowEngine, STREET_WORKFLOWS_MIGRATION_SQL, } from './jobs/workflow.js';

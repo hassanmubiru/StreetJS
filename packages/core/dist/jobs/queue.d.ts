@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 export declare const STREET_JOBS_MIGRATION_SQL = "\nCREATE TABLE IF NOT EXISTS street_jobs (\n  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n  type         TEXT NOT NULL,\n  payload      JSONB NOT NULL DEFAULT '{}',\n  status       TEXT NOT NULL DEFAULT 'pending',\n  attempt_count INT NOT NULL DEFAULT 0,\n  run_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n  worker_id    TEXT,\n  locked_at    TIMESTAMPTZ,\n  error        TEXT\n);\nCREATE INDEX IF NOT EXISTS street_jobs_status_run_at ON street_jobs (status, run_at);\n";
 export declare const STREET_DLQ_MIGRATION_SQL = "\nCREATE TABLE IF NOT EXISTS street_dead_letter_queue (\n  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n  job_id       TEXT,\n  type         TEXT NOT NULL,\n  payload      JSONB NOT NULL DEFAULT '{}',\n  error        TEXT,\n  exhausted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()\n);\n";
+export declare const STREET_JOB_HISTORY_MIGRATION_SQL = "\nCREATE TABLE IF NOT EXISTS street_job_history (\n  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n  job_id       TEXT,\n  type         TEXT NOT NULL,\n  status       TEXT NOT NULL,\n  duration_ms  INT,\n  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()\n);\nCREATE INDEX IF NOT EXISTS street_job_history_type_created_at ON street_job_history (type, created_at);\n";
 export interface JobContext {
     jobId: string;
     attempt: number;
@@ -32,6 +33,12 @@ export interface JobQueueOptions {
     concurrency?: number;
     pollIntervalMs?: number;
     workerId?: string;
+    /** How often this worker refreshes `locked_at` on its in-flight jobs. Default: 30s. */
+    heartbeatIntervalMs?: number;
+    /** How often the background reaper scans for stale jobs. Default: 60s. */
+    reaperIntervalMs?: number;
+    /** A running job whose `locked_at` is older than this is considered stale and re-enqueued. Default: 2 minutes. */
+    staleJobThresholdMs?: number;
 }
 /**
  * Structural view of the cron scheduler used for DLQ pruning. Kept as a minimal
@@ -51,9 +58,16 @@ export declare class JobQueue {
     private readonly concurrency;
     private readonly pollIntervalMs;
     private readonly workerId;
+    private readonly heartbeatIntervalMs;
+    private readonly reaperIntervalMs;
+    private readonly staleJobThresholdMs;
     private readonly handlers;
     private readonly retryPolicies;
+    /** Ids of jobs this worker is currently executing; targeted by the heartbeat. */
+    private readonly inFlight;
     private timer;
+    private heartbeatTimer;
+    private reaperTimer;
     constructor(pool: JobQueuePool, opts?: JobQueueOptions);
     /** Enqueue a new job, returning the generated job id. */
     enqueue(opts: JobEnqueueOpts): Promise<string>;
@@ -83,12 +97,46 @@ export declare class JobQueue {
      * ('0 0 * * *'). The scheduler must be started separately via `scheduler.start()`.
      */
     registerDlqPruning(scheduler: DlqPruneScheduler, maxEntries: number, cronExpression?: string): void;
-    /** Start the polling loop. */
+    /**
+     * Prune the job history table down to at most `maxPerType` rows per job type,
+     * keeping the most recent rows (by `created_at`) for each type. Returns the
+     * number of rows deleted.
+     *
+     * Uses a window function (ROW_NUMBER() OVER (PARTITION BY type ORDER BY
+     * created_at DESC)) to rank rows within each type, then deletes everything
+     * ranked beyond `maxPerType`. This bounds each type independently in a single
+     * statement so no type ever exceeds `maxPerType` rows after a prune.
+     */
+    pruneJobHistory(maxPerType: number): Promise<number>;
+    /**
+     * Register a nightly cron job on the given scheduler that prunes the job
+     * history to at most `maxPerType` rows per job type. Defaults to keeping the
+     * last 1,000 rows per type and running at midnight every day ('0 0 * * *').
+     * The scheduler must be started separately via `scheduler.start()`.
+     */
+    registerJobHistoryPruning(scheduler: DlqPruneScheduler, maxPerType?: number, cronExpression?: string): void;
+    /** Start the polling loop, the worker heartbeat, and the stale-job reaper. */
     start(): void;
-    /** Stop the polling loop. */
+    /** Stop the polling loop, heartbeat, and reaper. */
     stop(): void;
     private _poll;
     private _dispatch;
+    private _execute;
+    /**
+     * Refresh `locked_at` to NOW() for every job this worker is currently
+     * executing. This keeps the lock fresh so other workers' reapers don't
+     * reclaim a job that is still being processed. Targets only the tracked
+     * in-flight ids and re-checks ownership (`worker_id`) and state in SQL.
+     */
+    private _heartbeat;
+    /**
+     * Re-enqueue jobs whose `locked_at` is older than the configured stale
+     * threshold (default 2 minutes). A running job that hasn't been heartbeated
+     * within the threshold is assumed to belong to a crashed/hung worker, so it
+     * is reset to `pending` with its lock cleared for another worker to pick up.
+     * Returns the number of jobs re-enqueued.
+     */
+    private _reapStaleJobs;
     private _handleFailure;
     private _moveToDlq;
 }
