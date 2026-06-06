@@ -272,6 +272,15 @@ export type { PluginInstallerOptions } from './platform/plugins/registry.js';
 // ── HTTP: Edge Runtime ────────────────────────────────────────────────────────
 export { FeatureUnavailableInEdgeRuntimeError } from './http/exceptions.js';
 
+// ── API Versioning ────────────────────────────────────────────────────────────
+export { ApiVersion, Deprecated, enableVersioning, getApiVersion, getDeprecatedMeta } from './versioning/strategy.js';
+export type { VersioningOptions, DeprecatedOptions } from './versioning/strategy.js';
+
+// ── SDK Generator ─────────────────────────────────────────────────────────────
+export { generateTypescriptSdk } from './sdk-gen/typescript.js';
+export type { OpenApiSpec, OpenApiOperation } from './sdk-gen/typescript.js';
+export { generatePythonSdk } from './sdk-gen/python.js';
+
 // ── GraphQL: SDL Schema Parser ────────────────────────────────────────────────
 export { parseSchema, typeRefToString, namedType, SchemaParseError } from './graphql/schema.js';
 export type {
