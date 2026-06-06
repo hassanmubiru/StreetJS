@@ -33,7 +33,19 @@ function makeCtx(opts: {
     req: {} as StreetContext['req'],
     res: {
       statusCode,
+      writableEnded: false,
       setHeader(name: string, value: string) { sentHeaders[name] = value; },
+      writeHead(status: number, headers?: Record<string, string>) {
+        sentStatus = status;
+        if (headers) {
+          for (const [k, v] of Object.entries(headers)) sentHeaders[k] = v;
+        }
+        return this;
+      },
+      end(data?: string) {
+        if (typeof data === 'string') bodyText = data;
+        (this as { writableEnded: boolean }).writableEnded = true;
+      },
     } as unknown as StreetContext['res'],
     path: opts.path ?? '/test',
     method: opts.method ?? 'GET',
