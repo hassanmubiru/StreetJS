@@ -175,7 +175,7 @@
 
 - [ ] 20. v1.4 — WebAuthn / Passkeys
   - [x] 20.1 Create `packages/core/src/auth/webauthn.ts` with `WebAuthnService`; write `street_webauthn_credentials` migration SQL
-  - [-] 20.2 Implement a minimal CBOR decoder in `packages/core/src/auth/cbor.ts` using `node:buffer`; handle the subset of CBOR used in WebAuthn attestation and assertion objects
+  - [x] 20.2 Implement a minimal CBOR decoder in `packages/core/src/auth/cbor.ts` using `node:buffer`; handle the subset of CBOR used in WebAuthn attestation and assertion objects
   - [~] 20.3 Implement `WebAuthnService.beginRegistration(userId)`: generate 16+ byte random challenge; store in session with 60-second expiry; return `PublicKeyCredentialCreationOptions` JSON
   - [~] 20.4 Implement `WebAuthnService.finishRegistration(userId, credential)`: verify challenge from session (check expiry), validate origin and rpId, decode CBOR attestation, store public key and initial `signCount`
   - [~] 20.5 Implement `WebAuthnService.beginAuthentication(userId)`: generate challenge; store in session
