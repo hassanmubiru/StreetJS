@@ -1465,8 +1465,9 @@ describe('WorkflowEngine — step timeout', () => {
         name: 'charge',
         timeoutMs: 20,
         run: () => new Promise<unknown>((resolve) => {
+          // Keep the loop alive (no unref) so the engine's timeout can fire;
+          // cleared at the end of the test.
           hangTimer = setTimeout(() => resolve('charged'), 10_000);
-          hangTimer.unref?.();
         }),
         compensate: async () => { compensated.push('charge'); },
       },
