@@ -282,37 +282,7 @@ export class AwsSecretsManagerProvider implements SecretProvider {
     body: string,
     headers: Record<string, string>,
   ): Promise<{ status: number; body: string }> {
-    return new Promise((resolve, reject) => {
-      const parsed = new URL(url);
-      const bodyBuf = Buffer.from(body, 'utf8');
-
-      const options = {
-        hostname: parsed.hostname,
-        port: parsed.port || 443,
-        path: parsed.pathname,
-        method: 'POST',
-        headers: {
-          ...headers,
-          'Content-Length': String(bodyBuf.length),
-        },
-        rejectUnauthorized: true,
-      };
-
-      const req = httpsRequest(options, (res) => {
-        const chunks: Buffer[] = [];
-        res.on('data', (d: Buffer) => chunks.push(d));
-        res.on('end', () => {
-          resolve({
-            status: res.statusCode ?? 0,
-            body: Buffer.concat(chunks).toString('utf8'),
-          });
-        });
-      });
-
-      req.on('error', reject);
-      req.write(bodyBuf);
-      req.end();
-    });
+    return httpRequestRaw('POST', url, headers, Buffer.from(body, 'utf8'), this._tls);
   }
 
   private async _fetchWithRetry(key: string): Promise<string> {
