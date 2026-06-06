@@ -88,17 +88,20 @@ export class VaultSecretProvider implements SecretProvider {
   private readonly _mountPath: string;
   private readonly _cache = new Map<string, CacheEntry>();
   private readonly _ttlMs: number;
+  private readonly _tls: HttpClientOptions;
 
   constructor(opts: {
     endpoint: string;
     token: string;
     mountPath?: string;
     cacheTtlMs?: number;
+    tls?: HttpClientOptions;
   }) {
     this._endpoint = opts.endpoint.replace(/\/$/, '');
     this._token = opts.token;
     this._mountPath = opts.mountPath ?? 'secret';
     this._ttlMs = opts.cacheTtlMs ?? DEFAULT_CACHE_TTL_MS;
+    this._tls = opts.tls ?? {};
   }
 
   async get(key: string): Promise<string> {
