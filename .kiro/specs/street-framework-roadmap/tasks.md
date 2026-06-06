@@ -179,7 +179,7 @@
   - [x] 20.3 Implement `WebAuthnService.beginRegistration(userId)`: generate 16+ byte random challenge; store in session with 60-second expiry; return `PublicKeyCredentialCreationOptions` JSON
   - [x] 20.4 Implement `WebAuthnService.finishRegistration(userId, credential)`: verify challenge from session (check expiry), validate origin and rpId, decode CBOR attestation, store public key and initial `signCount`
   - [x] 20.5 Implement `WebAuthnService.beginAuthentication(userId)`: generate challenge; store in session
-  - [-] 20.6 Implement `WebAuthnService.finishAuthentication(userId, assertion)`: verify challenge, verify assertion signature against stored public key using `node:crypto`'s `createVerify()`; enforce `signCount > stored` (replay protection); update stored `signCount`
+  - [x] 20.6 Implement `WebAuthnService.finishAuthentication(userId, assertion)`: verify challenge, verify assertion signature against stored public key using `node:crypto`'s `createVerify()`; enforce `signCount > stored` (replay protection); update stored `signCount`
   - [~] 20.7 Write tests: expired challenge returns 400 with `challenge_expired`, signature verification rejects tampered assertion, sign count replay protection, round-trip registration + authentication
 
 - [ ] 21. v1.4 — Session Revocation and Audit Trails
