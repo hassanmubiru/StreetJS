@@ -129,14 +129,14 @@
   - [x] 14.5 Export `HealthCheckRegistry`, `registerHealthRoutes`, `CheckResult` from `packages/core/src/index.ts`
   - [x] 14.6 Write tests: all-up returns 200, one-down returns 503 with body listing the failed check, timed-out check marked `down`, thrown exception caught and marked `down`
 
-- [ ] 15. v1.3 — Request Profiler and Diagnostics Dashboard
+- [x] 15. v1.3 — Request Profiler and Diagnostics Dashboard
   - [x] 15.1 Create `packages/core/src/diagnostics/route-profiler.ts` with `RouteProfiler`: `Map<routeKey, CircularBuffer<LatencySample>>` capped at 10,000 samples per route; `record(method, pattern, latencyNs, isError)` and `stats(method, pattern)` returning `RouteStats` with P50/P95/P99
   - [x] 15.2 Integrate `RouteProfiler` into the `Router.dispatch()` path: record latency after every dispatched request
   - [x] 15.3 Create `packages/core/src/diagnostics/socket-server.ts` with `DiagnosticsServer`: listen on Unix domain socket `/tmp/street-<pid>.sock`; accept connections; push JSON snapshots from `RouteProfiler` and `process.memoryUsage()` every 1 second
   - [x] 15.4 Create `packages/cli/src/commands/diagnostics.ts`: connect to the running process's Unix socket (detect PID from `--pid` flag or environment); render live terminal table with ANSI escape sequences; refresh every 1 second
   - [x] 15.5 Implement stale socket detection in the CLI: check if the PID is alive via `process.kill(pid, 0)`; if not, remove the stale socket file and print a warning
   - [x] 15.6 Ensure `DiagnosticsServer.stop()` removes the socket file and closes all client connections
-  - [-] 15.7 Write tests: ring buffer caps at 10,000 samples, P99 is calculated correctly, socket server sends JSON on connection, stale socket is cleaned up
+  - [x] 15.7 Write tests: ring buffer caps at 10,000 samples, P99 is calculated correctly, socket server sends JSON on connection, stale socket is cleaned up
 
 
 - [ ] 16. v1.4 — OAuth2 and OpenID Connect
