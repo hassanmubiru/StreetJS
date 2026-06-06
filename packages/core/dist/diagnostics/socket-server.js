@@ -5,12 +5,14 @@ import { unlink, access } from 'node:fs/promises';
 export class DiagnosticsServer {
     _socketPath;
     _profiler;
+    _jobQueue;
     _server = null;
     _clients = new Set();
     _pushTimer = null;
     constructor(opts) {
         this._socketPath = opts.socketPath ?? `/tmp/street-${process.pid}.sock`;
         this._profiler = opts.profiler;
+        this._jobQueue = opts.jobQueue ?? null;
     }
     /** Start listening on the Unix domain socket and push snapshots every second. */
     start() {
@@ -21,7 +23,7 @@ export class DiagnosticsServer {
             socket.on('close', () => this._clients.delete(socket));
             socket.on('error', () => this._clients.delete(socket));
             // Send an immediate snapshot when a client connects
-            this._pushSnapshot(socket);
+            void this._pushSnapshot(socket);
         });
         this._server = server;
         server.listen(this._socketPath, () => {
@@ -32,7 +34,7 @@ export class DiagnosticsServer {
         });
         // Push snapshot to all connected clients every second
         this._pushTimer = setInterval(() => {
-            this._broadcastSnapshot();
+            void this._broadcastSnapshot();
         }, 1000);
         this._pushTimer.unref();
     }
@@ -57,15 +59,28 @@ export class DiagnosticsServer {
         unlink(this._socketPath).catch(() => undefined);
     }
     // ── Private helpers ─────────────────────────────────────────────────────────
-    _snapshot() {
+    async _snapshot() {
         const allStats = {};
         for (const [key, stats] of this._profiler.allStats()) {
             allStats[key] = stats;
+        }
+        // Job queue metrics are optional and backward compatible: when no job-metrics
+        // source is configured the `jobs` field is null. Failures to read metrics are
+        // swallowed (jobs: null) so diagnostics never crash the snapshot loop.
+        let jobs = null;
+        if (this._jobQueue) {
+            try {
+                jobs = await this._jobQueue.metrics();
+            }
+            catch {
+                jobs = null;
+            }
         }
         const mem = process.memoryUsage();
         const payload = {
             ts: new Date().toISOString(),
             routes: allStats,
+            jobs,
             memory: {
                 heapUsed: mem.heapUsed,
                 heapTotal: mem.heapTotal,
@@ -75,15 +90,16 @@ export class DiagnosticsServer {
         };
         return JSON.stringify(payload) + '\n';
     }
-    _pushSnapshot(socket) {
+    async _pushSnapshot(socket) {
         try {
+            const snapshot = await this._snapshot();
             if (!socket.destroyed)
-                socket.write(this._snapshot());
+                socket.write(snapshot);
         }
         catch { /* ignore write errors */ }
     }
-    _broadcastSnapshot() {
-        const snapshot = this._snapshot();
+    async _broadcastSnapshot() {
+        const snapshot = await this._snapshot();
         for (const client of this._clients) {
             try {
                 if (!client.destroyed)

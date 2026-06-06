@@ -81,7 +81,7 @@ export { WebAuthnService, decodeCbor, WEBAUTHN_MIGRATION_SQL } from './auth/weba
 export { StreetSessionStore, sessionRevocationMiddleware, AuditWriter, SESSION_STORE_MIGRATION_SQL, AUDIT_LOG_MIGRATION_SQL } from './auth/session-store.js';
 export { auditAuthEvent, auditLoginSuccess, auditLoginFailure, auditLogout, auditTokenRefresh, auditSessionRevoked, auditPermissionDenied, } from './auth/audit-writer.js';
 // ── Jobs: Queue, Scheduler, Workflow ─────────────────────────────────────────
-export { JobQueue, Job, STREET_JOBS_MIGRATION_SQL, STREET_DLQ_MIGRATION_SQL, STREET_JOB_HISTORY_MIGRATION_SQL, } from './jobs/queue.js';
+export { JobQueue, Job, registerJobMetricsRoute, STREET_JOBS_MIGRATION_SQL, STREET_DLQ_MIGRATION_SQL, STREET_JOB_HISTORY_MIGRATION_SQL, } from './jobs/queue.js';
 export { CronScheduler, CronParseError } from './jobs/scheduler.js';
 export { WorkflowEngine, STREET_WORKFLOWS_MIGRATION_SQL, } from './jobs/workflow.js';
 // ── Tenancy ───────────────────────────────────────────────────────────────────
