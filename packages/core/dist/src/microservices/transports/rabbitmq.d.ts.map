@@ -1,1 +1,0 @@
-{"version":3,"file":"rabbitmq.d.ts","sourceRoot":"","sources":["../../../../src/microservices/transports/rabbitmq.ts"],"names":[],"mappings":"AAUA,OAAO,EACL,iBAAiB,EACjB,yBAAyB,EACzB,iBAAiB,EACjB,gBAAgB,EAChB,cAAc,GACf,MAAM,oCAAoC,CAAC;AAC5C,YAAY,EACV,eAAe,EACf,eAAe,EACf,qBAAqB,EACrB,gBAAgB,GACjB,MAAM,oCAAoC,CAAC;AAG5C,OAAO,EAAE,iBAAiB,IAAI,iBAAiB,EAAE,MAAM,oCAAoC,CAAC"}

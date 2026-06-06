@@ -1,1 +1,0 @@
-{"version":3,"file":"http2.d.ts","sourceRoot":"","sources":["../../src/microservices/http2.ts"],"names":[],"mappings":"AAOA,OAAO,KAAK,EAAE,SAAS,EAAE,gBAAgB,EAAE,MAAM,mBAAmB,CAAC;AA6HrE,wBAAgB,cAAc,CAAC,IAAI,GAAE;IACnC,IAAI,CAAC,EAAE,MAAM,CAAC;IACd,GAAG,CAAC,EAAE,MAAM,CAAC;IACb,IAAI,CAAC,EAAE,MAAM,CAAC;CACf,GAAG,gBAAqB,GAAG,SAAS,CAuKpC"}
