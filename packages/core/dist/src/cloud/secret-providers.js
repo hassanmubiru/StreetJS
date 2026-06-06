@@ -10,6 +10,21 @@ import { request as httpsRequest } from 'node:https';
 import { request as httpRequest } from 'node:http';
 import { EventEmitter } from 'node:events';
 const DEFAULT_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+// A fetch error that knows whether retrying could help. 4xx responses (auth,
+// not-found, bad request) are not retried; network errors and 5xx/429 are.
+class SecretFetchError extends Error {
+    retryable;
+    constructor(message, retryable) {
+        super(message);
+        this.retryable = retryable;
+        this.name = 'SecretFetchError';
+    }
+}
+function isRetryable(err) {
+    if (err instanceof SecretFetchError)
+        return err.retryable;
+    return true; // network/transport errors are retryable
+}
 function httpRequestRaw(method, url, extraHeaders, body, tls) {
     return new Promise((resolve, reject) => {
         const parsed = new URL(url);
@@ -90,6 +105,8 @@ export class VaultSecretProvider {
             }
             catch (err) {
                 lastErr = err;
+                if (!isRetryable(err))
+                    break;
                 if (i < delays.length && Date.now() + (delays[i] ?? 0) < deadline) {
                     await new Promise((r) => setTimeout(r, delays[i]));
                 }
@@ -172,7 +189,7 @@ export class AwsSecretsManagerProvider {
             Authorization: authorizationHeader,
         }, Buffer.from(body, 'utf8'), this._tls);
         if (status !== 200) {
-            throw new Error(`AwsSecretsManagerProvider: HTTP ${status} for secret "${secretId}". Body: [REDACTED]`);
+            throw new SecretFetchError(`AwsSecretsManagerProvider: HTTP ${status} for secret "${secretId}". Body: [REDACTED]`, status >= 500 || status === 429);
         }
         const parsed = JSON.parse(respBody);
         const value = parsed.SecretString;
@@ -197,6 +214,8 @@ export class AwsSecretsManagerProvider {
             }
             catch (err) {
                 lastErr = err;
+                if (!isRetryable(err))
+                    break;
                 if (i < delays.length && Date.now() + (delays[i] ?? 0) < deadline) {
                     await new Promise((r) => setTimeout(r, delays[i]));
                 }
@@ -242,7 +261,7 @@ export class GcpSecretManagerProvider {
             'Content-Type': 'application/json',
         }, this._tls);
         if (status !== 200) {
-            throw new Error(`GcpSecretManagerProvider: HTTP ${status} for secret "${secretName}". Body: [REDACTED]`);
+            throw new SecretFetchError(`GcpSecretManagerProvider: HTTP ${status} for secret "${secretName}". Body: [REDACTED]`, status >= 500 || status === 429);
         }
         const parsed = JSON.parse(body);
         const encoded = parsed.payload?.data;
@@ -288,6 +307,8 @@ export class GcpSecretManagerProvider {
             }
             catch (err) {
                 lastErr = err;
+                if (!isRetryable(err))
+                    break;
                 if (i < delays.length && Date.now() + (delays[i] ?? 0) < deadline) {
                     await new Promise((r) => setTimeout(r, delays[i]));
                 }
@@ -351,7 +372,7 @@ export class AzureKeyVaultProvider {
         const url = `${this._vaultUrl}/secrets/${encodeURIComponent(name)}?api-version=${this._apiVersion}`;
         const { status, body } = await httpsGet(url, { Authorization: `Bearer ${token}` }, this._tls);
         if (status !== 200) {
-            throw new Error(`AzureKeyVaultProvider: HTTP ${status} for secret "${name}". Value: [REDACTED]`);
+            throw new SecretFetchError(`AzureKeyVaultProvider: HTTP ${status} for secret "${name}". Value: [REDACTED]`, status >= 500 || status === 429);
         }
         const parsed = JSON.parse(body);
         if (parsed.value === undefined) {
@@ -369,6 +390,8 @@ export class AzureKeyVaultProvider {
             }
             catch (err) {
                 lastErr = err;
+                if (!isRetryable(err))
+                    break;
                 if (i < delays.length && Date.now() + (delays[i] ?? 0) < deadline) {
                     await new Promise((r) => setTimeout(r, delays[i]));
                 }
