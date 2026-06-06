@@ -9,6 +9,17 @@ export interface WorkflowStep {
     compensate?(output: unknown, ctx: WorkflowContext): Promise<void>;
     timeoutMs?: number;
 }
+/**
+ * Raised when a step exceeds its configured `timeoutMs`. Carrying a dedicated
+ * error type lets `resume()` distinguish a timeout (workflow status
+ * `timed_out`) from an ordinary step failure (status `failed`), while still
+ * triggering Saga compensation in both cases.
+ */
+export declare class WorkflowStepTimeoutError extends Error {
+    readonly stepName: string;
+    readonly timeoutMs: number;
+    constructor(stepName: string, timeoutMs: number);
+}
 export declare class WorkflowEngine {
     private readonly pool;
     private readonly definitions;

@@ -15,6 +15,22 @@ CREATE TABLE IF NOT EXISTS street_workflows (
 );
 CREATE INDEX IF NOT EXISTS street_workflows_name_status ON street_workflows (name, status);
 `;
+/**
+ * Raised when a step exceeds its configured `timeoutMs`. Carrying a dedicated
+ * error type lets `resume()` distinguish a timeout (workflow status
+ * `timed_out`) from an ordinary step failure (status `failed`), while still
+ * triggering Saga compensation in both cases.
+ */
+export class WorkflowStepTimeoutError extends Error {
+    stepName;
+    timeoutMs;
+    constructor(stepName, timeoutMs) {
+        super(`Step "${stepName}" timed out after ${timeoutMs}ms`);
+        this.name = 'WorkflowStepTimeoutError';
+        this.stepName = stepName;
+        this.timeoutMs = timeoutMs;
+    }
+}
 // ── WorkflowEngine ────────────────────────────────────────────────────────────
 export class WorkflowEngine {
     pool;
@@ -106,8 +122,11 @@ export class WorkflowEngine {
                 }
                 catch (err) {
                     const errorMsg = err instanceof Error ? err.message : String(err);
-                    // Mark workflow as failed
-                    await this.pool.query(`UPDATE street_workflows SET status='failed', error=$1, updated_at=NOW() WHERE id=$2`, [errorMsg, workflowId]);
+                    // A timeout is a distinct terminal state from an ordinary failure:
+                    // mark the workflow `timed_out` (Requirement 24.5) rather than `failed`,
+                    // but still run Saga compensation for the steps completed so far.
+                    const status = err instanceof WorkflowStepTimeoutError ? 'timed_out' : 'failed';
+                    await this.pool.query(`UPDATE street_workflows SET status=$1, error=$2, updated_at=NOW() WHERE id=$3`, [status, errorMsg, workflowId]);
                     // Saga compensation: run compensate() for completed steps in reverse
                     await this._compensate(completedSteps, ctx);
                     return;
@@ -125,10 +144,23 @@ export class WorkflowEngine {
         if (!step.timeoutMs) {
             return step.run(input, ctx);
         }
-        return Promise.race([
-            step.run(input, ctx),
-            new Promise((_, reject) => setTimeout(() => reject(new Error(`Step "${step.name}" timed out after ${step.timeoutMs}ms`)), step.timeoutMs).unref?.()),
-        ]);
+        const timeoutMs = step.timeoutMs;
+        let timer;
+        try {
+            return await Promise.race([
+                step.run(input, ctx),
+                new Promise((_, reject) => {
+                    timer = setTimeout(() => reject(new WorkflowStepTimeoutError(step.name, timeoutMs)), timeoutMs);
+                    // Don't keep the event loop alive solely for this timer.
+                    timer.unref?.();
+                }),
+            ]);
+        }
+        finally {
+            // Clear the timer if the step settled first, preventing a leaked timer.
+            if (timer)
+                clearTimeout(timer);
+        }
     }
     async _compensate(completedSteps, ctx) {
         // Run in reverse order

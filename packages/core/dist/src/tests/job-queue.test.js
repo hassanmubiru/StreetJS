@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
 import 'reflect-metadata';
 import { JobQueue, Job, STREET_JOBS_MIGRATION_SQL, STREET_DLQ_MIGRATION_SQL, } from '../jobs/queue.js';
 import { CronScheduler, CronParseError } from '../jobs/scheduler.js';
-import { STREET_WORKFLOWS_MIGRATION_SQL, WorkflowEngine, } from '../jobs/workflow.js';
+import { STREET_WORKFLOWS_MIGRATION_SQL, WorkflowEngine, WorkflowStepTimeoutError, } from '../jobs/workflow.js';
 // ── Tests: Migration SQL ──────────────────────────────────────────────────────
 describe('JobQueue — Migration SQL', () => {
     it('STREET_JOBS_MIGRATION_SQL creates the street_jobs table with all required columns', () => {
@@ -980,6 +980,16 @@ function makeWorkflowPool(opts = {}) {
                 }
                 return { rows: [], rowCount: 1, command: 'UPDATE' };
             }
+            // UPDATE ... SET status=$1, error=$2 ... WHERE id=$3
+            // (parameterized terminal status: 'failed' or 'timed_out')
+            if (sql.includes('UPDATE street_workflows SET status=$1, error=$2')) {
+                const wf = workflows.get(args[2]);
+                if (wf) {
+                    wf.status = args[0];
+                    wf.error = args[1];
+                }
+                return { rows: [], rowCount: 1, command: 'UPDATE' };
+            }
             return { rows: [], rowCount: 0, command: 'SELECT' };
         },
         async transaction(fn) {
@@ -1086,6 +1096,132 @@ describe('WorkflowEngine — resume skips already-recorded steps', () => {
         ]);
         await engine.resume('wf-done');
         assert.deepEqual(ran, [], 'No steps should run for a completed workflow');
+    });
+});
+// ── Tests: WorkflowEngine step timeout (Requirement 24.5) ─────────────────────
+describe('WorkflowEngine — step timeout', () => {
+    it('marks the workflow timed_out (not failed) and runs compensation for completed steps when a step hangs past its timeoutMs', async () => {
+        const pool = makeWorkflowPool();
+        const engine = new WorkflowEngine(pool);
+        const compensated = [];
+        let hangTimer;
+        const steps = [
+            {
+                name: 'reserve',
+                run: async () => 'reserved',
+                compensate: async () => { compensated.push('reserve'); },
+            },
+            {
+                // This step never resolves on its own — it must be cut off by timeoutMs.
+                name: 'charge',
+                timeoutMs: 20,
+                run: () => new Promise((resolve) => {
+                    // Keep the loop alive (no unref) so the engine's timeout can fire;
+                    // cleared at the end of the test.
+                    hangTimer = setTimeout(() => resolve('charged'), 10_000);
+                }),
+                compensate: async () => { compensated.push('charge'); },
+            },
+        ];
+        engine.define('payment', steps);
+        const id = await engine.start('payment', null);
+        const wf = pool.workflows.get(id);
+        assert.equal(wf.status, 'timed_out', 'Hung step should leave the workflow in timed_out state');
+        assert.match(wf.error ?? '', /timed out after 20ms/, 'Error should record the timeout');
+        // Saga compensation runs in reverse for steps completed before the timeout.
+        // 'charge' never completed, so only 'reserve' is compensated.
+        assert.deepEqual(compensated, ['reserve'], 'Completed step should be compensated on timeout');
+        if (hangTimer)
+            clearTimeout(hangTimer);
+    });
+    it('keeps status failed (not timed_out) for an ordinary step error', async () => {
+        const pool = makeWorkflowPool();
+        const engine = new WorkflowEngine(pool);
+        const compensated = [];
+        const steps = [
+            {
+                name: 'reserve',
+                run: async () => 'reserved',
+                compensate: async () => { compensated.push('reserve'); },
+            },
+            {
+                name: 'charge',
+                timeoutMs: 1_000, // generous timeout — the step rejects well before it
+                run: async () => { throw new Error('card declined'); },
+                compensate: async () => { compensated.push('charge'); },
+            },
+        ];
+        engine.define('payment', steps);
+        const id = await engine.start('payment', null);
+        const wf = pool.workflows.get(id);
+        assert.equal(wf.status, 'failed', 'A thrown error should mark the workflow failed, not timed_out');
+        assert.equal(wf.error, 'card declined', 'Error message should be recorded');
+        assert.deepEqual(compensated, ['reserve'], 'Completed step should still be compensated on failure');
+    });
+    it('WorkflowStepTimeoutError carries the step name and timeout duration', () => {
+        const err = new WorkflowStepTimeoutError('charge', 20);
+        assert.ok(err instanceof Error);
+        assert.equal(err.stepName, 'charge');
+        assert.equal(err.timeoutMs, 20);
+        assert.match(err.message, /Step "charge" timed out after 20ms/);
+    });
+});
+// ── Tests: WorkflowEngine Saga compensation (Requirement 24.3) ────────────────
+describe('WorkflowEngine — Saga compensation', () => {
+    it('runs compensate() for completed steps in reverse order when a later step fails', async () => {
+        const pool = makeWorkflowPool();
+        const engine = new WorkflowEngine(pool);
+        const compensated = [];
+        const steps = [
+            { name: 'reserve', run: async () => 'reserved', compensate: async () => { compensated.push('reserve'); } },
+            { name: 'charge', run: async () => 'charged', compensate: async () => { compensated.push('charge'); } },
+            { name: 'ship', run: async () => 'shipped', compensate: async () => { compensated.push('ship'); } },
+            // The final step fails after three steps have completed.
+            { name: 'notify', run: async () => { throw new Error('notify failed'); }, compensate: async () => { compensated.push('notify'); } },
+        ];
+        engine.define('order', steps);
+        const id = await engine.start('order', null);
+        const wf = pool.workflows.get(id);
+        assert.equal(wf.status, 'failed', 'Workflow should be marked failed when a step throws');
+        assert.equal(wf.error, 'notify failed', 'Failure error should be recorded');
+        // 'notify' never completed (it threw), so only the three completed steps are
+        // compensated, and strictly in reverse completion order.
+        assert.deepEqual(compensated, ['ship', 'charge', 'reserve'], 'Completed steps must be compensated in reverse order');
+    });
+    it('continues compensating remaining steps even if one compensation throws (errors logged, not re-thrown)', async () => {
+        const pool = makeWorkflowPool();
+        const engine = new WorkflowEngine(pool);
+        const compensated = [];
+        // Capture stderr so we can assert the failing compensation is logged rather
+        // than propagated (which would abort the remaining rollback).
+        const stderrLines = [];
+        const originalWrite = process.stderr.write.bind(process.stderr);
+        process.stderr.write = ((chunk) => {
+            stderrLines.push(String(chunk));
+            return true;
+        });
+        try {
+            const steps = [
+                { name: 'reserve', run: async () => 'reserved', compensate: async () => { compensated.push('reserve'); } },
+                // This middle compensation throws; it must not stop 'reserve' from compensating.
+                { name: 'charge', run: async () => 'charged', compensate: async () => { compensated.push('charge'); throw new Error('refund failed'); } },
+                { name: 'ship', run: async () => { throw new Error('ship failed'); }, compensate: async () => { compensated.push('ship'); } },
+            ];
+            engine.define('order', steps);
+            // resume() must resolve (not reject) despite the compensation error.
+            const id = await engine.start('order', null);
+            const wf = pool.workflows.get(id);
+            assert.equal(wf.status, 'failed', 'Workflow should be failed after the step error');
+            assert.equal(wf.error, 'ship failed', 'Original step failure should be recorded');
+            // 'ship' threw so it is not compensated; 'charge' compensates (and throws),
+            // and 'reserve' still compensates afterwards — proving the loop is not aborted.
+            assert.deepEqual(compensated, ['charge', 'reserve'], 'A throwing compensation must not prevent remaining compensations from running');
+            // The compensation error is surfaced via stderr rather than re-thrown.
+            assert.ok(stderrLines.some((line) => line.includes('Compensation error') && line.includes('charge') && line.includes('refund failed')), 'Compensation error should be logged to stderr');
+        }
+        finally {
+            process.stderr.write = originalWrite;
+        }
     });
 });
 //# sourceMappingURL=job-queue.test.js.map
