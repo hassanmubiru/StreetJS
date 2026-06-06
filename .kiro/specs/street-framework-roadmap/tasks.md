@@ -398,7 +398,7 @@ Status markers used in this plan:
   - [~] 44.3 Integrate `@Classify(level)` with `Logger`: when a log entry includes entity fields, check their classification level against `LOG_CLASSIFICATION_THRESHOLD` env var; redact fields above the threshold
   - [x] 44.4 Create `RetentionJob` class: read all entity `@RetainFor` metadata, generate `DELETE FROM <table> WHERE created_at < NOW() - INTERVAL $1` queries, execute in batches of configurable size (default 1,000 rows)
   - [x] 44.5 Create `ComplianceReporter.report(entities)`: iterate entity decorator metadata, produce `ComplianceReport[]` with field name, classification level, encrypted status, and retention period
-  - [ ] 44.6 Add `street compliance:report` CLI command: call `ComplianceReporter.report()`, print formatted table
+  - [x] 44.6 Add `street compliance:report` CLI command: call `ComplianceReporter.report()`, print formatted table
   - [x] 44.7 Write tests: encrypted fields round-trip (encrypt on write, decrypt on read), classified fields redacted in logs, retention job deletes rows older than period, compliance report lists all annotated fields
 
 - [~] 45. v2.2 — Backup Framework and Disaster Recovery
