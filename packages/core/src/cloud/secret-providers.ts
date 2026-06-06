@@ -420,3 +420,168 @@ export class GcpSecretManagerProvider implements SecretProvider {
     throw lastErr ?? new Error(`GcpSecretManagerProvider: failed to fetch key "${key}"`);
   }
 }
+
+// ── AzureKeyVaultProvider ─────────────────────────────────────────────────────
+
+/**
+ * Azure Key Vault secret provider. Retrieves secrets from
+ * `GET {vaultUrl}/secrets/{name}?api-version=<v>` with an OAuth2 bearer token.
+ *
+ * The access token is obtained either directly (`accessToken`) or lazily via a
+ * `tokenProvider` callback (e.g. wrapping the Azure IMDS managed-identity
+ * endpoint or a client-credentials flow). Tokens from the callback are cached
+ * until shortly before their `expiresAt`.
+ */
+export class AzureKeyVaultProvider implements SecretProvider {
+  private readonly _vaultUrl: string;
+  private readonly _apiVersion: string;
+  private readonly _staticToken: string | undefined;
+  private readonly _tokenProvider: (() => Promise<{ token: string; expiresAt: number }>) | undefined;
+  private _cachedToken: { token: string; expiresAt: number } | null = null;
+  private readonly _cache = new Map<string, CacheEntry>();
+  private readonly _ttlMs: number;
+  private readonly _tls: HttpClientOptions;
+
+  constructor(opts: {
+    vaultUrl: string;
+    accessToken?: string;
+    tokenProvider?: () => Promise<{ token: string; expiresAt: number }>;
+    apiVersion?: string;
+    cacheTtlMs?: number;
+    tls?: HttpClientOptions;
+  }) {
+    if (!opts.accessToken && !opts.tokenProvider) {
+      throw new Error('AzureKeyVaultProvider: provide either accessToken or tokenProvider');
+    }
+    this._vaultUrl = opts.vaultUrl.replace(/\/$/, '');
+    this._apiVersion = opts.apiVersion ?? '7.4';
+    this._staticToken = opts.accessToken;
+    this._tokenProvider = opts.tokenProvider;
+    this._ttlMs = opts.cacheTtlMs ?? DEFAULT_CACHE_TTL_MS;
+    this._tls = opts.tls ?? {};
+  }
+
+  async get(key: string): Promise<string> {
+    const cached = this._cache.get(key);
+    if (cached && Date.now() < cached.expiresAt) return cached.value;
+    const value = await this._fetchWithRetry(key);
+    this._cache.set(key, { value, expiresAt: Date.now() + this._ttlMs });
+    return value;
+  }
+
+  private async _token(): Promise<string> {
+    if (this._staticToken) return this._staticToken;
+    if (this._cachedToken && Date.now() < this._cachedToken.expiresAt - 30_000) {
+      return this._cachedToken.token;
+    }
+    this._cachedToken = await this._tokenProvider!();
+    return this._cachedToken.token;
+  }
+
+  private async _fetchSecret(name: string): Promise<string> {
+    const token = await this._token();
+    const url = `${this._vaultUrl}/secrets/${encodeURIComponent(name)}?api-version=${this._apiVersion}`;
+    const { status, body } = await httpsGet(url, { Authorization: `Bearer ${token}` }, this._tls);
+    if (status !== 200) {
+      throw new Error(`AzureKeyVaultProvider: HTTP ${status} for secret "${name}". Value: [REDACTED]`);
+    }
+    const parsed = JSON.parse(body) as { value?: string };
+    if (parsed.value === undefined) {
+      throw new Error(`AzureKeyVaultProvider: no "value" field for secret "${name}"`);
+    }
+    return parsed.value;
+  }
+
+  private async _fetchWithRetry(key: string): Promise<string> {
+    const delays = [1000, 2000, 4000, 8000, 10000];
+    const deadline = Date.now() + 60_000;
+    let lastErr: Error | undefined;
+    for (let i = 0; i <= delays.length; i++) {
+      try {
+        return await this._fetchSecret(key);
+      } catch (err) {
+        lastErr = err as Error;
+        if (i < delays.length && Date.now() + (delays[i] ?? 0) < deadline) {
+          await new Promise((r) => setTimeout(r, delays[i]));
+        } else {
+          break;
+        }
+      }
+    }
+    throw lastErr ?? new Error(`AzureKeyVaultProvider: failed to fetch key "${key}"`);
+  }
+}
+
+// ── SecretRotationManager ─────────────────────────────────────────────────────
+
+export interface RotationOptions {
+  /** How often to re-fetch and check for a changed value, in ms. */
+  intervalMs: number;
+  /** Optional callback invoked with the new value whenever rotation is detected. */
+  onRotate?: (newValue: string, oldValue: string | null) => void | Promise<void>;
+}
+
+/**
+ * Watches a single secret for rotation. On a timer it re-fetches the key from
+ * the underlying `SecretProvider`; when the value changes it emits a `rotate`
+ * event (`{ key, newValue, oldValue }`) and invokes the optional `onRotate`
+ * callback. This is the seam used to recycle a `PgPool`'s connections when a DB
+ * password rotates — pass an `onRotate` that calls `pool.recycle()`.
+ *
+ * Errors during a refresh are emitted as `error` events and do not stop the
+ * watch loop. The interval timer is `unref()`-ed so it never blocks process
+ * exit; call `stop()` for a clean shutdown.
+ */
+export class SecretRotationManager extends EventEmitter {
+  private timer: NodeJS.Timeout | null = null;
+  private current: string | null = null;
+  private stopped = false;
+
+  constructor(
+    private readonly provider: SecretProvider,
+    private readonly key: string,
+    private readonly opts: RotationOptions,
+  ) {
+    super();
+  }
+
+  /** Fetch the initial value and begin watching for rotation. */
+  async start(): Promise<string> {
+    this.current = await this.provider.get(this.key);
+    this.stopped = false;
+    this.timer = setInterval(() => { void this._tick(); }, this.opts.intervalMs);
+    this.timer.unref();
+    return this.current;
+  }
+
+  /** The most recently observed value (null before start()). */
+  get value(): string | null {
+    return this.current;
+  }
+
+  private async _tick(): Promise<void> {
+    if (this.stopped) return;
+    try {
+      const next = await this.provider.get(this.key);
+      if (next !== this.current) {
+        const old = this.current;
+        this.current = next;
+        this.emit('rotate', { key: this.key, newValue: next, oldValue: old });
+        if (this.opts.onRotate) await this.opts.onRotate(next, old);
+      }
+    } catch (err) {
+      this.emit('error', err instanceof Error ? err : new Error(String(err)));
+    }
+  }
+
+  /** Force an immediate rotation check (used by tests and on-demand refresh). */
+  async checkNow(): Promise<void> {
+    await this._tick();
+  }
+
+  /** Stop watching and clear the timer. */
+  stop(): void {
+    this.stopped = true;
+    if (this.timer) { clearInterval(this.timer); this.timer = null; }
+  }
+}
