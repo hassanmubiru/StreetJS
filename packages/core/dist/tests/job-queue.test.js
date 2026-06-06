@@ -1166,4 +1166,62 @@ describe('WorkflowEngine — step timeout', () => {
         assert.match(err.message, /Step "charge" timed out after 20ms/);
     });
 });
+// ── Tests: WorkflowEngine Saga compensation (Requirement 24.3) ────────────────
+describe('WorkflowEngine — Saga compensation', () => {
+    it('runs compensate() for completed steps in reverse order when a later step fails', async () => {
+        const pool = makeWorkflowPool();
+        const engine = new WorkflowEngine(pool);
+        const compensated = [];
+        const steps = [
+            { name: 'reserve', run: async () => 'reserved', compensate: async () => { compensated.push('reserve'); } },
+            { name: 'charge', run: async () => 'charged', compensate: async () => { compensated.push('charge'); } },
+            { name: 'ship', run: async () => 'shipped', compensate: async () => { compensated.push('ship'); } },
+            // The final step fails after three steps have completed.
+            { name: 'notify', run: async () => { throw new Error('notify failed'); }, compensate: async () => { compensated.push('notify'); } },
+        ];
+        engine.define('order', steps);
+        const id = await engine.start('order', null);
+        const wf = pool.workflows.get(id);
+        assert.equal(wf.status, 'failed', 'Workflow should be marked failed when a step throws');
+        assert.equal(wf.error, 'notify failed', 'Failure error should be recorded');
+        // 'notify' never completed (it threw), so only the three completed steps are
+        // compensated, and strictly in reverse completion order.
+        assert.deepEqual(compensated, ['ship', 'charge', 'reserve'], 'Completed steps must be compensated in reverse order');
+    });
+    it('continues compensating remaining steps even if one compensation throws (errors logged, not re-thrown)', async () => {
+        const pool = makeWorkflowPool();
+        const engine = new WorkflowEngine(pool);
+        const compensated = [];
+        // Capture stderr so we can assert the failing compensation is logged rather
+        // than propagated (which would abort the remaining rollback).
+        const stderrLines = [];
+        const originalWrite = process.stderr.write.bind(process.stderr);
+        process.stderr.write = ((chunk) => {
+            stderrLines.push(String(chunk));
+            return true;
+        });
+        try {
+            const steps = [
+                { name: 'reserve', run: async () => 'reserved', compensate: async () => { compensated.push('reserve'); } },
+                // This middle compensation throws; it must not stop 'reserve' from compensating.
+                { name: 'charge', run: async () => 'charged', compensate: async () => { compensated.push('charge'); throw new Error('refund failed'); } },
+                { name: 'ship', run: async () => { throw new Error('ship failed'); }, compensate: async () => { compensated.push('ship'); } },
+            ];
+            engine.define('order', steps);
+            // resume() must resolve (not reject) despite the compensation error.
+            const id = await engine.start('order', null);
+            const wf = pool.workflows.get(id);
+            assert.equal(wf.status, 'failed', 'Workflow should be failed after the step error');
+            assert.equal(wf.error, 'ship failed', 'Original step failure should be recorded');
+            // 'ship' threw so it is not compensated; 'charge' compensates (and throws),
+            // and 'reserve' still compensates afterwards — proving the loop is not aborted.
+            assert.deepEqual(compensated, ['charge', 'reserve'], 'A throwing compensation must not prevent remaining compensations from running');
+            // The compensation error is surfaced via stderr rather than re-thrown.
+            assert.ok(stderrLines.some((line) => line.includes('Compensation error') && line.includes('charge') && line.includes('refund failed')), 'Compensation error should be logged to stderr');
+        }
+        finally {
+            process.stderr.write = originalWrite;
+        }
+    });
+});
 //# sourceMappingURL=job-queue.test.js.map
