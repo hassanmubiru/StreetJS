@@ -372,4 +372,110 @@ describe('@RateLimit decorator', () => {
         assert.equal(meta.key, 'ip');
     });
 });
+// ── RESP codec (Redis transport protocol) ─────────────────────────────────────
+import { encodeCommand, RespParser } from '../transports/resp.js';
+describe('RESP codec', () => {
+    it('encodeCommand produces a RESP2 array of bulk strings', () => {
+        const buf = encodeCommand(['SET', 'k', 'v']);
+        assert.equal(buf.toString('utf8'), '*3\r\n$3\r\nSET\r\n$1\r\nk\r\n$1\r\nv\r\n');
+    });
+    it('RespParser parses simple strings, integers, bulk strings, and arrays', () => {
+        const p = new RespParser();
+        p.push(Buffer.from('+OK\r\n:42\r\n$5\r\nhello\r\n*2\r\n$3\r\nfoo\r\n$3\r\nbar\r\n', 'utf8'));
+        assert.equal(p.parse(), 'OK');
+        assert.equal(p.parse(), 42);
+        assert.equal(p.parse(), 'hello');
+        assert.deepEqual(p.parse(), ['foo', 'bar']);
+        assert.equal(p.parse(), undefined);
+    });
+    it('RespParser waits for incomplete frames', () => {
+        const p = new RespParser();
+        p.push(Buffer.from('$5\r\nhel', 'utf8'));
+        assert.equal(p.parse(), undefined);
+        p.push(Buffer.from('lo\r\n', 'utf8'));
+        assert.equal(p.parse(), 'hello');
+    });
+});
+// ── AWS SigV4 signing ─────────────────────────────────────────────────────────
+import { signAwsV4 } from '../enterprise/storage-adapters.js';
+describe('AWS SigV4 signing', () => {
+    it('produces a deterministic Authorization header for fixed inputs', () => {
+        const headers = signAwsV4({
+            method: 'GET', host: 'examplebucket.s3.us-east-1.amazonaws.com', path: '/test.txt',
+            region: 'us-east-1', service: 's3',
+            accessKeyId: 'AKIDEXAMPLE', secretAccessKey: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
+            payloadHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+            now: new Date('2013-05-24T00:00:00Z'),
+        });
+        assert.match(headers['authorization'], /^AWS4-HMAC-SHA256 Credential=AKIDEXAMPLE\/20130524\/us-east-1\/s3\/aws4_request/);
+        assert.match(headers['authorization'], /SignedHeaders=host;x-amz-content-sha256;x-amz-date/);
+        assert.match(headers['authorization'], /Signature=[0-9a-f]{64}$/);
+        // Determinism: same inputs → same signature
+        const again = signAwsV4({
+            method: 'GET', host: 'examplebucket.s3.us-east-1.amazonaws.com', path: '/test.txt',
+            region: 'us-east-1', service: 's3',
+            accessKeyId: 'AKIDEXAMPLE', secretAccessKey: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
+            payloadHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+            now: new Date('2013-05-24T00:00:00Z'),
+        });
+        assert.equal(headers['authorization'], again['authorization']);
+    });
+});
+// ── Versioning guard + per-version OpenAPI ────────────────────────────────────
+import { versionGuard, filterOpenApiByVersion, registerVersionedOpenApi } from '../versioning/strategy.js';
+describe('Versioning guard + per-version OpenAPI', () => {
+    it('versionGuard returns 404 with available versions for unknown version', async () => {
+        const mws = [];
+        versionGuard({ use: (mw) => mws.push(mw) }, ['v1', 'v2']);
+        const mw = mws[0];
+        let body = null;
+        let status = 0;
+        await mw({ method: 'GET', path: '/v9/users', json: (d, s = 200) => { body = d; status = s; } }, async () => { });
+        assert.equal(status, 404);
+        assert.deepEqual(body, { error: 'version_not_found', available: ['v1', 'v2'] });
+        // Known version passes through
+        let passed = false;
+        await mw({ method: 'GET', path: '/v1/users', json: () => { } }, async () => { passed = true; });
+        assert.equal(passed, true);
+    });
+    it('filterOpenApiByVersion keeps only matching paths', () => {
+        const spec = { openapi: '3.1.0', paths: { '/v1/users': {}, '/v2/users': {} } };
+        const v1 = filterOpenApiByVersion(spec, 'v1');
+        assert.deepEqual(Object.keys(v1.paths), ['/v1/users']);
+    });
+    it('registerVersionedOpenApi serves a filtered spec per version', async () => {
+        const mws = [];
+        registerVersionedOpenApi({ use: (mw) => mws.push(mw) }, ['v1'], () => ({ paths: { '/v1/a': {}, '/v2/b': {} } }));
+        let body = null;
+        await mws[0]({ method: 'GET', path: '/v1/openapi.json', json: (d) => { body = d; } }, async () => { });
+        assert.ok(body);
+        assert.deepEqual(Object.keys(body.paths), ['/v1/a']);
+    });
+});
+// ── Tenant admin route + billing adapter ──────────────────────────────────────
+import { TenantServiceImpl, registerTenantMetricsRoute } from '../tenancy/provisioner.js';
+import { InMemoryBillingAdapter } from '../tenancy/billing.js';
+describe('Tenant metrics admin route + billing', () => {
+    it('admin route enforces role and returns quota status', async () => {
+        const fakePool = { async query() { return { rows: [], rowCount: 0, command: 'SELECT' }; } };
+        const svc = new TenantServiceImpl(fakePool, { maxRequestsPerDay: 1000 });
+        const mws = [];
+        registerTenantMetricsRoute({ use: (mw) => mws.push(mw) }, svc, { quotaKeys: ['maxRequestsPerDay'] });
+        const mw = mws[0];
+        let status = 0;
+        await mw({ method: 'GET', path: '/admin/tenants/t1/metrics', user: { roles: ['user'] }, json: (_d, s = 200) => { status = s; } }, async () => { });
+        assert.equal(status, 403);
+        let body = null;
+        await mw({ method: 'GET', path: '/admin/tenants/t1/metrics', user: { roles: ['admin'] }, json: (d) => { body = d; } }, async () => { });
+        assert.equal(body.tenantId, 't1');
+        assert.ok('maxRequestsPerDay' in body.quotas);
+    });
+    it('InMemoryBillingAdapter records reported usage', async () => {
+        const adapter = new InMemoryBillingAdapter();
+        const period = { start: new Date(0), end: new Date() };
+        await adapter.reportUsage('t1', period, { apiCalls: 42 });
+        assert.equal(adapter.reports.length, 1);
+        assert.equal(adapter.reports[0].metrics['apiCalls'], 42);
+    });
+});
 //# sourceMappingURL=roadmap-completion.test.js.map

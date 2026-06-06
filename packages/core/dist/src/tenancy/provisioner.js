@@ -98,4 +98,30 @@ export function QuotaEnforcer(service, quotaKey, onWarning) {
         await next();
     };
 }
+/**
+ * Register `GET /admin/tenants/:id/metrics` returning the current usage and
+ * quota status for a tenant. Protected by the configured admin role.
+ */
+export function registerTenantMetricsRoute(app, service, opts = {}) {
+    const adminRole = opts.adminRole ?? 'admin';
+    const quotaKeys = opts.quotaKeys ?? [];
+    const re = /^\/admin\/tenants\/([^/]+)\/metrics$/;
+    app.use(async (ctx, next) => {
+        const m = ctx.method === 'GET' ? re.exec(ctx.path) : null;
+        if (!m) {
+            await next();
+            return;
+        }
+        if (!ctx.user || !ctx.user.roles.includes(adminRole)) {
+            ctx.json({ error: 'Forbidden', required: [adminRole] }, 403);
+            return;
+        }
+        const tenantId = decodeURIComponent(m[1]);
+        const quotas = {};
+        for (const key of quotaKeys) {
+            quotas[key] = await service.checkQuota(tenantId, key);
+        }
+        ctx.json({ tenantId, quotas });
+    });
+}
 //# sourceMappingURL=provisioner.js.map

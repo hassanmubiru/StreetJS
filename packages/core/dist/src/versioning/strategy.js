@@ -107,4 +107,51 @@ export function enableVersioning(app, opts) {
     };
     app.use(mw);
 }
+/**
+ * Reject requests that target an unknown version prefix (e.g. `/v9/...` when
+ * only v1/v2 exist) with HTTP 404 and the list of available versions.
+ * Requests whose first segment is not a version prefix pass through untouched.
+ */
+export function versionGuard(app, knownVersions) {
+    const known = new Set(knownVersions.map((v) => v.toLowerCase()));
+    app.use(async (ctx, next) => {
+        const m = /^\/(v\d+)(?:\/|$)/i.exec(ctx.path);
+        if (m && !known.has(m[1].toLowerCase())) {
+            ctx.json({ error: 'version_not_found', available: knownVersions }, 404);
+            return;
+        }
+        await next();
+    });
+}
+/**
+ * Filter a full OpenAPI document down to the paths belonging to a single
+ * version prefix (e.g. `v1` keeps only `/v1/...` paths).
+ */
+export function filterOpenApiByVersion(spec, version) {
+    const prefix = `/${version.replace(/^\//, '')}/`;
+    const s = spec;
+    const filtered = {};
+    for (const [path, item] of Object.entries(s.paths ?? {})) {
+        if (path.startsWith(prefix) || path === `/${version}`)
+            filtered[path] = item;
+    }
+    return { ...s, paths: filtered };
+}
+/**
+ * Register `GET /<version>/openapi.json` for each version, serving a spec
+ * filtered to that version's routes. `specFn` returns the full OpenAPI doc.
+ */
+export function registerVersionedOpenApi(app, versions, specFn) {
+    app.use(async (ctx, next) => {
+        if (ctx.method === 'GET') {
+            for (const version of versions) {
+                if (ctx.path === `/${version}/openapi.json`) {
+                    ctx.json(filterOpenApiByVersion(specFn(), version));
+                    return;
+                }
+            }
+        }
+        await next();
+    });
+}
 //# sourceMappingURL=strategy.js.map

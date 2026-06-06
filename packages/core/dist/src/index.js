@@ -89,13 +89,15 @@ export { WorkflowEngine, STREET_WORKFLOWS_MIGRATION_SQL, } from './jobs/workflow
 export { tenantMiddleware, TENANTS_MIGRATION_SQL } from './tenancy/context.js';
 export { TenantPoolRegistry } from './tenancy/pool-registry.js';
 export { TenantScopedRepository, TenantScoped } from './tenancy/tenant-scoped.js';
-export { TenantServiceImpl, QuotaEnforcer, TENANT_USAGE_MIGRATION_SQL } from './tenancy/provisioner.js';
+export { TenantServiceImpl, QuotaEnforcer, registerTenantMetricsRoute, TENANT_USAGE_MIGRATION_SQL } from './tenancy/provisioner.js';
 export { TenantMetricsRegistry, TenantMetricsView, TENANT_DAILY_STATS_MIGRATION_SQL } from './tenancy/metrics.js';
+export { InMemoryBillingAdapter } from './tenancy/billing.js';
 // ── Microservices ─────────────────────────────────────────────────────────────
 export { streetHttp2App } from './microservices/http2.js';
 export { ServiceRegistry, StaticRegistry, ConsulRegistry } from './microservices/service-registry.js';
 export { CircuitBreaker, CircuitOpenError } from './microservices/circuit-breaker.js';
 export { EventBus, InProcessTransport } from './microservices/event-bus.js';
+export { RedisEventBusTransport } from './microservices/transports/redis.js';
 export { SagaOrchestrator } from './microservices/saga.js';
 export { DistributedLock } from './microservices/distributed-lock.js';
 export { CommandBus, QueryBus } from './microservices/cqrs.js';
@@ -112,10 +114,15 @@ export { AuditLogger, Sensitive, ENTERPRISE_AUDIT_MIGRATION_SQL } from './enterp
 export { RetainFor, Encrypt, Classify, RetentionJob, ComplianceReporter } from './enterprise/data-policy.js';
 // ── Enterprise: Backup ────────────────────────────────────────────────────────
 export { BackupService, LocalStorageAdapter, BACKUPS_MIGRATION_SQL } from './enterprise/backup.js';
+export { S3StorageAdapter, GcsStorageAdapter, signAwsV4 } from './enterprise/storage-adapters.js';
 // ── Platform: Distributed Cache ───────────────────────────────────────────────
 export { DistributedCache, InProcessCacheTransport, GlobalConfigService } from './platform/distributed-cache.js';
+export { RedisCacheTransport } from './platform/transports/redis.js';
+export { MemcachedTransport } from './platform/transports/memcached.js';
+export { RedisClient, RespParser, encodeCommand } from './transports/resp.js';
 // ── Platform: Event Streaming ─────────────────────────────────────────────────
 export { EventStreamPublisher, EventStreamConsumer, InProcessStreamTransport, RealtimeAggregator } from './platform/event-streaming.js';
+export { KinesisStreamTransport } from './platform/transports/kinesis.js';
 // ── Platform: Replication ─────────────────────────────────────────────────────
 export { ReplicationCoordinator, preferredRegionMiddleware } from './platform/replication.js';
 // ── Platform: AI ──────────────────────────────────────────────────────────────
@@ -128,7 +135,7 @@ export { PluginInstaller } from './platform/plugins/registry.js';
 // ── HTTP: Edge Runtime ────────────────────────────────────────────────────────
 export { FeatureUnavailableInEdgeRuntimeError } from './http/exceptions.js';
 // ── API Versioning ────────────────────────────────────────────────────────────
-export { ApiVersion, Deprecated, enableVersioning, getApiVersion, getDeprecatedMeta } from './versioning/strategy.js';
+export { ApiVersion, Deprecated, enableVersioning, getApiVersion, getDeprecatedMeta, versionGuard, filterOpenApiByVersion, registerVersionedOpenApi } from './versioning/strategy.js';
 // ── SDK Generator ─────────────────────────────────────────────────────────────
 export { generateTypescriptSdk } from './sdk-gen/typescript.js';
 export { generatePythonSdk } from './sdk-gen/python.js';

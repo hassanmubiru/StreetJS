@@ -59,5 +59,24 @@ export declare class TenantServiceImpl implements TenantService {
  * Emits `tenant:quota:warning` when usage is at 80%+ of the limit.
  */
 export declare function QuotaEnforcer(service: TenantService, quotaKey: string, onWarning?: (tenantId: string, status: QuotaStatus) => void): MiddlewareFn;
+interface TenantAdminCtx {
+    method: string;
+    path: string;
+    user: {
+        roles: string[];
+    } | null;
+    json(data: unknown, status?: number): void;
+}
+interface TenantAdminApp {
+    use(mw: (ctx: TenantAdminCtx, next: () => Promise<void>) => Promise<void>): void;
+}
+/**
+ * Register `GET /admin/tenants/:id/metrics` returning the current usage and
+ * quota status for a tenant. Protected by the configured admin role.
+ */
+export declare function registerTenantMetricsRoute(app: TenantAdminApp, service: TenantService, opts?: {
+    quotaKeys?: string[];
+    adminRole?: string;
+}): void;
 export {};
 //# sourceMappingURL=provisioner.d.ts.map

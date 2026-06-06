@@ -62,4 +62,29 @@ export interface VersioningOptions {
  *   and stores it as `ctx['apiVersion']` for downstream handlers.
  */
 export declare function enableVersioning(app: StreetApp, opts: VersioningOptions): void;
+interface VersionAwareCtx {
+    method: string;
+    path: string;
+    json(data: unknown, status?: number): void;
+}
+interface VersionAwareApp {
+    use(mw: (ctx: VersionAwareCtx, next: () => Promise<void>) => Promise<void>): void;
+}
+/**
+ * Reject requests that target an unknown version prefix (e.g. `/v9/...` when
+ * only v1/v2 exist) with HTTP 404 and the list of available versions.
+ * Requests whose first segment is not a version prefix pass through untouched.
+ */
+export declare function versionGuard(app: VersionAwareApp, knownVersions: string[]): void;
+/**
+ * Filter a full OpenAPI document down to the paths belonging to a single
+ * version prefix (e.g. `v1` keeps only `/v1/...` paths).
+ */
+export declare function filterOpenApiByVersion(spec: object, version: string): object;
+/**
+ * Register `GET /<version>/openapi.json` for each version, serving a spec
+ * filtered to that version's routes. `specFn` returns the full OpenAPI doc.
+ */
+export declare function registerVersionedOpenApi(app: VersionAwareApp, versions: string[], specFn: () => object): void;
+export {};
 //# sourceMappingURL=strategy.d.ts.map
