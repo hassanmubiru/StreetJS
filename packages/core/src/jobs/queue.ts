@@ -345,6 +345,21 @@ export class JobQueue {
       return;
     }
 
+    // Track as in-flight so the heartbeat refreshes its lock while it runs.
+    this.inFlight.add(jobId);
+    try {
+      await this._execute(jobId, type, row, attempt);
+    } finally {
+      this.inFlight.delete(jobId);
+    }
+  }
+
+  private async _execute(
+    jobId: string,
+    type: string,
+    row: Record<string, string | null>,
+    attempt: number,
+  ): Promise<void> {
     const handler = this.handlers.get(type);
     if (!handler) {
       // No handler registered — move straight to DLQ behaviour (treat as permanent failure)
@@ -365,6 +380,49 @@ export class JobQueue {
       await this.pool.query(`DELETE FROM street_jobs WHERE id=$1`, [jobId]);
     } catch (err) {
       await this._handleFailure(jobId, type, row, attempt, err instanceof Error ? err : new Error(String(err)));
+    }
+  }
+
+  /**
+   * Refresh `locked_at` to NOW() for every job this worker is currently
+   * executing. This keeps the lock fresh so other workers' reapers don't
+   * reclaim a job that is still being processed. Targets only the tracked
+   * in-flight ids and re-checks ownership (`worker_id`) and state in SQL.
+   */
+  private async _heartbeat(): Promise<void> {
+    if (this.inFlight.size === 0) return;
+    const ids = [...this.inFlight];
+    try {
+      await this.pool.query(
+        `UPDATE street_jobs
+         SET locked_at = NOW()
+         WHERE status = 'running' AND worker_id = $1 AND id = ANY($2)`,
+        [this.workerId, ids],
+      );
+    } catch {
+      // DB unavailable — skip this beat; the job will simply be heartbeated next tick.
+    }
+  }
+
+  /**
+   * Re-enqueue jobs whose `locked_at` is older than the configured stale
+   * threshold (default 2 minutes). A running job that hasn't been heartbeated
+   * within the threshold is assumed to belong to a crashed/hung worker, so it
+   * is reset to `pending` with its lock cleared for another worker to pick up.
+   * Returns the number of jobs re-enqueued.
+   */
+  private async _reapStaleJobs(): Promise<number> {
+    try {
+      const result = await this.pool.query(
+        `UPDATE street_jobs
+         SET status='pending', worker_id=NULL, locked_at=NULL
+         WHERE status='running' AND locked_at < NOW() - ($1 || ' milliseconds')::interval`,
+        [String(this.staleJobThresholdMs)],
+      );
+      return result.rowCount;
+    } catch {
+      // DB unavailable — skip this scan
+      return 0;
     }
   }
 
