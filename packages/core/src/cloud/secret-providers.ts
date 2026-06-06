@@ -364,8 +364,9 @@ export class GcpSecretManagerProvider implements SecretProvider {
     }, this._tls);
 
     if (status !== 200) {
-      throw new Error(
+      throw new SecretFetchError(
         `GcpSecretManagerProvider: HTTP ${status} for secret "${secretName}". Body: [REDACTED]`,
+        status >= 500 || status === 429,
       );
     }
 
