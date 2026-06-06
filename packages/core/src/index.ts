@@ -209,7 +209,7 @@ export { tenantMiddleware, TENANTS_MIGRATION_SQL } from './tenancy/context.js';
 export type { TenantContextData, TenantResolutionStrategy } from './tenancy/context.js';
 export { TenantPoolRegistry } from './tenancy/pool-registry.js';
 export { TenantScopedRepository, TenantScoped } from './tenancy/tenant-scoped.js';
-export { TenantServiceImpl, QuotaEnforcer, TENANT_USAGE_MIGRATION_SQL } from './tenancy/provisioner.js';
+export { TenantServiceImpl, QuotaEnforcer, registerTenantMetricsRoute, TENANT_USAGE_MIGRATION_SQL } from './tenancy/provisioner.js';
 export type { QuotaStatus, QuotaConfig, TenantService } from './tenancy/provisioner.js';
 export { TenantMetricsRegistry, TenantMetricsView, TENANT_DAILY_STATS_MIGRATION_SQL } from './tenancy/metrics.js';
 
