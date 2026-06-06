@@ -46,8 +46,8 @@ export class AmqpConnection extends EventEmitter {
   private confirmEnabled = false;
 
   // consumer assembly state
-  private pendingDelivery: { msg: Omit<DeliveredMessage, 'body'>; bodySize: number; chunks: Buffer[] } | null = null;
-  private deliverHandler: ((msg: DeliveredMessage) => void) | null = null;
+  private pendingDelivery: { tag: string; msg: Omit<DeliveredMessage, 'body'>; bodySize: number; chunks: Buffer[] } | null = null;
+  private readonly consumers = new Map<string, (msg: DeliveredMessage) => void>();
 
   constructor(opts: AmqpConnectionOptions = {}) {
     super();
@@ -305,7 +305,6 @@ export class AmqpConnection extends EventEmitter {
 
   /** Start consuming from a queue. Deliveries are passed to `handler`. */
   async consume(queue: string, handler: (msg: DeliveredMessage) => void, opts: { noAck?: boolean } = {}): Promise<string> {
-    this.deliverHandler = handler;
     const args = new AmqpWriter()
       .shortUint(0)
       .shortStr(queue)
@@ -314,16 +313,18 @@ export class AmqpConnection extends EventEmitter {
       .table({})
       .build();
     const { reader } = await this._rpc(buildMethodFrame(CH, 60, 20, args), 60, 21); // Basic.Consume-Ok
-    return reader.shortStr();
+    const tag = reader.shortStr();
+    this.consumers.set(tag, handler);
+    return tag;
   }
 
   private _beginDelivery(reader: import('./codec.js').AmqpReader): void {
-    reader.shortStr(); // consumer-tag
+    const consumerTag = reader.shortStr();
     const deliveryTag = reader.longLong();
     const redelivered = reader.bit();
     const exchange = reader.shortStr();
     const routingKey = reader.shortStr();
-    this.pendingDelivery = { msg: { deliveryTag, redelivered, exchange, routingKey }, bodySize: 0, chunks: [] };
+    this.pendingDelivery = { tag: consumerTag, msg: { deliveryTag, redelivered, exchange, routingKey }, bodySize: 0, chunks: [] };
   }
 
   private _handleHeader(frame: RawFrame): void {
@@ -343,10 +344,16 @@ export class AmqpConnection extends EventEmitter {
 
   private _finishDelivery(): void {
     if (!this.pendingDelivery) return;
-    const { msg, chunks } = this.pendingDelivery;
+    const { tag, msg, chunks } = this.pendingDelivery;
     this.pendingDelivery = null;
     const message: DeliveredMessage = { ...msg, body: Buffer.concat(chunks) };
-    if (this.deliverHandler) this.deliverHandler(message);
+    const handler = this.consumers.get(tag);
+    if (handler) handler(message);
+  }
+
+  /** Abruptly drop the socket to simulate a network failure (used in tests). */
+  simulateDrop(): void {
+    this.socket?.destroy();
   }
 
   /** Acknowledge a delivery. */

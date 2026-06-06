@@ -77,10 +77,8 @@ describe('RabbitMQ transport (integration)', () => {
     await conn.bindQueue(dlq, dlx, '');
 
     const deadReceived: string[] = [];
-    const dlqConsumer = new RabbitMqConsumer(manager, dlx, { queue: dlq, routingKeys: [''] });
-    // dlx is fanout; bind already done above. Consume from the dead queue directly.
+    // Consume from the dead-letter queue directly to observe dead-lettered messages.
     await (await manager.get()).consume(dlq, (m) => { deadReceived.push(m.body.toString('utf8')); });
-    void dlqConsumer;
 
     const consumer = new RabbitMqConsumer(manager, exchange, { queue, routingKeys: [rk], deadLetterExchange: dlx });
     await consumer.consume(async () => { throw new Error('always fails'); });
@@ -100,11 +98,11 @@ describe('RabbitMQ transport (integration)', () => {
     const consumer = new RabbitMqConsumer(manager, exchange, { queue, routingKeys: [rk] });
     await consumer.consume(async (msg) => { received.push(msg.body.toString('utf8')); });
 
-    // Force a disconnect by closing the underlying connection; the manager
-    // reconnects and re-establishes the consumer.
+    // Force an abrupt disconnect (network drop); the manager reconnects and
+    // re-establishes the consumer.
     const conn = await manager.get();
-    await conn.close();
-    await new Promise((r) => setTimeout(r, 500));
+    conn.simulateDrop();
+    await new Promise((r) => setTimeout(r, 800));
 
     const publisher = new RabbitMqPublisher(manager, exchange);
     await publisher.publish(rk, 'after-reconnect');
