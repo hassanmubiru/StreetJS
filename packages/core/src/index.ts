@@ -246,7 +246,7 @@ export type {
 } from './cloud/runtime.js';
 
 // ── Enterprise: Feature Flags ──────────────────────────────────────────────────
-export { FeatureFlagService, FEATURE_FLAGS_MIGRATION_SQL } from './enterprise/feature-flags.js';
+export { FeatureFlagService, FEATURE_FLAGS_MIGRATION_SQL, registerFeatureFlagAdminRoute } from './enterprise/feature-flags.js';
 export type { FeatureFlagRule } from './enterprise/feature-flags.js';
 
 // ── Enterprise: Audit Logger ───────────────────────────────────────────────────
