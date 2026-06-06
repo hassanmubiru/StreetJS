@@ -65,8 +65,6 @@ describe('JobQueue — Migration SQL', () => {
   });
 });
 
-// ── Mock pool helpers ─────────────────────────────────────────────────────────
-
 type QueryResult = { rows: Record<string, string | null>[]; rowCount: number; command: string };
 
 /** Build a simple mock pool that records calls and returns configured responses. */
