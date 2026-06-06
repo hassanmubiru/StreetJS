@@ -16,6 +16,20 @@ import { StreetWebSocketServer } from '../websocket/server.js';
 import { createSse } from '../websocket/sse.js';
 import { NotFoundException, BadRequestException } from '../http/exceptions.js';
 import { createUserSchema, updateUserSchema, loginSchema, getUserByIdSchema, } from '../domain/user.js';
+/**
+ * Derive audit context (originating IP and user agent) from a request so
+ * authentication audit entries carry request metadata. The IP is taken from
+ * the `x-forwarded-for` header when present, falling back to the socket's
+ * remote address.
+ */
+function requestAuditContext(ctx) {
+    const forwarded = ctx.headers['x-forwarded-for'];
+    const ip = (forwarded ? forwarded.split(',')[0]?.trim() : undefined)
+        ?? ctx.req.socket.remoteAddress
+        ?? undefined;
+    const userAgent = ctx.headers['user-agent'];
+    return { ...(ip ? { ip } : {}), ...(userAgent ? { userAgent } : {}) };
+}
 let UserController = class UserController {
     userService;
     wsServer;
@@ -45,8 +59,17 @@ let UserController = class UserController {
     }
     async login(ctx) {
         const dto = ctx.body;
-        const tokens = await this.userService.login(dto);
+        // Forward request context so login_success / login_failure audit entries
+        // capture the originating IP and user agent.
+        const tokens = await this.userService.login(dto, requestAuditContext(ctx));
         ctx.json(tokens);
+    }
+    async logout(ctx) {
+        const userId = ctx.user?.id;
+        if (!userId)
+            throw new BadRequestException('Not authenticated');
+        await this.userService.logout(userId, requestAuditContext(ctx));
+        ctx.send(204);
     }
     async update(ctx) {
         const id = ctx.params['id'];
@@ -133,6 +156,13 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "login", null);
+__decorate([
+    Post('/logout'),
+    ApiOperation({ summary: 'Log out the authenticated user', tags: ['auth'] }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "logout", null);
 __decorate([
     Put('/:id'),
     Validate({ ...getUserByIdSchema, body: updateUserSchema.body }),

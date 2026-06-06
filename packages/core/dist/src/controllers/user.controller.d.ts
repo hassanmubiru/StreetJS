@@ -9,6 +9,7 @@ export declare class UserController {
     getOne(ctx: StreetContext): Promise<void>;
     create(ctx: StreetContext): Promise<void>;
     login(ctx: StreetContext): Promise<void>;
+    logout(ctx: StreetContext): Promise<void>;
     update(ctx: StreetContext): Promise<void>;
     remove(ctx: StreetContext): Promise<void>;
     eventStream(ctx: StreetContext): Promise<void>;
