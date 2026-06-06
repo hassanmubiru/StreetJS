@@ -458,11 +458,11 @@ Status markers used in this plan:
   - [ ] 50.7 Write tests: `onLoad` + `onUnload` restores app to pre-load state (round-trip property), invalid marketplace signature throws and refuses installation, checksum mismatch throws and refuses installation, plugin cannot access DI container internals outside `SandboxedApp` interface
 
 
-- [ ] 51. Cross-Cutting — Absolute Implementation Policy Enforcement
+- [~] 51. Cross-Cutting — Absolute Implementation Policy Enforcement
   - [~] 51.1 Add a CI step in `.github/workflows/ci-cd.yml` that scans all `.ts` files under `packages/core/src/` for `TODO`, `FIXME`, `HACK`, and `@ts-ignore` comments and fails the build if any are found
   - [~] 51.2 Add database integration test jobs to `.github/workflows/ci-cd.yml`: spin up real PostgreSQL 16, MySQL 8, and SQLite services; run all test suites that touch database code against live instances
   - [~] 51.3 Create `benchmarks/` directory with benchmark scripts for the primary request path: measure latency and throughput against Express, Fastify, NestJS, and Hono using `node:http` or `autocannon`; add benchmark job to CI that records results as a build artifact
-  - [~] 51.4 Add a memory safety test job to CI: run `node --max-old-space-size=256` against the memory safety test suite in `packages/core/tests/system/memory-safety.test.ts`; fail if heap growth exceeds 50 MB over 10,000 requests
+  - [x] 51.4 Add a memory safety test job to CI: run `node --max-old-space-size=256` against the memory safety test suite in `packages/core/tests/system/memory-safety.test.ts`; fail if heap growth exceeds 50 MB over 10,000 requests
   - [~] 51.5 Add a security audit step to CI: run `npm audit --audit-level=high` and fail the build on any high or critical severity findings
   - [~] 51.6 Create `docs/` content stubs for each new module matching the documentation plan: `getting-started.md`, `user-guide.md`, `api-reference.md`, `cli-reference.md`, `security.md`, `migration.md`, `troubleshooting.md`, `examples/` per version milestone
   - [~] 51.7 Audit all new stateful classes (`DevWatcher`, `JobQueue`, `CronScheduler`, `WorkflowEngine`, `DiagnosticsServer`, `OtelTracer`, `AnalyticsService`, `TenantPoolRegistry`, `AgentExecutor`) for `destroy()`/`stop()`/`close()` method completeness and verify they are called in the graceful shutdown sequence in `main.ts`
