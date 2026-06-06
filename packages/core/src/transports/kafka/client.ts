@@ -105,11 +105,37 @@ export class KafkaClient {
     return this._brokerById(pm.leader);
   }
 
-  /** Produce records to a topic-partition (acks=all). Returns base offset. */
-  async produce(topic: string, partition: number, records: KafkaRecord[], opts: { acks?: number; timeoutMs?: number } = {}): Promise<bigint> {
+  /** Allocate a producer id + epoch for the idempotent producer (InitProducerId v0). */
+  async initProducerId(): Promise<{ producerId: bigint; producerEpoch: number }> {
+    const conn = await this._anyConn();
+    const r = await conn.request(API.INIT_PRODUCER_ID, 0, (w: KafkaWriter) => {
+      w.string(null);        // transactional_id (non-transactional)
+      w.int32(60_000);       // transaction_timeout_ms
+    });
+    r.int32(); // throttle_time_ms
+    const err = r.int16();
+    if (err !== 0) throw new KafkaProtocolError(err, 'initProducerId');
+    const producerId = r.int64();
+    const producerEpoch = r.int16();
+    return { producerId, producerEpoch };
+  }
+
+  /** Produce records to a topic-partition (acks=all). Returns base offset.
+   *  When idempotent fields are supplied, the RecordBatch carries the producer
+   *  id/epoch/sequence so the broker can de-duplicate retries. */
+  async produce(
+    topic: string,
+    partition: number,
+    records: KafkaRecord[],
+    opts: { acks?: number; timeoutMs?: number; producerId?: bigint; producerEpoch?: number; baseSequence?: number } = {},
+  ): Promise<bigint> {
     const leader = await this.leaderFor(topic, partition);
     const conn = await this._conn(leader.host, leader.port);
-    const batch = encodeRecordBatch(records);
+    const batch = encodeRecordBatch(records, {
+      producerId: opts.producerId,
+      producerEpoch: opts.producerEpoch,
+      baseSequence: opts.baseSequence,
+    });
     const r = await conn.request(API.PRODUCE, 3, (w: KafkaWriter) => {
       w.string(null);                  // transactional_id
       w.int16(opts.acks ?? -1);        // acks (-1 = all)
