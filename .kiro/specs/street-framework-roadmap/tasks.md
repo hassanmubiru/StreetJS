@@ -405,11 +405,11 @@ Status markers used in this plan:
   - [x] 45.1 Write `street_backups` migration SQL: `id UUID, size_bytes BIGINT, duration_ms INT, checksum TEXT, storage_key TEXT, created_at`
   - [x] 45.2 Create `packages/core/src/enterprise/backup.ts`: `StorageAdapter` interface with `write(key, stream)`, `read(key)`, `list()`; `BackupRecord` type; `BackupService` class
   - [x] 45.3 Implement `LocalStorageAdapter`: write/read streams to/from local filesystem path
-  - [ ] 45.4 Implement `S3StorageAdapter`: PUT/GET via AWS Signature V4 signed `node:https` requests
-  - [ ] 45.5 Implement `GcsStorageAdapter`: PUT/GET via GCP service account `node:https` requests
+  - [x] 45.4 Implement `S3StorageAdapter`: PUT/GET via AWS Signature V4 signed `node:https` requests
+  - [x] 45.5 Implement `GcsStorageAdapter`: PUT/GET via GCP service account `node:https` requests
   - [x] 45.6 Implement `BackupService.backup()`: use PostgreSQL `COPY (SELECT ...) TO STDOUT` over the existing `PgConnection` to stream table data without spawning an external process; compute SHA-256 incrementally; write to `StorageAdapter`; record metadata in `street_backups`
   - [x] 45.7 Implement `BackupService.restore(backupId, targetPool)`: fetch stream from `StorageAdapter`, verify SHA-256 checksum (abort on mismatch), apply SQL stream to target DB
-  - [ ] 45.8 Add `street restore --backup-id <id>` CLI command; exit code 1 with expected/actual checksums on mismatch
+  - [x] 45.8 Add `street restore --backup-id <id>` CLI command; exit code 1 with expected/actual checksums on mismatch
   - [~] 45.9 Write tests: backup stream checksum matches stored value, corrupted backup aborts restore without modifying target DB, S3 adapter round-trip (upload then download produces identical content)
 
 
