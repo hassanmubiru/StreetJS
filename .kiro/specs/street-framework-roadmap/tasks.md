@@ -111,7 +111,7 @@
   - [x] 12.8 Export `Logger`, `LogLevel`, `LogEntry`, `correlationMiddleware` from `packages/core/src/index.ts`
   - [x] 12.9 Write tests: JSON output structure, level filtering, Error serialization, correlation ID propagation to child logger, pretty formatter in dev mode
 
-- [ ] 13. v1.3 — Prometheus Metrics Exporter
+- [x] 13. v1.3 — Prometheus Metrics Exporter
   - [x] 13.1 Create `packages/core/src/observability/prometheus.ts`: `MetricsRegistry`, `Counter`, `Gauge`, `Histogram` classes; `MetricConflictError` exception
   - [x] 13.2 Implement `Counter.inc(labels?, value?)`, `Gauge.set(value, labels?)`, `Histogram.observe(value, labels?)`: store label-keyed values in `Map<string, number>` (synchronous, event-loop-safe)
   - [x] 13.3 Implement `MetricsRegistry.collect()`: render all registered metrics to Prometheus text exposition format 0.0.4 with correct `# HELP`, `# TYPE`, and metric lines; return as `string`
@@ -119,7 +119,7 @@
   - [x] 13.5 Throw `MetricConflictError` synchronously at registration time if a metric name is already registered
   - [x] 13.6 Register `GET /metrics` route in `StreetApp` when `prometheusMiddleware` is used; set correct `Content-Type` header
   - [x] 13.7 Export `MetricsRegistry`, `prometheusMiddleware`, `MetricConflictError` from `packages/core/src/index.ts`
-  - [~] 13.8 Write tests: Prometheus text format is valid, concurrent scrapes produce consistent snapshots, conflict detection, default metrics are present
+  - [x] 13.8 Write tests: Prometheus text format is valid, concurrent scrapes produce consistent snapshots, conflict detection, default metrics are present
 
 - [ ] 14. v1.3 — Health Check DSL
   - [~] 14.1 Create `packages/core/src/observability/health.ts`: `HealthCheckRegistry`, `CheckFn`, `CheckResult`, `HealthResponse`, `CheckType` types
