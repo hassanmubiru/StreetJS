@@ -140,7 +140,7 @@
 
 
 - [ ] 16. v1.4 — OAuth2 and OpenID Connect
-  - [-] 16.1 Create `packages/core/src/auth/oauth2.ts`: `OAuthProvider`, `OAuthProfile`, `OAuthTokens`, `OAuthSuccessCallback` interfaces; `OAuthManager` class
+  - [x] 16.1 Create `packages/core/src/auth/oauth2.ts`: `OAuthProvider`, `OAuthProfile`, `OAuthTokens`, `OAuthSuccessCallback` interfaces; `OAuthManager` class
   - [~] 16.2 Implement PKCE generation: `code_verifier` = 32 random bytes as base64url; `code_challenge` = `S256` (SHA-256 of verifier) using `node:crypto`; store both in the encrypted session before redirect
   - [~] 16.3 Implement `OAuthManager.authorizationUrl(provider)`: construct the provider's authorization URL with `response_type=code`, `client_id`, `redirect_uri`, `scope`, `state`, and `code_challenge` params
   - [~] 16.4 Implement `OAuthManager.handleCallback(provider, code, state, sessionState, codeVerifier)`: validate `state` with `timingSafeEqual`, exchange code for tokens at provider's token endpoint via `node:https`
