@@ -293,3 +293,48 @@ describe('ReplicationCoordinator', () => {
     coord.stop();
   });
 });
+
+// ── AI Agent Executor (ReAct loop) ────────────────────────────────────────────
+
+import { AgentExecutor } from '../platform/ai/agent-executor.js';
+import { ToolRegistry } from '../platform/ai/tool-registry.js';
+import type { LlmClient, CompletionOptions, CompletionResult } from '../platform/ai/llm-client.js';
+
+describe('AgentExecutor ReAct loop', () => {
+  it('invokes a tool then returns the final answer', async () => {
+    const replies = [
+      '```json\n{ "tool": "add", "args": { "a": 2, "b": 3 } }\n```',
+      'FINAL ANSWER: The sum is 5',
+    ];
+    let call = 0;
+    const client: LlmClient = {
+      async complete(_opts: CompletionOptions): Promise<CompletionResult> {
+        return { content: replies[call++] ?? 'FINAL ANSWER: done' };
+      },
+      // eslint-disable-next-line require-yield
+      async *stream(): AsyncIterableIterator<string> { return; },
+    };
+
+    const tools = new ToolRegistry();
+    let toolArgs: unknown = null;
+    tools.register('add', async (args: unknown) => {
+      toolArgs = args;
+      const a = (args as { a: number }).a;
+      const b = (args as { b: number }).b;
+      return a + b;
+    }, { description: 'add two numbers' });
+
+    const steps: Array<{ type: string; content: string }> = [];
+    const ctx = { res: { write: (d: string) => { steps.push(JSON.parse(d.replace(/^data: /, '').trim())); } } };
+
+    const executor = new AgentExecutor(client, tools, { maxSteps: 5 });
+    const answer = await executor.run('what is 2 + 3?', ctx);
+
+    assert.match(answer, /5/);
+    assert.deepEqual(toolArgs, { a: 2, b: 3 });
+    const types = steps.map((s) => s.type);
+    assert.ok(types.includes('action'));
+    assert.ok(types.includes('observation'));
+    assert.ok(types.includes('final'));
+  });
+});
