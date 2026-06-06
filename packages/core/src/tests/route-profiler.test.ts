@@ -61,6 +61,40 @@ describe('RouteProfiler — P99 is calculated correctly', () => {
     assert.equal(stats.count, 100);
   });
 
+  it('computes exact P50/P95/P99 on a known distribution (1ms..100ms)', () => {
+    const profiler = new RouteProfiler();
+    // Record 100 samples with latencies 1ms, 2ms, ... 100ms (insertion order
+    // is irrelevant since stats() sorts a copy before computing percentiles).
+    for (let i = 1; i <= 100; i++) {
+      profiler.record('GET', '/dist', BigInt(i) * 1_000_000n, false);
+    }
+
+    const stats = profiler.stats('GET', '/dist');
+    assert.equal(stats.count, 100);
+    // Nearest-rank index = floor((p/100) * (n-1)) on the ascending sorted set.
+    // n=100 → P50 idx 49 → 50ms, P95 idx 94 → 95ms, P99 idx 98 → 99ms.
+    assert.equal(stats.p50Ms, 50);
+    assert.equal(stats.p95Ms, 95);
+    assert.equal(stats.p99Ms, 99);
+    assert.equal(stats.errorRate, 0);
+  });
+
+  it('caps at exactly 10,000 samples and evicts oldest', () => {
+    const profiler = new RouteProfiler();
+    // Record 10,100 samples; the last 10,000 should survive (oldest evicted).
+    // Latencies 1ms..10,100ms means the surviving window is 101ms..10,100ms.
+    for (let i = 1; i <= 10_100; i++) {
+      profiler.record('GET', '/cap', BigInt(i) * 1_000_000n, false);
+    }
+    const stats = profiler.stats('GET', '/cap');
+    assert.equal(stats.count, 10_000);
+    // Surviving sorted window: 101ms..10,100ms (n=10,000).
+    // P50 idx floor(0.50 * 9999) = 4999 → 101 + 4999 = 5100ms.
+    assert.equal(stats.p50Ms, 5100);
+    // P99 idx floor(0.99 * 9999) = 9899 → 101 + 9899 = 10,000ms.
+    assert.equal(stats.p99Ms, 10_000);
+  });
+
   it('allStats returns entries for all recorded routes', () => {
     const profiler = new RouteProfiler();
     profiler.record('GET', '/a', 1_000_000n, false);
