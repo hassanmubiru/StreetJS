@@ -29,7 +29,7 @@ class TestPlugin extends PluginModule {
   async onInstall(): Promise<void> { this.installed++; this.log.push(`install:${this.name}`); }
   async onLoad(app: SandboxedApp): Promise<void> {
     this.loaded++; this.log.push(`load:${this.name}`);
-    if (this.useMiddleware) app.use(async (_ctx, next) => { await next(); });
+    if (this.useMiddleware) app.use(async (_ctx: StreetContext, next: () => Promise<void>) => { await next(); });
   }
   async onUnload(): Promise<void> { this.unloaded++; this.log.push(`unload:${this.name}`); }
 }
