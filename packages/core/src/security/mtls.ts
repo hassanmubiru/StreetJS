@@ -5,7 +5,7 @@
 // and node:crypto — no third-party dependencies.
 
 import { createServer as createHttpsServer, type Server as HttpsServer, type ServerOptions } from 'node:https';
-import type { TLSSocket, PeerCertificate } from 'node:tls';
+import type { TLSSocket, PeerCertificate, SecureContextOptions } from 'node:tls';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { createHash, timingSafeEqual } from 'node:crypto';
 import { UnauthorizedException } from '../http/exceptions.js';
