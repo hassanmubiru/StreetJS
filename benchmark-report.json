@@ -1,0 +1,21 @@
+{
+  "generatedAt": "2026-06-07T04:10:17.845Z",
+  "methodology": {
+    "transport": "node:http loopback client",
+    "durationMs": 3000,
+    "concurrency": 10,
+    "route": "GET /bench → JSON",
+    "node": "v20.20.1"
+  },
+  "results": [
+    {
+      "name": "Street",
+      "requestsPerSec": 22891,
+      "latencyP50Ms": 0,
+      "latencyP95Ms": 1,
+      "latencyP99Ms": 2,
+      "memoryMb": 23.91,
+      "startupMs": 2
+    }
+  ]
+}
