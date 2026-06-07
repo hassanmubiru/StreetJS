@@ -238,3 +238,61 @@ export class MfaService {
     };
   }
 }
+
+// ── MFA middleware (step-up authentication) ─────────────────────────────────────
+
+interface MfaContext {
+  user: { id?: string } | null;
+  state: Record<string, unknown>;
+  json(data: unknown, status?: number): void;
+}
+
+export interface MfaGuardOptions {
+  /**
+   * Key in `ctx.state` that marks the current session as having completed MFA
+   * for this request (set it after a successful step-up verification). Default
+   * `'mfaVerified'`.
+   */
+  verifiedStateKey?: string;
+}
+
+/**
+ * Step-up MFA guard. For an authenticated user who has MFA enabled, the request
+ * is allowed only when the session is marked MFA-verified; otherwise it responds
+ * `403 { error: 'mfa_required' }` so the client can prompt for a code. Users
+ * without MFA enabled, and unauthenticated requests, pass through unchanged
+ * (pair with an auth guard upstream).
+ */
+export function mfaGuard(service: MfaService, opts: MfaGuardOptions = {}) {
+  const key = opts.verifiedStateKey ?? 'mfaVerified';
+  return async (ctx: MfaContext, next: () => Promise<void>): Promise<void> => {
+    const userId = ctx.user?.id;
+    if (!userId) { await next(); return; }
+    if (ctx.state[key] === true) { await next(); return; }
+    if (!(await service.isEnabled(userId))) { await next(); return; }
+    ctx.json({ error: 'mfa_required', methods: ['totp', 'recovery_code'] }, 403);
+  };
+}
+
+/**
+ * Verify a step-up challenge: accepts a TOTP code or a single-use recovery code.
+ * On success, marks `ctx.state[verifiedStateKey] = true`. Returns the outcome so
+ * callers can issue an MFA-elevated session token.
+ */
+export async function verifyMfaStepUp(
+  service: MfaService,
+  userId: string,
+  code: string,
+  ctx?: MfaContext,
+  opts: MfaGuardOptions = {},
+): Promise<{ ok: boolean; method?: 'totp' | 'recovery_code' }> {
+  if (await service.verify(userId, code)) {
+    if (ctx) ctx.state[opts.verifiedStateKey ?? 'mfaVerified'] = true;
+    return { ok: true, method: 'totp' };
+  }
+  if (await service.useRecoveryCode(userId, code)) {
+    if (ctx) ctx.state[opts.verifiedStateKey ?? 'mfaVerified'] = true;
+    return { ok: true, method: 'recovery_code' };
+  }
+  return { ok: false };
+}
