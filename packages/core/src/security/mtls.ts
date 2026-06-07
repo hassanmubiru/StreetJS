@@ -166,3 +166,109 @@ export function createMutualTlsServer(
   };
   return createHttpsServer(serverOpts, handler);
 }
+
+// ── Trust store ─────────────────────────────────────────────────────────────────
+
+/** Material describing the currently-trusted server identity + client CAs/pins. */
+export interface TrustMaterial {
+  /** Trusted CA certificate(s) used to verify client certs. */
+  ca: Array<string | Buffer>;
+  /** Allowed client-certificate SHA-256 fingerprints (pins). */
+  pins: string[];
+}
+
+/**
+ * A mutable trust store for mTLS: a managed set of trusted client CAs plus
+ * pinned client-certificate fingerprints. Supports rotation (adding new trust
+ * material before removing old) so certificates can be rolled without downtime.
+ * Validation delegates to {@link validateClientCert}.
+ */
+export class TrustStore {
+  private cas: Array<string | Buffer>;
+  private pinSet: Set<string>;
+
+  constructor(initial: { ca?: Array<string | Buffer>; pins?: string[] } = {}) {
+    this.cas = initial.ca ? [...initial.ca] : [];
+    this.pinSet = new Set((initial.pins ?? []).map(normalizeFp));
+  }
+
+  /** Add a trusted client CA certificate (PEM). Idempotent for identical input. */
+  addCa(ca: string | Buffer): this {
+    const key = ca.toString();
+    if (!this.cas.some((c) => c.toString() === key)) this.cas.push(ca);
+    return this;
+  }
+
+  /** Remove a previously-trusted CA certificate. Returns true if it was present. */
+  removeCa(ca: string | Buffer): boolean {
+    const key = ca.toString();
+    const before = this.cas.length;
+    this.cas = this.cas.filter((c) => c.toString() !== key);
+    return this.cas.length !== before;
+  }
+
+  /** Add an allowed fingerprint pin (colons/case-insensitive). */
+  addPin(fp: string): this {
+    this.pinSet.add(normalizeFp(fp));
+    return this;
+  }
+
+  /** Remove a pin. Returns true if it was present. */
+  removePin(fp: string): boolean {
+    return this.pinSet.delete(normalizeFp(fp));
+  }
+
+  /** Current trusted CA certificates. */
+  caCertificates(): Array<string | Buffer> {
+    return [...this.cas];
+  }
+
+  /** Current pinned fingerprints (normalised lowercase hex). */
+  pins(): string[] {
+    return [...this.pinSet];
+  }
+
+  /**
+   * Atomically rotate the entire trust set (e.g. when issuing from a new CA).
+   * Pass the new CAs/pins; the old ones are dropped only after replacement.
+   */
+  rotate(next: { ca?: Array<string | Buffer>; pins?: string[] }): void {
+    if (next.ca) this.cas = [...next.ca];
+    if (next.pins) this.pinSet = new Set(next.pins.map(normalizeFp));
+  }
+
+  /** Snapshot the current material. */
+  material(): TrustMaterial {
+    return { ca: this.caCertificates(), pins: this.pins() };
+  }
+
+  /**
+   * Validate a peer certificate against this store. CN allow-listing can be
+   * layered on via {@link ClientCertPolicy}.
+   */
+  validate(cert: PeerCertLike | undefined, authorized: boolean, extra: Omit<ClientCertPolicy, 'allowedFingerprints'> = {}): ClientCertResult {
+    const policy: ClientCertPolicy = { ...extra };
+    if (this.pinSet.size > 0) policy.allowedFingerprints = this.pins();
+    return validateClientCert(cert, authorized, policy);
+  }
+}
+
+// ── Certificate rotation ──────────────────────────────────────────────────────
+
+export interface RotateCertificateOptions {
+  cert: string | Buffer;
+  key: string | Buffer;
+  ca?: string | Buffer | Array<string | Buffer>;
+}
+
+/**
+ * Hot-rotate the server's TLS certificate/key (and optionally trusted CAs)
+ * without restarting the listener, using Node's `tls.Server.setSecureContext`.
+ * Existing connections keep their context; new handshakes use the new material.
+ */
+export function rotateServerCertificate(server: HttpsServer, opts: RotateCertificateOptions): void {
+  const ctx: SecureContextOptions = { cert: opts.cert, key: opts.key };
+  if (opts.ca !== undefined) ctx.ca = opts.ca;
+  // setSecureContext exists on tls.Server (https.Server extends it).
+  (server as unknown as { setSecureContext(o: SecureContextOptions): void }).setSecureContext(ctx);
+}
