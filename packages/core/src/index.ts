@@ -45,6 +45,10 @@ export {
 export type { ClientCertPolicy, ClientCertResult, PeerCertLike, MutualTlsServerOptions, TrustMaterial, RotateCertificateOptions } from './security/mtls.js';
 export { generateOpenApi } from './http/openapi.js';
 export {
+  applyCodemods, listCodemods, getCodemod, renameIdentifierCodemod, BUILTIN_CODEMODS,
+} from './devx/codemods.js';
+export type { Codemod, CodemodResult, ApplyCodemodsResult } from './devx/codemods.js';
+export {
   validateOpenApiDocument, openApiOperations, parseZapReport,
   summarizeFindings, evaluateDastGate, openApiConformanceScan,
 } from './security/dast.js';
