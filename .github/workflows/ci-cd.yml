@@ -436,6 +436,81 @@ jobs:
       - name: High-severity dependency audit
         run: npm audit --audit-level=high
 
+  # ── certification: certification suites + DB E2E (release gate) ─────────
+  # Purpose:   Run the security/observability/deployment/enterprise/
+  #            documentation/repository certification suites plus the
+  #            PostgreSQL and MySQL end-to-end certification suites against
+  #            real service containers. Fails the build if any gate fails.
+  certification:
+    name: Certification Suites + DB E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: street_test
+          POSTGRES_USER: street
+          POSTGRES_PASSWORD: streetpass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: rootpass
+          MYSQL_DATABASE: street_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping" --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+
+      - name: Build core
+        run: npm run build -w packages/core
+
+      - name: Compile tests
+        run: npx tsc
+        working-directory: packages/core
+
+      - name: Create MySQL native-password user (driver enforces no cleartext over non-TLS)
+        run: |
+          mysql -h 127.0.0.1 -uroot -prootpass -e "
+            CREATE USER IF NOT EXISTS 'streetnat'@'%' IDENTIFIED WITH mysql_native_password BY 'natpass';
+            GRANT ALL PRIVILEGES ON street_test.* TO 'streetnat'@'%'; FLUSH PRIVILEGES;"
+
+      - name: Run certification suites
+        run: node --test dist/tests/certification/*.test.js
+        working-directory: packages/core
+
+      - name: Run PostgreSQL E2E certification
+        env:
+          PG_HOST: 127.0.0.1
+          PG_PORT: 5432
+          PG_USER: street
+          PG_PASSWORD: streetpass
+          PG_DATABASE: street_test
+        run: node --test --test-timeout=30000 dist/src/tests/postgres-certification.e2e.test.js
+        working-directory: packages/core
+
+      - name: Run MySQL E2E certification
+        env:
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_PORT: 3306
+          MYSQL_USER: streetnat
+          MYSQL_PASSWORD: natpass
+          MYSQL_DATABASE: street_test
+        run: node --test --test-timeout=30000 dist/src/tests/mysql-certification.e2e.test.js
+        working-directory: packages/core
+
   # ── summary: Post-system-test summary step ─────────────────────────────
   # Purpose:   Print a summary of system test results to the GitHub Actions
   #            job summary. Only collects after system-tests completes.
