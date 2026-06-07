@@ -1123,6 +1123,9 @@ export class MysqlConnection {
   }
 
   private _stmtClose(stmtId: number): void {
+    // COM_STMT_CLOSE is a distinct command and, like every MySQL command, must
+    // start a fresh sequence at id 0 (it elicits no server response).
+    this.seq = 0;
     const body = Buffer.allocUnsafe(5);
     body[0] = COM_STMT_CLOSE;
     body.writeUInt32LE(stmtId, 1);
