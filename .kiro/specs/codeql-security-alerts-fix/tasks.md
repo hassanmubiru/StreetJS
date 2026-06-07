@@ -16,7 +16,7 @@ hover status tracks the documented properties.
 
 ### Phase 1 — Exploratory Bug Condition Checking (write BEFORE any fix)
 
-- [-] 1. Write Class A bug-condition exploration test (TLS validation leak)
+- [x] 1. Write Class A bug-condition exploration test (TLS validation leak)
   - **Property 1: Bug Condition** - TLS Validation Never Disabled (Class A)
   - **CRITICAL**: This test MUST FAIL on unfixed code - failure confirms the bug exists
   - **DO NOT attempt to fix the test or the code when it fails**
