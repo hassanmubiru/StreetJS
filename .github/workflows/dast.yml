@@ -1,0 +1,47 @@
+# .github/workflows/dast.yml
+# Dynamic Application Security Testing (DAST) pipeline. Builds the app, exports
+# the OpenAPI artifact, starts the app, runs Schemathesis (OpenAPI-driven) and
+# OWASP ZAP baseline + API scan, and fails the build on High/Critical findings
+# via the deterministic severity gate (scripts/dast/evaluate-gate.mjs).
+name: dast
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths: ['packages/**', 'scripts/dast/**', '.github/workflows/dast.yml']
+  schedule:
+    - cron: '0 3 * * 1'   # weekly
+
+jobs:
+  dast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+
+      - name: Build
+        run: npm run build -w packages/core
+
+      - name: Export OpenAPI artifact
+        run: node scripts/dast/export-openapi.mjs --routes dast/routes.json --out dast-reports/openapi.json
+
+      - name: Start target app
+        run: |
+          node dast/start-target.mjs &
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:8080/health && break; sleep 1; done
+        env:
+          PORT: '8080'
+
+      - name: Schemathesis (OpenAPI-driven)
+        run: pip install schemathesis && SPEC=dast-reports/openapi.json BASE_URL=http://127.0.0.1:8080 scripts/dast/run-schemathesis.sh
+
+      - name: OWASP ZAP baseline + API scan (gated)
+        run: SPEC=dast-reports/openapi.json BASE_URL=http://127.0.0.1:8080 FAIL_ON=high scripts/dast/run-zap-baseline.sh
+
+      - name: Upload DAST reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dast-reports
+          path: dast-reports/
