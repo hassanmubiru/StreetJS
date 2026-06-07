@@ -34,6 +34,10 @@ export {
 export {
   authMiddleware, requireRoles, securityHeaders, corsMiddleware,
 } from './http/auth.middleware.js';
+export {
+  buildCsp, computeSecurityHeaders, securityHeadersMiddleware, DEFAULT_CSP,
+} from './security/headers.js';
+export type { CspDirectives, SecurityHeadersOptions } from './security/headers.js';
 export { generateOpenApi } from './http/openapi.js';
 
 // ── Router ────────────────────────────────────────────────────────────────────
@@ -253,8 +257,7 @@ export { encodeFrame, decodeFrame, decodeFrames, parseGrpcTimeout, GrpcError, GR
 // ── Cloud ─────────────────────────────────────────────────────────────────────
 export { generateManifest } from './cloud/deployment.js';
 export type { CloudPlatform, DeployConfig } from './cloud/deployment.js';
-export { VaultSecretProvider, AwsSecretsManagerProvider, GcpSecretManagerProvider, AzureKeyVaultProvider, SecretRotationManager } from './cloud/secret-providers.js';
-export type { SecretProvider, HttpClientOptions, RotationOptions } from './cloud/secret-providers.js';
+export { VaultSecretProvider, AwsSecretsManagerProvider, GcpSecretManagerProvider, AzureKeyVaultProvider, SecretRotationManager } from './cloud/secret-providers.js';export type { SecretProvider, HttpClientOptions, RotationOptions } from './cloud/secret-providers.js';
 export {
   registerShutdownHook,
   isRunningInServiceMesh,
