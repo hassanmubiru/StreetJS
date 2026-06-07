@@ -1,0 +1,78 @@
+{
+  "generatedAt": "2026-06-07T04:09:01.885Z",
+  "status": "CERTIFIED",
+  "gatesTotal": 10,
+  "gatesPassed": 10,
+  "gates": [
+    {
+      "name": "typecheck/lint",
+      "command": "npm run lint",
+      "ok": true,
+      "durationMs": 3415,
+      "tail": "> tsc --noEmit  "
+    },
+    {
+      "name": "build",
+      "command": "npm run build",
+      "ok": true,
+      "durationMs": 3123,
+      "tail": "> node -e \"const fs=require('fs');const p=require('path');const s='src/database/sqlite';const d='dist/database/sqlite';fs.mkdirSync(d,{recursive:true});for(const f of ['sqlite3.wasm','sqlite3-node.mjs'])fs.copyFileSync(p.join(s,f),p.join(d,f));\"  "
+    },
+    {
+      "name": "compile-tests",
+      "command": "npx tsc",
+      "ok": true,
+      "durationMs": 4296,
+      "tail": ""
+    },
+    {
+      "name": "unit+integration",
+      "command": "node --test dist/src/tests/",
+      "ok": true,
+      "durationMs": 3110,
+      "tail": "# todo 0 # duration_ms 3066.045609 "
+    },
+    {
+      "name": "security-certification",
+      "command": "node --test dist/tests/certification/security-certification.test.js",
+      "ok": true,
+      "durationMs": 4093,
+      "tail": "# todo 0 # duration_ms 4069.60398 "
+    },
+    {
+      "name": "observability-certification",
+      "command": "node --test dist/tests/certification/observability-certification.test.js",
+      "ok": true,
+      "durationMs": 292,
+      "tail": "# todo 0 # duration_ms 266.005468 "
+    },
+    {
+      "name": "deployment-certification",
+      "command": "node --test dist/tests/certification/deployment-certification.test.js",
+      "ok": true,
+      "durationMs": 75,
+      "tail": "# todo 0 # duration_ms 51.79546 "
+    },
+    {
+      "name": "enterprise-certification",
+      "command": "node --test dist/tests/certification/enterprise-certification.test.js",
+      "ok": true,
+      "durationMs": 94,
+      "tail": "# todo 0 # duration_ms 70.983818 "
+    },
+    {
+      "name": "documentation-certification",
+      "command": "node --test dist/tests/certification/documentation-certification.test.js",
+      "ok": true,
+      "durationMs": 72,
+      "tail": "# todo 0 # duration_ms 50.448637 "
+    },
+    {
+      "name": "repository-certification",
+      "command": "node --test dist/tests/certification/repository-certification.test.js",
+      "ok": true,
+      "durationMs": 70,
+      "tail": "# todo 0 # duration_ms 46.524821 "
+    }
+  ]
+}
