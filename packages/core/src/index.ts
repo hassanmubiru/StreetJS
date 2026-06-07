@@ -162,6 +162,13 @@ export type { LogLevel, LogEntry } from './observability/logger.js';
 
 // ── Prometheus Metrics ────────────────────────────────────────────────────────
 export { MetricsRegistry, Counter, Gauge, Histogram, MetricConflictError, prometheusMiddleware, metricsHandler, registerMetricsRoute, PROMETHEUS_CONTENT_TYPE } from './observability/prometheus.js';
+export {
+  streetRecordingRules, streetAlertRules, streetSloBurnRateRules, streetRuleGroups,
+  validatePrometheusRuleGroups, serializePrometheusRulesYaml, isAlertRule,
+} from './observability/prometheus-rules.js';
+export type { RecordingRule, AlertRule, PromRule, RuleGroup, RuleValidationResult } from './observability/prometheus-rules.js';
+export { streetApiDashboard, validateGrafanaDashboard } from './observability/grafana-dashboard.js';
+export type { GrafanaDashboard, GrafanaPanel, GrafanaTarget, DashboardValidationResult } from './observability/grafana-dashboard.js';
 
 // ── Route Profiler ────────────────────────────────────────────────────────────
 export { RouteProfiler } from './diagnostics/route-profiler.js';
