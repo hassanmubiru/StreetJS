@@ -29,3 +29,12 @@ export class MariaDbConnection extends MysqlConnection {
     return conn;
   }
 }
+
+// Register the dialect-upgrade factory so `MysqlConnection.connect()` can return
+// a MariaDbConnection without `wire.ts` importing this module (breaks the
+// former wire ↔ mariadb circular dependency). This runs once at module load.
+MysqlConnection.registerDialectFactory((base) => {
+  const maria = new MariaDbConnection();
+  maria._transferFrom(base);
+  return maria;
+});
