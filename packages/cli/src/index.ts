@@ -53,6 +53,10 @@ export async function runCli(argv: string[]): Promise<void> {
       case 'create':
         await new CreateCommand().execute(ctx);
         break;
+
+      case 'certify':
+        await new CertifyCommand().execute(ctx);
+        break;
       case 'dev':
         await new DevCommand().execute(ctx);
         break;
