@@ -17,6 +17,23 @@ type GenerateType = 'controller' | 'service' | 'repository' | 'middleware' | 'ga
 
 const VALID_TYPES: GenerateType[] = ['controller', 'service', 'repository', 'middleware', 'gateway', 'migration'];
 
+/**
+ * Derive the output base name for `street generate grpc` from a `--proto` value.
+ *
+ * Extracted as an exported seam so the Class B.2 ReDoS exploration/fix tests can
+ * drive it directly: the real `generateGrpc` reads the proto file before this
+ * derivation, so an adversarial 50k-char slash-free `--proto` value cannot reach
+ * the flagged pattern through the file-reading path (it would hit ENAMETOOLONG).
+ *
+ * NOTE: this currently uses the polynomial `/.*\//` strip flagged by CodeQL
+ * (super-linear backtracking on a long slash-free input). The Class B fix
+ * replaces the regex with a linear `node:path` `basename` while keeping this
+ * function's output identical for valid POSIX `--proto` paths.
+ */
+export function deriveGrpcBaseName(protoPath: string): string {
+  return protoPath.replace(/.*\//, '').replace(/\.proto$/, '');
+}
+
 export class GenerateCommand {
   async execute(ctx: CliContext): Promise<void> {
     const rawType = ctx.args.positional[0]?.toLowerCase();
@@ -123,7 +140,7 @@ export class GenerateCommand {
     const tsSource = core.generateGrpcTypes(ast);
     const outDir = resolve(ctx.cwd, output);
     await mkdir(outDir, { recursive: true });
-    const baseName = protoPath.replace(/.*\//, '').replace(/\.proto$/, '');
+    const baseName = deriveGrpcBaseName(protoPath);
     const outFile = resolve(outDir, `${baseName}.grpc.ts`);
     await writeFile(outFile, tsSource, 'utf8');
     console.log(`[street] Generated gRPC types: ${output}/${baseName}.grpc.ts`);
