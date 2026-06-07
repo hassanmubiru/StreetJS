@@ -47,7 +47,7 @@ hover status tracks the documented properties.
   - Mark complete when tests are written, run, and the super-linear growth is documented
   - _Requirements: 1.2, 1.3, 1.4_
 
-- [-] 3. Write Class C bug-condition exploration test (incomplete purl encoding)
+- [ ] 3. Write Class C bug-condition exploration test (incomplete purl encoding)
   - **Property 3: Bug Condition** - Complete purl Encoding (Class C)
   - **CRITICAL**: This test MUST FAIL on unfixed code - failure confirms the bug exists
   - **DO NOT attempt to fix the test or the code when it fails**
