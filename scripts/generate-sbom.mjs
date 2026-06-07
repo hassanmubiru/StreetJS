@@ -7,8 +7,18 @@
 
 import { readFileSync, existsSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createHash, randomUUID } from 'node:crypto';
+
+/**
+ * Build a CycloneDX package URL (purl) from a dependency name + version.
+ * Exported as a testable seam (Class C). Behavior is unchanged from the
+ * original inline expression: the name segment is fully URL-encoded so every
+ * character requiring escaping (e.g. `@`) is encoded, not just the first.
+ */
+export function buildPurl(name, version) {
+  return `pkg:npm/${encodeURIComponent(name)}@${version}`;
+}
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 const outFile = process.argv[2] ?? join(repoRoot, 'sbom.json');
@@ -41,7 +51,7 @@ function walk(pkgDir) {
     if (!depDir) continue;
     const dp = readPkg(depDir);
     if (!dp) continue;
-    const purl = `pkg:npm/${encodeURIComponent(dp.name)}@${dp.version}`;
+    const purl = buildPurl(dp.name, dp.version);
     if (components.has(purl)) continue;
     components.set(purl, {
       type: 'library',
@@ -56,33 +66,40 @@ function walk(pkgDir) {
 }
 
 // Roots: the three workspace packages.
-const roots = ['packages/core', 'packages/cli', 'packages/edge'].map((p) => join(repoRoot, p));
-const rootPkgs = roots.map(readPkg).filter(Boolean);
-for (const dir of roots) walk(dir);
+function main() {
+  const roots = ['packages/core', 'packages/cli', 'packages/edge'].map((p) => join(repoRoot, p));
+  const rootPkgs = roots.map(readPkg).filter(Boolean);
+  for (const dir of roots) walk(dir);
 
-const corePkg = readPkg(join(repoRoot, 'packages/core'));
-const serialNumber = `urn:uuid:${randomUUID()}`;
-const sbom = {
-  bomFormat: 'CycloneDX',
-  specVersion: '1.5',
-  serialNumber,
-  version: 1,
-  metadata: {
-    timestamp: new Date().toISOString(),
-    tools: [{ vendor: 'streetjs', name: 'generate-sbom', version: '1.0.0' }],
-    component: {
-      type: 'application',
-      name: corePkg?.name ?? '@streetjs/core',
-      version: corePkg?.version ?? '0.0.0',
+  const corePkg = readPkg(join(repoRoot, 'packages/core'));
+  const serialNumber = `urn:uuid:${randomUUID()}`;
+  const sbom = {
+    bomFormat: 'CycloneDX',
+    specVersion: '1.5',
+    serialNumber,
+    version: 1,
+    metadata: {
+      timestamp: new Date().toISOString(),
+      tools: [{ vendor: 'streetjs', name: 'generate-sbom', version: '1.0.0' }],
+      component: {
+        type: 'application',
+        name: corePkg?.name ?? '@streetjs/core',
+        version: corePkg?.version ?? '0.0.0',
+      },
     },
-  },
-  components: [...components.values()].sort((a, b) => a.purl.localeCompare(b.purl)),
-};
+    components: [...components.values()].sort((a, b) => a.purl.localeCompare(b.purl)),
+  };
 
-const json = JSON.stringify(sbom, null, 2);
-writeFileSync(outFile, json);
-const digest = createHash('sha256').update(json).digest('hex');
-console.log(`SBOM written: ${outFile}`);
-console.log(`Components: ${sbom.components.length}`);
-console.log(`Roots: ${rootPkgs.map((p) => `${p.name}@${p.version}`).join(', ')}`);
-console.log(`sha256: ${digest}`);
+  const json = JSON.stringify(sbom, null, 2);
+  writeFileSync(outFile, json);
+  const digest = createHash('sha256').update(json).digest('hex');
+  console.log(`SBOM written: ${outFile}`);
+  console.log(`Components: ${sbom.components.length}`);
+  console.log(`Roots: ${rootPkgs.map((p) => `${p.name}@${p.version}`).join(', ')}`);
+  console.log(`sha256: ${digest}`);
+}
+
+// Only run SBOM generation when invoked directly (not when imported as a seam).
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main();
+}
