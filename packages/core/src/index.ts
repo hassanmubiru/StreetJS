@@ -174,8 +174,7 @@ export { RbacService, Roles, Permissions, rbacGuard } from './auth/rbac.js';
 export type { RoleHierarchy, RbacGuardOptions } from './auth/rbac.js';
 
 // ── Auth: WebAuthn / Passkeys ─────────────────────────────────────────────────
-export { WebAuthnService, decodeCbor, WEBAUTHN_MIGRATION_SQL } from './auth/webauthn.js';
-export type { WebAuthnConfig, PublicKeyCredentialCreationOptionsJSON, PublicKeyCredentialRequestOptionsJSON, RegistrationResponseJSON, AuthenticationResponseJSON, WebAuthnSession, WebAuthnPool } from './auth/webauthn.js';
+export { WebAuthnService, decodeCbor, WEBAUTHN_MIGRATION_SQL } from './auth/webauthn.js';export type { WebAuthnConfig, PublicKeyCredentialCreationOptionsJSON, PublicKeyCredentialRequestOptionsJSON, RegistrationResponseJSON, AuthenticationResponseJSON, WebAuthnSession, WebAuthnPool } from './auth/webauthn.js';
 
 // ── Auth: Session Store & Audit ───────────────────────────────────────────────
 export { StreetSessionStore, sessionRevocationMiddleware, AuditWriter, SESSION_STORE_MIGRATION_SQL, AUDIT_LOG_MIGRATION_SQL } from './auth/session-store.js';
