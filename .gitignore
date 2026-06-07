@@ -27,6 +27,13 @@ coverage/
 dist/
 packages/*/dist/
 
+# Generated certification / benchmark artifacts
+certification-report.json
+RELEASE-CERTIFICATION.md
+benchmark-report.json
+benchmark-report.md
+benchmark-history.json
+
 # General log files
 log.txt
 *.log
