@@ -46,11 +46,11 @@ export type { ClientCertPolicy, ClientCertResult, PeerCertLike, MutualTlsServerO
 export { generateOpenApi } from './http/openapi.js';
 export {
   validateOpenApiDocument, openApiOperations, parseZapReport,
-  summarizeFindings, evaluateDastGate,
+  summarizeFindings, evaluateDastGate, openApiConformanceScan,
 } from './security/dast.js';
 export type {
   DastSeverity, DastFinding, OpenApiValidationResult, OpenApiOperationTarget,
-  DastGateOptions, DastGateResult,
+  DastGateOptions, DastGateResult, ConformanceScanOptions,
 } from './security/dast.js';
 
 // ── Router ────────────────────────────────────────────────────────────────────

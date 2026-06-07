@@ -1,13 +1,17 @@
 // src/security/dast.ts
 // DAST (Dynamic Application Security Testing) support, driven by the framework's
 // generated OpenAPI spec. This module is the offline-verifiable core of the DAST
-// pipeline: OpenAPI artifact validation, scan-target enumeration, normalization
-// of OWASP ZAP baseline reports into structured findings, and a severity-gated,
-// deterministic pass/fail decision (the "fail the build on High/Critical" gate).
+// pipeline: OpenAPI artifact validation, scan-target enumeration, an in-process
+// OpenAPI conformance scanner, normalization of OWASP ZAP baseline reports into
+// structured findings, and a severity-gated, deterministic pass/fail decision
+// (the "fail the build on High/Critical" gate).
 //
 // The external scanners themselves (Schemathesis, OWASP ZAP) are invoked by the
 // scripts in scripts/dast/ and the CI workflow; this module turns their output
-// into a reproducible gate decision. Pure TS — no third-party dependencies.
+// into a reproducible gate decision. Pure TS + node:http — no third-party deps.
+
+import { request as httpRequest } from 'node:http';
+import { request as httpsRequest } from 'node:https';
 
 export type DastSeverity = 'info' | 'low' | 'medium' | 'high' | 'critical';
 
@@ -76,6 +80,67 @@ export function openApiOperations(doc: unknown): OpenApiOperationTarget[] {
     }
   }
   return out;
+}
+
+// ── In-process OpenAPI conformance scanner ───────────────────────────────────
+
+export interface ConformanceScanOptions {
+  /** Base URL of the running target, e.g. 'http://127.0.0.1:8080'. */
+  baseUrl: string;
+  /** HTTP methods to exercise. Default ['GET'] (no request-body synthesis). */
+  methods?: string[];
+  /** Optional bearer token for authenticated scans. */
+  token?: string;
+  /** Value substituted for path params like {id}. Default 'dast-probe'. */
+  pathParamValue?: string;
+  /** Per-request timeout (ms). Default 5000. */
+  timeoutMs?: number;
+}
+
+interface ProbeResult { status: number; error?: string; }
+
+function probe(method: string, url: string, token: string | undefined, timeoutMs: number): Promise<ProbeResult> {
+  return new Promise((resolve) => {
+    let u: URL;
+    try { u = new URL(url); } catch { resolve({ status: 0, error: 'invalid_url' }); return; }
+    const lib = u.protocol === 'https:' ? httpsRequest : httpRequest;
+    const headers: Record<string, string> = token ? { authorization: `Bearer ${token}` } : {};
+    const req = lib(
+      { method, hostname: u.hostname, port: u.port, path: u.pathname + u.search, headers },
+      (res) => { res.resume(); res.once('end', () => resolve({ status: res.statusCode ?? 0 })); },
+    );
+    req.setTimeout(timeoutMs, () => { req.destroy(); resolve({ status: 0, error: 'timeout' }); });
+    req.once('error', (e) => resolve({ status: 0, error: e.message }));
+    req.end();
+  });
+}
+
+/**
+ * Exercise every enumerated OpenAPI operation against a live target and report
+ * security/robustness findings: a 5xx response or a connection failure is a
+ * High finding (the server crashed or errored on a well-formed request derived
+ * from its own contract). Runs in-process with no external tooling — the
+ * offline counterpart to a Schemathesis scan. Combine with {@link evaluateDastGate}.
+ */
+export async function openApiConformanceScan(doc: unknown, opts: ConformanceScanOptions): Promise<DastFinding[]> {
+  const methods = new Set((opts.methods ?? ['GET']).map((m) => m.toUpperCase()));
+  const paramVal = opts.pathParamValue ?? 'dast-probe';
+  const timeoutMs = opts.timeoutMs ?? 5000;
+  const base = opts.baseUrl.replace(/\/$/, '');
+  const findings: DastFinding[] = [];
+
+  for (const op of openApiOperations(doc)) {
+    if (!methods.has(op.method)) continue;
+    const concretePath = op.path.replace(/\{[^}]+\}/g, encodeURIComponent(paramVal));
+    const url = `${base}${concretePath}`;
+    const r = await probe(op.method, url, opts.token, timeoutMs);
+    if (r.status >= 500) {
+      findings.push({ tool: 'openapi-conformance', name: `Server error (${r.status})`, severity: 'high', url, description: `${op.method} ${op.path} returned ${r.status}` });
+    } else if (r.status === 0) {
+      findings.push({ tool: 'openapi-conformance', name: 'Request failed', severity: 'high', url, description: `${op.method} ${op.path}: ${r.error ?? 'no response'}` });
+    }
+  }
+  return findings;
 }
 
 // ── OWASP ZAP baseline report normalization ──────────────────────────────────

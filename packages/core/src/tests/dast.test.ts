@@ -114,3 +114,44 @@ describe('DAST — severity gate & deterministic exit codes', () => {
     assert.equal(gate.exitCode, 2); // a High finding fails the build deterministically
   });
 });
+
+describe('DAST — in-process OpenAPI conformance scan (live app)', () => {
+  it('passes the gate for a healthy app and fails it when a route 500s', async () => {
+    const { streetApp } = await import('../http/server.js');
+    const { Controller, Get } = await import('../core/decorators.js');
+    const { container } = await import('../core/container.js');
+    const { openApiConformanceScan, evaluateDastGate } = await import('../security/dast.js');
+
+    @Controller('/probe')
+    class ProbeCtrl {
+      @Get('/ok')
+      async ok(ctx: import('../core/context.js').StreetContext): Promise<void> { ctx.json({ ok: true }); }
+      @Get('/boom')
+      async boom(_ctx: import('../core/context.js').StreetContext): Promise<void> { throw new Error('deliberate crash'); }
+    }
+
+    container.reset();
+    const app = streetApp({});
+    app.registerController(ProbeCtrl);
+    const port = 4100 + Math.floor(Math.random() * 800);
+    await app.listen(port, '127.0.0.1');
+    try {
+      const doc = app.openApiSpec();
+      const base = `http://127.0.0.1:${port}`;
+
+      // Full scan includes /probe/boom which throws → a High finding → gate fails.
+      const all = await openApiConformanceScan(doc, { baseUrl: base });
+      const gateAll = evaluateDastGate(all);
+      assert.equal(gateAll.passed, false, 'app with a 500 route must fail the gate');
+      assert.ok(all.some((f) => f.severity === 'high' && /boom/.test(f.url ?? '')), 'boom flagged as high');
+
+      // A direct probe of only the healthy endpoint yields no findings → gate passes.
+      const okDoc = { openapi: '3.1.0', info: { title: 't', version: '1' }, paths: { '/probe/ok': { get: { responses: { '200': { description: 'ok' } } } } } };
+      const clean = await openApiConformanceScan(okDoc, { baseUrl: base });
+      assert.deepEqual(clean, []);
+      assert.equal(evaluateDastGate(clean).passed, true);
+    } finally {
+      await app.close();
+    }
+  });
+});
