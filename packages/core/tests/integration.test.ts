@@ -344,6 +344,41 @@ describe('PostgreSQL Wire Protocol', () => {
 
     assert.deepEqual(rows, ['1', '2', '3']);
   });
+
+  // Regression for F-1: a query/stream issued immediately after an errored
+  // query on the SAME connection must not race the prior command's trailing
+  // ReadyForQuery. Before the fix this yielded empty results (~73% of the time
+  // in a tight loop), an out-of-band crash, or a hang. We run a tight loop so
+  // the defect is caught deterministically rather than ~2-6% of the time.
+  it('streams correctly immediately after an errored query (F-1, 50x)', async () => {
+    for (let i = 0; i < 50; i++) {
+      await assert.rejects(
+        () => conn.query('SELECT * FROM table_that_does_not_exist_xyz'),
+        /PostgreSQL/,
+      );
+      const stream = conn.queryStream('SELECT generate_series(1, 3) AS n');
+      const rows: string[] = [];
+      await new Promise<void>((resolve, reject) => {
+        stream.on('data', (row: unknown) => {
+          rows.push((row as Record<string, string | null>)['n'] ?? '');
+        });
+        stream.on('end', resolve);
+        stream.on('error', reject);
+      });
+      assert.deepEqual(rows, ['1', '2', '3'], `iteration ${i} dropped rows`);
+    }
+  });
+
+  it('buffered query is correct immediately after an errored query (F-1, 50x)', async () => {
+    for (let i = 0; i < 50; i++) {
+      await assert.rejects(
+        () => conn.query('SELECT * FROM table_that_does_not_exist_xyz'),
+        /PostgreSQL/,
+      );
+      const result = await conn.query('SELECT generate_series(1, 3) AS n');
+      assert.equal(result.rows.length, 3, `iteration ${i} returned wrong row count`);
+    }
+  });
 });
 
 // ─── Suite 5: PgPool ────────────────────────────────────────────────────────
