@@ -60,7 +60,7 @@ hover status tracks the documented properties.
   - Mark complete when the test is written, run, and the partial encoding is documented
   - _Requirements: 1.5_
 
-- [~] 4. Write Class D bug-condition exploration test (sanitization reconstitution)
+- [-] 4. Write Class D bug-condition exploration test (sanitization reconstitution)
   - **Property 4: Bug Condition** - Sanitization Fixed Point (Class D)
   - **CRITICAL**: This test MUST FAIL on the stale single-pass artifact - failure confirms the bug exists
   - **DO NOT attempt to fix the test or the code when it fails**
