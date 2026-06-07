@@ -368,6 +368,22 @@ export {
   SENDGRID_PLUGIN_NAME, SENDGRID_PLUGIN_VERSION,
 } from './platform/plugins/official/sendgrid.js';
 export type { SendGridPluginConfig, MailMessage, SendGridRequest } from './platform/plugins/official/sendgrid.js';
+export {
+  StripePlugin, StripeClient, stripePluginManifest, validateStripeConfig, STRIPE_PLUGIN_NAME, STRIPE_PLUGIN_VERSION,
+} from './platform/plugins/official/stripe.js';
+export type { StripePluginConfig, StripeHttpRequest } from './platform/plugins/official/stripe.js';
+export {
+  TwilioPlugin, TwilioClient, twilioPluginManifest, validateTwilioConfig, TWILIO_PLUGIN_NAME, TWILIO_PLUGIN_VERSION,
+} from './platform/plugins/official/twilio.js';
+export type { TwilioPluginConfig, TwilioHttpRequest, SmsMessage } from './platform/plugins/official/twilio.js';
+export {
+  Auth0Plugin, Auth0Client, auth0PluginManifest, validateAuth0Config, AUTH0_PLUGIN_NAME, AUTH0_PLUGIN_VERSION,
+} from './platform/plugins/official/auth0.js';
+export type { Auth0PluginConfig, Auth0HttpRequest } from './platform/plugins/official/auth0.js';
+export {
+  R2Plugin, R2Client, r2PluginManifest, validateR2Config, R2_PLUGIN_NAME, R2_PLUGIN_VERSION,
+} from './platform/plugins/official/r2.js';
+export type { R2PluginConfig } from './platform/plugins/official/r2.js';
 
 // ── HTTP: Edge Runtime ────────────────────────────────────────────────────────
 export { FeatureUnavailableInEdgeRuntimeError } from './http/exceptions.js';
