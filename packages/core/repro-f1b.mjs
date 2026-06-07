@@ -26,5 +26,5 @@ for (let i = 0; i < N; i++) {
   else if (rows.length === 0) empty++;
   else other++;
 }
-console.log(`error-then-stream loop: N=${N} ok=${ok} empty=${empty} other=${other}`);
+console.log(`error-then-stream loop: N=${N} ok=${ok} empty=${empty} other=${other} uncaught=${uncaught}`);
 await conn.close();
