@@ -78,7 +78,7 @@ describe('observability — YAML serialization', () => {
     const yaml = serializePrometheusRulesYaml(streetRuleGroups());
     assert.match(yaml, /^groups:/);
     assert.match(yaml, /- name: street-http-recording/);
-    assert.match(yaml, /record: job:http_request_rate:rate5m/);
+    assert.match(yaml, /record: "job:http_request_rate:rate5m"/);
     assert.match(yaml, /alert: StreetHighErrorRate/);
     assert.match(yaml, /severity: warning/);
     assert.match(yaml, /summary:/);
