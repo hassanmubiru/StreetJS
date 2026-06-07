@@ -29,17 +29,13 @@ async function brokerAvailable(): Promise<boolean> {
   }
 }
 
-/** Ensure a topic exists with the requested partition count by producing a
- *  probe record (auto-create) then polling metadata until partitions appear. */
+/** Ensure a topic exists with the requested partition count AND every partition
+ *  has an elected leader (cold-start safe), via the client's readiness gate. */
 async function ensureTopic(client: KafkaClient, topic: string, minPartitions = 1): Promise<void> {
-  const deadline = Date.now() + 15000;
-  for (;;) {
-    const meta = await client.metadata([topic]);
-    const tm = meta.topics.find((t) => t.name === topic);
-    if (tm && tm.error === 0 && tm.partitions.length >= minPartitions) return;
-    if (Date.now() > deadline) throw new Error(`topic ${topic} not ready`);
-    await new Promise((r) => setTimeout(r, 300));
-  }
+  // Probe-produce path: metadata() with the topic name triggers auto-create.
+  await client.metadata([topic]);
+  // Block until all partitions have an elected leader + in-sync replica.
+  await client.awaitTopicReady(topic, minPartitions, 15000);
 }
 
 function waitFor<T>(fn: () => T | undefined, timeoutMs = 15000): Promise<T> {

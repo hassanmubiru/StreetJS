@@ -100,9 +100,43 @@ export class KafkaClient {
     if (!this.meta) await this.metadata([topic]);
     let tm = this.meta!.topics.find((t) => t.name === topic);
     if (!tm) { await this.metadata([topic]); tm = this.meta!.topics.find((t) => t.name === topic); }
-    const pm = tm?.partitions.find((p) => p.partition === partition);
-    if (!pm) throw new Error(`No leader for ${topic}-${partition}`);
+    let pm = tm?.partitions.find((p) => p.partition === partition);
+    // Cold-start hardening: right after broker startup / topic creation a
+    // partition can briefly have no elected leader (leader < 0) or a transient
+    // error. Refresh metadata with short backoff before giving up.
+    for (let attempt = 0; (pm === undefined || pm.leader < 0 || pm.error !== 0) && attempt < 25; attempt++) {
+      await new Promise((r) => setTimeout(r, 200));
+      await this.metadata([topic]);
+      tm = this.meta!.topics.find((t) => t.name === topic);
+      pm = tm?.partitions.find((p) => p.partition === partition);
+    }
+    if (!pm || pm.leader < 0) throw new Error(`No leader for ${topic}-${partition}`);
     return this._brokerById(pm.leader);
+  }
+
+  /**
+   * Wait until a topic is fully ready to produce/consume: it exists with at
+   * least `minPartitions`, and EVERY partition has a healthy state (error 0,
+   * an elected leader >= 0, and a non-empty in-sync replica set). This closes
+   * the cold-start race where `metadata()` returns a topic whose partitions
+   * have no leader yet (LEADER_NOT_AVAILABLE), causing transient produce
+   * failures. Polls with backoff until ready or `timeoutMs` elapses.
+   */
+  async awaitTopicReady(topic: string, minPartitions = 1, timeoutMs = 15_000): Promise<void> {
+    const deadline = Date.now() + timeoutMs;
+    for (;;) {
+      const meta = await this.metadata([topic]);
+      const tm = meta.topics.find((t) => t.name === topic);
+      const ready = tm !== undefined
+        && tm.error === 0
+        && tm.partitions.length >= minPartitions
+        && tm.partitions.every((p) => p.error === 0 && p.leader >= 0 && p.isr.length >= 1);
+      if (ready) return;
+      if (Date.now() > deadline) {
+        throw new Error(`Kafka topic "${topic}" not ready within ${timeoutMs}ms (no elected leader on all partitions)`);
+      }
+      await new Promise((r) => setTimeout(r, 200));
+    }
   }
 
   /** Allocate a producer id + epoch for the idempotent producer (InitProducerId v0). */
