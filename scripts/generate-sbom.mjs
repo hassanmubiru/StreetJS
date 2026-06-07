@@ -41,7 +41,7 @@ function walk(pkgDir) {
     if (!depDir) continue;
     const dp = readPkg(depDir);
     if (!dp) continue;
-    const purl = `pkg:npm/${dp.name.replace('@', '%40')}@${dp.version}`;
+    const purl = `pkg:npm/${encodeURIComponent(dp.name)}@${dp.version}`;
     if (components.has(purl)) continue;
     components.set(purl, {
       type: 'library',
