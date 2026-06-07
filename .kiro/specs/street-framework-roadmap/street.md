@@ -1413,3 +1413,132 @@ This cycle's net, fully-verified change: mTLS gained TrustStore (managed CAs + p
 PLATFORM LEADERSHIP is not awarded: DAST automation and the platform ecosystem (marketplace, console, observability packs, interactive docs) have no executable evidence — DAST specifically could not run because the environment has no registry/network connectivity, confirmed by a timed-out image pull.
 
 Est. Credits Used: 15.83
+
+Forensic reproduction complete, workspace clean, container removed. Here is the certification.
+
+Street Framework — Zero-Trust Certification Audit
+Model: zero-trust. Every VERIFIED row maps to a command run this cycle. This audit's headline result: the flaky streaming test flagged last cycle was forensically root-caused to a High-severity correctness defect in the PostgreSQL connection's post-error state machine (data loss + possible hang/crash), reproduced deterministically.
+
+Executive Summary
+Street's implemented core is genuinely strong — 0 circular dependencies (independently proven), 0 vulnerabilities, 2 production dependencies, and suites that pass against live PostgreSQL, MySQL, RabbitMQ, and Kafka. However, forensic reproduction this cycle escalated finding F-1 from "flaky test" to a confirmed High-severity defect: issuing any query immediately after an errored query on the same PgConnection races the wire state machine, producing empty result sets (73% in the triggering condition), and under other timings a process-crashing uncaught exception or a hung promise. The ecosystem tier (marketplace, console, DAST, dashboards) is NOT IMPLEMENTED.
+
+Certification: ADVANCED PRODUCTION READY (81/100). Confidence: High. Held down by F-1 (core correctness) and the absent ecosystem/DAST tiers.
+
+Evidence Table
+Area	Command Executed	Result	Status
+Circular deps	node scripts/check-cycles.mjs (Tarjan, 206 files) + self-test	0 cycles; detector flags injected cycle	VERIFIED
+Dependencies	inspect package.json	2 (reflect-metadata, ws)	VERIFIED
+Export count	grep -c '^export' dist/index.d.ts	186	VERIFIED
+Supply chain	npm audit	0 vulnerabilities	VERIFIED
+SBOM	node scripts/generate-sbom.mjs	3 components, sha256 cfc9022…	VERIFIED
+Core unit suite	node --test dist/src/tests/*.test.js	730 pass, 6 skip, 0 fail	VERIFIED
+Certification suite	node --test dist/tests/certification/*.test.js	51 pass, 0 fail	VERIFIED
+System suite	node --test dist/tests/system/*.test.js	211 pass, 3 skip, 0 fail	VERIFIED
+CLI	npm test -w packages/cli	38 pass, 0 fail	VERIFIED
+Edge	node --test dist/*.test.js	14 pass, 0 fail	VERIFIED
+PostgreSQL 16 (live)	container + integration.test.js ×~57 runs	32 pass; streaming test fails ~2–6%	FLAKY (see F-1)
+PostgreSQL migrations (live)	container + infrastructure.test.js	25 pass, 0 skip	VERIFIED
+MySQL 8.0 (live)	container, native-password	24 pass, 0 fail	VERIFIED
+RabbitMQ 3.13 (live)	container + integration suite	3 pass, 0 fail	VERIFIED
+Kafka 3.7.1 (live)	compose + integration suite	7 pass warm; 2 fail cold	FLAKY (see F-2)
+F-1 isolation repro	fresh-conn queryStream ×300	300 ok, 0 empty	VERIFIED (no defect in isolation)
+F-1 trigger repro	error-query → queryStream ×300, same conn	81 ok, 219 EMPTY (+ crash/hang variants)	VERIFIED defect
+Findings Table
+ID	Finding	Severity	Evidence	Status
+F-1	PgConnection post-error state race: a query/stream issued right after an errored query yields empty results (73%), or an uncaught process crash, or a hung promise	High	repro: 0/300 isolated vs 219/300 empty after error; uncaught throw in wire.js _handleMessage ErrorResponse path; hang when guarded	VERIFIED
+F-2	Kafka integration tests flaky on cold broker	Low	2/7 cold, 7/7 warm ×2	FLAKY
+F-3	DAST automation (Schemathesis/ZAP) absent; un-runnable here	High	which empty; docker pull zaproxy timed out	NOT IMPLEMENTED
+F-4	Plugin marketplace/registry/signing/official plugins absent	Medium	no source	NOT IMPLEMENTED
+F-5	Enterprise console/compliance/policy APIs absent	Medium	no source	NOT IMPLEMENTED
+F-6	Grafana dashboards/alert rules/SLO packs absent	Medium	no source	NOT IMPLEMENTED
+F-7	MySQL driver refuses cleartext over non-TLS	Info	wire.js:530	VERIFIED control
+F-8	Memory baseline ~64 MB vs Express 5/Fastify 6	Low	results.json	VERIFIED
+F-9	No deployment-verified targets (k8s/CF/Vercel/Deno/…)	Medium	adapters+tests only	PARTIALLY VERIFIED
+F-1 — Reproduction steps & root-cause analysis (per audit requirement)
+Reproduction:
+
+Connect one PgConnection to PostgreSQL.
+await conn.query('SELECT * FROM does_not_exist') and catch the rejection.
+Immediately conn.queryStream('SELECT generate_series(1,3) AS n') and collect rows.
+Repeat. Observed: 219/300 (73%) yield []; with a hang-guard removed, an uncaught exception (PostgreSQL: relation … does not exist) escapes all user try/catch and crashes the process; in the integration suite the same race surfaces ~2–6% as actual: [].
+Control: the identical loop on a fresh connection with no preceding error = 0/300 failures.
+
+Root cause: after an ErrorResponse, the connection sets state='ready' and clears queryResolve/queryReject before the trailing ReadyForQuery of the errored query is consumed. A query issued in that window has its response interleaved with residual error-sequence processing, so its DataRows are mis-routed away from the active streamTarget (stream finalizes empty), and a late ErrorResponse with no live handler is re-thrown out-of-band. The receive state machine does not fully quiesce between an errored query and the next.
+
+F-2 RCA: cold broker returns metadata() before topic auto-creation/leader election settles; before() proceeds to produce, intermittently hitting NOT_LEADER/empty metadata. Warm runs pass 7/7.
+
+Risk Register
+Risk	Likelihood	Impact	Mitigation
+Silent data loss / crash via F-1 in apps that query after a caught DB error on a shared connection	High (in that pattern)	High	Quiesce receive state until post-error ReadyForQuery before dispatching next op; route orphan ErrorResponse to a no-op; add error-then-query determinism test
+Injection regression without DAST gate	Medium	High	Schemathesis + ZAP in online CI
+Kafka cold-start CI false negatives	Medium	Low	Gate on stable metadata before produce
+Ecosystem gaps seen as shipped	Medium	Medium	Reported NOT IMPLEMENTED
+Technical Debt Register
+Item	Priority	Effort	Recommendation
+F-1 post-error state race	Critical	M	Add explicit awaitingReadyForQuery gate; queue next op until the errored query's ReadyForQuery; unit + 300-iter stress test
+Kafka readiness gate	High	S	Await metadata stability in before()
+Streaming test under-detects F-1	High	S	Replace with deterministic error-then-stream stress assertion
+DAST harness	High	M	Network CI stage
+Offline cycle check in CI	Low	S	Adopt 
+check-cycles.mjs
+ (added)
+Reports
+Architecture — VERIFIED: 2 deps, 186 exports, 0 cycles (independently proven via self-validated detector across 206 files), clean package layering (core/cli/edge). No formal plugin/extension API. Debt: F-1 lives in the wire layer's state machine.
+
+Security — VERIFIED: mTLS (validation, constant-time pinning, CN allow-list, TrustStore, zero-downtime rotateServerCertificate proven by live CA-rotation handshake), MFA TOTP/HOTP (RFC vectors), WebAuthn (COSE/CBOR + sig verify), AES-256-GCM, CRLF/XSS/SQLi defenses, timing-safe comparisons, positive cleartext-refusal control (F-7). NOT IMPLEMENTED: DAST gates (F-3). No executable evidence found for SOC2/ISO/HIPAA/GDPR (not claimed).
+
+Testing — 1,099+ passing incl. live infra; 9 skips reported separately (all run when infra present). Two flaky areas (F-1, F-2); F-1 is a defect the test under-samples.
+
+Performance — measured (results.json, Node v20.20.1): Street 27,700 rps, p95 3ms, p99 5ms, startup 70ms, mem 64MB. Comparison vs Express (13,017), Fastify (33,183), Hono (30,776), NestJS (11,783) — all measured. ≈2.1× Express, ≈2.3× NestJS; behind Fastify (~17%) and Hono (~10%); memory materially higher (F-8). Methodology weakness: same-process sequential runs (not isolated processes) can advantage later frameworks via warm runtime.
+
+Reliability — VERIFIED: retry/backoff, DLQ, graceful shutdown, pooling, connection recovery, migrations on live PG, RabbitMQ reconnect. Defect: F-1 data-loss/crash/hang race (High). Flaky: F-2.
+
+Observability — VERIFIED: OpenTelemetry, Prometheus metrics, health/readiness/liveness. UNVERIFIED/NOT IMPLEMENTED: dashboard/alert/SLO packs (F-6).
+
+Cloud — Adapter VERIFIED: AWS Lambda, Azure Functions, GCF, edge fetch (14 tests). Deployment NOT VERIFIED: k8s/Cloud Run/ECS/Nomad/Cloudflare/Vercel/Deno (F-9). Adapter ≠ deployment.
+
+Enterprise — VERIFIED technical controls: multi-tenancy + isolation, AES-256-GCM, audit logging, retention, classification, secret rotation, backup/restore. NOT IMPLEMENTED: console/compliance/policy APIs (F-5).
+
+DX — VERIFIED: street CLI + scaffolding + certify (38 tests). NOT IMPLEMENTED: upgrade/codemods/migration assistant/SDK-gen UX/playground.
+
+Ecosystem — NOT IMPLEMENTED: marketplace, registry, signing, verification, official plugins, vendor integrations. No executable evidence found.
+
+Sustainability — VERIFIED: GOVERNANCE.md, CONTRIBUTING.md, LTS policy, SBOM generator. NOT IMPLEMENTED: release scorecards, changelog gates, health reports. Bus-factor risk: from-scratch wire protocols (PG/MySQL/Kafka/AMQP) concentrate deep knowledge — F-1 illustrates the maintenance surface.
+
+Scorecard
+Area	Score	Justification
+Architecture	95	2 deps, 0 cycles (proven), clean boundaries; −5 no plugin API
+Security	88	mTLS/MFA/WebAuthn/crypto verified; −12 no DAST
+Testing	85	broad live coverage; −15 under-samples F-1, plus F-2 flakiness
+Reliability	72	recovery/pooling/migrations verified; −28 confirmed High data-loss/crash race (F-1)
+Performance	90	reproducible, beats Express/NestJS; −10 behind Fastify/Hono + memory + same-process methodology
+Observability	85	telemetry verified; −15 no packs
+Cloud	80	adapters verified; −20 no deployment verification
+Enterprise	82	controls verified; −18 no console
+Documentation	88	extensive, presence-enforced; −12 unbuilt-feature gaps
+Developer Experience	80	CLI verified; −20 no upgrade/codemods/playground
+Ecosystem	45	−55 marketplace/plugins absent
+Sustainability	80	governance/LTS/SBOM; −20 no scorecards
+Overall (mean)	81	gated by F-1 (reliability) + ecosystem/DAST absence
+Per the band rule, the platform cannot exceed 89 while DAST and the ecosystem/marketplace are absent — independently confirmed here.
+
+Certification Decision
+ADVANCED PRODUCTION READY (81/100). The implemented surface is high quality and live-verified, but a confirmed High-severity correctness defect (F-1) in a core database primitive and the absent ecosystem/DAST tiers cap the result. No score was inflated; F-1 was actively escalated against Reliability based on reproduction.
+
+Remaining Gaps
+F-1 post-error connection race (data loss/crash/hang) · DAST CI gate · plugin marketplace + reference plugins · enterprise console/compliance APIs · Grafana/alert/SLO packs · deployment-verified targets · street upgrade/codemods/playground · release scorecards.
+
+Prioritized Roadmap
+Fix F-1 (Critical): gate the next operation until the errored query's trailing ReadyForQuery is consumed; discard orphan ErrorResponse safely; add a 300-iteration error-then-query/stream determinism test. (Buffered query() is mostly unaffected; queryStream-after-error is the hot path.)
+Replace the streaming test with the deterministic stress assertion so CI catches F-1 every run.
+Kafka readiness gate (High, small).
+DAST gate (High): Schemathesis from generateOpenApi + ZAP baseline.
+Observability pack + deployment verification (Medium).
+Confidence & Release Recommendation
+Confidence: High — grounded in commands run this cycle, including live DB/broker verification and a 600-iteration controlled reproduction that isolated F-1's root cause (0/300 clean vs 219/300 defective).
+
+Release recommendation: CONDITIONAL. Approve the core framework and verified adapters for production except the pattern of reusing a PgConnection for a new query/stream immediately after a caught query error — treat that as unsafe until F-1 is fixed (risk of empty results, hangs, or process crash). The pooled/buffered query() happy path and all other verified subsystems are sound. Configure MySQL with TLS or native-password (F-7 is a correct refusal), and budget for the higher memory baseline (F-8).
+
+This cycle added one durable artifact — 
+check-cycles.mjs
+ (dependency-free, self-tested) — and, more importantly, converted a vague "flaky test" into a precisely characterized, reproducible defect with a concrete fix path.
