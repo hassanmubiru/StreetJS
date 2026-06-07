@@ -1,7 +1,9 @@
 // packages/core/src/benchmarks/run.ts
 // Entry point for benchmark suite
 
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 import { streetApp } from '../http/server.js';
 import { runHttpBenchmark, measureStreetStartup, type BenchmarkResult } from './http-benchmark.js';
 
