@@ -16,7 +16,7 @@ hover status tracks the documented properties.
 
 ### Phase 1 — Exploratory Bug Condition Checking (write BEFORE any fix)
 
-- [ ] 1. Write Class A bug-condition exploration test (TLS validation leak)
+- [-] 1. Write Class A bug-condition exploration test (TLS validation leak)
   - **Property 1: Bug Condition** - TLS Validation Never Disabled (Class A)
   - **CRITICAL**: This test MUST FAIL on unfixed code - failure confirms the bug exists
   - **DO NOT attempt to fix the test or the code when it fails**
@@ -32,7 +32,7 @@ hover status tracks the documented properties.
   - Mark complete when the test is written, run, and the leak is documented
   - _Requirements: 1.1_
 
-- [ ] 2. Write Class B bug-condition exploration test (ReDoS / super-linear timing)
+- [~] 2. Write Class B bug-condition exploration test (ReDoS / super-linear timing)
   - **Property 2: Bug Condition** - Linear-Time Matching/Parsing (Class B)
   - **CRITICAL**: This property-based / timing test MUST demonstrate super-linear growth on unfixed code
   - **DO NOT attempt to fix the test or the code when it fails**
@@ -47,7 +47,7 @@ hover status tracks the documented properties.
   - Mark complete when tests are written, run, and the super-linear growth is documented
   - _Requirements: 1.2, 1.3, 1.4_
 
-- [ ] 3. Write Class C bug-condition exploration test (incomplete purl encoding)
+- [~] 3. Write Class C bug-condition exploration test (incomplete purl encoding)
   - **Property 3: Bug Condition** - Complete purl Encoding (Class C)
   - **CRITICAL**: This test MUST FAIL on unfixed code - failure confirms the bug exists
   - **DO NOT attempt to fix the test or the code when it fails**
@@ -60,7 +60,7 @@ hover status tracks the documented properties.
   - Mark complete when the test is written, run, and the partial encoding is documented
   - _Requirements: 1.5_
 
-- [ ] 4. Write Class D bug-condition exploration test (sanitization reconstitution)
+- [~] 4. Write Class D bug-condition exploration test (sanitization reconstitution)
   - **Property 4: Bug Condition** - Sanitization Fixed Point (Class D)
   - **CRITICAL**: This test MUST FAIL on the stale single-pass artifact - failure confirms the bug exists
   - **DO NOT attempt to fix the test or the code when it fails**
@@ -75,7 +75,7 @@ hover status tracks the documented properties.
 
 ### Phase 2 — Preservation Baseline (write BEFORE any fix)
 
-- [ ] 5. Write preservation property/unit tests capturing current behavior (BEFORE implementing fixes)
+- [~] 5. Write preservation property/unit tests capturing current behavior (BEFORE implementing fixes)
   - **Property 7: Preservation** - Non-Buggy Inputs Unchanged (all classes)
   - **IMPORTANT**: Follow observation-first methodology — record actual outputs of the UNFIXED code, then assert them
   - **GOAL**: Lock in the baseline so the fixes can be proven to leave non-buggy inputs untouched (`F(X) = F'(X)`)
@@ -94,7 +94,7 @@ hover status tracks the documented properties.
 
 - [ ] 6. Fix Class A — disable the TLS-validation bypass in the webhook dispatcher
 
-  - [ ] 6.1 Remove the `rejectUnauthorized: false` spread in `sendRequest`
+  - [~] 6.1 Remove the `rejectUnauthorized: false` spread in `sendRequest`
     - Edit `packages/core/src/webhook/dispatcher.ts`: delete the
       `...(tls?.rejectUnauthorized === false ? { rejectUnauthorized: false } : {})` spread so validation is never disabled
     - Retain the custom-CA path `...(tls?.ca ? { ca: tls.ca } : {})` as the supported private-CA mechanism
@@ -104,13 +104,13 @@ hover status tracks the documented properties.
     - _Preservation: targets without tls / rejectUnauthorized true|undefined already produced `{}` for this spread — unchanged_
     - _Requirements: 2.1, 3.1_
 
-  - [ ] 6.2 Verify Class A exploration test now passes
+  - [~] 6.2 Verify Class A exploration test now passes
     - **Property 1: Expected Behavior** - TLS Validation Never Disabled (Class A)
     - **IMPORTANT**: Re-run the SAME test from task 1 — do NOT write a new test
     - **EXPECTED OUTCOME**: Test PASSES (options never contain `rejectUnauthorized: false`)
     - _Requirements: 2.1_
 
-  - [ ] 6.3 Verify Class A preservation still holds
+  - [~] 6.3 Verify Class A preservation still holds
     - **Property 7: Preservation** - Normal Dispatch Preserved (Class A)
     - Re-run the Class A preservation assertions from task 5
     - **EXPECTED OUTCOME**: Normal HTTPS dispatch, signing, retries, and SSRF protection unchanged
@@ -118,7 +118,7 @@ hover status tracks the documented properties.
 
 - [ ] 7. Fix Class B — replace polynomial regexes with linear-time equivalents
 
-  - [ ] 7.1 B.1 — `base32Decode` linear trailing-`=` trim (`packages/core/src/auth/mfa.ts:31`)
+  - [~] 7.1 B.1 — `base32Decode` linear trailing-`=` trim (`packages/core/src/auth/mfa.ts:31`)
     - Replace `input.toUpperCase().replace(/=+$/g,'').replace(/\s/g,'')` with the uppercase + linear
       trailing-`=` `while` trim + `.replace(/\s/g,'')` from the design (identical output/eval order)
     - _Bug_Condition: isBugCondition_B(input) — every input reaches the flagged pattern_
@@ -126,7 +126,7 @@ hover status tracks the documented properties.
     - _Preservation: valid base32 decodes identically; malformed input still throws on first invalid char_
     - _Requirements: 2.2, 3.2_
 
-  - [ ] 7.2 B.2 — `generateGrpc` basename via `node:path` (`packages/cli/src/commands/generate.ts:126`)
+  - [~] 7.2 B.2 — `generateGrpc` basename via `node:path` (`packages/cli/src/commands/generate.ts:126`)
     - Add `basename` to the existing `node:path` import; replace `protoPath.replace(/.*\//,'').replace(/\.proto$/,'')`
       with `basename(protoPath).replace(/\.proto$/,'')`
     - _Bug_Condition: isBugCondition_B(input) — uncontrolled `--proto` path reaches the flagged pattern_
@@ -134,7 +134,7 @@ hover status tracks the documented properties.
     - _Preservation: same generated gRPC filename/types for valid inputs_
     - _Requirements: 2.3, 3.2_
 
-  - [ ] 7.3 B.3 — `stripComments` single-pass linear scanner (`packages/core/src/microservices/grpc/proto-parser.ts:40`)
+  - [~] 7.3 B.3 — `stripComments` single-pass linear scanner (`packages/core/src/microservices/grpc/proto-parser.ts:40`)
     - Replace the regex-based comment removal with the O(n) single-pass scanner from the design
       (block `/* … */` to first `*/`; line `// …` to end-of-line)
     - _Bug_Condition: isBugCondition_B(input) — uncontrolled `.proto` source reaches the flagged pattern_
@@ -142,13 +142,13 @@ hover status tracks the documented properties.
     - _Preservation: parseProto produces an identical AST for existing proto fixtures_
     - _Requirements: 2.4, 3.2_
 
-  - [ ] 7.4 Verify Class B exploration test now passes
+  - [~] 7.4 Verify Class B exploration test now passes
     - **Property 2: Expected Behavior** - Linear-Time Matching/Parsing (Class B)
     - **IMPORTANT**: Re-run the SAME adversarial timing tests from task 2 — do NOT write new tests
     - **EXPECTED OUTCOME**: Processing completes within the linear time budget at all N (no super-linear growth)
     - _Requirements: 2.2, 2.3, 2.4_
 
-  - [ ] 7.5 Verify Class B preservation still holds
+  - [~] 7.5 Verify Class B preservation still holds
     - **Property 7: Preservation** - Well-Formed Equivalence (Class B)
     - Re-run the Class B equivalence PBT/unit tests from task 5
     - **EXPECTED OUTCOME**: base32 round-trip, `generateGrpc` filename, and `parseProto` AST all unchanged
@@ -156,7 +156,7 @@ hover status tracks the documented properties.
 
 - [ ] 8. Fix Class C — global `@` replacement in the SBOM purl
 
-  - [ ] 8.1 Use a global regex replacement in `scripts/generate-sbom.mjs:44`
+  - [~] 8.1 Use a global regex replacement in `scripts/generate-sbom.mjs:44`
     - Replace `dp.name.replace('@','%40')` with `dp.name.replace(/@/g,'%40')` so every `@` is encoded
       (the `bom-ref` derives from the same purl and stays consistent)
     - _Bug_Condition: isBugCondition_C(name) — name contains a character requiring escaping beyond the first occurrence_
@@ -164,13 +164,13 @@ hover status tracks the documented properties.
     - _Preservation: names with no `@` and standard single-`@` scoped names produce byte-identical purls/SBOM_
     - _Requirements: 2.5, 3.3_
 
-  - [ ] 8.2 Verify Class C exploration test now passes
+  - [~] 8.2 Verify Class C exploration test now passes
     - **Property 3: Expected Behavior** - Complete purl Encoding (Class C)
     - **IMPORTANT**: Re-run the SAME test from task 3 — do NOT write a new test
     - **EXPECTED OUTCOME**: `buildPurl('a@b@c', …)` yields `…a%40b%40c…` (no unescaped `@`)
     - _Requirements: 2.5_
 
-  - [ ] 8.3 Verify Class C preservation still holds
+  - [~] 8.3 Verify Class C preservation still holds
     - **Property 7: Preservation** - No-Special-Char purls (Class C)
     - Re-run the Class C preservation PBT from task 5
     - **EXPECTED OUTCOME**: purls and sorted SBOM `components` unchanged for non-`@` / single-`@` names
@@ -178,7 +178,7 @@ hover status tracks the documented properties.
 
 - [ ] 9. Fix Class D — drive `sanitizeString` to a fixed point and rebuild `dist`
 
-  - [ ] 9.1 Loop replacements until stable in `packages/core/src/security/xss.ts`
+  - [~] 9.1 Loop replacements until stable in `packages/core/src/security/xss.ts`
     - Replace the capped (`MAX_SANITIZE_PASSES`) loop with the `do { … } while (current !== previous)`
       fixed-point loop from the design (each pass only deletes chars, so it terminates)
     - Leave `MAX_DEPTH`, `MAX_STRING_LEN`, `MAX_ARRAY`, `MAX_KEYS` bounds untouched
@@ -187,17 +187,17 @@ hover status tracks the documented properties.
     - _Preservation: benign input returns identically after the first pass; all bounds unchanged_
     - _Requirements: 2.6, 3.4_
 
-  - [ ] 9.2 Rebuild the shipped artifact
+  - [~] 9.2 Rebuild the shipped artifact
     - Run `npm run build -w packages/core` so `dist/security/xss.js` (the flagged file) is regenerated from corrected source
     - _Requirements: 2.6_
 
-  - [ ] 9.3 Verify Class D exploration test now passes
+  - [~] 9.3 Verify Class D exploration test now passes
     - **Property 4: Expected Behavior** - Sanitization Fixed Point (Class D)
     - **IMPORTANT**: Re-run the SAME test from task 4 (against the rebuilt artifact) — do NOT write a new test
     - **EXPECTED OUTCOME**: output contains no dangerous substring and `sanitizeString'(out) === out` (idempotent)
     - _Requirements: 2.6_
 
-  - [ ] 9.4 Verify Class D preservation still holds
+  - [~] 9.4 Verify Class D preservation still holds
     - **Property 7: Preservation** - Benign Equivalence + Bounds (Class D)
     - Re-run the Class D preservation PBT from task 5
     - **EXPECTED OUTCOME**: benign sanitized output and depth/length/array/key bounds unchanged
@@ -205,7 +205,7 @@ hover status tracks the documented properties.
 
 - [ ] 10. Resolve Class E — documented CodeQL suppression for protocol-mandated hashing (NO behavioral change)
 
-  - [ ] 10.1 Add inline suppression + rationale at the flagged MySQL call sites
+  - [~] 10.1 Add inline suppression + rationale at the flagged MySQL call sites
     - Confirm the exact rule id from the alert/SARIF (e.g. `js/insufficient-password-hash`)
     - Add the documented `// codeql[<rule-id>] -- …` justification comment above:
       - `createHash('sha1')` in `nativePasswordHash` (`packages/core/src/database/mysql/wire.ts:84`)
@@ -221,7 +221,7 @@ hover status tracks the documented properties.
     - _Preservation: byte-identical hash output; protocol coverage of the tests unchanged_
     - _Requirements: 2.7, 2.8, 3.5_
 
-  - [ ] 10.2 Verify Class E equivalence and protocol tests
+  - [~] 10.2 Verify Class E equivalence and protocol tests
     - **Property 5: Equivalence** - Resolved Without Behavioral Change (Class E)
     - Run the existing `mysql-native-password` / `mysql-caching-sha2-password` known-vector and reference-scramble tests
     - **EXPECTED OUTCOME**: Tests PASS unchanged; `nativePasswordHash('password', SEED)` still equals `c17d6009a5cb47e59f7483fcf05553bbbf7dd0d6`
@@ -229,7 +229,7 @@ hover status tracks the documented properties.
 
 - [ ] 11. Resolve Class F — add least-privilege `permissions` to seven workflows
 
-  - [ ] 11.1 Add a top-level `permissions: { contents: read }` block to each workflow
+  - [~] 11.1 Add a top-level `permissions: { contents: read }` block to each workflow
     - Insert immediately after the `on:` block in: `.github/workflows/vendor-integration.yml`,
       `observability.yml`, `deploy-verify.yml`, `dast.yml`, `browser-compat.yml`,
       `kafka-integration.yml`, `rabbitmq-integration.yml`
@@ -239,7 +239,7 @@ hover status tracks the documented properties.
     - _Preservation: every previously-succeeding step still runs; no job fails for lack of token scope_
     - _Requirements: 2.9, 3.6_
 
-  - [ ] 11.2 Verify Class F structural property and step preservation
+  - [~] 11.2 Verify Class F structural property and step preservation
     - **Property 6: Structural** - Explicit Least-Privilege Permissions (Class F)
     - Assert each of the seven workflows now declares a top-level `permissions` block scoped to `contents: read`
     - Validate workflow YAML (lint/parse) and confirm no step relies on broader default token scope
@@ -248,20 +248,20 @@ hover status tracks the documented properties.
 
 ### Phase 4 — Final Verification
 
-- [ ] 12. Full preservation + build/test sweep
+- [~] 12. Full preservation + build/test sweep
   - **Property 7: Preservation** - Non-Buggy Inputs Unchanged (all classes)
   - Re-run the complete task-5 preservation suite plus the package build (`npm run build -w packages/core`) and full unit/PBT/integration tests
   - Include integration checks from the design: self-signed cert is rejected / trusted cert + `tls.ca` succeeds (A); `xssMiddleware` sanitizes nested bodies to a fixed point within bounds (D); MySQL auth handshake passes (E)
   - **EXPECTED OUTCOME**: all preservation tests pass; no regressions across A–F or unrelated modules
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7_
 
-- [ ] 13. Re-run CodeQL and confirm alerts resolved
+- [~] 13. Re-run CodeQL and confirm alerts resolved
   - Re-run CodeQL on the branch after all changes
   - Confirm each targeted alert is resolved: A (#24), B (#26, #20, #19), C (#25), D (#7, #6), E (#4, #3, #18, #17, #16, #15), F (#30, #29, #28, #27, #23, #22, #21)
   - Confirm no new alerts are introduced
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9_
 
-- [ ] 14. Checkpoint — ensure all tests pass
+- [~] 14. Checkpoint — ensure all tests pass
   - Ensure all exploration (now-passing), preservation, unit, PBT, and integration tests pass and CodeQL is clean
   - Ask the user if questions arise.
 
