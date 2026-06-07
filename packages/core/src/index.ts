@@ -287,8 +287,8 @@ export type { ProtoAst, ServiceDefinition as GrpcServiceDefinition, RpcDefinitio
 export { encodeFrame, decodeFrame, decodeFrames, parseGrpcTimeout, GrpcError, GRPC_STATUS, GRPC_MAX_MESSAGE_BYTES, jsonCodec } from './microservices/grpc/framing.js';
 
 // ── Cloud ─────────────────────────────────────────────────────────────────────
-export { generateManifest } from './cloud/deployment.js';
-export type { CloudPlatform, DeployConfig } from './cloud/deployment.js';
+export { generateManifest, validateDeploymentManifest } from './cloud/deployment.js';
+export type { CloudPlatform, DeployConfig, ManifestValidationResult } from './cloud/deployment.js';
 export { VaultSecretProvider, AwsSecretsManagerProvider, GcpSecretManagerProvider, AzureKeyVaultProvider, SecretRotationManager } from './cloud/secret-providers.js';export type { SecretProvider, HttpClientOptions, RotationOptions } from './cloud/secret-providers.js';
 export {
   registerShutdownHook,

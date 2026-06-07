@@ -35,7 +35,72 @@ export function generateManifest(platform: CloudPlatform, config: DeployConfig):
   }
 }
 
-// ── Kubernetes ────────────────────────────────────────────────────────────────
+// ── Manifest validation ───────────────────────────────────────────────────────
+
+export interface ManifestValidationResult { valid: boolean; errors: string[]; }
+
+/**
+ * Structurally validate a generated deployment manifest for a platform: it must
+ * declare the right resource kind(s), reference a container image and port, and
+ * wire the liveness/readiness health probes (or the ECS health check). This
+ * verifies the generated artifact offline — it does NOT verify a live deployment.
+ */
+export function validateDeploymentManifest(platform: CloudPlatform, manifest: string): ManifestValidationResult {
+  const errors: string[] = [];
+  const need = (cond: boolean, msg: string): void => { if (!cond) errors.push(msg); };
+
+  if (typeof manifest !== 'string' || manifest.trim() === '') {
+    return { valid: false, errors: ['manifest is empty'] };
+  }
+
+  switch (platform) {
+    case 'kubernetes': {
+      need(/\bkind:\s*Deployment\b/.test(manifest), 'missing Deployment');
+      need(/\bkind:\s*Service\b/.test(manifest), 'missing Service');
+      need(/\bkind:\s*HorizontalPodAutoscaler\b/.test(manifest), 'missing HPA');
+      need(/\bimage:\s*\S+/.test(manifest), 'missing container image');
+      need(/containerPort:\s*\d+/.test(manifest), 'missing containerPort');
+      need(manifest.includes('/health/live'), 'missing liveness probe');
+      need(manifest.includes('/health/ready'), 'missing readiness probe');
+      break;
+    }
+    case 'cloudrun': {
+      need(manifest.includes('serving.knative.dev'), 'missing Knative apiVersion');
+      need(/\bkind:\s*Service\b/.test(manifest), 'missing Service');
+      need(/image:\s*\S+/.test(manifest), 'missing container image');
+      need(/containerPort:\s*\d+/.test(manifest), 'missing containerPort');
+      need(manifest.includes('/health/live'), 'missing liveness probe');
+      need(manifest.includes('/health/ready'), 'missing readiness probe');
+      break;
+    }
+    case 'ecs': {
+      let parsed: Record<string, unknown> | null = null;
+      try { parsed = JSON.parse(manifest) as Record<string, unknown>; } catch { errors.push('invalid JSON'); }
+      if (parsed) {
+        need(typeof parsed['family'] === 'string', 'missing family');
+        const defs = parsed['containerDefinitions'] as Array<Record<string, unknown>> | undefined;
+        need(Array.isArray(defs) && defs.length > 0, 'missing containerDefinitions');
+        const c = defs?.[0];
+        need(!!c && typeof c['image'] === 'string', 'missing container image');
+        need(!!c && Array.isArray(c['portMappings']) && (c['portMappings'] as unknown[]).length > 0, 'missing portMappings');
+        const hc = c?.['healthCheck'] as { command?: string[] } | undefined;
+        need(!!hc && Array.isArray(hc.command) && hc.command.join(' ').includes('/health/live'), 'missing health check');
+      }
+      break;
+    }
+    case 'nomad': {
+      need(/job\s+"[^"]+"\s*\{/.test(manifest), 'missing job block');
+      need(manifest.includes('driver = "docker"'), 'missing docker driver');
+      need(/image\s*=\s*"\S+"/.test(manifest), 'missing container image');
+      need(/check\s*\{/.test(manifest), 'missing health check block');
+      need(manifest.includes('/health/live'), 'missing health check path');
+      break;
+    }
+    default:
+      errors.push(`unknown platform "${platform as string}"`);
+  }
+  return { valid: errors.length === 0, errors };
+}
 
 function generateKubernetes(config: DeployConfig): string {
   const replicas = config.replicas ?? 1;
