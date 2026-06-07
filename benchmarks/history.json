@@ -1,0 +1,28 @@
+[
+  {
+    "at": "2026-06-07T04:45:43.639Z",
+    "node": "v20.20.1",
+    "frameworks": [
+      {
+        "framework": "Street",
+        "rps_median": 28933
+      },
+      {
+        "framework": "Express",
+        "rps_median": 13362
+      },
+      {
+        "framework": "Fastify",
+        "rps_median": 33883
+      },
+      {
+        "framework": "NestJS",
+        "rps_median": 11833
+      },
+      {
+        "framework": "Hono",
+        "rps_median": 32256
+      }
+    ]
+  }
+]

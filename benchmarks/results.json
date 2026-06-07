@@ -1,0 +1,247 @@
+{
+  "generatedAt": "2026-06-07T04:45:43.639Z",
+  "methodology": {
+    "route": "GET / → {\"status\":\"ok\"}",
+    "iterations": 3,
+    "durationMsPerRun": 3000,
+    "concurrency": 50,
+    "warmupMs": 1000,
+    "transport": "node:http loopback client",
+    "node": "v20.20.1",
+    "sameProcessSequential": true
+  },
+  "frameworks": [
+    {
+      "framework": "Street",
+      "rps_mean": 29111,
+      "rps_median": 28933,
+      "rps_best": 29753,
+      "rps_worst": 28646,
+      "rps_variance": 220024,
+      "p50_median": 2,
+      "p95_median": 3,
+      "p99_median": 4,
+      "startupMs": 70,
+      "memoryMb": 53.67
+    },
+    {
+      "framework": "Express",
+      "rps_mean": 13344,
+      "rps_median": 13362,
+      "rps_best": 13469,
+      "rps_worst": 13200,
+      "rps_variance": 12228,
+      "p50_median": 3,
+      "p95_median": 6,
+      "p99_median": 7,
+      "startupMs": 47,
+      "memoryMb": 17.83
+    },
+    {
+      "framework": "Fastify",
+      "rps_mean": 33762,
+      "rps_median": 33883,
+      "rps_best": 33924,
+      "rps_worst": 33478,
+      "rps_variance": 40514,
+      "p50_median": 1,
+      "p95_median": 2,
+      "p99_median": 3,
+      "startupMs": 102,
+      "memoryMb": 6.14
+    },
+    {
+      "framework": "NestJS",
+      "rps_mean": 11639,
+      "rps_median": 11833,
+      "rps_best": 11933,
+      "rps_worst": 11150,
+      "rps_variance": 121064,
+      "p50_median": 4,
+      "p95_median": 6,
+      "p99_median": 7,
+      "startupMs": 157,
+      "memoryMb": 2.34
+    },
+    {
+      "framework": "Hono",
+      "rps_mean": 31945,
+      "rps_median": 32256,
+      "rps_best": 33062,
+      "rps_worst": 30517,
+      "rps_variance": 1127865,
+      "p50_median": 2,
+      "p95_median": 2,
+      "p99_median": 3,
+      "startupMs": 21,
+      "memoryMb": 7.64
+    }
+  ],
+  "raw": [
+    {
+      "framework": "Street",
+      "iteration": 1,
+      "name": "Street",
+      "requestsPerSec": 28646,
+      "latencyP50Ms": 2,
+      "latencyP95Ms": 3,
+      "latencyP99Ms": 5,
+      "memoryMb": -13.84,
+      "startupMs": 0
+    },
+    {
+      "framework": "Street",
+      "iteration": 2,
+      "name": "Street",
+      "requestsPerSec": 28933,
+      "latencyP50Ms": 2,
+      "latencyP95Ms": 3,
+      "latencyP99Ms": 4,
+      "memoryMb": -15.49,
+      "startupMs": 0
+    },
+    {
+      "framework": "Street",
+      "iteration": 3,
+      "name": "Street",
+      "requestsPerSec": 29753,
+      "latencyP50Ms": 2,
+      "latencyP95Ms": 3,
+      "latencyP99Ms": 4,
+      "memoryMb": 21.56,
+      "startupMs": 0
+    },
+    {
+      "framework": "Express",
+      "iteration": 1,
+      "name": "Express",
+      "requestsPerSec": 13200,
+      "latencyP50Ms": 4,
+      "latencyP95Ms": 6,
+      "latencyP99Ms": 7,
+      "memoryMb": 31.23,
+      "startupMs": 0
+    },
+    {
+      "framework": "Express",
+      "iteration": 2,
+      "name": "Express",
+      "requestsPerSec": 13469,
+      "latencyP50Ms": 3,
+      "latencyP95Ms": 6,
+      "latencyP99Ms": 7,
+      "memoryMb": -15.87,
+      "startupMs": 0
+    },
+    {
+      "framework": "Express",
+      "iteration": 3,
+      "name": "Express",
+      "requestsPerSec": 13362,
+      "latencyP50Ms": 3,
+      "latencyP95Ms": 6,
+      "latencyP99Ms": 9,
+      "memoryMb": -14.2,
+      "startupMs": 0
+    },
+    {
+      "framework": "Fastify",
+      "iteration": 1,
+      "name": "Fastify",
+      "requestsPerSec": 33924,
+      "latencyP50Ms": 1,
+      "latencyP95Ms": 2,
+      "latencyP99Ms": 3,
+      "memoryMb": 6.77,
+      "startupMs": 0
+    },
+    {
+      "framework": "Fastify",
+      "iteration": 2,
+      "name": "Fastify",
+      "requestsPerSec": 33883,
+      "latencyP50Ms": 1,
+      "latencyP95Ms": 2,
+      "latencyP99Ms": 3,
+      "memoryMb": 9.32,
+      "startupMs": 0
+    },
+    {
+      "framework": "Fastify",
+      "iteration": 3,
+      "name": "Fastify",
+      "requestsPerSec": 33478,
+      "latencyP50Ms": 1,
+      "latencyP95Ms": 2,
+      "latencyP99Ms": 3,
+      "memoryMb": 12.33,
+      "startupMs": 0
+    },
+    {
+      "framework": "NestJS",
+      "iteration": 1,
+      "name": "NestJS",
+      "requestsPerSec": 11833,
+      "latencyP50Ms": 4,
+      "latencyP95Ms": 6,
+      "latencyP99Ms": 7,
+      "memoryMb": 6.82,
+      "startupMs": 0
+    },
+    {
+      "framework": "NestJS",
+      "iteration": 2,
+      "name": "NestJS",
+      "requestsPerSec": 11150,
+      "latencyP50Ms": 4,
+      "latencyP95Ms": 6,
+      "latencyP99Ms": 13,
+      "memoryMb": 38.17,
+      "startupMs": 0
+    },
+    {
+      "framework": "NestJS",
+      "iteration": 3,
+      "name": "NestJS",
+      "requestsPerSec": 11933,
+      "latencyP50Ms": 4,
+      "latencyP95Ms": 6,
+      "latencyP99Ms": 7,
+      "memoryMb": 15.19,
+      "startupMs": 0
+    },
+    {
+      "framework": "Hono",
+      "iteration": 1,
+      "name": "Hono",
+      "requestsPerSec": 33062,
+      "latencyP50Ms": 1,
+      "latencyP95Ms": 2,
+      "latencyP99Ms": 3,
+      "memoryMb": 6.98,
+      "startupMs": 0
+    },
+    {
+      "framework": "Hono",
+      "iteration": 2,
+      "name": "Hono",
+      "requestsPerSec": 32256,
+      "latencyP50Ms": 2,
+      "latencyP95Ms": 2,
+      "latencyP99Ms": 3,
+      "memoryMb": 8.75,
+      "startupMs": 0
+    },
+    {
+      "framework": "Hono",
+      "iteration": 3,
+      "name": "Hono",
+      "requestsPerSec": 30517,
+      "latencyP50Ms": 2,
+      "latencyP95Ms": 2,
+      "latencyP99Ms": 3,
+      "memoryMb": 0.31,
+      "startupMs": 0
+    }
+  ]
+}
