@@ -270,10 +270,12 @@ export class KafkaClient {
   }
 
   /** Find the group coordinator broker for a consumer group. Retries on
-   *  COORDINATOR_NOT_AVAILABLE (15) while the internal offsets topic initialises. */
+   *  transient coordinator errors (14 LOAD_IN_PROGRESS, 15 NOT_AVAILABLE,
+   *  16 NOT_COORDINATOR) while the internal __consumer_offsets topic initialises
+   *  and a coordinator is elected (cold-start hardening). */
   async findCoordinator(groupId: string): Promise<KafkaBroker> {
     let lastErr: unknown;
-    for (let attempt = 0; attempt < 8; attempt++) {
+    for (let attempt = 0; attempt < 12; attempt++) {
       const conn = await this._anyConn();
       const r = await conn.request(API.FIND_COORDINATOR, 0, (w: KafkaWriter) => { w.string(groupId); });
       const err = r.int16();
@@ -282,59 +284,90 @@ export class KafkaClient {
         return { nodeId, host, port };
       }
       lastErr = new KafkaProtocolError(err, 'findCoordinator');
-      if (err !== 15) throw lastErr; // only retry COORDINATOR_NOT_AVAILABLE
-      await new Promise((res) => setTimeout(res, 250 * (attempt + 1)));
+      if (!KafkaClient.TRANSIENT_COORDINATOR_ERRORS.has(err)) throw lastErr;
+      await new Promise((res) => setTimeout(res, Math.min(250 * (attempt + 1), 1500)));
     }
     throw lastErr instanceof Error ? lastErr : new KafkaProtocolError(15, 'findCoordinator');
   }
 
+  /** Transient consumer-group coordinator errors that should be retried during cold start. */
+  private static readonly TRANSIENT_COORDINATOR_ERRORS = new Set<number>([14, 15, 16]);
+
+  /**
+   * Run a coordinator-dependent operation, retrying (with fresh coordinator
+   * resolution) on transient coordinator errors. Closes the cold-start race
+   * where OFFSET_COMMIT/OFFSET_FETCH hit COORDINATOR_LOAD_IN_PROGRESS or
+   * NOT_COORDINATOR while __consumer_offsets is still loading.
+   */
+  private async _withCoordinatorRetry<T>(op: () => Promise<T>): Promise<T> {
+    let lastErr: unknown;
+    for (let attempt = 0; attempt < 12; attempt++) {
+      try {
+        return await op();
+      } catch (e) {
+        lastErr = e;
+        const code = e instanceof KafkaProtocolError ? e.code : undefined;
+        if (code !== undefined && KafkaClient.TRANSIENT_COORDINATOR_ERRORS.has(code)) {
+          await new Promise((res) => setTimeout(res, Math.min(250 * (attempt + 1), 1500)));
+          continue;
+        }
+        throw e;
+      }
+    }
+    throw lastErr instanceof Error ? lastErr : new KafkaProtocolError(16, 'coordinatorOp');
+  }
+
   /** Commit an offset for a consumer group (group offset storage). */
   async commitOffset(groupId: string, topic: string, partition: number, offset: bigint): Promise<void> {
-    const coord = await this.findCoordinator(groupId);
-    const conn = await this._conn(coord.host, coord.port);
-    const r = await conn.request(API.OFFSET_COMMIT, 2, (w: KafkaWriter) => {
-      w.string(groupId);
-      w.int32(-1);       // generation_id
-      w.string('');      // member_id
-      w.int64(-1n);      // retention_time_ms
-      w.int32(1);        // topic count
-      w.string(topic);
-      w.int32(1);        // partition count
-      w.int32(partition);
-      w.int64(offset);
-      w.string(null);    // committed metadata
+    return this._withCoordinatorRetry(async () => {
+      const coord = await this.findCoordinator(groupId);
+      const conn = await this._conn(coord.host, coord.port);
+      const r = await conn.request(API.OFFSET_COMMIT, 2, (w: KafkaWriter) => {
+        w.string(groupId);
+        w.int32(-1);       // generation_id
+        w.string('');      // member_id
+        w.int64(-1n);      // retention_time_ms
+        w.int32(1);        // topic count
+        w.string(topic);
+        w.int32(1);        // partition count
+        w.int32(partition);
+        w.int64(offset);
+        w.string(null);    // committed metadata
+      });
+      const topicCount = r.int32();
+      for (let i = 0; i < topicCount; i++) {
+        r.string();
+        const pCount = r.int32();
+        for (let p = 0; p < pCount; p++) { r.int32(); const err = r.int16(); if (err !== 0) throw new KafkaProtocolError(err, 'offsetCommit'); }
+      }
     });
-    const topicCount = r.int32();
-    for (let i = 0; i < topicCount; i++) {
-      r.string();
-      const pCount = r.int32();
-      for (let p = 0; p < pCount; p++) { r.int32(); const err = r.int16(); if (err !== 0) throw new KafkaProtocolError(err, 'offsetCommit'); }
-    }
   }
 
   /** Fetch the committed offset for a consumer group (-1 if none). */
   async fetchOffset(groupId: string, topic: string, partition: number): Promise<bigint> {
-    const coord = await this.findCoordinator(groupId);
-    const conn = await this._conn(coord.host, coord.port);
-    const r = await conn.request(API.OFFSET_FETCH, 1, (w: KafkaWriter) => {
-      w.string(groupId);
-      w.int32(1);    // topic count
-      w.string(topic);
-      w.int32(1);    // partition count
-      w.int32(partition);
-    });
-    const topicCount = r.int32();
-    let committed = -1n;
-    for (let i = 0; i < topicCount; i++) {
-      r.string();
-      const pCount = r.int32();
-      for (let p = 0; p < pCount; p++) {
-        r.int32(); const off = r.int64(); r.string(); const err = r.int16();
-        if (err !== 0) throw new KafkaProtocolError(err, 'offsetFetch');
-        committed = off;
+    return this._withCoordinatorRetry(async () => {
+      const coord = await this.findCoordinator(groupId);
+      const conn = await this._conn(coord.host, coord.port);
+      const r = await conn.request(API.OFFSET_FETCH, 1, (w: KafkaWriter) => {
+        w.string(groupId);
+        w.int32(1);    // topic count
+        w.string(topic);
+        w.int32(1);    // partition count
+        w.int32(partition);
+      });
+      const topicCount = r.int32();
+      let committed = -1n;
+      for (let i = 0; i < topicCount; i++) {
+        r.string();
+        const pCount = r.int32();
+        for (let p = 0; p < pCount; p++) {
+          r.int32(); const off = r.int64(); r.string(); const err = r.int16();
+          if (err !== 0) throw new KafkaProtocolError(err, 'offsetFetch');
+          committed = off;
+        }
       }
-    }
-    return committed;
+      return committed;
+    });
   }
 
   close(): void {
