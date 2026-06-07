@@ -44,6 +44,14 @@ export {
 } from './security/mtls.js';
 export type { ClientCertPolicy, ClientCertResult, PeerCertLike, MutualTlsServerOptions, TrustMaterial, RotateCertificateOptions } from './security/mtls.js';
 export { generateOpenApi } from './http/openapi.js';
+export {
+  validateOpenApiDocument, openApiOperations, parseZapReport,
+  summarizeFindings, evaluateDastGate,
+} from './security/dast.js';
+export type {
+  DastSeverity, DastFinding, OpenApiValidationResult, OpenApiOperationTarget,
+  DastGateOptions, DastGateResult,
+} from './security/dast.js';
 
 // ── Router ────────────────────────────────────────────────────────────────────
 export { Router, notFoundHandler, errorHandler } from './router/router.js';
