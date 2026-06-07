@@ -363,6 +363,11 @@ export {
 export type { S3PluginConfig } from './platform/plugins/official/s3.js';
 export { LocalPluginRegistry, installFromRegistry } from './platform/plugins/local-registry.js';
 export type { RegistryRecord } from './platform/plugins/local-registry.js';
+export {
+  SendGridPlugin, SendGridClient, sendGridPluginManifest, validateSendGridConfig,
+  SENDGRID_PLUGIN_NAME, SENDGRID_PLUGIN_VERSION,
+} from './platform/plugins/official/sendgrid.js';
+export type { SendGridPluginConfig, MailMessage, SendGridRequest } from './platform/plugins/official/sendgrid.js';
 
 // ── HTTP: Edge Runtime ────────────────────────────────────────────────────────
 export { FeatureUnavailableInEdgeRuntimeError } from './http/exceptions.js';
