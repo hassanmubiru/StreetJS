@@ -18,10 +18,12 @@ for (let i = 0; i < N; i++) {
   const stream = conn.queryStream('SELECT generate_series(1,3) AS n');
   const rows = [];
   await new Promise((resolve, reject) => {
+    const guard = setTimeout(() => resolve(), 1000); // detect hang
     stream.on('data', (r) => rows.push(r['n']));
-    stream.on('end', resolve);
-    stream.on('error', reject);
+    stream.on('end', () => { clearTimeout(guard); resolve(); });
+    stream.on('error', () => { clearTimeout(guard); resolve(); });
   });
+  if (i % 50 === 0) console.log(`  ...iter ${i} ok=${ok} empty=${empty} uncaught=${uncaught}`);
   if (rows.length === 3) ok++;
   else if (rows.length === 0) empty++;
   else other++;
