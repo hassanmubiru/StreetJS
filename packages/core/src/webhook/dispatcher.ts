@@ -225,6 +225,38 @@ function signPayload(body: string, secret: string): string {
   return 'sha256=' + createHmac('sha256', secret).update(body).digest('hex');
 }
 
+/**
+ * Build the `node:https` request options for a webhook dispatch. Extracted from
+ * `sendRequest` so the produced options object is unit-testable in isolation
+ * (e.g. to assert that certificate validation is never disabled).
+ *
+ * Certificate validation is always left enabled: `rejectUnauthorized` is never
+ * set to `false`. Endpoints served by a private CA must supply `tls.ca`.
+ */
+export function buildRequestOptions(
+  url: string,
+  contentLength: number,
+  signature: string,
+  timeoutMs: number,
+  tls?: { ca?: string | Buffer | Array<string | Buffer>; rejectUnauthorized?: boolean }
+): import('node:https').RequestOptions {
+  const parsed = new URL(url);
+  return {
+    hostname: parsed.hostname,
+    port: parsed.port || 443,
+    path: parsed.pathname + parsed.search,
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': contentLength,
+      'X-Street-Signature': signature,
+      'User-Agent': 'Street-Webhook/1.0',
+    },
+    timeout: timeoutMs,
+    ...(tls?.ca ? { ca: tls.ca } : {}),
+  };
+}
+
 function sendRequest(
   url: string,
   body: string,
@@ -244,20 +276,7 @@ function sendRequest(
     const bodyBuf = Buffer.from(body, 'utf8');
 
     const req = requester(
-      {
-        hostname: parsed.hostname,
-        port: parsed.port || 443,
-        path: parsed.pathname + parsed.search,
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Content-Length': bodyBuf.length,
-          'X-Street-Signature': signature,
-          'User-Agent': 'Street-Webhook/1.0',
-        },
-        timeout: timeoutMs,
-        ...(tls?.ca ? { ca: tls.ca } : {}),
-      },
+      buildRequestOptions(url, bodyBuf.length, signature, timeoutMs, tls),
       (res) => {
         // Drain response to free socket
         res.resume();
