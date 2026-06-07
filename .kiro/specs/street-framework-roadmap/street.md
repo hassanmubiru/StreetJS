@@ -1542,3 +1542,87 @@ Release recommendation: CONDITIONAL. Approve the core framework and verified ada
 This cycle added one durable artifact — 
 check-cycles.mjs
  (dependency-free, self-tested) — and, more importantly, converted a vague "flaky test" into a precisely characterized, reproducible defect with a concrete fix path.
+
+ Street Framework — Certification Report (Plugin System Initiative)
+Initiative: the single highest-impact, fully-offline-verifiable item — a formal plugin system attacking the Ecosystem pillar (the lowest score at 45 and an explicit band-cap). Built on node:crypto only; no network, no new dependencies. Completed end-to-end before starting anything else.
+
+Executive Summary
+I implemented a real in-process plugin host with registration, Ed25519 manifest signing + integrity/signature verification, a permissions model (with a gated sandbox), dependency + semver-constraint resolution with correct lifecycle ordering and cycle detection, and discovery — the foundation the audit repeatedly flagged as NOT IMPLEMENTED. It ships with source + public exports + 17 passing tests (real keypairs, no mocks) + docs, and introduces zero regressions across all suites.
+
+Evidence Table
+Area	Command	Result	Status
+Lint	npm run lint -w packages/core	clean	VERIFIED
+Build	npx tsc + npm run build -w packages/core	clean	VERIFIED
+Plugin host tests	node --test dist/src/tests/plugin-host.test.js	17 pass, 0 fail	VERIFIED
+Exports resolve	import('@streetjs/core') of 7 plugin symbols	all function	VERIFIED
+Core unit suite	node --test dist/src/tests/*.test.js	747 pass (was 730; +17), 6 skip, 0 fail	VERIFIED
+Certification suite	node --test dist/tests/certification/*.test.js	51 pass, 0 fail	VERIFIED
+System suite	node --test dist/tests/system/*.test.js	211 pass, 3 skip, 0 fail	VERIFIED
+CLI	npm test -w packages/cli	83 + 38 pass, 0 fail	VERIFIED
+Edge	node --test packages/edge/dist/*.test.js	14 pass, 0 fail	VERIFIED
+Circular deps	node scripts/check-cycles.mjs (208 files)	0 cycles	VERIFIED
+Supply chain	npm audit	0 vulnerabilities	VERIFIED
+What Was Built (Certification Matrix)
+Capability	Source	Exports	Tests	Pass	Docs	Status
+Semver constraint engine (satisfiesVersion/compareSemver/parseSemver)	✓	✓	✓	✓	✓	VERIFIED
+Manifest integrity + Ed25519 sign/verify (signManifest/verifyManifest/manifestChecksum)	✓	✓	✓	✓	✓	VERIFIED
+Registration + signature enforcement	✓	✓	✓	✓	✓	VERIFIED
+Permissions model + gated sandbox	✓	✓	✓	✓	✓	VERIFIED
+Dependency + version resolution, ordered lifecycle, cycle detection	✓	✓	✓	✓	✓	VERIFIED
+Discovery (list/has/state/findByCapability/middlewaresOf)	✓	✓	✓	✓	✓	VERIFIED
+Disable/remove safety (reverse-dependency guard)	✓	✓	✓	✓	✓	VERIFIED
+Files: 
+host.ts
+ (new), 
+plugin-host.test.ts
+ (new), 
+index.ts
+ (exports), 
+plugins.md
+ (new).
+
+Test Detail (no mocks for crypto)
+The signature tests generate a real Ed25519 keypair via generateKeyPairSync('ed25519'), sign a canonical manifest, and assert: valid verification, tamper rejection (added capability), and wrong-key rejection. Dependency tests assert install/load ordering base → mid → top, idempotent re-enable, missing-dependency and version-conflict rejection, and cycle detection. Permission tests assert ungranted-permission denial and sandbox gating of app.use.
+
+Risk Register (delta)
+Risk	Likelihood	Impact	Mitigation
+Plugin API surface churn pre-1.0	Medium	Low	Covered by the new test suite; semver-gated
+Registry/marketplace still absent	Certain	Medium	Host is the prerequisite; registry/signing-server next
+Technical Debt Register (delta)
+Item	Priority	Effort	Recommendation
+Wire PluginInstaller (network) to verify via verifyManifest	Medium	S	Reuse the host's offline verifier in the install path
+Official reference plugin (1, fully tested)	High	M	Prove the API end-to-end with one real plugin
+Marketplace/registry server	High	L	Build on the verified host + manifest format
+Scorecard (updated)
+Area	Prev	Now	Justification
+Architecture	95	95	unchanged; new module acyclic (208 files, 0 cycles)
+Security	88	88	DAST still blocked (no change)
+Testing	90	90	+17 real tests; balanced by no new infra coverage
+Reliability	91	91	unchanged this initiative
+Performance	90	90	unchanged
+Observability	85	85	unchanged
+Cloud	80	80	unchanged
+Enterprise	82	82	unchanged
+Documentation	88	88	
+plugins.md
+ added
+Developer Experience	80	80	unchanged
+Ecosystem	45	62	plugin API/permissions/dependency-resolution/signing now VERIFIED; registry+official plugins still absent
+Sustainability	80	80	unchanged
+Overall (mean)	83	84 (≈84.4)	Ecosystem +17 lifts the weakest pillar
+Ecosystem is now PARTIALLY VERIFIED rather than NOT IMPLEMENTED. It is not higher because the registry/marketplace and official vendor plugins remain unbuilt (and vendor-plugin integration requires network/credentials unavailable here).
+
+Certification Decision
+ADVANCED PRODUCTION READY (84/100). Confidence: High. The plugin foundation is real and verified; the band remains capped below 90 by absent DAST and the still-incomplete ecosystem (registry + official plugins) and deployment verification.
+
+Remaining Gaps
+DAST gate (blocked offline) · plugin registry/marketplace server + signing service · official reference plugins · enterprise console APIs · Grafana/alert/SLO packs (promtool blocked) · deployment-verified targets (kubectl/cloud blocked) · street upgrade/codemods/playground · release scorecards · Kafka coordinator cold-start gate.
+
+Prioritized Roadmap (next, offline-achievable first)
+One official reference plugin built on PluginHost, fully tested offline (proves the API end-to-end; lifts Ecosystem further).
+Reuse verifyManifest inside the network PluginInstaller (closes the integrity gap in the install path).
+Kafka coordinator cold-start gate (finishes Priority 8).
+Confidence & Release Recommendation
+Confidence: High — every claim is backed by a command executed this session against the actual build. Release recommendation: APPROVED — the plugin system is additive, fully tested, and introduces no regressions (747/51/211/83+38/14 all green, 0 cycles, 0 vulnerabilities).
+
+Net change this initiative: a verified formal plugin system (host + Ed25519 signing + dependency/permission resolution + lifecycle + discovery), Ecosystem 45→62, overall 83→84, committed with source + 17 tests + docs + public exports, zero regressions. Second initiative not started, per instruction.
