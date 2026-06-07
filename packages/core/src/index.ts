@@ -52,6 +52,8 @@ export {
   applyCodemods, listCodemods, getCodemod, renameIdentifierCodemod, BUILTIN_CODEMODS,
 } from './devx/codemods.js';
 export type { Codemod, CodemodResult, ApplyCodemodsResult } from './devx/codemods.js';
+export { openApiToHtml } from './devx/playground.js';
+export type { PlaygroundOptions } from './devx/playground.js';
 export {
   validateOpenApiDocument, openApiOperations, parseZapReport,
   summarizeFindings, evaluateDastGate, openApiConformanceScan,
