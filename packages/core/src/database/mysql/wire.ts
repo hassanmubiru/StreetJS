@@ -923,8 +923,12 @@ export class MysqlConnection {
       return;
     }
 
-    // EOF/OK terminator after column defs or rows
-    if ((firstByte === 0xfe && body.length < 9) || (firstByte === 0x00 && this.execExpectRows)) {
+    // EOF/OK terminator after column defs or rows.
+    // NOTE: binary-protocol result rows ALWAYS begin with 0x00, so 0x00 must
+    // NOT be treated as a terminator while reading rows. Without
+    // CLIENT_DEPRECATE_EOF the server terminates both the column-definition
+    // block and the row block with an EOF packet (0xfe, < 9 bytes).
+    if (firstByte === 0xfe && body.length < 9) {
       if (!this.execExpectRows) {
         this.execExpectRows = true;
         return;
