@@ -32,7 +32,7 @@ hover status tracks the documented properties.
   - Mark complete when the test is written, run, and the leak is documented
   - _Requirements: 1.1_
 
-- [-] 2. Write Class B bug-condition exploration test (ReDoS / super-linear timing)
+- [x] 2. Write Class B bug-condition exploration test (ReDoS / super-linear timing)
   - **Property 2: Bug Condition** - Linear-Time Matching/Parsing (Class B)
   - **CRITICAL**: This property-based / timing test MUST demonstrate super-linear growth on unfixed code
   - **DO NOT attempt to fix the test or the code when it fails**
@@ -47,7 +47,7 @@ hover status tracks the documented properties.
   - Mark complete when tests are written, run, and the super-linear growth is documented
   - _Requirements: 1.2, 1.3, 1.4_
 
-- [~] 3. Write Class C bug-condition exploration test (incomplete purl encoding)
+- [-] 3. Write Class C bug-condition exploration test (incomplete purl encoding)
   - **Property 3: Bug Condition** - Complete purl Encoding (Class C)
   - **CRITICAL**: This test MUST FAIL on unfixed code - failure confirms the bug exists
   - **DO NOT attempt to fix the test or the code when it fails**
