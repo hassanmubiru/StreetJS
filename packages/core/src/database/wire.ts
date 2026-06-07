@@ -422,6 +422,37 @@ export class PgConnection {
   private authResolve: (() => void) | null = null;
   private authReject: ((err: Error) => void) | null = null;
 
+  // ── Command-serialization gate (F-1 fix) ──────────────────────────────────
+  // A query must not be dispatched until the previous command's trailing
+  // ReadyForQuery has been consumed. PostgreSQL sends ReadyForQuery after BOTH
+  // successful commands AND ErrorResponse; dispatching a new command before
+  // that trailing RFQ arrives causes the prior command's RFQ to prematurely
+  // finalize the new one (empty results / dropped rows / orphan error → crash
+  // or hang). `_busy` is held from dispatch until RFQ (success or error).
+  private _busy = false;
+  private _gateWaiters: Array<() => void> = [];
+
+  /** Acquire the command lock, waiting until the previous command's RFQ drains. */
+  private _acquire(): Promise<void> {
+    if (!this._busy) { this._busy = true; return Promise.resolve(); }
+    return new Promise<void>((res) => this._gateWaiters.push(res));
+  }
+
+  /** Release the command lock on ReadyForQuery, handing it to the next waiter. */
+  private _release(): void {
+    const next = this._gateWaiters.shift();
+    if (next) { next(); }       // lock handed over; stays held by the next command
+    else { this._busy = false; }
+  }
+
+  /** Drain all waiters (used on socket close/error so acquirers fail fast, never hang). */
+  private _drainGate(): void {
+    this._busy = false;
+    const waiters = this._gateWaiters;
+    this._gateWaiters = [];
+    for (const w of waiters) w();
+  }
+
   static async connect(opts: PgConnectOptions): Promise<PgConnection> {
     const conn = new PgConnection();
     await conn._connect(opts);
@@ -475,6 +506,7 @@ export class PgConnection {
         if (this.authReject) { this.authReject(err); this.authReject = null; }
         if (this.queryReject) { this.queryReject(err); this.queryReject = null; }
         if (this.streamTarget) { this.streamTarget.finalize(err); this.streamTarget = null; }
+        this._drainGate(); // wake any acquirers so they fail fast (no hang)
       });
 
       socket.once('close', () => {
@@ -482,6 +514,7 @@ export class PgConnection {
         const err = new Error('PostgreSQL connection closed unexpectedly');
         if (this.queryReject) { this.queryReject(err); this.queryReject = null; }
         if (this.streamTarget) { this.streamTarget.finalize(err); this.streamTarget = null; }
+        this._drainGate(); // wake any acquirers so they fail fast (no hang)
       });
     });
   }
@@ -519,29 +552,36 @@ export class PgConnection {
         if (this.state === 'authenticating') {
           this.state = 'ready';
           if (this.authResolve) { this.authResolve(); this.authResolve = null; }
-        } else if (this.state === 'query') {
-          this.state = 'ready';
-          const rows = this.queryRows;
-          const cmd = this.queryCommand;
-          const resolve = this.queryResolve;
-          const stream = this.streamTarget;
+        } else {
+          if (this.state === 'query') {
+            this.state = 'ready';
+            const rows = this.queryRows;
+            const cmd = this.queryCommand;
+            const resolve = this.queryResolve;
+            const stream = this.streamTarget;
 
-          this.queryRows = [];
-          this.queryCommand = '';
-          this.queryResolve = null;
-          this.queryReject = null;
-          this.streamTarget = null;
-          this.fields = [];
+            this.queryRows = [];
+            this.queryCommand = '';
+            this.queryResolve = null;
+            this.queryReject = null;
+            this.streamTarget = null;
+            this.fields = [];
 
-          if (stream) {
-            stream.finalize();
-          } else if (resolve) {
-            // Parse row count from CommandComplete message when available
-            // CommandComplete examples: "SELECT 3", "INSERT 0 1", "DELETE 2"
-            const rcMatch = cmd.match(/(\d+)\s*$/);
-            const rowCount = rcMatch ? parseInt(rcMatch[1]!, 10) : rows.length;
-            resolve({ rows, command: cmd, rowCount });
+            if (stream) {
+              stream.finalize();
+            } else if (resolve) {
+              // Parse row count from CommandComplete message when available
+              // CommandComplete examples: "SELECT 3", "INSERT 0 1", "DELETE 2"
+              const rcMatch = cmd.match(/(\d+)\s*$/);
+              const rowCount = rcMatch ? parseInt(rcMatch[1]!, 10) : rows.length;
+              resolve({ rows, command: cmd, rowCount });
+            }
           }
+          // F-1 fix: ALWAYS release the command gate on ReadyForQuery. This
+          // covers the trailing RFQ that follows an ErrorResponse (where the
+          // caller was already settled and state was moved to 'ready'); the
+          // next command stays blocked in _acquire() until this point.
+          if (this._busy) this._release();
         }
         break;
 
@@ -859,9 +899,13 @@ export class PgConnection {
   }
 
   /** Execute a query with optional parameters, return all rows buffered */
-  query(sql: string, params?: unknown[]): Promise<PgResult> {
+  async query(sql: string, params?: unknown[]): Promise<PgResult> {
+    // F-1 fix: serialize on the command gate so a query is never dispatched
+    // before the previous command's trailing ReadyForQuery has been consumed.
+    await this._acquire();
     if (this.state !== 'ready') {
-      return Promise.reject(new Error(`Cannot query: connection is in state "${this.state}"`));
+      this._release();
+      throw new Error(`Cannot query: connection is in state "${this.state}"`);
     }
 
     // Use extended query protocol when params are provided
@@ -879,7 +923,8 @@ export class PgConnection {
     });
   }
 
-  /** Execute a parameterized query using Parse/Describe/Bind/Execute/Sync protocol */
+  /** Execute a parameterized query using Parse/Describe/Bind/Execute/Sync protocol.
+   *  Caller MUST already hold the command gate (via {@link query}). */
   private _queryParams(sql: string, params: unknown[]): Promise<PgResult> {
     return new Promise((resolve, reject) => {
       this.state = 'query';
@@ -905,23 +950,32 @@ export class PgConnection {
   queryStream(sql: string): StreetPostgresWireStream {
     const stream = new StreetPostgresWireStream();
 
-    if (this.state !== 'ready') {
-      setImmediate(() => stream.finalize(new Error(`Cannot query: connection state is "${this.state}"`)));
-      return stream;
-    }
-
-    this.state = 'query';
-    this.streamTarget = stream;
-    this.queryResolve = null;
-    this.queryReject = null;
-    this.queryRows = [];
-
     // Resume socket when consumer reads from stream
     stream.on('resume', () => {
       this.socket?.resume();
     });
 
-    this.socket?.write(buildQueryMessage(sql));
+    // F-1 fix: acquire the command gate before dispatching. This blocks until
+    // the previous command's trailing ReadyForQuery has drained, preventing the
+    // empty-stream / dropped-row race when streaming right after another query
+    // (especially an errored one).
+    this._acquire().then(() => {
+      if (this.state !== 'ready') {
+        stream.finalize(new Error(`Cannot query: connection state is "${this.state}"`));
+        this._release();
+        return;
+      }
+      this.state = 'query';
+      this.streamTarget = stream;
+      this.queryResolve = null;
+      this.queryReject = null;
+      this.queryRows = [];
+      this.socket?.write(buildQueryMessage(sql));
+    }).catch((err: unknown) => {
+      stream.finalize(err instanceof Error ? err : new Error(String(err)));
+      this._release();
+    });
+
     return stream;
   }
 
