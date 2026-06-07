@@ -40,7 +40,13 @@ before(() => {
     sh('openssl', ['genrsa', '-out', f('client.key'), '2048']);
     sh('openssl', ['req', '-new', '-key', f('client.key'), '-subj', '/CN=street-client', '-out', f('client.csr')]);
     sh('openssl', ['x509', '-req', '-in', f('client.csr'), '-CA', f('ca.crt'), '-CAkey', f('ca.key'), '-CAcreateserial', '-days', '2', '-sha256', '-out', f('client.crt')]);
-    opensslOk = existsSync(f('server.crt')) && existsSync(f('client.crt'));
+    // A SECOND CA + client signed by it, for rotation tests.
+    sh('openssl', ['genrsa', '-out', f('ca2.key'), '2048']);
+    sh('openssl', ['req', '-x509', '-new', '-nodes', '-key', f('ca2.key'), '-sha256', '-days', '2', '-subj', '/CN=Street-Test-CA-2', '-out', f('ca2.crt')]);
+    sh('openssl', ['genrsa', '-out', f('client2.key'), '2048']);
+    sh('openssl', ['req', '-new', '-key', f('client2.key'), '-subj', '/CN=street-client-2', '-out', f('client2.csr')]);
+    sh('openssl', ['x509', '-req', '-in', f('client2.csr'), '-CA', f('ca2.crt'), '-CAkey', f('ca2.key'), '-CAcreateserial', '-days', '2', '-sha256', '-out', f('client2.crt')]);
+    opensslOk = existsSync(f('server.crt')) && existsSync(f('client.crt')) && existsSync(f('client2.crt'));
   } catch {
     opensslOk = false;
   }
@@ -121,6 +127,74 @@ describe('mTLS — real handshake (requires openssl)', () => {
       req.end();
     });
     assert.equal(failed, true, 'connection without client cert must be rejected');
+
+    server.close();
+  });
+});
+
+describe('mTLS — TrustStore', () => {
+  it('manages CAs and pins (add/remove/list)', () => {
+    const ts = new TrustStore({ ca: ['CA-A'], pins: ['AA:BB'] });
+    ts.addCa('CA-B').addPin('cc:dd');
+    assert.deepEqual(ts.caCertificates().map(String).sort(), ['CA-A', 'CA-B']);
+    assert.deepEqual(ts.pins().sort(), ['aabb', 'ccdd']);
+    assert.equal(ts.removeCa('CA-A'), true);
+    assert.equal(ts.removeCa('CA-A'), false);
+    assert.equal(ts.removePin('AABB'), true);
+    assert.deepEqual(ts.caCertificates().map(String), ['CA-B']);
+    assert.deepEqual(ts.pins(), ['ccdd']);
+  });
+  it('is idempotent for duplicate CA input', () => {
+    const ts = new TrustStore();
+    ts.addCa('CA-X').addCa('CA-X');
+    assert.equal(ts.caCertificates().length, 1);
+  });
+  it('validates via configured pins; rotate() swaps the whole set', () => {
+    const cert: PeerCertLike = { subject: { CN: 'svc' }, raw: Buffer.from('rawcert') };
+    const pin = certificateFingerprint(cert.raw!);
+    const ts = new TrustStore({ pins: [pin] });
+    // Pinned, untrusted-at-TLS cert is accepted because a pin matches.
+    assert.equal(ts.validate(cert, false).ok, true);
+    // After rotating to a different pin set, the same cert is rejected.
+    ts.rotate({ pins: ['00'.repeat(32)] });
+    assert.equal(ts.validate(cert, false).ok, false);
+  });
+});
+
+describe('mTLS — live certificate rotation (requires openssl)', () => {
+  it('rotateServerCertificate swaps the trusted client CA without restart', async (t) => {
+    if (!opensslOk) { t.skip('openssl not available'); return; }
+    const f = (n: string) => join(tmp, n);
+    const server = createMutualTlsServer(
+      { cert: readFileSync(f('server.crt')), key: readFileSync(f('server.key')), ca: readFileSync(f('ca.crt')), rejectUnauthorized: true },
+      (_req: IncomingMessage, res: ServerResponse) => { res.writeHead(200); res.end('ok'); },
+    );
+    server.listen(0, '127.0.0.1');
+    await once(server, 'listening');
+    const port = (server.address() as { port: number }).port;
+
+    // Clients always verify the server with ca.crt; they present their own client cert.
+    const call = (clientCrt: string, clientKey: string) => new Promise<number | 'error'>((resolve) => {
+      const req = httpsRequest({
+        host: '127.0.0.1', port, method: 'GET', path: '/',
+        ca: readFileSync(f('ca.crt')), cert: readFileSync(f(clientCrt)), key: readFileSync(f(clientKey)),
+      }, (res) => { res.resume(); res.once('end', () => resolve(res.statusCode ?? 0)); });
+      req.once('error', () => resolve('error'));
+      req.end();
+    });
+
+    // Initially the server trusts CA1 → client (CA1) accepted, client2 (CA2) rejected.
+    assert.equal(await call('client.crt', 'client.key'), 200);
+    assert.equal(await call('client2.crt', 'client2.key'), 'error');
+
+    // Rotate the trusted client CA to CA2 (server identity unchanged).
+    rotateServerCertificate(server, {
+      cert: readFileSync(f('server.crt')), key: readFileSync(f('server.key')), ca: readFileSync(f('ca2.crt')),
+    });
+
+    // Now client2 (CA2) is accepted and the original client (CA1) is rejected.
+    assert.equal(await call('client2.crt', 'client2.key'), 200);
+    assert.equal(await call('client.crt', 'client.key'), 'error');
 
     server.close();
   });
