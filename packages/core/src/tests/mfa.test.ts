@@ -6,7 +6,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   hotp, totp, verifyTotp, base32Encode, base32Decode,
-  generateRecoveryCodes, MfaService, MFA_MIGRATION_SQL,
+  generateRecoveryCodes, MfaService, mfaGuard, verifyMfaStepUp, MFA_MIGRATION_SQL,
 } from '../auth/mfa.js';
 
 // RFC 4226 / RFC 6238 reference secret: ASCII "12345678901234567890".
@@ -146,5 +146,71 @@ describe('MfaService', () => {
     await svc.confirmEnrollment('user-3', totp(base32Decode(secret)));
     await svc.disable('user-3');
     assert.equal(await svc.isEnabled('user-3'), false);
+  });
+});
+
+describe('MFA middleware (step-up)', () => {
+  async function enabledSvc(userId: string) {
+    const pool = new FakeMfaPool();
+    const svc = new MfaService(pool);
+    const { secret, recoveryCodes } = await svc.beginEnrollment(userId, userId);
+    await svc.confirmEnrollment(userId, totp(base32Decode(secret)));
+    return { svc, secret, recoveryCodes };
+  }
+  function ctx(userId: string | null) {
+    return { user: userId ? { id: userId } : null, state: {} as Record<string, unknown>, _status: 0 as number, _body: null as unknown, json(b: unknown, s = 200) { this._status = s; this._body = b; } };
+  }
+
+  it('blocks an MFA-enabled user whose session is not yet MFA-verified', async () => {
+    const { svc } = await enabledSvc('u1');
+    const c = ctx('u1');
+    let passed = false;
+    await mfaGuard(svc)(c, async () => { passed = true; });
+    assert.equal(passed, false);
+    assert.equal(c._status, 403);
+    assert.deepEqual((c._body as { error: string }).error, 'mfa_required');
+  });
+
+  it('allows once the session is marked MFA-verified', async () => {
+    const { svc } = await enabledSvc('u2');
+    const c = ctx('u2'); c.state['mfaVerified'] = true;
+    let passed = false;
+    await mfaGuard(svc)(c, async () => { passed = true; });
+    assert.equal(passed, true);
+  });
+
+  it('passes through users without MFA enabled and unauthenticated requests', async () => {
+    const pool = new FakeMfaPool();
+    const svc = new MfaService(pool);
+    let passed = 0;
+    await mfaGuard(svc)(ctx('no-mfa-user'), async () => { passed++; });
+    await mfaGuard(svc)(ctx(null), async () => { passed++; });
+    assert.equal(passed, 2);
+  });
+
+  it('verifyMfaStepUp accepts a TOTP code and marks the session verified', async () => {
+    const { svc, secret } = await enabledSvc('u3');
+    const c = ctx('u3');
+    const r = await verifyMfaStepUp(svc, 'u3', totp(base32Decode(secret)), c);
+    assert.equal(r.ok, true);
+    assert.equal(r.method, 'totp');
+    assert.equal(c.state['mfaVerified'], true);
+  });
+
+  it('verifyMfaStepUp accepts a recovery code (single-use)', async () => {
+    const { svc, recoveryCodes } = await enabledSvc('u4');
+    const c = ctx('u4');
+    const r = await verifyMfaStepUp(svc, 'u4', recoveryCodes[0]!, c);
+    assert.equal(r.ok, true);
+    assert.equal(r.method, 'recovery_code');
+    // reused → rejected
+    const r2 = await verifyMfaStepUp(svc, 'u4', recoveryCodes[0]!, c);
+    assert.equal(r2.ok, false);
+  });
+
+  it('verifyMfaStepUp rejects a wrong code', async () => {
+    const { svc } = await enabledSvc('u5');
+    const r = await verifyMfaStepUp(svc, 'u5', '000000');
+    assert.equal(r.ok, false);
   });
 });
