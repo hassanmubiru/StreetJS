@@ -8,12 +8,14 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { generateKeyPairSync } from 'node:crypto';
 import {
-  PluginHost, PluginModule, type SandboxedApp,
+  PluginHost,
   signManifest, verifyManifest, manifestChecksum,
   satisfiesVersion, compareSemver, parseSemver,
   PluginPermissionError, PluginDependencyError, PluginSignatureError, PluginStateError,
   type PluginManifest,
 } from '../platform/plugins/host.js';
+import { PluginModule, type SandboxedApp } from '../platform/plugins/sdk.js';
+import type { StreetContext } from '../core/context.js';
 
 // A configurable test plugin that records lifecycle calls into a shared log.
 class TestPlugin extends PluginModule {
