@@ -2,6 +2,8 @@
 // Public API for @streetjs/edge — the Street edge-runtime adapter.
 
 export { handleEdgeRequest } from './adapter.js';
+export { createLambdaHandler, eventToRequest, responseToResult } from './lambda.js';
+export type { ApiGatewayProxyEvent, ApiGatewayProxyResult } from './lambda.js';
 export { EdgeRuntimeStub } from './stubs.js';
 export type { EdgeRequest, EdgeResponse } from './stubs.js';
 
