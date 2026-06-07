@@ -141,17 +141,22 @@ export class KafkaClient {
 
   /** Allocate a producer id + epoch for the idempotent producer (InitProducerId v0). */
   async initProducerId(): Promise<{ producerId: bigint; producerEpoch: number }> {
-    const conn = await this._anyConn();
-    const r = await conn.request(API.INIT_PRODUCER_ID, 0, (w: KafkaWriter) => {
-      w.string(null);        // transactional_id (non-transactional)
-      w.int32(60_000);       // transaction_timeout_ms
+    // Cold-start hardening: the transaction coordinator (__transaction_state)
+    // may report COORDINATOR_LOAD_IN_PROGRESS / NOT_AVAILABLE right after broker
+    // boot; retry transiently rather than failing the producer.
+    return this._withCoordinatorRetry(async () => {
+      const conn = await this._anyConn();
+      const r = await conn.request(API.INIT_PRODUCER_ID, 0, (w: KafkaWriter) => {
+        w.string(null);        // transactional_id (non-transactional)
+        w.int32(60_000);       // transaction_timeout_ms
+      });
+      r.int32(); // throttle_time_ms
+      const err = r.int16();
+      if (err !== 0) throw new KafkaProtocolError(err, 'initProducerId');
+      const producerId = r.int64();
+      const producerEpoch = r.int16();
+      return { producerId, producerEpoch };
     });
-    r.int32(); // throttle_time_ms
-    const err = r.int16();
-    if (err !== 0) throw new KafkaProtocolError(err, 'initProducerId');
-    const producerId = r.int64();
-    const producerEpoch = r.int16();
-    return { producerId, producerEpoch };
   }
 
   /** Produce records to a topic-partition (acks=all). Returns base offset.
