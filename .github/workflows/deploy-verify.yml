@@ -1,0 +1,51 @@
+# .github/workflows/deploy-verify.yml
+# Deployment verification: generate the Kubernetes manifest, validate it, apply
+# it to an ephemeral kind cluster, and smoke-test the liveness probe. This is the
+# CI counterpart that turns "manifest validated" into "deployment verified".
+name: deploy-verify
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths: ['packages/core/src/cloud/**', '.github/workflows/deploy-verify.yml']
+
+jobs:
+  k8s:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: Build core
+        run: npm run build -w packages/core
+
+      - name: Generate + validate manifest
+        run: |
+          node -e "
+            const { generateManifest, validateDeploymentManifest } = require('@streetjs/core');
+            const fs = require('fs');
+            const cfg = { name: 'street-app', image: 'street-app:ci', port: 8080, replicas: 1 };
+            const m = generateManifest('kubernetes', cfg);
+            const v = validateDeploymentManifest('kubernetes', m);
+            if (!v.valid) { console.error(v.errors.join('\n')); process.exit(1); }
+            fs.writeFileSync('k8s.yaml', m);
+            console.log('manifest validated');
+          "
+
+      - name: Build app image
+        run: docker build -t street-app:ci .
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1
+
+      - name: Load image + apply manifest
+        run: |
+          kind load docker-image street-app:ci
+          kubectl apply -f k8s.yaml
+          kubectl rollout status deployment/street-app --timeout=120s
+
+      - name: Smoke-test liveness probe
+        run: |
+          kubectl port-forward deployment/street-app 8080:8080 &
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:8080/health/live && break; sleep 2; done
+          curl -fsS http://127.0.0.1:8080/health/live

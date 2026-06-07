@@ -1,0 +1,36 @@
+# .github/workflows/observability.yml
+# Observability pack verification: emit the Prometheus rules + Grafana dashboard,
+# then run Prometheus' own `promtool check rules` for semantic validation (the
+# step that is unavailable in the offline dev environment).
+name: observability
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths: ['packages/core/src/observability/**', 'scripts/observability/**', '.github/workflows/observability.yml']
+
+jobs:
+  promtool:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: Build core
+        run: npm run build -w packages/core
+
+      - name: Emit + structurally validate assets
+        run: node scripts/observability/emit-assets.mjs
+
+      - name: Install promtool
+        run: |
+          PROM_VERSION=2.53.0
+          curl -fsSL -o prom.tar.gz "https://github.com/prometheus/prometheus/releases/download/v${PROM_VERSION}/prometheus-${PROM_VERSION}.linux-amd64.tar.gz"
+          tar xzf prom.tar.gz
+          sudo cp "prometheus-${PROM_VERSION}.linux-amd64/promtool" /usr/local/bin/
+
+      - name: promtool check rules (semantic validation)
+        run: promtool check rules observability/prometheus/street-rules.yml
+
+      - name: Validate Grafana dashboard JSON
+        run: node -e "JSON.parse(require('fs').readFileSync('observability/grafana/dashboards/street-api.json','utf8')); console.log('dashboard JSON valid')"

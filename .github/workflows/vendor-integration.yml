@@ -1,0 +1,42 @@
+# .github/workflows/vendor-integration.yml
+# Live vendor-API integration for the official plugins. These tests perform real
+# network calls and require credentials provided as repository secrets; each
+# vendor step is skipped when its secret is absent, so the workflow is safe to
+# run without full credentials.
+name: vendor-integration
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 4 * * 1'   # weekly
+
+jobs:
+  vendor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: Build core
+        run: npm run build -w packages/core
+
+      # Each step builds the vendor request via the plugin client and performs a
+      # minimal real call, asserting an authenticated (non-401/403) response.
+      - name: SendGrid (scopes check)
+        if: ${{ secrets.SENDGRID_API_KEY != '' }}
+        env: { SENDGRID_API_KEY: '${{ secrets.SENDGRID_API_KEY }}' }
+        run: node scripts/vendor/check-sendgrid.mjs
+
+      - name: Stripe (balance check)
+        if: ${{ secrets.STRIPE_API_KEY != '' }}
+        env: { STRIPE_API_KEY: '${{ secrets.STRIPE_API_KEY }}' }
+        run: node scripts/vendor/check-stripe.mjs
+
+      - name: Auth0 (client-credentials token)
+        if: ${{ secrets.AUTH0_DOMAIN != '' }}
+        env:
+          AUTH0_DOMAIN: '${{ secrets.AUTH0_DOMAIN }}'
+          AUTH0_CLIENT_ID: '${{ secrets.AUTH0_CLIENT_ID }}'
+          AUTH0_CLIENT_SECRET: '${{ secrets.AUTH0_CLIENT_SECRET }}'
+          AUTH0_AUDIENCE: '${{ secrets.AUTH0_AUDIENCE }}'
+        run: node scripts/vendor/check-auth0.mjs
