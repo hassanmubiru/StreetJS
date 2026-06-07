@@ -257,7 +257,6 @@ function sendRequest(
         },
         timeout: timeoutMs,
         ...(tls?.ca ? { ca: tls.ca } : {}),
-        ...(tls?.rejectUnauthorized === false ? { rejectUnauthorized: false } : {}),
       },
       (res) => {
         // Drain response to free socket
