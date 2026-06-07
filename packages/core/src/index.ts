@@ -38,6 +38,11 @@ export {
   buildCsp, computeSecurityHeaders, securityHeadersMiddleware, DEFAULT_CSP,
 } from './security/headers.js';
 export type { CspDirectives, SecurityHeadersOptions } from './security/headers.js';
+export {
+  createMutualTlsServer, clientCertMiddleware, validateClientCert,
+  certificateFingerprint, verifyCertificatePin,
+} from './security/mtls.js';
+export type { ClientCertPolicy, ClientCertResult, PeerCertLike, MutualTlsServerOptions } from './security/mtls.js';
 export { generateOpenApi } from './http/openapi.js';
 
 // ── Router ────────────────────────────────────────────────────────────────────
