@@ -89,7 +89,7 @@ describe('chaos — HTTP middleware (live app)', () => {
     app.use(chaosMiddleware({ failEvery: 2 }));
     app.use(async (ctx) => { ctx.json({ ok: true }); });
 
-    const port = 4300 + Math.floor(Math.random() * 600);
+    const port = 55100 + Math.floor(Math.random() * 300);
     await app.listen(port, '127.0.0.1');
     try {
       const hit = (): Promise<number> => new Promise((resolve, reject) => {
