@@ -328,6 +328,12 @@ export { PluginModule } from './platform/plugins/sdk.js';
 export type { SandboxedApp } from './platform/plugins/sdk.js';
 export { PluginInstaller } from './platform/plugins/registry.js';
 export type { PluginInstallerOptions } from './platform/plugins/registry.js';
+export {
+  PluginHost, signManifest, verifyManifest, manifestChecksum,
+  satisfiesVersion, parseSemver, compareSemver,
+  PluginError, PluginPermissionError, PluginDependencyError, PluginSignatureError, PluginStateError,
+} from './platform/plugins/host.js';
+export type { PluginManifest, PluginPermission, PluginHostOptions, PluginState } from './platform/plugins/host.js';
 
 // ── HTTP: Edge Runtime ────────────────────────────────────────────────────────
 export { FeatureUnavailableInEdgeRuntimeError } from './http/exceptions.js';
