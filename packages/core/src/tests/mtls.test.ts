@@ -9,7 +9,7 @@ import { mkdtempSync, rmSync, readFileSync, existsSync, writeFileSync } from 'no
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { request as httpsRequest } from 'node:https';
+import { request as httpsRequest, Agent as HttpsAgent } from 'node:https';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { once } from 'node:events';
 import {
@@ -174,28 +174,33 @@ describe('mTLS — live certificate rotation (requires openssl)', () => {
     const port = (server.address() as { port: number }).port;
 
     // Clients always verify the server with ca.crt; they present their own client cert.
+    // A fresh agent with no session cache forces a full handshake each call, so the
+    // rotated trust material is actually exercised (no TLS session resumption).
     const call = (clientCrt: string, clientKey: string) => new Promise<number | 'error'>((resolve) => {
+      const agent = new HttpsAgent({ maxCachedSessions: 0, keepAlive: false });
       const req = httpsRequest({
-        host: '127.0.0.1', port, method: 'GET', path: '/',
+        host: '127.0.0.1', port, method: 'GET', path: '/', agent,
         ca: readFileSync(f('ca.crt')), cert: readFileSync(f(clientCrt)), key: readFileSync(f(clientKey)),
-      }, (res) => { res.resume(); res.once('end', () => resolve(res.statusCode ?? 0)); });
-      req.once('error', () => resolve('error'));
+      }, (res) => { res.resume(); res.once('end', () => { agent.destroy(); resolve(res.statusCode ?? 0); }); });
+      req.once('error', () => { agent.destroy(); resolve('error'); });
       req.end();
     });
 
-    // Initially the server trusts CA1 → client (CA1) accepted, client2 (CA2) rejected.
-    assert.equal(await call('client.crt', 'client.key'), 200);
-    assert.equal(await call('client2.crt', 'client2.key'), 'error');
+    try {
+      // Initially the server trusts CA1 → client (CA1) accepted, client2 (CA2) rejected.
+      assert.equal(await call('client.crt', 'client.key'), 200);
+      assert.equal(await call('client2.crt', 'client2.key'), 'error');
 
-    // Rotate the trusted client CA to CA2 (server identity unchanged).
-    rotateServerCertificate(server, {
-      cert: readFileSync(f('server.crt')), key: readFileSync(f('server.key')), ca: readFileSync(f('ca2.crt')),
-    });
+      // Rotate the trusted client CA to CA2 (server identity unchanged).
+      rotateServerCertificate(server, {
+        cert: readFileSync(f('server.crt')), key: readFileSync(f('server.key')), ca: readFileSync(f('ca2.crt')),
+      });
 
-    // Now client2 (CA2) is accepted and the original client (CA1) is rejected.
-    assert.equal(await call('client2.crt', 'client2.key'), 200);
-    assert.equal(await call('client.crt', 'client.key'), 'error');
-
-    server.close();
+      // Now client2 (CA2) is accepted and the original client (CA1) is rejected.
+      assert.equal(await call('client2.crt', 'client2.key'), 200);
+      assert.equal(await call('client.crt', 'client.key'), 'error');
+    } finally {
+      server.close();
+    }
   });
 });
