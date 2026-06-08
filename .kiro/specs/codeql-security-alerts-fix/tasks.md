@@ -187,7 +187,7 @@ hover status tracks the documented properties.
     - _Preservation: benign input returns identically after the first pass; all bounds unchanged_
     - _Requirements: 2.6, 3.4_
 
-  - [~] 9.2 Rebuild the shipped artifact
+  - [-] 9.2 Rebuild the shipped artifact
     - Run `npm run build -w packages/core` so `dist/security/xss.js` (the flagged file) is regenerated from corrected source
     - _Requirements: 2.6_
 
