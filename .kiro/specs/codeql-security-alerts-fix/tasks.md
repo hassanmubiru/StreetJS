@@ -227,7 +227,7 @@ hover status tracks the documented properties.
     - **EXPECTED OUTCOME**: Tests PASS unchanged; `nativePasswordHash('password', SEED)` still equals `c17d6009a5cb47e59f7483fcf05553bbbf7dd0d6`
     - _Requirements: 2.7, 2.8, 3.5_
 
-- [ ] 11. Resolve Class F — add least-privilege `permissions` to seven workflows
+- [x] 11. Resolve Class F — add least-privilege `permissions` to seven workflows
 
   - [x] 11.1 Add a top-level `permissions: { contents: read }` block to each workflow
     - Insert immediately after the `on:` block in: `.github/workflows/vendor-integration.yml`,
@@ -239,7 +239,7 @@ hover status tracks the documented properties.
     - _Preservation: every previously-succeeding step still runs; no job fails for lack of token scope_
     - _Requirements: 2.9, 3.6_
 
-  - [-] 11.2 Verify Class F structural property and step preservation
+  - [x] 11.2 Verify Class F structural property and step preservation
     - **Property 6: Structural** - Explicit Least-Privilege Permissions (Class F)
     - Assert each of the seven workflows now declares a top-level `permissions` block scoped to `contents: read`
     - Validate workflow YAML (lint/parse) and confirm no step relies on broader default token scope
