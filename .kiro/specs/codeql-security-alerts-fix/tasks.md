@@ -248,14 +248,14 @@ hover status tracks the documented properties.
 
 ### Phase 4 — Final Verification
 
-- [-] 12. Full preservation + build/test sweep
+- [x] 12. Full preservation + build/test sweep
   - **Property 7: Preservation** - Non-Buggy Inputs Unchanged (all classes)
   - Re-run the complete task-5 preservation suite plus the package build (`npm run build -w packages/core`) and full unit/PBT/integration tests
   - Include integration checks from the design: self-signed cert is rejected / trusted cert + `tls.ca` succeeds (A); `xssMiddleware` sanitizes nested bodies to a fixed point within bounds (D); MySQL auth handshake passes (E)
   - **EXPECTED OUTCOME**: all preservation tests pass; no regressions across A–F or unrelated modules
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7_
 
-- [~] 13. Re-run CodeQL and confirm alerts resolved
+- [-] 13. Re-run CodeQL and confirm alerts resolved
   - Re-run CodeQL on the branch after all changes
   - Confirm each targeted alert is resolved: A (#24), B (#26, #20, #19), C (#25), D (#7, #6), E (#4, #3, #18, #17, #16, #15), F (#30, #29, #28, #27, #23, #22, #21)
   - Confirm no new alerts are introduced
