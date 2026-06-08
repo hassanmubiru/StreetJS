@@ -433,6 +433,7 @@ describe('_queryParams integration (via PgConnection.query)', () => {
 
     const queryPromise = conn.query('SELECT $1::int AS n', [99]);
 
+    await flushAsync();
     const written = socket.write.mock.calls[0].arguments[0] as Buffer;
     assert.ok(written[0] === 0x50);
 
@@ -478,6 +479,7 @@ describe('_queryParams integration (via PgConnection.query)', () => {
     // Calling query() without params should use simple query ('Q'), not extended
     const queryPromise = conn.query('SELECT 1 AS val');
 
+    await flushAsync();
     assert.equal(socket.write.mock.calls.length, 1);
     const written = socket.write.mock.calls[0].arguments[0] as Buffer;
 
