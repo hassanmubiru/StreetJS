@@ -164,7 +164,7 @@ hover status tracks the documented properties.
     - _Preservation: names with no `@` and standard single-`@` scoped names produce byte-identical purls/SBOM_
     - _Requirements: 2.5, 3.3_
 
-  - [-] 8.2 Verify Class C exploration test now passes
+  - [x] 8.2 Verify Class C exploration test now passes
     - **Property 3: Expected Behavior** - Complete purl Encoding (Class C)
     - **IMPORTANT**: Re-run the SAME test from task 3 — do NOT write a new test
     - **EXPECTED OUTCOME**: `buildPurl('a@b@c', …)` yields `…a%40b%40c…` (no unescaped `@`)
