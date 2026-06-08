@@ -19,9 +19,12 @@ export function sanitizeString(input: string): string {
 
   let previous: string;
   let current = input;
-  let iterations = 0;
-  const MAX_SANITIZE_PASSES = 10;
 
+  // Loop to a true fixed point. Each pass only DELETES characters, so the
+  // string length is monotonically non-increasing and the loop is guaranteed
+  // to terminate. This eliminates the residual Class D defect where a deeply
+  // nested reconstitution (e.g. nestedReconstitution(11)) survived the former
+  // MAX_SANITIZE_PASSES cap and left a dangerous substring intact.
   do {
     previous = current;
     current = current
@@ -31,8 +34,7 @@ export function sanitizeString(input: string): string {
       .replace(DATA_PROTOCOL, '')
       .replace(VBSCRIPT_PROTOCOL, '')
       .replace(DANGEROUS_ATTRS, '');
-    iterations++;
-  } while (current !== previous && iterations < MAX_SANITIZE_PASSES);
+  } while (current !== previous);
 
   return current;
 }
