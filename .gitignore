@@ -1,5 +1,7 @@
-# Ignore docs build and temporary files
-docs/
+# Ignore docs build and temporary files (but keep the doc sources tracked —
+# the documentation certification suite requires docs/*.md to be in the repo).
+docs/_site/
+docs/.jekyll-cache/
 
 # Node modules
 node_modules/

@@ -1,0 +1,164 @@
+---
+layout: default
+title: CLI Reference
+nav_order: 5
+---
+
+# CLI Reference
+
+The `@streetjs/cli` package provides the `street` command for scaffolding, migrations, and administrative tasks.
+
+## Installation
+
+```bash
+npm install -g @streetjs/cli
+# or use npx
+npx @streetjs/cli <command>
+```
+
+## Commands
+
+### Project Scaffolding
+
+#### `street create <name>`
+
+Scaffold a new Street project.
+
+```bash
+street create my-app
+street create my-app --template minimal
+```
+
+### Database Migrations
+
+#### `street migrate:run`
+
+Run all pending migrations.
+
+```bash
+street migrate:run
+street migrate:run --dry-run
+```
+
+#### `street migrate:rollback`
+
+Roll back the last applied migration.
+
+```bash
+street migrate:rollback
+```
+
+#### `street migrate:status`
+
+Show migration status.
+
+```bash
+street migrate:status
+```
+
+#### `street migrate:diff`
+
+Show the diff between current schema and expected entity schema.
+
+```bash
+street migrate:diff
+```
+
+### Database Seeding
+
+#### `street seed`
+
+Run database seeders.
+
+```bash
+street seed
+street seed --env development
+```
+
+### User Management
+
+#### `street user:create`
+
+Create a new user.
+
+```bash
+street user:create --email admin@example.com --role admin
+```
+
+### Backup & Restore
+
+#### `street restore --backup-id <id>`
+
+Restore a database backup by ID. Exits with code 1 if checksum verification fails.
+
+```bash
+street restore --backup-id 550e8400-e29b-41d4-a716-446655440000
+street restore --backup-id <id> --target-url postgres://...
+```
+
+### Compliance
+
+#### `street compliance:report`
+
+Generate a compliance report of all entity data annotations.
+
+```bash
+street compliance:report
+street compliance:report --format json
+```
+
+### Audit Log
+
+#### `street audit:export`
+
+Export audit log entries for a date range.
+
+```bash
+street audit:export --from 2024-01-01 --to 2024-01-31 --format jsonl
+street audit:export --from 2024-01-01 --to 2024-01-31 --format csv > audit.csv
+```
+
+### Plugin Management
+
+#### `street plugin:install <name>@<version>`
+
+Install a plugin from the marketplace with signature and checksum verification.
+
+```bash
+street plugin:install @streetjs/auth-plugin@1.0.0
+```
+
+#### `street plugin:list`
+
+List installed plugins with their load and verification status.
+
+```bash
+street plugin:list
+```
+
+## Global Options
+
+| Flag | Description |
+|------|-------------|
+| `--help`, `-h` | Show help |
+| `--version`, `-v` | Show CLI version |
+| `--env <name>` | Set NODE_ENV for the command |
+| `--config <path>` | Path to street.config.ts |
+
+## Configuration
+
+The CLI reads `street.config.ts` (or `street.config.js`) in the project root:
+
+```typescript
+import { defineConfig } from '@streetjs/core';
+
+export default defineConfig({
+  database: {
+    host: process.env.PG_HOST ?? 'localhost',
+    port: Number(process.env.PG_PORT ?? 5432),
+    database: process.env.PG_DATABASE ?? 'myapp',
+    user: process.env.PG_USER ?? 'postgres',
+    password: process.env.PG_PASSWORD ?? '',
+  },
+});
+```
