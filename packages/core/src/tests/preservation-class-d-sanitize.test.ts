@@ -97,14 +97,24 @@ describe('Class D preservation — bounds behave identically', () => {
     assert.equal(cur, 'leaf');
 
     // A structure deeper than MAX_DEPTH collapses to null once depth > MAX_DEPTH.
+    // Observed baseline: sanitizeDeep returns null only when `depth > MAX_DEPTH`
+    // (i.e. at recursion depth MAX_DEPTH + 1). The object created at recursion
+    // depth MAX_DEPTH therefore still exists, and it is its `next` child that
+    // collapsed to null.
     const deep = sanitizeDeep(build(MAX_DEPTH + 10));
     let node: unknown = deep;
     for (let i = 0; i < MAX_DEPTH; i++) {
       assert.notEqual(node, null, `level ${i} should still be an object`);
       node = (node as Record<string, unknown>)['next'];
     }
-    // At depth > MAX_DEPTH sanitizeDeep returns null instead of recursing.
-    assert.equal(node, null, 'nesting beyond MAX_DEPTH must collapse to null');
+    // The deepest surviving object (at depth MAX_DEPTH) retains a `next` that
+    // recursion collapsed to null — this is the exact current boundary.
+    assert.deepEqual(node, { next: null }, 'object at MAX_DEPTH survives with a null child');
+    assert.equal(
+      (node as Record<string, unknown>)['next'],
+      null,
+      'the child beyond MAX_DEPTH must collapse to null',
+    );
   });
 
   it('MAX_ARRAY: truncates an over-long array to the cap', () => {
