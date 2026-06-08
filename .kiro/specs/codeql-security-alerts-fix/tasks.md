@@ -134,7 +134,7 @@ hover status tracks the documented properties.
     - _Preservation: same generated gRPC filename/types for valid inputs_
     - _Requirements: 2.3, 3.2_
 
-  - [~] 7.3 B.3 — `stripComments` single-pass linear scanner (`packages/core/src/microservices/grpc/proto-parser.ts:40`)
+  - [-] 7.3 B.3 — `stripComments` single-pass linear scanner (`packages/core/src/microservices/grpc/proto-parser.ts:40`)
     - Replace the regex-based comment removal with the O(n) single-pass scanner from the design
       (block `/* … */` to first `*/`; line `// …` to end-of-line)
     - _Bug_Condition: isBugCondition_B(input) — uncontrolled `.proto` source reaches the flagged pattern_
