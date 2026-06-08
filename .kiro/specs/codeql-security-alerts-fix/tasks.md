@@ -92,7 +92,7 @@ hover status tracks the documented properties.
 
 ### Phase 3 — Implement Fixes
 
-- [ ] 6. Fix Class A — disable the TLS-validation bypass in the webhook dispatcher
+- [x] 6. Fix Class A — disable the TLS-validation bypass in the webhook dispatcher
 
   - [x] 6.1 Remove the `rejectUnauthorized: false` spread in `sendRequest`
     - Edit `packages/core/src/webhook/dispatcher.ts`: delete the
@@ -110,7 +110,7 @@ hover status tracks the documented properties.
     - **EXPECTED OUTCOME**: Test PASSES (options never contain `rejectUnauthorized: false`)
     - _Requirements: 2.1_
 
-  - [-] 6.3 Verify Class A preservation still holds
+  - [x] 6.3 Verify Class A preservation still holds
     - **Property 7: Preservation** - Normal Dispatch Preserved (Class A)
     - Re-run the Class A preservation assertions from task 5
     - **EXPECTED OUTCOME**: Normal HTTPS dispatch, signing, retries, and SSRF protection unchanged
