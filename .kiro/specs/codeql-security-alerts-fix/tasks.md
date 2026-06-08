@@ -248,7 +248,7 @@ hover status tracks the documented properties.
 
 ### Phase 4 — Final Verification
 
-- [~] 12. Full preservation + build/test sweep
+- [-] 12. Full preservation + build/test sweep
   - **Property 7: Preservation** - Non-Buggy Inputs Unchanged (all classes)
   - Re-run the complete task-5 preservation suite plus the package build (`npm run build -w packages/core`) and full unit/PBT/integration tests
   - Include integration checks from the design: self-signed cert is rejected / trusted cert + `tls.ca` succeeds (A); `xssMiddleware` sanitizes nested bodies to a fixed point within bounds (D); MySQL auth handshake passes (E)
