@@ -156,7 +156,7 @@ hover status tracks the documented properties.
 
 - [ ] 8. Fix Class C — global `@` replacement in the SBOM purl
 
-  - [-] 8.1 Use a global regex replacement in `scripts/generate-sbom.mjs:44`
+  - [x] 8.1 Use a global regex replacement in `scripts/generate-sbom.mjs:44`
     - Replace `dp.name.replace('@','%40')` with `dp.name.replace(/@/g,'%40')` so every `@` is encoded
       (the `bom-ref` derives from the same purl and stays consistent)
     - _Bug_Condition: isBugCondition_C(name) — name contains a character requiring escaping beyond the first occurrence_
