@@ -11,12 +11,13 @@
 //
 // CodeQL's `js/insufficient-password-hash` query flags these as a false positive
 // (it cannot distinguish a protocol challenge-response from credential storage).
-// Inline `// codeql[...]` suppression comments are not honored by GitHub code
-// scanning (github/codeql#11427). Rather than dismiss the alerts manually or
-// disable the rule repo-wide (which would mask genuinely-insecure password hashing
-// elsewhere, e.g. the PBKDF2 storage in services/user.service.ts), this single,
-// purpose-built file is excluded from analysis via .github/codeql/codeql-config.yml.
-// The rest of the MySQL driver (wire.ts) remains fully scanned.
+// These alerts are dismissed ("won't fix") in code scanning. Note that neither
+// inline `// codeql[...]` comments (github/codeql#11427) nor a config `paths-ignore`
+// can suppress them in code: inline comments are not honored, and paths-ignore does
+// not exclude a file that is imported by analyzed code (wire.ts imports this module).
+// The js/insufficient-password-hash rule therefore stays active repo-wide, so it
+// still protects real password storage (e.g. the PBKDF2 hashing in
+// packages/core/src/services/user.service.ts) and any future insecure additions.
 
 import { createHash } from 'node:crypto';
 
