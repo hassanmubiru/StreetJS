@@ -205,7 +205,7 @@ hover status tracks the documented properties.
 
 - [ ] 10. Resolve Class E — documented CodeQL suppression for protocol-mandated hashing (NO behavioral change)
 
-  - [-] 10.1 Add inline suppression + rationale at the flagged MySQL call sites
+  - [x] 10.1 Add inline suppression + rationale at the flagged MySQL call sites
     - Confirm the exact rule id from the alert/SARIF (e.g. `js/insufficient-password-hash`)
     - Add the documented `// codeql[<rule-id>] -- …` justification comment above:
       - `createHash('sha1')` in `nativePasswordHash` (`packages/core/src/database/mysql/wire.ts:84`)
