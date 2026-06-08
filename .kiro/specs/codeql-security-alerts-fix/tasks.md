@@ -142,7 +142,7 @@ hover status tracks the documented properties.
     - _Preservation: parseProto produces an identical AST for existing proto fixtures_
     - _Requirements: 2.4, 3.2_
 
-  - [-] 7.4 Verify Class B exploration test now passes
+  - [x] 7.4 Verify Class B exploration test now passes
     - **Property 2: Expected Behavior** - Linear-Time Matching/Parsing (Class B)
     - **IMPORTANT**: Re-run the SAME adversarial timing tests from task 2 — do NOT write new tests
     - **EXPECTED OUTCOME**: Processing completes within the linear time budget at all N (no super-linear growth)
