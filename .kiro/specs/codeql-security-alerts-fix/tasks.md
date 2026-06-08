@@ -118,7 +118,7 @@ hover status tracks the documented properties.
 
 - [ ] 7. Fix Class B — replace polynomial regexes with linear-time equivalents
 
-  - [-] 7.1 B.1 — `base32Decode` linear trailing-`=` trim (`packages/core/src/auth/mfa.ts:31`)
+  - [x] 7.1 B.1 — `base32Decode` linear trailing-`=` trim (`packages/core/src/auth/mfa.ts:31`)
     - Replace `input.toUpperCase().replace(/=+$/g,'').replace(/\s/g,'')` with the uppercase + linear
       trailing-`=` `while` trim + `.replace(/\s/g,'')` from the design (identical output/eval order)
     - _Bug_Condition: isBugCondition_B(input) — every input reaches the flagged pattern_
