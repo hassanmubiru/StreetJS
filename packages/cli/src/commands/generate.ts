@@ -3,7 +3,7 @@
 // middleware, gateways, and migrations.
 
 import { mkdir, writeFile, readFile, access } from 'node:fs/promises';
-import { resolve, dirname } from 'node:path';
+import { resolve, dirname, posix } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { CliContext } from '../index.js';
 
@@ -31,7 +31,12 @@ const VALID_TYPES: GenerateType[] = ['controller', 'service', 'repository', 'mid
  * function's output identical for valid POSIX `--proto` paths.
  */
 export function deriveGrpcBaseName(protoPath: string): string {
-  return protoPath.replace(/.*\//, '').replace(/\.proto$/, '');
+  // Class B.2 fix: replace the polynomial `/.*\//` strip (super-linear
+  // backtracking on a long slash-free input) with a linear POSIX basename.
+  // `posix.basename` matches the preservation oracle byte-for-byte for valid
+  // POSIX `--proto` paths regardless of host platform. The trailing
+  // `/\.proto$/` is a single anchored literal with no backtracking — retained.
+  return posix.basename(protoPath).replace(/\.proto$/, '');
 }
 
 export class GenerateCommand {
