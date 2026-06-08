@@ -94,7 +94,7 @@ hover status tracks the documented properties.
 
 - [ ] 6. Fix Class A — disable the TLS-validation bypass in the webhook dispatcher
 
-  - [~] 6.1 Remove the `rejectUnauthorized: false` spread in `sendRequest`
+  - [-] 6.1 Remove the `rejectUnauthorized: false` spread in `sendRequest`
     - Edit `packages/core/src/webhook/dispatcher.ts`: delete the
       `...(tls?.rejectUnauthorized === false ? { rejectUnauthorized: false } : {})` spread so validation is never disabled
     - Retain the custom-CA path `...(tls?.ca ? { ca: tls.ca } : {})` as the supported private-CA mechanism
