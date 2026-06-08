@@ -102,11 +102,17 @@ export function parseProto(src: string): ProtoAst {
   }
 
   const services: ServiceDefinition[] = [];
-  const serviceRe = /service\s+(\w+)\s*\{([^}]*)\}/g;
+  // Same linear header-match + indexOf approach as messages above, to avoid the
+  // polynomial backtracking of the unanchored global `\{([^}]*)\}` (js/polynomial-redos).
+  const serviceRe = /service\s+(\w+)\s*\{/g;
   let s: RegExpExecArray | null;
   while ((s = serviceRe.exec(text)) !== null) {
     const name = s[1]!;
-    const body = s[2]!;
+    const bodyStart = serviceRe.lastIndex;
+    const bodyEnd = text.indexOf('}', bodyStart);
+    if (bodyEnd === -1) break; // no closing brace: original regex would not match
+    const body = text.slice(bodyStart, bodyEnd);
+    serviceRe.lastIndex = bodyEnd + 1; // continue after the closing brace (non-overlapping)
     const rpcs: RpcDefinition[] = [];
     const rpcRe = /rpc\s+(\w+)\s*\(\s*(stream\s+)?([\w.]+)\s*\)\s*returns\s*\(\s*(stream\s+)?([\w.]+)\s*\)/g;
     let r: RegExpExecArray | null;
