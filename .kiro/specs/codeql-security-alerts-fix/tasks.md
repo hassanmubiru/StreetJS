@@ -178,7 +178,7 @@ hover status tracks the documented properties.
 
 - [ ] 9. Fix Class D — drive `sanitizeString` to a fixed point and rebuild `dist`
 
-  - [~] 9.1 Loop replacements until stable in `packages/core/src/security/xss.ts`
+  - [-] 9.1 Loop replacements until stable in `packages/core/src/security/xss.ts`
     - Replace the capped (`MAX_SANITIZE_PASSES`) loop with the `do { … } while (current !== previous)`
       fixed-point loop from the design (each pass only deletes chars, so it terminates)
     - Leave `MAX_DEPTH`, `MAX_STRING_LEN`, `MAX_ARRAY`, `MAX_KEYS` bounds untouched
