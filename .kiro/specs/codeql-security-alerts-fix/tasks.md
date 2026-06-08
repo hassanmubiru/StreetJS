@@ -104,13 +104,13 @@ hover status tracks the documented properties.
     - _Preservation: targets without tls / rejectUnauthorized true|undefined already produced `{}` for this spread — unchanged_
     - _Requirements: 2.1, 3.1_
 
-  - [-] 6.2 Verify Class A exploration test now passes
+  - [x] 6.2 Verify Class A exploration test now passes
     - **Property 1: Expected Behavior** - TLS Validation Never Disabled (Class A)
     - **IMPORTANT**: Re-run the SAME test from task 1 — do NOT write a new test
     - **EXPECTED OUTCOME**: Test PASSES (options never contain `rejectUnauthorized: false`)
     - _Requirements: 2.1_
 
-  - [~] 6.3 Verify Class A preservation still holds
+  - [-] 6.3 Verify Class A preservation still holds
     - **Property 7: Preservation** - Normal Dispatch Preserved (Class A)
     - Re-run the Class A preservation assertions from task 5
     - **EXPECTED OUTCOME**: Normal HTTPS dispatch, signing, retries, and SSRF protection unchanged
