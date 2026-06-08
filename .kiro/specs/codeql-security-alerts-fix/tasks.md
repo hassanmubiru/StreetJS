@@ -170,7 +170,7 @@ hover status tracks the documented properties.
     - **EXPECTED OUTCOME**: `buildPurl('a@b@c', …)` yields `…a%40b%40c…` (no unescaped `@`)
     - _Requirements: 2.5_
 
-  - [~] 8.3 Verify Class C preservation still holds
+  - [-] 8.3 Verify Class C preservation still holds
     - **Property 7: Preservation** - No-Special-Char purls (Class C)
     - Re-run the Class C preservation PBT from task 5
     - **EXPECTED OUTCOME**: purls and sorted SBOM `components` unchanged for non-`@` / single-`@` names
