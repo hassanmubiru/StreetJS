@@ -22,6 +22,7 @@ const SEED = Buffer.from('0102030405060708090a0b0c0d0e0f1011121314', 'hex');
 // cross-check structure rather than re-use the same helper.
 function referenceScramble(password: string, seed: Buffer): Buffer {
   if (password.length === 0) return Buffer.alloc(0);
+  // codeql[js/insufficient-password-hash] -- protocol-mandated MySQL wire-protocol challenge-response (caching_sha2_password), not at-rest storage
   const sha256 = (d: Buffer): Buffer => createHash('sha256').update(d).digest();
   const a = sha256(Buffer.from(password, 'utf8'));
   const b = sha256(a);
@@ -68,6 +69,7 @@ describe('caching_sha2_password — fast-auth scramble', () => {
   it('satisfies the XOR identity: token XOR SHA256(pw) === SHA256(SHA256(SHA256(pw)) || seed)', () => {
     const pw = 'password';
     const token = sha2PasswordHash(pw, SEED);
+    // codeql[js/insufficient-password-hash] -- protocol-mandated MySQL wire-protocol challenge-response (caching_sha2_password), not at-rest storage
     const sha256 = (d: Buffer): Buffer => createHash('sha256').update(d).digest();
     const a = sha256(Buffer.from(pw, 'utf8'));
     const c = sha256(Buffer.concat([sha256(a), SEED]));
