@@ -1,0 +1,20 @@
+name: "Street CodeQL config"
+
+# Custom CodeQL configuration referenced from .github/workflows/codeql.yml via the
+# `config-file` input on github/codeql-action/init.
+#
+# paths-ignore excludes specific files from CodeQL analysis. We use it ONLY for the
+# MySQL wire-protocol auth test fixtures, which intentionally compute the
+# protocol-mandated mysql_native_password (SHA1) and caching_sha2_password (SHA256)
+# challenge-response scrambles to verify the implementation. CodeQL flags these as
+# `js/insufficient-password-hash`, but they are NOT at-rest password storage and the
+# algorithm is fixed by the MySQL Client/Server protocol — it cannot be strengthened
+# without breaking authentication. (Inline `// codeql[...]` suppression comments are
+# not honored by GitHub code scanning; see github/codeql#11427.)
+#
+# The rule remains active everywhere else, including the framework's real password
+# storage (packages/core/src/services/user.service.ts, which uses PBKDF2), so future
+# genuinely-insecure password hashing is still detected.
+paths-ignore:
+  - packages/core/src/tests/mysql-native-password.test.ts
+  - packages/core/src/tests/mysql-caching-sha2-password.test.ts
