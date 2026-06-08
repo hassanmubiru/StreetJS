@@ -134,7 +134,7 @@ hover status tracks the documented properties.
     - _Preservation: same generated gRPC filename/types for valid inputs_
     - _Requirements: 2.3, 3.2_
 
-  - [-] 7.3 B.3 — `stripComments` single-pass linear scanner (`packages/core/src/microservices/grpc/proto-parser.ts:40`)
+  - [x] 7.3 B.3 — `stripComments` single-pass linear scanner (`packages/core/src/microservices/grpc/proto-parser.ts:40`)
     - Replace the regex-based comment removal with the O(n) single-pass scanner from the design
       (block `/* … */` to first `*/`; line `// …` to end-of-line)
     - _Bug_Condition: isBugCondition_B(input) — uncontrolled `.proto` source reaches the flagged pattern_
@@ -142,7 +142,7 @@ hover status tracks the documented properties.
     - _Preservation: parseProto produces an identical AST for existing proto fixtures_
     - _Requirements: 2.4, 3.2_
 
-  - [~] 7.4 Verify Class B exploration test now passes
+  - [-] 7.4 Verify Class B exploration test now passes
     - **Property 2: Expected Behavior** - Linear-Time Matching/Parsing (Class B)
     - **IMPORTANT**: Re-run the SAME adversarial timing tests from task 2 — do NOT write new tests
     - **EXPECTED OUTCOME**: Processing completes within the linear time budget at all N (no super-linear growth)
