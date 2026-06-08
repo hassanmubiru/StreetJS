@@ -126,7 +126,7 @@ hover status tracks the documented properties.
     - _Preservation: valid base32 decodes identically; malformed input still throws on first invalid char_
     - _Requirements: 2.2, 3.2_
 
-  - [~] 7.2 B.2 — `generateGrpc` basename via `node:path` (`packages/cli/src/commands/generate.ts:126`)
+  - [-] 7.2 B.2 — `generateGrpc` basename via `node:path` (`packages/cli/src/commands/generate.ts:126`)
     - Add `basename` to the existing `node:path` import; replace `protoPath.replace(/.*\//,'').replace(/\.proto$/,'')`
       with `basename(protoPath).replace(/\.proto$/,'')`
     - _Bug_Condition: isBugCondition_B(input) — uncontrolled `--proto` path reaches the flagged pattern_
