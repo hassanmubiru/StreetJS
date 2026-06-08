@@ -261,7 +261,7 @@ hover status tracks the documented properties.
   - Confirm no new alerts are introduced
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9_
 
-- [-] 14. Checkpoint — ensure all tests pass
+- [x] 14. Checkpoint — ensure all tests pass
   - Ensure all exploration (now-passing), preservation, unit, PBT, and integration tests pass and CodeQL is clean
   - Ask the user if questions arise.
 
