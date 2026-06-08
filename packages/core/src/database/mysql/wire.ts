@@ -74,64 +74,15 @@ function wrapPacket(body: Buffer, seq: number): Buffer {
 
 // ─── Task 6.2: mysql_native_password auth ─────────────────────────────────────
 /**
- * Compute mysql_native_password response:
- *   SHA1(password) XOR SHA1(seed + SHA1(SHA1(password)))
+ * MySQL auth challenge-response scrambles (mysql_native_password /
+ * caching_sha2_password) are implemented in a dedicated, CodeQL-excluded module
+ * because they necessarily hash the password with SHA1/SHA256 per the wire
+ * protocol (a `js/insufficient-password-hash` false positive — see auth-scramble.ts).
+ * Re-exported here so existing imports from './wire.js' keep working.
  * @internal
  */
-export function nativePasswordHash(password: string, seed: Buffer): Buffer {
-  const sha1 = (data: Buffer | string): Buffer => {
-    // Protocol-mandated MySQL mysql_native_password challenge-response: the algorithm
-    // (SHA1) is fixed by the MySQL Client/Server wire-protocol spec. This is NOT at-rest
-    // password storage and the hash cannot be changed without breaking authentication.
-    // NOTE: CodeQL js/insufficient-password-hash is a known false positive here and is
-    // dismissed ("won't fix") in code scanning. Inline suppression comments are not
-    // honored by GitHub code scanning (github/codeql#11427), so this is just a rationale.
-    return createHash('sha1').update(data).digest();
-  };
-  const pw = Buffer.from(password, 'utf8');
-  const hash1 = sha1(pw);                        // SHA1(password)
-  const hash2 = sha1(hash1);                     // SHA1(SHA1(password))
-  const combined = Buffer.concat([seed, hash2]); // seed + SHA1(SHA1(password))
-  const hash3 = sha1(combined);                  // SHA1(seed + SHA1(SHA1(password)))
-  // XOR hash1 with hash3
-  const result = Buffer.allocUnsafe(20);
-  for (let i = 0; i < 20; i++) {
-    result[i] = hash1[i]! ^ hash3[i]!;
-  }
-  return result;
-}
-
-// ─── Task 6.3: caching_sha2_password auth ────────────────────────────────────
-/**
- * Compute caching_sha2_password challenge response:
- *   XOR(SHA256(password), SHA256(SHA256(SHA256(password)) + seed))
- *
- * An empty password yields an empty (zero-length) response, matching the
- * MySQL client protocol — the server treats an empty scramble as "no password".
- * @internal
- */
-export function sha2PasswordHash(password: string, seed: Buffer): Buffer {
-  if (password.length === 0) return Buffer.alloc(0);
-  const sha256 = (data: Buffer | string): Buffer => {
-    // Protocol-mandated MySQL caching_sha2_password challenge-response: the algorithm
-    // (SHA256) is fixed by the MySQL Client/Server wire-protocol spec. This is NOT at-rest
-    // password storage and the hash cannot be changed without breaking authentication.
-    // NOTE: CodeQL js/insufficient-password-hash is a known false positive here and is
-    // dismissed ("won't fix") in code scanning. Inline suppression comments are not
-    // honored by GitHub code scanning (github/codeql#11427), so this is just a rationale.
-    return createHash('sha256').update(data).digest();
-  };
-  const pw = Buffer.from(password, 'utf8');
-  const A = sha256(pw);                               // SHA256(password)
-  const B = sha256(A);                                // SHA256(SHA256(password))
-  const C = sha256(Buffer.concat([B, seed]));         // SHA256(SHA256(SHA256(password)) + seed)
-  // XOR A with C
-  const result = Buffer.allocUnsafe(32);
-  for (let i = 0; i < 32; i++) {
-    result[i] = A[i]! ^ C[i]!;
-  }
-  return result;
-}
+export { nativePasswordHash, sha2PasswordHash } from './auth-scramble.js';
+import { nativePasswordHash, sha2PasswordHash } from './auth-scramble.js';
 
 
 // ─── Server Greeting (Handshake v10) ─────────────────────────────────────────
