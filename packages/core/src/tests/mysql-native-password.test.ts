@@ -20,6 +20,7 @@ const SEED = Buffer.from('0102030405060708090a0b0c0d0e0f1011121314', 'hex');
 // deliberately separate from the production code so the assertions below
 // cross-check structure rather than re-use the same helper.
 function referenceScramble(password: string, seed: Buffer): Buffer {
+  // codeql[js/insufficient-password-hash] -- protocol-mandated MySQL wire-protocol challenge-response (mysql_native_password), not at-rest storage
   const sha1 = (d: Buffer): Buffer => createHash('sha1').update(d).digest();
   const pw = Buffer.from(password, 'utf8');
   const h1 = sha1(pw);
@@ -54,6 +55,7 @@ describe('mysql_native_password — scramble', () => {
   it('satisfies the XOR identity: token XOR SHA1(pw) === SHA1(seed || SHA1(SHA1(pw)))', () => {
     const pw = 'password';
     const token = nativePasswordHash(pw, SEED);
+    // codeql[js/insufficient-password-hash] -- protocol-mandated MySQL wire-protocol challenge-response (mysql_native_password), not at-rest storage
     const sha1 = (d: Buffer): Buffer => createHash('sha1').update(d).digest();
     const h1 = sha1(Buffer.from(pw, 'utf8'));
     const h3 = sha1(Buffer.concat([SEED, sha1(h1)]));
