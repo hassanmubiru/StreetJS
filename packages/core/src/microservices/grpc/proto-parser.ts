@@ -78,11 +78,20 @@ export function parseProto(src: string): ProtoAst {
   const packageName = pkgMatch ? pkgMatch[1]! : null;
 
   const messages: MessageDefinition[] = [];
-  const messageRe = /message\s+(\w+)\s*\{([^}]*)\}/g;
+  // Match only the unambiguous header `message <name> {`, then take the body up
+  // to the first `}` via a linear indexOf. This mirrors the original
+  // `\{([^}]*)\}` semantics (body is everything up to the first closing brace,
+  // which must exist) without the polynomial backtracking the unanchored global
+  // `[^}]*` regex exhibited when retried at every `message` start (js/polynomial-redos).
+  const messageRe = /message\s+(\w+)\s*\{/g;
   let m: RegExpExecArray | null;
   while ((m = messageRe.exec(text)) !== null) {
     const name = m[1]!;
-    const body = m[2]!;
+    const bodyStart = messageRe.lastIndex;
+    const bodyEnd = text.indexOf('}', bodyStart);
+    if (bodyEnd === -1) break; // no closing brace: original regex would not match
+    const body = text.slice(bodyStart, bodyEnd);
+    messageRe.lastIndex = bodyEnd + 1; // continue after the closing brace (non-overlapping)
     const fields: FieldDef[] = [];
     const fieldRe = /(?:(repeated)\s+)?([\w.]+)\s+(\w+)\s*=\s*(\d+)\s*;/g;
     let f: RegExpExecArray | null;
