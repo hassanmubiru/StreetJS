@@ -28,7 +28,10 @@ export function base32Encode(buf: Buffer): string {
 
 /** Decode an RFC 4648 base32 string (padding/whitespace tolerated). */
 export function base32Decode(input: string): Buffer {
-  const clean = input.toUpperCase().replace(/=+$/g, '').replace(/\s/g, '');
+  const upper = input.toUpperCase();
+  let end = upper.length;
+  while (end > 0 && upper.charCodeAt(end - 1) === 0x3d /* '=' */) end--;
+  const clean = upper.slice(0, end).replace(/\s/g, '');
   let bits = 0;
   let value = 0;
   const out: number[] = [];
