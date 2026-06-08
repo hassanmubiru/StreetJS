@@ -347,12 +347,25 @@ jobs:
       - name: Build
         run: npm run build -w packages/core
 
+      # MySQL 8 defaults to caching_sha2_password, whose full-auth path sends the
+      # password in cleartext (or RSA) — the Street driver refuses cleartext over a
+      # non-TLS link by design. CI's MySQL service container can't override the
+      # default auth plugin (GitHub service containers have no `command:`), and its
+      # health check doesn't prime the auth cache, so a direct root connection
+      # fails. Create a mysql_native_password user and connect as that instead
+      # (the `mysql` CLI can provision it because it supports RSA key exchange).
+      - name: Create MySQL native-password user
+        run: |
+          mysql -h 127.0.0.1 -uroot -ptestpass -e "
+            CREATE USER IF NOT EXISTS 'streetnat'@'%' IDENTIFIED WITH mysql_native_password BY 'natpass';
+            GRANT ALL PRIVILEGES ON street_test.* TO 'streetnat'@'%'; FLUSH PRIVILEGES;"
+
       - name: MySQL integration tests
         env:
           MYSQL_HOST: 127.0.0.1
           MYSQL_PORT: 3306
-          MYSQL_USER: root
-          MYSQL_PASSWORD: testpass
+          MYSQL_USER: streetnat
+          MYSQL_PASSWORD: natpass
           MYSQL_DATABASE: street_test
         run: node --test packages/core/dist/tests/mysql.test.js
 
