@@ -154,7 +154,7 @@ hover status tracks the documented properties.
     - **EXPECTED OUTCOME**: base32 round-trip, `generateGrpc` filename, and `parseProto` AST all unchanged
     - _Requirements: 3.2_
 
-- [ ] 8. Fix Class C — global `@` replacement in the SBOM purl
+- [x] 8. Fix Class C — global `@` replacement in the SBOM purl
 
   - [x] 8.1 Use a global regex replacement in `scripts/generate-sbom.mjs:44`
     - Replace `dp.name.replace('@','%40')` with `dp.name.replace(/@/g,'%40')` so every `@` is encoded
@@ -170,7 +170,7 @@ hover status tracks the documented properties.
     - **EXPECTED OUTCOME**: `buildPurl('a@b@c', …)` yields `…a%40b%40c…` (no unescaped `@`)
     - _Requirements: 2.5_
 
-  - [-] 8.3 Verify Class C preservation still holds
+  - [x] 8.3 Verify Class C preservation still holds
     - **Property 7: Preservation** - No-Special-Char purls (Class C)
     - Re-run the Class C preservation PBT from task 5
     - **EXPECTED OUTCOME**: purls and sorted SBOM `components` unchanged for non-`@` / single-`@` names
