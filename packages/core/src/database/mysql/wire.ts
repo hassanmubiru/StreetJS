@@ -83,7 +83,9 @@ export function nativePasswordHash(password: string, seed: Buffer): Buffer {
     // Protocol-mandated MySQL mysql_native_password challenge-response: the algorithm
     // (SHA1) is fixed by the MySQL Client/Server wire-protocol spec. This is NOT at-rest
     // password storage and the hash cannot be changed without breaking authentication.
-    // codeql[js/insufficient-password-hash] -- MySQL wire-protocol challenge-response, not at-rest credential storage
+    // NOTE: CodeQL js/insufficient-password-hash is a known false positive here and is
+    // dismissed ("won't fix") in code scanning. Inline suppression comments are not
+    // honored by GitHub code scanning (github/codeql#11427), so this is just a rationale.
     return createHash('sha1').update(data).digest();
   };
   const pw = Buffer.from(password, 'utf8');
@@ -114,7 +116,9 @@ export function sha2PasswordHash(password: string, seed: Buffer): Buffer {
     // Protocol-mandated MySQL caching_sha2_password challenge-response: the algorithm
     // (SHA256) is fixed by the MySQL Client/Server wire-protocol spec. This is NOT at-rest
     // password storage and the hash cannot be changed without breaking authentication.
-    // codeql[js/insufficient-password-hash] -- MySQL wire-protocol challenge-response, not at-rest credential storage
+    // NOTE: CodeQL js/insufficient-password-hash is a known false positive here and is
+    // dismissed ("won't fix") in code scanning. Inline suppression comments are not
+    // honored by GitHub code scanning (github/codeql#11427), so this is just a rationale.
     return createHash('sha256').update(data).digest();
   };
   const pw = Buffer.from(password, 'utf8');
