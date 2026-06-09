@@ -29,7 +29,7 @@ function readAllDocs(): string {
 }
 
 const REQUIRED_DOCS = [
-  'getting-started.md', 'user-guide.md', 'api-reference.md', 'cli-reference.md',
+  'getting-started/index.md', 'user-guide.md', 'api-reference.md', 'cli-reference.md',
   'security.md', 'migration.md', 'troubleshooting.md', 'browser-builds.md',
   'transports/rabbitmq.md', 'transports/kafka.md',
 ];
