@@ -37,5 +37,9 @@ jobs:
       - name: promtool check rules (semantic validation)
         run: promtool check rules observability/prometheus/street-rules.yml
 
+      - name: promtool test rules (alert behaviour unit tests)
+        working-directory: observability/prometheus
+        run: promtool test rules street-rules.test.yml
+
       - name: Validate Grafana dashboard JSON
         run: node -e "JSON.parse(require('fs').readFileSync('observability/grafana/dashboards/street-api.json','utf8')); console.log('dashboard JSON valid')"
