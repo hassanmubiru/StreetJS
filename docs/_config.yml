@@ -32,7 +32,7 @@ footer_content: >
   Copyright &copy; 2026 street contributors.
   Distributed under the <a href="https://github.com/hassanmubiru/street/blob/main/LICENSE">MIT license.</a>
   &nbsp;|&nbsp;
-  <a href="https://www.npmjs.com/package/@streetjs/core">npm</a>
+  <a href="https://www.npmjs.com/package/streetjs">npm</a>
   &nbsp;|&nbsp;
   <a href="https://github.com/hassanmubiru/street">GitHub</a>
 
@@ -41,7 +41,7 @@ aux_links:
   "GitHub":
     - "https://github.com/hassanmubiru/street"
   "npm":
-    - "https://www.npmjs.com/package/@streetjs/core"
+    - "https://www.npmjs.com/package/streetjs"
 
 aux_links_new_tab: true
 
