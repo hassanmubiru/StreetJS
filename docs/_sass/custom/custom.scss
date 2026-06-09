@@ -477,3 +477,29 @@ pre.highlight { -webkit-overflow-scrolling: touch; }
   .st-score-ring { width: 78px; height: 78px; }
   .st-score-ring span { width: 60px; height: 60px; }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RESPONSIVE TABLE → CARD  (add class="st-responsive"; td needs data-label)
+//   Desktop: full table · Mobile (≤640px): each row becomes a labeled card.
+// ═══════════════════════════════════════════════════════════════════════════
+.main-content table.st-responsive { display: table; box-shadow: var(--shadow-sm) !important; }
+@media (max-width: 40rem) {
+  .main-content table.st-responsive { display: block; border: none !important; box-shadow: none !important; background: transparent !important; overflow: visible !important; }
+  .main-content table.st-responsive thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } // visually-hidden (keeps SR/header semantics)
+  .main-content table.st-responsive tbody { display: block; }
+  .main-content table.st-responsive tr {
+    display: block; background: var(--elevated); border: 1px solid var(--border);
+    border-radius: 12px; padding: .35rem .9rem; margin: 0 0 .7rem; box-shadow: var(--shadow-sm);
+  }
+  .main-content table.st-responsive td {
+    display: flex; justify-content: space-between; gap: 1rem; align-items: baseline;
+    border: none !important; border-bottom: 1px solid var(--border) !important;
+    padding: .55rem 0 !important; white-space: normal !important; text-align: right;
+  }
+  .main-content table.st-responsive tr td:last-child { border-bottom: none !important; }
+  .main-content table.st-responsive td::before {
+    content: attr(data-label); flex-shrink: 0; text-align: left;
+    font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted);
+  }
+  .main-content table.st-responsive td:first-child { color: var(--text-primary) !important; font-weight: 600 !important; }
+}
