@@ -1,389 +1,301 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// STREET FRAMEWORK — DESIGN SYSTEM
-// Overrides just-the-docs dark theme with restrained monochromatic palette
-// Single accent: #3B82F6 · Text: #C8D3E0 · Background: #080C14
+// STREET FRAMEWORK — DOCS DESIGN SYSTEM (light, high-contrast, professional)
+// Page: #FFFFFF · Text: #334155 / headings #0F172A · Accent: #2563EB
+// Code blocks: dark (#0D1117) for contrast, GitHub-dark syntax palette
 // ═══════════════════════════════════════════════════════════════════════════
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
-// ── Override just-the-docs dark color scheme variables ──────────────────────
-// These are the exact variable names just-the-docs uses internally
-:root,
-[data-theme="dark"],
-.dark {
-  // Backgrounds
-  --color-background:          #080C14;
-  --color-sidebar-background:  #0C1220;
-  --color-header-background:   #080C14;
-  --color-footer-background:   #080C14;
-  --color-code-background:     #060A12;
-  --color-search-background:   #0C1220;
+// ── Palette ──────────────────────────────────────────────────────────────────
+$bg:            #FFFFFF;
+$surface:       #F8FAFC;   // sidebar / subtle panels
+$surface-2:     #F1F5F9;   // hover
+$border:        #E2E8F0;
+$border-strong: #CBD5E1;
+$heading:       #0F172A;   // slate-900
+$body:          #334155;   // slate-700  (strong contrast on white)
+$muted:         #64748B;   // slate-500
+$faint:         #94A3B8;   // slate-400
+$accent:        #2563EB;   // blue-600
+$accent-hover:  #1D4ED8;   // blue-700
+$accent-soft:   #EFF6FF;   // blue-50
+$accent-line:   #BFDBFE;   // blue-200
+$code-bg:       #0D1117;   // dark code panel
+$code-text:     #E6EDF3;
 
-  // Borders
-  --color-border:              #1C2A3E;
-  --color-sidebar-border:      #1C2A3E;
-  --color-header-border:       #1C2A3E;
-
-  // Text
-  --color-body-text:           #C8D3E0;
-  --color-heading-text:        #C8D3E0;
-  --color-muted-text:          #5A6A80;
-  --color-sidebar-text:        #8A9AB0;
-  --color-nav-text:            #8A9AB0;
-  --color-link:                #3B82F6;
-  --color-link-hover:          #60A5FA;
-
-  // Buttons
-  --color-btn-primary-bg:      #3B82F6;
-  --color-btn-primary-text:    #ffffff;
-  --color-btn-primary-border:  #3B82F6;
-}
-
-// ── Global body ─────────────────────────────────────────────────────────────
+// ── Global ───────────────────────────────────────────────────────────────────
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
-  background-color: #080C14 !important;
-  color: #C8D3E0 !important;
+  background-color: $bg !important;
+  color: $body !important;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-size: 15px;
 }
 
-// ── Site header ─────────────────────────────────────────────────────────────
+// ── Header ───────────────────────────────────────────────────────────────────
 .site-header {
-  background-color: rgba(8,12,20,0.92) !important;
-  border-bottom: 1px solid #1C2A3E !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
+  background-color: rgba(255,255,255,0.85) !important;
+  border-bottom: 1px solid $border !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
 }
-
 .site-title {
   font-family: 'Inter', sans-serif !important;
   font-weight: 700 !important;
   font-size: 1rem !important;
   letter-spacing: -0.02em !important;
-  color: #C8D3E0 !important;
-
-  &:hover { color: #93B4D4 !important; text-decoration: none !important; }
+  color: $heading !important;
+  &:hover { color: $accent !important; text-decoration: none !important; }
 }
-
-// Aux nav links (GitHub, npm)
 .aux-nav-list-item a {
   font-size: 0.8rem !important;
   font-weight: 600 !important;
-  color: #5A6A80 !important;
-  border: 1px solid #1C2A3E !important;
-  border-radius: 6px !important;
-  padding: 0.28rem 0.65rem !important;
-  transition: all 0.18s ease !important;
-
-  &:hover {
-    color: #93B4D4 !important;
-    border-color: rgba(59,130,246,0.25) !important;
-    background: rgba(59,130,246,0.06) !important;
-  }
+  color: $muted !important;
+  border: 1px solid $border !important;
+  border-radius: 7px !important;
+  padding: 0.3rem 0.7rem !important;
+  transition: all 0.15s ease !important;
+  &:hover { color: $accent !important; border-color: $accent-line !important; background: $accent-soft !important; }
 }
 
 // ── Sidebar / nav ────────────────────────────────────────────────────────────
-.site-nav,
-.side-bar {
-  background-color: #0C1220 !important;
-  border-right: 1px solid #1C2A3E !important;
-}
-
-.nav-list-item {
-  .nav-list-link {
-    font-size: 0.85rem !important;
-    font-weight: 500 !important;
-    color: #8A9AB0 !important;
-    border-radius: 6px !important;
-    transition: all 0.15s ease !important;
-
-    &:hover {
-      color: #C8D3E0 !important;
-      background: rgba(59,130,246,0.06) !important;
-    }
-
-    &.active {
-      color: #93B4D4 !important;
-      font-weight: 600 !important;
-      background: rgba(59,130,246,0.08) !important;
-      border-left: 2px solid #3B82F6 !important;
-    }
+.side-bar { background-color: $surface !important; border-right: 1px solid $border !important; }
+.site-nav { background: transparent !important; }
+.nav-list-item .nav-list-link {
+  font-size: 0.85rem !important;
+  font-weight: 500 !important;
+  color: $muted !important;
+  border-radius: 7px !important;
+  transition: all 0.13s ease !important;
+  &:hover { color: $heading !important; background: $surface-2 !important; }
+  &.active {
+    color: $accent !important;
+    font-weight: 600 !important;
+    background: $accent-soft !important;
   }
+}
+.nav-category {
+  color: $faint !important;
+  font-size: 0.7rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.09em !important;
+  border-bottom: 1px solid $border !important;
 }
 
 // ── Search ───────────────────────────────────────────────────────────────────
 .search-input {
   font-family: 'Inter', sans-serif !important;
-  background: #0C1220 !important;
-  border: 1px solid #1C2A3E !important;
-  color: #C8D3E0 !important;
-  border-radius: 8px !important;
-
-  &:focus {
-    border-color: rgba(59,130,246,0.4) !important;
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.1) !important;
-    outline: none !important;
-  }
-
-  &::placeholder { color: #3A4A5E !important; }
+  background: $bg !important;
+  border: 1px solid $border !important;
+  color: $heading !important;
+  border-radius: 9px !important;
+  &:focus { border-color: $accent !important; box-shadow: 0 0 0 3px rgba(37,99,235,0.12) !important; outline: none !important; }
+  &::placeholder { color: $faint !important; }
 }
+.search-result { &:hover, &.active { background: $accent-soft !important; } }
+.search-result-title { color: $heading !important; }
 
-.search-results-list-item {
-  border-radius: 6px !important;
-  &:hover { background: rgba(59,130,246,0.06) !important; }
-}
-
-// ── Main content ─────────────────────────────────────────────────────────────
+// ── Main content typography ────────────────────────────────────────────────────
 .main-content {
   font-family: 'Inter', sans-serif !important;
-  font-size: 0.9375rem !important;
+  font-size: 0.95rem !important;
   line-height: 1.75 !important;
-  color: #C8D3E0 !important;
+  color: $body !important;
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Inter', sans-serif !important;
     font-weight: 700 !important;
-    letter-spacing: -0.02em !important;
-    color: #C8D3E0 !important;
+    letter-spacing: -0.022em !important;
+    color: $heading !important;
   }
+  h1 { font-size: clamp(1.75rem, 4vw, 2.3rem) !important; font-weight: 800 !important; margin-top: 0 !important; line-height: 1.2 !important; }
+  h2 {
+    font-size: clamp(1.3rem, 3vw, 1.6rem) !important;
+    margin-top: 2.75rem !important; padding-top: 2rem !important;
+    border-top: 1px solid $border !important;
+  }
+  h3 { font-size: 1.15rem !important; margin-top: 2rem !important; }
+  h4 { font-size: 1rem !important; margin-top: 1.5rem !important; }
 
-  h1 { font-size: clamp(1.6rem, 4vw, 2.2rem) !important; font-weight: 800 !important; margin-top: 0 !important; }
-  h2 { font-size: clamp(1.25rem, 3vw, 1.6rem) !important; margin-top: 2.5rem !important; }
-  h3 { font-size: clamp(1.05rem, 2.5vw, 1.2rem) !important; margin-top: 2rem !important; }
-
-  p { color: #8A9AB0 !important; line-height: 1.75 !important; }
+  p, li { color: $body !important; line-height: 1.75 !important; }
+  strong { color: $heading !important; font-weight: 600 !important; }
 
   a {
-    color: #3B82F6 !important;
+    color: $accent !important;
     text-decoration: none !important;
-    transition: color 0.15s ease !important;
-    &:hover { color: #60A5FA !important; }
+    font-weight: 500 !important;
+    transition: color 0.13s ease !important;
+    &:hover { color: $accent-hover !important; text-decoration: underline !important; text-underline-offset: 2px !important; }
   }
 
-  hr {
-    border: none !important;
-    border-top: 1px solid #1C2A3E !important;
-    margin: 2.5rem 0 !important;
-  }
+  img { border-radius: 10px !important; }
+
+  hr { border: none !important; border-top: 1px solid $border !important; margin: 2.5rem 0 !important; }
 
   blockquote {
-    border-left: 2px solid #3B82F6 !important;
-    background: rgba(59,130,246,0.05) !important;
-    border-radius: 0 6px 6px 0 !important;
-    padding: 0.9rem 1.2rem !important;
+    border-left: 3px solid $accent !important;
+    background: $accent-soft !important;
+    border-radius: 0 8px 8px 0 !important;
+    padding: 0.9rem 1.25rem !important;
     margin: 1.5rem 0 !important;
-    color: #8A9AB0 !important;
+    color: #1E3A5F !important;
     font-style: normal !important;
+    p { color: #1E3A5F !important; }
   }
+
+  ul li::marker { color: $accent !important; }
 }
 
 // ── Inline code ──────────────────────────────────────────────────────────────
 :not(pre) > code {
   font-family: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace !important;
-  font-size: 0.84em !important;
-  background: rgba(59,130,246,0.07) !important;
-  color: #93B4D4 !important;
-  padding: 0.15em 0.4em !important;
-  border-radius: 4px !important;
-  border: 1px solid rgba(59,130,246,0.12) !important;
+  font-size: 0.85em !important;
+  background: $accent-soft !important;
+  color: #1D4ED8 !important;
+  padding: 0.14em 0.42em !important;
+  border-radius: 5px !important;
+  border: 1px solid $accent-line !important;
 }
 
-// ── Code blocks ──────────────────────────────────────────────────────────────
-div.highlighter-rouge,
-figure.highlight,
-pre.highlight {
-  background: #060A12 !important;
-  border: 1px solid #1C2A3E !important;
-  border-radius: 10px !important;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.7) !important;
+// ── Code blocks (dark panels for contrast) ─────────────────────────────────────
+div.highlighter-rouge, figure.highlight, pre.highlight {
+  background: $code-bg !important;
+  border: 1px solid #1B2230 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 6px 24px -10px rgba(15,23,42,0.35) !important;
   margin: 1.5rem 0 !important;
   overflow: hidden !important;
 }
-
 pre.highlight {
   padding: 1.25rem 1.5rem !important;
-  margin: 0 !important;
-  border: none !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
+  margin: 0 !important; border: none !important; border-radius: 0 !important; box-shadow: none !important;
   overflow-x: auto !important;
 }
-
 pre.highlight code {
   font-family: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace !important;
-  font-size: 0.875rem !important;
+  font-size: 0.86rem !important;
   line-height: 1.7 !important;
   background: transparent !important;
-  color: #C8D3E0 !important;
+  color: $code-text !important;
   border: none !important;
   padding: 0 !important;
 }
-
 .copy-code-button {
-  background: rgba(59,130,246,0.1) !important;
-  border: 1px solid rgba(59,130,246,0.2) !important;
-  color: #93B4D4 !important;
-  border-radius: 5px !important;
+  background: rgba(255,255,255,0.08) !important;
+  border: 1px solid rgba(255,255,255,0.16) !important;
+  color: #C9D1D9 !important;
+  border-radius: 6px !important;
   font-size: 0.72rem !important;
   font-weight: 600 !important;
-  transition: all 0.15s ease !important;
-
-  &:hover {
-    background: rgba(59,130,246,0.18) !important;
-    border-color: rgba(59,130,246,0.35) !important;
-  }
+  transition: all 0.13s ease !important;
+  &:hover { background: rgba(255,255,255,0.16) !important; }
 }
 
 // ── Tables ───────────────────────────────────────────────────────────────────
 .main-content table {
-  border-collapse: collapse !important;
-  border: 1px solid #1C2A3E !important;
-  border-radius: 10px !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  border: 1px solid $border !important;
+  border-radius: 12px !important;
   overflow: hidden !important;
-  font-size: 0.875rem !important;
+  font-size: 0.9rem !important;
   width: 100% !important;
+  box-shadow: 0 1px 2px rgba(15,23,42,0.04) !important;
 
-  thead tr {
-    background: #0C1220 !important;
-    border-bottom: 1px solid #1C2A3E !important;
-  }
-
+  thead tr { background: $surface !important; }
   th {
-    font-size: 0.72rem !important;
-    font-weight: 700 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.09em !important;
-    color: #3A4A5E !important;
-    padding: 0.85rem 1rem !important;
-    white-space: nowrap !important;
+    font-size: 0.72rem !important; font-weight: 700 !important;
+    text-transform: uppercase !important; letter-spacing: 0.07em !important;
+    color: $muted !important; padding: 0.8rem 1rem !important;
+    border-bottom: 1px solid $border !important; white-space: nowrap !important;
   }
-
   td {
     padding: 0.8rem 1rem !important;
-    border-bottom: 1px solid rgba(28,42,62,0.5) !important;
-    color: #8A9AB0 !important;
-    vertical-align: top !important;
-    line-height: 1.55 !important;
+    border-bottom: 1px solid $border !important;
+    color: $body !important; vertical-align: top !important; line-height: 1.6 !important;
   }
-
   tr:last-child td { border-bottom: none !important; }
-  tr:hover td { background: rgba(59,130,246,0.03) !important; }
-  td:first-child { color: #C8D3E0 !important; font-weight: 500 !important; }
+  tbody tr:hover td { background: $surface !important; }
+  td:first-child { color: $heading !important; font-weight: 500 !important; }
 }
 
 // ── Buttons ──────────────────────────────────────────────────────────────────
 .btn, a.btn {
   font-family: 'Inter', sans-serif !important;
   font-weight: 600 !important;
-  border-radius: 8px !important;
-  transition: all 0.18s ease !important;
+  border-radius: 9px !important;
+  transition: all 0.16s ease !important;
   text-decoration: none !important;
 }
-
 .btn-primary, a.btn-primary {
-  background: #3B82F6 !important;
-  border-color: #3B82F6 !important;
-  color: #fff !important;
-  box-shadow: 0 4px 16px rgba(59,130,246,0.2) !important;
-
-  &:hover {
-    background: #2563EB !important;
-    border-color: #2563EB !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 6px 20px rgba(59,130,246,0.28) !important;
-  }
+  background: $accent !important; border: 1px solid $accent !important; color: #fff !important;
+  box-shadow: 0 4px 14px -4px rgba(37,99,235,0.45) !important;
+  &:hover { background: $accent-hover !important; border-color: $accent-hover !important; transform: translateY(-1px) !important; box-shadow: 0 7px 20px -4px rgba(37,99,235,0.5) !important; }
 }
 
 // ── Callouts ─────────────────────────────────────────────────────────────────
 .callout {
-  border-radius: 8px !important;
-  border-left-width: 2px !important;
-  font-size: 0.9rem !important;
-  background: rgba(59,130,246,0.04) !important;
-
-  &.callout-note     { border-left-color: #3B82F6 !important; }
-  &.callout-warning  { border-left-color: #F59E0B !important; }
-  &.callout-important{ border-left-color: #3B82F6 !important; }
-  &.callout-new      { border-left-color: #3B82F6 !important; }
+  border-radius: 10px !important;
+  border: 1px solid $border !important;
+  border-left-width: 3px !important;
+  font-size: 0.92rem !important;
+  background: $surface !important;
+  color: $body !important;
+  &.callout-note,    &.callout-important { border-left-color: $accent !important;  background: $accent-soft !important; }
+  &.callout-warning  { border-left-color: #F59E0B !important; background: #FFFBEB !important; }
+  &.callout-new      { border-left-color: #10B981 !important; background: #ECFDF5 !important; }
 }
+
+// ── Breadcrumbs ──────────────────────────────────────────────────────────────
+.breadcrumb-nav { font-size: 0.8rem !important; color: $faint !important;
+  a { color: $muted !important; &:hover { color: $accent !important; } } }
 
 // ── Footer ───────────────────────────────────────────────────────────────────
 .site-footer {
-  background: #080C14 !important;
-  border-top: 1px solid #1C2A3E !important;
+  background: $surface !important;
+  border-top: 1px solid $border !important;
   font-size: 0.8rem !important;
-  color: #3A4A5E !important;
-
-  a {
-    color: #5A6A80 !important;
-    &:hover { color: #93B4D4 !important; }
-  }
+  color: $muted !important;
+  a { color: $muted !important; &:hover { color: $accent !important; } }
 }
 
 // ── Back to top ──────────────────────────────────────────────────────────────
 .back-to-top {
-  background: #0C1220 !important;
-  border: 1px solid #1C2A3E !important;
-  border-radius: 8px !important;
-  color: #5A6A80 !important;
-  font-size: 0.78rem !important;
-  font-weight: 600 !important;
-  transition: all 0.18s ease !important;
-
-  &:hover {
-    border-color: rgba(59,130,246,0.3) !important;
-    color: #93B4D4 !important;
-    background: rgba(59,130,246,0.06) !important;
-  }
+  background: $bg !important; border: 1px solid $border !important; border-radius: 8px !important;
+  color: $muted !important; font-size: 0.78rem !important; font-weight: 600 !important;
+  transition: all 0.16s ease !important;
+  &:hover { border-color: $accent-line !important; color: $accent !important; background: $accent-soft !important; }
 }
 
-// ── Syntax highlighting — muted, not rainbow ─────────────────────────────────
+// ── Syntax highlighting (GitHub-dark palette on dark code blocks) ───────────────
 .highlight {
-  .k,  .kd, .kn, .kp, .kr, .kt { color: #8B9DC3 !important; }  // keywords — muted blue
-  .s,  .s1, .s2, .sb, .sc, .sd,
-  .se, .sh, .si, .sx, .sr, .ss  { color: #8FAF8F !important; }  // strings — muted green
-  .c,  .c1, .cm, .cp, .cs       { color: #3A4A5E !important; font-style: italic !important; } // comments
-  .n,  .na, .nb, .nc, .nd, .ni,
-  .nl, .nn, .no, .nt, .nv       { color: #93B4D4 !important; }  // names — muted blue
-  .m,  .mf, .mh, .mi, .mo, .il  { color: #9B8FA8 !important; }  // numbers — muted purple
-  .o,  .ow                       { color: #7A8A9E !important; }  // operators
-  .p                             { color: #7A8A9E !important; }  // punctuation
-  .nf, .fm                       { color: #93B4D4 !important; }  // function names
-}
-
-// ── Breadcrumbs ──────────────────────────────────────────────────────────────
-.breadcrumb-nav {
-  font-size: 0.78rem !important;
-  color: #3A4A5E !important;
-
-  a { color: #5A6A80 !important; &:hover { color: #93B4D4 !important; } }
+  .c, .c1, .cm, .cp, .cs      { color: #8B949E !important; font-style: italic !important; } // comments
+  .k, .kd, .kn, .kp, .kr, .kt { color: #FF7B72 !important; }  // keywords
+  .s, .s1, .s2, .sb, .sc, .sd,
+  .se, .sh, .si, .sx, .sr, .ss{ color: #A5D6FF !important; }  // strings
+  .nf, .fm                    { color: #D2A8FF !important; }  // function names
+  .nc, .nn, .no, .nl, .nt     { color: #FFA657 !important; }  // class / namespace / tags
+  .na, .nv, .vi, .n, .nb, .ni,
+  .nd                         { color: #E6EDF3 !important; }  // identifiers / decorators
+  .m, .mf, .mh, .mi, .mo, .il { color: #79C0FF !important; }  // numbers
+  .o, .ow                     { color: #FF7B72 !important; }  // operators
+  .p                          { color: #C9D1D9 !important; }  // punctuation
+  .gd                         { color: #FFA198 !important; background: rgba(248,81,73,0.12) !important; }
+  .gi                         { color: #7EE787 !important; background: rgba(46,160,67,0.12) !important; }
 }
 
 // ── Responsive ───────────────────────────────────────────────────────────────
-@media (max-width: 800px) {
-  .main-content { padding: 1.5rem 1rem !important; }
-}
+@media (max-width: 800px) { .main-content { padding: 1.5rem 1rem !important; } }
 
-// ── Accessibility ─────────────────────────────────────────────────────────────
-:focus-visible {
-  outline: 2px solid #3B82F6 !important;
-  outline-offset: 2px !important;
-  border-radius: 3px !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
-}
+// ── Accessibility ──────────────────────────────────────────────────────────────
+:focus-visible { outline: 2px solid $accent !important; outline-offset: 2px !important; border-radius: 3px !important; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
 
 // ── Print ─────────────────────────────────────────────────────────────────────
 @media print {
-  .site-nav, .site-header, .site-footer, .back-to-top, .copy-code-button { display: none !important; }
-  .main-content { max-width: 100% !important; padding: 0 !important; color: #000 !important; }
-  a { color: #000 !important; text-decoration: underline !important; }
-  pre, code { background: #f5f5f5 !important; color: #000 !important; border: 1px solid #ccc !important; }
-  h1, h2, h3, h4 { color: #000 !important; page-break-after: avoid !important; }
+  .side-bar, .site-header, .site-footer, .back-to-top, .copy-code-button { display: none !important; }
+  .main-content { max-width: 100% !important; padding: 0 !important; }
+  pre.highlight, pre.highlight code { background: #f6f8fa !important; color: #111 !important; }
 }
