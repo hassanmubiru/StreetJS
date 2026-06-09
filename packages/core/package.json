@@ -210,7 +210,7 @@
     "build:app": "tsc && node -e \"const fs=require('fs');const p=require('path');const s='src/database/sqlite';const d='dist/src/database/sqlite';fs.mkdirSync(d,{recursive:true});for(const f of ['sqlite3.wasm','sqlite3-node.mjs'])fs.copyFileSync(p.join(s,f),p.join(d,f));\"",
     "start": "node dist/main.js",
     "test": "node --test dist/tests/integration.test.js",
-    "coverage": "c8 node --test --test-force-exit dist/tests/integration.test.js dist/tests/memory-leak.test.js dist/tests/wire-protocol.test.js dist/src/tests/diagnostics.test.js dist/src/tests/schema-inspector.test.js dist/src/tests/security-headers.test.js",
+    "coverage": "c8 node --test --test-force-exit dist/tests/integration.test.js dist/tests/memory-leak.test.js dist/tests/wire-protocol.test.js dist/tests/package-migration.test.js dist/src/tests/diagnostics.test.js dist/src/tests/schema-inspector.test.js dist/src/tests/security-headers.test.js",
     "test:run": "tsc && node --test dist/tests/integration.test.js",
     "test:system": "tsc && node dist/tests/system/runner.js",
     "test:security": "tsc && node --test dist/tests/system/security.test.js",
