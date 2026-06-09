@@ -1,24 +1,23 @@
 <style>
-/* Per-page documentation styling — light, high-contrast, professional */
+/* Per-page documentation header — theme-aware (uses the global design tokens) */
 .doc-header{
-  background:linear-gradient(135deg,#EFF6FF 0%,#F8FAFC 60%,#FFFFFF 100%);
-  border:1px solid #E2E8F0;border-radius:16px;
+  background:linear-gradient(135deg,var(--accent-soft) 0%,var(--surface) 60%,var(--bg) 100%);
+  border:1px solid var(--border);border-radius:16px;
   padding:2.25rem 2.25rem 1.9rem;margin:0 0 2.75rem;position:relative;overflow:hidden;
 }
 .doc-header::before{content:'';position:absolute;inset:0;
-  background-image:linear-gradient(#E2E8F0 1px,transparent 1px),linear-gradient(90deg,#E2E8F0 1px,transparent 1px);
-  background-size:42px 42px;opacity:.5;
+  background-image:radial-gradient(circle at 1px 1px,var(--accent-line) 1px,transparent 0);
+  background-size:26px 26px;opacity:.5;
   -webkit-mask-image:radial-gradient(ellipse 60% 90% at 90% 10%,#000,transparent 70%);
   mask-image:radial-gradient(ellipse 60% 90% at 90% 10%,#000,transparent 70%);pointer-events:none}
 .doc-header>*{position:relative;z-index:1}
 .doc-header .dh-label{
   display:inline-block;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;
-  color:#2563EB;background:#FFFFFF;border:1px solid #BFDBFE;border-radius:100px;
-  padding:.3rem .8rem;margin-bottom:.9rem;box-shadow:0 1px 2px rgba(37,99,235,.08)}
+  color:var(--accent);background:var(--bg);border:1px solid var(--accent-line);border-radius:100px;
+  padding:.3rem .8rem;margin-bottom:.9rem}
 .doc-header h1{font-size:clamp(1.65rem,3vw,2.1rem)!important;font-weight:800!important;letter-spacing:-.03em!important;
-  color:#0F172A!important;margin:0 0 .55rem!important;border:none!important;padding:0!important;line-height:1.2!important}
-.doc-header p{font-size:.98rem;color:#64748B;margin:0;line-height:1.65;max-width:680px}
-
-/* Tighten first heading after the header */
+  color:var(--text-primary)!important;margin:0 0 .55rem!important;border:none!important;padding:0!important;line-height:1.2!important}
+.doc-header h1::before{display:none!important}
+.doc-header p{font-size:.98rem;color:var(--text-muted);margin:0;line-height:1.65;max-width:680px}
 .doc-header + h2{margin-top:1rem!important;border-top:none!important;padding-top:0!important}
 </style>
