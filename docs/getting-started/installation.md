@@ -4,6 +4,7 @@ title:     "Installation"
 parent:    "Getting Started"
 nav_order: 1
 permalink: /getting-started/installation/
+description: "Install StreetJS and scaffold a production TypeScript backend in 60 seconds — npm install streetjs, with PostgreSQL, JWT and Docker included."
 ---
 
 {% include doc-styles.html %}

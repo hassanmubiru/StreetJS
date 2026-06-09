@@ -2,6 +2,7 @@
 layout: default
 title: "Serverless & Cloud Adapters"
 nav_exclude: true
+description: "Serverless and cloud adapters for StreetJS — run your TypeScript backend on AWS Lambda, edge runtimes and containers."
 ---
 
 # Serverless & Cloud Adapters

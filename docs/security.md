@@ -2,6 +2,7 @@
 layout: default
 title: Security Guide
 nav_order: 6
+description: "Backend security in StreetJS — JWT, AES-256-GCM sessions, rate limiting, CSRF, CORS and CSP built into the TypeScript framework."
 ---
 
 # Security Guide

@@ -2,6 +2,7 @@
 layout: default
 title: "Kafka Transport"
 nav_exclude: true
+description: "Kafka for TypeScript backends — StreetJS ships a built-in Kafka producer and consumer with backpressure and typed messages."
 ---
 
 # Kafka Transport
