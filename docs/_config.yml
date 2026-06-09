@@ -16,7 +16,7 @@ logo:        "/assets/images/logo.png"
 remote_theme: just-the-docs/just-the-docs@v0.10.0
 
 # ── just-the-docs configuration ───────────────────────────────────────────────
-color_scheme:    dark
+color_scheme:    light
 search_enabled:  true
 search_tokenizer_separator: /[\s\-/]+/
 
