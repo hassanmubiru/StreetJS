@@ -261,7 +261,15 @@
     "no-prisma",
     "production-grade",
     "streetjs",
-    "street-framework"
+    "street-framework",
+    "kafka",
+    "rabbitmq",
+    "webauthn",
+    "mfa",
+    "mtls",
+    "opentelemetry",
+    "observability",
+    "message-queue"
   ],
   "author": "street contributors",
   "license": "MIT",
