@@ -2,6 +2,8 @@
 # the documentation certification suite requires docs/*.md to be in the repo).
 docs/_site/
 docs/.jekyll-cache/
+docs/vendor/
+docs/.bundle/
 
 # Node modules
 node_modules/
