@@ -15,7 +15,7 @@ This document covers Street's built-in security features and best practices.
 Street's `JwtService` uses HMAC-SHA256 by default with configurable expiry.
 
 ```typescript
-import { JwtService } from '@streetjs/core';
+import { JwtService } from 'streetjs';
 
 const jwt = new JwtService(process.env.JWT_SECRET, { expiresIn: '1h' });
 const token = jwt.sign({ userId: '123', roles: ['user'] });
@@ -29,7 +29,7 @@ JWT secrets must be at least 256 bits (32 bytes). Set via `JWT_SECRET` environme
 The `RefreshTokenService` implements single-use refresh tokens with replay detection.
 
 ```typescript
-import { RefreshTokenService } from '@streetjs/core';
+import { RefreshTokenService } from 'streetjs';
 
 const tokenService = new RefreshTokenService({ pool, jwtService });
 const { accessToken, refreshToken } = await tokenService.issue(userId);
@@ -39,7 +39,7 @@ const refreshed = await tokenService.refresh(refreshToken); // throws TokenRepla
 ### WebAuthn / Passkeys
 
 ```typescript
-import { WebAuthnService } from '@streetjs/core';
+import { WebAuthnService } from 'streetjs';
 
 const webauthn = new WebAuthnService({
   rpName: 'My App',
@@ -54,7 +54,7 @@ const webauthn = new WebAuthnService({
 ### Role-Based Access Control (RBAC)
 
 ```typescript
-import { RbacService, Roles, Permissions, rbacGuard } from '@streetjs/core';
+import { RbacService, Roles, Permissions, rbacGuard } from 'streetjs';
 
 const rbac = new RbacService({
   admin: ['user:read', 'user:write', 'admin:*'],
@@ -73,7 +73,7 @@ class ApiController {
 ### API Keys
 
 ```typescript
-import { ApiKeyService, apiKeyMiddleware } from '@streetjs/core';
+import { ApiKeyService, apiKeyMiddleware } from 'streetjs';
 
 const apiKeys = new ApiKeyService({ pool });
 app.use(apiKeyMiddleware(apiKeys));
@@ -86,7 +86,7 @@ app.use(apiKeyMiddleware(apiKeys));
 Use `@Encrypt()` on entity fields for transparent AES-256-GCM encryption at the repository layer.
 
 ```typescript
-import { Encrypt } from '@streetjs/core';
+import { Encrypt } from 'streetjs';
 
 class UserProfile {
   @Encrypt()
@@ -102,7 +102,7 @@ The encryption key is loaded from the vault (see Vault section below).
 ### Data Classification
 
 ```typescript
-import { Classify } from '@streetjs/core';
+import { Classify } from 'streetjs';
 
 class Document {
   @Classify('public')
@@ -123,7 +123,7 @@ class Document {
 Street uses AES-256-GCM envelope encryption with a Key Encryption Key (KEK).
 
 ```typescript
-import { encryptSecret, decryptSecret, loadConfig } from '@streetjs/core';
+import { encryptSecret, decryptSecret, loadConfig } from 'streetjs';
 
 const encrypted = encryptSecret('my-secret', process.env.KEK);
 const decrypted = decryptSecret(encrypted, process.env.KEK);
@@ -134,7 +134,7 @@ The KEK is loaded from `KEK` environment variable. Rotate keys using `street key
 ### External Secret Providers
 
 ```typescript
-import { VaultSecretProvider, AwsSecretsManagerProvider } from '@streetjs/core';
+import { VaultSecretProvider, AwsSecretsManagerProvider } from 'streetjs';
 
 // HashiCorp Vault
 const vaultProvider = new VaultSecretProvider({ address: 'https://vault.example.com', token: '...' });
@@ -158,7 +158,7 @@ Street applies security headers by default with `securityHeaders` middleware:
 ### CORS
 
 ```typescript
-import { corsMiddleware } from '@streetjs/core';
+import { corsMiddleware } from 'streetjs';
 
 app.use(corsMiddleware(['https://app.example.com']));
 ```
@@ -166,7 +166,7 @@ app.use(corsMiddleware(['https://app.example.com']));
 ### CSRF Protection
 
 ```typescript
-import { csrfMiddleware } from '@streetjs/core';
+import { csrfMiddleware } from 'streetjs';
 
 app.use(csrfMiddleware()); // Double-submit cookie pattern
 ```
@@ -174,7 +174,7 @@ app.use(csrfMiddleware()); // Double-submit cookie pattern
 ### Rate Limiting
 
 ```typescript
-import { RateLimiter } from '@streetjs/core';
+import { RateLimiter } from 'streetjs';
 
 const limiter = new RateLimiter({ windowMs: 60_000, maxRequests: 100 });
 app.use(limiter.middleware());
@@ -185,7 +185,7 @@ app.use(limiter.middleware());
 All security-sensitive operations should be logged via `AuditLogger`:
 
 ```typescript
-import { AuditLogger } from '@streetjs/core';
+import { AuditLogger } from 'streetjs';
 
 const audit = new AuditLogger({ pool, signingKey: process.env.AUDIT_KEY });
 
@@ -203,7 +203,7 @@ Audit logs use an HMAC-SHA256 hash chain to detect tampering.
 ## XSS Protection
 
 ```typescript
-import { xssMiddleware, sanitizeString } from '@streetjs/core';
+import { xssMiddleware, sanitizeString } from 'streetjs';
 
 app.use(xssMiddleware); // Sanitizes all string body fields
 

@@ -17,7 +17,7 @@ Street is a TypeScript-first, zero-dependency web framework for Node.js built ar
 ## Installation
 
 ```bash
-npm install @streetjs/core @streetjs/cli
+npm install streetjs @streetjs/cli
 ```
 
 Or scaffold a new project using the CLI:
@@ -50,7 +50,7 @@ my-app/
 ## Your First Application
 
 ```typescript
-import { streetApp, Controller, Get } from '@streetjs/core';
+import { streetApp, Controller, Get } from 'streetjs';
 
 @Controller('/hello')
 class HelloController {

@@ -13,7 +13,7 @@ This guide covers the primary Street framework concepts: routing, middleware, de
 Street uses decorator-based routing. Every controller is annotated with `@Controller(prefix)` and each handler with an HTTP method decorator.
 
 ```typescript
-import { Controller, Get, Post, Put, Delete } from '@streetjs/core';
+import { Controller, Get, Post, Put, Delete } from 'streetjs';
 
 @Controller('/users')
 class UserController {
@@ -39,7 +39,7 @@ class UserController {
 Middleware functions receive `(ctx, next)` and must call `next()` to pass control.
 
 ```typescript
-import type { MiddlewareFn } from '@streetjs/core';
+import type { MiddlewareFn } from 'streetjs';
 
 const loggingMiddleware: MiddlewareFn = async (ctx, next) => {
   console.log(`${ctx.method} ${ctx.path}`);
@@ -55,7 +55,7 @@ app.use(loggingMiddleware);
 Street ships a lightweight DI container. Mark classes with `@Injectable()` and resolve via `container.resolve(Class)`.
 
 ```typescript
-import { Injectable, container } from '@streetjs/core';
+import { Injectable, container } from 'streetjs';
 
 @Injectable()
 class UserService {
@@ -70,7 +70,7 @@ const service = container.resolve(UserService);
 ### PostgreSQL Pool
 
 ```typescript
-import { PgPool } from '@streetjs/core';
+import { PgPool } from 'streetjs';
 
 const pool = new PgPool({
   host: 'localhost',
@@ -87,7 +87,7 @@ const result = await pool.query('SELECT * FROM users WHERE id = $1', [userId]);
 ### Repository Pattern
 
 ```typescript
-import { StreetPostgresRepository } from '@streetjs/core';
+import { StreetPostgresRepository } from 'streetjs';
 
 class UserRepository extends StreetPostgresRepository<User> {
   constructor(pool: PgPool) { super(pool, 'users'); }
@@ -107,7 +107,7 @@ class UserRepository extends StreetPostgresRepository<User> {
 ### JWT
 
 ```typescript
-import { JwtService, authMiddleware } from '@streetjs/core';
+import { JwtService, authMiddleware } from 'streetjs';
 
 const jwt = new JwtService(process.env.JWT_SECRET);
 app.use(authMiddleware(jwt));
@@ -116,7 +116,7 @@ app.use(authMiddleware(jwt));
 ### RBAC
 
 ```typescript
-import { RbacService, Roles, rbacGuard } from '@streetjs/core';
+import { RbacService, Roles, rbacGuard } from 'streetjs';
 
 @Roles('admin')
 @Controller('/admin')
@@ -132,7 +132,7 @@ class AdminController {
 Throw Street exceptions from handlers — they're automatically serialized:
 
 ```typescript
-import { NotFoundException, BadRequestException } from '@streetjs/core';
+import { NotFoundException, BadRequestException } from 'streetjs';
 
 async getUser(ctx) {
   const user = await userService.findById(ctx.params.id);
@@ -144,7 +144,7 @@ async getUser(ctx) {
 ## Multi-Tenancy
 
 ```typescript
-import { tenantMiddleware, TenantPoolRegistry } from '@streetjs/core';
+import { tenantMiddleware, TenantPoolRegistry } from 'streetjs';
 
 app.use(tenantMiddleware({ strategy: 'subdomain' }));
 ```
@@ -152,7 +152,7 @@ app.use(tenantMiddleware({ strategy: 'subdomain' }));
 ## WebSockets
 
 ```typescript
-import { StreetWebSocketServer } from '@streetjs/core';
+import { StreetWebSocketServer } from 'streetjs';
 
 const wsServer = new StreetWebSocketServer({ maxConnections: 10_000 });
 wsServer.on('connection', (socket) => {
@@ -163,7 +163,7 @@ wsServer.on('connection', (socket) => {
 ## Feature Flags (Enterprise)
 
 ```typescript
-import { FeatureFlagService } from '@streetjs/core';
+import { FeatureFlagService } from 'streetjs';
 
 const flags = new FeatureFlagService(pool);
 const enabled = await flags.isEnabled('new-dashboard', {

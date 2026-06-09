@@ -1,6 +1,6 @@
 # Browser & Edge Builds
 
-`@streetjs/core` ships a **browser-safe subset** that bundlers and edge runtimes select automatically through the package.json `"browser"` export condition. The browser entry exports only runtime-agnostic code (no `node:` built-ins), while every Node-only feature resolves to a stub that throws a clear, catchable error.
+`streetjs` ships a **browser-safe subset** that bundlers and edge runtimes select automatically through the package.json `"browser"` export condition. The browser entry exports only runtime-agnostic code (no `node:` built-ins), while every Node-only feature resolves to a stub that throws a clear, catchable error.
 
 - Browser entry source: `packages/core/src/browser.ts` → `dist/browser.js`
 - Stub source: `packages/core/src/browser-stub.ts` → `dist/browser-stub.js`
@@ -10,7 +10,7 @@
 
 ## Overview
 
-A backend framework can't run wholesale in a browser — it depends on `node:net`, `node:fs`, `node:crypto`, `node:http`, and friends. But a meaningful slice of `@streetjs/core` is **pure, isomorphic logic**: exception types, XSS sanitisation, and an in-memory LRU cache. Those are safe in any JavaScript runtime.
+A backend framework can't run wholesale in a browser — it depends on `node:net`, `node:fs`, `node:crypto`, `node:http`, and friends. But a meaningful slice of `streetjs` is **pure, isomorphic logic**: exception types, XSS sanitisation, and an in-memory LRU cache. Those are safe in any JavaScript runtime.
 
 The package solves this with [export conditions](https://nodejs.org/api/packages.html#conditional-exports):
 
@@ -95,7 +95,7 @@ import {
   NotFoundException,
   isStreetException,
   STREET_BUILD_TARGET,
-} from '@streetjs/core';
+} from 'streetjs';
 
 const cache = new LruCache<string, string>({ maxSize: 256 });
 cache.set('greeting', sanitizeString('<b>hi</b>'));
@@ -108,9 +108,9 @@ if (STREET_BUILD_TARGET === 'browser') {
 The browser-safe subpaths can also be imported directly:
 
 ```typescript
-import { sanitizeDeep } from '@streetjs/core/xss';
-import { LruCache } from '@streetjs/core/cache';
-import { BadRequestException } from '@streetjs/core/exceptions';
+import { sanitizeDeep } from 'streetjs/xss';
+import { LruCache } from 'streetjs/cache';
+import { BadRequestException } from 'streetjs/exceptions';
 ```
 
 ---
@@ -129,7 +129,7 @@ import { FeatureUnavailableInEdgeRuntimeError } from './http/exceptions.js';
 
 function unavailable(): never {
   throw new FeatureUnavailableInEdgeRuntimeError(
-    'This @streetjs/core feature requires a Node.js runtime and is unavailable in a browser/edge build',
+    'This streetjs feature requires a Node.js runtime and is unavailable in a browser/edge build',
   );
 }
 
@@ -146,7 +146,7 @@ export const __browserStub = true as const;
 So this fails at runtime in a browser build, with a descriptive, catchable error:
 
 ```typescript
-import { createServer } from '@streetjs/core/http';
+import { createServer } from 'streetjs/http';
 
 createServer(); // throws FeatureUnavailableInEdgeRuntimeError
 ```
@@ -154,7 +154,7 @@ createServer(); // throws FeatureUnavailableInEdgeRuntimeError
 Catch it if you need a graceful fallback:
 
 ```typescript
-import { isStreetException, FeatureUnavailableInEdgeRuntimeError } from '@streetjs/core';
+import { isStreetException, FeatureUnavailableInEdgeRuntimeError } from 'streetjs';
 
 try {
   doNodeOnlyThing();
@@ -183,8 +183,8 @@ export default defineConfig({
     conditions: ['browser', 'import', 'default'],
   },
   optimizeDeps: {
-    // Let esbuild pre-bundle @streetjs/core using the browser condition.
-    include: ['@streetjs/core'],
+    // Let esbuild pre-bundle streetjs using the browser condition.
+    include: ['streetjs'],
   },
 });
 ```
@@ -303,7 +303,7 @@ What the suite checks:
 
 | Symptom | Cause | Resolution |
 | --- | --- | --- |
-| `FeatureUnavailableInEdgeRuntimeError` at runtime | You imported a Node-only feature (e.g. `@streetjs/core/http`, `/database`, `/websocket`) into a browser/edge build | Move that logic to a Node process, or use the browser-safe subset (`LruCache`, `sanitize*`, exceptions). Guard with `STREET_BUILD_TARGET` if the code is isomorphic |
+| `FeatureUnavailableInEdgeRuntimeError` at runtime | You imported a Node-only feature (e.g. `streetjs/http`, `/database`, `/websocket`) into a browser/edge build | Move that logic to a Node process, or use the browser-safe subset (`LruCache`, `sanitize*`, exceptions). Guard with `STREET_BUILD_TARGET` if the code is isomorphic |
 | Bundler pulls in `node:net` / `node:fs` / `node:crypto` | The `"browser"` condition isn't enabled in your bundler | Enable it: Vite `resolve.conditions: ['browser', …]`; Rollup `nodeResolve({ browser: true })`; Webpack 5 `resolve.conditionNames: ['browser', …]` (or `target: 'web'`); esbuild `platform: 'browser'` / `conditions: ['browser']` |
 | Type errors importing a Node-only subpath in a browser app | `"types"` still points at the Node module's declarations | This is expected — the Node-only feature isn't available in the browser. Import a browser-safe subpath instead |
 | Stub error has no stack context | The Proxy throws on first access | Wrap the import site in `try/catch` and check `err instanceof FeatureUnavailableInEdgeRuntimeError` to fall back gracefully |

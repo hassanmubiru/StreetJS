@@ -6,7 +6,7 @@ nav_order: 4
 
 # API Reference
 
-Complete reference for the `@streetjs/core` public API.
+Complete reference for the `streetjs` public API.
 
 ## HTTP Server
 
@@ -180,7 +180,7 @@ executor.run(userMessage, ctx?)  // Returns Promise<string>
 AMQP 0-9-1 `EventBusTransport` (publisher confirms, DLQ, reconnect, heartbeats).
 
 ```typescript
-import { RabbitMqTransport } from '@streetjs/core';
+import { RabbitMqTransport } from 'streetjs';
 const transport = new RabbitMqTransport({ host: '127.0.0.1', exchange: 'street.events' });
 await transport.publish('orders.created', envelope);
 const off = transport.subscribe('orders.created', async (env) => { /* handle */ });
@@ -194,7 +194,7 @@ Also exported: `RabbitMqConnectionManager`, `RabbitMqPublisher`, `RabbitMqConsum
 Kafka binary protocol over `node:net` with a batching, optionally idempotent producer and a consumer-group offset-committing consumer.
 
 ```typescript
-import { KafkaClient, KafkaProducer, KafkaConsumer } from '@streetjs/core';
+import { KafkaClient, KafkaProducer, KafkaConsumer } from 'streetjs';
 const client = new KafkaClient({ brokers: ['127.0.0.1:9092'] });
 const producer = new KafkaProducer(client, { idempotent: true });
 await producer.send('orders', { key: null, value: Buffer.from('{}') });
@@ -211,7 +211,7 @@ See [docs/transports/rabbitmq.md](transports/rabbitmq.md) and [docs/transports/k
 Outbound webhook delivery with HMAC-SHA256 signatures, retry/backoff, bounded queue, SSRF protection, and HTTPS enforcement. Supports a private-CA `tls` option per target.
 
 ```typescript
-import { WebhookDispatcher } from '@streetjs/core/webhook';
+import { WebhookDispatcher } from 'streetjs/webhook';
 const dispatcher = new WebhookDispatcher();
 dispatcher.enqueue({ url: 'https://example.com/hook', secret: 'whsec', maxRetries: 3 }, 'user.created', { id: 'u1' });
 ```
@@ -225,7 +225,7 @@ HMAC-SHA256 signing/verification helpers (`WebhookManager` provides DB-backed en
 `VaultSecretProvider`, `AwsSecretsManagerProvider`, `AzureKeyVaultProvider`, `GcpSecretManagerProvider` implement `SecretProvider.get(key)`. `SecretRotationManager` watches a key and emits `rotate` events (with an `onRotate` hook to recycle pool connections).
 
 ```typescript
-import { AwsSecretsManagerProvider, SecretRotationManager } from '@streetjs/core';
+import { AwsSecretsManagerProvider, SecretRotationManager } from 'streetjs';
 const provider = new AwsSecretsManagerProvider({ region: 'us-east-1', accessKeyId, secretAccessKey });
 const mgr = new SecretRotationManager(provider, 'db-password', { intervalMs: 60000, onRotate: (v) => pool.recycle() });
 await mgr.start();

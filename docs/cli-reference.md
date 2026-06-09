@@ -150,7 +150,7 @@ street plugin:list
 The CLI reads `street.config.ts` (or `street.config.js`) in the project root:
 
 ```typescript
-import { defineConfig } from '@streetjs/core';
+import { defineConfig } from 'streetjs';
 
 export default defineConfig({
   database: {
