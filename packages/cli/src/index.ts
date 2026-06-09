@@ -21,7 +21,15 @@ import { PluginInstallCommand, PluginListCommand } from './commands/plugin.js';
 import { AnalyticsReportCommand, AuditExportCommand, ComplianceReportCommand, RestoreCommand } from './commands/data-commands.js';
 import { CertifyCommand } from './commands/certify.js';
 import { UpgradeCommand } from './commands/upgrade.js';
-const VERSION = '1.0.3';
+import { readFileSync } from 'node:fs';
+
+// Read the version from package.json so it never drifts from the published
+// package version (the version test asserts the CLI output matches package.json).
+// dist/index.js → ../package.json resolves to the package root in dev and when
+// installed from npm (the published tarball includes package.json at its root).
+const VERSION: string = JSON.parse(
+  readFileSync(new URL('../package.json', import.meta.url), 'utf8')
+).version;
 const APP_NAME = 'street';
 
 export interface CliContext {
