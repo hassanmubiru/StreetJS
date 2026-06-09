@@ -247,7 +247,7 @@ export class CreateCommand {
           'migrate:create': 'street migrate:create',
         },
         dependencies: {
-          '@streetjs/core': '^1.0.5',
+          'streetjs': '^1.0.6',
           'reflect-metadata': '^0.2.2',
           ws: '^8.18.0',
         },
@@ -267,7 +267,7 @@ export class CreateCommand {
 // Street framework configuration.
 // Environment variables are loaded automatically at runtime.
 
-import type { StreetAppOptions } from '@streetjs/core';
+import type { StreetAppOptions } from 'streetjs';
 
 export default {
   port: parseInt(process.env['PORT'] ?? '3000', 10),
@@ -310,7 +310,7 @@ import {
   SessionManager,
   WebhookDispatcher,
   LruCache,
-} from '@streetjs/core';
+} from 'streetjs';
 import { HealthController } from './controllers/health.controller.js';
 import { ExampleController } from './controllers/example.controller.js';
 
@@ -428,8 +428,8 @@ import {
   Delete,
   ApiOperation,
   container,
-} from '@streetjs/core';
-import type { StreetContext } from '@streetjs/core';
+} from 'streetjs';
+import type { StreetContext } from 'streetjs';
 import { ExampleService, CreateItemInput, UpdateItemInput } from '../services/example.service.js';
 
 @Controller('/api/items')
@@ -513,8 +513,8 @@ export class ExampleController {
     return `// src/controllers/health.controller.ts
 // Health check endpoint for monitoring and orchestration.
 
-import { Controller, Get, ApiOperation } from '@streetjs/core';
-import type { StreetContext } from '@streetjs/core';
+import { Controller, Get, ApiOperation } from 'streetjs';
+import type { StreetContext } from 'streetjs';
 
 @Controller('/health')
 export class HealthController {
@@ -536,7 +536,7 @@ export class HealthController {
     return `// src/services/example.service.ts
 // Example service with business logic layer.
 
-import { Injectable } from '@streetjs/core';
+import { Injectable } from 'streetjs';
 import { ExampleRepository } from '../repositories/example.repository.js';
 
 export interface Item {
@@ -606,8 +606,8 @@ export class ExampleService {
     return `// src/repositories/example.repository.ts
 // Example repository using the Street framework's PostgreSQL pool directly.
 
-import { Injectable, container, PgPool } from '@streetjs/core';
-import type { PgRow } from '@streetjs/core';
+import { Injectable, container, PgPool } from 'streetjs';
+import type { PgRow } from 'streetjs';
 import type { Item } from '../services/example.service.js';
 
 /** Map a database row to an Item */
@@ -676,8 +676,8 @@ export class ExampleRepository {
     return `// src/middleware/auth.ts
 // Custom authentication and authorization middleware examples.
 
-import type { StreetContext } from '@streetjs/core';
-import { container, JwtService, UnauthorizedException } from '@streetjs/core';
+import type { StreetContext } from 'streetjs';
+import { container, JwtService, UnauthorizedException } from 'streetjs';
 
 /**
  * JWT-based authentication middleware.
@@ -739,7 +739,7 @@ export async function requestLogger(ctx: StreetContext, next: () => Promise<void
 // Example WebSocket gateway for real-time chat.
 // Attached to the HTTP server via StreetWebSocketServer.attach().
 
-import { StreetSocket } from '@streetjs/core';
+import { StreetSocket } from 'streetjs';
 import type { IncomingMessage } from 'node:http';
 
 interface ChatMessage {

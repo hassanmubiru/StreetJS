@@ -16,7 +16,11 @@ export class InfoCommand {
     const rows: InfoRow[] = [];
 
     // ── Street version ────────────────────────────────────────────────────
+    // Prefer the renamed `streetjs` package; fall back to the deprecated
+    // `@streetjs/core` compat package, then the monorepo dev path.
     const streetVersion = await this.readPackageVersion(
+      resolve(ctx.cwd, 'node_modules', 'streetjs', 'package.json'),
+    ) ?? await this.readPackageVersion(
       resolve(ctx.cwd, 'node_modules', '@streetjs', 'core', 'package.json'),
     ) ?? await this.readPackageVersion(
       resolve(ctx.cwd, '..', 'core', 'package.json'),

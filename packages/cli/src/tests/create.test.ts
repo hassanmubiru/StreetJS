@@ -197,7 +197,7 @@ void describe('CreateCommand', () => {
       assert.equal(pkg.version, '0.1.0');
       assert.equal(pkg.private, true);
       assert.equal(pkg.type, 'module');
-      assert.ok(pkg.dependencies['@streetjs/core']);
+      assert.ok(pkg.dependencies['streetjs']);
       assert.ok(pkg.dependencies['reflect-metadata']);
     });
   });
