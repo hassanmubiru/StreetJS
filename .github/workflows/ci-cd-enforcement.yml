@@ -163,5 +163,6 @@ jobs:
         run: |
           echo "Running backward compatibility regression tests..."
           npm test -w packages/core
+          npm run build -w packages/cli
           npm test -w packages/cli
           echo "Backward compatibility regression passed ✔"
