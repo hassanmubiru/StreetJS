@@ -322,7 +322,7 @@ void describe('MigrateCommand migrate:run (integration, requires Postgres)', () 
 
   before(async () => {
     try {
-      const { PgPool } = await import('@streetjs/core');
+      const { PgPool } = await import('streetjs');
       const checkPool = new PgPool({
         host: process.env['PG_HOST'] ?? 'localhost',
         port: parseInt(process.env['PG_PORT'] ?? '5432', 10),
@@ -396,7 +396,7 @@ void describe('MigrateCommand migrate:run (integration, requires Postgres)', () 
       assert.equal(process.exitCode, 0, 'Expected exit code 0');
 
       // Verify the tracking table recorded this migration
-      const { PgPool } = await import('@streetjs/core');
+      const { PgPool } = await import('streetjs');
       const verifyPool = new PgPool({
         host: process.env['PG_HOST'] ?? 'localhost',
         port: parseInt(process.env['PG_PORT'] ?? '5432', 10),
@@ -472,7 +472,7 @@ void describe('MigrateCommand migrate:run (integration, requires Postgres)', () 
       );
 
       // Both tables should exist
-      const { PgPool } = await import('@streetjs/core');
+      const { PgPool } = await import('streetjs');
       const cleanPool = new PgPool({
         host: process.env['PG_HOST'] ?? 'localhost',
         port: parseInt(process.env['PG_PORT'] ?? '5432', 10),
@@ -549,7 +549,7 @@ void describe('MigrateCommand migrate:run (integration, requires Postgres)', () 
       }
 
       // Clean up
-      const { PgPool } = await import('@streetjs/core');
+      const { PgPool } = await import('streetjs');
       const cleanPool = new PgPool({
         host: process.env['PG_HOST'] ?? 'localhost',
         port: parseInt(process.env['PG_PORT'] ?? '5432', 10),
@@ -604,7 +604,7 @@ void describe('MigrateCommand migrate:run (integration, requires Postgres)', () 
       assert.equal(process.exitCode, 0, 'exitCode should remain unchanged by runner errors');
 
       // Verify no entry was recorded in street_migrations for the failed migration
-      const { PgPool } = await import('@streetjs/core');
+      const { PgPool } = await import('streetjs');
       const verifyPool = new PgPool({
         host: process.env['PG_HOST'] ?? 'localhost',
         port: parseInt(process.env['PG_PORT'] ?? '5432', 10),

@@ -8,7 +8,7 @@
 
 import { createConnection } from 'node:net';
 import { unlink } from 'node:fs/promises';
-import { isStaleSocket } from '@streetjs/core';
+import { isStaleSocket } from 'streetjs';
 import type { CliContext } from '../index.js';
 
 /**

@@ -11,7 +11,7 @@
 import { spawn } from 'node:child_process';
 import { resolve } from 'node:path';
 import { watch } from 'node:fs/promises';
-import { DevWatcher } from '@streetjs/core';
+import { DevWatcher } from 'streetjs';
 import type { CliContext } from '../index.js';
 
 export class DevCommand {

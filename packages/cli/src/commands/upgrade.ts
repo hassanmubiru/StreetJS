@@ -11,7 +11,7 @@ const IGNORED_DIRS = new Set(['node_modules', 'dist', '.git', 'coverage', 'build
 
 export class UpgradeCommand {
   async execute(ctx: CliContext): Promise<void> {
-    const core = await import('@streetjs/core');
+    const core = await import('streetjs');
 
     // `--list` just prints available codemods.
     if (ctx.args.flags['list']) {

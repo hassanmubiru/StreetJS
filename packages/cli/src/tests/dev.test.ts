@@ -14,7 +14,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { DevWatcher } from '@streetjs/core';
+import { DevWatcher } from 'streetjs';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 

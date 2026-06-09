@@ -23,7 +23,7 @@ export class SeedCommand {
 
     const seedFile = resolve(ctx.cwd, seedFileArg);
 
-    const { PgPool, StreetSeeder } = await import('@streetjs/core');
+    const { PgPool, StreetSeeder } = await import('streetjs');
 
     const pool = new PgPool({
       host: process.env['PG_HOST'] ?? 'localhost',

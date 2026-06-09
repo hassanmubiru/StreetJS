@@ -123,7 +123,7 @@ export class DoctorCommand {
 
     try {
       // Dynamic import avoids requiring @streetjs/core to be built
-      const { PgConnection } = await import('@streetjs/core');
+      const { PgConnection } = await import('streetjs');
       const conn = await PgConnection.connect({ host, port, user, password, database, connectTimeoutMs: 3000 });
       await conn.close();
       return { name: 'Database connectivity', pass: true, detail: `Connected to ${host}:${port}/${database} ✓` };
@@ -165,7 +165,7 @@ export class EnvValidateCommand {
       return;
     }
 
-    const { defineConfig } = await import('@streetjs/core');
+    const { defineConfig } = await import('streetjs');
 
     let pass = true;
     try {
@@ -177,7 +177,7 @@ export class EnvValidateCommand {
       }
       console.log(`[street] All ${keys.length} environment variable(s) are valid ✓`);
     } catch (err) {
-      const { ConfigValidationError: CVE } = await import('@streetjs/core');
+      const { ConfigValidationError: CVE } = await import('streetjs');
       if (err instanceof CVE) {
         console.error('[street] Environment validation failed:');
         for (const e of err.errors) {

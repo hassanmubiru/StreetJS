@@ -5,7 +5,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import type { CliContext } from '../index.js';
-import type { CloudPlatform, DeployConfig } from '@streetjs/core';
+import type { CloudPlatform, DeployConfig } from 'streetjs';
 
 const PLATFORM_FILES: Record<string, string> = {
   kubernetes: 'deployment.yaml',
@@ -23,7 +23,7 @@ export class DeployInitCommand {
       return;
     }
 
-    const core = await import('@streetjs/core');
+    const core = await import('streetjs');
     const config: DeployConfig = {
       name: 'street-app',
       image: 'street-app:latest',
