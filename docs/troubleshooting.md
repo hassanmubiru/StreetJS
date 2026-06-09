@@ -65,7 +65,7 @@ The authenticated user's roles don't satisfy the required permission.
 Use the built-in diagnostics to identify leaks:
 
 ```typescript
-import { DiagnosticsReporter } from '@streetjs/core';
+import { DiagnosticsReporter } from 'streetjs';
 
 const reporter = new DiagnosticsReporter();
 reporter.report(); // logs heap, RSS, active handles
@@ -82,7 +82,7 @@ node --max-old-space-size=256 --test packages/core/dist/tests/system/memory-safe
 Profile route latency:
 
 ```typescript
-import { RouteProfiler } from '@streetjs/core';
+import { RouteProfiler } from 'streetjs';
 
 const profiler = new RouteProfiler();
 app.use(profiler.middleware());
@@ -94,7 +94,7 @@ console.log(profiler.getStats()); // p50, p95, p99 per route
 Use `QueryProfiler` to find slow database queries:
 
 ```typescript
-import { ProfiledPool } from '@streetjs/core';
+import { ProfiledPool } from 'streetjs';
 
 const profiled = new ProfiledPool(pool);
 // Use profiled instead of pool — logs all queries slower than threshold

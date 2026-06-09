@@ -6,7 +6,7 @@ rules, operational alerts, multi-window SLO burn-rate alerts, and a Grafana
 dashboard. Everything is generated from typed models with a built-in validator,
 so the assets stay correct and reproducible. Dependency-free.
 
-Exported from `@streetjs/core`.
+Exported from `streetjs`.
 
 ## Contents
 
@@ -38,7 +38,7 @@ The script validates both before writing and exits non-zero on any error.
 import {
   streetRuleGroups, validatePrometheusRuleGroups, serializePrometheusRulesYaml,
   streetApiDashboard, validateGrafanaDashboard,
-} from '@streetjs/core';
+} from 'streetjs';
 
 const groups = streetRuleGroups();
 if (!validatePrometheusRuleGroups(groups).valid) throw new Error('bad rules');

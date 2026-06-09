@@ -106,7 +106,7 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
     <a href="{{ site.baseurl }}/examples/" class="btn btn-g">Examples</a>
   </div>
   <div class="badges">
-    <img src="https://img.shields.io/npm/v/@streetjs/core?label=%40streetjs%2Fcore&color=3B82F6&style=flat-square" alt="core">
+    <img src="https://img.shields.io/npm/v/streetjs?label=%40streetjs%2Fcore&color=3B82F6&style=flat-square" alt="core">
     <img src="https://img.shields.io/npm/v/@streetjs/cli?label=%40streetjs%2Fcli&color=3B82F6&style=flat-square" alt="cli">
     <img src="https://img.shields.io/badge/node-%3E%3D20-3B82F6?style=flat-square" alt="Node 20+">
     <img src="https://img.shields.io/badge/TypeScript-5.0%2B-3B82F6?style=flat-square" alt="TypeScript 5+">
@@ -158,7 +158,7 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 <div class="sp sec">
   <div class="ey">Quick Example</div>
   <div class="sh2">A complete production API. One file. No extra packages.</div>
-  <p class="ssub">PostgreSQL, JWT auth, rate limiting, and auto-generated OpenAPI — all from <code style="font-family:var(--fm);font-size:.82em;background:var(--cbg);color:var(--ac);padding:.1em .4em;border-radius:4px">@streetjs/core</code>.</p>
+  <p class="ssub">PostgreSQL, JWT auth, rate limiting, and auto-generated OpenAPI — all from <code style="font-family:var(--fm);font-size:.82em;background:var(--cbg);color:var(--ac);padding:.1em .4em;border-radius:4px">streetjs</code>.</p>
   <div class="cwin">
     <div class="cwin-bar"><div class="d"></div><div class="d"></div><div class="d"></div><span class="fn">src/main.ts</span><span class="lb">TypeScript</span></div>
 </div>
@@ -169,8 +169,8 @@ import {
   streetApp, Injectable, Controller, Get, Post,
   PgPool, securityHeaders, corsMiddleware,
   RateLimiter, authMiddleware, JwtService, ApiOperation,
-} from '@streetjs/core';
-import type { StreetContext } from '@streetjs/core';
+} from 'streetjs';
+import type { StreetContext } from 'streetjs';
 
 @Injectable()
 class ItemService {

@@ -18,7 +18,7 @@ Street auto-generates an OpenAPI 3.1 specification from your route decorators. N
 Call `app.openApiSpec()` after registering all controllers, then serve it on a route:
 
 ```typescript
-import { streetApp } from '@streetjs/core';
+import { streetApp } from 'streetjs';
 import { UserController } from './controllers/user.controller.js';
 import { ProductController } from './controllers/product.controller.js';
 
@@ -58,8 +58,8 @@ curl http://localhost:3000/openapi.json | jq .info
 Annotate route handlers to add summary, description, and tags to the spec:
 
 ```typescript
-import { Controller, Get, Post, Put, Delete, ApiOperation } from '@streetjs/core';
-import type { StreetContext } from '@streetjs/core';
+import { Controller, Get, Post, Put, Delete, ApiOperation } from 'streetjs';
+import type { StreetContext } from 'streetjs';
 
 @Controller('/api/products')
 export class ProductController {
@@ -195,7 +195,7 @@ Generate the spec at build time for use with external tools:
 // scripts/generate-openapi.ts
 import 'reflect-metadata';
 import { writeFileSync } from 'node:fs';
-import { streetApp } from '@streetjs/core';
+import { streetApp } from 'streetjs';
 import { UserController } from '../src/controllers/user.controller.js';
 import { ProductController } from '../src/controllers/product.controller.js';
 

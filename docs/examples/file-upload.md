@@ -20,8 +20,8 @@ Streaming multipart file upload with type validation, size limits, and disk stor
 import {
   Controller, Post, Get, ApiOperation,
   BadRequestException, container,
-} from '@streetjs/core';
-import type { StreetContext } from '@streetjs/core';
+} from 'streetjs';
+import type { StreetContext } from 'streetjs';
 import { UploadService } from '../services/upload.service.js';
 
 const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'application/pdf']);
@@ -96,7 +96,7 @@ export class UploadController {
 
 ```typescript
 // src/services/upload.service.ts
-import { Injectable, container, PgPool, NotFoundException } from '@streetjs/core';
+import { Injectable, container, PgPool, NotFoundException } from 'streetjs';
 import { resolve } from 'node:path';
 
 export interface UploadRecord {

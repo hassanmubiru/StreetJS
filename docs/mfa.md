@@ -1,6 +1,6 @@
 # Multi-Factor Authentication (TOTP)
 
-`@streetjs/core` ships standards-based TOTP MFA (RFC 6238, built on RFC 4226
+`streetjs` ships standards-based TOTP MFA (RFC 6238, built on RFC 4226
 HOTP) with single-use recovery codes, an enrollment service, a step-up guard,
 and middleware. Pure `node:crypto` — no third-party dependencies. The TOTP/HOTP
 implementation is validated against the published RFC test vectors
@@ -9,7 +9,7 @@ implementation is validated against the published RFC test vectors
 ## Primitives
 
 ```ts
-import { totp, verifyTotp, base32Encode, base32Decode } from '@streetjs/core';
+import { totp, verifyTotp, base32Encode, base32Decode } from 'streetjs';
 const secret = base32Decode('JBSWY3DPEHPK3PXP');
 const code = totp(secret);                 // 6-digit, 30s period, SHA1 (app default)
 verifyTotp(secret, code, { window: 1 });   // ±1 period skew, constant-time compare
@@ -18,7 +18,7 @@ verifyTotp(secret, code, { window: 1 });   // ±1 period skew, constant-time com
 ## Enrollment & verification (`MfaService`)
 
 ```ts
-import { MfaService, MFA_MIGRATION_SQL } from '@streetjs/core';
+import { MfaService, MFA_MIGRATION_SQL } from 'streetjs';
 // run MFA_MIGRATION_SQL once (creates street_mfa)
 const mfa = new MfaService(pool, { issuer: 'Acme' });
 
@@ -36,7 +36,7 @@ and removed on use.
 ## Step-up middleware (`mfaGuard` + `verifyMfaStepUp`)
 
 ```ts
-import { mfaGuard, verifyMfaStepUp } from '@streetjs/core';
+import { mfaGuard, verifyMfaStepUp } from 'streetjs';
 
 // Protect routes: MFA-enabled users must have an MFA-verified session.
 app.use(mfaGuard(mfa)); // 403 { error: 'mfa_required' } until verified

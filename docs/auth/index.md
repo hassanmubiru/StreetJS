@@ -27,7 +27,7 @@ Street provides a complete, production-grade authentication system out of the bo
 `JwtService` provides HMAC-SHA256 or RS256 signed tokens with expiry, subject, and arbitrary claims.
 
 ```typescript
-import { JwtService } from '@streetjs/core';
+import { JwtService } from 'streetjs';
 
 const jwt = new JwtService({ secret: process.env.JWT_SECRET! });
 
@@ -42,7 +42,7 @@ const payload = jwt.verify(token);
 Use `authMiddleware` to automatically validate Bearer tokens on every request:
 
 ```typescript
-import { authMiddleware } from '@streetjs/core';
+import { authMiddleware } from 'streetjs';
 
 app.use(authMiddleware(jwt));
 // ctx.user is now populated for authenticated requests
@@ -55,7 +55,7 @@ app.use(authMiddleware(jwt));
 For cookie-based server sessions, use `SessionManager`. It encrypts session data with AES-256-GCM using a key derived from `SESSION_KEY`.
 
 ```typescript
-import { SessionManager } from '@streetjs/core';
+import { SessionManager } from 'streetjs';
 
 const sessions = new SessionManager({ secret: process.env.SESSION_KEY! });
 
@@ -83,7 +83,7 @@ Sessions are stored in a signed, encrypted cookie. The session data never leaves
 Run the migration first:
 
 ```typescript
-import { API_KEYS_MIGRATION_SQL, ApiKeyService } from '@streetjs/core';
+import { API_KEYS_MIGRATION_SQL, ApiKeyService } from 'streetjs';
 
 await pool.query(API_KEYS_MIGRATION_SQL);
 const apiKeys = new ApiKeyService(pool);
@@ -108,7 +108,7 @@ console.log('Your API key:', key); // sk_live_xxxxxxxx...
 Use the built-in `apiKeyMiddleware`:
 
 ```typescript
-import { apiKeyMiddleware } from '@streetjs/core';
+import { apiKeyMiddleware } from 'streetjs';
 
 app.use(apiKeyMiddleware(apiKeys));
 // Sets ctx.user if the X-API-Key header contains a valid key
@@ -131,7 +131,7 @@ import {
   RefreshTokenService,
   REFRESH_TOKENS_MIGRATION_SQL,
   TokenReplayError,
-} from '@streetjs/core';
+} from 'streetjs';
 
 await pool.query(REFRESH_TOKENS_MIGRATION_SQL);
 const refreshSvc = new RefreshTokenService(pool, { ttlMs: 7 * 24 * 60 * 60 * 1000 });

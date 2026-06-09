@@ -17,9 +17,9 @@ Services contain your application's business logic. They are plain TypeScript cl
 
 ```typescript
 // src/services/product.service.ts
-import { Injectable } from '@streetjs/core';
+import { Injectable } from 'streetjs';
 import { ProductRepository } from '../repositories/product.repository.js';
-import { NotFoundException } from '@streetjs/core';
+import { NotFoundException } from 'streetjs';
 
 export interface Product {
   id: string;
@@ -84,7 +84,7 @@ export class ProductService {
 `@Injectable()` marks a class for IoC resolution. Under the hood it calls `Reflect.defineMetadata` to record the class so the container can find it.
 
 ```typescript
-import { Injectable } from '@streetjs/core';
+import { Injectable } from 'streetjs';
 
 @Injectable()
 export class EmailService {
@@ -133,7 +133,7 @@ For services that require runtime configuration (e.g. a database pool, a secret 
 
 ```typescript
 // src/main.ts
-import { container, PgPool, JwtService } from '@streetjs/core';
+import { container, PgPool, JwtService } from 'streetjs';
 
 const pool = new PgPool({ /* ... */ });
 await pool.initialize();
@@ -165,7 +165,7 @@ This means services are stateful across requests. Keep per-request state in `ctx
 In rare cases (e.g. a factory function, a gateway), resolve a service directly:
 
 ```typescript
-import { container } from '@streetjs/core';
+import { container } from 'streetjs';
 import { NotificationService } from './notification.service.js';
 
 // Inside a WebSocket handler
@@ -214,7 +214,7 @@ async findAll(page: number, limit: number) {
 For multi-step operations that must be atomic, use the pool directly:
 
 ```typescript
-import { container, PgPool } from '@streetjs/core';
+import { container, PgPool } from 'streetjs';
 
 @Injectable()
 export class TransferService {
@@ -249,7 +249,7 @@ Services are plain classes — test them directly without HTTP:
 ```typescript
 import { describe, it, before } from 'node:test';
 import assert from 'node:assert/strict';
-import { container } from '@streetjs/core';
+import { container } from 'streetjs';
 import { ProductService } from '../src/services/product.service.js';
 
 describe('ProductService', () => {

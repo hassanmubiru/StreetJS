@@ -3,7 +3,7 @@
 A from-scratch **Kafka binary protocol** client and stream transport for the Street Framework, built directly on `node:net` with **zero third-party libraries** (no `kafkajs`, no `node-rdkafka`). It implements size-prefixed request framing, RecordBatch v2 with CRC32C, an idempotent batching producer, and a consumer-group offset-committing consumer.
 
 - Source: `packages/core/src/transports/kafka/` (`primitives.ts`, `recordbatch.ts`, `connection.ts`, `client.ts`, `index.ts`)
-- Package: `@streetjs/core`
+- Package: `streetjs`
 
 ---
 
@@ -24,7 +24,7 @@ The Kafka transport speaks the native Kafka protocol over plain TCP and implemen
 
 ### Public exports
 
-All of the following are exported from `@streetjs/core`:
+All of the following are exported from `streetjs`:
 
 | Export | Kind | Purpose |
 | --- | --- | --- |
@@ -59,7 +59,7 @@ import {
   type ClusterMeta,
   type TopicMeta,
   type PartitionMeta,
-} from '@streetjs/core';
+} from 'streetjs';
 ```
 
 ---
@@ -159,7 +159,7 @@ The client deliberately targets **non-flexible** (pre-tagged-fields) request ver
 ### Produce a single record
 
 ```typescript
-import { KafkaClient, KafkaProducer } from '@streetjs/core';
+import { KafkaClient, KafkaProducer } from 'streetjs';
 
 const client = new KafkaClient({ brokers: ['127.0.0.1:9092'], clientId: 'orders-svc' });
 const producer = new KafkaProducer(client);
@@ -176,7 +176,7 @@ client.close();
 ### Batched production
 
 ```typescript
-import { KafkaClient, KafkaProducer } from '@streetjs/core';
+import { KafkaClient, KafkaProducer } from 'streetjs';
 
 const client = new KafkaClient({ brokers: ['127.0.0.1:9092'] });
 const producer = new KafkaProducer(client, { batchSize: 500, lingerMs: 20 });
@@ -193,7 +193,7 @@ await producer.flush();
 ### Idempotent producer
 
 ```typescript
-import { KafkaClient, KafkaProducer } from '@streetjs/core';
+import { KafkaClient, KafkaProducer } from 'streetjs';
 
 const client = new KafkaClient({ brokers: ['127.0.0.1:9092'] });
 
@@ -211,7 +211,7 @@ await producer.flush();
 ### Consumer run loop with a handler
 
 ```typescript
-import { KafkaClient, KafkaConsumer, type KafkaConsumedMessage } from '@streetjs/core';
+import { KafkaClient, KafkaConsumer, type KafkaConsumedMessage } from 'streetjs';
 
 const client = new KafkaClient({ brokers: ['127.0.0.1:9092'] });
 const consumer = new KafkaConsumer(client, {
@@ -255,7 +255,7 @@ await consumer.run(async (msg) => {
 `KafkaStreamTransport` implements `StreamTransport`, so it plugs into Street's event-streaming layer (`publish(topic, payload)` / `subscribe(topic, groupId, handler)`).
 
 ```typescript
-import { KafkaStreamTransport } from '@streetjs/core';
+import { KafkaStreamTransport } from 'streetjs';
 
 const transport = new KafkaStreamTransport({ brokers: ['127.0.0.1:9092'] });
 

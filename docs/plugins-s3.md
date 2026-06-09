@@ -12,7 +12,7 @@ lifecycle hooks, and sandbox middleware integration.
 ## Manifest
 
 ```ts
-import { s3PluginManifest } from '@streetjs/core';
+import { s3PluginManifest } from 'streetjs';
 
 s3PluginManifest();
 // {
@@ -43,7 +43,7 @@ precise message on the first violation.
 
 ```ts
 import { generateKeyPairSync } from 'node:crypto';
-import { PluginHost, signManifest, S3Plugin, s3PluginManifest } from '@streetjs/core';
+import { PluginHost, signManifest, S3Plugin, s3PluginManifest } from 'streetjs';
 
 const { publicKey, privateKey } = generateKeyPairSync('ed25519');
 

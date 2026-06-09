@@ -18,7 +18,7 @@ types, so they are testable without the cloud runtime installed.
 ## AWS Lambda
 
 ```ts
-import { streetApp } from '@streetjs/core';
+import { streetApp } from 'streetjs';
 import { createLambdaHandler } from '@streetjs/edge';
 const app = streetApp();
 app.use(async (ctx) => ctx.json({ ok: true }));
@@ -29,7 +29,7 @@ export const handler = createLambdaHandler(app); // API Gateway v1 or v2
 
 ```ts
 import { app } from '@azure/functions';
-import { streetApp } from '@streetjs/core';
+import { streetApp } from 'streetjs';
 import { createAzureHandler } from '@streetjs/edge';
 const street = streetApp();
 app.http('api', { route: '{*path}', methods: ['GET', 'POST'], handler: createAzureHandler(street) });
@@ -39,7 +39,7 @@ app.http('api', { route: '{*path}', methods: ['GET', 'POST'], handler: createAzu
 
 ```ts
 import { http } from '@google-cloud/functions-framework';
-import { streetApp } from '@streetjs/core';
+import { streetApp } from 'streetjs';
 import { createGcfHandler } from '@streetjs/edge';
 const street = streetApp();
 http('api', createGcfHandler(street));

@@ -27,7 +27,7 @@ import {
   JobQueue, Job,
   STREET_JOBS_MIGRATION_SQL,
   STREET_DLQ_MIGRATION_SQL,
-} from '@streetjs/core';
+} from 'streetjs';
 
 // Run migrations once
 await pool.query(STREET_JOBS_MIGRATION_SQL);
@@ -45,7 +45,7 @@ const queue = new JobQueue(pool, {
 Use the `@Job` decorator to declare a job handler class. The first argument is the **job name** — used to route jobs to the correct handler.
 
 ```typescript
-import { Job, type JobContext } from '@streetjs/core';
+import { Job, type JobContext } from 'streetjs';
 
 @Job('send-email')
 class SendEmailJob {
@@ -111,7 +111,7 @@ SELECT * FROM street_jobs_dlq ORDER BY failed_at DESC LIMIT 50;
 `CronScheduler` runs functions on a schedule defined by standard cron expressions (5-field: `min hour dom month dow`).
 
 ```typescript
-import { CronScheduler, CronParseError } from '@streetjs/core';
+import { CronScheduler, CronParseError } from 'streetjs';
 
 const cron = new CronScheduler();
 
@@ -151,7 +151,7 @@ Parsing errors throw `CronParseError` at `schedule()` call time, so misconfigure
 import {
   WorkflowEngine,
   STREET_WORKFLOWS_MIGRATION_SQL,
-} from '@streetjs/core';
+} from 'streetjs';
 
 await pool.query(STREET_WORKFLOWS_MIGRATION_SQL);
 const engine = new WorkflowEngine(pool);
@@ -160,7 +160,7 @@ const engine = new WorkflowEngine(pool);
 ### Defining a Workflow
 
 ```typescript
-import { type WorkflowStep, type WorkflowContext } from '@streetjs/core';
+import { type WorkflowStep, type WorkflowContext } from 'streetjs';
 
 engine.define('user-onboarding', [
   {

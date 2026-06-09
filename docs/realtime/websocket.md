@@ -20,7 +20,7 @@ import 'reflect-metadata';
 import {
   streetApp, StreetWebSocketServer, StreetSocket,
   container, TelemetryTracker,
-} from '@streetjs/core';
+} from 'streetjs';
 
 const app = streetApp({ port: 3000 });
 
@@ -98,7 +98,7 @@ A complete real-time chat implementation:
 
 ```typescript
 // src/gateways/chat.gateway.ts
-import { StreetSocket } from '@streetjs/core';
+import { StreetSocket } from 'streetjs';
 import type { IncomingMessage } from 'node:http';
 
 interface ChatMessage {
@@ -166,7 +166,7 @@ wss.on('connection', chatConnectionHandler);
 Validate a JWT token from the query string on connection:
 
 ```typescript
-import { JwtService, container } from '@streetjs/core';
+import { JwtService, container } from 'streetjs';
 import type { IncomingMessage } from 'node:http';
 
 wss.on('connection', (socket: StreetSocket, req: IncomingMessage) => {
@@ -225,8 +225,8 @@ process.once('SIGTERM', async () => {
 For one-way server-to-client streaming, use SSE instead of WebSockets:
 
 ```typescript
-import { createSse } from '@streetjs/core';
-import type { StreetContext } from '@streetjs/core';
+import { createSse } from 'streetjs';
+import type { StreetContext } from 'streetjs';
 
 @Controller('/api/events')
 class EventController {

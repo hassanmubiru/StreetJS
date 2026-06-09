@@ -21,7 +21,7 @@ Street's RBAC system supports hierarchical roles, granular permissions, and deco
 Define the hierarchy as a `Record<string, string[]>` where each key is a role and the value is the list of roles it inherits from.
 
 ```typescript
-import { RbacService, type RoleHierarchy } from '@streetjs/core';
+import { RbacService, type RoleHierarchy } from 'streetjs';
 
 const hierarchy: RoleHierarchy = {
   admin: ['editor'],      // admin inherits from editor
@@ -52,8 +52,8 @@ The inheritance is resolved via BFS, so arbitrarily deep hierarchies are support
 Use `@Roles(...roles)` on a controller method to declare that the caller must have at least one of the specified roles.
 
 ```typescript
-import { Controller, Get, Post, Delete } from '@streetjs/core';
-import { Roles, Permissions } from '@streetjs/core';
+import { Controller, Get, Post, Delete } from 'streetjs';
+import { Roles, Permissions } from 'streetjs';
 
 @Controller('/posts')
 export class PostsController {
@@ -104,7 +104,7 @@ async uploadMedia(ctx) {
 import {
   authMiddleware, rbacGuard, RbacService,
   JwtService, type RoleHierarchy,
-} from '@streetjs/core';
+} from 'streetjs';
 
 const jwt = new JwtService({ secret: process.env.JWT_SECRET! });
 
@@ -156,7 +156,7 @@ import {
   streetApp, authMiddleware, rbacGuard,
   RbacService, JwtService, Controller, Get, Post, Delete,
   Roles, Permissions,
-} from '@streetjs/core';
+} from 'streetjs';
 
 const jwt = new JwtService({ secret: 'super-secret' });
 const rbac = new RbacService(

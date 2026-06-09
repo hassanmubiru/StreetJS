@@ -71,7 +71,7 @@ npm run test:system
 ```
 street/
 ├── packages/
-│   ├── core/                  # @streetjs/core — framework runtime
+│   ├── core/                  # streetjs — framework runtime
 │   │   ├── src/               # TypeScript source
 │   │   │   ├── cache/         # LRU cache
 │   │   │   ├── cli/           # CLI kernel
@@ -196,7 +196,7 @@ describe('MyFeature', () => {
 fix: correct pluralization in generate command log message
 feat: add street generate middleware command
 docs: add WebSocket authentication example
-chore: bump @streetjs/core to 1.0.5
+chore: bump streetjs to 1.0.5
 ```
 
 ### What gets reviewed
@@ -213,7 +213,7 @@ chore: bump @streetjs/core to 1.0.5
 
 Open an issue at [github.com/hassanmubiru/issues](https://github.com/hassanmubiru/issues) with:
 
-- Street version (`street --version`, `npm list @streetjs/core`)
+- Street version (`street --version`, `npm list streetjs`)
 - Node.js version (`node --version`)
 - Minimal reproduction (ideally a single file)
 - Expected vs actual behaviour

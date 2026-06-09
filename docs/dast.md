@@ -10,8 +10,8 @@ a deterministic exit code.
 
 | Component | Location | Role | Status |
 | --- | --- | --- | --- |
-| Gate engine | `@streetjs/core` → `parseZapReport`, `evaluateDastGate`, `summarizeFindings`, `validateOpenApiDocument`, `openApiOperations` | Normalize reports → severity-gated pass/fail | VERIFIED (unit + script) |
-| In-process conformance scanner | `@streetjs/core` → `openApiConformanceScan` | Exercise a live app against its OpenAPI spec; 5xx/connection failure → High | VERIFIED (live in-process scan) |
+| Gate engine | `streetjs` → `parseZapReport`, `evaluateDastGate`, `summarizeFindings`, `validateOpenApiDocument`, `openApiOperations` | Normalize reports → severity-gated pass/fail | VERIFIED (unit + script) |
+| In-process conformance scanner | `streetjs` → `openApiConformanceScan` | Exercise a live app against its OpenAPI spec; 5xx/connection failure → High | VERIFIED (live in-process scan) |
 | OpenAPI export | `scripts/dast/export-openapi.mjs` | Reproducible, validated OpenAPI artifact | VERIFIED |
 | Gate runner | `scripts/dast/evaluate-gate.mjs` | Grade a ZAP report → exit 0/2 | VERIFIED |
 | CI target harness | `dast/start-target.mjs`, `dast/routes.json` | Live OpenAPI-conformant scan target | VERIFIED (serves /health, /users, /users/:id) |
@@ -31,7 +31,7 @@ offending }`. Findings at or above `failOn` (default `high`) fail the gate with
 `3→high`, `2→medium`, `1→low`, `0→info`.
 
 ```ts
-import { parseZapReport, evaluateDastGate } from '@streetjs/core';
+import { parseZapReport, evaluateDastGate } from 'streetjs';
 const gate = evaluateDastGate(parseZapReport(zapJson), { failOn: 'high' });
 process.exit(gate.exitCode); // 0 pass, 2 fail
 ```
@@ -60,7 +60,7 @@ exercises every enumerated operation against a live target and returns
 the offline counterpart to a Schemathesis scan and needs no external tooling:
 
 ```ts
-import { openApiConformanceScan, evaluateDastGate } from '@streetjs/core';
+import { openApiConformanceScan, evaluateDastGate } from 'streetjs';
 
 const findings = await openApiConformanceScan(app.openApiSpec(), { baseUrl: 'http://127.0.0.1:8080' });
 const gate = evaluateDastGate(findings);

@@ -6,7 +6,7 @@ plugin manifests, verifies their signatures, supports discovery, and installs
 plugins directly into a `PluginHost`. No marketplace UI, no network, no external
 services.
 
-Exported from `@streetjs/core`.
+Exported from `streetjs`.
 
 ## What it stores
 
@@ -41,7 +41,7 @@ import { generateKeyPairSync } from 'node:crypto';
 import {
   LocalPluginRegistry, installFromRegistry, PluginHost,
   signManifest, S3Plugin, s3PluginManifest,
-} from '@streetjs/core';
+} from 'streetjs';
 
 // Publisher signs the manifest with their Ed25519 key.
 const { publicKey, privateKey } = generateKeyPairSync('ed25519');

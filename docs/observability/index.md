@@ -23,7 +23,7 @@ Street ships with a complete observability stack: structured logging, Prometheus
 ## Logger
 
 ```typescript
-import { Logger, correlationMiddleware } from '@streetjs/core';
+import { Logger, correlationMiddleware } from 'streetjs';
 
 const logger = new Logger({ service: 'my-api', level: 'info' });
 
@@ -64,8 +64,8 @@ GCP's log explorer interprets `severity` for filtering and alerting. The `severi
 ```typescript
 import {
   MetricsRegistry, prometheusMiddleware, metricsHandler,
-} from '@streetjs/core';
-import { PgPool } from '@streetjs/core';
+} from 'streetjs';
+import { PgPool } from 'streetjs';
 
 const pool = new PgPool({ host: 'localhost', database: 'mydb', ... });
 const metrics = new MetricsRegistry();
@@ -113,7 +113,7 @@ dbQueryDuration.observe(0.023, { operation: 'SELECT' });
 ## OpenTelemetry
 
 ```typescript
-import { OtelTracer, otelMiddleware } from '@streetjs/core';
+import { OtelTracer, otelMiddleware } from 'streetjs';
 
 const tracer = new OtelTracer({ serviceName: 'my-api' });
 app.use(otelMiddleware(tracer));
@@ -136,7 +136,7 @@ OTel spans are emitted as OTLP-compatible records. Connect a collector like Jaeg
 ## Health Checks
 
 ```typescript
-import { HealthCheckRegistry, registerHealthRoutes } from '@streetjs/core';
+import { HealthCheckRegistry, registerHealthRoutes } from 'streetjs';
 
 const health = new HealthCheckRegistry();
 
@@ -173,7 +173,7 @@ During the delay period, `/health/ready` returns `503 degraded` with the remaini
 ## Route Profiler
 
 ```typescript
-import { RouteProfiler } from '@streetjs/core';
+import { RouteProfiler } from 'streetjs';
 
 const profiler = new RouteProfiler();
 

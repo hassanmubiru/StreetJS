@@ -3,7 +3,7 @@
 A from-scratch **AMQP 0-9-1** client and event transport for the Street Framework, built directly on `node:net` with **zero third-party libraries** (no `amqplib`, no `rascal`). It powers durable, at-least-once event delivery for the Street `EventBus` and can also be used standalone as a low-level publisher/consumer.
 
 - Source: `packages/core/src/transports/rabbitmq/` (`codec.ts`, `connection.ts`, `index.ts`)
-- Package: `@streetjs/core`
+- Package: `streetjs`
 
 ---
 
@@ -23,7 +23,7 @@ The RabbitMQ transport speaks the AMQP 0-9-1 wire protocol end to end:
 
 ### Public exports
 
-All of the following are exported from `@streetjs/core`:
+All of the following are exported from `streetjs`:
 
 | Export | Kind | Purpose |
 | --- | --- | --- |
@@ -48,7 +48,7 @@ import {
   type ConsumerOptions,
   type AmqpConnectionOptions,
   type DeliveredMessage,
-} from '@streetjs/core';
+} from 'streetjs';
 ```
 
 ---
@@ -162,7 +162,7 @@ Heartbeats are sent on a timer at half the negotiated `heartbeatSeconds` interva
 ### Publisher with confirms
 
 ```typescript
-import { RabbitMqConnectionManager, RabbitMqPublisher } from '@streetjs/core';
+import { RabbitMqConnectionManager, RabbitMqPublisher } from 'streetjs';
 
 const manager = new RabbitMqConnectionManager({
   host: '127.0.0.1',
@@ -191,7 +191,7 @@ import {
   RabbitMqConnectionManager,
   RabbitMqConsumer,
   type DeliveredMessage,
-} from '@streetjs/core';
+} from 'streetjs';
 
 const manager = new RabbitMqConnectionManager({ host: '127.0.0.1', port: 5672 });
 
@@ -213,7 +213,7 @@ await consumer.consume(async (msg: DeliveredMessage) => {
 To capture dead-lettered messages, bind a DLQ to the DLX and consume from it:
 
 ```typescript
-import { AmqpConnection } from '@streetjs/core';
+import { AmqpConnection } from 'streetjs';
 
 const conn = new AmqpConnection({ host: '127.0.0.1', port: 5672 });
 await conn.connect();
@@ -233,7 +233,7 @@ await conn.consume('orders.dlq', (msg) => {
 `RabbitMqTransport` implements `EventBusTransport`, so it drops into the Street `EventBus`. Topics map to routing keys on the shared durable topic exchange; each subscription gets its own durable queue (`street.<topic>.<pid>`) wired to a `<exchange>.dlx` dead-letter exchange.
 
 ```typescript
-import { EventBus, RabbitMqTransport } from '@streetjs/core';
+import { EventBus, RabbitMqTransport } from 'streetjs';
 
 const transport = new RabbitMqTransport({
   host: '127.0.0.1',

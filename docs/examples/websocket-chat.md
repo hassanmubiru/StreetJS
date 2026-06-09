@@ -17,7 +17,7 @@ A real-time chat server with rooms, JWT authentication, and broadcast messaging.
 
 ```typescript
 // src/gateways/chat.gateway.ts
-import { StreetSocket, container, JwtService } from '@streetjs/core';
+import { StreetSocket, container, JwtService } from 'streetjs';
 import type { IncomingMessage } from 'node:http';
 
 interface ChatUser { id: string; name: string; }
@@ -85,7 +85,7 @@ function getRoomUsers(room: string): string[] {
 ## Register in main.ts
 
 ```typescript
-import { StreetWebSocketServer, JwtService, container } from '@streetjs/core';
+import { StreetWebSocketServer, JwtService, container } from 'streetjs';
 import { chatHandler } from './gateways/chat.gateway.js';
 
 const wss = new StreetWebSocketServer({ heartbeatIntervalMs: 30_000, maxConnections: 5_000 });

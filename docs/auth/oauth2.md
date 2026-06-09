@@ -23,7 +23,7 @@ Street's `OAuthManager` implements the OAuth2 Authorization Code flow with **PKC
 import {
   OAuthManager, SessionManager,
   type OAuthProvider, type OAuthProfile,
-} from '@streetjs/core';
+} from 'streetjs';
 
 const sessions = new SessionManager({ secret: process.env.SESSION_KEY! });
 
@@ -126,7 +126,7 @@ app.use(async (ctx, next) => {
 `OAuthManager` includes a `JwksCache` for validating OIDC `id_token` JWTs against the provider's public keys. The cache automatically refreshes keys when a `kid` (key ID) is not found, preventing unnecessary round-trips.
 
 ```typescript
-import { JwksCache } from '@streetjs/core';
+import { JwksCache } from 'streetjs';
 
 const jwksCache = new JwksCache('https://accounts.google.com/.well-known/openid-configuration');
 const publicKey = await jwksCache.getKey(kid);

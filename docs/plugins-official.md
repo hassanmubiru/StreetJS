@@ -22,21 +22,21 @@ into `ctx.state` on load.
 ## Examples
 
 ```ts
-import { StripeClient } from '@streetjs/core';
+import { StripeClient } from 'streetjs';
 new StripeClient({ apiKey: 'sk_live_…' }).buildCreatePaymentIntent(2000, 'usd');
 // POST https://api.stripe.com/v1/payment_intents  body: amount=2000&currency=usd
 
-import { TwilioClient } from '@streetjs/core';
+import { TwilioClient } from 'streetjs';
 new TwilioClient({ accountSid: 'AC…', authToken: '…', defaultFrom: '+1555…' })
   .buildSendSmsRequest({ to: '+1555…', body: 'hi' });
 // POST .../Accounts/AC…/Messages.json  Authorization: Basic base64(sid:token)
 
-import { Auth0Client } from '@streetjs/core';
+import { Auth0Client } from 'streetjs';
 new Auth0Client({ domain: 'acme.auth0.com', clientId: 'c', clientSecret: 's', audience: 'https://api/' })
   .buildTokenRequest();
 // POST https://acme.auth0.com/oauth/token  grant_type=client_credentials
 
-import { R2Client } from '@streetjs/core';
+import { R2Client } from 'streetjs';
 new R2Client({ accountId: 'a', bucket: 'media', accessKeyId: 'AK', secretAccessKey: 'SK' })
   .signedObjectHeaders('GET', 'file.bin');
 // SigV4 against a.r2.cloudflarestorage.com (service s3, region auto)

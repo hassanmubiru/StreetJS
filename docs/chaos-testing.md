@@ -3,7 +3,7 @@
 Street ships a fault-injection toolkit for verifying resilience — retries,
 backoff, circuit breakers, and graceful degradation — under adverse conditions.
 Faults are **deterministic when seeded**, so chaos tests are reproducible.
-Dependency-free; exported from `@streetjs/core`.
+Dependency-free; exported from `streetjs`.
 
 ## `FaultInjector`
 
@@ -21,7 +21,7 @@ interface FaultPolicy {
 ```
 
 ```ts
-import { FaultInjector } from '@streetjs/core';
+import { FaultInjector } from 'streetjs';
 
 const fi = new FaultInjector({ failEvery: 3, latencyMs: 50 });
 await fi.run(() => doWork());        // every 3rd call throws; all calls delayed 50ms
@@ -37,7 +37,7 @@ Inject `503` responses (and latency) into a live server to exercise client
 retry/timeout behaviour:
 
 ```ts
-import { streetApp, chaosMiddleware } from '@streetjs/core';
+import { streetApp, chaosMiddleware } from 'streetjs';
 
 const app = streetApp({});
 app.use(chaosMiddleware({ errorRate: 0.2, latencyMs: 100 })); // 20% of requests → 503
@@ -49,7 +49,7 @@ app.use(chaosMiddleware({ errorRate: 0.2, latencyMs: 100 })); // 20% of requests
 survived:
 
 ```ts
-import { retryWithBackoff } from '@streetjs/core';
+import { retryWithBackoff } from 'streetjs';
 
 const result = await retryWithBackoff(() => callFlakyService(), {
   retries: 5, baseDelayMs: 50, maxDelayMs: 2000,

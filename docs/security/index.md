@@ -22,7 +22,7 @@ Street includes a complete security layer built on `node:crypto`. No third-party
 ## JWT authentication
 
 ```typescript
-import { JwtService, container } from '@streetjs/core';
+import { JwtService, container } from 'streetjs';
 
 const jwt = new JwtService(process.env['JWT_SECRET']!);
 container.register(JwtService, jwt);
@@ -37,7 +37,7 @@ const payload = jwt.verify(token) as { userId: string; roles: string[] };
 Auth middleware:
 
 ```typescript
-import { authMiddleware, requireRoles } from '@streetjs/core';
+import { authMiddleware, requireRoles } from 'streetjs';
 
 // Require valid JWT on all routes
 app.use(authMiddleware);
@@ -49,8 +49,8 @@ app.use(requireRoles('admin'));
 Or per-controller:
 
 ```typescript
-import { UnauthorizedException, container, JwtService } from '@streetjs/core';
-import type { StreetContext } from '@streetjs/core';
+import { UnauthorizedException, container, JwtService } from 'streetjs';
+import type { StreetContext } from 'streetjs';
 
 async function authenticate(ctx: StreetContext, next: () => Promise<void>) {
   const auth = ctx.headers['authorization'];
@@ -67,7 +67,7 @@ async function authenticate(ctx: StreetContext, next: () => Promise<void>) {
 ## Sessions (AES-256-GCM)
 
 ```typescript
-import { SessionManager, container } from '@streetjs/core';
+import { SessionManager, container } from 'streetjs';
 
 const sessions = new SessionManager(process.env['SESSION_KEY']!);
 container.register(SessionManager, sessions);
@@ -100,7 +100,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 Sliding-window rate limiter with BigInt nanosecond precision:
 
 ```typescript
-import { RateLimiter } from '@streetjs/core';
+import { RateLimiter } from 'streetjs';
 
 const limiter = new RateLimiter({
   windowMs:    60_000,   // 1-minute window
@@ -120,7 +120,7 @@ The limiter tracks up to 100K IPs and 1K timestamps per IP. Stale entries are sw
 ## XSS sanitization
 
 ```typescript
-import { xssMiddleware, sanitizeDeep, sanitizeString } from '@streetjs/core';
+import { xssMiddleware, sanitizeDeep, sanitizeString } from 'streetjs';
 
 // Global middleware — sanitizes all request bodies
 app.use(xssMiddleware);
@@ -141,7 +141,7 @@ const cleanObj = sanitizeDeep({
 ## Security headers
 
 ```typescript
-import { securityHeaders } from '@streetjs/core';
+import { securityHeaders } from 'streetjs';
 
 app.use(securityHeaders);
 ```
@@ -159,7 +159,7 @@ Sets:
 ## CORS
 
 ```typescript
-import { corsMiddleware } from '@streetjs/core';
+import { corsMiddleware } from 'streetjs';
 
 // Allow specific origins
 app.use(corsMiddleware(['https://app.example.com', 'https://admin.example.com']));
@@ -175,7 +175,7 @@ app.use(corsMiddleware(['*']));
 For encrypting secrets at rest (e.g. database passwords in config files):
 
 ```typescript
-import { encryptSecret, decryptSecret, loadConfig } from '@streetjs/core';
+import { encryptSecret, decryptSecret, loadConfig } from 'streetjs';
 
 // Encrypt a secret with a Key Encryption Key
 const encrypted = await encryptSecret('my-db-password', process.env['KEK']!);

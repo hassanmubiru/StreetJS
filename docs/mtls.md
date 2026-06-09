@@ -11,7 +11,7 @@ common deployment needs:
 3. **Common-Name allow-listing** — restrict access to an explicit set of subject
    CNs (e.g. service identities in a mesh).
 
-All helpers are exported from `@streetjs/core`.
+All helpers are exported from `streetjs`.
 
 ## API
 
@@ -43,7 +43,7 @@ TLS chain must be CA-authorized (`TLSSocket.authorized === true`).
 
 ```ts
 import { readFileSync } from 'node:fs';
-import { createMutualTlsServer, clientCertMiddleware } from '@streetjs/core';
+import { createMutualTlsServer, clientCertMiddleware } from 'streetjs';
 
 const server = createMutualTlsServer(
   {
@@ -89,7 +89,7 @@ const server = createMutualTlsServer(
 ## Computing a pin
 
 ```ts
-import { certificateFingerprint } from '@streetjs/core';
+import { certificateFingerprint } from 'streetjs';
 // der: the raw DER bytes of the peer certificate (e.g. cert.raw)
 const pin = certificateFingerprint(der); // 64-char lowercase hex
 ```
@@ -103,7 +103,7 @@ It supports incremental add/remove and atomic `rotate()` so trust material can b
 rolled without dropping the old set prematurely.
 
 ```ts
-import { TrustStore } from '@streetjs/core';
+import { TrustStore } from 'streetjs';
 
 const trust = new TrustStore({ ca: [readFileSync('ca.crt')], pins: ['AA:BB:...'] });
 trust.addCa(readFileSync('ca-next.crt'));      // dual-trust during rollover
@@ -126,7 +126,7 @@ listener**. Existing connections keep their context; new handshakes use the new
 material.
 
 ```ts
-import { rotateServerCertificate } from '@streetjs/core';
+import { rotateServerCertificate } from 'streetjs';
 
 // e.g. on a SIGHUP or a cert-manager renewal hook:
 rotateServerCertificate(server, {

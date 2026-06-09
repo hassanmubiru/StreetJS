@@ -4,7 +4,7 @@
 can adopt API changes mechanically instead of by hand. It is **dry-run by
 default** (it shows what would change) and only writes when you pass `--write`.
 
-The codemod engine lives in `@streetjs/core` (`applyCodemods`, `listCodemods`),
+The codemod engine lives in `streetjs` (`applyCodemods`, `listCodemods`),
 so codemods are unit-testable and reusable outside the CLI.
 
 ## Usage
@@ -49,7 +49,7 @@ untouched, and the change count is reported per file and per codemod.
 ## Programmatic API
 
 ```ts
-import { applyCodemods, listCodemods } from '@streetjs/core';
+import { applyCodemods, listCodemods } from 'streetjs';
 
 const { code, totalChanges, perCodemod } = applyCodemods(source);          // all built-ins
 const onlyOne = applyCodemods(source, ['rename-rabbitmq-transport']);       // selected

@@ -49,7 +49,7 @@ Street's `WebAuthnService` implements the [WebAuthn Level 2](https://www.w3.org/
 ### 1. Run the migration
 
 ```typescript
-import { WEBAUTHN_MIGRATION_SQL } from '@streetjs/core';
+import { WEBAUTHN_MIGRATION_SQL } from 'streetjs';
 
 await pool.query(WEBAUTHN_MIGRATION_SQL);
 ```
@@ -59,7 +59,7 @@ await pool.query(WEBAUTHN_MIGRATION_SQL);
 `WebAuthnService` requires a `WebAuthnSession` — any object with `getChallenge`, `setChallenge`, and `clearChallenge`. You can use `SessionManager` or a custom store:
 
 ```typescript
-import { SessionManager } from '@streetjs/core';
+import { SessionManager } from 'streetjs';
 
 const sessions = new SessionManager({ secret: process.env.SESSION_KEY! });
 
@@ -81,7 +81,7 @@ const webAuthnSession = {
 ### 3. Create the service
 
 ```typescript
-import { WebAuthnService } from '@streetjs/core';
+import { WebAuthnService } from 'streetjs';
 
 const webAuthn = new WebAuthnService(
   {

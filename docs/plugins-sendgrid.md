@@ -8,7 +8,7 @@ verified offline; the network send is a thin wrapper.
 ## Manifest
 
 ```ts
-import { sendGridPluginManifest } from '@streetjs/core';
+import { sendGridPluginManifest } from 'streetjs';
 sendGridPluginManifest();
 // { name: 'street-plugin-sendgrid', version: '1.0.0',
 //   capabilities: ['email','notifications','sendgrid'],
@@ -29,7 +29,7 @@ interface SendGridPluginConfig {
 
 ```ts
 import { generateKeyPairSync } from 'node:crypto';
-import { PluginHost, signManifest, SendGridPlugin, sendGridPluginManifest } from '@streetjs/core';
+import { PluginHost, signManifest, SendGridPlugin, sendGridPluginManifest } from 'streetjs';
 
 const { publicKey, privateKey } = generateKeyPairSync('ed25519');
 const host = new PluginHost({ grantedPermissions: ['net','secrets','middleware'], publicKey });
@@ -53,7 +53,7 @@ await mail.send({ to: 'user@acme.com', subject: 'Welcome', html: '<h1>Hi</h1>' }
 ## Offline-verifiable request building
 
 ```ts
-import { SendGridClient } from '@streetjs/core';
+import { SendGridClient } from 'streetjs';
 const req = new SendGridClient({ apiKey: 'SG.x', defaultFrom: 'a@b.com' })
   .buildMailSendRequest({ to: 'u@b.com', subject: 'Hi', text: 'hello' });
 // req.url === 'https://api.sendgrid.com/v3/mail/send'

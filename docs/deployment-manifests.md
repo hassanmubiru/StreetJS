@@ -9,7 +9,7 @@ assert a live deployment (that runs in CI against a real cluster).
 ## Generate
 
 ```ts
-import { generateManifest, validateDeploymentManifest } from '@streetjs/core';
+import { generateManifest, validateDeploymentManifest } from 'streetjs';
 
 const manifest = generateManifest('kubernetes', {
   name: 'street-app', image: 'registry/street-app:1.0.0', port: 8080,

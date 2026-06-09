@@ -245,7 +245,7 @@ API Gateway / Load Balancer
 ```typescript
 // Minimal microservice — ~30 lines
 import { streetApp, PgPool, TelemetryTracker,
-         securityHeaders, RateLimiter } from '@streetjs/core';
+         securityHeaders, RateLimiter } from 'streetjs';
 
 const pool = new PgPool({ host: process.env['PG_HOST']!, /* ... */ });
 const telemetry = new TelemetryTracker();

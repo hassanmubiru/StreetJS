@@ -6,7 +6,7 @@ integrity verification, capability/permission metadata, dependency and version
 resolution, lifecycle orchestration, and discovery. The network install flow
 (fetch + extract from a registry) lives separately in `PluginInstaller`.
 
-All symbols are exported from `@streetjs/core`.
+All symbols are exported from `streetjs`.
 
 ## Concepts
 
@@ -34,7 +34,7 @@ checksum. Verification is offline and constant against tampering.
 
 ```ts
 import { generateKeyPairSync } from 'node:crypto';
-import { signManifest, verifyManifest } from '@streetjs/core';
+import { signManifest, verifyManifest } from 'streetjs';
 
 const { publicKey, privateKey } = generateKeyPairSync('ed25519');
 const signed = signManifest({ name: 'pay', version: '1.0.0', capabilities: ['payments'] }, privateKey);
@@ -49,7 +49,7 @@ verifyManifest({ ...signed, capabilities: ['payments', 'evil'] }, publicKey); //
 public key is configured, registration requires a valid signature.
 
 ```ts
-import { PluginHost, PluginModule } from '@streetjs/core';
+import { PluginHost, PluginModule } from 'streetjs';
 
 class StripePlugin extends PluginModule {
   readonly name = 'stripe';

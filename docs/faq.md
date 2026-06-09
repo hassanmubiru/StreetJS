@@ -61,12 +61,12 @@ And import it as the **first line** of your entry point:
 
 ```typescript
 import 'reflect-metadata';  // must be first
-import { streetApp } from '@streetjs/core';
+import { streetApp } from 'streetjs';
 ```
 
 ### Can I use Street without the CLI?
 
-Yes. Install `@streetjs/core` directly and set up your project manually. The CLI (`@streetjs/cli`) is optional tooling.
+Yes. Install `streetjs` directly and set up your project manually. The CLI (`@streetjs/cli`) is optional tooling.
 
 ---
 
@@ -186,7 +186,7 @@ Every component has explicit bounds:
 Yes. Use `ClusterCoordinator` to spawn worker processes:
 
 ```typescript
-import { ClusterCoordinator } from '@streetjs/core';
+import { ClusterCoordinator } from 'streetjs';
 
 const coordinator = new ClusterCoordinator({ workers: 4 });
 coordinator.start(() => bootstrap());

@@ -24,14 +24,14 @@ Complete step-by-step instructions for publishing the street framework as an npm
 
 ### Step 1: Choose your package name
 
-The `package.json` uses `@streetjs/core` (a scoped package). Scoped packages require either:
+The `package.json` uses `streetjs` (a scoped package). Scoped packages require either:
 - A free npm organisation (`@streetjs`) — create at npmjs.com/org/create
 - Or use an unscoped name like `street-framework`
 
 Check availability:
 
 ```bash
-npm view @streetjs/core          # If this 404s, the name is free
+npm view streetjs          # If this 404s, the name is free
 npm view street-framework        # Check unscoped alternative
 ```
 
@@ -52,7 +52,7 @@ To change the name, edit `package.json`:
    - **Token name**: `github-actions-street`
    - **Expiration**: 365 days (or no expiry)
    - **Packages and scopes**: Read and write
-   - **Selected packages**: `@streetjs/core` (or your chosen name)
+   - **Selected packages**: `streetjs` (or your chosen name)
 5. Copy the token — you will not see it again
 
 ---
@@ -102,14 +102,14 @@ If you used a scoped name and it fails with "402 Payment Required", add `--acces
 ### Step 5: Verify the publish
 
 ```bash
-npm view @streetjs/core
+npm view streetjs
 # Should show version, description, exports etc.
 
 # Test install in a temporary directory
 mkdir /tmp/test-street && cd /tmp/test-street
 npm init -y
-npm install @streetjs/core
-node -e "import('@streetjs/core').then(m => console.log(Object.keys(m)))"
+npm install streetjs
+node -e "import('streetjs').then(m => console.log(Object.keys(m)))"
 ```
 
 ---
@@ -145,7 +145,7 @@ The job will:
 1. Go to the **Actions** tab in GitHub → select the `CI/CD` workflow run
 2. Find the `test-and-publish` job (only runs on tag pushes)
 3. Watch each step complete
-4. Check https://www.npmjs.com/package/@streetjs/core for the new version
+4. Check https://www.npmjs.com/package/streetjs for the new version
 
 ---
 
@@ -324,8 +324,8 @@ Since the CI/CD workflow is consolidated into a single `ci-cd.yml` file, a simpl
 After publishing, add live badges to `README.md`:
 
 ```markdown
-[![npm version](https://img.shields.io/npm/v/@streetjs/core.svg)](https://www.npmjs.com/package/@streetjs/core)
-[![npm downloads](https://img.shields.io/npm/dm/@streetjs/core.svg)](https://www.npmjs.com/package/@streetjs/core)
+[![npm version](https://img.shields.io/npm/v/streetjs.svg)](https://www.npmjs.com/package/streetjs)
+[![npm downloads](https://img.shields.io/npm/dm/streetjs.svg)](https://www.npmjs.com/package/streetjs)
 [![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://hassanmubiru.github.io/street)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 ```
@@ -336,7 +336,7 @@ After publishing, add live badges to `README.md`:
 
 ### Before first npm publish
 
-- [ ] `npm view @streetjs/core` returns 404 (name is available)
+- [ ] `npm view streetjs` returns 404 (name is available)
 - [ ] `NPM_TOKEN` secret added to GitHub repository
 - [ ] `CI_SESSION_KEY` secret added to GitHub repository
 - [ ] `package.json` `name`, `homepage`, `repository.url` updated to real values
@@ -353,6 +353,6 @@ After publishing, add live badges to `README.md`:
 ### After go-live
 
 - [ ] `https://YOUR-USERNAME.github.io/street` loads and all nav links work
-- [ ] `https://www.npmjs.com/package/@streetjs/core` shows correct metadata
-- [ ] `npm install @streetjs/core` in a test project resolves correctly
-- [ ] TypeScript `import { streetApp } from '@streetjs/core'` resolves types correctly
+- [ ] `https://www.npmjs.com/package/streetjs` shows correct metadata
+- [ ] `npm install streetjs` in a test project resolves correctly
+- [ ] TypeScript `import { streetApp } from 'streetjs'` resolves types correctly

@@ -52,8 +52,8 @@ CREATE INDEX items_created_at_idx ON items (created_at DESC);
 
 ```typescript
 // src/repositories/items.repository.ts
-import { Injectable, container, PgPool } from '@streetjs/core';
-import type { PgRow } from '@streetjs/core';
+import { Injectable, container, PgPool } from 'streetjs';
+import type { PgRow } from 'streetjs';
 
 export interface Item {
   id: string;
@@ -130,7 +130,7 @@ export class ItemRepository {
 
 ```typescript
 // src/services/items.service.ts
-import { Injectable, NotFoundException, BadRequestException } from '@streetjs/core';
+import { Injectable, NotFoundException, BadRequestException } from 'streetjs';
 import { ItemRepository } from '../repositories/items.repository.js';
 import type { Item } from '../repositories/items.repository.js';
 
@@ -189,8 +189,8 @@ export class ItemService {
 import {
   Controller, Get, Post, Put, Delete,
   ApiOperation, container,
-} from '@streetjs/core';
-import type { StreetContext } from '@streetjs/core';
+} from 'streetjs';
+import type { StreetContext } from 'streetjs';
 import { ItemService } from '../services/items.service.js';
 import type { CreateItemInput, UpdateItemInput } from '../services/items.service.js';
 
@@ -246,7 +246,7 @@ import {
   streetApp, PgPool, StreetMigrationRunner, container,
   securityHeaders, corsMiddleware, xssMiddleware,
   RateLimiter, TelemetryTracker, telemetryMiddleware,
-} from '@streetjs/core';
+} from 'streetjs';
 import { ItemController } from './controllers/items.controller.js';
 
 async function bootstrap() {
