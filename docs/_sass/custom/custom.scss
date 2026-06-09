@@ -344,3 +344,48 @@ body:has(.home), .main:has(.home) { background-color: var(--bg) !important; }
 .st-card:hover { border-color: var(--accent-line); transform: translateY(-3px); box-shadow: var(--shadow-md); }
 .st-card .st-card-t { font-weight: 700 !important; color: var(--text-primary) !important; margin: 0 0 .3rem !important; font-size: .98rem !important; }
 .st-card .st-card-d { color: var(--text-muted) !important; margin: 0 !important; font-size: .85rem !important; line-height: 1.55 !important; }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DATA VIZ — metric cards, bar charts, score badge, checklists (theme-aware)
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Metric cards
+.st-metrics { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:.85rem; margin:1.5rem 0; }
+.st-metric { background:var(--elevated); border:1px solid var(--border); border-radius:14px; padding:1.25rem 1.35rem; box-shadow:var(--shadow-sm); }
+.st-metric .m-val { font-family:'JetBrains Mono',monospace; font-size:1.7rem; font-weight:700; color:var(--text-primary); line-height:1.05; display:block; }
+.st-metric .m-val .m-u { font-size:.9rem; color:var(--accent); font-weight:600; }
+.st-metric .m-lbl { font-size:.74rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:.08em; font-weight:600; margin-top:.45rem; display:block; }
+.st-metric .m-sub { font-size:.78rem; color:var(--text-muted); margin-top:.3rem; display:block; }
+.st-metric.is-accent { border-color:var(--accent-line); background:var(--accent-soft); }
+
+// Horizontal bar chart
+.st-chart { margin:1.5rem 0; border:1px solid var(--border); border-radius:14px; padding:1.4rem 1.5rem; background:var(--elevated); box-shadow:var(--shadow-sm); }
+.st-chart-title { font-size:.74rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--text-muted); margin:0 0 1.1rem; }
+.st-bar-row { display:grid; grid-template-columns:96px 1fr auto; align-items:center; gap:.9rem; margin:.55rem 0; }
+.st-bar-name { font-size:.85rem; font-weight:600; color:var(--text-secondary); white-space:nowrap; }
+.st-bar-track { height:12px; background:var(--surface-2); border-radius:100px; overflow:hidden; }
+.st-bar-fill { height:100%; width:var(--w,50%); border-radius:100px; background:var(--border-strong); transition:width .6s cubic-bezier(.4,0,.2,1); }
+.st-bar-val { font-family:'JetBrains Mono',monospace; font-size:.82rem; font-weight:600; color:var(--text-muted); white-space:nowrap; min-width:64px; text-align:right; }
+.st-bar-row.is-me .st-bar-name { color:var(--accent); }
+.st-bar-row.is-me .st-bar-fill { background:linear-gradient(90deg,var(--accent),var(--accent-hover)); }
+.st-bar-row.is-me .st-bar-val { color:var(--text-primary); }
+@media(max-width:560px){ .st-bar-row{ grid-template-columns:76px 1fr; } .st-bar-val{ grid-column:2; text-align:left; min-width:0; } }
+
+// Score badge
+.st-score { display:flex; align-items:center; gap:1.4rem; flex-wrap:wrap; background:var(--elevated); border:1px solid var(--border); border-radius:16px; padding:1.6rem 1.8rem; margin:1.5rem 0; box-shadow:var(--shadow-sm); }
+.st-score-ring { --p:85; flex-shrink:0; width:96px; height:96px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  background:conic-gradient(var(--accent) calc(var(--p)*1%), var(--surface-2) 0); }
+.st-score-ring span { width:74px; height:74px; border-radius:50%; background:var(--elevated); display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.st-score-ring b { font-family:'JetBrains Mono',monospace; font-size:1.5rem; font-weight:700; color:var(--text-primary); line-height:1; }
+.st-score-ring small { font-size:.62rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:.08em; }
+.st-score-meta h3 { margin:0 0 .3rem !important; font-size:1.2rem !important; color:var(--text-primary) !important; }
+.st-score-meta .st-status { display:inline-flex; align-items:center; gap:.4rem; font-size:.78rem; font-weight:700; color:var(--success); background:var(--success-soft); border:1px solid var(--success-line); border-radius:100px; padding:.25rem .7rem; }
+.st-score-meta p { margin:.5rem 0 0 !important; color:var(--text-muted) !important; font-size:.88rem !important; }
+
+// Checklists
+.st-check, .st-remain { list-style:none !important; margin:1.25rem 0 !important; padding:0 !important; display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:.5rem .9rem; }
+.st-check li, .st-remain li { display:flex; align-items:flex-start; gap:.6rem; font-size:.9rem; color:var(--text-secondary) !important; margin:0 !important; line-height:1.5; }
+.st-check li::before { content:''; flex-shrink:0; width:18px; height:18px; margin-top:1px; border-radius:50%; background:var(--success-soft);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23047857' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E"); background-size:13px; background-repeat:no-repeat; background-position:center; }
+html[data-theme="dark"] .st-check li::before { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2334D399' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E"); }
+.st-remain li::before { content:''; flex-shrink:0; width:18px; height:18px; margin-top:1px; border-radius:50%; border:2px dashed var(--border-strong); box-sizing:border-box; }
