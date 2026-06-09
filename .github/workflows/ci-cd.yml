@@ -637,17 +637,24 @@ jobs:
         run: |
           TAG_VERSION="${GITHUB_REF_NAME#v}"
           CORE_VERSION=$(node -p "require('./packages/core/package.json').version")
+          COMPAT_VERSION=$(node -p "require('./packages/core-compat/package.json').version")
           CLI_VERSION=$(node -p "require('./packages/cli/package.json').version")
 
+          # packages/core is the renamed primary package `streetjs`.
           if [ "$TAG_VERSION" != "$CORE_VERSION" ]; then
-            echo "::error::Tag version ($TAG_VERSION) does not match packages/core/package.json ($CORE_VERSION)"
+            echo "::error::Tag version ($TAG_VERSION) does not match streetjs (packages/core/package.json: $CORE_VERSION)"
+            exit 1
+          fi
+          # packages/core-compat is the @streetjs/core backward-compat shim.
+          if [ "$TAG_VERSION" != "$COMPAT_VERSION" ]; then
+            echo "::error::Tag version ($TAG_VERSION) does not match @streetjs/core (packages/core-compat/package.json: $COMPAT_VERSION)"
             exit 1
           fi
           if [ "$TAG_VERSION" != "$CLI_VERSION" ]; then
             echo "::error::Tag version ($TAG_VERSION) does not match packages/cli/package.json ($CLI_VERSION)"
             exit 1
           fi
-          echo "Version match: $TAG_VERSION ✔"
+          echo "Version match: $TAG_VERSION ✔ (streetjs, @streetjs/core, @streetjs/cli)"
 
       - name: Build @streetjs/core
         run: npm run clean -w packages/core && npm run build -w packages/core
@@ -724,8 +731,13 @@ jobs:
       - name: Lint @streetjs/core
         run: npm run lint -w packages/core
 
-      - name: Publish @streetjs/core to npm
+      - name: Publish streetjs to npm
         run: npm publish -w packages/core --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish @streetjs/core (compat shim) to npm
+        run: npm publish -w packages/core-compat --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
