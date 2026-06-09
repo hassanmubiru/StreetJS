@@ -414,3 +414,66 @@ html[data-theme="dark"] .st-check li::before { background-image:url("data:image/
 .st-card .st-card-ic { flex-shrink:0; width:36px; height:36px; border-radius:9px; display:flex; align-items:center; justify-content:center; background:var(--accent-soft); border:1px solid var(--accent-line); color:var(--accent); }
 .st-card .st-card-ic svg { width:18px; height:18px; }
 .st-card:hover .st-card-ic { background:var(--accent); border-color:var(--accent); color:#fff; }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RESPONSIVE SYSTEM — fluid type, overflow guards, touch targets, tables
+// Breakpoints: xs 320 · sm 640 · md 768 · lg 1024 · xl 1280 · 2xl 1536
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ── Overflow guards: nothing forces the page wider than the viewport ───────────
+.main-content { overflow-wrap: break-word; word-break: normal; }
+.main-content p, .main-content li { overflow-wrap: anywhere; }
+.main-content pre, .main-content img, .main-content table, .main-content iframe { max-width: 100% !important; }
+.main-content img { height: auto !important; }
+
+// ── Fluid body typography (≈15px → 17px) ──────────────────────────────────────
+.main-content { font-size: clamp(0.95rem, 0.91rem + 0.22vw, 1.0625rem) !important; }
+// Offset sticky header when jumping to an anchor
+.main-content :is(h1,h2,h3,h4)[id] { scroll-margin-top: 5rem; }
+
+// ── Ultra-wide: cap reading line length, keep wide blocks full ─────────────────
+@media (min-width: 1600px) {
+  .main-content > p,
+  .main-content > ul:not([class]),
+  .main-content > ol:not([class]),
+  .main-content > blockquote { max-width: 76ch; }
+}
+
+// ── Touch targets ≥ 44px on touch/compact viewports ────────────────────────────
+@media (max-width: 66.5rem) {
+  .nav-list-item .nav-list-link { min-height: 44px; display: flex !important; align-items: center; }
+  .aux-nav-list-item a { min-height: 38px; display: inline-flex; align-items: center; }
+}
+.theme-toggle { width: 44px; height: 44px; }
+.copy-code-button { min-height: 30px; }
+.btn, a.btn, .home .btn, .home .cl { min-height: 44px; }
+
+// ── Responsive tables: horizontal scroll on small screens (card-ish fallback) ──
+@media (max-width: 40rem) {
+  .main-content table { display: block; width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .main-content thead th, .main-content tbody td { white-space: nowrap; }
+  .main-content table { box-shadow: inset -12px 0 12px -12px rgba(15,23,42,.18); }
+}
+
+// ── Code blocks stay readable, never clip ──────────────────────────────────────
+pre.highlight { -webkit-overflow-scrolling: touch; }
+@media (max-width: 30rem) {
+  pre.highlight code { font-size: .8rem !important; }
+  .home .term-body, .home .codewin pre.highlight { font-size: .78rem !important; }
+}
+
+// ── Home: tighten very small phones (320px) ─────────────────────────────────────
+@media (max-width: 26rem) {
+  .home .hero h1 { font-size: 1.95rem; }
+  .home .btns .btn { width: 100%; justify-content: center; }
+  .home .band { padding: 1.75rem 1rem; }
+  .home .stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+// ── Data-viz responsiveness ────────────────────────────────────────────────────
+@media (max-width: 30rem) {
+  .st-metric .m-val { font-size: 1.4rem; }
+  .st-score { gap: 1rem; padding: 1.25rem; }
+  .st-score-ring { width: 78px; height: 78px; }
+  .st-score-ring span { width: 60px; height: 60px; }
+}
