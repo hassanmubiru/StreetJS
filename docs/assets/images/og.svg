@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0B1120"/>
+      <stop offset="1" stop-color="#0F1B33"/>
+    </linearGradient>
+    <linearGradient id="logo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#60A5FA"/>
+      <stop offset="1" stop-color="#2563EB"/>
+    </linearGradient>
+    <linearGradient id="title" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#93C5FD"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <!-- subtle grid -->
+  <g fill="#1E293B" opacity="0.5">
+    <rect x="0" y="0" width="1200" height="1"/>
+  </g>
+  <g opacity="0.10" stroke="#3B82F6" stroke-width="1">
+    <path d="M0 90H1200M0 180H1200M0 270H1200M0 360H1200M0 450H1200M0 540H1200"/>
+    <path d="M120 0V630M240 0V630M360 0V630M480 0V630M600 0V630M720 0V630M840 0V630M960 0V630M1080 0V630"/>
+  </g>
+  <!-- logo mark -->
+  <rect x="90" y="96" width="104" height="104" rx="24" fill="url(#logo)"/>
+  <path d="M158 132c0-7-6-11-15-11s-16 4-16 12c0 17 33 8 33 26 0 7-8 12-18 12s-18-5-19-12"
+        fill="none" stroke="#fff" stroke-width="8.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="214" y="178" font-family="Helvetica, Arial, sans-serif" font-size="58" font-weight="700" fill="#fff" letter-spacing="-1">StreetJS</text>
+  <!-- headline -->
+  <text x="92" y="330" font-family="Helvetica, Arial, sans-serif" font-size="80" font-weight="800" fill="url(#title)" letter-spacing="-2">TypeScript backends,</text>
+  <text x="92" y="425" font-family="Helvetica, Arial, sans-serif" font-size="80" font-weight="800" fill="url(#title)" letter-spacing="-2">without the bloat.</text>
+  <!-- subline -->
+  <text x="94" y="492" font-family="Helvetica, Arial, sans-serif" font-size="32" fill="#9FB0C3">Native PostgreSQL · JWT · WebSockets · Kafka · RabbitMQ · 2 dependencies</text>
+  <!-- install pill -->
+  <rect x="92" y="528" width="430" height="58" rx="12" fill="#0B1120" stroke="#243049" stroke-width="1.5"/>
+  <text x="116" y="566" font-family="Menlo, Consolas, monospace" font-size="28" fill="#7EE787">$ npm install streetjs</text>
+</svg>
