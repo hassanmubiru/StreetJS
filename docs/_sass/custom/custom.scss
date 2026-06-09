@@ -1,33 +1,116 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// STREET FRAMEWORK — DOCS DESIGN SYSTEM (light, high-contrast, professional)
-// Page: #FFFFFF · Text: #334155 / headings #0F172A · Accent: #2563EB
-// Code blocks: dark (#0D1117) for contrast, GitHub-dark syntax palette
+// STREET FRAMEWORK — DOCS DESIGN SYSTEM  (light + dark, WCAG-AA)
+// Variable-driven: :root = light, html[data-theme="dark"] = dark.
+// Toggle lives in _includes/head_custom.html.
 // ═══════════════════════════════════════════════════════════════════════════
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
-// ── Palette ──────────────────────────────────────────────────────────────────
-$bg:            #FFFFFF;
-$surface:       #F8FAFC;   // sidebar / subtle panels
-$surface-2:     #F1F5F9;   // hover
-$border:        #E2E8F0;
-$border-strong: #CBD5E1;
-$heading:       #0F172A;   // slate-900
-$body:          #334155;   // slate-700  (strong contrast on white)
-$muted:         #64748B;   // slate-500
-$faint:         #94A3B8;   // slate-400
-$accent:        #2563EB;   // blue-600
-$accent-hover:  #1D4ED8;   // blue-700
-$accent-soft:   #EFF6FF;   // blue-50
-$accent-line:   #BFDBFE;   // blue-200
-$code-bg:       #0D1117;   // dark code panel
-$code-text:     #E6EDF3;
+// ── Design tokens ──────────────────────────────────────────────────────────
+:root {
+  --canvas:        #EEF2F8;   // page behind the article card
+  --bg:            #FFFFFF;   // base
+  --surface:       #F8FAFC;   // sidebar / subtle panels
+  --surface-2:     #F1F5F9;   // hover
+  --elevated:      #FFFFFF;   // cards
+  --border:        #E2E8F0;
+  --border-strong: #CBD5E1;
+
+  --text-primary:  #0F172A;   // headings (16.9:1 on white — AAA)
+  --text-secondary:#334155;   // body (10.4:1 — AAA)
+  --text-muted:    #64748B;   // captions (4.9:1 — AA)
+
+  --accent:        #2563EB;   // blue-600 (4.6:1 on white — AA)
+  --accent-hover:  #1D4ED8;
+  --accent-soft:   #EFF6FF;
+  --accent-line:   #BFDBFE;
+
+  --success:       #047857;
+  --warning:       #B45309;
+  --danger:        #DC2626;
+  --info:          #2563EB;
+  --success-soft:  #ECFDF5;  --success-line:#A7F3D0;
+  --warning-soft:  #FFFBEB;  --warning-line:#FDE68A;
+  --danger-soft:   #FEF2F2;  --danger-line: #FECACA;
+
+  // Code surfaces — LIGHT mode = light code blocks (per spec)
+  --code-bg:       #FBFCFE;
+  --code-text:     #111827;
+  --code-border:   #E2E8F0;
+  --code-header:   #F1F5F9;
+  --code-shadow:   0 1px 2px rgba(15,23,42,.05), 0 8px 24px -16px rgba(15,23,42,.18);
+
+  // Syntax palette — LIGHT (the exact values requested, all ≥ AA on --code-bg)
+  --syn-comment:   #6B7280;
+  --syn-string:    #047857;
+  --syn-keyword:   #2563EB;
+  --syn-function:  #7C3AED;
+  --syn-number:    #DC2626;
+  --syn-type:      #0891B2;
+  --syn-prop:      #1F2937;
+  --syn-command:   #EA580C;
+
+  --shadow-sm: 0 1px 2px rgba(15,23,42,.05);
+  --shadow-md: 0 1px 3px rgba(15,23,42,.06), 0 8px 24px -16px rgba(15,23,42,.18);
+  --shadow-lg: 0 24px 50px -24px rgba(15,23,42,.40);
+}
+
+html[data-theme="dark"] {
+  --canvas:        #060A12;
+  --bg:            #0F172A;
+  --surface:       #111A2E;
+  --surface-2:     #16213A;
+  --elevated:      #131D33;
+  --border:        #243049;
+  --border-strong: #33415C;
+
+  --text-primary:  #F8FAFC;   // (15.8:1 on --bg — AAA)
+  --text-secondary:#CBD5E1;   // (10.6:1 — AAA)
+  --text-muted:    #94A3B8;   // (5.9:1 — AA)
+
+  --accent:        #60A5FA;   // lighter blue for dark bg (7.0:1 — AAA)
+  --accent-hover:  #93C5FD;
+  --accent-soft:   rgba(96,165,250,.12);
+  --accent-line:   rgba(96,165,250,.30);
+
+  --success:       #34D399;
+  --warning:       #FBBF24;
+  --danger:        #F87171;
+  --info:          #60A5FA;
+  --success-soft:  rgba(52,211,153,.10); --success-line:rgba(52,211,153,.30);
+  --warning-soft:  rgba(251,191,36,.10); --warning-line:rgba(251,191,36,.30);
+  --danger-soft:   rgba(248,113,113,.10);--danger-line: rgba(248,113,113,.30);
+
+  // Code surfaces — DARK mode (per spec: #0f172a / #f8fafc)
+  --code-bg:       #0B1120;
+  --code-text:     #F8FAFC;
+  --code-border:   #243049;
+  --code-header:   #111A2E;
+  --code-shadow:   0 1px 2px rgba(0,0,0,.4), 0 10px 30px -16px rgba(0,0,0,.7);
+
+  // Syntax palette — DARK (brightened so each clears AA on #0B1120)
+  --syn-comment:   #8B98AC;
+  --syn-string:    #6EE7B7;
+  --syn-keyword:   #93C5FD;
+  --syn-function:  #C4B5FD;
+  --syn-number:    #FCA5A5;
+  --syn-type:      #67E8F9;
+  --syn-prop:      #E2E8F0;
+  --syn-command:   #FDBA74;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
+  --shadow-md: 0 1px 3px rgba(0,0,0,.4), 0 10px 30px -18px rgba(0,0,0,.7);
+  --shadow-lg: 0 24px 50px -24px rgba(0,0,0,.8);
+}
+
+html { color-scheme: light; }
+html[data-theme="dark"] { color-scheme: dark; }
 
 // ── Global ───────────────────────────────────────────────────────────────────
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
-  background-color: $bg !important;
-  color: $body !important;
+  background-color: var(--canvas) !important;
+  color: var(--text-secondary) !important;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-size: 15px;
@@ -35,342 +118,229 @@ body {
 
 // ── Header ───────────────────────────────────────────────────────────────────
 .site-header {
-  background-color: rgba(255,255,255,0.85) !important;
-  border-bottom: 1px solid $border !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
+  background-color: var(--bg) !important;
+  border-bottom: 1px solid var(--border) !important;
 }
 .site-title {
-  font-family: 'Inter', sans-serif !important;
-  font-weight: 700 !important;
-  font-size: 1rem !important;
-  letter-spacing: -0.02em !important;
-  color: $heading !important;
-  &:hover { color: $accent !important; text-decoration: none !important; }
+  font-family: 'Inter', sans-serif !important; font-weight: 700 !important;
+  font-size: 1rem !important; letter-spacing: -0.02em !important; color: var(--text-primary) !important;
+  &:hover { color: var(--accent) !important; text-decoration: none !important; }
 }
 .aux-nav-list-item a {
-  font-size: 0.8rem !important;
-  font-weight: 600 !important;
-  color: $muted !important;
-  border: 1px solid $border !important;
-  border-radius: 7px !important;
-  padding: 0.3rem 0.7rem !important;
+  font-size: 0.8rem !important; font-weight: 600 !important; color: var(--text-muted) !important;
+  border: 1px solid var(--border) !important; border-radius: 7px !important; padding: 0.3rem 0.7rem !important;
   transition: all 0.15s ease !important;
-  &:hover { color: $accent !important; border-color: $accent-line !important; background: $accent-soft !important; }
+  &:hover { color: var(--accent) !important; border-color: var(--accent-line) !important; background: var(--accent-soft) !important; }
 }
 
 // ── Sidebar / nav ────────────────────────────────────────────────────────────
-.side-bar { background-color: $surface !important; border-right: 1px solid $border !important; }
+.side-bar { background-color: var(--surface) !important; border-right: 1px solid var(--border) !important; }
 .site-nav { background: transparent !important; }
 .nav-list-item .nav-list-link {
-  font-size: 0.85rem !important;
-  font-weight: 500 !important;
-  color: $muted !important;
-  border-radius: 7px !important;
-  transition: all 0.13s ease !important;
-  &:hover { color: $heading !important; background: $surface-2 !important; }
-  &.active {
-    color: $accent !important;
-    font-weight: 600 !important;
-    background: $accent-soft !important;
-  }
+  font-size: 0.85rem !important; font-weight: 500 !important; color: var(--text-muted) !important;
+  border-radius: 7px !important; transition: all 0.13s ease !important;
+  &:hover { color: var(--text-primary) !important; background: var(--surface-2) !important; }
+  &.active { color: var(--accent) !important; font-weight: 600 !important; background: var(--accent-soft) !important; }
 }
 .nav-category {
-  color: $faint !important;
-  font-size: 0.7rem !important;
-  font-weight: 700 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.09em !important;
-  border-bottom: 1px solid $border !important;
+  color: var(--text-muted) !important; font-size: 0.7rem !important; font-weight: 700 !important;
+  text-transform: uppercase !important; letter-spacing: 0.09em !important; border-bottom: 1px solid var(--border) !important;
 }
 
 // ── Search ───────────────────────────────────────────────────────────────────
 .search-input {
-  font-family: 'Inter', sans-serif !important;
-  background: $bg !important;
-  border: 1px solid $border !important;
-  color: $heading !important;
-  border-radius: 9px !important;
-  &:focus { border-color: $accent !important; box-shadow: 0 0 0 3px rgba(37,99,235,0.12) !important; outline: none !important; }
-  &::placeholder { color: $faint !important; }
+  font-family: 'Inter', sans-serif !important; background: var(--bg) !important;
+  border: 1px solid var(--border) !important; color: var(--text-primary) !important; border-radius: 9px !important;
+  &:focus { border-color: var(--accent) !important; box-shadow: 0 0 0 3px var(--accent-soft) !important; outline: none !important; }
+  &::placeholder { color: var(--text-muted) !important; }
 }
-.search-result { &:hover, &.active { background: $accent-soft !important; } }
-.search-result-title { color: $heading !important; }
+.search-result { &:hover, &.active { background: var(--accent-soft) !important; } }
+.search-result-title { color: var(--text-primary) !important; }
+.search-result-rel-url { color: var(--text-muted) !important; }
+.search-overlay, .search-active .search-overlay { background: rgba(15,23,42,.4) !important; }
 
-// ── Main content typography ────────────────────────────────────────────────────
+// ── Content typography ─────────────────────────────────────────────────────────
 .main-content {
-  font-family: 'Inter', sans-serif !important;
-  font-size: 0.95rem !important;
-  line-height: 1.75 !important;
-  color: $body !important;
+  font-family: 'Inter', sans-serif !important; font-size: 0.95rem !important; line-height: 1.75 !important;
+  color: var(--text-secondary) !important;
 
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Inter', sans-serif !important;
-    font-weight: 700 !important;
-    letter-spacing: -0.022em !important;
-    color: $heading !important;
-  }
-  h1 { font-size: clamp(1.75rem, 4vw, 2.3rem) !important; font-weight: 800 !important; margin-top: 0 !important; line-height: 1.2 !important; }
-  h2 {
-    font-size: clamp(1.3rem, 3vw, 1.6rem) !important;
-    margin-top: 2.75rem !important; padding-top: 2rem !important;
-    border-top: 1px solid $border !important;
-  }
-  h3 { font-size: 1.15rem !important; margin-top: 2rem !important; }
-  h4 { font-size: 1rem !important; margin-top: 1.5rem !important; }
+  h1,h2,h3,h4,h5,h6 { font-family:'Inter',sans-serif !important; font-weight:700 !important; letter-spacing:-0.022em !important; color: var(--text-primary) !important; }
+  h1 { font-size: clamp(1.75rem,4vw,2.3rem) !important; font-weight:800 !important; margin-top:0 !important; line-height:1.2 !important; }
+  h2 { font-size: clamp(1.3rem,3vw,1.6rem) !important; margin-top:2.75rem !important; padding-top:2rem !important; border-top:1px solid var(--border) !important; }
+  h3 { font-size:1.15rem !important; margin-top:2rem !important; }
+  h4 { font-size:1rem !important; margin-top:1.5rem !important; }
 
-  p, li { color: $body !important; line-height: 1.75 !important; }
-  strong { color: $heading !important; font-weight: 600 !important; }
+  p,li { color: var(--text-secondary) !important; line-height:1.75 !important; }
+  strong { color: var(--text-primary) !important; font-weight:600 !important; }
 
-  a {
-    color: $accent !important;
-    text-decoration: none !important;
-    font-weight: 500 !important;
-    transition: color 0.13s ease !important;
-    &:hover { color: $accent-hover !important; text-decoration: underline !important; text-underline-offset: 2px !important; }
-  }
+  a { color: var(--accent) !important; text-decoration:none !important; font-weight:500 !important; transition:color .13s ease !important;
+      &:hover { color: var(--accent-hover) !important; text-decoration:underline !important; text-underline-offset:2px !important; } }
 
-  img { border-radius: 10px !important; }
-
-  hr { border: none !important; border-top: 1px solid $border !important; margin: 2.5rem 0 !important; }
+  img { border-radius:10px !important; }
+  hr { border:none !important; border-top:1px solid var(--border) !important; margin:2.5rem 0 !important; }
 
   blockquote {
-    border-left: 3px solid $accent !important;
-    background: $accent-soft !important;
-    border-radius: 0 8px 8px 0 !important;
-    padding: 0.9rem 1.25rem !important;
-    margin: 1.5rem 0 !important;
-    color: #1E3A5F !important;
-    font-style: normal !important;
-    p { color: #1E3A5F !important; }
+    border-left:3px solid var(--accent) !important; background: var(--accent-soft) !important;
+    border-radius:0 8px 8px 0 !important; padding:.9rem 1.25rem !important; margin:1.5rem 0 !important;
+    color: var(--text-secondary) !important; font-style:normal !important;
+    p { color: var(--text-secondary) !important; }
   }
-
-  ul li::marker { color: $accent !important; }
+  ul li::marker { color: var(--accent) !important; }
 }
 
 // ── Inline code ──────────────────────────────────────────────────────────────
 :not(pre) > code {
-  font-family: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace !important;
-  font-size: 0.85em !important;
-  background: $accent-soft !important;
-  color: #1D4ED8 !important;
-  padding: 0.14em 0.42em !important;
-  border-radius: 5px !important;
-  border: 1px solid $accent-line !important;
+  font-family:'JetBrains Mono','SFMono-Regular',Consolas,monospace !important; font-size:.85em !important;
+  background: var(--accent-soft) !important; color: var(--accent-hover) !important;
+  padding:.14em .42em !important; border-radius:5px !important; border:1px solid var(--accent-line) !important;
 }
+html[data-theme="dark"] :not(pre) > code { color: var(--accent) !important; }
 
-// ── Code blocks (dark panels for contrast) ─────────────────────────────────────
+// ── Code blocks ──────────────────────────────────────────────────────────────
 div.highlighter-rouge, figure.highlight, pre.highlight {
-  background: $code-bg !important;
-  border: 1px solid #1B2230 !important;
-  border-radius: 12px !important;
-  box-shadow: 0 6px 24px -10px rgba(15,23,42,0.35) !important;
-  margin: 1.5rem 0 !important;
-  overflow: hidden !important;
+  background: var(--code-bg) !important; border:1px solid var(--code-border) !important;
+  border-radius:12px !important; box-shadow: var(--code-shadow) !important; margin:1.5rem 0 !important; overflow:hidden !important;
 }
 pre.highlight {
-  padding: 1.25rem 1.5rem !important;
-  margin: 0 !important; border: none !important; border-radius: 0 !important; box-shadow: none !important;
-  overflow-x: auto !important;
+  padding:1.25rem 1.5rem !important; margin:0 !important; border:none !important; border-radius:0 !important;
+  box-shadow:none !important; overflow-x:auto !important;
 }
 pre.highlight code {
-  font-family: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace !important;
-  font-size: 0.86rem !important;
-  line-height: 1.7 !important;
-  background: transparent !important;
-  color: $code-text !important;
-  border: none !important;
-  padding: 0 !important;
+  font-family:'JetBrains Mono','SFMono-Regular',Consolas,monospace !important; font-size:.86rem !important;
+  line-height:1.7 !important; background:transparent !important; color: var(--code-text) !important; border:none !important; padding:0 !important;
 }
 .copy-code-button {
-  background: rgba(255,255,255,0.08) !important;
-  border: 1px solid rgba(255,255,255,0.16) !important;
-  color: #C9D1D9 !important;
-  border-radius: 6px !important;
-  font-size: 0.72rem !important;
-  font-weight: 600 !important;
-  transition: all 0.13s ease !important;
-  &:hover { background: rgba(255,255,255,0.16) !important; }
+  background: var(--surface-2) !important; border:1px solid var(--border) !important; color: var(--text-muted) !important;
+  border-radius:6px !important; font-size:.72rem !important; font-weight:600 !important; transition:all .13s ease !important;
+  &:hover { background: var(--accent-soft) !important; color: var(--accent) !important; }
 }
 
-// ── Tables ───────────────────────────────────────────────────────────────────
+// ── Tables (responsive: scroll on small screens) ───────────────────────────────
 .main-content table {
-  border-collapse: separate !important;
-  border-spacing: 0 !important;
-  border: 1px solid $border !important;
-  border-radius: 12px !important;
-  overflow: hidden !important;
-  font-size: 0.9rem !important;
-  width: 100% !important;
-  box-shadow: 0 1px 2px rgba(15,23,42,0.04) !important;
-
-  thead tr { background: $surface !important; }
-  th {
-    font-size: 0.72rem !important; font-weight: 700 !important;
-    text-transform: uppercase !important; letter-spacing: 0.07em !important;
-    color: $muted !important; padding: 0.8rem 1rem !important;
-    border-bottom: 1px solid $border !important; white-space: nowrap !important;
-  }
-  td {
-    padding: 0.8rem 1rem !important;
-    border-bottom: 1px solid $border !important;
-    color: $body !important; vertical-align: top !important; line-height: 1.6 !important;
-  }
-  tr:last-child td { border-bottom: none !important; }
-  tbody tr:hover td { background: $surface !important; }
-  td:first-child { color: $heading !important; font-weight: 500 !important; }
+  border-collapse:separate !important; border-spacing:0 !important; border:1px solid var(--border) !important;
+  border-radius:12px !important; overflow:hidden !important; font-size:.9rem !important; width:100% !important; box-shadow: var(--shadow-sm) !important;
+  thead tr { background: var(--surface) !important; }
+  th { font-size:.72rem !important; font-weight:700 !important; text-transform:uppercase !important; letter-spacing:.07em !important;
+       color: var(--text-muted) !important; padding:.8rem 1rem !important; border-bottom:1px solid var(--border) !important; white-space:nowrap !important; }
+  td { padding:.8rem 1rem !important; border-bottom:1px solid var(--border) !important; color: var(--text-secondary) !important; vertical-align:top !important; line-height:1.6 !important; }
+  tr:last-child td { border-bottom:none !important; }
+  tbody tr:hover td { background: var(--surface) !important; }
+  td:first-child { color: var(--text-primary) !important; font-weight:500 !important; }
 }
 
 // ── Buttons ──────────────────────────────────────────────────────────────────
-.btn, a.btn {
-  font-family: 'Inter', sans-serif !important;
-  font-weight: 600 !important;
-  border-radius: 9px !important;
-  transition: all 0.16s ease !important;
-  text-decoration: none !important;
-}
+.btn, a.btn { font-family:'Inter',sans-serif !important; font-weight:600 !important; border-radius:9px !important; transition:all .16s ease !important; text-decoration:none !important; }
 .btn-primary, a.btn-primary {
-  background: $accent !important; border: 1px solid $accent !important; color: #fff !important;
-  box-shadow: 0 4px 14px -4px rgba(37,99,235,0.45) !important;
-  &:hover { background: $accent-hover !important; border-color: $accent-hover !important; transform: translateY(-1px) !important; box-shadow: 0 7px 20px -4px rgba(37,99,235,0.5) !important; }
+  background: var(--accent) !important; border:1px solid var(--accent) !important; color:#fff !important; box-shadow:0 4px 14px -4px rgba(37,99,235,.45) !important;
+  &:hover { background: var(--accent-hover) !important; border-color: var(--accent-hover) !important; transform:translateY(-1px) !important; }
 }
 
 // ── Callouts ─────────────────────────────────────────────────────────────────
 .callout {
-  border-radius: 10px !important;
-  border: 1px solid $border !important;
-  border-left-width: 3px !important;
-  font-size: 0.92rem !important;
-  background: $surface !important;
-  color: $body !important;
-  &.callout-note,    &.callout-important { border-left-color: $accent !important;  background: $accent-soft !important; }
-  &.callout-warning  { border-left-color: #F59E0B !important; background: #FFFBEB !important; }
-  &.callout-new      { border-left-color: #10B981 !important; background: #ECFDF5 !important; }
+  border-radius:10px !important; border:1px solid var(--border) !important; border-left-width:3px !important;
+  font-size:.92rem !important; background: var(--surface) !important; color: var(--text-secondary) !important;
+  &.callout-note, &.callout-important { border-left-color: var(--info) !important; background: var(--accent-soft) !important; }
+  &.callout-warning { border-left-color: var(--warning) !important; background: var(--warning-soft) !important; }
+  &.callout-new     { border-left-color: var(--success) !important; background: var(--success-soft) !important; }
 }
 
-// ── Breadcrumbs ──────────────────────────────────────────────────────────────
-.breadcrumb-nav { font-size: 0.8rem !important; color: $faint !important;
-  a { color: $muted !important; &:hover { color: $accent !important; } } }
+// ── Breadcrumbs / footer / back-to-top ─────────────────────────────────────────
+.breadcrumb-nav { font-size:.8rem !important; color: var(--text-muted) !important;
+  a { color: var(--text-muted) !important; &:hover { color: var(--accent) !important; } } }
+.site-footer { background: var(--surface) !important; border-top:1px solid var(--border) !important; font-size:.8rem !important; color: var(--text-muted) !important;
+  a { color: var(--text-muted) !important; &:hover { color: var(--accent) !important; } } }
+.back-to-top { background: var(--bg) !important; border:1px solid var(--border) !important; border-radius:8px !important;
+  color: var(--text-muted) !important; font-size:.78rem !important; font-weight:600 !important; transition:all .16s ease !important;
+  &:hover { border-color: var(--accent-line) !important; color: var(--accent) !important; background: var(--accent-soft) !important; } }
 
-// ── Footer ───────────────────────────────────────────────────────────────────
-.site-footer {
-  background: $surface !important;
-  border-top: 1px solid $border !important;
-  font-size: 0.8rem !important;
-  color: $muted !important;
-  a { color: $muted !important; &:hover { color: $accent !important; } }
-}
-
-// ── Back to top ──────────────────────────────────────────────────────────────
-.back-to-top {
-  background: $bg !important; border: 1px solid $border !important; border-radius: 8px !important;
-  color: $muted !important; font-size: 0.78rem !important; font-weight: 600 !important;
-  transition: all 0.16s ease !important;
-  &:hover { border-color: $accent-line !important; color: $accent !important; background: $accent-soft !important; }
-}
-
-// ── Syntax highlighting (GitHub-dark palette on dark code blocks) ───────────────
+// ── Syntax highlighting (driven by --syn-* variables, light & dark) ────────────
 .highlight {
-  .c, .c1, .cm, .cp, .cs      { color: #8B949E !important; font-style: italic !important; } // comments
-  .k, .kd, .kn, .kp, .kr, .kt { color: #FF7B72 !important; }  // keywords
-  .s, .s1, .s2, .sb, .sc, .sd,
-  .se, .sh, .si, .sx, .sr, .ss{ color: #A5D6FF !important; }  // strings
-  .nf, .fm                    { color: #D2A8FF !important; }  // function names
-  .nc, .nn, .no, .nl, .nt     { color: #FFA657 !important; }  // class / namespace / tags
-  .na, .nv, .vi, .n, .nb, .ni,
-  .nd                         { color: #E6EDF3 !important; }  // identifiers / decorators
-  .m, .mf, .mh, .mi, .mo, .il { color: #79C0FF !important; }  // numbers
-  .o, .ow                     { color: #FF7B72 !important; }  // operators
-  .p                          { color: #C9D1D9 !important; }  // punctuation
-  .gd                         { color: #FFA198 !important; background: rgba(248,81,73,0.12) !important; }
-  .gi                         { color: #7EE787 !important; background: rgba(46,160,67,0.12) !important; }
+  .c,.c1,.cm,.cp,.cs       { color: var(--syn-comment) !important; font-style:italic !important; }
+  .k,.kd,.kn,.kp,.kr       { color: var(--syn-keyword) !important; }
+  .kt                      { color: var(--syn-type) !important; }
+  .s,.s1,.s2,.sb,.sc,.sd,.se,.sh,.si,.sx,.sr,.ss { color: var(--syn-string) !important; }
+  .nf,.fm                  { color: var(--syn-function) !important; }
+  .nc,.nn,.no              { color: var(--syn-type) !important; }
+  .nt                      { color: var(--syn-command) !important; }
+  .na,.nv,.vi,.nl          { color: var(--syn-prop) !important; }
+  .n,.nb,.ni,.nd,.py       { color: var(--code-text) !important; }
+  .m,.mf,.mh,.mi,.mo,.il   { color: var(--syn-number) !important; }
+  .o,.ow                   { color: var(--syn-keyword) !important; }
+  .p                       { color: var(--code-text) !important; }
+  .gd { color: var(--danger) !important; }
+  .gi { color: var(--success) !important; }
 }
 
-// ── Responsive ───────────────────────────────────────────────────────────────
-@media (max-width: 800px) { .main-content { padding: 1.5rem 1rem !important; } }
-
-// ── Accessibility ──────────────────────────────────────────────────────────────
-:focus-visible { outline: 2px solid $accent !important; outline-offset: 2px !important; border-radius: 3px !important; }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
-
-// ── Print ─────────────────────────────────────────────────────────────────────
-@media print {
-  .side-bar, .site-header, .site-footer, .back-to-top, .copy-code-button { display: none !important; }
-  .main-content { max-width: 100% !important; padding: 0 !important; }
-  pre.highlight, pre.highlight code { background: #f6f8fa !important; color: #111 !important; }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// DEPTH & STRUCTURE — soft tinted canvas + floating content card
-// Removes the flat "all white" feel and gives every page a contained surface.
-// ═══════════════════════════════════════════════════════════════════════════
-
-$canvas:   #EEF2F8;   // soft blue-grey page canvas
-$card:     #FFFFFF;
-
-// Tint the whole app canvas (body + main column) a soft blue-grey
-body { background-color: $canvas !important; }
-.side-bar { background-color: #F4F7FB !important; }
-
+// ── DEPTH & STRUCTURE — soft canvas + floating content card ─────────────────────
 @media (min-width: 50rem) {
-  .main { background-color: $canvas !important; }
-
-  // Float the article on the canvas as a bordered white card
+  .main { background-color: var(--canvas) !important; }
   #main-content {
-    background: $card !important;
-    border: 1px solid $border !important;
-    border-radius: 16px !important;
-    padding: 2.5rem 3rem 3rem !important;
-    margin: 1.5rem 0 2.5rem !important;
-    box-shadow: 0 1px 3px rgba(15,23,42,0.05), 0 8px 24px -16px rgba(15,23,42,0.12) !important;
+    background: var(--elevated) !important; border:1px solid var(--border) !important; border-radius:16px !important;
+    padding:2.5rem 3rem 3rem !important; margin:1.5rem 0 2.5rem !important; box-shadow: var(--shadow-md) !important;
   }
 }
 
-// Auto-style the FIRST heading of any page as a professional page header —
-// so pages that don't manually include doc-styles (the jobs guide, etc.) still
-// look finished: accent kicker bar, strong title, divider under it.
-.main-content > h1:first-child {
-  position: relative !important;
-  padding-bottom: 1.1rem !important;
-  margin-bottom: 1.5rem !important;
-  border-bottom: 1px solid $border !important;
+// Auto-style the first heading of any page as a polished page header
+.main-content > h1:first-child { position:relative !important; padding-bottom:1.1rem !important; margin-bottom:1.5rem !important; border-bottom:1px solid var(--border) !important; }
+.main-content > h1:first-child::before { content:'' !important; display:block !important; width:40px !important; height:4px !important; border-radius:4px !important; background:linear-gradient(90deg,var(--accent),var(--accent-hover)) !important; margin-bottom:1rem !important; }
+.main-content > h1:first-child + p { font-size:1.08rem !important; color: var(--text-muted) !important; line-height:1.7 !important; }
+
+.main-content h2::before { content:'' !important; display:inline-block !important; width:3px !important; height:1.05em !important; background: var(--accent) !important; border-radius:3px !important; margin-right:.6rem !important; vertical-align:-0.14em !important; }
+
+// Home opts out of the card
+#main-content:has(.home) { background:transparent !important; border:none !important; border-radius:0 !important; box-shadow:none !important; padding:0 !important; margin:0 !important; }
+#main-content:has(.home) > h1:first-child { display:none !important; }
+body:has(.home), .main:has(.home) { background-color: var(--bg) !important; }
+
+// ── Theme toggle button (injected by head_custom.html) ─────────────────────────
+.theme-toggle {
+  position: fixed !important; bottom: 1.25rem; left: 1.25rem; z-index: 1000;
+  width: 42px; height: 42px; display: flex; align-items: center; justify-content: center;
+  background: var(--elevated); color: var(--text-secondary);
+  border: 1px solid var(--border); border-radius: 11px; cursor: pointer;
+  box-shadow: var(--shadow-md); transition: all .16s ease;
 }
-.main-content > h1:first-child::before {
-  content: '' !important;
-  display: block !important;
-  width: 40px !important; height: 4px !important;
-  border-radius: 4px !important;
-  background: linear-gradient(90deg, $accent, #60A5FA) !important;
-  margin-bottom: 1rem !important;
+.theme-toggle:hover { color: var(--accent); border-color: var(--accent-line); transform: translateY(-2px); }
+.theme-toggle svg { width: 19px; height: 19px; }
+
+// ── Responsive / a11y / print ──────────────────────────────────────────────────
+@media (max-width: 800px) {
+  .main-content { padding: 1.25rem 1rem !important; }
+  #main-content { border-radius: 0 !important; border-left: none !important; border-right: none !important; margin: 0 !important; padding: 1.5rem 1.1rem 2rem !important; }
+  .theme-toggle { bottom: .9rem; left: .9rem; }
 }
-// The lead paragraph right after the title reads as a subtitle
-.main-content > h1:first-child + p {
-  font-size: 1.08rem !important;
-  color: $muted !important;
-  line-height: 1.7 !important;
+:focus-visible { outline: 2px solid var(--accent) !important; outline-offset: 2px !important; border-radius: 3px !important; }
+@media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration:.01ms !important; transition-duration:.01ms !important; } }
+@media print {
+  .side-bar,.site-header,.site-footer,.back-to-top,.copy-code-button,.theme-toggle { display:none !important; }
+  .main-content { max-width:100% !important; padding:0 !important; } #main-content { box-shadow:none !important; border:none !important; }
+  pre.highlight, pre.highlight code { background:#f6f8fa !important; color:#111 !important; }
 }
 
-// ── Home page: opt OUT of the card so the landing sections sit on the canvas ──
-#main-content:has(.home) {
-  background: transparent !important;
-  border: none !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-  margin: 0 !important;
+// ═══════════════════════════════════════════════════════════════════════════
+// REUSABLE DOC COMPONENTS — typed callouts + card grids (theme-aware)
+// ═══════════════════════════════════════════════════════════════════════════
+.st-callout {
+  display: flex; gap: .85rem; align-items: flex-start;
+  border: 1px solid var(--border); border-left-width: 3px; border-radius: 12px;
+  padding: 1rem 1.15rem; margin: 1.5rem 0; background: var(--surface);
 }
-#main-content:has(.home) > h1:first-child { display: none !important; }
-body:has(.home) { background-color: #FFFFFF !important; }
-.main:has(.home) { background-color: #FFFFFF !important; }
+.st-callout-ic { flex-shrink: 0; width: 22px; height: 22px; margin-top: 1px; }
+.st-callout-ic svg { width: 22px; height: 22px; }
+.st-callout-title { font-weight: 700 !important; color: var(--text-primary) !important; margin: 0 0 .25rem !important; font-size: .92rem !important; }
+.st-callout-text, .st-callout-text p { color: var(--text-secondary) !important; margin: 0 !important; font-size: .9rem !important; line-height: 1.65 !important; }
+.st-callout-text > *:last-child { margin-bottom: 0 !important; }
+.st-note    { border-left-color: var(--info) !important;    background: var(--accent-soft)  !important; } .st-note    .st-callout-ic { color: var(--info); }
+.st-tip     { border-left-color: var(--success) !important; background: var(--success-soft) !important; } .st-tip     .st-callout-ic { color: var(--success); }
+.st-warning { border-left-color: var(--warning) !important; background: var(--warning-soft) !important; } .st-warning .st-callout-ic { color: var(--warning); }
+.st-danger  { border-left-color: var(--danger)  !important; background: var(--danger-soft)  !important; } .st-danger  .st-callout-ic { color: var(--danger); }
 
-// Slightly richer section rhythm on doc pages
-.main-content h2 { color: $heading !important; }
-.main-content h2::before {
-  content: '' !important;
-  display: inline-block !important;
-  width: 3px !important; height: 1.05em !important;
-  background: $accent !important;
-  border-radius: 3px !important;
-  margin-right: 0.6rem !important;
-  vertical-align: -0.14em !important;
+// Card grid (drop a <div class="st-cards"> ... <a class="st-card"> in any page)
+.st-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: .85rem; margin: 1.5rem 0; }
+.st-card {
+  display: block; background: var(--elevated); border: 1px solid var(--border); border-radius: 14px;
+  padding: 1.25rem 1.35rem; text-decoration: none !important; transition: all .16s ease; box-shadow: var(--shadow-sm);
 }
+.st-card:hover { border-color: var(--accent-line); transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.st-card .st-card-t { font-weight: 700 !important; color: var(--text-primary) !important; margin: 0 0 .3rem !important; font-size: .98rem !important; }
+.st-card .st-card-d { color: var(--text-muted) !important; margin: 0 !important; font-size: .85rem !important; line-height: 1.55 !important; }

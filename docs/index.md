@@ -15,12 +15,12 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 #main-content:has(.home){max-width:1080px!important}
 @media(min-width:1500px){#main-content:has(.home){max-width:1180px!important}}
 
-/* ── Tokens (light, professional) ───────────────────────────────────────── */
+/* ── Tokens — mapped to the global light/dark design system ──────────────── */
 .home{
-  --ink:#0F172A;--body:#334155;--muted:#64748B;--faint:#94A3B8;
-  --a:#2563EB;--a2:#3B82F6;--a-hover:#1D4ED8;--a-soft:#EFF6FF;--a-line:#BFDBFE;
-  --bd:#E2E8F0;--bd2:#CBD5E1;--card:#FFFFFF;--surface:#F8FAFC;--surface2:#F1F5F9;
-  --code:#0D1117;--code-line:#1B2230;
+  --ink:var(--text-primary);--body:var(--text-secondary);--muted:var(--text-muted);--faint:var(--text-muted);
+  --a:var(--accent);--a2:var(--accent);--a-hover:var(--accent-hover);--a-soft:var(--accent-soft);--a-line:var(--accent-line);
+  --bd:var(--border);--bd2:var(--border-strong);--card:var(--elevated);
+  --code:var(--code-bg);--code-line:var(--code-border);
   --fh:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   --fm:'JetBrains Mono','SFMono-Regular',Consolas,monospace;
   --tr:.18s cubic-bezier(.4,0,.2,1);--rs:9px;--rm:12px;--rl:16px;--rx:22px;
@@ -32,7 +32,7 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 .home .sec{margin:0 0 6rem}
 /* Tinted panel to break up the white and add depth */
 .home .band{position:relative;padding:3.25rem 2.75rem;border:1px solid var(--bd);border-radius:24px;
-  background:linear-gradient(180deg,#F8FAFC 0%,#EEF2F8 100%);overflow:hidden}
+  background:linear-gradient(180deg,var(--surface) 0%,var(--canvas) 100%);overflow:hidden}
 .home .band::before{content:'';position:absolute;inset:0;
   background-image:radial-gradient(circle at 1px 1px,rgba(37,99,235,.10) 1px,transparent 0);
   background-size:28px 28px;
@@ -53,29 +53,29 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 /* ── Hero ───────────────────────────────────────────────────────────────── */
 .home .hero{position:relative;text-align:center;padding:5.5rem 1.5rem 4.75rem;overflow:hidden;
   border:1px solid var(--bd);border-radius:var(--rx);
-  background:radial-gradient(ellipse 75% 75% at 50% -5%,#EFF6FF,#FFFFFF 65%)}
+  background:radial-gradient(ellipse 75% 75% at 50% -5%,var(--a-soft),var(--bg) 65%)}
 .home .hero::before{content:'';position:absolute;inset:0;
   background-image:linear-gradient(var(--bd) 1px,transparent 1px),linear-gradient(90deg,var(--bd) 1px,transparent 1px);
   background-size:52px 52px;opacity:.6;
   -webkit-mask-image:radial-gradient(ellipse 70% 55% at 50% 30%,#000 5%,transparent 72%);
   mask-image:radial-gradient(ellipse 70% 55% at 50% 30%,#000 5%,transparent 72%);pointer-events:none}
 .home .hero-in{position:relative;z-index:1;max-width:760px;margin:0 auto}
-.home .tag{display:inline-flex;align-items:center;gap:.55rem;background:#fff;
+.home .tag{display:inline-flex;align-items:center;gap:.55rem;background:var(--card);
   border:1px solid var(--a-line);border-radius:100px;padding:.36rem .9rem;font-size:.75rem;
-  font-weight:600;color:#1D4ED8;letter-spacing:.01em;margin-bottom:1.9rem;
+  font-weight:600;color:var(--a-hover);letter-spacing:.01em;margin-bottom:1.9rem;
   box-shadow:0 1px 3px rgba(37,99,235,.08)}
 .home .tag .dot{width:7px;height:7px;border-radius:50%;background:var(--a);
   box-shadow:0 0 0 3px rgba(37,99,235,.18);animation:pulse 2.6s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 .home .hero h1{font-size:clamp(2.5rem,6vw,4.1rem);font-weight:800;letter-spacing:-.045em;
   line-height:1.05;margin:0 0 1.5rem;color:var(--ink)}
-.home .grad{background:linear-gradient(115deg,#0F172A 0%,#1E40AF 55%,#2563EB 100%);
+.home .grad{background:linear-gradient(115deg,var(--text-primary) 0%,var(--accent) 100%);
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
 .home .hero-sub{font-size:clamp(1.02rem,2vw,1.2rem);color:var(--muted);line-height:1.7;
   max-width:580px;margin:0 auto 1.6rem}
 .home .nots{display:flex;flex-wrap:wrap;gap:.45rem;justify-content:center;margin-bottom:2.4rem}
 .home .not{font-family:var(--fm);font-size:.76rem;color:var(--muted);font-weight:500;
-  border:1px solid var(--bd);border-radius:7px;padding:.26rem .65rem;background:#fff}
+  border:1px solid var(--bd);border-radius:7px;padding:.26rem .65rem;background:var(--card)}
 .home .not s{color:#EF4444;text-decoration:none;margin-right:.25rem;font-weight:700}
 
 /* ── Buttons ────────────────────────────────────────────────────────────── */
@@ -86,7 +86,7 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 .home .btn-p{background:var(--a);color:#fff!important;border-color:var(--a);
   box-shadow:0 6px 18px -5px rgba(37,99,235,.5)}
 .home .btn-p:hover{background:var(--a-hover);border-color:var(--a-hover);transform:translateY(-2px);box-shadow:0 10px 26px -6px rgba(37,99,235,.55)}
-.home .btn-g{background:#fff;color:var(--ink)!important;border-color:var(--bd)}
+.home .btn-g{background:var(--card);color:var(--ink)!important;border-color:var(--bd)}
 .home .btn-g:hover{border-color:var(--bd2);background:var(--surface);transform:translateY(-2px);color:var(--a)!important}
 .home .badges{display:flex;gap:.4rem;justify-content:center;flex-wrap:wrap}
 .home .badges img{height:20px}
@@ -94,24 +94,24 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 /* ── Window chrome (terminal + code) ────────────────────────────────────── */
 .home .win{background:var(--code);border:1px solid var(--code-line);border-radius:var(--rm);overflow:hidden;
   box-shadow:0 24px 50px -24px rgba(15,23,42,.45)}
-.home .win-bar{background:#11161F;border-bottom:1px solid var(--code-line);padding:.7rem 1.1rem;
+.home .win-bar{background:var(--code-header);border-bottom:1px solid var(--code-line);padding:.7rem 1.1rem;
   display:flex;align-items:center;gap:.45rem}
 .home .win-bar .d{width:11px;height:11px;border-radius:50%}
 .home .win-bar .d.r{background:#FF5F57}.home .win-bar .d.y{background:#FEBC2E}.home .win-bar .d.g{background:#28C840}
-.home .win-bar .fn{font-family:var(--fm);font-size:.74rem;color:#7D8694;margin-left:.6rem}
-.home .win-bar .lb{margin-left:auto;font-size:.66rem;font-weight:600;background:rgba(59,130,246,.16);color:#9CC4F5;
+.home .win-bar .fn{font-family:var(--fm);font-size:.74rem;color:var(--muted);margin-left:.6rem}
+.home .win-bar .lb{margin-left:auto;font-size:.66rem;font-weight:600;background:var(--a-soft);color:var(--a);
   padding:.16rem .55rem;border-radius:5px;text-transform:uppercase;letter-spacing:.08em}
 .home .term{margin:0 0 5rem}
 .home .term-body{padding:1.4rem 1.6rem;font-family:var(--fm);font-size:.875rem;line-height:2.05}
-.home .term-body .p{color:#3B82F6;user-select:none;margin-right:.3rem}
-.home .term-body .c{color:#E6EDF3}.home .term-body .cm{color:#6E7681}.home .term-body .ok{color:#7EE787}
+.home .term-body .p{color:var(--accent);user-select:none;margin-right:.3rem}
+.home .term-body .c{color:var(--code-text)}.home .term-body .cm{color:var(--syn-comment)}.home .term-body .ok{color:var(--syn-string)}
 
 /* ── Stats ──────────────────────────────────────────────────────────────── */
 .home .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1px;
   background:var(--bd);border:1px solid var(--bd);border-radius:var(--rm);overflow:hidden;margin:0 0 5rem;
   box-shadow:0 1px 3px rgba(15,23,42,.06),0 10px 30px -18px rgba(37,99,235,.25)}
-.home .stat{background:linear-gradient(180deg,#FFFFFF,#F8FAFC);padding:1.6rem 1rem;text-align:center;transition:var(--tr)}
-.home .stat:hover{background:linear-gradient(180deg,#EFF6FF,#E0ECFF)}
+.home .stat{background:var(--surface);padding:1.6rem 1rem;text-align:center;transition:var(--tr)}
+.home .stat:hover{background:var(--a-soft)}
 .home .stat .v{font-family:var(--fm);font-size:1.45rem;font-weight:700;color:var(--ink);line-height:1;margin-bottom:.5rem;display:block}
 .home .stat .v .u{color:var(--a)}
 .home .stat .l{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.09em;font-weight:600}
@@ -152,7 +152,7 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 /* ── CTA ────────────────────────────────────────────────────────────────── */
 .home .cta{position:relative;text-align:center;padding:4rem 2rem;overflow:hidden;
   border:1px solid var(--bd);border-radius:var(--rx);
-  background:radial-gradient(ellipse 70% 100% at 50% 0%,#E0ECFF,#F8FAFC 70%)}
+  background:radial-gradient(ellipse 70% 100% at 50% 0%,var(--a-soft),var(--bg) 70%)}
 .home .cta::before{content:'';position:absolute;inset:0;
   background-image:radial-gradient(circle at 1px 1px,rgba(37,99,235,.12) 1px,transparent 0);
   background-size:28px 28px;
@@ -163,7 +163,7 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 .home .cta h2{font-size:clamp(1.6rem,3.4vw,2.2rem);font-weight:800;letter-spacing:-.03em;margin:0 0 .7rem;color:var(--ink)}
 .home .cta p{font-size:1.02rem;color:var(--muted);max-width:500px;margin:0 auto 2rem;line-height:1.7}
 .home .cta-links{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap}
-.home .cl{display:inline-flex;align-items:center;gap:.45rem;padding:.64rem 1.2rem;background:#fff;
+.home .cl{display:inline-flex;align-items:center;gap:.45rem;padding:.64rem 1.2rem;background:var(--card);
   border:1px solid var(--bd);border-radius:var(--rs);font-size:.87rem;font-weight:600;
   color:var(--ink)!important;text-decoration:none!important;transition:var(--tr)}
 .home .cl svg{width:15px;height:15px}
