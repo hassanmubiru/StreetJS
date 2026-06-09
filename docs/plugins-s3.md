@@ -2,6 +2,7 @@
 layout: default
 title: "Official Plugin: AWS S3"
 nav_exclude: true
+description: "Official AWS S3 plugin for StreetJS — SigV4-signed object storage for TypeScript backends with deterministic, offline request building."
 ---
 
 # Official Plugin: AWS S3

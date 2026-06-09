@@ -4,6 +4,7 @@ title:     "Middleware & Validation"
 parent:    "Core"
 nav_order: 4
 permalink: /core/middleware/
+description: "Middleware in StreetJS — a composable request pipeline with CORS, security headers, rate limiting and auth for TypeScript Node.js APIs."
 ---
 
 # Middleware

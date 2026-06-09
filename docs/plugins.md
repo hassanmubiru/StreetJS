@@ -2,6 +2,7 @@
 layout: default
 title: "Plugin System"
 nav_exclude: true
+description: "The StreetJS plugin system — signed manifests, capability permissions, lifecycle hooks and a sandboxed host for extending your TypeScript backend."
 ---
 
 # Plugin System

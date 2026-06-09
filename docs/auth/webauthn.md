@@ -2,6 +2,7 @@
 title: WebAuthn / Passkeys
 parent: Authentication
 nav_order: 3
+description: "WebAuthn and passkeys in StreetJS — passwordless, FIDO2 authentication for TypeScript Node.js backends."
 ---
 
 # WebAuthn / Passkeys Guide

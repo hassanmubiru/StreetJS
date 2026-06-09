@@ -2,6 +2,7 @@
 layout: default
 title: "Mutual TLS (mTLS)"
 nav_exclude: true
+description: "Mutual TLS (mTLS) in StreetJS — client-certificate authentication for zero-trust TypeScript backend services."
 ---
 
 # Mutual TLS (mTLS)

@@ -2,6 +2,7 @@
 layout: default
 title: "Local Plugin Registry"
 nav_exclude: true
+description: "StreetJS local plugin registry — publish, sign and verify plugins offline before loading them into the host application."
 ---
 
 # Local Plugin Registry

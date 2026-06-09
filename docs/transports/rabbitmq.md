@@ -2,6 +2,7 @@
 layout: default
 title: "RabbitMQ Transport"
 nav_exclude: true
+description: "RabbitMQ for TypeScript backends — StreetJS includes a built-in AMQP transport for queues, pub/sub and reliable messaging on Node.js."
 ---
 
 # RabbitMQ Transport

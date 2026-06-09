@@ -4,6 +4,7 @@ title:     "PostgreSQL Wire Driver"
 parent:    "Database"
 nav_order: 1
 permalink: /database/postgres-wire-driver/
+description: "Native PostgreSQL driver for Node.js in StreetJS — wire protocol v3, SCRAM-SHA-256 auth and row streaming, with no pg dependency."
 ---
 
 # PostgreSQL Wire Driver

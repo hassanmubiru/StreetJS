@@ -2,6 +2,7 @@
 layout: default
 title: "Multi-Factor Authentication (TOTP)"
 nav_exclude: true
+description: "Multi-factor authentication (TOTP) in StreetJS — add time-based one-time passwords to your TypeScript Node.js backend."
 ---
 
 # Multi-Factor Authentication (TOTP)

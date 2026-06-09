@@ -4,6 +4,7 @@ title:     "Routing"
 parent:    "Core"
 nav_order: 2
 permalink: /core/routing/
+description: "Type-safe HTTP routing in StreetJS — decorator-based controllers, route params and the request context API for TypeScript backends."
 ---
 
 # Routing
