@@ -65,3 +65,45 @@
 }
 </script>
 {%- endif -%}
+
+{%- if page.url == "/faq/" -%}
+<!-- Street docs: FAQPage structured data (FAQ page only) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is StreetJS?",
+      "acceptedAnswer": { "@type": "Answer", "text": "StreetJS (Street Framework) is a production-grade TypeScript backend framework built entirely on Node.js core modules. It provides an HTTP server, router, dependency-injection container, native PostgreSQL driver, WebSocket server, security primitives and a CLI — without Express, pg or Prisma." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is StreetJS production-ready?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. StreetJS is built for production: bounded memory, parameterized queries, SCRAM-SHA-256 PostgreSQL auth, AES-256-GCM sessions, and a comprehensive test suite covering memory leaks, wire protocol, load, fuzz, chaos and security." }
+    },
+    {
+      "@type": "Question",
+      "name": "How many dependencies does StreetJS have?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Two runtime dependencies: reflect-metadata (for decorator metadata / constructor injection) and ws (WebSocket framing). Everything else — HTTP, TLS, streams, crypto, cluster — ships with Node.js." }
+    },
+    {
+      "@type": "Question",
+      "name": "What Node.js and TypeScript versions does StreetJS require?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Node.js 20 or higher and TypeScript 5.0 or higher with NodeNext module resolution." }
+    },
+    {
+      "@type": "Question",
+      "name": "Does StreetJS need the pg package for PostgreSQL?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. StreetJS ships a native PostgreSQL driver implementing wire protocol v3 over node:net with SCRAM-SHA-256 auth and streaming, so you do not install pg." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I install StreetJS?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Run npm install streetjs for the framework, and optionally npm install -g @streetjs/cli for the project scaffolding CLI." }
+    }
+  ]
+}
+</script>
+{%- endif -%}
