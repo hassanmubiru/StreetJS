@@ -79,7 +79,8 @@ This repository is an npm workspaces monorepo containing two packages:
 
 | Package | npm | Description |
 |---|---|---|
-| `packages/core` | [`@streetjs/core`](https://www.npmjs.com/package/@streetjs/core) | Framework library — HTTP server, router, DI container, database driver, security, WebSocket, SSE, clustering, telemetry, caching, multipart uploads |
+| `packages/core` | [`streetjs`](https://www.npmjs.com/package/streetjs) | Framework library — HTTP server, router, DI container, database driver, security, WebSocket, SSE, clustering, telemetry, caching, multipart uploads |
+| `packages/core-compat` | [`@streetjs/core`](https://www.npmjs.com/package/@streetjs/core) | **Deprecated** — backward-compatibility shim that re-exports `streetjs` |
 | `packages/cli` | [`@streetjs/cli`](https://www.npmjs.com/package/@streetjs/cli) | CLI tool — project scaffolding, code generation, dev server, build pipeline, migration management |
 
 ### Root-level scripts
