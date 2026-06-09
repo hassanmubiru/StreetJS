@@ -389,3 +389,21 @@ body:has(.home), .main:has(.home) { background-color: var(--bg) !important; }
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23047857' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E"); background-size:13px; background-repeat:no-repeat; background-position:center; }
 html[data-theme="dark"] .st-check li::before { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2334D399' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E"); }
 .st-remain li::before { content:''; flex-shrink:0; width:18px; height:18px; margin-top:1px; border-radius:50%; border:2px dashed var(--border-strong); box-sizing:border-box; }
+
+// ── Gate matrix (certification) ────────────────────────────────────────────
+.st-gates { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:.7rem; margin:1.5rem 0; }
+.st-gate { background:var(--elevated); border:1px solid var(--border); border-radius:12px; padding:1rem 1.1rem; box-shadow:var(--shadow-sm); transition:all .16s ease; }
+.st-gate:hover { border-color:var(--success-line); transform:translateY(-2px); box-shadow:var(--shadow-md); }
+.st-gate-top { display:flex; align-items:center; justify-content:space-between; gap:.6rem; margin-bottom:.55rem; }
+.st-gate-name { font-weight:700; color:var(--text-primary); font-size:.92rem; }
+.st-pass { display:inline-flex; align-items:center; gap:.3rem; flex-shrink:0; font-size:.66rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+  color:var(--success); background:var(--success-soft); border:1px solid var(--success-line); border-radius:100px; padding:.18rem .55rem; }
+.st-pass svg { width:11px; height:11px; }
+.st-gate-cmd { font-family:'JetBrains Mono',monospace; font-size:.74rem; color:var(--text-muted); background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:.3rem .5rem; display:block; overflow-x:auto; white-space:nowrap; }
+.st-gate-meta { font-size:.72rem; color:var(--text-muted); margin-top:.5rem; display:flex; align-items:center; gap:.35rem; }
+
+// Card with leading icon (domain coverage)
+.st-card.has-ic { display:flex; gap:.9rem; align-items:flex-start; }
+.st-card .st-card-ic { flex-shrink:0; width:36px; height:36px; border-radius:9px; display:flex; align-items:center; justify-content:center; background:var(--accent-soft); border:1px solid var(--accent-line); color:var(--accent); }
+.st-card .st-card-ic svg { width:18px; height:18px; }
+.st-card:hover .st-card-ic { background:var(--accent); border-color:var(--accent); color:#fff; }
