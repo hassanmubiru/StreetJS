@@ -109,10 +109,10 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 /* ── Stats ──────────────────────────────────────────────────────────────── */
 .home .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1px;
   background:var(--bd);border:1px solid var(--bd);border-radius:var(--rm);overflow:hidden;margin:0 0 5rem;
-  box-shadow:0 1px 2px rgba(15,23,42,.04)}
-.home .stat{background:#fff;padding:1.5rem 1rem;text-align:center;transition:var(--tr)}
-.home .stat:hover{background:var(--a-soft)}
-.home .stat .v{font-family:var(--fm);font-size:1.4rem;font-weight:600;color:var(--ink);line-height:1;margin-bottom:.45rem;display:block}
+  box-shadow:0 1px 3px rgba(15,23,42,.06),0 10px 30px -18px rgba(37,99,235,.25)}
+.home .stat{background:linear-gradient(180deg,#FFFFFF,#F8FAFC);padding:1.6rem 1rem;text-align:center;transition:var(--tr)}
+.home .stat:hover{background:linear-gradient(180deg,#EFF6FF,#E0ECFF)}
+.home .stat .v{font-family:var(--fm);font-size:1.45rem;font-weight:700;color:var(--ink);line-height:1;margin-bottom:.5rem;display:block}
 .home .stat .v .u{color:var(--a)}
 .home .stat .l{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.09em;font-weight:600}
 
@@ -152,7 +152,14 @@ description: "Street — production-grade, memory-safe TypeScript backend framew
 /* ── CTA ────────────────────────────────────────────────────────────────── */
 .home .cta{position:relative;text-align:center;padding:4rem 2rem;overflow:hidden;
   border:1px solid var(--bd);border-radius:var(--rx);
-  background:radial-gradient(ellipse 70% 100% at 50% 0%,#EFF6FF,#FFFFFF 70%)}
+  background:radial-gradient(ellipse 70% 100% at 50% 0%,#E0ECFF,#F8FAFC 70%)}
+.home .cta::before{content:'';position:absolute;inset:0;
+  background-image:radial-gradient(circle at 1px 1px,rgba(37,99,235,.12) 1px,transparent 0);
+  background-size:28px 28px;
+  -webkit-mask-image:radial-gradient(ellipse 70% 80% at 50% 0%,#000,transparent 72%);
+  mask-image:radial-gradient(ellipse 70% 80% at 50% 0%,#000,transparent 72%);
+  opacity:.7;pointer-events:none}
+.home .cta>*{position:relative;z-index:1}
 .home .cta h2{font-size:clamp(1.6rem,3.4vw,2.2rem);font-weight:800;letter-spacing:-.03em;margin:0 0 .7rem;color:var(--ink)}
 .home .cta p{font-size:1.02rem;color:var(--muted);max-width:500px;margin:0 auto 2rem;line-height:1.7}
 .home .cta-links{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap}
