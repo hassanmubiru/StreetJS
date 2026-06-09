@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/core",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Production-grade TypeScript backend framework. Native PostgreSQL wire driver, JWT, WebSockets, clustering. No Express. No pg. No Prisma. 2 dependencies.",
   "type": "module",
   "main": "./dist/index.js",
