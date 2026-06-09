@@ -71,11 +71,11 @@ node packages/core/dist/src/benchmarks/run.js --compare
 
 <div class="st-cards">
   <a class="st-card" href="https://github.com/hassanmubiru/street/blob/main/docs/PERFORMANCE-CERTIFICATION.md">
-    <p class="st-card-t">Performance Certification →</p>
+    <p class="st-card-t">Performance Certification</p>
     <p class="st-card-d">Run-by-run tables, reproducibility data and variance analysis.</p>
   </a>
   <a class="st-card" href="https://github.com/hassanmubiru/street/blob/main/benchmarks/results.md">
-    <p class="st-card-t">Raw results (results.md) →</p>
+    <p class="st-card-t">Raw results (results.md)</p>
     <p class="st-card-d">The generated artifact, straight from the benchmark runner.</p>
   </a>
 </div>
