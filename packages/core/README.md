@@ -1,12 +1,12 @@
-# @streetjs/core
+# streetjs
 
 **Production-grade, memory-safe TypeScript backend framework built on Node.js core modules.**
 
 No Express. No `pg`. No Prisma. No Zod. Street is built entirely from `node:http`, `node:net`, `node:crypto`, `node:stream`, and `node:cluster` — plus two carefully chosen dependencies (`reflect-metadata` and `ws`). Every component enforces strict memory bounds and full type safety.
 
 [![CI](https://github.com/hassanmubiru/street/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/hassanmubiru/street/actions/workflows/ci-cd.yml)
-[![npm version](https://img.shields.io/npm/v/@streetjs/core)](https://www.npmjs.com/package/@streetjs/core)
-[![npm downloads](https://img.shields.io/npm/dm/@streetjs/core)](https://www.npmjs.com/package/@streetjs/core)
+[![npm version](https://img.shields.io/npm/v/streetjs)](https://www.npmjs.com/package/streetjs)
+[![npm downloads](https://img.shields.io/npm/dm/streetjs)](https://www.npmjs.com/package/streetjs)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/typescript-%3E%3D5.0-blue)](https://www.typescriptlang.org)
@@ -16,8 +16,12 @@ No Express. No `pg`. No Prisma. No Zod. Street is built entirely from `node:http
 ## Install
 
 ```bash
-npm install @streetjs/core
+npm install streetjs
 ```
+
+> **Renamed from `@streetjs/core`.** The old package still works as a deprecated
+> compatibility shim (`npm install @streetjs/core`) that re-exports `streetjs`
+> unchanged — identical API. See the [migration guide](https://github.com/hassanmubiru/street/blob/main/docs/migration.md).
 
 **Requirements:** Node.js >= 20, TypeScript >= 5.0, `"type": "module"` in your `package.json`.
 
@@ -27,8 +31,8 @@ npm install @streetjs/core
 
 ```typescript
 import 'reflect-metadata';
-import { streetApp, Injectable, Controller, Get, container } from '@streetjs/core';
-import type { StreetContext } from '@streetjs/core';
+import { streetApp, Injectable, Controller, Get, container } from 'streetjs';
+import type { StreetContext } from 'streetjs';
 
 @Injectable()
 class GreetingService {
@@ -100,7 +104,7 @@ Street uses `NodeNext` module resolution and strict decorators. Your project nee
 ### HTTP server
 
 ```typescript
-import { streetApp, securityHeaders, corsMiddleware, xssMiddleware } from '@streetjs/core';
+import { streetApp, securityHeaders, corsMiddleware, xssMiddleware } from 'streetjs';
 
 const app = streetApp({
   port: 3000,
@@ -125,8 +129,8 @@ await app.listen();
 import {
   Controller, Get, Post, Put, Delete,
   ApiOperation, Validate,
-} from '@streetjs/core';
-import type { StreetContext } from '@streetjs/core';
+} from 'streetjs';
+import type { StreetContext } from 'streetjs';
 
 @Controller('/api/items')
 export class ItemController {
@@ -160,7 +164,7 @@ export class ItemController {
 ### Dependency injection
 
 ```typescript
-import { Injectable, container } from '@streetjs/core';
+import { Injectable, container } from 'streetjs';
 
 @Injectable()
 class DatabaseService {
@@ -187,7 +191,7 @@ const svc = container.resolve(UserService);
 ### PostgreSQL (wire protocol — no `pg` dependency)
 
 ```typescript
-import { PgPool, StreetMigrationRunner, container } from '@streetjs/core';
+import { PgPool, StreetMigrationRunner, container } from 'streetjs';
 
 const pool = new PgPool({
   host:           process.env['PG_HOST']     ?? 'localhost',
@@ -218,8 +222,8 @@ await runner.run('./migrations');
 ### Repository pattern
 
 ```typescript
-import { Injectable, container, PgPool } from '@streetjs/core';
-import type { PgRow } from '@streetjs/core';
+import { Injectable, container, PgPool } from 'streetjs';
+import type { PgRow } from 'streetjs';
 
 interface User {
   id: string;
@@ -263,7 +267,7 @@ import {
   RateLimiter,
   authMiddleware,
   requireRoles,
-} from '@streetjs/core';
+} from 'streetjs';
 
 // JWT
 const jwt = new JwtService(process.env['JWT_SECRET'] ?? 'secret');
@@ -287,7 +291,7 @@ app.use(requireRoles('admin'));
 ### WebSocket
 
 ```typescript
-import { StreetWebSocketServer, StreetSocket, container } from '@streetjs/core';
+import { StreetWebSocketServer, StreetSocket, container } from 'streetjs';
 
 const wss = new StreetWebSocketServer({
   heartbeatIntervalMs: 30_000,
@@ -309,8 +313,8 @@ wss.broadcast('announcement', { text: 'Server restarting in 60s' });
 ### Server-Sent Events (SSE)
 
 ```typescript
-import { createSse } from '@streetjs/core';
-import type { StreetContext } from '@streetjs/core';
+import { createSse } from 'streetjs';
+import type { StreetContext } from 'streetjs';
 
 @Controller('/api/events')
 class EventController {
@@ -333,7 +337,7 @@ class EventController {
 ### LRU cache
 
 ```typescript
-import { LruCache } from '@streetjs/core';
+import { LruCache } from 'streetjs';
 
 const cache = new LruCache<string, User>({
   maxEntries: 1000,
@@ -348,7 +352,7 @@ cache.delete('user:123');
 ### Telemetry
 
 ```typescript
-import { TelemetryTracker, telemetryMiddleware } from '@streetjs/core';
+import { TelemetryTracker, telemetryMiddleware } from 'streetjs';
 
 const telemetry = new TelemetryTracker(60_000);  // 1-minute window
 app.use(telemetryMiddleware(telemetry));
@@ -361,7 +365,7 @@ const metrics = telemetry.getMetrics();
 ### Cluster (multi-core)
 
 ```typescript
-import { ClusterCoordinator } from '@streetjs/core';
+import { ClusterCoordinator } from 'streetjs';
 
 const coordinator = new ClusterCoordinator({
   workers: 4,                  // or os.cpus().length
@@ -378,8 +382,8 @@ coordinator.start(() => {
 ### Multipart file uploads
 
 ```typescript
-import { MultipartParser } from '@streetjs/core';
-import type { StreetContext } from '@streetjs/core';
+import { MultipartParser } from 'streetjs';
+import type { StreetContext } from 'streetjs';
 
 @Controller('/api/upload')
 class UploadController {
@@ -395,7 +399,7 @@ class UploadController {
 ### Webhook dispatcher
 
 ```typescript
-import { WebhookDispatcher } from '@streetjs/core';
+import { WebhookDispatcher } from 'streetjs';
 
 const dispatcher = new WebhookDispatcher();
 
@@ -426,7 +430,7 @@ app.use(async (ctx, next) => {
 ## Middleware
 
 ```typescript
-import type { StreetContext } from '@streetjs/core';
+import type { StreetContext } from 'streetjs';
 
 // Custom middleware signature
 type Middleware = (ctx: StreetContext, next: () => Promise<void>) => Promise<void>;
@@ -453,7 +457,7 @@ import {
   NotFoundException,
   ConflictException,
   InternalException,
-} from '@streetjs/core';
+} from 'streetjs';
 
 // Throw from any controller or middleware — Street catches and formats them
 throw new NotFoundException('User not found');
@@ -487,19 +491,19 @@ throw new UnauthorizedException('Token expired');
 All subpath exports are available for tree-shaking:
 
 ```typescript
-import { streetApp }             from '@streetjs/core';
-import { PgPool }                from '@streetjs/core/pool';
-import { StreetMigrationRunner } from '@streetjs/core/migrations';
-import { JwtService }            from '@streetjs/core/security';
-import { SessionManager }        from '@streetjs/core/session';
-import { RateLimiter }           from '@streetjs/core/ratelimit';
-import { StreetWebSocketServer } from '@streetjs/core/websocket';
-import { LruCache }              from '@streetjs/core/cache';
-import { TelemetryTracker }      from '@streetjs/core/telemetry';
-import { ClusterCoordinator }    from '@streetjs/core/cluster';
-import { MultipartParser }       from '@streetjs/core/multipart';
-import { WebhookDispatcher }     from '@streetjs/core/webhook';
-import { SseConnection }         from '@streetjs/core/sse';
+import { streetApp }             from 'streetjs';
+import { PgPool }                from 'streetjs/pool';
+import { StreetMigrationRunner } from 'streetjs/migrations';
+import { JwtService }            from 'streetjs/security';
+import { SessionManager }        from 'streetjs/session';
+import { RateLimiter }           from 'streetjs/ratelimit';
+import { StreetWebSocketServer } from 'streetjs/websocket';
+import { LruCache }              from 'streetjs/cache';
+import { TelemetryTracker }      from 'streetjs/telemetry';
+import { ClusterCoordinator }    from 'streetjs/cluster';
+import { MultipartParser }       from 'streetjs/multipart';
+import { WebhookDispatcher }     from 'streetjs/webhook';
+import { SseConnection }         from 'streetjs/sse';
 ```
 
 ---
@@ -508,7 +512,7 @@ import { SseConnection }         from '@streetjs/core/sse';
 
 - [Documentation](https://hassanmubiru.github.io/street)
 - [GitHub](https://github.com/hassanmubiru/street)
-- [npm — @streetjs/core](https://www.npmjs.com/package/@streetjs/core)
+- [npm — streetjs](https://www.npmjs.com/package/streetjs)
 - [npm — @streetjs/cli](https://www.npmjs.com/package/@streetjs/cli)
 - [Changelog](https://github.com/hassanmubiru/street/blob/main/CHANGELOG.md)
 - [Contributing](https://github.com/hassanmubiru/street/blob/main/CONTRIBUTING.md)

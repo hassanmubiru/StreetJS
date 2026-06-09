@@ -328,7 +328,7 @@ docker compose up
 - [Documentation](https://hassanmubiru.github.io/street)
 - [GitHub](https://github.com/hassanmubiru/street)
 - [npm — @streetjs/cli](https://www.npmjs.com/package/@streetjs/cli)
-- [npm — @streetjs/core](https://www.npmjs.com/package/@streetjs/core)
+- [npm — streetjs](https://www.npmjs.com/package/streetjs)
 - [Changelog](https://github.com/hassanmubiru/street/blob/main/CHANGELOG.md)
 
 ## License
