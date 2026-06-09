@@ -1,3 +1,9 @@
+---
+layout: default
+title: "Chaos / Fault-Injection Testing"
+nav_exclude: true
+---
+
 # Chaos / Fault-Injection Testing
 
 Street ships a fault-injection toolkit for verifying resilience — retries,

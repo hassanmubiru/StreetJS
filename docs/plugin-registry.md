@@ -1,3 +1,9 @@
+---
+layout: default
+title: "Local Plugin Registry"
+nav_exclude: true
+---
+
 # Local Plugin Registry
 
 `LocalPluginRegistry` turns the Street [plugin system](./plugins.md) into a

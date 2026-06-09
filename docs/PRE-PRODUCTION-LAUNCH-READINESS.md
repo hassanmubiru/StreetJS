@@ -1,3 +1,9 @@
+---
+layout: default
+title: "Street Framework — Pre-Production Launch Readiness Report"
+nav_exclude: true
+---
+
 # Street Framework — Pre-Production Launch Readiness Report
 
 Status: **ADVANCED PRODUCTION READY (~88/100)** · Confidence: **High**

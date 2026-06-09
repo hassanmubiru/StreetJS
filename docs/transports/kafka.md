@@ -1,3 +1,9 @@
+---
+layout: default
+title: "Kafka Transport"
+nav_exclude: true
+---
+
 # Kafka Transport
 
 A from-scratch **Kafka binary protocol** client and stream transport for the Street Framework, built directly on `node:net` with **zero third-party libraries** (no `kafkajs`, no `node-rdkafka`). It implements size-prefixed request framing, RecordBatch v2 with CRC32C, an idempotent batching producer, and a consumer-group offset-committing consumer.

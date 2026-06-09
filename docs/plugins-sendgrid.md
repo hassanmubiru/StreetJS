@@ -1,3 +1,9 @@
+---
+layout: default
+title: "Official Plugin: SendGrid (email)"
+nav_exclude: true
+---
+
 # Official Plugin: SendGrid (email)
 
 `SendGridPlugin` is the second official reference plugin for the Street

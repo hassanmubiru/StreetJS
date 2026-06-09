@@ -1,3 +1,9 @@
+---
+layout: default
+title: "Plugin System"
+nav_exclude: true
+---
+
 # Plugin System
 
 Street ships a formal, dependency-free plugin system built on `node:crypto`. It

@@ -1,3 +1,9 @@
+---
+layout: default
+title: "`street upgrade` — codemods"
+nav_exclude: true
+---
+
 # `street upgrade` — codemods
 
 `street upgrade` applies migration **codemods** to your TypeScript sources so you

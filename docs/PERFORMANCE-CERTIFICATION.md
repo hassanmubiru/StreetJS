@@ -1,3 +1,9 @@
+---
+layout: default
+title: "Performance Certification"
+nav_exclude: true
+---
+
 # Performance Certification
 
 All numbers below were produced by **execution** — no estimates, no fabricated

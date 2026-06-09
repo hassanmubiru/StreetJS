@@ -1,3 +1,9 @@
+---
+layout: default
+title: "Multi-Factor Authentication (TOTP)"
+nav_exclude: true
+---
+
 # Multi-Factor Authentication (TOTP)
 
 `streetjs` ships standards-based TOTP MFA (RFC 6238, built on RFC 4226

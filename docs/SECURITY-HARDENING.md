@@ -1,3 +1,9 @@
+---
+layout: default
+title: "Security Hardening Guide"
+nav_exclude: true
+---
+
 # Security Hardening Guide
 
 Defense-in-depth controls shipped in the framework, plus operational guidance.

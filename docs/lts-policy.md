@@ -1,3 +1,9 @@
+---
+layout: default
+title: "Support & LTS Policy"
+nav_exclude: true
+---
+
 # Support & LTS Policy
 
 ## SemVer commitment

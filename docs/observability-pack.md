@@ -1,3 +1,9 @@
+---
+layout: default
+title: "Observability Pack"
+nav_exclude: true
+---
+
 # Observability Pack
 
 Street ships a ready-to-use observability pack for its default HTTP metrics

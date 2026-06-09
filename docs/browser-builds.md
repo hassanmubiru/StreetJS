@@ -1,3 +1,9 @@
+---
+layout: default
+title: "Browser & Edge Builds"
+nav_exclude: true
+---
+
 # Browser & Edge Builds
 
 `streetjs` ships a **browser-safe subset** that bundlers and edge runtimes select automatically through the package.json `"browser"` export condition. The browser entry exports only runtime-agnostic code (no `node:` built-ins), while every Node-only feature resolves to a stub that throws a clear, catchable error.

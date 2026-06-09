@@ -1,3 +1,9 @@
+---
+layout: default
+title: "Deployment Manifests"
+nav_exclude: true
+---
+
 # Deployment Manifests
 
 `street deploy:init --platform <kubernetes|cloudrun|ecs|nomad>` generates a

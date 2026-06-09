@@ -1,3 +1,9 @@
+---
+layout: default
+title: "Official Plugin: AWS S3"
+nav_exclude: true
+---
+
 # Official Plugin: AWS S3
 
 `S3Plugin` is the first official reference plugin for the Street

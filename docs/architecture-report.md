@@ -1,3 +1,9 @@
+---
+layout: default
+title: "Architecture Report"
+nav_exclude: true
+---
+
 # Architecture Report
 
 Evidence-based as of commit `f64621f`. Generated from source inspection,

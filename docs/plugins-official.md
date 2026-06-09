@@ -1,3 +1,9 @@
+---
+layout: default
+title: "Official Plugins"
+nav_exclude: true
+---
+
 # Official Plugins
 
 Street ships a set of official reference plugins built on the

@@ -1,3 +1,9 @@
+---
+layout: default
+title: "Observability Certification"
+nav_exclude: true
+---
+
 # Observability Certification
 
 Run: `node --test packages/core/dist/tests/certification/observability-certification.test.js`

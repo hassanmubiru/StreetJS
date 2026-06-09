@@ -1,3 +1,9 @@
+---
+layout: default
+title: "Street Framework — Threat Model"
+nav_exclude: true
+---
+
 # Street Framework — Threat Model
 
 Methodology: STRIDE over the framework's trust boundaries. Each control below is

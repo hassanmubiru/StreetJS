@@ -1,3 +1,9 @@
+---
+layout: default
+title: "RabbitMQ Transport"
+nav_exclude: true
+---
+
 # RabbitMQ Transport
 
 A from-scratch **AMQP 0-9-1** client and event transport for the Street Framework, built directly on `node:net` with **zero third-party libraries** (no `amqplib`, no `rascal`). It powers durable, at-least-once event delivery for the Street `EventBus` and can also be used standalone as a low-level publisher/consumer.

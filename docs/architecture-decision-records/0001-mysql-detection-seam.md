@@ -1,3 +1,9 @@
+---
+layout: default
+title: "ADR-0001: MySQL/MariaDB runtime-detection seam"
+nav_exclude: true
+---
+
 # ADR-0001: MySQL/MariaDB runtime-detection seam
 
 - Status: Accepted

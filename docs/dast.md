@@ -1,3 +1,9 @@
+---
+layout: default
+title: "DAST Pipeline (OpenAPI-driven)"
+nav_exclude: true
+---
+
 # DAST Pipeline (OpenAPI-driven)
 
 Street ships an automated Dynamic Application Security Testing (DAST) pipeline

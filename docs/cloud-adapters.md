@@ -1,3 +1,9 @@
+---
+layout: default
+title: "Serverless & Cloud Adapters"
+nav_exclude: true
+---
+
 # Serverless & Cloud Adapters
 
 `@streetjs/edge` adapts a `StreetApp` to serverless and edge runtimes by mapping

@@ -1,3 +1,9 @@
+---
+layout: default
+title: "Security Certification"
+nav_exclude: true
+---
+
 # Security Certification
 
 Run: `node --test packages/core/dist/tests/certification/security-certification.test.js`

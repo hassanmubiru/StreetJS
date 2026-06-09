@@ -1,3 +1,9 @@
+---
+layout: default
+title: "Deployment Certification"
+nav_exclude: true
+---
+
 # Deployment Certification
 
 Run: `node --test packages/core/dist/tests/certification/deployment-certification.test.js`
