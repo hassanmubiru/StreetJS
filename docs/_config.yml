@@ -14,6 +14,10 @@ twitter:
 logo:        "/assets/images/logo.svg"
 # Default social-share image (jekyll-seo-tag → og:image / twitter:image)
 image:       "/assets/images/og.png"
+# Google Search Console: paste the token from the "HTML tag" verification method
+# (the content="..." value). Leave empty until you have it — jekyll-seo-tag emits
+# the <meta name="google-site-verification"> tag only when this is set.
+google_site_verification: ""
 
 # ── Theme ─────────────────────────────────────────────────────────────────────
 # just-the-docs is installed as a gem (see Gemfile), so use `theme`, not
