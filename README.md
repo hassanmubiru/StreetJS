@@ -5,13 +5,17 @@
 Street is built entirely from Node.js core — `node:http`, `node:net`, `node:crypto`, `node:stream`, `node:cluster` — plus two carefully chosen dependencies. **No Express. No pg. No Zod. No Prisma.** Every component enforces strict memory bounds and full type safety.
 
 ```bash
-npm install @streetjs/core
+npm install streetjs
 ```
+
+> Previously published as `@streetjs/core`. That package still works as a
+> deprecated compatibility shim (`npm install @streetjs/core`) that re-exports
+> `streetjs` unchanged. See [Migration Guide](docs/migration.md).
 
 ```typescript
 import 'reflect-metadata';
-import { streetApp, Injectable, Controller, Get } from '@streetjs/core';
-import type { StreetContext } from '@streetjs/core';
+import { streetApp, Injectable, Controller, Get } from 'streetjs';
+import type { StreetContext } from 'streetjs';
 
 @Injectable()
 @Controller('/api')
@@ -98,7 +102,7 @@ This repository is an npm workspaces monorepo containing two packages:
 The framework library — the runtime your Street application depends on. Built entirely on Node.js core modules with only two dependencies (`reflect-metadata` and `ws`).
 
 ```bash
-npm install @streetjs/core
+npm install streetjs
 ```
 
 Key modules:
