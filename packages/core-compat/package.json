@@ -1,0 +1,151 @@
+{
+  "name": "@streetjs/core",
+  "version": "1.0.6",
+  "description": "DEPRECATED — use `streetjs` instead. Backward-compatibility shim that re-exports the streetjs package.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "browser": "./dist/index.js",
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./http": {
+      "browser": "./dist/http.js",
+      "import": "./dist/http.js",
+      "types": "./dist/http.d.ts"
+    },
+    "./router": {
+      "browser": "./dist/router.js",
+      "import": "./dist/router.js",
+      "types": "./dist/router.d.ts"
+    },
+    "./database": {
+      "browser": "./dist/database.js",
+      "import": "./dist/database.js",
+      "types": "./dist/database.d.ts"
+    },
+    "./pool": {
+      "browser": "./dist/pool.js",
+      "import": "./dist/pool.js",
+      "types": "./dist/pool.d.ts"
+    },
+    "./repository": {
+      "browser": "./dist/repository.js",
+      "import": "./dist/repository.js",
+      "types": "./dist/repository.d.ts"
+    },
+    "./migrations": {
+      "browser": "./dist/migrations.js",
+      "import": "./dist/migrations.js",
+      "types": "./dist/migrations.d.ts"
+    },
+    "./security": {
+      "browser": "./dist/security.js",
+      "import": "./dist/security.js",
+      "types": "./dist/security.d.ts"
+    },
+    "./session": {
+      "browser": "./dist/session.js",
+      "import": "./dist/session.js",
+      "types": "./dist/session.d.ts"
+    },
+    "./vault": {
+      "browser": "./dist/vault.js",
+      "import": "./dist/vault.js",
+      "types": "./dist/vault.d.ts"
+    },
+    "./ratelimit": {
+      "browser": "./dist/ratelimit.js",
+      "import": "./dist/ratelimit.js",
+      "types": "./dist/ratelimit.d.ts"
+    },
+    "./xss": {
+      "browser": "./dist/xss.js",
+      "import": "./dist/xss.js",
+      "types": "./dist/xss.d.ts"
+    },
+    "./websocket": {
+      "browser": "./dist/websocket.js",
+      "import": "./dist/websocket.js",
+      "types": "./dist/websocket.d.ts"
+    },
+    "./sse": {
+      "browser": "./dist/sse.js",
+      "import": "./dist/sse.js",
+      "types": "./dist/sse.d.ts"
+    },
+    "./cache": {
+      "browser": "./dist/cache.js",
+      "import": "./dist/cache.js",
+      "types": "./dist/cache.d.ts"
+    },
+    "./telemetry": {
+      "browser": "./dist/telemetry.js",
+      "import": "./dist/telemetry.js",
+      "types": "./dist/telemetry.d.ts"
+    },
+    "./cluster": {
+      "browser": "./dist/cluster.js",
+      "import": "./dist/cluster.js",
+      "types": "./dist/cluster.d.ts"
+    },
+    "./cli": {
+      "browser": "./dist/cli.js",
+      "import": "./dist/cli.js",
+      "types": "./dist/cli.d.ts"
+    },
+    "./multipart": {
+      "browser": "./dist/multipart.js",
+      "import": "./dist/multipart.js",
+      "types": "./dist/multipart.d.ts"
+    },
+    "./webhook": {
+      "browser": "./dist/webhook.js",
+      "import": "./dist/webhook.js",
+      "types": "./dist/webhook.d.ts"
+    },
+    "./exceptions": {
+      "browser": "./dist/exceptions.js",
+      "import": "./dist/exceptions.js",
+      "types": "./dist/exceptions.d.ts"
+    },
+    "./browser": {
+      "browser": "./dist/browser.js",
+      "import": "./dist/browser.js",
+      "types": "./dist/browser.d.ts"
+    }
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
+    "README.md"
+  ],
+  "dependencies": {
+    "streetjs": "1.0.6"
+  },
+  "keywords": [
+    "streetjs",
+    "deprecated",
+    "compatibility",
+    "framework"
+  ],
+  "author": "street contributors",
+  "license": "MIT",
+  "homepage": "https://hassanmubiru.github.io/street/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hassanmubiru/street.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hassanmubiru/street/issues"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
+}
