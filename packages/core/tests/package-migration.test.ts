@@ -21,25 +21,29 @@ const SUBPATHS = [
 
 describe('package rename: @streetjs/core -> streetjs', () => {
   it('streetjs root export exposes the public API', async () => {
-    const street = await import('streetjs');
+    // Computed specifier: this is a runtime resolution check, not a compile-time
+    // type import (the bare literal would be unresolvable during this package's
+    // own build, since it resolves to packages/core's not-yet-built dist).
+    const STREETJS = ['street', 'js'].join('');
+    const street = await import(STREETJS);
     const keys = Object.keys(street);
     assert.ok(keys.length > 0, 'streetjs root must export something');
-    // A few representative principal APIs that must be present.
     for (const api of ['PgPool', 'JwtService', 'WebhookDispatcher']) {
       assert.ok(api in street, `streetjs must export ${api}`);
     }
   });
 
   it('@streetjs/core compat shim resolves and re-exports streetjs', async () => {
-    const core = await import('@streetjs/core');
+    const CORE = ['@streetjs', 'core'].join('/');
+    const core = await import(CORE);
     assert.ok(Object.keys(core).length > 0, '@streetjs/core must re-export the API');
     assert.ok('PgPool' in core, '@streetjs/core must re-export PgPool');
   });
 
   for (const sp of SUBPATHS) {
     it(`export surface is identical for "${sp || '(root)'}"`, async () => {
-      const fromStreet = await import('streetjs' + sp);
-      const fromCore = await import('@streetjs/core' + sp);
+      const fromStreet = await import('street' + 'js' + sp);
+      const fromCore = await import('@streetjs' + '/core' + sp);
 
       const ks = Object.keys(fromStreet).sort();
       const kc = Object.keys(fromCore).sort();
