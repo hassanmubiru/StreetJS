@@ -4,10 +4,10 @@
 
 import { resolve } from 'node:path';
 import type { CliContext } from '../index.js';
-import type { PgPool } from '@streetjs/core';
+import type { PgPool } from 'streetjs';
 
 async function makePool(): Promise<PgPool> {
-  const core = await import('@streetjs/core');
+  const core = await import('streetjs');
   const pool = new core.PgPool({
     host: process.env['PG_HOST'] ?? 'localhost',
     port: Number(process.env['PG_PORT'] ?? 5432),
@@ -25,7 +25,7 @@ export class AnalyticsReportCommand {
   async execute(ctx: CliContext): Promise<void> {
     const from = new Date(String(ctx.args.flags['from'] ?? new Date(Date.now() - 7 * 86400000).toISOString()));
     const to = new Date(String(ctx.args.flags['to'] ?? new Date().toISOString()));
-    const core = await import('@streetjs/core');
+    const core = await import('streetjs');
     const pool = await makePool();
     try {
       const svc = new core.AnalyticsService({ pool: pool as never });
@@ -48,7 +48,7 @@ export class AuditExportCommand {
     const from = new Date(String(ctx.args.flags['from'] ?? new Date(0).toISOString()));
     const to = new Date(String(ctx.args.flags['to'] ?? new Date().toISOString()));
     const format = String(ctx.args.flags['format'] ?? 'jsonl') as 'jsonl' | 'csv';
-    const core = await import('@streetjs/core');
+    const core = await import('streetjs');
     const pool = await makePool();
     try {
       const logger = new core.AuditLogger({ pool: pool as never, signingKey: process.env['AUDIT_SIGNING_KEY'] ?? 'change-me-32-bytes-minimum-key!!' });
@@ -67,7 +67,7 @@ export class AuditExportCommand {
 export class ComplianceReportCommand {
   async execute(ctx: CliContext): Promise<void> {
     const entitiesPath = String(ctx.args.flags['entities'] ?? './dist/entities.js');
-    const core = await import('@streetjs/core');
+    const core = await import('streetjs');
     let entities: unknown[];
     try {
       const mod = await import(resolve(ctx.cwd, entitiesPath)) as { entities?: unknown[]; default?: unknown[] };
@@ -96,7 +96,7 @@ export class RestoreCommand {
       return;
     }
     const dir = String(ctx.args.flags['dir'] ?? './backups');
-    const core = await import('@streetjs/core');
+    const core = await import('streetjs');
     const pool = await makePool();
     try {
       const storage = new core.LocalStorageAdapter(resolve(ctx.cwd, dir));

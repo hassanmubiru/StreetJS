@@ -99,7 +99,7 @@ export class MigrateCommand {
 
     // We need to run migrations via the application's PgPool.
     // Since the application has its own bootstrap, we create a minimal runner here.
-    const { PgPool, StreetMigrationRunner } = await import('@streetjs/core');
+    const { PgPool, StreetMigrationRunner } = await import('streetjs');
 
     const pool = new PgPool({
       host: process.env['PG_HOST'] ?? 'localhost',
@@ -152,7 +152,7 @@ export class MigrateCommand {
     const migrationsDir = resolve(ctx.cwd, 'migrations');
     await mkdir(migrationsDir, { recursive: true });
 
-    const { PgPool, MigrationDiffer } = await import('@streetjs/core');
+    const { PgPool, MigrationDiffer } = await import('streetjs');
 
     const pool = new PgPool({
       host: process.env['PG_HOST'] ?? 'localhost',

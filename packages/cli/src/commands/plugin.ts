@@ -20,7 +20,7 @@ export class PluginInstallCommand {
     const registryUrl = String(ctx.args.flags['registry'] ?? process.env['STREET_PLUGIN_REGISTRY'] ?? 'https://plugins.streetjs.dev');
     const pluginsDir = resolve(ctx.cwd, 'plugins');
 
-    const core = await import('@streetjs/core');
+    const core = await import('streetjs');
     const installer = new core.PluginInstaller({ registryUrl, pluginsDir });
     try {
       await installer.install(name, version);
