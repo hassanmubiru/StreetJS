@@ -745,3 +745,13 @@ jobs:
         run: npm publish -w packages/cli --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # Mark @streetjs/core deprecated AFTER streetjs + the compat shim are
+      # published, so the "install streetjs instead" message is actionable.
+      # Deprecation only prints a warning — @streetjs/core stays installable and
+      # keeps re-exporting streetjs. Runs last; a failure here does not unpublish
+      # anything (re-run `npm deprecate` manually if the token lacks permission).
+      - name: Deprecate @streetjs/core (renamed to streetjs)
+        run: npm deprecate @streetjs/core "Renamed to 'streetjs'. Install 'streetjs' instead; @streetjs/core re-exports it unchanged. See https://github.com/hassanmubiru/street/blob/main/docs/migration.md"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
