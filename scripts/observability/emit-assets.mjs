@@ -8,7 +8,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import {
   streetRuleGroups, validatePrometheusRuleGroups, serializePrometheusRulesYaml,
   streetApiDashboard, validateGrafanaDashboard,
-} from '@streetjs/core';
+} from 'streetjs';
 
 const promDir = 'observability/prometheus';
 const grafDir = 'observability/grafana/dashboards';
