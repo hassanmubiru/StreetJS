@@ -174,8 +174,11 @@ if want broker-restart; then
   done
   echo
   echo "broker-restart result: $RESTART_REC/$RESTART_CYCLES cycles recovered"
-  account_messages "broker-restart" || FAILURES=$((FAILURES+1))
+  LAST_PRODUCED=0; LAST_DELIVERED=0; LAST_LOST=0; LAST_OK=0
+  acct_ok=1; account_messages "broker-restart" || { FAILURES=$((FAILURES+1)); acct_ok=0; }
   [ "$RESTART_REC" -eq "$RESTART_CYCLES" ] || FAILURES=$((FAILURES+1))
+  if [ "$RESTART_REC" -eq "$RESTART_CYCLES" ] && [ "$acct_ok" -eq 1 ]; then br_ok=true; else br_ok=false; fi
+  emit_scenario "broker-restart" true "$br_ok" "$RESTART_REC" "$RESTART_CYCLES"
 fi
 
 # ── Network interruption (Req 9.6) ──────────────────────────────────────────
