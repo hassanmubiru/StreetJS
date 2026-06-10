@@ -216,6 +216,13 @@ export class PluginHost {
     this.entries.set(plugin.name, { plugin, manifest, state: 'registered', installed: false });
   }
 
+  /**
+   * Whether this host enforces manifest signature verification. True when the
+   * host was constructed with a trusted `publicKey`, in which case `register()`
+   * rejects any plugin whose manifest signature does not validate.
+   */
+  verifiesSignatures(): boolean { return this.publicKey !== undefined; }
+
   /** Discovery: all registered plugin names. */
   list(): string[] { return [...this.entries.keys()]; }
   has(name: string): boolean { return this.entries.has(name); }
