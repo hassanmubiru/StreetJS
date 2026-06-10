@@ -185,7 +185,7 @@ Each property-based test is tagged with the comment format:
 - [ ] 8. Checkpoint - registry
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 9. Official Plugin Ecosystem
+- [x] 9. Official Plugin Ecosystem
   - [x] 9.1 Implement storage plugin packages (Redis, S3, R2)
     - Create `packages/plugin-redis/`, `packages/plugin-s3/`, `packages/plugin-r2/`, each with `src/index.ts` extending `PluginModule`, `manifest.json`, build-produced `manifest.signed.json`, `README.md`, and `example/`
     - _Design: Components → Official Plugin Ecosystem (uniform package structure)_
@@ -201,11 +201,11 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Official Plugin Ecosystem (install path); Error Handling 5.7/5.8_
     - _Requirements: 5.6, 5.7, 5.8_
 
-  - [ ] 9.4 Write unit tests for plugin structure and signature enforcement
+  - [x] 9.4 Write unit tests for plugin structure and signature enforcement
     - Verify the per-package official-plugin structure (5.5) and signature-enforcement behavior on install
     - _Requirements: 5.5, 5.7, 5.8_
 
-  - [ ] 9.5 Write integration tests against real backing services with BLOCKED recording (Layer B)
+  - [x] 9.5 Write integration tests against real backing services with BLOCKED recording (Layer B)
     - Run each plugin's integration test against its real backing service (Redis/S3/R2 via containers; Twilio/SendGrid/Stripe/Auth0 via sandbox accounts), emit `plugin.<id>.artifact.json` with pass result + plugin id + ISO-8601 timestamp, and record BLOCKED with the missing credential id when a test account is absent
     - _Design: Components → Official Plugin Ecosystem; Testing Strategy → Layer B + Honest BLOCKED_
     - _Requirements: 5.9_
@@ -233,7 +233,7 @@ Each property-based test is tagged with the comment format:
     - **Property 16: Generated OpenAPI covers every exposed enterprise operation** (fast-check, min 100 runs)
     - **Validates: Requirements 6.9**
 
-  - [ ] 10.6 Run the enterprise suite against a running instance and emit the artifact (Layer B)
+  - [x] 10.6 Run the enterprise suite against a running instance and emit the artifact (Layer B)
     - Execute the suite against a running app + PostgreSQL container through `CommandRunner`, emit `enterprise.api.artifact.json` with executed command, exit code, and pass/fail counts, and upload from CI
     - _Design: Components → Enterprise Console APIs; Testing Strategy → Layer B_
     - _Requirements: 6.10_
@@ -241,7 +241,7 @@ Each property-based test is tagged with the comment format:
 - [ ] 11. Checkpoint - enterprise APIs
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 12. Interactive Developer Experience
+- [x] 12. Interactive Developer Experience
   - [x] 12.1 Implement the DX data builders in core/devtools logic
     - Implement `buildRouteTree()` (method + path from registered routes), `buildDependencyGraph()` (reuse the import-walk from `scripts/check-cycles.mjs`), and the `InspectorResult` model (status/headers/body; on failure error + retained input)
     - _Design: Components → Interactive Developer Experience_
@@ -264,7 +264,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Interactive Developer Experience_
     - _Requirements: 7.1, 7.6, 7.7, 7.8_
 
-  - [ ] 12.6 Build the devtools bundle and run its tests, emitting artifacts (Layer B)
+  - [x] 12.6 Build the devtools bundle and run its tests, emitting artifacts (Layer B)
     - Build the bundle + run headless-browser tests through `CommandRunner`, emit `devx.playground`/`devx.route-explorer`/`devx.dependency-graph` artifacts, and upload from CI
     - _Design: Testing Strategy → Layer B_
     - _Requirements: 7.9_
