@@ -122,9 +122,7 @@ export function classify(input: ClassifyInput): VerificationStatus {
 
   // Precedence 4 — PARTIAL: at least one (but fewer than all) evidence
   // components, or full evidence with a non-zero exit code (Req 1.4/1.9).
-  // `hasSourceCode` is true here, so the `sourceCode` evidence flag guarantees
-  // at least one present component is expected; we still classify the
-  // remaining state as PARTIAL.
-  void countPresentEvidence; // retained for clarity of the >=1 evidence rule
+  // Reaching this branch implies the capability has source code but is not
+  // fully VERIFIED, which is precisely the PARTIAL condition.
   return 'PARTIAL';
 }
