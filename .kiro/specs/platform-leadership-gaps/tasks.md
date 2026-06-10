@@ -107,7 +107,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Testing Strategy → CI integration and evidence retention_
     - _Requirements: 2.11_
 
-  - [-] 4.8 Write unit tests for the deployment report status mapping
+  - [ ] 4.8 Write unit tests for the deployment report status mapping
     - Cover VERIFIED/PARTIAL/BLOCKED mapping and retained failing output in the report
     - _Requirements: 2.11, 2.13, 2.14_
 
@@ -201,7 +201,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Official Plugin Ecosystem (install path); Error Handling 5.7/5.8_
     - _Requirements: 5.6, 5.7, 5.8_
 
-  - [-] 9.4 Write unit tests for plugin structure and signature enforcement
+  - [ ] 9.4 Write unit tests for plugin structure and signature enforcement
     - Verify the per-package official-plugin structure (5.5) and signature-enforcement behavior on install
     - _Requirements: 5.5, 5.7, 5.8_
 
@@ -229,7 +229,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Enterprise Console APIs (OpenAPI + docs)_
     - _Requirements: 6.9_
 
-  - [-] 10.5 Write property test for OpenAPI coverage
+  - [ ] 10.5 Write property test for OpenAPI coverage
     - **Property 16: Generated OpenAPI covers every exposed enterprise operation** (fast-check, min 100 runs)
     - **Validates: Requirements 6.9**
 
@@ -348,7 +348,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Advanced Observability_
     - _Requirements: 10.3, 10.4, 10.5_
 
-  - [-] 16.5 Write property test for dashboard and rule structural validity
+  - [ ] 16.5 Write property test for dashboard and rule structural validity
     - **Property 27: Provided dashboards and rules are structurally valid** (fast-check, min 100 runs)
     - **Validates: Requirements 10.3, 10.4, 10.5**
 
@@ -378,7 +378,7 @@ Each property-based test is tagged with the comment format:
     - **Property 30: Release health deltas are exact** (fast-check, min 100 runs)
     - **Validates: Requirements 11.4**
 
-  - [-] 18.5 Implement the report renderer and CI enforcement
+  - [ ] 18.5 Implement the report renderer and CI enforcement
     - Add the release report renderer (`scripts/release/*`, may use deps) and a CI enforcement workflow (extend `ci-cd-enforcement.yml`) that runs `buildReleaseReport` through `CommandRunner`, emits `release.scorecard.artifact.json`, and fails the release with a non-zero exit (not publishing) when semver/notes validation or an enforced control fails
     - _Design: Components → Release Engineering (CI enforcement); Error Handling 11.3_
     - _Requirements: 11.3, 11.5, 11.6_
