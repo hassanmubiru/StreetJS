@@ -1,82 +1,121 @@
 ---
 layout: default
-title: "Observability Pack"
+title: "Observability Pack — Dashboards, Alerts & SLOs"
 nav_exclude: true
-description: "The StreetJS observability pack — ready-to-use Prometheus rules and a Grafana dashboard for your TypeScript backend."
+description: "StreetJS observability pack — Grafana dashboards, Prometheus alerts and an SLO pack built only on metrics the framework truly exports, validated with promtool."
 ---
 
 # Observability Pack
 
-Street ships a ready-to-use observability pack for its default HTTP metrics
-(`http_requests_total`, `http_request_duration_seconds`): Prometheus recording
-rules, operational alerts, multi-window SLO burn-rate alerts, and a Grafana
-dashboard. Everything is generated from typed models with a built-in validator,
-so the assets stay correct and reproducible. Dependency-free.
+Street ships an **observability pack**: Grafana dashboards, Prometheus alert
+rules, and an SLO pack, all built **only on metrics the framework actually
+exports** at runtime. An anti-fabrication guard plus a promtool-backed
+validation pipeline keep that guarantee enforceable, so your observability
+reflects real signals and never fabricated ones.
 
-Exported from `streetjs`.
-
-## Contents
-
-| Asset | Builder | Validator | Status |
-| --- | --- | --- | --- |
-| Recording rules (rate, error ratio, p95/p99) | `streetRecordingRules()` | `validatePrometheusRuleGroups` | VERIFIED |
-| Operational alerts (error rate, latency, target down) | `streetAlertRules()` | `validatePrometheusRuleGroups` | VERIFIED |
-| SLO burn-rate alerts (99.9%, multi-window) | `streetSloBurnRateRules()` | `validatePrometheusRuleGroups` | VERIFIED |
-| Grafana dashboard (4 panels) | `streetApiDashboard()` | `validateGrafanaDashboard` | VERIFIED |
-| YAML serializer | `serializePrometheusRulesYaml()` | — | VERIFIED |
-
-> `promtool test rules` (Prometheus' own semantic checker) runs in CI where the
-> `promtool` binary is available; the in-repo validator covers structure and
-> internal consistency offline.
-
-## Emit the assets
+Emit the pack to disk at any time:
 
 ```bash
 node scripts/observability/emit-assets.mjs
-# observability/prometheus/street-rules.yml   (3 groups, 9 rules)
-# observability/grafana/dashboards/street-api.json (4 panels)
+# observability/prometheus/street-rules.yml
+# observability/grafana/dashboards/*.json
 ```
 
-The script validates both before writing and exits non-zero on any error.
+## Dashboards
 
-## Programmatic use
+One dashboard per subsystem, each panel targeting an Exported Metric:
 
-```ts
-import {
-  streetRuleGroups, validatePrometheusRuleGroups, serializePrometheusRulesYaml,
-  streetApiDashboard, validateGrafanaDashboard,
-} from 'streetjs';
+| Dashboard | UID | Covers |
+|---|---|---|
+| HTTP API | `street-api` | request rate, 5xx error ratio, p95/p99 latency |
+| Runtime | `street-runtime` | process heap, throughput, error ratio, p99 latency |
+| PostgreSQL | `street-postgres` | pool connections by state, pool exhaustion, query p95, acquire p95 |
+| Kafka | `street-kafka` | produced/consumed throughput, consumer lag, coordinator wait p95 |
+| RabbitMQ | `street-rabbitmq` | publish/deliver throughput, queue depth, consumer count |
+| Plugin Host | `street-plugin-host` | plugins by state, signature failure rate, install duration p95 |
 
-const groups = streetRuleGroups();
-if (!validatePrometheusRuleGroups(groups).valid) throw new Error('bad rules');
-const yaml = serializePrometheusRulesYaml(groups); // load into Prometheus
+Import the JSON directly into Grafana or provision it from
+`observability/grafana/dashboards/`.
 
-const dashboard = streetApiDashboard();             // import into Grafana
-validateGrafanaDashboard(dashboard).valid;          // true
-```
+## Alerts
 
-## SLO model
+Operational alerts, each with a **numeric trigger threshold** and an
+**evaluation window**, covering the four required signal classes:
 
-The burn-rate alerts target a **99.9% availability** objective (0.1% error
-budget) using the Google SRE multi-window approach:
+| Signal class | Example alert | Threshold / window |
+|---|---|---|
+| latency | `StreetDbQueryLatencyHigh` | query p99 > 0.5s for 10m |
+| error rate | `StreetPluginSignatureFailureRate` | any signature failure over 5m |
+| queue depth | `StreetRabbitMqQueueDepthHigh` | ready messages > 1000 for 5m |
+| memory pressure | `StreetMemoryPressureHigh` | heap > 768MiB for 10m |
 
-- **Fast burn** (`StreetErrorBudgetBurnFast`, severity `critical`): 14.4x budget
-  burn over **1h and 5m** windows → page.
-- **Slow burn** (`StreetErrorBudgetBurnSlow`, severity `warning`): 6x budget burn
-  over **6h and 30m** windows → ticket.
+The HTTP alert group (`StreetHighErrorRate`, `StreetHighLatencyP99`,
+`StreetTargetDown`) and the saturation alert (`StreetHighHeapUsage`) ship
+alongside them.
 
-Both require the condition to hold on *both* windows to avoid alert flapping.
+## SLO Pack
 
-## Verification
+The SLO pack defines three objectives, each with a **numeric target** and a
+**measurement window** (default `30d`):
 
-`packages/core/src/tests/observability-pack.test.ts` (11 tests) validates the
-default rule groups, that recording rules reference the real emitted metrics,
-alert label/annotation requirements, the multi-window SLO structure, validator
-negatives (dual record/alert, empty expr, missing severity, duplicate groups,
-bad durations), the YAML serializer output, and the Grafana dashboard model +
-validator.
+| Objective | Target | Window |
+|---|---|---|
+| availability | 99.9% | 30d |
+| latency | p99 ≤ 0.5s | 30d |
+| error budget | 0.1% | 30d |
+
+The error-budget objective is enforced with multi-window, multi-burn-rate
+alerts (`StreetErrorBudgetBurnFast` / `StreetErrorBudgetBurnSlow`) extending
+`streetSloBurnRateRules`. Availability and latency breaches raise
+`StreetAvailabilitySloBreach` / `StreetLatencySloBreach`.
+
+## Validation pipeline
+
+Before the assets are trusted they pass a four-stage validation pipeline. The
+first three stages run fully offline; the fourth uses Prometheus' own
+`promtool`:
+
+1. **`validateMetricReferences`** — the anti-fabrication guard. Every metric a
+   dashboard panel or rule expression references must be an Exported Metric. If
+   an asset references a metric the application does not export, validation
+   **fails and records the offending `(metric, asset)` pair**.
+2. **`validatePrometheusRuleGroups`** — rule-group structure and semantics
+   (unique group names, exactly one of `record`/`alert` per rule, non-empty
+   expressions, severity labels, summary annotations, valid durations).
+3. **`validateGrafanaDashboard`** — per-dashboard structure (uid, title, schema
+   version, panels, and per-target `expr`/`refId`).
+4. **promtool** — `promtool check rules` (semantic validity) and
+   `promtool test rules` (alert-behaviour unit tests) over the emitted rule
+   files.
+
+If promtool or dashboard validation reports an error, validation **fails and
+records the validation error** (Req 10.8).
+
+The "Exported Metric" authority is the union of: the default HTTP/process
+metrics, the PostgreSQL/Kafka/RabbitMQ/Plugin Host subsystem metrics, the
+recording-rule outputs (the `record:` series alerts and dashboards consume), and
+the Prometheus built-in `up` series.
+
+### Running the pipeline
 
 ```bash
-cd packages/core && npx tsc && node --test dist/src/tests/observability-pack.test.js
-node scripts/observability/emit-assets.mjs   # emits + validates the asset files
+# Offline + promtool (when installed), standalone:
+node scripts/observability/validate.mjs
+
+# Through the verification runner (emits the Verification Artifact):
+npm run verify:observability
 ```
+
+The verification driver runs the pipeline through the zero-dependency
+`CommandRunner` and emits a machine-readable Verification Artifact recording the
+executed command, the command exit code, and an ISO-8601 timestamp (Req 10.9):
+
+```
+verification-artifacts/observability/observability.validate.artifact.json
+```
+
+**Honest BLOCKED:** when `promtool` is not installed, the offline validators
+still run and are recorded, and the artifact is marked `BLOCKED` with the
+specific missing prerequisite (`promtool`) — never a mock and never a false
+`VERIFIED`. GitHub-hosted runners install promtool in the `observability`
+workflow, so CI runs the full semantic validation and earns `VERIFIED`.

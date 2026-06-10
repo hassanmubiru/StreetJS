@@ -1,13 +1,30 @@
 # .github/workflows/observability.yml
-# Observability pack verification: emit the Prometheus rules + Grafana dashboard,
-# then run Prometheus' own `promtool check rules` for semantic validation (the
-# step that is unavailable in the offline dev environment).
+# Observability pack verification (Req 10.6 / 10.7 / 10.8 / 10.9). Runs the
+# validation pipeline through the zero-dependency `CommandRunner`:
+#   • validateMetricReferences   — anti-fabrication guard (Req 10.1/10.7)
+#   • validatePrometheusRuleGroups — rule structure/semantics (Req 10.6/10.8)
+#   • validateGrafanaDashboard    — dashboard structure       (Req 10.6/10.8)
+#   • promtool check rules + test rules — semantic validation over the emitted
+#     rule files (the step unavailable in the offline dev environment)
+# and emits the machine-readable observability.validate.artifact.json (command,
+# exit code, ISO-8601 timestamp) which is uploaded as a build artifact.
+#
+# Honest BLOCKED: when promtool is unavailable the offline validators still run
+# and are recorded, and the runner marks the artifact BLOCKED with the specific
+# missing prerequisite (`promtool`). GitHub-hosted runners install promtool
+# below, so this normally runs the full semantic validation and earns VERIFIED.
 name: observability
 
 on:
   workflow_dispatch:
   pull_request:
-    paths: ['packages/core/src/observability/**', 'scripts/observability/**', '.github/workflows/observability.yml']
+    paths:
+      - 'packages/core/src/observability/**'
+      - 'packages/core/src/verification/**'
+      - 'scripts/observability/**'
+      - 'scripts/verification/**'
+      - 'observability/**'
+      - '.github/workflows/observability.yml'
 
 permissions:
   contents: read
@@ -24,9 +41,6 @@ jobs:
       - name: Build core
         run: npm run build -w packages/core
 
-      - name: Emit + structurally validate assets
-        run: node scripts/observability/emit-assets.mjs
-
       - name: Install promtool
         run: |
           PROM_VERSION=2.53.0
@@ -34,15 +48,15 @@ jobs:
           tar xzf prom.tar.gz
           sudo cp "prometheus-${PROM_VERSION}.linux-amd64/promtool" /usr/local/bin/
 
-      - name: promtool check rules (semantic validation)
-        run: promtool check rules observability/prometheus/street-rules.yml
+      # The validation pipeline (offline validators + promtool) through the
+      # CommandRunner → observability.validate.artifact.json. A validation
+      # failure fails the step recording the offending metric/asset or error.
+      - name: Validate observability pack (CommandRunner)
+        run: node scripts/observability/run-validate.mjs
 
-      - name: promtool test rules (alert behaviour unit tests)
-        working-directory: observability/prometheus
-        run: promtool test rules street-rules.test.yml
-
-      - name: Validate Grafana dashboards JSON
-        run: |
-          for f in observability/grafana/dashboards/*.json; do
-            node -e "JSON.parse(require('fs').readFileSync('$f','utf8')); console.log('valid: $f')"
-          done
+      - name: Upload observability verification artifact
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: observability-validate-verification
+          path: verification-artifacts/observability/

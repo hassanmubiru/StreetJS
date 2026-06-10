@@ -49,6 +49,10 @@ ACCOUNT_COUNT="${ACCOUNT_COUNT:-50}"
 SLOW_BROKER_MS="${SLOW_BROKER_MS:-5000}"
 SCENARIOS="${SCENARIOS:-cold-start,broker-restart,network-interruption,connection-loss,slow-broker}"
 BROKERS="${KAFKA_BROKERS:-127.0.0.1:9092}"
+# Optional machine-readable per-scenario summary path. When set, the harness
+# writes a JSON document the CommandRunner driver (verify.mjs) folds into the
+# kafka.coldstart / kafka.chaos.* Verification Artifacts (Req 9.8, task 15.5).
+CHAOS_SUMMARY_PATH="${CHAOS_SUMMARY_PATH:-}"
 TEST="packages/core/dist/src/integration/kafka/kafka.integration.test.js"
 ACCOUNT="scripts/reliability/kafka-account.mjs"
 CONTAINER="street-kafka"
@@ -63,6 +67,24 @@ fi
 TOTAL_PRODUCED=0
 TOTAL_DELIVERED=0
 TOTAL_LOST=0
+
+# Per-call accounting outputs (set by account_messages) + per-scenario summary
+# fragments accumulated for the machine-readable CHAOS_SUMMARY_PATH document.
+LAST_PRODUCED=0
+LAST_DELIVERED=0
+LAST_LOST=0
+LAST_OK=0
+SCEN_JSON=""
+
+# Append one scenario object to the JSON summary accumulator.
+#   emit_scenario <name> <ran> <ok> <pass> <total>
+# Uses the most recent LAST_* accounting values for the message tallies.
+emit_scenario() {
+  local name="$1" ran="$2" ok="$3" pass="$4" total="$5"
+  local obj
+  obj="\"$name\":{\"ran\":$ran,\"ok\":$ok,\"pass\":$pass,\"total\":$total,\"produced\":$LAST_PRODUCED,\"deliveredToCommitted\":$LAST_DELIVERED,\"lost\":$LAST_LOST}"
+  if [ -z "$SCEN_JSON" ]; then SCEN_JSON="$obj"; else SCEN_JSON="$SCEN_JSON,$obj"; fi
+}
 
 want() { case ",$SCENARIOS," in *,"$1",*) return 0;; *) return 1;; esac; }
 
@@ -99,7 +121,11 @@ account_messages() {
   TOTAL_PRODUCED=$((TOTAL_PRODUCED + produced))
   TOTAL_DELIVERED=$((TOTAL_DELIVERED + delivered))
   TOTAL_LOST=$((TOTAL_LOST + lost))
+  LAST_PRODUCED="$produced"
+  LAST_DELIVERED="$delivered"
+  LAST_LOST="$lost"
   echo "  [$label] accounting: produced=$produced deliveredToCommitted=$delivered lost=$lost"
+  if [ "$lost" -eq 0 ]; then LAST_OK=1; else LAST_OK=0; fi
   [ "$lost" -eq 0 ]
 }
 
