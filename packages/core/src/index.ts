@@ -57,10 +57,12 @@ export type { PlaygroundOptions } from './devx/playground.js';
 export {
   validateOpenApiDocument, openApiOperations, parseZapReport,
   summarizeFindings, evaluateDastGate, openApiConformanceScan,
+  buildDastArtifact,
 } from './security/dast.js';
 export type {
   DastSeverity, DastFinding, OpenApiValidationResult, OpenApiOperationTarget,
   DastGateOptions, DastGateResult, ConformanceScanOptions,
+  DastFailureCause, DastArtifactDetails, DastArtifactMeta,
 } from './security/dast.js';
 
 // ── Verification Artifact subsystem ───────────────────────────────────────────
