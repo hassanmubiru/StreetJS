@@ -18,7 +18,7 @@ Each property-based test is tagged with the comment format:
 ## Tasks
 
 - [ ] 1. Verification Artifact subsystem (foundation — built first)
-  - [~] 1.1 Implement the status engine and shared types
+  - [-] 1.1 Implement the status engine and shared types
     - Create `packages/core/src/verification/status.ts` with `VerificationStatus`, `EvidenceComponents`, `BlockedReason`, `ClassifyInput`, and `classify()` honoring precedence NOT_IMPLEMENTED → BLOCKED → VERIFIED → PARTIAL (pure, Node-core only)
     - _Design: Verification Artifact subsystem → Status engine_
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.6, 1.9_
