@@ -98,23 +98,23 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Cloud Deployment Verifier (offline-verifiable artifacts); Testing Strategy → Honest BLOCKED recording_
     - _Requirements: 2.14, 1.5_
 
-  - [-] 4.6 Write kind-cluster integration verification for Kubernetes (Layer B)
+  - [x] 4.6 Write kind-cluster integration verification for Kubernetes (Layer B)
     - Deploy generated manifests + Helm to a local kind cluster, assert pod `1/1 Running`, health 200, smoke 0 fail/0 error; skip (not fail) when kind is unreachable, recording BLOCKED honestly
     - _Requirements: 2.9, 2.10_
 
-  - [-] 4.7 Wire the cloud deploy verification CI job and emit the artifact
+  - [x] 4.7 Wire the cloud deploy verification CI job and emit the artifact
     - Extend `.github/workflows/deploy-verify.yml` to run the verifier through `CommandRunner` and upload the per-target artifacts + `deployment-report.json` via `actions/upload-artifact`
     - _Design: Testing Strategy → CI integration and evidence retention_
     - _Requirements: 2.11_
 
-  - [-] 4.8 Write unit tests for the deployment report status mapping
+  - [x] 4.8 Write unit tests for the deployment report status mapping
     - Cover VERIFIED/PARTIAL/BLOCKED mapping and retained failing output in the report
     - _Requirements: 2.11, 2.13, 2.14_
 
 - [~] 5. Checkpoint - cloud verification
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 6. DAST verification
+- [x] 6. DAST verification
   - [x] 6.1 Extend the DAST verifier with an artifact emitter and expanded route surface
     - Extend `packages/core/src/security/dast.ts` with `buildDastArtifact()` (per-severity counts, endpoints scanned/total, gate outcome, failure cause) and grow `dast/routes.json` to cover auth, RBAC-protected, file upload, and CRUD endpoints
     - _Design: Components → DAST verifier_
@@ -132,12 +132,12 @@ Each property-based test is tagged with the comment format:
     - **Property 7: Scan coverage equals the enumerated operation set** (fast-check, min 100 runs)
     - **Validates: Requirements 3.2**
 
-  - [-] 6.5 Wire the DAST CI workflow with real scans and timeout (Layer B)
+  - [x] 6.5 Wire the DAST CI workflow with real scans and timeout (Layer B)
     - Extend `.github/workflows/dast.yml` to run real Schemathesis + ZAP Baseline + ZAP API scans against a running instance through `CommandRunner`, enforce a 30-minute `timeout-minutes` + in-script watchdog, record failure cause (`target-unavailable`/`scan-error`/`timeout`), fail the build on High/Critical, and upload the artifact
     - _Design: Components → DAST verifier (behavior); Error Handling 3.8/3.9_
     - _Requirements: 3.1, 3.3, 3.8, 3.9_
 
-- [ ] 7. Network Plugin Registry
+- [x] 7. Network Plugin Registry
   - [x] 7.1 Implement core pagination helper and reuse signing primitives
     - Add `normalizePageSize()` (pure, in core) and confirm reuse of `signManifest`/`verifyManifest`/`manifestChecksum`
     - _Design: Components → Network Plugin Registry (`normalizePageSize`)_
@@ -177,7 +177,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Network Plugin Registry (CLI + guides)_
     - _Requirements: 4.1, 4.7_
 
-  - [-] 7.10 Implement the publish→install E2E harness and CI workflow (Layer B)
+  - [x] 7.10 Implement the publish→install E2E harness and CI workflow (Layer B)
     - Run a registry server in a container, execute publish→install end-to-end through `CommandRunner`, emit `registry.publish-install.artifact.json`, and upload it from CI; skip with honest BLOCKED when the container is unavailable
     - _Design: Components → Network Plugin Registry (E2E harness); Testing Strategy → Layer B_
     - _Requirements: 4.8_
@@ -201,11 +201,11 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Official Plugin Ecosystem (install path); Error Handling 5.7/5.8_
     - _Requirements: 5.6, 5.7, 5.8_
 
-  - [~] 9.4 Write unit tests for plugin structure and signature enforcement
+  - [-] 9.4 Write unit tests for plugin structure and signature enforcement
     - Verify the per-package official-plugin structure (5.5) and signature-enforcement behavior on install
     - _Requirements: 5.5, 5.7, 5.8_
 
-  - [~] 9.5 Write integration tests against real backing services with BLOCKED recording (Layer B)
+  - [-] 9.5 Write integration tests against real backing services with BLOCKED recording (Layer B)
     - Run each plugin's integration test against its real backing service (Redis/S3/R2 via containers; Twilio/SendGrid/Stripe/Auth0 via sandbox accounts), emit `plugin.<id>.artifact.json` with pass result + plugin id + ISO-8601 timestamp, and record BLOCKED with the missing credential id when a test account is absent
     - _Design: Components → Official Plugin Ecosystem; Testing Strategy → Layer B + Honest BLOCKED_
     - _Requirements: 5.9_
@@ -229,11 +229,11 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Enterprise Console APIs (OpenAPI + docs)_
     - _Requirements: 6.9_
 
-  - [~] 10.5 Write property test for OpenAPI coverage
+  - [-] 10.5 Write property test for OpenAPI coverage
     - **Property 16: Generated OpenAPI covers every exposed enterprise operation** (fast-check, min 100 runs)
     - **Validates: Requirements 6.9**
 
-  - [~] 10.6 Run the enterprise suite against a running instance and emit the artifact (Layer B)
+  - [-] 10.6 Run the enterprise suite against a running instance and emit the artifact (Layer B)
     - Execute the suite against a running app + PostgreSQL container through `CommandRunner`, emit `enterprise.api.artifact.json` with executed command, exit code, and pass/fail counts, and upload from CI
     - _Design: Components → Enterprise Console APIs; Testing Strategy → Layer B_
     - _Requirements: 6.10_
@@ -264,7 +264,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Interactive Developer Experience_
     - _Requirements: 7.1, 7.6, 7.7, 7.8_
 
-  - [~] 12.6 Build the devtools bundle and run its tests, emitting artifacts (Layer B)
+  - [-] 12.6 Build the devtools bundle and run its tests, emitting artifacts (Layer B)
     - Build the bundle + run headless-browser tests through `CommandRunner`, emit `devx.playground`/`devx.route-explorer`/`devx.dependency-graph` artifacts, and upload from CI
     - _Design: Testing Strategy → Layer B_
     - _Requirements: 7.9_

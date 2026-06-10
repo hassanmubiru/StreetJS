@@ -98,15 +98,25 @@ export function findFreePort() {
  * Poll `url` until it responds (any HTTP status) or the deadline passes.
  * Returns true once a response is received, false on timeout.
  */
-export async function waitForHttp(url, { timeoutMs = 60_000, intervalMs = 1_000 } = {}) {
+export async function waitForHttp(url, { timeoutMs = 60_000, intervalMs = 1_000, perRequestMs = 3_000 } = {}) {
   const deadline = Date.now() + timeoutMs;
   for (;;) {
+    // Use a manual, REF'd abort timer rather than `AbortSignal.timeout()`: the
+    // latter uses an unref'd timer, so a request that is pending against a
+    // not-yet-ready port (e.g. docker-proxy has bound the host port but the
+    // container app is still booting) would leave nothing keeping the event loop
+    // alive, and Node would exit cleanly mid-wait. A ref'd timer guarantees the
+    // loop stays alive for the duration of each attempt.
+    const ac = new AbortController();
+    const abortTimer = setTimeout(() => ac.abort(), perRequestMs);
     try {
-      const res = await fetch(url, { signal: AbortSignal.timeout(3_000) });
+      const res = await fetch(url, { signal: ac.signal });
       // Any response (even 404) means the server is up and routing.
       if (res) return true;
     } catch {
       // not up yet
+    } finally {
+      clearTimeout(abortTimer);
     }
     if (Date.now() >= deadline) return false;
     await new Promise((r) => setTimeout(r, intervalMs));
