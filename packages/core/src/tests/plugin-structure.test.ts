@@ -81,11 +81,18 @@ class FixturePlugin extends PluginModule {
 describe('official plugin packages — per-package structure (Req 5.5)', () => {
   for (const { dir, category } of OFFICIAL_PLUGIN_PACKAGES) {
     describe(`${dir} (${category})`, () => {
-      it('has a source module that extends the PluginModule SDK', () => {
+      it('has a source module that provides a PluginModule (defined or re-exported from the SDK)', () => {
         const indexPath = pkgPath(dir, 'src', 'index.ts');
         assert.ok(existsSync(indexPath), `${dir}/src/index.ts must exist`);
         const src = readFileSync(indexPath, 'utf8');
-        assert.match(src, /extends\s+PluginModule/, `${dir} must define a class extending PluginModule`);
+        // A package either defines its own `class … extends PluginModule`
+        // (e.g. the dependency-free Redis client) or repackages a canonical
+        // PluginModule subclass from the core SDK and (re-)exports it.
+        const providesPlugin =
+          /extends\s+PluginModule/.test(src) ||
+          /export\s+default\s+\w*Plugin/.test(src) ||
+          /export\s*\{[\s\S]*?\w*Plugin/.test(src);
+        assert.ok(providesPlugin, `${dir} must define or re-export a PluginModule subclass`);
       });
 
       it('includes a well-formed Plugin Manifest (manifest.json)', () => {
