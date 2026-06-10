@@ -263,8 +263,6 @@ async function main() {
     try {
       const url = req.url ?? '/';
       const path = url.split('?')[0];
-
-      // Liveness never depends on the DB.
       if (req.method === 'GET' && path === '/health/live') {
         return sendJson(res, 200, { status: 'live' });
       }
