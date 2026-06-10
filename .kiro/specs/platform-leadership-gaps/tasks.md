@@ -83,7 +83,7 @@ Each property-based test is tagged with the comment format:
     - **Property 4: Generated deployment manifests are structurally valid for every supported target** (fast-check, min 100 runs; kubernetes, cloudrun, ecs)
     - **Validates: Requirements 2.2, 2.3, 2.4**
 
-  - [-] 4.3 Implement remaining target assets and adapters
+  - [x] 4.3 Implement remaining target assets and adapters
     - Add Cloud Run profile (extend `generateCloudRun`), ECS task + service definitions (extend `generateEcs`), and deploy workflows/adapters for AWS Lambda (handler adapter + cold-start validation), Azure Functions (host config), Google Cloud Functions (entrypoint adapter), and Cloudflare Workers (`wrangler` + Worker adapter)
     - _Design: Components → Cloud Deployment Verifier (per-target deliverables table)_
     - _Requirements: 2.3, 2.4, 2.5, 2.6, 2.7, 2.8_
@@ -128,7 +128,7 @@ Each property-based test is tagged with the comment format:
     - **Property 6: Severity counts are an exact tally** (fast-check, min 100 runs)
     - **Validates: Requirements 3.7**
 
-  - [~] 6.4 Write property test for scan coverage
+  - [-] 6.4 Write property test for scan coverage
     - **Property 7: Scan coverage equals the enumerated operation set** (fast-check, min 100 runs)
     - **Validates: Requirements 3.2**
 
@@ -147,7 +147,7 @@ Each property-based test is tagged with the comment format:
     - **Property 12: Pagination is clamped to its bounds** (fast-check, min 100 runs)
     - **Validates: Requirements 4.6**
 
-  - [-] 7.3 Write property test for signature verification soundness
+  - [x] 7.3 Write property test for signature verification soundness
     - **Property 8: Signature verification is sound** (fast-check, min 100 runs; manifest + Ed25519 keypair generator with tamper mutations)
     - **Validates: Requirements 4.2, 5.7**
 
@@ -216,11 +216,11 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Enterprise Console APIs; Error Handling 6.6/6.7/6.8_
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8_
 
-  - [-] 10.2 Write property test for authentication/authorization gating
+  - [x] 10.2 Write property test for authentication/authorization gating
     - **Property 14: Every enterprise operation requires authn and authz, else state is unchanged** (fast-check, min 100 runs)
     - **Validates: Requirements 6.5, 6.6, 6.7**
 
-  - [~] 10.3 Write property test for invalid-input rejection
+  - [-] 10.3 Write property test for invalid-input rejection
     - **Property 15: Invalid input is rejected without state change** (fast-check, min 100 runs)
     - **Validates: Requirements 6.8**
 
@@ -251,11 +251,11 @@ Each property-based test is tagged with the comment format:
     - **Property 17: The route tree reflects exactly the registered routes** (fast-check, min 100 runs)
     - **Validates: Requirements 7.2**
 
-  - [-] 12.3 Write property test for the dependency graph
+  - [x] 12.3 Write property test for the dependency graph
     - **Property 18: The dependency graph is well-formed** (fast-check, min 100 runs)
     - **Validates: Requirements 7.3**
 
-  - [~] 12.4 Write property test for the API Inspector failure path
+  - [-] 12.4 Write property test for the API Inspector failure path
     - **Property 19: A failed inspector request retains its input** (fast-check, min 100 runs)
     - **Validates: Requirements 7.5**
 
@@ -279,7 +279,7 @@ Each property-based test is tagged with the comment format:
     - **Property 20: Version resolution prefers the explicit target, else latest** (fast-check, min 100 runs)
     - **Validates: Requirements 8.1, 8.2**
 
-  - [~] 13.3 Write property test for breaking-change analysis
+  - [-] 13.3 Write property test for breaking-change analysis
     - **Property 21: Breaking-change analysis is well-formed** (fast-check, min 100 runs)
     - **Validates: Requirements 8.3, 8.4**
 
@@ -288,7 +288,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Upgrade System (codemods); Error Handling 8.7_
     - _Requirements: 8.5, 8.7_
 
-  - [~] 13.5 Write property test for codemod idempotence
+  - [-] 13.5 Write property test for codemod idempotence
     - **Property 22: Codemods are idempotent** (fast-check, min 100 runs; source-string + codemod generator including already-migrated inputs)
     - **Validates: Requirements 8.6**
 
@@ -314,7 +314,7 @@ Each property-based test is tagged with the comment format:
     - **Property 24: A gate timeout preserves committed offsets and does not consume** (fast-check, min 100 runs)
     - **Validates: Requirements 9.2**
 
-  - [-] 15.3 Implement the chaos framework scenarios and lost-message accounting
+  - [x] 15.3 Implement the chaos framework scenarios and lost-message accounting
     - Extend `scripts/reliability/kafka-cold-start.sh` with broker-restart, network-interruption, connection-loss, and slow-broker (≥ 5000 ms delay) scenarios; accept parameterized `COLD_STARTS`/`RESTART_CYCLES` supporting the full-scale targets; implement lost-message accounting (`produced − deliveredToCommitted`)
     - _Design: Components → Kafka Reliability (chaos framework)_
     - _Requirements: 9.3, 9.4, 9.5, 9.6, 9.7, 9.8_
