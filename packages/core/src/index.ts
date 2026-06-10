@@ -343,8 +343,8 @@ export type { ProtoAst, ServiceDefinition as GrpcServiceDefinition, RpcDefinitio
 export { encodeFrame, decodeFrame, decodeFrames, parseGrpcTimeout, GrpcError, GRPC_STATUS, GRPC_MAX_MESSAGE_BYTES, jsonCodec } from './microservices/grpc/framing.js';
 
 // ── Cloud ─────────────────────────────────────────────────────────────────────
-export { generateManifest, validateDeploymentManifest, generateTargetAssets, helmChartAssets, generateEcsService, validateEcsService, buildDeploymentReport, classifyTargetVerification, HEALTH_LATENCY_BUDGET_MS, SMOKE_DURATION_BUDGET_MS } from './cloud/deployment.js';
-export type { CloudPlatform, DeploymentTarget, DeployConfig, ManifestValidationResult, EcsServiceValidationResult, SmokeResult, TargetVerification, DeploymentReport } from './cloud/deployment.js';
+export { generateManifest, validateDeploymentManifest, generateTargetAssets, helmChartAssets, generateEcsService, validateEcsService, buildDeploymentReport, classifyTargetVerification, targetDependencies, lintWorkflow, runOfflineArtifacts, blockedTargetWithOfflineEvidence, HEALTH_LATENCY_BUDGET_MS, SMOKE_DURATION_BUDGET_MS } from './cloud/deployment.js';
+export type { CloudPlatform, DeploymentTarget, DeployConfig, ManifestValidationResult, EcsServiceValidationResult, SmokeResult, TargetVerification, DeploymentReport, DependencyDescriptor, OfflineCheckResult, OfflineArtifactResult } from './cloud/deployment.js';
 export { VaultSecretProvider, AwsSecretsManagerProvider, GcpSecretManagerProvider, AzureKeyVaultProvider, SecretRotationManager } from './cloud/secret-providers.js';export type { SecretProvider, HttpClientOptions, RotationOptions } from './cloud/secret-providers.js';
 export {
   registerShutdownHook,
@@ -370,7 +370,7 @@ export { RetainFor, Encrypt, Classify, RetentionJob, ComplianceReporter, FieldEn
 export type { DataClassificationLevel, RetentionEntityMeta, ComplianceReport } from './enterprise/data-policy.js';
 
 // ── Enterprise: Console APIs ────────────────────────────────────────────────────
-export { EnterpriseConsole, CONSOLE_ROUTES, InMemoryConsoleBackend, ConsoleNotFoundError } from './enterprise/console/index.js';
+export { EnterpriseConsole, CONSOLE_ROUTES, consoleOpenApiSpec, InMemoryConsoleBackend, ConsoleNotFoundError } from './enterprise/console/index.js';
 export type {
   EnterpriseConsoleOptions,
   ConsoleArea,
