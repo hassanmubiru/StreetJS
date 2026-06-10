@@ -211,11 +211,16 @@ export {
   instrumentRabbitMqPublisher, instrumentRabbitMqConsumer, instrumentPluginHost,
 } from './observability/subsystem-metrics.js';
 export {
-  streetRecordingRules, streetAlertRules, streetSaturationRules, streetSloBurnRateRules, streetRuleGroups,
+  streetRecordingRules, streetAlertRules, streetSubsystemAlertRules, streetSaturationRules,
+  streetSloBurnRateRules, streetSloObjectives, streetSloPack, streetRuleGroups,
   validatePrometheusRuleGroups, serializePrometheusRulesYaml, isAlertRule,
 } from './observability/prometheus-rules.js';
-export type { RecordingRule, AlertRule, PromRule, RuleGroup, RuleValidationResult } from './observability/prometheus-rules.js';
-export { streetApiDashboard, streetRuntimeDashboard, streetDashboards, validateGrafanaDashboard } from './observability/grafana-dashboard.js';
+export type { RecordingRule, AlertRule, PromRule, RuleGroup, RuleValidationResult, SloObjective } from './observability/prometheus-rules.js';
+export {
+  streetApiDashboard, streetRuntimeDashboard,
+  streetPostgresDashboard, streetKafkaDashboard, streetRabbitmqDashboard, streetPluginHostDashboard,
+  streetDashboards, validateGrafanaDashboard,
+} from './observability/grafana-dashboard.js';
 export type { GrafanaDashboard, GrafanaPanel, GrafanaTarget, DashboardValidationResult } from './observability/grafana-dashboard.js';
 export {
   exportedMetricNames, referencedMetrics, validateMetricReferences, extractMetricsFromExpr,
