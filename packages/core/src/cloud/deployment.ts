@@ -443,3 +443,374 @@ ${envLines ? '\n' + envLines + '\n' : ''}
 }
 `;
 }
+
+// ── Per-target asset generation (Cloud Deployment Verifier) ─────────────────────
+
+/**
+ * Generate the per-target deliverable bundle for a {@link DeploymentTarget}
+ * (Requirements 2.1, 2.2). Returns a map of relative file path → file content
+ * so callers can write or structurally verify the assets offline.
+ *
+ * Kubernetes is fully realized here: split production manifests
+ * (Deployment/Service/HPA), the Helm chart under `deploy/helm/street/`, and the
+ * standalone HPA autoscaling example. The Cloud Run and ECS bundles reuse the
+ * existing offline generators. The serverless targets (lambda, azure-functions,
+ * gcf, cloudflare-workers) carry a baseline deploy workflow here; their handler
+ * adapters and full workflows are filled in by a later task.
+ */
+export function generateTargetAssets(
+  target: DeploymentTarget,
+  cfg: DeployConfig,
+): Record<string, string> {
+  switch (target) {
+    case 'kubernetes':
+      return kubernetesAssets(cfg);
+    case 'cloudrun':
+      return { 'deploy/cloudrun/service.yaml': generateCloudRun(cfg) };
+    case 'ecs':
+      return { 'deploy/ecs/taskdef.json': generateEcs(cfg) };
+    case 'lambda':
+      return { '.github/workflows/deploy-lambda.yml': baselineDeployWorkflow('lambda', cfg) };
+    case 'azure-functions':
+      return { '.github/workflows/deploy-azure-functions.yml': baselineDeployWorkflow('azure-functions', cfg) };
+    case 'gcf':
+      return { '.github/workflows/deploy-gcf.yml': baselineDeployWorkflow('gcf', cfg) };
+    case 'cloudflare-workers':
+      return { '.github/workflows/deploy-cloudflare-workers.yml': baselineDeployWorkflow('cloudflare-workers', cfg) };
+    default:
+      throw new Error(`generateTargetAssets: unknown target "${target as string}"`);
+  }
+}
+
+/** The full Kubernetes deliverable bundle: split manifests + Helm chart + HPA example. */
+function kubernetesAssets(cfg: DeployConfig): Record<string, string> {
+  return {
+    'deploy/k8s/deployment.yaml': k8sDeploymentManifest(cfg),
+    'deploy/k8s/service.yaml': k8sServiceManifest(cfg),
+    'deploy/k8s/hpa.yaml': k8sHpaManifest(cfg),
+    'deploy/k8s/hpa-autoscaling-example.yaml': hpaAutoscalingExample(cfg),
+    ...helmChartAssets(),
+  };
+}
+
+/**
+ * A standalone, heavily-commented HPA autoscaling example (Requirement 2.2)
+ * that operators can copy and tune independently of the bundled manifests.
+ */
+function hpaAutoscalingExample(cfg: DeployConfig): string {
+  const minReplicas = cfg.replicas ?? 2;
+  const maxReplicas = Math.max(minReplicas * 5, 10);
+  return `# HorizontalPodAutoscaler autoscaling example for ${cfg.name}.
+# Scales between ${minReplicas} and ${maxReplicas} replicas on CPU + memory
+# utilization. Requires metrics-server to be installed in the cluster.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ${cfg.name}-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ${cfg.name}
+  minReplicas: ${minReplicas}
+  maxReplicas: ${maxReplicas}
+  metrics:
+    # Target 70% average CPU utilization across pods.
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    # Target 80% average memory utilization across pods.
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+  behavior:
+    # Scale down conservatively to avoid flapping.
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 50
+          periodSeconds: 60
+    # Scale up aggressively to absorb traffic spikes.
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 30
+`;
+}
+
+// ── Helm chart (deploy/helm/street/) ────────────────────────────────────────────
+
+/**
+ * The Street Helm chart deliverable. Templates are values-driven so a single
+ * chart serves dev/staging/prod via `values.yaml` overrides. Returns a map of
+ * chart file path → content (Requirement 2.2).
+ */
+export function helmChartAssets(): Record<string, string> {
+  return {
+    'deploy/helm/street/Chart.yaml': HELM_CHART_YAML,
+    'deploy/helm/street/values.yaml': HELM_VALUES_YAML,
+    'deploy/helm/street/.helmignore': HELM_HELMIGNORE,
+    'deploy/helm/street/templates/_helpers.tpl': HELM_HELPERS_TPL,
+    'deploy/helm/street/templates/deployment.yaml': HELM_DEPLOYMENT_TPL,
+    'deploy/helm/street/templates/service.yaml': HELM_SERVICE_TPL,
+    'deploy/helm/street/templates/hpa.yaml': HELM_HPA_TPL,
+    'deploy/helm/street/templates/NOTES.txt': HELM_NOTES_TXT,
+  };
+}
+
+const HELM_CHART_YAML = `apiVersion: v2
+name: street
+description: A Helm chart for deploying a Street Framework application
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - street
+  - streetjs
+  - nodejs
+home: https://github.com/streetjs
+maintainers:
+  - name: Street Framework
+`;
+
+const HELM_VALUES_YAML = `# Default values for the Street chart.
+replicaCount: 2
+
+image:
+  repository: street-app
+  tag: latest
+  pullPolicy: IfNotPresent
+
+containerPort: 3000
+
+service:
+  type: ClusterIP
+  port: 80
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    cpu: 250m
+    memory: 256Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# Health probe paths served by the application.
+probes:
+  livenessPath: /health/live
+  readinessPath: /health/ready
+
+# Extra environment variables passed to the container.
+env: {}
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  readOnlyRootFilesystem: true
+`;
+
+const HELM_HELMIGNORE = `.git/
+*.tmp
+*.bak
+.DS_Store
+`;
+
+const HELM_HELPERS_TPL = `{{/* Common name helpers for the Street chart. */}}
+{{- define "street.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "street.fullname" -}}
+{{- printf "%s-%s" .Release.Name (include "street.name" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "street.labels" -}}
+app.kubernetes.io/name: {{ include "street.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version }}
+{{- end -}}
+
+{{- define "street.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "street.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+`;
+
+const HELM_DEPLOYMENT_TPL = `apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "street.fullname" . }}
+  labels:
+    {{- include "street.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      {{- include "street.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "street.selectorLabels" . | nindent 8 }}
+    spec:
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: {{ .Values.securityContext.runAsNonRoot }}
+        runAsUser: {{ .Values.securityContext.runAsUser }}
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: {{ include "street.name" . }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.containerPort }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: {{ .Values.securityContext.readOnlyRootFilesystem }}
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- with .Values.env }}
+          env:
+            {{- range $k, $v := . }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+            {{- end }}
+          {{- end }}
+          startupProbe:
+            httpGet:
+              path: {{ .Values.probes.livenessPath }}
+              port: http
+            failureThreshold: 30
+            periodSeconds: 2
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.probes.livenessPath }}
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.probes.readinessPath }}
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+`;
+
+const HELM_SERVICE_TPL = `apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "street.fullname" . }}
+  labels:
+    {{- include "street.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    {{- include "street.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: http
+      protocol: TCP
+      port: {{ .Values.service.port }}
+      targetPort: http
+`;
+
+const HELM_HPA_TPL = `{{- if .Values.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "street.fullname" . }}
+  labels:
+    {{- include "street.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "street.fullname" . }}
+  minReplicas: {{ .Values.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.autoscaling.maxReplicas }}
+  metrics:
+    {{- if .Values.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.autoscaling.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- end }}
+{{- end }}
+`;
+
+const HELM_NOTES_TXT = `Street has been deployed.
+
+1. Check the rollout status:
+   kubectl rollout status deployment/{{ include "street.fullname" . }}
+
+2. Port-forward to reach the service locally:
+   kubectl port-forward svc/{{ include "street.fullname" . }} 8080:{{ .Values.service.port }}
+
+3. Verify health:
+   curl http://localhost:8080{{ .Values.probes.livenessPath }}
+   curl http://localhost:8080{{ .Values.probes.readinessPath }}
+`;
+
+// ── Serverless baseline workflows (extended by a later task) ─────────────────────
+
+/**
+ * A minimal, valid GitHub Actions deploy workflow scaffold for a serverless
+ * target. The full handler adapters and provider-specific steps are added by a
+ * later task; this establishes the workflow file so the target is wired.
+ */
+function baselineDeployWorkflow(target: DeploymentTarget, cfg: DeployConfig): string {
+  return `# Baseline deploy workflow for ${target} — ${cfg.name}.
+name: deploy-${target}
+on:
+  workflow_dispatch:
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm run build
+      # Provider-specific deploy + validation steps are added by a later task.
+`;
+}

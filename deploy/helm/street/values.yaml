@@ -1,0 +1,41 @@
+# Default values for the Street chart.
+replicaCount: 2
+
+image:
+  repository: street-app
+  tag: latest
+  pullPolicy: IfNotPresent
+
+containerPort: 3000
+
+service:
+  type: ClusterIP
+  port: 80
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    cpu: 250m
+    memory: 256Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# Health probe paths served by the application.
+probes:
+  livenessPath: /health/live
+  readinessPath: /health/ready
+
+# Extra environment variables passed to the container.
+env: {}
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  readOnlyRootFilesystem: true

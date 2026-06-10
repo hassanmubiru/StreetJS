@@ -1,0 +1,13 @@
+apiVersion: v2
+name: street
+description: A Helm chart for deploying a Street Framework application
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - street
+  - streetjs
+  - nodejs
+home: https://github.com/streetjs
+maintainers:
+  - name: Street Framework

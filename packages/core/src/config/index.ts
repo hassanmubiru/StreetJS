@@ -5,6 +5,19 @@ import { Injectable } from '../core/container.js';
 import { Config } from '../core/decorators.js';
 import { loadConfig } from '../security/vault.js';
 
+/**
+ * Database initialization strategy at bootstrap.
+ *
+ * - `lazy` (default): the pool is registered but NOT initialized at bootstrap.
+ *   Connections are warmed up on first database use, so the app boots and serves
+ *   health without requiring a provisioned PostgreSQL instance.
+ * - `eager`: the pool is initialized at bootstrap (legacy behavior); a missing
+ *   database prevents startup. Use for environments that must fail fast.
+ * - `provisioned`: the database is treated as an externally guaranteed dependency;
+ *   bootstrap does not block on it and readiness gates on first successful connection.
+ */
+export type DbInitMode = 'lazy' | 'eager' | 'provisioned';
+
 @Injectable()
 export class AppConfig {
   @Config('PORT', { required: false })
@@ -44,6 +57,14 @@ export class AppConfig {
   migrationsDir: string = './migrations';
 
   /**
+   * Database initialization strategy: `lazy` (default), `eager`, or `provisioned`.
+   * Controls whether bootstrap eagerly warms the connection pool. See {@link DbInitMode}.
+   * Use the {@link AppConfig.dbInitMode} getter for the validated, normalized value.
+   */
+  @Config('DB_INIT_MODE', { required: false })
+  dbInitModeRaw: string = 'lazy';
+
+  /**
    * Comma-separated list of allowed CORS origins.
    * In production, set this to your actual frontend domain(s).
    * Example: ALLOWED_ORIGINS=https://app.example.com,https://admin.example.com
@@ -71,6 +92,19 @@ export class AppConfig {
 
   get pgPortNumber(): number {
     return parseInt(this.pgPort, 10) || 5432;
+  }
+
+  /**
+   * The validated, normalized database initialization mode.
+   * Defaults to `lazy` when unset or set to an unrecognized value, so that an
+   * environment without a provisioned database still boots and serves health.
+   */
+  get dbInitMode(): DbInitMode {
+    const v = this.dbInitModeRaw.trim().toLowerCase();
+    if (v === 'eager' || v === 'provisioned' || v === 'lazy') {
+      return v;
+    }
+    return 'lazy';
   }
 
   /**

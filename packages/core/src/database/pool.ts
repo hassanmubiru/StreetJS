@@ -40,6 +40,11 @@ export class PgPool {
   private readonly sweepTimer: NodeJS.Timeout;
   private closed = false;
 
+  /** Whether the pool has completed (or is completing) its initial warm-up. */
+  private initialized = false;
+  /** In-flight warm-up promise, shared by concurrent callers for idempotency. */
+  private initPromise: Promise<void> | null = null;
+
   /** Rolling window of recent successful acquire durations (ms). */
   private static readonly ACQUIRE_SAMPLE_SIZE = 100;
   private readonly acquireSamples: number[] = [];
