@@ -1,0 +1,1427 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Street Enterprise Console API",
+    "version": "1.0.0",
+    "description": "REST surface for tenant, policy, compliance, and administrative operations. Every operation requires a successful bearer-token authentication and an authorization check before it is performed."
+  },
+  "paths": {
+    "/api/admin/tenants": {
+      "post": {
+        "summary": "Create a tenant",
+        "description": "Create a tenant. Requires one of the roles: admin, tenant:write.",
+        "tags": [
+          "tenant"
+        ],
+        "responses": {
+          "201": {
+            "description": "Create a tenant"
+          },
+          "400": {
+            "description": "Invalid input — the offending field is identified; state is unchanged.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed — a valid bearer token is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authorization failed — the principal lacks a required role.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "createTenant",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Tenant display name."
+                  },
+                  "plan": {
+                    "type": "string",
+                    "description": "Optional subscription plan."
+                  },
+                  "connectionString": {
+                    "type": "string",
+                    "description": "Optional dedicated database connection string."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/tenants/{id}": {
+      "patch": {
+        "summary": "Update a tenant",
+        "description": "Update a tenant. Requires one of the roles: admin, tenant:write.",
+        "tags": [
+          "tenant"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Update a tenant"
+          },
+          "400": {
+            "description": "Invalid input — the offending field is identified; state is unchanged.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed — a valid bearer token is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authorization failed — the principal lacks a required role.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "updateTenant",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "minProperties": 1,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "plan": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "active",
+                      "suspended"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/tenants/{id}/suspend": {
+      "post": {
+        "summary": "Suspend a tenant",
+        "description": "Suspend a tenant. Requires one of the roles: admin, tenant:write.",
+        "tags": [
+          "tenant"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Suspend a tenant"
+          },
+          "400": {
+            "description": "Invalid input — the offending field is identified; state is unchanged.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed — a valid bearer token is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authorization failed — the principal lacks a required role.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "suspendTenant",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/policies/rbac": {
+      "put": {
+        "summary": "Set the RBAC policy",
+        "description": "Set the RBAC policy. Requires one of the roles: admin, policy:write.",
+        "tags": [
+          "policy"
+        ],
+        "responses": {
+          "200": {
+            "description": "Set the RBAC policy"
+          },
+          "400": {
+            "description": "Invalid input — the offending field is identified; state is unchanged.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed — a valid bearer token is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authorization failed — the principal lacks a required role.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "setRbacPolicy",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "roles"
+                ],
+                "properties": {
+                  "roles": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "role",
+                        "permissions"
+                      ],
+                      "properties": {
+                        "role": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "permissions": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/policies/mfa": {
+      "put": {
+        "summary": "Set the MFA policy",
+        "description": "Set the MFA policy. Requires one of the roles: admin, policy:write.",
+        "tags": [
+          "policy"
+        ],
+        "responses": {
+          "200": {
+            "description": "Set the MFA policy"
+          },
+          "400": {
+            "description": "Invalid input — the offending field is identified; state is unchanged.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed — a valid bearer token is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authorization failed — the principal lacks a required role.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "setMfaPolicy",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "required"
+                ],
+                "properties": {
+                  "required": {
+                    "type": "boolean"
+                  },
+                  "methods": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/policies/retention": {
+      "put": {
+        "summary": "Set a data-retention policy",
+        "description": "Set a data-retention policy. Requires one of the roles: admin, policy:write.",
+        "tags": [
+          "policy"
+        ],
+        "responses": {
+          "200": {
+            "description": "Set a data-retention policy"
+          },
+          "400": {
+            "description": "Invalid input — the offending field is identified; state is unchanged.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed — a valid bearer token is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authorization failed — the principal lacks a required role.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "setRetentionPolicy",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "entity",
+                  "retentionDays"
+                ],
+                "properties": {
+                  "entity": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "retentionDays": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/policies/classification": {
+      "put": {
+        "summary": "Set a data-classification policy",
+        "description": "Set a data-classification policy. Requires one of the roles: admin, policy:write.",
+        "tags": [
+          "policy"
+        ],
+        "responses": {
+          "200": {
+            "description": "Set a data-classification policy"
+          },
+          "400": {
+            "description": "Invalid input — the offending field is identified; state is unchanged.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed — a valid bearer token is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authorization failed — the principal lacks a required role.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "setClassificationPolicy",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "field",
+                  "level"
+                ],
+                "properties": {
+                  "field": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "level": {
+                    "type": "string",
+                    "enum": [
+                      "public",
+                      "internal",
+                      "confidential",
+                      "restricted"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/compliance/audit-export": {
+      "get": {
+        "summary": "Export audit records",
+        "description": "Export audit records. Requires one of the roles: admin, compliance:read.",
+        "tags": [
+          "compliance"
+        ],
+        "responses": {
+          "200": {
+            "description": "Export audit records"
+          },
+          "400": {
+            "description": "Invalid input — the offending field is identified; state is unchanged.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed — a valid bearer token is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authorization failed — the principal lacks a required role.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "exportAudit",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "from",
+                  "to",
+                  "format"
+                ],
+                "properties": {
+                  "from": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "ISO-8601 start of the export window."
+                  },
+                  "to": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "ISO-8601 end of the export window."
+                  },
+                  "format": {
+                    "type": "string",
+                    "enum": [
+                      "jsonl",
+                      "csv"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/compliance/report": {
+      "get": {
+        "summary": "Generate a compliance report",
+        "description": "Generate a compliance report. Requires one of the roles: admin, compliance:read.",
+        "tags": [
+          "compliance"
+        ],
+        "responses": {
+          "200": {
+            "description": "Generate a compliance report"
+          },
+          "400": {
+            "description": "Invalid input — the offending field is identified; state is unchanged.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed — a valid bearer token is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authorization failed — the principal lacks a required role.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "generateComplianceReport",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/compliance/posture": {
+      "get": {
+        "summary": "Report security posture",
+        "description": "Report security posture. Requires one of the roles: admin, compliance:read.",
+        "tags": [
+          "compliance"
+        ],
+        "responses": {
+          "200": {
+            "description": "Report security posture"
+          },
+          "400": {
+            "description": "Invalid input — the offending field is identified; state is unchanged.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed — a valid bearer token is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authorization failed — the principal lacks a required role.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "securityPosture",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/users": {
+      "post": {
+        "summary": "Manage a user",
+        "description": "Manage a user. Requires one of the roles: admin, user:write.",
+        "tags": [
+          "admin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Manage a user"
+          },
+          "400": {
+            "description": "Invalid input — the offending field is identified; state is unchanged.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed — a valid bearer token is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authorization failed — the principal lacks a required role.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "manageUser",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "action",
+                  "userId"
+                ],
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "create",
+                      "update",
+                      "disable"
+                    ]
+                  },
+                  "userId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "roles": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/keys/rotate": {
+      "post": {
+        "summary": "Rotate a signing/encryption key",
+        "description": "Rotate a signing/encryption key. Requires one of the roles: admin, key:rotate.",
+        "tags": [
+          "admin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Rotate a signing/encryption key"
+          },
+          "400": {
+            "description": "Invalid input — the offending field is identified; state is unchanged.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed — a valid bearer token is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authorization failed — the principal lacks a required role.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "rotateKey",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "keyId"
+                ],
+                "properties": {
+                  "keyId": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/secrets/{name}": {
+      "put": {
+        "summary": "Create or update a secret",
+        "description": "Create or update a secret. Requires one of the roles: admin, secret:write.",
+        "tags": [
+          "admin"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Create or update a secret"
+          },
+          "400": {
+            "description": "Invalid input — the offending field is identified; state is unchanged.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed — a valid bearer token is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authorization failed — the principal lacks a required role.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "manageSecret",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "value"
+                ],
+                "properties": {
+                  "value": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Secret material to store."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "tenant",
+      "description": "Tenant lifecycle operations (create, update, suspend)."
+    },
+    {
+      "name": "policy",
+      "description": "Policy operations: RBAC, MFA, retention, and classification."
+    },
+    {
+      "name": "compliance",
+      "description": "Compliance operations: audit export, reporting, posture."
+    },
+    {
+      "name": "admin",
+      "description": "Administrative operations: users, key rotation, secrets."
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ]
+}

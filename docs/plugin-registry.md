@@ -15,6 +15,11 @@ services.
 
 Exported from `streetjs`.
 
+> **Network registry.** For the network-accessible registry service
+> (`@streetjs/registry-server`) and its `street registry publish|install|search|list`
+> CLI, see the [Publishing Guide](./registry-publishing-guide.md) and the
+> [Installation Guide](./registry-installation-guide.md).
+
 ## What it stores
 
 Each published record holds the **signed manifest** (with its `checksum` and

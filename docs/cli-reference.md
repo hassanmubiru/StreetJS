@@ -137,6 +137,44 @@ List installed plugins with their load and verification status.
 street plugin:list
 ```
 
+### Network Plugin Registry
+
+Publish to and install from the [Network Plugin Registry](./plugin-registry.md)
+over its `/api/v1` REST API. The registry URL comes from `--registry <url>`, the
+`STREET_REGISTRY_URL` environment variable, or defaults to
+`http://localhost:8787`. See the
+[Publishing Guide](./registry-publishing-guide.md) and the
+[Installation Guide](./registry-installation-guide.md) for the full workflow.
+
+#### `street registry publish`
+
+Sign a manifest with an Ed25519 key and publish it (requires a publisher bearer
+token via `--token` or `STREET_REGISTRY_TOKEN`).
+
+```bash
+street registry publish --manifest ./manifest.json --tarball ./plugin.tgz \
+  --key ./publisher.key.pem --token "$STREET_REGISTRY_TOKEN"
+```
+
+#### `street registry install <name>[@<version>]`
+
+Download a plugin and verify its manifest checksum, Ed25519 signature, and
+tarball checksum before writing it to disk (defaults to the latest version).
+
+```bash
+street registry install acme/widgets@1.2.0 --out ./vendor/acme-widgets
+```
+
+#### `street registry search [query]` / `street registry list`
+
+Discover plugins with optional `--category`, `--tag`, `--page`, and
+`--page-size` filters.
+
+```bash
+street registry search widget --category ui
+street registry list --page 1 --page-size 25
+```
+
 ## Global Options
 
 | Flag | Description |
