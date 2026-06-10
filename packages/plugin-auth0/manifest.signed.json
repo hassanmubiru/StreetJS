@@ -1,0 +1,16 @@
+{
+  "name": "street-plugin-auth0",
+  "version": "1.0.0",
+  "capabilities": [
+    "auth",
+    "identity",
+    "auth0"
+  ],
+  "permissions": [
+    "net",
+    "secrets",
+    "middleware"
+  ],
+  "checksum": "98cef53e13038a0bb6136c2ea79590b9331f425dc180e6144b3835730be92c8d",
+  "signature": "ysKtZdaxBw2E+RHfalHQ/o12Yb5mtdF0q0x9qMa4+5FH0qjD6TWv2Qh6j5hVocYsQNuG2WpnN+kNcCFuJek1Cg=="
+}
