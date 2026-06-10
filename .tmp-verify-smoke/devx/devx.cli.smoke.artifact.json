@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "capabilityId": "devx.cli.smoke",
+  "status": "PARTIAL",
+  "evidence": {
+    "sourceCode": true,
+    "passingTests": true,
+    "documentation": false,
+    "artifact": true
+  },
+  "command": "echo via-cli",
+  "exitCode": 0,
+  "timestamp": "2026-06-10T05:59:06.270Z",
+  "durationMs": 4,
+  "timedOut": false,
+  "generator": {
+    "tool": "street-command-runner",
+    "version": "1"
+  }
+}
