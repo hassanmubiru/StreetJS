@@ -1,0 +1,90 @@
+{
+  "uid": "street-postgres",
+  "title": "Street PostgreSQL",
+  "schemaVersion": 39,
+  "version": 1,
+  "tags": [
+    "street",
+    "postgres",
+    "database"
+  ],
+  "timezone": "browser",
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Pool connections by state",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "db_pool_connections",
+          "legendFormat": "{{state}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Pool exhaustion rate",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "rate(db_pool_exhausted_total[5m])",
+          "legendFormat": "exhausted/s",
+          "refId": "A"
+        }
+      ],
+      "unit": "reqps"
+    },
+    {
+      "id": 3,
+      "title": "Query duration p95",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(db_query_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p95",
+          "refId": "A"
+        }
+      ],
+      "unit": "s"
+    },
+    {
+      "id": 4,
+      "title": "Connection acquire p95",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(db_pool_acquire_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p95",
+          "refId": "A"
+        }
+      ],
+      "unit": "s"
+    }
+  ]
+}

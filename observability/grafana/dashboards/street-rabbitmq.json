@@ -1,0 +1,89 @@
+{
+  "uid": "street-rabbitmq",
+  "title": "Street RabbitMQ",
+  "schemaVersion": 39,
+  "version": 1,
+  "tags": [
+    "street",
+    "rabbitmq",
+    "messaging"
+  ],
+  "timezone": "browser",
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Messages published (msg/s)",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(rabbitmq_messages_published_total[5m]))",
+          "legendFormat": "published/s",
+          "refId": "A"
+        }
+      ],
+      "unit": "reqps"
+    },
+    {
+      "id": 2,
+      "title": "Messages delivered (msg/s)",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(rabbitmq_messages_delivered_total[5m]))",
+          "legendFormat": "delivered/s",
+          "refId": "A"
+        }
+      ],
+      "unit": "reqps"
+    },
+    {
+      "id": 3,
+      "title": "Queue depth",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "rabbitmq_queue_depth",
+          "legendFormat": "{{queue}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Consumer count",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "rabbitmq_consumer_count",
+          "legendFormat": "{{queue}}",
+          "refId": "A"
+        }
+      ]
+    }
+  ]
+}
