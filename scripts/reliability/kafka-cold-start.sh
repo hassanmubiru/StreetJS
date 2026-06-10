@@ -152,8 +152,11 @@ if want cold-start; then
   done
   echo
   echo "cold-start result: $COLD_PASS/$COLD_STARTS passed, $fail failed"
-  account_messages "cold-start" || FAILURES=$((FAILURES+1))
+  LAST_PRODUCED=0; LAST_DELIVERED=0; LAST_LOST=0; LAST_OK=0
+  acct_ok=1; account_messages "cold-start" || { FAILURES=$((FAILURES+1)); acct_ok=0; }
   [ "$fail" -eq 0 ] || FAILURES=$((FAILURES+1))
+  if [ "$fail" -eq 0 ] && [ "$acct_ok" -eq 1 ]; then cs_ok=true; else cs_ok=false; fi
+  emit_scenario "cold-start" true "$cs_ok" "$COLD_PASS" "$COLD_STARTS"
 fi
 
 # ── Broker restart (Req 9.5) ────────────────────────────────────────────────
