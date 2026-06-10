@@ -210,7 +210,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Official Plugin Ecosystem; Testing Strategy → Layer B + Honest BLOCKED_
     - _Requirements: 5.9_
 
-- [ ] 10. Enterprise Console APIs
+- [x] 10. Enterprise Console APIs
   - [x] 10.1 Implement the Enterprise Console REST handlers with authn/authz and validation
     - Create `packages/core/src/enterprise/console/` (zero-dep handlers reusing tenancy/enterprise + `http/auth.middleware.ts`/`security/jwt.ts`) exposing Tenant, Policy (RBAC/MFA/retention/classification), Compliance (audit export/report/posture), and Admin (users/key rotation/secrets) APIs; each handler authenticates (401), authorizes (403), validates input (reject identifying invalid input, leave state unchanged), then performs
     - _Design: Components → Enterprise Console APIs; Error Handling 6.6/6.7/6.8_
@@ -229,7 +229,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Enterprise Console APIs (OpenAPI + docs)_
     - _Requirements: 6.9_
 
-  - [ ] 10.5 Write property test for OpenAPI coverage
+  - [x] 10.5 Write property test for OpenAPI coverage
     - **Property 16: Generated OpenAPI covers every exposed enterprise operation** (fast-check, min 100 runs)
     - **Validates: Requirements 6.9**
 
@@ -323,7 +323,7 @@ Each property-based test is tagged with the comment format:
     - **Property 25: Lost-message accounting is exact** (fast-check, min 100 runs)
     - **Validates: Requirements 9.8**
 
-  - [ ] 15.5 Run the full-scale (100/100) chaos suite and emit artifacts (Layer B)
+  - [-] 15.5 Run the full-scale (100/100) chaos suite and emit artifacts (Layer B)
     - Run 100 cold starts and 100 broker restarts plus the network-interruption and slow-broker scenarios against `apache/kafka:3.7.1` (KRaft) in Docker through `CommandRunner`, emit `kafka.coldstart`/`kafka.chaos.*` artifacts (parameter values, pass count, lost-message count, ISO-8601 timestamp), upload from CI, and record BLOCKED honestly when the broker is unreachable
     - _Design: Testing Strategy → Layer B + Honest BLOCKED_
     - _Requirements: 9.4, 9.5, 9.6, 9.7, 9.8_
@@ -348,7 +348,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Advanced Observability_
     - _Requirements: 10.3, 10.4, 10.5_
 
-  - [ ] 16.5 Write property test for dashboard and rule structural validity
+  - [-] 16.5 Write property test for dashboard and rule structural validity
     - **Property 27: Provided dashboards and rules are structurally valid** (fast-check, min 100 runs)
     - **Validates: Requirements 10.3, 10.4, 10.5**
 
