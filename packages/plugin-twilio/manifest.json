@@ -1,0 +1,6 @@
+{
+  "name": "street-plugin-twilio",
+  "version": "1.0.0",
+  "capabilities": ["sms", "notifications", "twilio"],
+  "permissions": ["net", "secrets", "middleware"]
+}
