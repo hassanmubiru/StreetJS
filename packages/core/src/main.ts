@@ -12,7 +12,7 @@ import { TelemetryTracker } from './telemetry/tracker.js';
 import { StreetWebSocketServer } from './websocket/server.js';
 import { RateLimiter } from './security/ratelimit.js';
 import { streetApp } from './http/server.js';
-import { HealthCheckRegistry, registerHealthRoutes } from './observability/health.js';
+import { HealthCheckRegistry, registerHealthRoutes, createDbReadinessCheck } from './observability/health.js';
 import { StreetMigrationRunner } from './database/migrations.js';
 import { UserRepository } from './services/user.repository.js';
 import { UserService } from './services/user.service.js';
@@ -139,7 +139,25 @@ async function bootstrap(): Promise<void> {
 
   // Kubernetes/orchestrator probe endpoints: GET /health/live and /health/ready
   // (match the liveness/readiness probe paths emitted by generateManifest()).
+  //
+  // Liveness MUST never depend on the database: no DB check is registered for it,
+  // so /health/live reports the process is alive regardless of DB state (Req 2.12).
+  //
+  // Readiness treats the database as a *declared provisioned dependency*: it is
+  // `up` when no DB is configured/expected, and `down` only when a configured DB
+  // is unreachable. A no-DB deployment therefore serves both endpoints 200 within
+  // 5s. We never probe the DB when it is not configured, so readiness stays fast.
   const healthRegistry = new HealthCheckRegistry();
+  const dbExpected = config.pgHost.trim().length > 0;
+  healthRegistry.addCheck(
+    'database',
+    createDbReadinessCheck({
+      expected: dbExpected,
+      // Reachability probe: a trivial round-trip that warms/validates the pool.
+      probe: () => pool.query('SELECT 1').then(() => undefined),
+    }),
+    { type: 'readiness', timeoutMs: 5000 },
+  );
   registerHealthRoutes(app, healthRegistry);
 
   // Inject OpenAPI spec into health controller's context via state

@@ -127,6 +127,86 @@ export class HealthCheckRegistry {
   }
 }
 
+// ── Database readiness as a declared provisioned dependency ───────────────────
+
+export interface DbReadinessCheckOptions {
+  /**
+   * Whether a database is configured/expected for this deployment.
+   *
+   * When `false`, the database is an *undeclared* dependency: there is nothing to
+   * be ready for, so the check reports `up`. This is what lets a deployment with
+   * no provisioned PostgreSQL serve `/health/ready` 200 within budget (Req 2.12).
+   *
+   * When `true`, the database is a *declared provisioned dependency* and the
+   * `probe` decides reachability: `up` when reachable, `down` only when the
+   * configured database is unreachable.
+   */
+  expected: boolean;
+  /**
+   * Reachability probe used only when `expected` is `true`. Resolves on a
+   * successful round-trip and rejects when the database is unreachable. Ignored
+   * entirely when `expected` is `false`, so it is never invoked in the no-DB case.
+   */
+  probe: () => Promise<void>;
+  /**
+   * Maximum time to wait for the probe before reporting the database `down`.
+   * Kept below the 5s health SLA so `/health/ready` always answers within budget
+   * even when the configured database hangs. Defaults to 4000ms.
+   */
+  probeTimeoutMs?: number;
+}
+
+/**
+ * Build a readiness check that treats the database as a *declared provisioned
+ * dependency* (Requirement 2.12 / design "Lazy database initialization").
+ *
+ * Semantics:
+ *  - no database configured/expected → `up` (immediately, without probing)
+ *  - database configured + reachable → `up`
+ *  - database configured + unreachable (or probe times out) → `down`
+ *
+ * This check is intended to be registered with `type: 'readiness'` only. Liveness
+ * never registers a database check, so `/health/live` never depends on the DB.
+ */
+export function createDbReadinessCheck(opts: DbReadinessCheckOptions): CheckFn {
+  const probeTimeoutMs = opts.probeTimeoutMs ?? 4000;
+
+  return async (): Promise<CheckResult> => {
+    // No declared dependency: there is no database to be ready for.
+    if (!opts.expected) {
+      return { status: 'up', details: { dependency: 'postgres', state: 'not-configured' } };
+    }
+
+    // Declared dependency: gate readiness on a bounded reachability probe.
+    let timer: NodeJS.Timeout | undefined;
+    const timeout = new Promise<CheckResult>((resolve) => {
+      timer = setTimeout(
+        () => resolve({ status: 'down', details: { dependency: 'postgres', reason: 'timeout' } }),
+        probeTimeoutMs,
+      );
+      timer.unref();
+    });
+
+    const probe: Promise<CheckResult> = opts
+      .probe()
+      .then((): CheckResult => ({ status: 'up', details: { dependency: 'postgres', state: 'reachable' } }))
+      .catch((err): CheckResult => ({
+        status: 'down',
+        details: {
+          dependency: 'postgres',
+          reason: 'unreachable',
+          error: err instanceof Error ? err.message : String(err),
+        },
+      }));
+
+    try {
+      return await Promise.race([probe, timeout]);
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  };
+}
+
 // ── Route registration ────────────────────────────────────────────────────────
 
 /**

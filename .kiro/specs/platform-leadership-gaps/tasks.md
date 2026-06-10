@@ -64,7 +64,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Architecture → Lazy database initialization (Requirement 2.12)_
     - _Requirements: 2.12_
 
-  - [~] 3.2 Distinguish liveness from DB-readiness in health endpoints
+  - [-] 3.2 Distinguish liveness from DB-readiness in health endpoints
     - Update health handlers so `/health/live` never depends on the DB and `/health/ready` treats the DB as a declared provisioned dependency (up when no DB expected, down only when configured-but-unreachable), serving both 200 within 5s and completing startup within 30s with no provisioned PostgreSQL
     - _Design: Architecture → Lazy database initialization_
     - _Requirements: 2.12_
@@ -79,7 +79,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Cloud Deployment Verifier (per-target deliverables table)_
     - _Requirements: 2.1, 2.2_
 
-  - [-] 4.2 Write property test for generated manifests
+  - [x] 4.2 Write property test for generated manifests
     - **Property 4: Generated deployment manifests are structurally valid for every supported target** (fast-check, min 100 runs; kubernetes, cloudrun, ecs)
     - **Validates: Requirements 2.2, 2.3, 2.4**
 
@@ -120,11 +120,11 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → DAST verifier_
     - _Requirements: 3.1, 3.2, 3.7_
 
-  - [-] 6.2 Write property test for the severity gate
+  - [x] 6.2 Write property test for the severity gate
     - **Property 5: The DAST severity gate fails iff a finding meets the threshold** (fast-check, min 100 runs; `DastFinding[]` generator across all five severities)
     - **Validates: Requirements 3.4, 3.5, 3.6**
 
-  - [~] 6.3 Write property test for severity counts
+  - [-] 6.3 Write property test for severity counts
     - **Property 6: Severity counts are an exact tally** (fast-check, min 100 runs)
     - **Validates: Requirements 3.7**
 
@@ -143,7 +143,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Network Plugin Registry (`normalizePageSize`)_
     - _Requirements: 4.6_
 
-  - [-] 7.2 Write property test for pagination clamping
+  - [x] 7.2 Write property test for pagination clamping
     - **Property 12: Pagination is clamped to its bounds** (fast-check, min 100 runs)
     - **Validates: Requirements 4.6**
 
@@ -151,7 +151,7 @@ Each property-based test is tagged with the comment format:
     - **Property 8: Signature verification is sound** (fast-check, min 100 runs; manifest + Ed25519 keypair generator with tamper mutations)
     - **Validates: Requirements 4.2, 5.7**
 
-  - [~] 7.4 Implement the `@streetjs/registry` server package
+  - [-] 7.4 Implement the `@streetjs/registry` server package
     - Create `packages/registry-server/` exposing `/api/v1` publish/download/verify/search/list/versions; bearer-token authn + namespace authz; manifest metadata validation (identity/name/version/dependencies/capabilities); `verifyManifest()` Ed25519 + checksum; storage of tarball + signed manifest + publisher key + indexed metadata; reject (preserving prior valid versions) on integrity failure, duplicate `name@version`, or malformed/missing field
     - _Design: Components → Network Plugin Registry; Sequence → publish → install; Error Handling 4.4/4.9/4.10_
     - _Requirements: 4.1, 4.2, 4.3, 4.5, 4.6, 4.9, 4.10_
@@ -186,7 +186,7 @@ Each property-based test is tagged with the comment format:
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 9. Official Plugin Ecosystem
-  - [-] 9.1 Implement storage plugin packages (Redis, S3, R2)
+  - [x] 9.1 Implement storage plugin packages (Redis, S3, R2)
     - Create `packages/plugin-redis/`, `packages/plugin-s3/`, `packages/plugin-r2/`, each with `src/index.ts` extending `PluginModule`, `manifest.json`, build-produced `manifest.signed.json`, `README.md`, and `example/`
     - _Design: Components → Official Plugin Ecosystem (uniform package structure)_
     - _Requirements: 5.1, 5.5_
@@ -247,7 +247,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Interactive Developer Experience_
     - _Requirements: 7.2, 7.3, 7.4, 7.5_
 
-  - [-] 12.2 Write property test for the route tree
+  - [x] 12.2 Write property test for the route tree
     - **Property 17: The route tree reflects exactly the registered routes** (fast-check, min 100 runs)
     - **Validates: Requirements 7.2**
 
@@ -275,7 +275,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Upgrade System; Error Handling 8.2_
     - _Requirements: 8.1, 8.2, 8.3, 8.4_
 
-  - [~] 13.2 Write property test for version resolution
+  - [-] 13.2 Write property test for version resolution
     - **Property 20: Version resolution prefers the explicit target, else latest** (fast-check, min 100 runs)
     - **Validates: Requirements 8.1, 8.2**
 
@@ -334,7 +334,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Advanced Observability (metrics-first table)_
     - _Requirements: 10.1, 10.2_
 
-  - [~] 16.2 Implement the metric-reference anti-fabrication guard
+  - [-] 16.2 Implement the metric-reference anti-fabrication guard
     - Add `exportedMetricNames()`, `referencedMetrics()`, and `validateMetricReferences()` returning the offending `(metric, asset)` pairs when an asset references a non-exported metric
     - _Design: Components → Advanced Observability (anti-fabrication guard); Error Handling 10.7_
     - _Requirements: 10.1, 10.7_

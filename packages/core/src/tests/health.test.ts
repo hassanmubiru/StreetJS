@@ -5,7 +5,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { request } from 'node:http';
 
-import { HealthCheckRegistry, registerHealthRoutes } from '../observability/health.js';
+import { HealthCheckRegistry, registerHealthRoutes, createDbReadinessCheck } from '../observability/health.js';
 import { streetApp } from '../http/server.js';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -216,6 +216,133 @@ describe('registerHealthRoutes', () => {
     try {
       const { status } = await get(port, '/api/users');
       assert.equal(status, 404);
+    } finally {
+      await app.close();
+    }
+  });
+});
+
+// ── createDbReadinessCheck unit tests (Requirement 2.12) ──────────────────────
+
+describe('createDbReadinessCheck', () => {
+  it('reports up without probing when no DB is configured/expected', async () => {
+    let probed = false;
+    const check = createDbReadinessCheck({
+      expected: false,
+      probe: async () => { probed = true; },
+    });
+
+    const start = Date.now();
+    const result = await check();
+
+    assert.equal(result.status, 'up');
+    assert.equal(probed, false, 'probe must not run when no DB is expected');
+    assert.equal((result.details as Record<string, unknown>)['state'], 'not-configured');
+    // No-DB case must answer well within the 5s SLA.
+    assert.ok(Date.now() - start < 5000);
+  });
+
+  it('reports up when a configured DB is reachable', async () => {
+    const check = createDbReadinessCheck({
+      expected: true,
+      probe: async () => { /* successful round-trip */ },
+    });
+
+    const result = await check();
+    assert.equal(result.status, 'up');
+    assert.equal((result.details as Record<string, unknown>)['state'], 'reachable');
+  });
+
+  it('reports down when a configured DB is unreachable', async () => {
+    const check = createDbReadinessCheck({
+      expected: true,
+      probe: async () => { throw new Error('connection refused'); },
+    });
+
+    const result = await check();
+    assert.equal(result.status, 'down');
+    const details = result.details as Record<string, unknown>;
+    assert.equal(details['reason'], 'unreachable');
+    assert.equal(details['error'], 'connection refused');
+  });
+
+  it('reports down when the configured DB probe exceeds the timeout', async () => {
+    const check = createDbReadinessCheck({
+      expected: true,
+      // Never resolves within the probe window.
+      probe: () => new Promise<void>(() => { /* hang */ }),
+      probeTimeoutMs: 20,
+    });
+
+    const result = await check();
+    assert.equal(result.status, 'down');
+    assert.equal((result.details as Record<string, unknown>)['reason'], 'timeout');
+  });
+});
+
+// ── Liveness independence + readiness wiring (Requirement 2.12) ────────────────
+
+describe('liveness vs DB-readiness separation', () => {
+  it('liveness never depends on the database (no DB liveness check)', async () => {
+    const registry = new HealthCheckRegistry();
+    // DB readiness registered as readiness-only, plus a plain liveness check.
+    registry.addCheck('process', async () => ({ status: 'up' }), { type: 'liveness' });
+    registry.addCheck(
+      'database',
+      createDbReadinessCheck({ expected: true, probe: async () => { throw new Error('down'); } }),
+      { type: 'readiness' },
+    );
+
+    const liveness = await registry.runLiveness();
+    // Liveness is ok even though the DB readiness check would be down.
+    assert.equal(liveness.status, 'ok');
+    assert.ok(!('database' in liveness.checks), 'DB must not appear in liveness');
+  });
+
+  it('GET /health/live returns 200 while DB is unreachable; /health/ready returns 503', async () => {
+    const port = nextPort();
+    const registry = new HealthCheckRegistry();
+    registry.addCheck(
+      'database',
+      createDbReadinessCheck({ expected: true, probe: async () => { throw new Error('unreachable'); } }),
+      { type: 'readiness' },
+    );
+
+    const app = streetApp({ port });
+    registerHealthRoutes(app, registry);
+    await app.listen(port);
+    try {
+      const live = await get(port, '/health/live');
+      assert.equal(live.status, 200, 'liveness must stay 200 regardless of DB');
+
+      const ready = await get(port, '/health/ready');
+      assert.equal(ready.status, 503, 'readiness is 503 when the configured DB is unreachable');
+      const parsed = JSON.parse(ready.body) as { checks: Record<string, { status: string }> };
+      assert.equal(parsed.checks['database']?.status, 'down');
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('GET /health/ready returns 200 within 5s when no DB is configured', async () => {
+    const port = nextPort();
+    const registry = new HealthCheckRegistry();
+    registry.addCheck(
+      'database',
+      createDbReadinessCheck({ expected: false, probe: async () => { throw new Error('should not run'); } }),
+      { type: 'readiness' },
+    );
+
+    const app = streetApp({ port });
+    registerHealthRoutes(app, registry);
+    await app.listen(port);
+    try {
+      const start = Date.now();
+      const live = await get(port, '/health/live');
+      const ready = await get(port, '/health/ready');
+      assert.equal(live.status, 200);
+      assert.equal(ready.status, 200);
+      assert.ok(Date.now() - start < 5000, 'both endpoints answer within the 5s SLA');
     } finally {
       await app.close();
     }
