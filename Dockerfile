@@ -14,8 +14,8 @@ COPY packages/core/tsconfig.json packages/core/
 COPY packages/core/tsconfig.lib.json packages/core/
 COPY packages/core/src packages/core/src
 
-# Build the core package
-RUN npm run build -w packages/core
+# Build the runnable app (emits dist/src/** including main.js + copies SQLite wasm)
+RUN npm run build:app -w packages/core
 
 # ---- Production stage ----
 FROM gcr.io/distroless/nodejs20-debian12 AS runtime
