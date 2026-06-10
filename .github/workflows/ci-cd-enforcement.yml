@@ -7,8 +7,17 @@ name: CI/CD Enforcement
 "on":
   push:
     branches: [main, develop]
+    tags: ['v*']
   pull_request:
     branches: [main]
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version to enforce (MAJOR.MINOR.PATCH, no leading v)'
+        required: false
+        type: string
 
 permissions:
   contents: read
