@@ -190,6 +190,8 @@ export function consoleOpenApiSpec(routes: ReadonlyArray<ConsoleRoute> = CONSOLE
     info: Record<string, unknown>;
     paths: Record<string, Record<string, Record<string, unknown>>>;
     components?: Record<string, unknown>;
+    tags?: unknown;
+    security?: unknown;
   };
 
   // Override the info block with console-specific identity.
