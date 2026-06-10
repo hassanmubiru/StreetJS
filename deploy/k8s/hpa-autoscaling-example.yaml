@@ -1,0 +1,44 @@
+# HorizontalPodAutoscaler autoscaling example for a Street application.
+# Scales between 2 and 10 replicas on CPU + memory utilization.
+# Requires metrics-server to be installed in the cluster.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: street-app-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: street-app
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    # Target 70% average CPU utilization across pods.
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    # Target 80% average memory utilization across pods.
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+  behavior:
+    # Scale down conservatively to avoid flapping.
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 50
+          periodSeconds: 60
+    # Scale up aggressively to absorb traffic spikes.
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 30

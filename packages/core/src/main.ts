@@ -38,7 +38,15 @@ async function bootstrap(): Promise<void> {
   config.load(process.env['KEK']);
   container.register(AppConfig, config);
 
-  // 2. Build database pool
+  // 2. Build database pool.
+  //
+  // DB_INIT_MODE controls whether the pool is warmed up at bootstrap (Requirement 2.12):
+  //   - 'lazy' (default): register the pool but do NOT initialize it here. The pool
+  //     warms up on first acquire/query via pool.ensureInitialized(), so the app boots
+  //     and serves health without a provisioned PostgreSQL instance.
+  //   - 'eager': initialize the pool now (legacy behavior); a missing DB blocks startup.
+  //   - 'provisioned': the platform guarantees the DB; bootstrap does not block on it and
+  //     readiness gates on first successful connection.
   const pool = new PgPool({
     host: config.pgHost,
     port: config.pgPortNumber,
@@ -50,8 +58,12 @@ async function bootstrap(): Promise<void> {
     idleTimeoutMs: 30_000,
     acquireTimeoutMs: 5_000,
   });
-  await pool.initialize();
   container.register(PgPool, pool);
+
+  if (config.dbInitMode === 'eager') {
+    await pool.initialize();
+  }
+  // 'lazy' and 'provisioned' defer warm-up to first database use.
 
   // 3. Register services
   const telemetry = new TelemetryTracker(60_000);
