@@ -1,13 +1,15 @@
 # .github/workflows/deploy-verify.yml
 # Cloud deployment verification (Requirement 2.11). Every supported Deployment
-# Target is verified through the zero-dependency `CommandRunner` (driven by
-# scripts/verification/run.mjs), which emits one machine-readable
-# `cloud.deploy.<target>.artifact.json` per target. Targets whose cloud
-# credentials are absent are recorded as an honest BLOCKED with offline-verifiable
-# evidence attached; Kubernetes is additionally verified live against an ephemeral
-# kind cluster (the proven /health/live + /health/ready 1/1 path). A final
-# roll-up step builds the cross-target `deployment-report.json`, and all per-target
-# artifacts + the report are uploaded via actions/upload-artifact.
+# Target first records honest per-target evidence (a TargetVerification under
+# verification-artifacts/cloud/targets/<target>.json): targets whose cloud
+# credentials are absent are recorded as an honest BLOCKED with the offline-
+# verifiable evidence attached. Kubernetes is then verified live against an
+# ephemeral kind cluster — the proven /health/live + /health/ready 1/1 path —
+# driven through the zero-dependency `CommandRunner` (scripts/verification/run.mjs),
+# which emits the machine-readable `cloud.deploy.kubernetes.artifact.json` and
+# reaches VERIFIED only when health + smoke truly pass. A final roll-up step builds
+# the cross-target `deployment-report.json`, and all per-target artifacts + the
+# report are uploaded via actions/upload-artifact.
 name: deploy-verify
 
 on:
