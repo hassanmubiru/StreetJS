@@ -58,7 +58,7 @@ Each property-based test is tagged with the comment format:
 - [ ] 2. Checkpoint - verification foundation
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 3. Lazy database initialization (foundational for cloud bootstrap)
+- [x] 3. Lazy database initialization (foundational for cloud bootstrap)
   - [x] 3.1 Implement `DB_INIT_MODE` and lazy bootstrap
     - Change `packages/core/src/main.ts` `bootstrap()` to support `lazy` (default for cloud), `eager`, and `provisioned`; in `lazy` register `PgPool` without calling `initialize()`, and add an idempotent `pool.ensureInitialized()` guard so first acquire/query warms up on demand
     - _Design: Architecture → Lazy database initialization (Requirement 2.12)_
@@ -69,7 +69,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Architecture → Lazy database initialization_
     - _Requirements: 2.12_
 
-  - [ ] 3.3 Write integration test for no-DB bootstrap
+  - [x] 3.3 Write integration test for no-DB bootstrap
     - Start the app with no PostgreSQL provisioned and assert startup < 30s and both health endpoints return 200 within 5s
     - _Requirements: 2.12_
 
@@ -88,7 +88,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Cloud Deployment Verifier (per-target deliverables table)_
     - _Requirements: 2.3, 2.4, 2.5, 2.6, 2.7, 2.8_
 
-  - [ ] 4.4 Implement per-target deploy/smoke/report scripts and the report builder
+  - [x] 4.4 Implement per-target deploy/smoke/report scripts and the report builder
     - Create `scripts/cloud/*` running health checks (`/health/live` + `/health/ready` ≤ 5s) and smoke tests (≤ 300s, 0 fail/0 error), and `buildDeploymentReport()` producing the cross-target roll-up with per-target status + ISO-8601 timestamp; record PARTIAL with retained failing output when bounds are exceeded
     - _Design: Components → Cloud Deployment Verifier (`buildDeploymentReport`); Sequence → deploy → verify_
     - _Requirements: 2.9, 2.10, 2.11, 2.13_
@@ -196,7 +196,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Official Plugin Ecosystem_
     - _Requirements: 5.2, 5.3, 5.4, 5.5_
 
-  - [ ] 9.3 Implement install-through-registry with enforced signature verification
+  - [x] 9.3 Implement install-through-registry with enforced signature verification
     - Wire installation through the registry so `PluginHost` enforces signature verification (bad signature ⇒ `PluginSignatureError`, installed set unchanged, plugin not registered), a valid signed plugin installs in < 60s and registers, and a missing/malformed manifest is rejected with an identifying error
     - _Design: Components → Official Plugin Ecosystem (install path); Error Handling 5.7/5.8_
     - _Requirements: 5.6, 5.7, 5.8_
@@ -296,7 +296,7 @@ Each property-based test is tagged with the comment format:
     - **Property 23: Codemods are safe on failure** (fast-check, min 100 runs; include unparseable inputs)
     - **Validates: Requirements 8.7**
 
-  - [ ] 13.7 Wire `street upgrade` reporting and the codemod test artifact + CI
+  - [x] 13.7 Wire `street upgrade` reporting and the codemod test artifact + CI
     - Wire `street upgrade` to report breaking changes + recommendations and run the codemod test suite through `CommandRunner` against the migration examples, emitting the `upgrade.codemods` artifact uploaded from CI
     - _Design: Components → Upgrade System_
     - _Requirements: 8.8_
@@ -343,7 +343,7 @@ Each property-based test is tagged with the comment format:
     - **Property 26: Observability assets reference only exported metrics** (fast-check, min 100 runs)
     - **Validates: Requirements 10.1, 10.7**
 
-  - [ ] 16.4 Implement the dashboards, alerts, and SLO pack
+  - [x] 16.4 Implement the dashboards, alerts, and SLO pack
     - Add dashboards for PostgreSQL, Kafka, RabbitMQ, HTTP, and Plugin Host; alerts for latency, error rate, queue depth, and memory pressure (each with a numeric threshold + evaluation window); and an SLO pack for availability, latency, and error budget (numeric targets + windows, extending `streetSloBurnRateRules`)
     - _Design: Components → Advanced Observability_
     - _Requirements: 10.3, 10.4, 10.5_
