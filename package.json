@@ -30,6 +30,8 @@
     "verify:codemods": "node scripts/verification/run.mjs upgrade.codemods --docs -- node --test packages/core/dist/tests/codemods.test.js packages/core/dist/tests/codemods-idempotence-pbt.test.js packages/core/dist/tests/codemods-safety-pbt.test.js packages/core/dist/tests/codemods-migration-examples.test.js packages/core/dist/tests/upgrade-breaking-pbt.test.js packages/core/dist/tests/upgrade-resolve-pbt.test.js",
     "test:release-renderer": "node --test scripts/tests/release-render-report.test.mjs",
     "test:registry-harness": "node --test scripts/tests/registry-e2e-harness.test.mjs",
+    "test:plugins-harness": "node --test scripts/tests/plugin-integration-harness.test.mjs",
+    "verify:plugins": "node scripts/plugins/verify.mjs",
     "test:devtools-harness": "node --test scripts/tests/devtools-verify-harness.test.mjs",
     "verify:release": "node scripts/verification/run.mjs release.scorecard --docs -- node scripts/release/render-report.mjs",
     "verify:registry": "node scripts/registry/verify.mjs",
