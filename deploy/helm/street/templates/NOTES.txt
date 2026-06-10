@@ -1,0 +1,11 @@
+Street has been deployed.
+
+1. Check the rollout status:
+   kubectl rollout status deployment/{{ include "street.fullname" . }}
+
+2. Port-forward to reach the service locally:
+   kubectl port-forward svc/{{ include "street.fullname" . }} 8080:{{ .Values.service.port }}
+
+3. Verify health:
+   curl http://localhost:8080{{ .Values.probes.livenessPath }}
+   curl http://localhost:8080{{ .Values.probes.readinessPath }}

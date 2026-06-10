@@ -124,6 +124,9 @@ export class PgPool {
 
   /** Acquire a free connection (or create one up to max, or wait) */
   async acquire(): Promise<PgConnection> {
+    // Lazy warm-up: the first acquire (or query/stream/transaction, which all
+    // funnel through here) initializes the pool on demand. Idempotent thereafter.
+    await this.ensureInitialized();
     const start = Date.now();
     const conn = await this._doAcquire();
     // Record only successful acquires so timeouts/failures don't skew the average
