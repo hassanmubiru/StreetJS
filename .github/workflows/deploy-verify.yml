@@ -1,19 +1,30 @@
 # .github/workflows/deploy-verify.yml
-# Deployment verification: generate the Kubernetes manifest, validate it, apply
-# it to an ephemeral kind cluster, and smoke-test the liveness probe. This is the
-# CI counterpart that turns "manifest validated" into "deployment verified".
+# Cloud deployment verification (Requirement 2.11). Every supported Deployment
+# Target is verified through the zero-dependency `CommandRunner` (driven by
+# scripts/verification/run.mjs), which emits one machine-readable
+# `cloud.deploy.<target>.artifact.json` per target. Targets whose cloud
+# credentials are absent are recorded as an honest BLOCKED with offline-verifiable
+# evidence attached; Kubernetes is additionally verified live against an ephemeral
+# kind cluster (the proven /health/live + /health/ready 1/1 path). A final
+# roll-up step builds the cross-target `deployment-report.json`, and all per-target
+# artifacts + the report are uploaded via actions/upload-artifact.
 name: deploy-verify
 
 on:
   workflow_dispatch:
   pull_request:
-    paths: ['packages/core/src/cloud/**', '.github/workflows/deploy-verify.yml']
+    paths:
+      - 'packages/core/src/cloud/**'
+      - 'scripts/cloud/**'
+      - 'scripts/verification/**'
+      - 'deploy/**'
+      - '.github/workflows/deploy-verify.yml'
 
 permissions:
   contents: read
 
 jobs:
-  k8s:
+  cloud-verify:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -24,10 +35,27 @@ jobs:
       - name: Build core
         run: npm run build -w packages/core
 
+      # ── Offline verification for every target through CommandRunner ──────────
+      # Each target's verifier runs via scripts/verification/run.mjs, which drives
+      # the CommandRunner: it emits cloud.deploy.<target>.artifact.json and the
+      # verify-offline script writes the per-target TargetVerification result the
+      # roll-up consumes. Targets without cloud credentials are recorded BLOCKED
+      # (honest), so the loop never fails the build on an absent prerequisite.
+      - name: Offline-verify all targets (CommandRunner)
+        run: |
+          set -u
+          for t in kubernetes cloudrun ecs lambda azure-functions gcf cloudflare-workers; do
+            echo "::group::offline-verify ${t}"
+            node scripts/verification/run.mjs "cloud.deploy.${t}" --docs \
+              -- node scripts/cloud/verify-offline.mjs --target "${t}" || true
+            echo "::endgroup::"
+          done
+
+      # ── Live Kubernetes verification on an ephemeral kind cluster ────────────
       - name: Generate + validate manifest
         run: |
           node -e "
-            const { generateManifest, validateDeploymentManifest } = require('@streetjs/core');
+            const { generateManifest, validateDeploymentManifest } = require('streetjs');
             const fs = require('fs');
             const cfg = { name: 'street-app', image: 'street-app:ci', port: 8080, replicas: 1 };
             const m = generateManifest('kubernetes', cfg);
@@ -49,8 +77,30 @@ jobs:
           kubectl apply -f k8s.yaml
           kubectl rollout status deployment/street-app --timeout=120s
 
-      - name: Smoke-test liveness probe
+      # Live verify through CommandRunner: probes /health/live + /health/ready and
+      # runs the smoke checks, overwriting the kubernetes per-target result with the
+      # live VERIFIED outcome and emitting cloud.deploy.kubernetes.artifact.json.
+      - name: Verify Kubernetes deployment (CommandRunner)
         run: |
           kubectl port-forward deployment/street-app 8080:8080 &
+          PF_PID=$!
+          trap 'kill ${PF_PID} 2>/dev/null || true' EXIT
           for i in $(seq 1 30); do curl -fsS http://127.0.0.1:8080/health/live && break; sleep 2; done
-          curl -fsS http://127.0.0.1:8080/health/live
+          node scripts/verification/run.mjs cloud.deploy.kubernetes --docs \
+            -- node scripts/cloud/verify-target.mjs --target kubernetes --base-url http://127.0.0.1:8080
+
+      # ── Cross-target roll-up report (Requirement 2.11) ───────────────────────
+      # buildDeploymentReport records each target's status + an ISO-8601 timestamp.
+      # BLOCKED targets are honest (not a build failure), so the report build does
+      # not gate the job; the live Kubernetes step above is what fails on a broken
+      # proven path.
+      - name: Build deployment verification report
+        if: always()
+        run: node scripts/cloud/build-report.mjs || true
+
+      - name: Upload cloud deployment verification artifacts
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: cloud-deployment-verification
+          path: verification-artifacts/cloud/

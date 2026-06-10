@@ -1,14 +1,19 @@
 # .github/workflows/dast.yml
 # Dynamic Application Security Testing (DAST) pipeline. Builds the app, exports
-# the OpenAPI artifact, starts the app, runs Schemathesis (OpenAPI-driven) and
-# OWASP ZAP baseline + API scan, and fails the build on High/Critical findings
-# via the deterministic severity gate (scripts/dast/evaluate-gate.mjs).
+# the OpenAPI artifact, starts the app, then drives the REAL scanners —
+# Schemathesis (OpenAPI-driven) and OWASP ZAP baseline + API scan — against the
+# running instance through the framework's CommandRunner
+# (scripts/dast/run-dast.mjs). The orchestrator enforces a 30-minute in-script
+# watchdog (matching the job's timeout-minutes), records the failure cause
+# (target-unavailable / scan-error / timeout) in the DAST Verification Artifact,
+# fails the build on any High/Critical finding via the deterministic severity
+# gate, and the artifact is uploaded as retained CI evidence (Req 3.1/3.3/3.8/3.9).
 name: dast
 
 on:
   workflow_dispatch:
   pull_request:
-    paths: ['packages/**', 'scripts/dast/**', '.github/workflows/dast.yml']
+    paths: ['packages/**', 'scripts/dast/**', 'dast/**', '.github/workflows/dast.yml']
   schedule:
     - cron: '0 3 * * 1'   # weekly
 
@@ -18,6 +23,9 @@ permissions:
 jobs:
   dast:
     runs-on: ubuntu-latest
+    # 30-minute hard ceiling (Req 3.9); the orchestrator runs an in-script
+    # watchdog with the same budget so an overrun is recorded as `timeout` in
+    # the artifact before the runner kills the job.
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -31,6 +39,9 @@ jobs:
       - name: Export OpenAPI artifact
         run: node scripts/dast/export-openapi.mjs --routes dast/routes.json --out dast-reports/openapi.json
 
+      - name: Install Schemathesis
+        run: pip install schemathesis
+
       - name: Start target app
         run: |
           node dast/start-target.mjs &
@@ -38,11 +49,17 @@ jobs:
         env:
           PORT: '8080'
 
-      - name: Schemathesis (OpenAPI-driven)
-        run: pip install schemathesis && SPEC=dast-reports/openapi.json BASE_URL=http://127.0.0.1:8080 scripts/dast/run-schemathesis.sh
-
-      - name: OWASP ZAP baseline + API scan (gated)
-        run: SPEC=dast-reports/openapi.json BASE_URL=http://127.0.0.1:8080 FAIL_ON=high scripts/dast/run-zap-baseline.sh
+      - name: Run DAST scans (Schemathesis + ZAP) through CommandRunner (gated)
+        run: |
+          node scripts/dast/run-dast.mjs \
+            --spec dast-reports/openapi.json \
+            --base-url http://127.0.0.1:8080 \
+            --fail-on high \
+            --report-dir dast-reports \
+            --out-dir verification-artifacts/dast
+        env:
+          # In-script watchdog budget in ms (30 minutes, matching timeout-minutes).
+          DAST_TIMEOUT_MS: '1800000'
 
       - name: Upload DAST reports
         if: always()
@@ -50,3 +67,10 @@ jobs:
         with:
           name: dast-reports
           path: dast-reports/
+
+      - name: Upload DAST verification artifact
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: dast-verification-artifact
+          path: verification-artifacts/dast/
