@@ -106,13 +106,18 @@ describe('Property 28: release scores are bounded', () => {
         for (const dim of DIMENSIONS) {
           const input = raw[dim];
           const output = bounded[dim];
-          if (typeof input === 'number' && Number.isFinite(input) && input >= MIN_SCORE && input <= MAX_SCORE) {
-            assert.equal(output, input, `in-range ${dim} should be preserved`);
-          } else if (typeof input === 'number' && Number.isFinite(input) && input > MAX_SCORE) {
+          if (Number.isNaN(input)) {
+            // NaN collapses to MIN_SCORE.
+            assert.equal(output, MIN_SCORE, `NaN ${dim} should collapse to MIN`);
+          } else if (input > MAX_SCORE) {
+            // Above range (including +Infinity) clamps down to MAX.
             assert.equal(output, MAX_SCORE, `above-range ${dim} should clamp to MAX`);
+          } else if (input < MIN_SCORE) {
+            // Below range (including -Infinity) clamps up to MIN.
+            assert.equal(output, MIN_SCORE, `below-range ${dim} should clamp to MIN`);
           } else {
-            // Below range or non-finite collapses to MIN_SCORE.
-            assert.equal(output, MIN_SCORE, `below-range/non-finite ${dim} should collapse to MIN`);
+            // In-range finite values are preserved exactly.
+            assert.equal(output, input, `in-range ${dim} should be preserved`);
           }
         }
       }),
