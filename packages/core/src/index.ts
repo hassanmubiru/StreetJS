@@ -311,11 +311,14 @@ export type { RabbitMqOptions, ConsumerOptions, AmqpConnectionOptions, Delivered
 export {
   KafkaClient, KafkaProtocolError, KafkaProducer, KafkaConsumer, KafkaStreamTransport,
   CoordinatorReadinessGate,
+  accountLostMessages, CHAOS_SCENARIOS, SLOW_BROKER_MIN_DELAY_MS,
+  FULL_SCALE_COLD_STARTS, FULL_SCALE_RESTART_CYCLES,
   encodeRecordBatch, decodeRecordBatches,
 } from './transports/kafka/index.js';
 export type {
   KafkaClientOptions, ClusterMeta, TopicMeta, PartitionMeta, KafkaRecord,
   CoordinatorGateResult, CoordinatorReadinessGateOptions,
+  LostMessageAccount, ChaosScenario,
   ProducerOptions as KafkaProducerOptions, ConsumerOptions as KafkaConsumerOptions,
   ConsumedMessage as KafkaConsumedMessage,
 } from './transports/kafka/index.js';
@@ -333,8 +336,8 @@ export type { ProtoAst, ServiceDefinition as GrpcServiceDefinition, RpcDefinitio
 export { encodeFrame, decodeFrame, decodeFrames, parseGrpcTimeout, GrpcError, GRPC_STATUS, GRPC_MAX_MESSAGE_BYTES, jsonCodec } from './microservices/grpc/framing.js';
 
 // ── Cloud ─────────────────────────────────────────────────────────────────────
-export { generateManifest, validateDeploymentManifest, generateTargetAssets, helmChartAssets } from './cloud/deployment.js';
-export type { CloudPlatform, DeploymentTarget, DeployConfig, ManifestValidationResult } from './cloud/deployment.js';
+export { generateManifest, validateDeploymentManifest, generateTargetAssets, helmChartAssets, generateEcsService, validateEcsService } from './cloud/deployment.js';
+export type { CloudPlatform, DeploymentTarget, DeployConfig, ManifestValidationResult, EcsServiceValidationResult } from './cloud/deployment.js';
 export { VaultSecretProvider, AwsSecretsManagerProvider, GcpSecretManagerProvider, AzureKeyVaultProvider, SecretRotationManager } from './cloud/secret-providers.js';export type { SecretProvider, HttpClientOptions, RotationOptions } from './cloud/secret-providers.js';
 export {
   registerShutdownHook,

@@ -11,6 +11,11 @@ export type {
   CoordinatorGateResult, CoordinatorReadinessGateOptions,
 } from './client.js';
 export { encodeRecordBatch, decodeRecordBatches } from './recordbatch.js';
+export {
+  accountLostMessages, CHAOS_SCENARIOS, SLOW_BROKER_MIN_DELAY_MS,
+  FULL_SCALE_COLD_STARTS, FULL_SCALE_RESTART_CYCLES,
+} from './chaos-accounting.js';
+export type { LostMessageAccount, ChaosScenario } from './chaos-accounting.js';
 
 export interface ProducerOptions { batchSize?: number; lingerMs?: number; acks?: number; idempotent?: boolean; maxRetries?: number; retryBackoffMs?: number; }
 
