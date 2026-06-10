@@ -1,0 +1,30 @@
+[cluster] Spawned worker 1336
+[street] Fatal bootstrap error: DatabaseConnectionError: Cannot connect to PostgreSQL at 127.0.0.1:5432: connection refused
+    at PgPool.initialize (file:///app/dist/src/database/pool.js:57:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async bootstrap (file:///app/dist/src/main.js:48:5) {
+  status: 503,
+  details: undefined,
+  suggestion: 'Check that the database is running and that the following environment variables are correct: PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE'
+}
+[cluster] Worker 1212 exited (code=1, signal=null). Restarting...
+[cluster] Worker 1255 exited (code=1, signal=null). Restarting...
+[street] Fatal bootstrap error: DatabaseConnectionError: Cannot connect to PostgreSQL at 127.0.0.1:5432: connection refused
+    at PgPool.initialize (file:///app/dist/src/database/pool.js:57:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async bootstrap (file:///app/dist/src/main.js:48:5) {
+  status: 503,
+  details: undefined,
+  suggestion: 'Check that the database is running and that the following environment variables are correct: PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE'
+}
+[cluster] Spawned worker 1357
+[cluster] Spawned worker 1358
+[cluster] Worker 1236 exited (code=1, signal=null). Restarting...
+[street] Fatal bootstrap error: DatabaseConnectionError: Cannot connect to PostgreSQL at 127.0.0.1:5432: connection refused
+    at PgPool.initialize (file:///app/dist/src/database/pool.js:57:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async bootstrap (file:///app/dist/src/main.js:48:5) {
+  status: 503,
+  details: undefined,
+  suggestion: 'Check that the database is running and that the following environment variables are correct: PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE'
+}
