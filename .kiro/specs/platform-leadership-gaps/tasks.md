@@ -186,12 +186,12 @@ Each property-based test is tagged with the comment format:
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 9. Official Plugin Ecosystem
-  - [~] 9.1 Implement storage plugin packages (Redis, S3, R2)
+  - [-] 9.1 Implement storage plugin packages (Redis, S3, R2)
     - Create `packages/plugin-redis/`, `packages/plugin-s3/`, `packages/plugin-r2/`, each with `src/index.ts` extending `PluginModule`, `manifest.json`, build-produced `manifest.signed.json`, `README.md`, and `example/`
     - _Design: Components → Official Plugin Ecosystem (uniform package structure)_
     - _Requirements: 5.1, 5.5_
 
-  - [~] 9.2 Implement messaging, payments, and identity plugin packages
+  - [-] 9.2 Implement messaging, payments, and identity plugin packages
     - Create `packages/plugin-twilio/`, `packages/plugin-sendgrid/`, `packages/plugin-stripe/`, `packages/plugin-auth0/` with the same uniform structure
     - _Design: Components → Official Plugin Ecosystem_
     - _Requirements: 5.2, 5.3, 5.4, 5.5_
