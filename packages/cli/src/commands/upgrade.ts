@@ -162,9 +162,10 @@ export class UpgradeCommand {
       let dir = dirname(require.resolve('streetjs'));
       for (let i = 0; i < 6; i++) {
         try {
-          const pkg = JSON.parse(
-            require('node:fs').readFileSync(join(dir, 'package.json'), 'utf8'),
-          ) as { name?: string; version?: string };
+          const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')) as {
+            name?: string;
+            version?: string;
+          };
           if (pkg.name === 'streetjs' && pkg.version) return pkg.version;
         } catch {
           /* keep walking up */
