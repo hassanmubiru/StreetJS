@@ -203,20 +203,6 @@ class PgConsoleBackend {
   }
 }
 
-class NotFound extends Error {
-  constructor(message) {
-    super(message);
-    this.name = 'ConsoleNotFoundError';
-  }
-}
-
-class NotFound extends Error {
-  constructor(message) {
-    super(message);
-    this.name = 'ConsoleNotFoundError';
-  }
-}
-
 // ── HTTP adapter ──────────────────────────────────────────────────────────────
 
 /** Read and JSON-parse a request body; returns undefined for an empty body. */
