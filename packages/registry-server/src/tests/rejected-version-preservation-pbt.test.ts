@@ -26,10 +26,10 @@ import {
 } from 'streetjs';
 import { createPublicKey } from 'node:crypto';
 
-import { RegistryService, isRegistryError } from './registry.js';
-import { RegistryStore } from './store.js';
-import { PublisherDirectory } from './auth.js';
-import type { PublishRequest } from './types.js';
+import { RegistryService, isRegistryError } from '../registry.js';
+import { RegistryStore } from '../store.js';
+import { PublisherDirectory } from '../auth.js';
+import type { PublishRequest } from '../types.js';
 
 const NUM_RUNS = 100;
 
