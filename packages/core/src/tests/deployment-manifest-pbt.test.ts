@@ -14,9 +14,13 @@ import {
   generateManifest,
   generateTargetAssets,
   validateDeploymentManifest,
-  type CloudPlatform,
   type DeployConfig,
 } from '../cloud/deployment.js';
+
+// The targets this property covers are members of BOTH the legacy
+// `CloudPlatform` set (accepted by validateDeploymentManifest/generateManifest)
+// and the `DeploymentTarget` set (accepted by generateTargetAssets).
+type SupportedTarget = 'kubernetes' | 'cloudrun' | 'ecs';
 
 // ── Smart generators constrained to the realistic DeployConfig input space ──────
 
