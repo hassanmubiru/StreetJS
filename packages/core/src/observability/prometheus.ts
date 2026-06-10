@@ -230,6 +230,16 @@ export class MetricsRegistry {
     return h;
   }
 
+  /** Whether a metric with `name` is already registered. */
+  has(name: string): boolean {
+    return this.metrics.has(name);
+  }
+
+  /** The names of every registered metric, in registration order. */
+  names(): string[] {
+    return [...this.metrics.keys()];
+  }
+
   collect(): string {
     return [...this.metrics.values()].map((m) => m.render()).join('\n') + '\n';
   }
