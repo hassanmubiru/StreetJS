@@ -58,6 +58,9 @@ jobs:
       - name: Build core
         run: npm run build -w packages/core
 
+      - name: Build redis plugin (for its Layer-B integration)
+        run: npm run build -w packages/plugin-redis
+
       # Each step builds the vendor request via the plugin client and performs a
       # minimal real call, asserting an authenticated (non-401/403) response.
       - name: SendGrid (scopes check)
