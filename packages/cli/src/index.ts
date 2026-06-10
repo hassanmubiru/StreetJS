@@ -21,6 +21,7 @@ import { PluginInstallCommand, PluginListCommand } from './commands/plugin.js';
 import { AnalyticsReportCommand, AuditExportCommand, ComplianceReportCommand, RestoreCommand } from './commands/data-commands.js';
 import { CertifyCommand } from './commands/certify.js';
 import { UpgradeCommand } from './commands/upgrade.js';
+import { VerifyCommand } from './commands/verify.js';
 import { readFileSync } from 'node:fs';
 
 // Read the version from package.json so it never drifts from the published
@@ -69,6 +70,10 @@ export async function runCli(argv: string[]): Promise<void> {
 
       case 'upgrade':
         await new UpgradeCommand().execute(ctx);
+        break;
+
+      case 'verify':
+        await new VerifyCommand().execute(ctx);
         break;
       case 'dev':
         await new DevCommand().execute(ctx);
@@ -210,6 +215,7 @@ Commands:
   plugin:install <name>@<version>  Install a verified marketplace plugin
   plugin:list                     List installed plugins and their status
   upgrade [path] [--write]        Apply migration codemods (dry-run by default; --list to see codemods)
+  verify <capabilityId> -- <cmd>  Run a capability's verification command and emit a Verification Artifact
 
 Flags:
   --help, -h                      Show this help message
