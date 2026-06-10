@@ -90,8 +90,9 @@ describe('buildRouteTree / assembleRouteTree (Req 7.2)', () => {
     const app = streetApp({});
     app.registerController(WidgetCtrl);
 
+    // Paths come from the OpenAPI surface, which uses {id}-style templating.
     const flat = flattenRouteTree(buildRouteTree(app)).map((r) => `${r.method} ${r.path}`).sort();
-    assert.deepEqual(flat, ['GET /widgets', 'GET /widgets/:id', 'POST /widgets'].sort());
+    assert.deepEqual(flat, ['GET /widgets', 'GET /widgets/{id}', 'POST /widgets'].sort());
   });
 });
 
