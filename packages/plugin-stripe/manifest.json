@@ -1,0 +1,6 @@
+{
+  "name": "street-plugin-stripe",
+  "version": "1.0.0",
+  "capabilities": ["payments", "billing", "stripe"],
+  "permissions": ["net", "secrets", "middleware"]
+}

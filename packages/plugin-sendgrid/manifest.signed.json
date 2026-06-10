@@ -1,0 +1,16 @@
+{
+  "name": "street-plugin-sendgrid",
+  "version": "1.0.0",
+  "capabilities": [
+    "email",
+    "notifications",
+    "sendgrid"
+  ],
+  "permissions": [
+    "net",
+    "secrets",
+    "middleware"
+  ],
+  "checksum": "0274bc3442453b6f8aaca873ca9fcfb1781330d2a10ac8cd77b1adb701b27ea7",
+  "signature": "GnMTm3yGIbN6UXZJDo4u8W+qtzxXwG8lWreoC1NHRYCZBpSpXORHR8qmSHZY0CC9XqIH9+VEBK6o7FFeE5JJDw=="
+}

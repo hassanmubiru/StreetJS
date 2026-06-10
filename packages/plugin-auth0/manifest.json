@@ -1,0 +1,6 @@
+{
+  "name": "street-plugin-auth0",
+  "version": "1.0.0",
+  "capabilities": ["auth", "identity", "auth0"],
+  "permissions": ["net", "secrets", "middleware"]
+}
