@@ -47,3 +47,5 @@ log.txt
 *.log
 *.tgz
 *.street.md
+# local CI tooling (kind/kubectl binaries) — never commit
+.tooling/

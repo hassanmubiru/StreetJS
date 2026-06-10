@@ -1,7 +1,0 @@
-    State:          Waiting
-      Reason:       CrashLoopBackOff
-    Last State:     Terminated
-      Reason:       StartError
-      Message:      failed to create containerd task: failed to create shim task: OCI runtime create failed: runc create failed: unable to start container process: exec: "nodejs": executable file not found in $PATH: unknown
-      Exit Code:    128
-  Type     Reason     Age                   From               Message

@@ -1,9 +1,0 @@
-    Last State:     Terminated
-      Reason:       Completed
-      Exit Code:    0
-    Liveness:   http-get http://:3000/health/live delay=10s timeout=1s period=30s #success=1 #failure=3
-    Readiness:  http-get http://:3000/health/ready delay=5s timeout=1s period=10s #success=1 #failure=3
-  Type     Reason     Age                   From               Message
-  Normal   Killing    73s                   kubelet            Container street-app failed liveness probe, will be restarted
-  Warning  Unhealthy  43s (x14 over 2m33s)  kubelet            Readiness probe failed: Get "http://10.244.0.10:3000/health/ready": dial tcp 10.244.0.10:3000: connect: connection refused
-  Warning  Unhealthy  43s (x4 over 2m13s)   kubelet            Liveness probe failed: Get "http://10.244.0.10:3000/health/live": dial tcp 10.244.0.10:3000: connect: connection refused
