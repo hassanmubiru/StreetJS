@@ -36,6 +36,44 @@ groups:
         annotations:
           summary: Target down
           description: A scrape target has been unreachable for 1m.
+  - name: street-subsystem-alerts
+    rules:
+      - alert: StreetDbQueryLatencyHigh
+        expr: "histogram_quantile(0.99, sum(rate(db_query_duration_seconds_bucket[5m])) by (le)) > 0.5"
+        for: 10m
+        labels:
+          severity: warning
+          category: latency
+        annotations:
+          summary: High PostgreSQL query latency
+          description: p99 query duration above 500ms for 10m.
+      - alert: StreetPluginSignatureFailureRate
+        expr: "rate(plugin_signature_failures_total[5m]) > 0"
+        for: 5m
+        labels:
+          severity: warning
+          category: error-rate
+        annotations:
+          summary: Plugin signature failures
+          description: Plugin manifest signature verification failures observed over 5m.
+      - alert: StreetRabbitMqQueueDepthHigh
+        expr: "rabbitmq_queue_depth > 1000"
+        for: 5m
+        labels:
+          severity: warning
+          category: queue-depth
+        annotations:
+          summary: High RabbitMQ queue depth
+          description: A RabbitMQ queue held more than 1000 ready messages for 5m.
+      - alert: StreetMemoryPressureHigh
+        expr: "process_heap_bytes > 805306368"
+        for: 10m
+        labels:
+          severity: warning
+          category: memory-pressure
+        annotations:
+          summary: Process memory pressure
+          description: Process heap above 768MiB for 10m — investigate memory pressure.
   - name: street-saturation-alerts
     rules:
       - alert: StreetHighHeapUsage
@@ -46,8 +84,30 @@ groups:
         annotations:
           summary: High process heap usage
           description: Process heap above 512MiB for 10m — investigate memory pressure.
-  - name: street-slo-burn-rate
+  - name: street-slo-pack
     rules:
+      - alert: StreetAvailabilitySloBreach
+        expr: "(1 - (sum(rate(http_requests_total{status=~\"5..\"}[30d])) / sum(rate(http_requests_total[30d])))) < 0.999"
+        for: 5m
+        labels:
+          severity: critical
+          slo: availability
+          objective: 0.999
+          window: 30d
+        annotations:
+          summary: Availability SLO breach
+          description: "Availability below 99.9% over the 30d window."
+      - alert: StreetLatencySloBreach
+        expr: "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[30d])) by (le)) > 0.5"
+        for: 5m
+        labels:
+          severity: warning
+          slo: latency
+          objective: 0.5
+          window: 30d
+        annotations:
+          summary: Latency SLO breach
+          description: p99 request latency above 0.5s over the 30d window.
       - alert: StreetErrorBudgetBurnFast
         expr: "(sum(rate(http_requests_total{status=~\"5..\"}[1h])) / sum(rate(http_requests_total[1h])) > (14.4 * 0.001)) and (sum(rate(http_requests_total{status=~\"5..\"}[5m])) / sum(rate(http_requests_total[5m])) > (14.4 * 0.001))"
         for: 2m

@@ -1,0 +1,90 @@
+{
+  "uid": "street-kafka",
+  "title": "Street Kafka",
+  "schemaVersion": 39,
+  "version": 1,
+  "tags": [
+    "street",
+    "kafka",
+    "messaging"
+  ],
+  "timezone": "browser",
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Messages produced (msg/s)",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(kafka_messages_produced_total[5m]))",
+          "legendFormat": "produced/s",
+          "refId": "A"
+        }
+      ],
+      "unit": "reqps"
+    },
+    {
+      "id": 2,
+      "title": "Messages consumed (msg/s)",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(kafka_messages_consumed_total[5m]))",
+          "legendFormat": "consumed/s",
+          "refId": "A"
+        }
+      ],
+      "unit": "reqps"
+    },
+    {
+      "id": 3,
+      "title": "Consumer lag",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "kafka_consumer_lag",
+          "legendFormat": "{{topic}}/{{partition}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Coordinator wait p95",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(kafka_coordinator_wait_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p95",
+          "refId": "A"
+        }
+      ],
+      "unit": "s"
+    }
+  ]
+}
