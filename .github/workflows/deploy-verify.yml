@@ -35,19 +35,20 @@ jobs:
       - name: Build core
         run: npm run build -w packages/core
 
-      # ── Offline verification for every target through CommandRunner ──────────
-      # Each target's verifier runs via scripts/verification/run.mjs, which drives
-      # the CommandRunner: it emits cloud.deploy.<target>.artifact.json and the
-      # verify-offline script writes the per-target TargetVerification result the
-      # roll-up consumes. Targets without cloud credentials are recorded BLOCKED
-      # (honest), so the loop never fails the build on an absent prerequisite.
-      - name: Offline-verify all targets (CommandRunner)
+      # ── Honest per-target offline evidence for every target ──────────────────
+      # The offline verifier writes each target's per-target TargetVerification
+      # result (verification-artifacts/cloud/targets/<target>.json). Targets whose
+      # cloud credentials are absent are recorded as an honest BLOCKED with the
+      # specific missing dependency id while STILL attaching the offline-verifiable
+      # evidence (manifest validation, helm lint/template, wrangler dry-run, task-def
+      # schema, workflow lint). BLOCKED is honest, not a failure, so the loop never
+      # fails the build on an absent prerequisite.
+      - name: Offline-verify all targets
         run: |
           set -u
           for t in kubernetes cloudrun ecs lambda azure-functions gcf cloudflare-workers; do
             echo "::group::offline-verify ${t}"
-            node scripts/verification/run.mjs "cloud.deploy.${t}" --docs \
-              -- node scripts/cloud/verify-offline.mjs --target "${t}" || true
+            node scripts/cloud/verify-offline.mjs --target "${t}" || true
             echo "::endgroup::"
           done
 
