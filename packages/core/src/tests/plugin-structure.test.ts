@@ -181,7 +181,6 @@ describe('official plugin packages — enforced signature verification on instal
     });
 
     it(`${dir}: a manifest signed by an untrusted key is rejected`, () => {
-      const signed = readManifest(dir, 'manifest.signed.json');
       // Re-sign with a DIFFERENT key, then enforce against the package's trusted key.
       const rogue = generateKeyPairSync('ed25519');
       const rogueSigned = signManifest(readManifest(dir, 'manifest.json'), rogue.privateKey);
