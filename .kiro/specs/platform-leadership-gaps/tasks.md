@@ -93,7 +93,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Cloud Deployment Verifier (`buildDeploymentReport`); Sequence → deploy → verify_
     - _Requirements: 2.9, 2.10, 2.11, 2.13_
 
-  - [ ] 4.5 Implement prerequisite probes, offline-verifiable artifacts, and BLOCKED recording
+  - [-] 4.5 Implement prerequisite probes, offline-verifiable artifacts, and BLOCKED recording
     - Add prerequisite probes (kubectl/helm/credentials) and offline artifacts that run without credentials: `validateDeploymentManifest()`, `helm lint`, `helm template`, `wrangler deploy --dry-run`, task-def JSON schema validation, workflow lint; record the target BLOCKED with the specific missing dependency id while still emitting the offline evidence
     - _Design: Components → Cloud Deployment Verifier (offline-verifiable artifacts); Testing Strategy → Honest BLOCKED recording_
     - _Requirements: 2.14, 1.5_
@@ -128,7 +128,7 @@ Each property-based test is tagged with the comment format:
     - **Property 6: Severity counts are an exact tally** (fast-check, min 100 runs)
     - **Validates: Requirements 3.7**
 
-  - [-] 6.4 Write property test for scan coverage
+  - [x] 6.4 Write property test for scan coverage
     - **Property 7: Scan coverage equals the enumerated operation set** (fast-check, min 100 runs)
     - **Validates: Requirements 3.2**
 
@@ -172,7 +172,7 @@ Each property-based test is tagged with the comment format:
     - **Property 11: A rejected version never becomes installable and prior valid versions are preserved** (fast-check, min 100 runs)
     - **Validates: Requirements 4.4, 5.7, 5.8**
 
-  - [ ] 7.9 Implement registry CLI commands and publishing/installation guides
+  - [-] 7.9 Implement registry CLI commands and publishing/installation guides
     - Add `street registry publish|install|search|list` driving the server, and author the publishing guide and installation guide as Pages docs
     - _Design: Components → Network Plugin Registry (CLI + guides)_
     - _Requirements: 4.1, 4.7_
@@ -220,11 +220,11 @@ Each property-based test is tagged with the comment format:
     - **Property 14: Every enterprise operation requires authn and authz, else state is unchanged** (fast-check, min 100 runs)
     - **Validates: Requirements 6.5, 6.6, 6.7**
 
-  - [-] 10.3 Write property test for invalid-input rejection
+  - [x] 10.3 Write property test for invalid-input rejection
     - **Property 15: Invalid input is rejected without state change** (fast-check, min 100 runs)
     - **Validates: Requirements 6.8**
 
-  - [ ] 10.4 Generate the OpenAPI specification and documentation for every operation
+  - [-] 10.4 Generate the OpenAPI specification and documentation for every operation
     - Generate the OpenAPI spec via `openApiSpec()` and author published docs covering every exposed operation
     - _Design: Components → Enterprise Console APIs (OpenAPI + docs)_
     - _Requirements: 6.9_
@@ -255,11 +255,11 @@ Each property-based test is tagged with the comment format:
     - **Property 18: The dependency graph is well-formed** (fast-check, min 100 runs)
     - **Validates: Requirements 7.3**
 
-  - [-] 12.4 Write property test for the API Inspector failure path
+  - [x] 12.4 Write property test for the API Inspector failure path
     - **Property 19: A failed inspector request retains its input** (fast-check, min 100 runs)
     - **Validates: Requirements 7.5**
 
-  - [ ] 12.5 Implement the `@streetjs/devtools` browser bundle and embed it in the docs site
+  - [-] 12.5 Implement the `@streetjs/devtools` browser bundle and embed it in the docs site
     - Create `packages/devtools/` delivering Playground (route/middleware/plugin testing + OpenAPI viewer), Route Explorer, Dependency Graph Visualizer, and API Inspector as a browser experience; declare and enforce a token-gated authn/authz model (read-only against the inspected app); embed into the GitHub Pages docs site
     - _Design: Components → Interactive Developer Experience_
     - _Requirements: 7.1, 7.6, 7.7, 7.8_
@@ -279,7 +279,7 @@ Each property-based test is tagged with the comment format:
     - **Property 20: Version resolution prefers the explicit target, else latest** (fast-check, min 100 runs)
     - **Validates: Requirements 8.1, 8.2**
 
-  - [-] 13.3 Write property test for breaking-change analysis
+  - [x] 13.3 Write property test for breaking-change analysis
     - **Property 21: Breaking-change analysis is well-formed** (fast-check, min 100 runs)
     - **Validates: Requirements 8.3, 8.4**
 
@@ -288,7 +288,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Upgrade System (codemods); Error Handling 8.7_
     - _Requirements: 8.5, 8.7_
 
-  - [-] 13.5 Write property test for codemod idempotence
+  - [x] 13.5 Write property test for codemod idempotence
     - **Property 22: Codemods are idempotent** (fast-check, min 100 runs; source-string + codemod generator including already-migrated inputs)
     - **Validates: Requirements 8.6**
 
@@ -339,7 +339,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Advanced Observability (anti-fabrication guard); Error Handling 10.7_
     - _Requirements: 10.1, 10.7_
 
-  - [ ] 16.3 Write property test for metric references
+  - [-] 16.3 Write property test for metric references
     - **Property 26: Observability assets reference only exported metrics** (fast-check, min 100 runs)
     - **Validates: Requirements 10.1, 10.7**
 
