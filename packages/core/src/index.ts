@@ -49,9 +49,10 @@ export {
 } from './testing/chaos.js';
 export type { FaultPolicy } from './testing/chaos.js';
 export {
-  applyCodemods, listCodemods, getCodemod, renameIdentifierCodemod, BUILTIN_CODEMODS,
+  applyCodemods, listCodemods, getCodemod, renameIdentifierCodemod, safeRenameCodemod,
+  BUILTIN_CODEMODS, ROUTING_CODEMODS, MIDDLEWARE_CODEMODS, PLUGIN_API_CODEMODS, ALL_CODEMODS,
 } from './devx/codemods.js';
-export type { Codemod, CodemodResult, ApplyCodemodsResult } from './devx/codemods.js';
+export type { Codemod, CodemodArea, CodemodResult, ApplyCodemodsResult } from './devx/codemods.js';
 export { resolveVersions, analyzeBreakingChanges } from './devx/upgrade.js';
 export type { VersionResolution, BreakingArea, BreakingChange } from './devx/upgrade.js';
 export { openApiToHtml } from './devx/playground.js';
@@ -83,6 +84,17 @@ export { validateArtifact } from './verification/artifact.js';
 export type { VerificationArtifact, ArtifactValidationResult } from './verification/artifact.js';
 export { CommandRunner, DEFAULT_TIMEOUT_MS } from './verification/runner.js';
 export type { RunOptions, RunResult } from './verification/runner.js';
+
+// ── Release Engineering ───────────────────────────────────────────────────────
+export {
+  isValidSemver, validateReleaseNotes, buildReleaseReport,
+  boundScorecard, clampScore, computeHealthMetrics,
+  MIN_SCORE, MAX_SCORE,
+} from './release/scorecard.js';
+export type {
+  ReleaseScorecard, HealthMetric, HealthMetrics, HealthCounts,
+  ReleaseValidation, ReleaseReport, ReleaseReportInput,
+} from './release/scorecard.js';
 
 // ── Router ────────────────────────────────────────────────────────────────────
 export { Router, notFoundHandler, errorHandler } from './router/router.js';
