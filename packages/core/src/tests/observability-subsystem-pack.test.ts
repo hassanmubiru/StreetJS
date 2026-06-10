@@ -33,6 +33,10 @@ function exportedSet(): Set<string> {
   for (const r of streetRecordingRules().rules) {
     exported.add((r as RecordingRule).record);
   }
+  // Prometheus built-in synthesized series (emitted per scrape target by
+  // Prometheus itself, e.g. the StreetTargetDown `up == 0` alert) — these are
+  // real, universally-available series, not fabricated app metrics.
+  exported.add('up');
   return exported;
 }
 
