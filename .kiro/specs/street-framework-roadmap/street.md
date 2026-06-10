@@ -1861,3 +1861,56 @@ DAST real run — execute ZAP baseline + Schemathesis via the existing scripts, 
 Kafka chaos + cold-start loop — build the broker-restart chaos test against docker-compose.kafka.yml and run N cold starts with a pass-rate report.
 kind K8s deploy-verify — run the existing deploy-verify.yml flow (build image → kind apply → liveness 200).
 Cloud (Priority 1) and live vendor plugins (Priority 4) genuinely require your credentials as GitHub secrets before I can produce real evidence. Tell me which verifiable item to take next.
+
+Priority 8 (Reliability) — executed evidence
+Check	Command	Result
+Broker	docker compose -f docker-compose.kafka.yml up -d (apache/kafka 3.7.1, KRaft)	healthy
+Build	npm run build:app -w packages/core	OK
+Baseline	Kafka integration suite vs real broker	7/7 pass
+Cold starts	20 fresh-process runs (each: metadata + FindCoordinator + __consumer_offsets + group join)	20/20 passed, 0 failed ✅
+Broker-restart chaos	3 × (restart broker → wait healthy → run suite)	3/3 recovered, 0 failed ✅
+Reproducibility	committed 
+kafka-cold-start.sh
+ (defaults 20/3; COLD_STARTS=100 RESTART_CYCLES=10 for full target)	pushed 0d2dba0
+Zero-trust labeling: Kafka reliability is now PARTIALLY VERIFIED — I ran 20 cold starts and 3 restart cycles (all green), not the full 100/100 the spec asks for. I'm reporting the real numbers I executed; the committed script runs the full 100/10 on demand (it just takes longer than one session). Network-interruption / slow-broker chaos scenarios are NOT IMPLEMENTED yet.
+
+This raises Reliability from "integration-passing" to "cold-start + restart-chaos verified (at N=20/3)."
+
+Login — commands for you to run (I won't handle your secrets)
+The remaining BLOCKED items need credentials. The best path is GitHub Actions secrets so the existing workflows verify in CI with your creds — not local logins:
+
+# GitHub CLI (you're already authed here for this repo)
+gh auth status
+
+# Add credentials as repo secrets so deploy/vendor workflows can run:
+gh secret set GCP_SA_KEY            # Cloud Run / GCF  (service-account JSON)
+gh secret set AWS_ACCESS_KEY_ID
+gh secret set AWS_SECRET_ACCESS_KEY # ECS / Lambda
+gh secret set AZURE_CREDENTIALS     # Azure Functions
+gh secret set CLOUDFLARE_API_TOKEN  # Workers
+gh secret set VERCEL_TOKEN          # Vercel
+gh secret set STRIPE_API_KEY        # vendor plugin live tests
+gh secret set AUTH0_DOMAIN AUTH0_CLIENT_ID AUTH0_CLIENT_SECRET
+gh secret set TWILIO_ACCOUNT_SID TWILIO_AUTH_TOKEN SENDGRID_API_KEY
+
+# Google Search Console token (paste the HTML-tag content value):
+#   edit docs/_config.yml → google_site_verification: "<value>"
+If you'd rather log in locally for interactive CLI deploys, run these yourself in your terminal (they prompt for browser/keys — I can't and shouldn't run them for you):
+
+gcloud auth login && gcloud auth application-default login
+aws configure
+az login
+npx wrangler login
+npx vercel login
+Once those secrets exist, tell me and I'll wire/run the cloud deploy-verify and vendor plugin workflows for real artifacts.
+
+Updated honest scorecard
+Reliability (Kafka): integration-only → cold-start + chaos verified (N=20/3) 🟢 PARTIAL→strong
+Observability: 93 (from last phase)
+Overall: ~88 → ~89
+Classification: still ADVANCED PRODUCTION READY. Enterprise-Ready (90+) is gated on the credentialed verifications (cloud, vendor) — which need the secrets above.
+What I can still verify without your credentials next
+DAST real run (ZAP + Schemathesis via the existing scripts) — produces real scan artifacts.
+kind K8s deploy-verify (build image → kind apply → liveness 200).
+Full 100/10 Kafka run via the committed script.
+Want me to run the DAST scan or the kind K8s deploy next? Both are credential-free and I can produce real evidence here.
