@@ -46,11 +46,11 @@ Each property-based test is tagged with the comment format:
     - **Property 3: Produced artifacts are complete and atomically written** (fast-check, min 100 runs; include induced write-failure points asserting no partial/leftover temp file)
     - **Validates: Requirements 1.7, 1.11**
 
-  - [~] 1.7 Write unit tests for runner process behavior and status enum
+  - [-] 1.7 Write unit tests for runner process behavior and status enum
     - Assert the four-status enum membership (1.1) and that `CommandRunner` kills a sleeping command at a small injected timeout (1.10 process side)
     - _Requirements: 1.1, 1.10_
 
-  - [~] 1.8 Implement the generic capability runner and `street verify <capabilityId>` CLI
+  - [-] 1.8 Implement the generic capability runner and `street verify <capabilityId>` CLI
     - Create `scripts/verification/run.mjs` and the `street verify <capabilityId>` CLI command that drive `CommandRunner`, plus the `verification-artifacts/<area>/` output layout
     - _Design: Verification Artifact subsystem (CLI surface); package layout (`scripts/verification/run.mjs`)_
     - _Requirements: 1.7_
