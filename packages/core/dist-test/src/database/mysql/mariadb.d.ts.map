@@ -1,1 +1,0 @@
-{"version":3,"file":"mariadb.d.ts","sourceRoot":"","sources":["../../../../src/database/mysql/mariadb.ts"],"names":[],"mappings":"AAIA,OAAO,EAAE,eAAe,EAAE,KAAK,mBAAmB,EAAE,MAAM,WAAW,CAAC;AAEtE;;;;;;;;;;GAUG;AACH,qBAAa,iBAAkB,SAAQ,eAAe;IACpD;;;;;;OAMG;WACmB,OAAO,CAAC,IAAI,EAAE,mBAAmB,GAAG,OAAO,CAAC,iBAAiB,CAAC;CAKrF"}

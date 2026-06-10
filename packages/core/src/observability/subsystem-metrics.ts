@@ -17,6 +17,7 @@ import type { PgPool } from '../database/pool.js';
 import type { KafkaClient, CoordinatorReadinessGate, KafkaRecord } from '../transports/kafka/client.js';
 import type { RabbitMqPublisher, RabbitMqConsumer, DeliveredMessage } from '../transports/rabbitmq/index.js';
 import type { PluginHost } from '../platform/plugins/host.js';
+import { PluginSignatureError } from '../platform/plugins/host.js';
 
 // ── Metric name catalogue (single source of truth) ──────────────────────────
 
@@ -403,7 +404,7 @@ export function instrumentPluginHost(host: PluginHost, m: SubsystemMetrics): voi
     try {
       originalRegister(plugin, manifest);
     } catch (err) {
-      if (err instanceof Error && err.name === 'PluginSignatureError') {
+      if (err instanceof PluginSignatureError) {
         m.recordSignatureFailure();
       }
       throw err;
