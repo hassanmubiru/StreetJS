@@ -14,8 +14,12 @@ COPY packages/core/tsconfig.json packages/core/
 COPY packages/core/tsconfig.lib.json packages/core/
 COPY packages/core/src packages/core/src
 
-# Build the runnable app (emits dist/src/** including main.js + copies SQLite wasm)
-RUN npm run build:app -w packages/core
+# Build the runnable app server with an explicit layout (emits dist/src/**,
+# including main.js) and copy the SQLite wasm assets alongside it.
+WORKDIR /build/packages/core
+RUN npx tsc --rootDir src --outDir dist/src \
+ && node -e "const fs=require('fs'),p=require('path');const s='src/database/sqlite',d='dist/src/database/sqlite';fs.mkdirSync(d,{recursive:true});for(const f of ['sqlite3.wasm','sqlite3-node.mjs'])fs.copyFileSync(p.join(s,f),p.join(d,f));"
+WORKDIR /build
 
 # ---- Production stage ----
 FROM gcr.io/distroless/nodejs20-debian12 AS runtime
