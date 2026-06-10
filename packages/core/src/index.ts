@@ -63,6 +63,16 @@ export type {
   DastGateOptions, DastGateResult, ConformanceScanOptions,
 } from './security/dast.js';
 
+// ── Verification Artifact subsystem ───────────────────────────────────────────
+export { classify } from './verification/status.js';
+export type {
+  VerificationStatus, EvidenceComponents, BlockedReason, ClassifyInput,
+} from './verification/status.js';
+export { validateArtifact } from './verification/artifact.js';
+export type { VerificationArtifact, ArtifactValidationResult } from './verification/artifact.js';
+export { CommandRunner, DEFAULT_TIMEOUT_MS } from './verification/runner.js';
+export type { RunOptions, RunResult } from './verification/runner.js';
+
 // ── Router ────────────────────────────────────────────────────────────────────
 export { Router, notFoundHandler, errorHandler } from './router/router.js';
 
