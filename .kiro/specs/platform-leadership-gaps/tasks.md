@@ -17,7 +17,7 @@ Each property-based test is tagged with the comment format:
 
 ## Tasks
 
-- [ ] 1. Verification Artifact subsystem (foundation — built first)
+- [x] 1. Verification Artifact subsystem (foundation — built first)
   - [x] 1.1 Implement the status engine and shared types
     - Create `packages/core/src/verification/status.ts` with `VerificationStatus`, `EvidenceComponents`, `BlockedReason`, `ClassifyInput`, and `classify()` honoring precedence NOT_IMPLEMENTED → BLOCKED → VERIFIED → PARTIAL (pure, Node-core only)
     - _Design: Verification Artifact subsystem → Status engine_
@@ -50,7 +50,7 @@ Each property-based test is tagged with the comment format:
     - Assert the four-status enum membership (1.1) and that `CommandRunner` kills a sleeping command at a small injected timeout (1.10 process side)
     - _Requirements: 1.1, 1.10_
 
-  - [-] 1.8 Implement the generic capability runner and `street verify <capabilityId>` CLI
+  - [x] 1.8 Implement the generic capability runner and `street verify <capabilityId>` CLI
     - Create `scripts/verification/run.mjs` and the `street verify <capabilityId>` CLI command that drive `CommandRunner`, plus the `verification-artifacts/<area>/` output layout
     - _Design: Verification Artifact subsystem (CLI surface); package layout (`scripts/verification/run.mjs`)_
     - _Requirements: 1.7_
@@ -59,7 +59,7 @@ Each property-based test is tagged with the comment format:
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 3. Lazy database initialization (foundational for cloud bootstrap)
-  - [-] 3.1 Implement `DB_INIT_MODE` and lazy bootstrap
+  - [x] 3.1 Implement `DB_INIT_MODE` and lazy bootstrap
     - Change `packages/core/src/main.ts` `bootstrap()` to support `lazy` (default for cloud), `eager`, and `provisioned`; in `lazy` register `PgPool` without calling `initialize()`, and add an idempotent `pool.ensureInitialized()` guard so first acquire/query warms up on demand
     - _Design: Architecture → Lazy database initialization (Requirement 2.12)_
     - _Requirements: 2.12_
@@ -74,7 +74,7 @@ Each property-based test is tagged with the comment format:
     - _Requirements: 2.12_
 
 - [ ] 4. Cloud Deployment Verification
-  - [-] 4.1 Extend the deployment generator with all seven targets, Helm chart, and HPA
+  - [x] 4.1 Extend the deployment generator with all seven targets, Helm chart, and HPA
     - Extend `packages/core/src/cloud/deployment.ts` with the `DeploymentTarget` union and `generateTargetAssets()`; extend `generateKubernetes` for production manifests + liveness/readiness probes, add the Helm chart (`deploy/helm/street/`) and the HPA autoscaling example
     - _Design: Components → Cloud Deployment Verifier (per-target deliverables table)_
     - _Requirements: 2.1, 2.2_
@@ -115,7 +115,7 @@ Each property-based test is tagged with the comment format:
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 6. DAST verification
-  - [-] 6.1 Extend the DAST verifier with an artifact emitter and expanded route surface
+  - [x] 6.1 Extend the DAST verifier with an artifact emitter and expanded route surface
     - Extend `packages/core/src/security/dast.ts` with `buildDastArtifact()` (per-severity counts, endpoints scanned/total, gate outcome, failure cause) and grow `dast/routes.json` to cover auth, RBAC-protected, file upload, and CRUD endpoints
     - _Design: Components → DAST verifier_
     - _Requirements: 3.1, 3.2, 3.7_
@@ -138,7 +138,7 @@ Each property-based test is tagged with the comment format:
     - _Requirements: 3.1, 3.3, 3.8, 3.9_
 
 - [ ] 7. Network Plugin Registry
-  - [-] 7.1 Implement core pagination helper and reuse signing primitives
+  - [x] 7.1 Implement core pagination helper and reuse signing primitives
     - Add `normalizePageSize()` (pure, in core) and confirm reuse of `signManifest`/`verifyManifest`/`manifestChecksum`
     - _Design: Components → Network Plugin Registry (`normalizePageSize`)_
     - _Requirements: 4.6_
@@ -211,7 +211,7 @@ Each property-based test is tagged with the comment format:
     - _Requirements: 5.9_
 
 - [ ] 10. Enterprise Console APIs
-  - [~] 10.1 Implement the Enterprise Console REST handlers with authn/authz and validation
+  - [-] 10.1 Implement the Enterprise Console REST handlers with authn/authz and validation
     - Create `packages/core/src/enterprise/console/` (zero-dep handlers reusing tenancy/enterprise + `http/auth.middleware.ts`/`security/jwt.ts`) exposing Tenant, Policy (RBAC/MFA/retention/classification), Compliance (audit export/report/posture), and Admin (users/key rotation/secrets) APIs; each handler authenticates (401), authorizes (403), validates input (reject identifying invalid input, leave state unchanged), then performs
     - _Design: Components → Enterprise Console APIs; Error Handling 6.6/6.7/6.8_
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8_
