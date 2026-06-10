@@ -32,9 +32,13 @@ const ZERO_HEALTH = {
   previous: { dependencyFreshness: 0, testTrends: 0, vulnerabilityTrends: 0 },
 };
 
-/** A changelog with a non-empty entry for `version`. */
+/**
+ * A changelog with a non-empty entry for `version`. The core `validateReleaseNotes`
+ * requires non-empty, non-heading content directly under the version heading
+ * (it stops at the next heading), so the notes are placed immediately below.
+ */
 function changelogWith(version) {
-  return `# Changelog\n\n## [${version}] — 2026-01-01\n\n### Added\n\n- A real, non-empty entry.\n`;
+  return `# Changelog\n\n## [${version}] — 2026-01-01\n\nReal, non-empty release notes for this version.\n`;
 }
 
 const tmpFiles = [];
