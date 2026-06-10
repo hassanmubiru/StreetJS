@@ -117,6 +117,67 @@ describe('DAST — severity gate & deterministic exit codes', () => {
   });
 });
 
+describe('DAST — Verification Artifact emitter (buildDastArtifact)', () => {
+  const high: DastFinding[] = [
+    { tool: 'owasp-zap', name: 'sqli', severity: 'high', url: '/items' },
+    { tool: 'schemathesis', name: 'header missing', severity: 'low' },
+  ];
+
+  it('emits a schema-valid artifact recording per-severity counts (Req 3.7)', () => {
+    const artifact = buildDastArtifact(high, { endpointsScanned: 16, endpointsTotal: 16 });
+    assert.equal(validateArtifact(artifact).valid, true, validateArtifact(artifact).errors.join('; '));
+    const details = artifact.details as unknown as DastArtifactDetails;
+    assert.deepEqual(details.counts, { info: 0, low: 1, medium: 0, high: 1, critical: 0 });
+    assert.equal(artifact.capabilityId, 'security.dast');
+    assert.ok(artifact.generator.tool.length > 0);
+  });
+
+  it('fails the build (exit 2, PARTIAL) when a High finding trips the gate (Req 3.4)', () => {
+    const artifact = buildDastArtifact(high, { endpointsScanned: 16, endpointsTotal: 16 });
+    assert.equal(artifact.exitCode, 2);
+    assert.equal(artifact.status, 'PARTIAL');
+    const details = artifact.details as unknown as DastArtifactDetails;
+    assert.equal(details.gate.passed, false);
+  });
+
+  it('VERIFIES (exit 0) on a clean gate with full endpoint coverage (Req 3.2/3.6)', () => {
+    const clean: DastFinding[] = [{ tool: 'owasp-zap', name: 'cosmetic', severity: 'low' }];
+    const artifact = buildDastArtifact(clean, { endpointsScanned: 16, endpointsTotal: 16 });
+    assert.equal(artifact.exitCode, 0);
+    assert.equal(artifact.status, 'VERIFIED');
+    assert.equal(validateArtifact(artifact).valid, true);
+  });
+
+  it('does not VERIFY when endpoint coverage is incomplete (Req 3.2)', () => {
+    const clean: DastFinding[] = [];
+    const artifact = buildDastArtifact(clean, { endpointsScanned: 10, endpointsTotal: 16 });
+    assert.equal(artifact.status, 'PARTIAL');
+    assert.equal(artifact.exitCode, 2);
+  });
+
+  it('records the failure cause and BLOCKS when the target is unavailable (Req 3.8)', () => {
+    const artifact = buildDastArtifact([], { endpointsScanned: 0, endpointsTotal: 16, failureCause: 'target-unavailable' });
+    assert.equal(artifact.status, 'BLOCKED');
+    assert.equal(artifact.blockedReason?.kind, 'service');
+    const details = artifact.details as unknown as DastArtifactDetails;
+    assert.equal(details.failureCause, 'target-unavailable');
+    assert.equal(validateArtifact(artifact).valid, true);
+  });
+
+  it('records a timeout cause and marks timedOut (Req 3.9)', () => {
+    const artifact = buildDastArtifact([], { endpointsScanned: 4, endpointsTotal: 16, failureCause: 'timeout' });
+    assert.equal(artifact.status, 'BLOCKED');
+    assert.equal(artifact.timedOut, true);
+    assert.equal(artifact.blockedReason?.kind, 'timeout');
+  });
+
+  it('always records the driven scanners in tools', () => {
+    const artifact = buildDastArtifact([], { endpointsScanned: 16, endpointsTotal: 16 });
+    const details = artifact.details as unknown as DastArtifactDetails;
+    assert.deepEqual(details.tools, ['schemathesis', 'zap-api', 'zap-baseline']);
+  });
+});
+
 describe('DAST — in-process OpenAPI conformance scan (live app)', () => {
   it('passes the gate for a healthy app and fails it when a route 500s', async () => {
     const { streetApp } = await import('../http/server.js');
