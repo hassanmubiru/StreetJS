@@ -1,0 +1,13 @@
+{
+  "target": "lambda",
+  "status": "BLOCKED",
+  "health": {
+    "live": false,
+    "ready": false,
+    "maxLatencyMs": 0
+  },
+  "blockedReason": {
+    "missingPrerequisite": "BASE_URL",
+    "kind": "service"
+  }
+}

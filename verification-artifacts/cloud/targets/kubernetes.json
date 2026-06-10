@@ -1,0 +1,16 @@
+{
+  "target": "kubernetes",
+  "status": "VERIFIED",
+  "health": {
+    "live": true,
+    "ready": true,
+    "maxLatencyMs": 20
+  },
+  "smoke": {
+    "passed": 2,
+    "failed": 0,
+    "errored": 0,
+    "durationMs": 2,
+    "output": "/health/live: PASS (20ms)\n/health/ready: PASS (1ms)\nPASS GET /health/live -> 200\nPASS GET /health/ready -> 200"
+  }
+}
