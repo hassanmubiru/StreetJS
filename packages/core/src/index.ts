@@ -57,6 +57,13 @@ export type { VersionResolution, BreakingArea, BreakingChange } from './devx/upg
 export { openApiToHtml } from './devx/playground.js';
 export type { PlaygroundOptions } from './devx/playground.js';
 export {
+  buildRouteTree, assembleRouteTree, flattenRouteTree,
+  buildDependencyGraph, inspectorSuccess, inspectorFailure,
+} from './devx/devtools.js';
+export type {
+  RouteNode, DepGraph, InspectorRequest, InspectorResult,
+} from './devx/devtools.js';
+export {
   validateOpenApiDocument, openApiOperations, parseZapReport,
   summarizeFindings, evaluateDastGate, openApiConformanceScan,
   buildDastArtifact,
