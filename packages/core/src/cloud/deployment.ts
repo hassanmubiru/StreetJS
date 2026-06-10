@@ -1,9 +1,32 @@
 // src/cloud/deployment.ts
-// Cloud deployment manifest generation for Kubernetes, Cloud Run, ECS, and Nomad.
+// Cloud deployment manifest + per-target asset generation.
+//
+// `generateManifest`/`validateDeploymentManifest` produce and structurally
+// validate a single manifest for the legacy `CloudPlatform` set (kubernetes,
+// cloudrun, ecs, nomad). The Cloud Deployment Verifier (Requirements 2.1, 2.2)
+// adds the broader `DeploymentTarget` set and `generateTargetAssets()`, which
+// emits the full per-target deliverable bundle (manifests/profiles/workflows +
+// the Helm chart and HPA autoscaling example for Kubernetes).
+//
+// Zero runtime dependencies: this module uses only language built-ins.
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
 export type CloudPlatform = 'kubernetes' | 'cloudrun' | 'ecs' | 'nomad';
+
+/**
+ * The seven supported Deployment Targets of the Cloud Deployment Verifier
+ * (Requirement 2.1). Each target has its own per-target deliverable bundle,
+ * produced by {@link generateTargetAssets}.
+ */
+export type DeploymentTarget =
+  | 'kubernetes'
+  | 'cloudrun'
+  | 'ecs'
+  | 'lambda'
+  | 'azure-functions'
+  | 'gcf'
+  | 'cloudflare-workers';
 
 export interface DeployConfig {
   name: string;
