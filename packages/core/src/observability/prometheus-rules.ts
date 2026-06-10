@@ -95,6 +95,53 @@ export function streetSloBurnRateRules(): RuleGroup {
   };
 }
 
+/**
+ * Subsystem operational alerts covering the four required signal classes
+ * (Req 10.4) — latency, error rate, queue depth, and memory pressure — where
+ * each alert defines a numeric trigger threshold (in its `expr`) and an
+ * evaluation window (its `for`). Every metric referenced is an Exported Metric
+ * (see `subsystem-metrics.ts`), so the anti-fabrication guard passes.
+ */
+export function streetSubsystemAlertRules(): RuleGroup {
+  return {
+    name: 'street-subsystem-alerts',
+    rules: [
+      // Latency: PostgreSQL query p99 above 500ms for 10m.
+      {
+        alert: 'StreetDbQueryLatencyHigh',
+        expr: 'histogram_quantile(0.99, sum(rate(db_query_duration_seconds_bucket[5m])) by (le)) > 0.5',
+        for: '10m',
+        labels: { severity: 'warning', category: 'latency' },
+        annotations: { summary: 'High PostgreSQL query latency', description: 'p99 query duration above 500ms for 10m.' },
+      },
+      // Error rate: any plugin signature verification failures over 5m.
+      {
+        alert: 'StreetPluginSignatureFailureRate',
+        expr: 'rate(plugin_signature_failures_total[5m]) > 0',
+        for: '5m',
+        labels: { severity: 'warning', category: 'error-rate' },
+        annotations: { summary: 'Plugin signature failures', description: 'Plugin manifest signature verification failures observed over 5m.' },
+      },
+      // Queue depth: RabbitMQ ready-message backlog above 1000 for 5m.
+      {
+        alert: 'StreetRabbitMqQueueDepthHigh',
+        expr: 'rabbitmq_queue_depth > 1000',
+        for: '5m',
+        labels: { severity: 'warning', category: 'queue-depth' },
+        annotations: { summary: 'High RabbitMQ queue depth', description: 'A RabbitMQ queue held more than 1000 ready messages for 5m.' },
+      },
+      // Memory pressure: process heap above 768MiB for 10m.
+      {
+        alert: 'StreetMemoryPressureHigh',
+        expr: 'process_heap_bytes > 805306368',
+        for: '10m',
+        labels: { severity: 'warning', category: 'memory-pressure' },
+        annotations: { summary: 'Process memory pressure', description: 'Process heap above 768MiB for 10m — investigate memory pressure.' },
+      },
+    ],
+  };
+}
+
 /** Resource saturation alerts (references the real `process_heap_bytes` gauge). */
 export function streetSaturationRules(): RuleGroup {
   return {
