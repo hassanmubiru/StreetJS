@@ -13,6 +13,10 @@
 import { request as httpRequest } from 'node:http';
 import { request as httpsRequest } from 'node:https';
 
+import type { VerificationArtifact } from '../verification/artifact.js';
+import { classify } from '../verification/status.js';
+import type { EvidenceComponents, BlockedReason } from '../verification/status.js';
+
 export type DastSeverity = 'info' | 'low' | 'medium' | 'high' | 'critical';
 
 const SEVERITY_RANK: Record<DastSeverity, number> = {
