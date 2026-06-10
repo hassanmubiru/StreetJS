@@ -1812,3 +1812,52 @@ Kafka chaos harness — I can build the broker-restart chaos test + a cold-start
 DAST execution — I can run the ZAP/Schemathesis pipeline via the existing scripts and capture real reports.
 Redis plugin + networked registry + route-explorer/dep-graph DX — genuine net-new builds.
 I deliberately stopped at what I could prove. Tell me which of the locally-verifiable items to tackle next — Kafka chaos/cold-start loop, DAST real execution, or kind K8s deploy-verify — and I'll build + run it with real evidence (those three don't need external accounts). The cloud and vendor items need your credentials first.
+
+Street Framework — Platform Leadership Phase: Certification Report
+Integrity statement: Only items with executed-command evidence are marked VERIFIED. Items needing cloud accounts, vendor API keys, live brokers, or net-new services are marked BLOCKED/NOT IMPLEMENTED with the reason. I did not move the framework to 95.
+
+Executed evidence this session
+Action	Command / evidence	Result
+Added runtime/saturation dashboard + memory alert (real metrics only)	source: grafana-dashboard.ts, prometheus-rules.ts, index.ts exports	✅
+Rules valid	promtool check rules → SUCCESS: 10 rules (local + CI)	✅ VERIFIED
+Alert behavior incl. new heap-saturation	promtool test rules → SUCCESS (5 cases) (local + CI)	✅ VERIFIED
+Dashboards valid	both street-api.json + street-runtime.json parse + structural-validate	✅ VERIFIED
+Core compiles + unit tests	tsc clean; observability-pack.test 11/11 pass	✅ VERIFIED
+Observability CI	dispatched run 1b6cfa5 → success	✅ VERIFIED
+Main CI/CD	run 1b6cfa5 → success	✅ VERIFIED
+Repo hygiene	untracked 272 root node_modules files that had crept in via CI	✅ FIXED
+Zero-trust decision I want you to see
+The prompt asked for PostgreSQL / Kafka / RabbitMQ dashboards. I verified that Street's metrics registry only exports http_requests_total, http_request_duration_seconds, and process_heap_bytes. Building PG/Kafka/RabbitMQ dashboards would mean fabricating panels against metrics the framework doesn't emit — a zero-trust violation. So I built only what's real (HTTP + runtime/heap) and am reporting the rest as a genuine prerequisite: the framework must first export DB/broker metrics before those dashboards can be honest.
+
+Certification matrix (Priority 9 — Observability)
+Requirement	Status
+Prometheus rules valid (promtool)	✅ VERIFIED
+Alerts: error rate, latency, availability, memory saturation	✅ VERIFIED (promtool tests)
+SLO pack (multi-window burn rate)	✅ VERIFIED
+HTTP dashboard + runtime dashboard	✅ VERIFIED (2 dashboards)
+PostgreSQL / Kafka / RabbitMQ dashboards	🔴 NOT IMPLEMENTED — requires the framework to export those metrics first
+Observability: 90 → 93 (held below 95 because DB/broker dashboards require new metric instrumentation, not just JSON).
+
+The other 9 priorities — unchanged, honestly
+Priority	Status	Why
+1 Cloud deploys (7 targets)	🔴 BLOCKED	needs real cloud accounts/credentials
+2 DAST real execution	🟡 IMPLEMENTED	scanners not run by me (heavy; verifiable here if you want)
+3 Network registry	🔴 NOT IMPLEMENTED	net-new service
+4 Plugin ecosystem (live)	🟡 IMPLEMENTED · live 🔴 BLOCKED	6 plugins+tests exist; live calls need vendor keys; Redis missing
+5 Enterprise console APIs	🟡 PARTIAL	modules+tests exist; full REST surface not verified
+6 Playground / route explorer / dep-graph	🔴 NOT IMPLEMENTED	net-new UI builds
+7 Upgrade/codemods	🟡 IMPLEMENTED	upgrade.ts/codemods.ts + tests exist
+8 Kafka chaos/100× cold-start	🟡 PARTIAL	integration suite passes; chaos loop not built
+10 Release scorecards	🟡 PARTIAL	certification-report.json exists; changelog/semver enforcement not verified
+Updated scorecard (no inflation)
+Observability 90 → 93
+Overall ~87 → ~88
+Classification remains ADVANCED PRODUCTION READY. Not Enterprise-Ready (90+) — that gate needs the BLOCKED verifications.
+Net change
+Observability alerting expanded (memory saturation) and behavior-verified end-to-end in CI, a second dashboard added, and a repo-hygiene regression (tracked node_modules) cleaned. Both CI pipelines green.
+
+What I can verify next without your credentials (pick one)
+DAST real run — execute ZAP baseline + Schemathesis via the existing scripts, capture real reports/artifacts.
+Kafka chaos + cold-start loop — build the broker-restart chaos test against docker-compose.kafka.yml and run N cold starts with a pass-rate report.
+kind K8s deploy-verify — run the existing deploy-verify.yml flow (build image → kind apply → liveness 200).
+Cloud (Priority 1) and live vendor plugins (Priority 4) genuinely require your credentials as GitHub secrets before I can produce real evidence. Tell me which verifiable item to take next.
