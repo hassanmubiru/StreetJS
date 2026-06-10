@@ -29,6 +29,7 @@ import { createServer } from 'node:http';
 import {
   EnterpriseConsole,
   CONSOLE_ROUTES,
+  ConsoleNotFoundError,
   JwtService,
   PgPool,
 } from 'streetjs';
