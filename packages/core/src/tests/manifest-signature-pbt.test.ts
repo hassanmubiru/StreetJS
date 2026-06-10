@@ -19,7 +19,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { generateKeyPairSync, type KeyPairKeyObjectResult } from 'node:crypto';
+import { generateKeyPairSync } from 'node:crypto';
 import fc from 'fast-check';
 
 import {
@@ -75,7 +75,7 @@ const manifestArb: fc.Arbitrary<PluginManifest> = fc.record({
 });
 
 /** Fresh Ed25519 keypair (the keypair half of the generator, drawn per run). */
-function ed25519(): KeyPairKeyObjectResult {
+function ed25519(): ReturnType<typeof generateKeyPairSync<'ed25519'>> {
   return generateKeyPairSync('ed25519');
 }
 
