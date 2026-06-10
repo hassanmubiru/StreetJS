@@ -104,8 +104,8 @@ export function validateDeploymentManifest(platform: CloudPlatform, manifest: st
 
 function generateKubernetes(config: DeployConfig): string {
   const replicas = config.replicas ?? 1;
-  const cpu = config.cpu ?? '100m';
-  const memory = config.memory ?? '128Mi';
+  const cpu = config.cpu ?? '250m';
+  const memory = config.memory ?? '256Mi';
 
   const envVars = Object.entries(config.env ?? {})
     .map(([k, v]) => `        - name: ${k}\n          value: "${v}"`)
