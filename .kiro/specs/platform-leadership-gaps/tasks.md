@@ -33,7 +33,7 @@ Each property-based test is tagged with the comment format:
     - Use a `ClassifyInput` generator spanning `hasSourceCode`, all four evidence flags, `blocked`, `commandExitCode` (zero and non-zero), and `timedOut`
     - **Validates: Requirements 1.2, 1.3, 1.4, 1.6, 1.9, 1.10**
 
-  - [~] 1.3 Implement the artifact schema and validator
+  - [-] 1.3 Implement the artifact schema and validator
     - Create `packages/core/src/verification/artifact.ts` with `VerificationArtifact`, `validateArtifact()` enforcing the JSON Schema (required fields, BLOCKED ⇒ `blockedReason`), and the `generator` field that marks artifacts as command-produced
     - _Design: Verification Artifact subsystem → Artifact schema + validator; Data Models → Verification Artifact_
     - _Requirements: 1.7, 1.8_
