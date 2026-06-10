@@ -1,0 +1,65 @@
+{
+  "name": "@streetjs/registry-server",
+  "version": "1.0.0",
+  "description": "Street Framework Network Plugin Registry server: secure publish/download/verify/search/list/versions REST API over /api/v1, built on @streetjs/core signing primitives.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "streetjs-registry": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.js.map",
+    "dist/**/*.d.ts",
+    "dist/**/*.d.ts.map",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node ./dist/cli.js",
+    "lint": "tsc --noEmit",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "dependencies": {
+    "streetjs": "^1.0.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "typescript": "^6.0.3"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": [
+    "street",
+    "streetjs",
+    "registry",
+    "plugin-registry",
+    "ed25519",
+    "signed-plugins"
+  ],
+  "author": "street contributors",
+  "license": "MIT",
+  "homepage": "https://hassanmubiru.github.io/street/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hassanmubiru/street.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hassanmubiru/street/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

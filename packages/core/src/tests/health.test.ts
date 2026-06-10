@@ -267,16 +267,23 @@ describe('createDbReadinessCheck', () => {
   });
 
   it('reports down when the configured DB probe exceeds the timeout', async () => {
+    // Probe settles eventually (after the timeout fires) so no promise dangles.
+    let resolveProbe!: () => void;
+    const probeDrained = new Promise<void>((r) => { resolveProbe = r; });
     const check = createDbReadinessCheck({
       expected: true,
-      // Never resolves within the probe window.
-      probe: () => new Promise<void>(() => { /* hang */ }),
+      probe: () => new Promise<void>((resolve) => {
+        const t = setTimeout(() => { resolve(); resolveProbe(); }, 80);
+        t.unref();
+      }),
       probeTimeoutMs: 20,
     });
 
     const result = await check();
     assert.equal(result.status, 'down');
     assert.equal((result.details as Record<string, unknown>)['reason'], 'timeout');
+    // Let the slow probe settle so the event loop drains cleanly.
+    await probeDrained;
   });
 });
 
