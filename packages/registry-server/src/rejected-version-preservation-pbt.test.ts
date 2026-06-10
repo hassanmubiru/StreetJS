@@ -98,16 +98,18 @@ function installableSet(service: RegistryService, names: string[]): string[] {
 // ── Generators ────────────────────────────────────────────────────────────────
 const suffixArb: fc.Arbitrary<string> = fc.hexaString({ minLength: 1, maxLength: 8 });
 
-const capabilitiesArb: fc.Arbitrary<string[]> = fc.array(
-  fc.string({ minLength: 1, maxLength: 10 }),
-  { maxLength: 4 },
-);
+// A non-empty, non-whitespace token so generated manifests pass the registry's
+// metadata validation (capabilities and dependency names must be non-empty
+// after trimming).
+const tokenArb: fc.Arbitrary<string> = fc.hexaString({ minLength: 1, maxLength: 10 });
+
+const capabilitiesArb: fc.Arbitrary<string[]> = fc.array(tokenArb, { maxLength: 4 });
 const permissionsArb: fc.Arbitrary<string[]> = fc.uniqueArray(
   fc.constantFrom('middleware', 'events', 'net', 'fs', 'db', 'secrets'),
   { maxLength: 6 },
 );
 const dependenciesArb: fc.Arbitrary<Record<string, string>> = fc.dictionary(
-  fc.string({ minLength: 1, maxLength: 8 }),
+  tokenArb,
   fc
     .tuple(fc.integer({ min: 0, max: 9 }), fc.integer({ min: 0, max: 9 }), fc.integer({ min: 0, max: 9 }))
     .map(([a, b, c]) => `^${a}.${b}.${c}`),
