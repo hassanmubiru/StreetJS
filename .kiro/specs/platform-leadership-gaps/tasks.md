@@ -98,16 +98,16 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Cloud Deployment Verifier (offline-verifiable artifacts); Testing Strategy → Honest BLOCKED recording_
     - _Requirements: 2.14, 1.5_
 
-  - [~] 4.6 Write kind-cluster integration verification for Kubernetes (Layer B)
+  - [-] 4.6 Write kind-cluster integration verification for Kubernetes (Layer B)
     - Deploy generated manifests + Helm to a local kind cluster, assert pod `1/1 Running`, health 200, smoke 0 fail/0 error; skip (not fail) when kind is unreachable, recording BLOCKED honestly
     - _Requirements: 2.9, 2.10_
 
-  - [~] 4.7 Wire the cloud deploy verification CI job and emit the artifact
+  - [-] 4.7 Wire the cloud deploy verification CI job and emit the artifact
     - Extend `.github/workflows/deploy-verify.yml` to run the verifier through `CommandRunner` and upload the per-target artifacts + `deployment-report.json` via `actions/upload-artifact`
     - _Design: Testing Strategy → CI integration and evidence retention_
     - _Requirements: 2.11_
 
-  - [~] 4.8 Write unit tests for the deployment report status mapping
+  - [-] 4.8 Write unit tests for the deployment report status mapping
     - Cover VERIFIED/PARTIAL/BLOCKED mapping and retained failing output in the report
     - _Requirements: 2.11, 2.13, 2.14_
 
@@ -132,7 +132,7 @@ Each property-based test is tagged with the comment format:
     - **Property 7: Scan coverage equals the enumerated operation set** (fast-check, min 100 runs)
     - **Validates: Requirements 3.2**
 
-  - [~] 6.5 Wire the DAST CI workflow with real scans and timeout (Layer B)
+  - [-] 6.5 Wire the DAST CI workflow with real scans and timeout (Layer B)
     - Extend `.github/workflows/dast.yml` to run real Schemathesis + ZAP Baseline + ZAP API scans against a running instance through `CommandRunner`, enforce a 30-minute `timeout-minutes` + in-script watchdog, record failure cause (`target-unavailable`/`scan-error`/`timeout`), fail the build on High/Critical, and upload the artifact
     - _Design: Components → DAST verifier (behavior); Error Handling 3.8/3.9_
     - _Requirements: 3.1, 3.3, 3.8, 3.9_
@@ -177,7 +177,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Network Plugin Registry (CLI + guides)_
     - _Requirements: 4.1, 4.7_
 
-  - [~] 7.10 Implement the publish→install E2E harness and CI workflow (Layer B)
+  - [-] 7.10 Implement the publish→install E2E harness and CI workflow (Layer B)
     - Run a registry server in a container, execute publish→install end-to-end through `CommandRunner`, emit `registry.publish-install.artifact.json`, and upload it from CI; skip with honest BLOCKED when the container is unavailable
     - _Design: Components → Network Plugin Registry (E2E harness); Testing Strategy → Layer B_
     - _Requirements: 4.8_
