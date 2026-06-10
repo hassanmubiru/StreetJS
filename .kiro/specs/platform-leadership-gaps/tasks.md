@@ -79,7 +79,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Cloud Deployment Verifier (per-target deliverables table)_
     - _Requirements: 2.1, 2.2_
 
-  - [~] 4.2 Write property test for generated manifests
+  - [-] 4.2 Write property test for generated manifests
     - **Property 4: Generated deployment manifests are structurally valid for every supported target** (fast-check, min 100 runs; kubernetes, cloudrun, ecs)
     - **Validates: Requirements 2.2, 2.3, 2.4**
 
@@ -120,7 +120,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → DAST verifier_
     - _Requirements: 3.1, 3.2, 3.7_
 
-  - [~] 6.2 Write property test for the severity gate
+  - [-] 6.2 Write property test for the severity gate
     - **Property 5: The DAST severity gate fails iff a finding meets the threshold** (fast-check, min 100 runs; `DastFinding[]` generator across all five severities)
     - **Validates: Requirements 3.4, 3.5, 3.6**
 
@@ -143,7 +143,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Network Plugin Registry (`normalizePageSize`)_
     - _Requirements: 4.6_
 
-  - [~] 7.2 Write property test for pagination clamping
+  - [-] 7.2 Write property test for pagination clamping
     - **Property 12: Pagination is clamped to its bounds** (fast-check, min 100 runs)
     - **Validates: Requirements 4.6**
 
@@ -191,7 +191,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Official Plugin Ecosystem (uniform package structure)_
     - _Requirements: 5.1, 5.5_
 
-  - [-] 9.2 Implement messaging, payments, and identity plugin packages
+  - [x] 9.2 Implement messaging, payments, and identity plugin packages
     - Create `packages/plugin-twilio/`, `packages/plugin-sendgrid/`, `packages/plugin-stripe/`, `packages/plugin-auth0/` with the same uniform structure
     - _Design: Components → Official Plugin Ecosystem_
     - _Requirements: 5.2, 5.3, 5.4, 5.5_
@@ -247,7 +247,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Interactive Developer Experience_
     - _Requirements: 7.2, 7.3, 7.4, 7.5_
 
-  - [~] 12.2 Write property test for the route tree
+  - [-] 12.2 Write property test for the route tree
     - **Property 17: The route tree reflects exactly the registered routes** (fast-check, min 100 runs)
     - **Validates: Requirements 7.2**
 
@@ -283,7 +283,7 @@ Each property-based test is tagged with the comment format:
     - **Property 21: Breaking-change analysis is well-formed** (fast-check, min 100 runs)
     - **Validates: Requirements 8.3, 8.4**
 
-  - [-] 13.4 Implement routing, middleware, and plugin-API codemods
+  - [x] 13.4 Implement routing, middleware, and plugin-API codemods
     - Extend `packages/core/src/devx/codemods.ts` with `ROUTING_CODEMODS`, `MIDDLEWARE_CODEMODS`, `PLUGIN_API_CODEMODS` following the pure source→source contract; unparseable/conflicting files are left unchanged and reported with a reason
     - _Design: Components → Upgrade System (codemods); Error Handling 8.7_
     - _Requirements: 8.5, 8.7_
@@ -361,7 +361,7 @@ Each property-based test is tagged with the comment format:
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 18. Release Engineering
-  - [-] 18.1 Implement the release scorecard, validation, and health-delta logic in core
+  - [x] 18.1 Implement the release scorecard, validation, and health-delta logic in core
     - In core (zero-dep) add `isValidSemver()`, `validateReleaseNotes()`, the bounded `ReleaseScorecard`, `HealthMetrics` deltas (`current − previous`), and `buildReleaseReport()` recording the failed control when a validation fails
     - _Design: Components → Release Engineering; Data Models → Release Scorecard_
     - _Requirements: 11.1, 11.2, 11.4, 11.5_
