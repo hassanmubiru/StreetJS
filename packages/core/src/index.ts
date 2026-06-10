@@ -338,6 +338,30 @@ export type { AuditCategory } from './enterprise/audit-logger.js';
 export { RetainFor, Encrypt, Classify, RetentionJob, ComplianceReporter, FieldEncryptor, redactByClassification } from './enterprise/data-policy.js';
 export type { DataClassificationLevel, RetentionEntityMeta, ComplianceReport } from './enterprise/data-policy.js';
 
+// ── Enterprise: Console APIs ────────────────────────────────────────────────────
+export { EnterpriseConsole, CONSOLE_ROUTES, InMemoryConsoleBackend, ConsoleNotFoundError } from './enterprise/console/index.js';
+export type {
+  EnterpriseConsoleOptions,
+  ConsoleArea,
+  ConsoleBackend,
+  ConsoleMethod,
+  ConsolePrincipal,
+  ConsoleRequest,
+  ConsoleResponse,
+  ConsoleRoute,
+  ValidationResult as ConsoleValidationResult,
+  CreateTenantInput,
+  UpdateTenantInput,
+  RbacPolicyInput,
+  MfaPolicyInput,
+  RetentionPolicyInput,
+  ClassificationPolicyInput,
+  AuditExportInput,
+  ManageUserInput,
+  RotateKeyInput,
+  ManageSecretInput,
+} from './enterprise/console/index.js';
+
 // ── Enterprise: Backup ────────────────────────────────────────────────────────
 export { BackupService, LocalStorageAdapter, BACKUPS_MIGRATION_SQL } from './enterprise/backup.js';
 export type { StorageAdapter, BackupRecord } from './enterprise/backup.js';
