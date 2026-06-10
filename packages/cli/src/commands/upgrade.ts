@@ -9,6 +9,7 @@
 // _Design: Components → Upgrade System. Requirements: 8.1, 8.2, 8.3, 8.4_
 
 import { readFile, readdir, writeFile, stat } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join, resolve } from 'node:path';
 import type { CliContext } from '../index.js';
