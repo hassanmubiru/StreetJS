@@ -233,3 +233,134 @@ export function evaluateDastGate(findings: DastFinding[], opts: DastGateOptions 
     offending,
   };
 }
+
+// ── Verification Artifact emitter ────────────────────────────────────────────
+
+/** Identifies the DAST subsystem as the producing tool in the artifact `generator`. */
+const DAST_GENERATOR_TOOL = 'street-dast';
+/** The DAST emitter's generator version (independent of package version on purpose). */
+const DAST_GENERATOR_VERSION = '1';
+/** The dotted capability id recorded by every DAST artifact. */
+const DAST_CAPABILITY_ID = 'security.dast';
+/** The scanners the DAST pipeline drives; always recorded even with zero findings. */
+const DAST_DEFAULT_TOOLS = ['schemathesis', 'zap-baseline', 'zap-api'] as const;
+
+/**
+ * Cause of a failed DAST run that is not itself a finding: the target never
+ * became reachable, a scanner errored out, or the run exceeded its time budget.
+ */
+export type DastFailureCause = 'target-unavailable' | 'scan-error' | 'timeout';
+
+/** Schema-validated `details` payload of a DAST {@link VerificationArtifact}. */
+export interface DastArtifactDetails {
+  /** Finding count at each severity: Critical/High/Medium/Low/Info (Req 3.7). */
+  counts: Record<DastSeverity, number>;
+  /** Number of OpenAPI-enumerated endpoints actually scanned. */
+  endpointsScanned: number;
+  /** Total endpoints that should have been scanned; 100% coverage check (Req 3.2). */
+  endpointsTotal: number;
+  /** The Severity Gate outcome recorded with the run (Req 3.3/3.4/3.5/3.6). */
+  gate: { failOn: DastSeverity; passed: boolean };
+  /** Set when the run failed without producing findings (Req 3.8/3.9). */
+  failureCause?: DastFailureCause;
+  /** The scanners the run drove, e.g. schemathesis, zap-baseline, zap-api. */
+  tools: string[];
+}
+
+/** Run metadata accompanying the collected findings. */
+export interface DastArtifactMeta {
+  endpointsScanned: number;
+  endpointsTotal: number;
+  /** Present iff the run failed outside the finding stream (Req 3.8/3.9). */
+  failureCause?: DastFailureCause;
+}
+
+/** Map a non-finding failure cause to the BLOCKED prerequisite it represents. */
+function blockedReasonForCause(cause: DastFailureCause): BlockedReason {
+  switch (cause) {
+    case 'target-unavailable':
+      return { missingPrerequisite: 'dast-target', kind: 'service' };
+    case 'timeout':
+      return { missingPrerequisite: 'dast-scan-completion', kind: 'timeout' };
+    case 'scan-error':
+    default:
+      return { missingPrerequisite: 'dast-scanner', kind: 'runtime' };
+  }
+}
+
+/**
+ * Build a DAST {@link VerificationArtifact} from collected findings plus run
+ * metadata. The Severity Gate is evaluated via {@link evaluateDastGate}; the
+ * artifact records per-severity counts (Req 3.7), endpoint coverage (Req 3.2),
+ * the gate outcome (Req 3.3), and — when the run failed outside the finding
+ * stream — the failure cause (Req 3.8/3.9).
+ *
+ * Status assignment (via the shared {@link classify} engine):
+ *  - a `failureCause` ⇒ BLOCKED, with the cause mapped to a `blockedReason`
+ *    (`timeout` also sets `timedOut`); the build fails (exit code 2).
+ *  - otherwise the gate must pass AND every endpoint must have been scanned for
+ *    a clean (exit code 0) VERIFIED run; a gate failure or incomplete coverage
+ *    yields a non-zero exit code and a PARTIAL status.
+ *
+ * Pure and deterministic: the timestamp is the only non-input-derived field.
+ */
+export function buildDastArtifact(
+  findings: DastFinding[],
+  meta: DastArtifactMeta,
+  gateOpts: DastGateOptions = {},
+): VerificationArtifact {
+  const gate = evaluateDastGate(findings, gateOpts);
+  const fullCoverage = meta.endpointsTotal > 0 && meta.endpointsScanned >= meta.endpointsTotal;
+  const failureCause = meta.failureCause;
+
+  // Tools: always record the scanners the pipeline drives, unioned with any
+  // tool that actually emitted a finding, sorted for determinism.
+  const tools = Array.from(
+    new Set<string>([...DAST_DEFAULT_TOOLS, ...findings.map((f) => f.tool)]),
+  ).sort();
+
+  const details: DastArtifactDetails = {
+    counts: gate.counts,
+    endpointsScanned: meta.endpointsScanned,
+    endpointsTotal: meta.endpointsTotal,
+    gate: { failOn: gate.failOn, passed: gate.passed },
+    ...(failureCause ? { failureCause } : {}),
+    tools,
+  };
+
+  const blockedReason = failureCause ? blockedReasonForCause(failureCause) : null;
+  const timedOut = failureCause === 'timeout';
+  // A clean run requires the gate to pass and every endpoint to be scanned; any
+  // failure cause forces a non-zero exit code so the build fails.
+  const cleanRun = !failureCause && gate.passed && fullCoverage;
+  const exitCode = cleanRun ? 0 : 2;
+
+  const evidence: EvidenceComponents = {
+    sourceCode: true,
+    passingTests: cleanRun,
+    documentation: true,
+    artifact: true,
+  };
+
+  const status = classify({
+    hasSourceCode: true,
+    evidence,
+    blocked: blockedReason,
+    commandExitCode: exitCode,
+    timedOut,
+  });
+
+  return {
+    schemaVersion: 1,
+    capabilityId: DAST_CAPABILITY_ID,
+    status,
+    evidence,
+    command: 'street-dast scan --routes dast/routes.json',
+    exitCode,
+    timestamp: new Date().toISOString(),
+    timedOut,
+    ...(blockedReason ? { blockedReason } : {}),
+    details: details as unknown as Record<string, unknown>,
+    generator: { tool: DAST_GENERATOR_TOOL, version: DAST_GENERATOR_VERSION },
+  };
+}
