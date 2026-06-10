@@ -217,6 +217,10 @@ export {
 export type { RecordingRule, AlertRule, PromRule, RuleGroup, RuleValidationResult } from './observability/prometheus-rules.js';
 export { streetApiDashboard, streetRuntimeDashboard, streetDashboards, validateGrafanaDashboard } from './observability/grafana-dashboard.js';
 export type { GrafanaDashboard, GrafanaPanel, GrafanaTarget, DashboardValidationResult } from './observability/grafana-dashboard.js';
+export {
+  exportedMetricNames, referencedMetrics, validateMetricReferences, extractMetricsFromExpr,
+} from './observability/metric-references.js';
+export type { ObservabilityAssets, MetricReferenceViolation } from './observability/metric-references.js';
 
 // ── Route Profiler ────────────────────────────────────────────────────────────
 export { RouteProfiler } from './diagnostics/route-profiler.js';
