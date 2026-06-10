@@ -1,0 +1,16 @@
+{
+  "name": "street-plugin-redis",
+  "version": "1.0.0",
+  "capabilities": [
+    "cache",
+    "key-value",
+    "redis"
+  ],
+  "permissions": [
+    "net",
+    "secrets",
+    "middleware"
+  ],
+  "checksum": "d6a49ac12f78ee3814f6717b7210f87d5a33b7768c5f603f4189912e3c068a50",
+  "signature": "PIUjak4fU/9s7/Q5nTZQWIaVxTyP2kQvrvRHaR6xw12megXv3AIsXY8gVQ7YrSZT4zVVwg09WYvgacj6Vc3iDg=="
+}
