@@ -292,7 +292,7 @@ Each property-based test is tagged with the comment format:
     - **Property 22: Codemods are idempotent** (fast-check, min 100 runs; source-string + codemod generator including already-migrated inputs)
     - **Validates: Requirements 8.6**
 
-  - [~] 13.6 Write property test for codemod failure safety
+  - [-] 13.6 Write property test for codemod failure safety
     - **Property 23: Codemods are safe on failure** (fast-check, min 100 runs; include unparseable inputs)
     - **Validates: Requirements 8.7**
 
@@ -310,7 +310,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Kafka Reliability; Error Handling 9.2_
     - _Requirements: 9.1, 9.2_
 
-  - [~] 15.2 Write property test for the gate timeout
+  - [-] 15.2 Write property test for the gate timeout
     - **Property 24: A gate timeout preserves committed offsets and does not consume** (fast-check, min 100 runs)
     - **Validates: Requirements 9.2**
 
@@ -366,15 +366,15 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Release Engineering; Data Models → Release Scorecard_
     - _Requirements: 11.1, 11.2, 11.4, 11.5_
 
-  - [~] 18.2 Write property test for bounded release scores
+  - [-] 18.2 Write property test for bounded release scores
     - **Property 28: Release scores are bounded** (fast-check, min 100 runs)
     - **Validates: Requirements 11.1**
 
-  - [~] 18.3 Write property test for semver and release-notes validation
+  - [-] 18.3 Write property test for semver and release-notes validation
     - **Property 29: Semver and release-notes validation are correct** (fast-check, min 100 runs)
     - **Validates: Requirements 11.2, 11.3**
 
-  - [~] 18.4 Write property test for release health deltas
+  - [-] 18.4 Write property test for release health deltas
     - **Property 30: Release health deltas are exact** (fast-check, min 100 runs)
     - **Validates: Requirements 11.4**
 
