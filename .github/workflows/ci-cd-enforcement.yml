@@ -176,3 +176,78 @@ jobs:
           npm run build -w packages/cli
           npm test -w packages/cli
           echo "Backward compatibility regression passed ✔"
+
+  # ── release-engineering: Release Scorecard + validation enforcement ─────
+  # Purpose:  Build the automated release report THROUGH the zero-dependency
+  #           CommandRunner, emitting the machine-readable `release.scorecard`
+  #           Verification Artifact (executed command, exit code, ISO-8601
+  #           timestamp — Req 11.5). The renderer reuses the core primitives
+  #           (`buildReleaseReport`, `isValidSemver`, `validateReleaseNotes`)
+  #           and exits non-zero — FAILING the release and NOT publishing — when
+  #           semver/release-notes validation fails or an enforced scorecard
+  #           control is unsatisfied (Req 11.3 / 11.6).
+  # Runs:     only on release triggers (a published release, a v* tag, or a
+  #           manual dispatch) — never on ordinary push/PR builds.
+  # _Requirements: 11.3, 11.5, 11.6_
+  release-engineering:
+    name: Release Engineering Enforcement
+    if: >-
+      github.event_name == 'release' ||
+      github.event_name == 'workflow_dispatch' ||
+      startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+        with:
+          node-version: '20'
+
+      - name: Build core package
+        run: npm run build -w packages/core
+
+      - name: Resolve release version
+        id: ver
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          DISPATCH_VERSION: ${{ github.event.inputs.version }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          if [ "$EVENT_NAME" = "release" ]; then
+            V="$RELEASE_TAG"
+          elif [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            V="$DISPATCH_VERSION"
+          else
+            V="$REF_NAME"
+          fi
+          V="${V#v}"
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          echo "Resolved release version: ${V:-<from package.json>}"
+
+      - name: Build release report + emit release.scorecard Verification Artifact
+        env:
+          RELEASE_VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          # The renderer reads real scorecard + health evidence from
+          # release-inputs.json when present. Under the zero-trust standard, when
+          # that evidence is absent the scorecard scores default to 0, the
+          # enforced controls fail, and the release is blocked — never published
+          # on fabricated scores.
+          if [ -f release-inputs.json ]; then
+            npm run verify:release -- --inputs release-inputs.json
+          else
+            echo "::warning::release-inputs.json not found — scorecard scores default to 0; supply scorecard evidence to satisfy the enforced controls (Req 11.6)"
+            npm run verify:release
+          fi
+
+      - name: Upload release.scorecard Verification Artifact
+        if: success() || failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-scorecard-artifact-${{ github.sha }}
+          path: verification-artifacts/release/
