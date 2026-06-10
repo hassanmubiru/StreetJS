@@ -28,9 +28,11 @@ const NUM_RUNS = 100;
 // ── Generators ────────────────────────────────────────────────────────────────
 //
 // A WELL-FORMED manifest (so publish reaches the storage step) under the `acme`
-// namespace our test publisher owns, plus ARBITRARY tarball bytes — including
-// the empty buffer and bytes that exercise every value 0..255 — so the round
-// trip is tested across the full byte space, not just printable ASCII.
+// namespace our test publisher owns, plus ARBITRARY (non-empty) tarball bytes
+// that exercise every value 0..255 — so the round trip is tested across the
+// full byte space, not just printable ASCII. The registry legitimately rejects
+// an empty tarball (a package must have bytes), so the empty buffer is outside
+// the round-trip input space and the generator starts at length 1.
 const ALPHA = 'abcdefghijklmnopqrstuvwxyz';
 const TOKEN_CHARS = 'abcdefghijklmnopqrstuvwxyz0123456789-_';
 const wordArb = fc
@@ -50,9 +52,9 @@ const wellFormedArb = fc.record({
     capabilities: fc.option(capabilitiesArb, { nil: undefined }),
     dependencies: fc.option(dependenciesArb, { nil: undefined }),
 }, { requiredKeys: ['name', 'version'] });
-/** Arbitrary raw tarball bytes, including the empty buffer (full byte space). */
+/** Arbitrary non-empty raw tarball bytes (full 0..255 byte space). */
 const tarballArb = fc
-    .uint8Array({ minLength: 0, maxLength: 512 })
+    .uint8Array({ minLength: 1, maxLength: 512 })
     .map((u8) => Buffer.from(u8));
 // ── Publish-pipeline helpers ──────────────────────────────────────────────────
 const FIXED_NOW = () => new Date('2024-01-01T00:00:00.000Z');
