@@ -424,6 +424,11 @@ await app.listen();
       <div><div class="dt">Testing <span class="arr">→</span></div><p class="dd">Integration tests, the test runner and real PostgreSQL.</p></div>
     </a>
 
+    <a href="{{ site.baseurl }}/devtools/" class="dc">
+      <span class="dic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4l-6 6a2 2 0 0 0 2.8 2.8l6-6a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.2-.4-.4-2.2z"/></svg></span>
+      <div><div class="dt">Interactive DevTools <span class="arr">→</span></div><p class="dd">Token-gated, read-only Playground, Route Explorer, dependency graph and API Inspector.</p></div>
+    </a>
+
     <a href="{{ site.baseurl }}/faq/" class="dc">
       <span class="dic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></span>
       <div><div class="dt">FAQ <span class="arr">→</span></div><p class="dd">Common questions, migration guides and troubleshooting.</p></div>
