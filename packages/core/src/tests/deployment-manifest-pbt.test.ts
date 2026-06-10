@@ -76,8 +76,8 @@ const deployConfigArb: fc.Arbitrary<DeployConfig> = fc.record({
 });
 
 // The supported targets this property covers (Requirements 2.2/2.3/2.4).
-const TARGETS: readonly CloudPlatform[] = ['kubernetes', 'cloudrun', 'ecs'];
-const targetArb = fc.constantFrom(...TARGETS);
+const TARGETS: readonly SupportedTarget[] = ['kubernetes', 'cloudrun', 'ecs'];
+const targetArb = fc.constantFrom<SupportedTarget>(...TARGETS);
 
 const NUM_RUNS = 200; // ≥ 100 runs as required.
 
