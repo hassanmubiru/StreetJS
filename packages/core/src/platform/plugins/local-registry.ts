@@ -133,3 +133,108 @@ export async function installFromRegistry(
   if (opts.enable !== false) await host.enable(plugin.name);
   return rec;
 }
+
+const KNOWN_PERMISSIONS: readonly PluginPermission[] = ['middleware', 'events', 'net', 'fs', 'db', 'secrets'];
+
+/**
+ * Validate that a plugin manifest is structurally well-formed for installation.
+ * Throws {@link PluginManifestError} with a message identifying the offending
+ * field when the manifest is missing or malformed (Req 5.8).
+ */
+export function assertWellFormedManifest(manifest: PluginManifest | null | undefined): void {
+  if (manifest === null || manifest === undefined || typeof manifest !== 'object') {
+    throw new PluginManifestError('Plugin manifest is missing');
+  }
+  const m = manifest as Partial<PluginManifest>;
+  if (typeof m.name !== 'string' || m.name.trim() === '') {
+    throw new PluginManifestError('Plugin manifest is malformed: "name" is required and must be a non-empty string');
+  }
+  if (typeof m.version !== 'string' || m.version.trim() === '') {
+    throw new PluginManifestError(`Plugin manifest for "${m.name}" is malformed: "version" is required and must be a non-empty string`);
+  }
+  if (m.capabilities !== undefined
+    && (!Array.isArray(m.capabilities) || m.capabilities.some((c) => typeof c !== 'string'))) {
+    throw new PluginManifestError(`Plugin manifest for "${m.name}" is malformed: "capabilities" must be an array of strings`);
+  }
+  if (m.permissions !== undefined
+    && (!Array.isArray(m.permissions) || m.permissions.some((p) => !KNOWN_PERMISSIONS.includes(p as PluginPermission)))) {
+    throw new PluginManifestError(`Plugin manifest for "${m.name}" is malformed: "permissions" must be an array of known permissions`);
+  }
+  if (m.dependencies !== undefined
+    && (typeof m.dependencies !== 'object' || m.dependencies === null || Array.isArray(m.dependencies))) {
+    throw new PluginManifestError(`Plugin manifest for "${m.name}" is malformed: "dependencies" must be an object mapping plugin names to version ranges`);
+  }
+}
+
+/** Options for {@link installThroughRegistry}. */
+export interface InstallThroughRegistryOptions {
+  /** Enable the plugin after registering it (default true). */
+  enable?: boolean;
+  /** Maximum wall-clock install budget in milliseconds (default 60_000 — Req 5.6). */
+  timeoutMs?: number;
+}
+
+/** Result of {@link installThroughRegistry}. */
+export interface InstallThroughRegistryResult {
+  /** The fetched registry record. */
+  record: RegistryRecord;
+  /** Wall-clock install duration in milliseconds. */
+  durationMs: number;
+}
+
+/**
+ * Install an official plugin THROUGH the registry with signature verification
+ * ENFORCED by the {@link PluginHost} (Req 5.6 / 5.7 / 5.8).
+ *
+ * The supplied host MUST be configured with a trusted public key so that
+ * `register()` enforces signature verification. The flow is:
+ *
+ *   1. Reject up front if the host does not enforce signatures.
+ *   2. Fetch the signed record from the registry (re-verifies the publisher
+ *      signature; throws on a missing entry or a tampered stored signature).
+ *   3. Reject a missing or malformed manifest with an identifying
+ *      {@link PluginManifestError} (Req 5.8).
+ *   4. `register()` through the host, which verifies the manifest signature
+ *      against the host's trusted key. On a bad signature the host throws
+ *      {@link PluginSignatureError} BEFORE recording the plugin, so the
+ *      installed set is left unchanged and the plugin is never registered
+ *      (Req 5.7).
+ *   5. Enable the plugin (unless `enable: false`).
+ *
+ * A valid signed plugin installs within the time budget and registers (Req 5.6).
+ */
+export async function installThroughRegistry(
+  registry: LocalPluginRegistry,
+  host: PluginHost,
+  plugin: PluginModule,
+  opts: InstallThroughRegistryOptions = {},
+): Promise<InstallThroughRegistryResult> {
+  if (!host.verifiesSignatures()) {
+    throw new PluginError(
+      'Refusing to install through the registry: the PluginHost must be configured with a trusted public key to enforce signature verification',
+    );
+  }
+  const timeoutMs = opts.timeoutMs ?? 60_000;
+  const start = Date.now();
+
+  // Fetch the signed record (re-verifies the publisher signature; throws
+  // PluginError when missing, PluginSignatureError on a bad stored signature).
+  const rec = registry.fetch(plugin.name, plugin.version);
+
+  // Reject a missing/malformed manifest with an identifying error (Req 5.8).
+  assertWellFormedManifest(rec.manifest);
+
+  // Register through the host, which ENFORCES signature verification against
+  // its trusted public key. A bad signature throws PluginSignatureError before
+  // the entry is recorded, leaving the installed set unchanged (Req 5.7).
+  host.register(plugin, rec.manifest);
+  if (opts.enable !== false) await host.enable(plugin.name);
+
+  const durationMs = Date.now() - start;
+  if (durationMs > timeoutMs) {
+    throw new PluginError(
+      `Plugin "${plugin.name}@${plugin.version}" install exceeded the ${timeoutMs}ms budget (took ${durationMs}ms)`,
+    );
+  }
+  return { record: rec, durationMs };
+}

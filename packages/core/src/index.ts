@@ -428,6 +428,7 @@ export {
   PluginHost, signManifest, verifyManifest, manifestChecksum,
   satisfiesVersion, parseSemver, compareSemver,
   PluginError, PluginPermissionError, PluginDependencyError, PluginSignatureError, PluginStateError,
+  PluginManifestError,
 } from './platform/plugins/host.js';
 export type { PluginManifest, PluginPermission, PluginHostOptions, PluginState } from './platform/plugins/host.js';
 export {
@@ -437,8 +438,12 @@ export {
   S3Plugin, s3PluginManifest, validateS3Config, S3_PLUGIN_NAME, S3_PLUGIN_VERSION,
 } from './platform/plugins/official/s3.js';
 export type { S3PluginConfig } from './platform/plugins/official/s3.js';
-export { LocalPluginRegistry, installFromRegistry } from './platform/plugins/local-registry.js';
-export type { RegistryRecord } from './platform/plugins/local-registry.js';
+export {
+  LocalPluginRegistry, installFromRegistry, installThroughRegistry, assertWellFormedManifest,
+} from './platform/plugins/local-registry.js';
+export type {
+  RegistryRecord, InstallThroughRegistryOptions, InstallThroughRegistryResult,
+} from './platform/plugins/local-registry.js';
 export {
   SendGridPlugin, SendGridClient, sendGridPluginManifest, validateSendGridConfig,
   SENDGRID_PLUGIN_NAME, SENDGRID_PLUGIN_VERSION,
