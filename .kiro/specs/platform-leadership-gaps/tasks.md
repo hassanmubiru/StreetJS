@@ -55,7 +55,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Verification Artifact subsystem (CLI surface); package layout (`scripts/verification/run.mjs`)_
     - _Requirements: 1.7_
 
-- [ ] 2. Checkpoint - verification foundation
+- [~] 2. Checkpoint - verification foundation
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 3. Lazy database initialization (foundational for cloud bootstrap)
@@ -98,20 +98,20 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Cloud Deployment Verifier (offline-verifiable artifacts); Testing Strategy → Honest BLOCKED recording_
     - _Requirements: 2.14, 1.5_
 
-  - [ ] 4.6 Write kind-cluster integration verification for Kubernetes (Layer B)
+  - [~] 4.6 Write kind-cluster integration verification for Kubernetes (Layer B)
     - Deploy generated manifests + Helm to a local kind cluster, assert pod `1/1 Running`, health 200, smoke 0 fail/0 error; skip (not fail) when kind is unreachable, recording BLOCKED honestly
     - _Requirements: 2.9, 2.10_
 
-  - [ ] 4.7 Wire the cloud deploy verification CI job and emit the artifact
+  - [~] 4.7 Wire the cloud deploy verification CI job and emit the artifact
     - Extend `.github/workflows/deploy-verify.yml` to run the verifier through `CommandRunner` and upload the per-target artifacts + `deployment-report.json` via `actions/upload-artifact`
     - _Design: Testing Strategy → CI integration and evidence retention_
     - _Requirements: 2.11_
 
-  - [ ] 4.8 Write unit tests for the deployment report status mapping
+  - [~] 4.8 Write unit tests for the deployment report status mapping
     - Cover VERIFIED/PARTIAL/BLOCKED mapping and retained failing output in the report
     - _Requirements: 2.11, 2.13, 2.14_
 
-- [ ] 5. Checkpoint - cloud verification
+- [~] 5. Checkpoint - cloud verification
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 6. DAST verification
@@ -132,7 +132,7 @@ Each property-based test is tagged with the comment format:
     - **Property 7: Scan coverage equals the enumerated operation set** (fast-check, min 100 runs)
     - **Validates: Requirements 3.2**
 
-  - [ ] 6.5 Wire the DAST CI workflow with real scans and timeout (Layer B)
+  - [~] 6.5 Wire the DAST CI workflow with real scans and timeout (Layer B)
     - Extend `.github/workflows/dast.yml` to run real Schemathesis + ZAP Baseline + ZAP API scans against a running instance through `CommandRunner`, enforce a 30-minute `timeout-minutes` + in-script watchdog, record failure cause (`target-unavailable`/`scan-error`/`timeout`), fail the build on High/Critical, and upload the artifact
     - _Design: Components → DAST verifier (behavior); Error Handling 3.8/3.9_
     - _Requirements: 3.1, 3.3, 3.8, 3.9_
@@ -177,12 +177,12 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Network Plugin Registry (CLI + guides)_
     - _Requirements: 4.1, 4.7_
 
-  - [ ] 7.10 Implement the publish→install E2E harness and CI workflow (Layer B)
+  - [~] 7.10 Implement the publish→install E2E harness and CI workflow (Layer B)
     - Run a registry server in a container, execute publish→install end-to-end through `CommandRunner`, emit `registry.publish-install.artifact.json`, and upload it from CI; skip with honest BLOCKED when the container is unavailable
     - _Design: Components → Network Plugin Registry (E2E harness); Testing Strategy → Layer B_
     - _Requirements: 4.8_
 
-- [ ] 8. Checkpoint - registry
+- [~] 8. Checkpoint - registry
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 9. Official Plugin Ecosystem
@@ -201,11 +201,11 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Official Plugin Ecosystem (install path); Error Handling 5.7/5.8_
     - _Requirements: 5.6, 5.7, 5.8_
 
-  - [ ] 9.4 Write unit tests for plugin structure and signature enforcement
+  - [~] 9.4 Write unit tests for plugin structure and signature enforcement
     - Verify the per-package official-plugin structure (5.5) and signature-enforcement behavior on install
     - _Requirements: 5.5, 5.7, 5.8_
 
-  - [ ] 9.5 Write integration tests against real backing services with BLOCKED recording (Layer B)
+  - [~] 9.5 Write integration tests against real backing services with BLOCKED recording (Layer B)
     - Run each plugin's integration test against its real backing service (Redis/S3/R2 via containers; Twilio/SendGrid/Stripe/Auth0 via sandbox accounts), emit `plugin.<id>.artifact.json` with pass result + plugin id + ISO-8601 timestamp, and record BLOCKED with the missing credential id when a test account is absent
     - _Design: Components → Official Plugin Ecosystem; Testing Strategy → Layer B + Honest BLOCKED_
     - _Requirements: 5.9_
@@ -229,16 +229,16 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Enterprise Console APIs (OpenAPI + docs)_
     - _Requirements: 6.9_
 
-  - [ ] 10.5 Write property test for OpenAPI coverage
+  - [~] 10.5 Write property test for OpenAPI coverage
     - **Property 16: Generated OpenAPI covers every exposed enterprise operation** (fast-check, min 100 runs)
     - **Validates: Requirements 6.9**
 
-  - [ ] 10.6 Run the enterprise suite against a running instance and emit the artifact (Layer B)
+  - [~] 10.6 Run the enterprise suite against a running instance and emit the artifact (Layer B)
     - Execute the suite against a running app + PostgreSQL container through `CommandRunner`, emit `enterprise.api.artifact.json` with executed command, exit code, and pass/fail counts, and upload from CI
     - _Design: Components → Enterprise Console APIs; Testing Strategy → Layer B_
     - _Requirements: 6.10_
 
-- [ ] 11. Checkpoint - enterprise APIs
+- [~] 11. Checkpoint - enterprise APIs
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 12. Interactive Developer Experience
@@ -264,7 +264,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Interactive Developer Experience_
     - _Requirements: 7.1, 7.6, 7.7, 7.8_
 
-  - [ ] 12.6 Build the devtools bundle and run its tests, emitting artifacts (Layer B)
+  - [~] 12.6 Build the devtools bundle and run its tests, emitting artifacts (Layer B)
     - Build the bundle + run headless-browser tests through `CommandRunner`, emit `devx.playground`/`devx.route-explorer`/`devx.dependency-graph` artifacts, and upload from CI
     - _Design: Testing Strategy → Layer B_
     - _Requirements: 7.9_
@@ -301,7 +301,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Upgrade System_
     - _Requirements: 8.8_
 
-- [ ] 14. Checkpoint - DX and upgrade
+- [~] 14. Checkpoint - DX and upgrade
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 15. Kafka Coordinator Readiness Gate and Chaos
@@ -323,7 +323,7 @@ Each property-based test is tagged with the comment format:
     - **Property 25: Lost-message accounting is exact** (fast-check, min 100 runs)
     - **Validates: Requirements 9.8**
 
-  - [ ] 15.5 Run the full-scale (100/100) chaos suite and emit artifacts (Layer B)
+  - [~] 15.5 Run the full-scale (100/100) chaos suite and emit artifacts (Layer B)
     - Run 100 cold starts and 100 broker restarts plus the network-interruption and slow-broker scenarios against `apache/kafka:3.7.1` (KRaft) in Docker through `CommandRunner`, emit `kafka.coldstart`/`kafka.chaos.*` artifacts (parameter values, pass count, lost-message count, ISO-8601 timestamp), upload from CI, and record BLOCKED honestly when the broker is unreachable
     - _Design: Testing Strategy → Layer B + Honest BLOCKED_
     - _Requirements: 9.4, 9.5, 9.6, 9.7, 9.8_
@@ -348,16 +348,16 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Advanced Observability_
     - _Requirements: 10.3, 10.4, 10.5_
 
-  - [ ] 16.5 Write property test for dashboard and rule structural validity
+  - [~] 16.5 Write property test for dashboard and rule structural validity
     - **Property 27: Provided dashboards and rules are structurally valid** (fast-check, min 100 runs)
     - **Validates: Requirements 10.3, 10.4, 10.5**
 
-  - [ ] 16.6 Implement the validation pipeline with promtool and emit the artifact + CI
+  - [~] 16.6 Implement the validation pipeline with promtool and emit the artifact + CI
     - Wire `validateMetricReferences`, `validatePrometheusRuleGroups`, `validateGrafanaDashboard`, and **promtool** over emitted rule files; author observability docs; run through `CommandRunner` emitting `observability.validate.artifact.json` (command, exit code, ISO-8601 timestamp) uploaded from the `observability.yml` workflow; fail recording the offending metric/asset or validation error
     - _Design: Components → Advanced Observability (validation pipeline); Error Handling 10.7/10.8_
     - _Requirements: 10.6, 10.8, 10.9_
 
-- [ ] 17. Checkpoint - reliability and observability
+- [~] 17. Checkpoint - reliability and observability
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 18. Release Engineering
@@ -384,30 +384,30 @@ Each property-based test is tagged with the comment format:
     - _Requirements: 11.3, 11.5, 11.6_
 
 - [ ] 19. Platform Leadership Exit-Criteria aggregator (built last)
-  - [ ] 19.1 Implement the exit-criteria aggregator
+  - [~] 19.1 Implement the exit-criteria aggregator
     - In `packages/core/src/verification/` add `PLATFORM_LEADERSHIP_CAPABILITIES`, `LeadershipReport`, and `computeLeadership()` that computes GRANTED iff every required capability is VERIFIED, else WITHHELD with the offending capabilities; a missing artifact is treated as not VERIFIED; the report records each required capability + status, the decision, ISO-8601 timestamp, and the artifact paths read
     - _Design: Components → Exit-criteria engine; Data Models → Exit-Criteria set + report_
     - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5_
 
-  - [ ] 19.2 Write property test for the leadership decision
+  - [~] 19.2 Write property test for the leadership decision
     - **Property 31: The Platform Leadership decision is computed only from artifacts** (fast-check, min 100 runs; artifact-set generator across all status combinations and missing entries)
     - **Validates: Requirements 12.1, 12.2, 12.3, 12.4, 12.5**
 
-  - [ ] 19.3 Implement `street verify --aggregate` report generation
+  - [~] 19.3 Implement `street verify --aggregate` report generation
     - Wire `street verify --aggregate` to read all artifacts under `verification-artifacts/`, call `computeLeadership`, and write `platform-leadership.report.json` (never hand-set)
     - _Design: Components → Exit-criteria engine (CLI surface)_
     - _Requirements: 12.4, 12.5_
 
-  - [ ] 19.4 Write the governance unit test that only the aggregator writes the report
+  - [~] 19.4 Write the governance unit test that only the aggregator writes the report
     - Grep/lint assertion confirming `platform-leadership.report.json` is produced solely by `computeLeadership` (no hand-authored writes)
     - _Requirements: 12.4_
 
-  - [ ] 19.5 Wire the final platform-leadership CI aggregation job and exit-criteria docs
+  - [~] 19.5 Wire the final platform-leadership CI aggregation job and exit-criteria docs
     - Add the final `platform-leadership` GitHub Actions job that runs `street verify --aggregate`, uploads `platform-leadership.report.json`, and reflects (not sets) the computed decision in its pass/fail; author the exit-criteria docs published to GitHub Pages
     - _Design: Testing Strategy → CI integration and evidence retention_
     - _Requirements: 12.1, 12.5_
 
-- [ ] 20. Final checkpoint
+- [~] 20. Final checkpoint
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
