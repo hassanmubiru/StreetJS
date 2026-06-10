@@ -10,6 +10,8 @@
 //
 // Zero runtime dependencies: this module uses only language built-ins.
 
+import type { VerificationStatus, BlockedReason } from '../verification/status.js';
+
 // ── Types ──────────────────────────────────────────────────────────────────────
 
 export type CloudPlatform = 'kubernetes' | 'cloudrun' | 'ecs' | 'nomad';

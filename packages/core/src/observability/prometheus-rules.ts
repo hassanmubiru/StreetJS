@@ -156,9 +156,87 @@ export function streetSaturationRules(): RuleGroup {
   };
 }
 
+/** A single Service Level Objective: a numeric target measured over a window. */
+export interface SloObjective {
+  /** Objective name: 'availability' | 'latency' | 'error-budget'. */
+  name: string;
+  /** Numeric target (e.g. 0.999 availability, 0.5s latency, 0.001 error budget). */
+  target: number;
+  /** Measurement window as a Prometheus duration (e.g. '30d'). */
+  window: string;
+}
+
+/**
+ * The SLO Pack objectives (Req 10.5): availability, latency, and error budget,
+ * each with a numeric target and a measurement window. These drive
+ * `streetSloPack()` and are exposed so operators and tests can inspect the
+ * numeric targets directly.
+ */
+export function streetSloObjectives(): SloObjective[] {
+  return [
+    { name: 'availability', target: 0.999, window: '30d' },
+    { name: 'latency', target: 0.5, window: '30d' },
+    { name: 'error-budget', target: 0.001, window: '30d' },
+  ];
+}
+
+/**
+ * The SLO Pack (Req 10.5): availability, latency, and error-budget objectives,
+ * each expressed with a numeric target and a measurement window. Extends
+ * `streetSloBurnRateRules()` (the multi-window error-budget burn-rate alerts)
+ * by adding availability and latency objective alerts in one pack. Every metric
+ * referenced (`http_requests_total`, `http_request_duration_seconds_bucket`) is
+ * an Exported Metric.
+ */
+export function streetSloPack(): RuleGroup {
+  const objectives = streetSloObjectives();
+  const availability = objectives.find((o) => o.name === 'availability')!;
+  const latency = objectives.find((o) => o.name === 'latency')!;
+  const w = availability.window;
+  const availExpr =
+    `(1 - (sum(rate(http_requests_total{status=~"5.."}[${w}])) / sum(rate(http_requests_total[${w}])))) < ${availability.target}`;
+  const latencyExpr =
+    `histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[${latency.window}])) by (le)) > ${latency.target}`;
+  return {
+    name: 'street-slo-pack',
+    rules: [
+      // Availability objective: served (non-5xx) ratio below the target over the window.
+      {
+        alert: 'StreetAvailabilitySloBreach',
+        expr: availExpr,
+        for: '5m',
+        labels: { severity: 'critical', slo: 'availability', objective: String(availability.target), window: availability.window },
+        annotations: {
+          summary: 'Availability SLO breach',
+          description: `Availability below ${availability.target * 100}% over the ${availability.window} window.`,
+        },
+      },
+      // Latency objective: p99 request latency above the target over the window.
+      {
+        alert: 'StreetLatencySloBreach',
+        expr: latencyExpr,
+        for: '5m',
+        labels: { severity: 'warning', slo: 'latency', objective: String(latency.target), window: latency.window },
+        annotations: {
+          summary: 'Latency SLO breach',
+          description: `p99 request latency above ${latency.target}s over the ${latency.window} window.`,
+        },
+      },
+      // Error-budget objective: the multi-window burn-rate alerts.
+      ...streetSloBurnRateRules().rules,
+    ],
+  };
+}
+
 /** All default Street rule groups. */
 export function streetRuleGroups(): RuleGroup[] {
-  return [streetRecordingRules(), streetAlertRules(), streetSaturationRules(), streetSloBurnRateRules()];
+  return [
+    streetRecordingRules(),
+    streetAlertRules(),
+    streetSubsystemAlertRules(),
+    streetSaturationRules(),
+    streetSloPack(),
+  ];
 }
 
 // ── Validation ────────────────────────────────────────────────────────────────
