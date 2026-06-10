@@ -235,6 +235,11 @@ export class MetricsRegistry {
     return this.metrics.has(name);
   }
 
+  /** The registered metric for `name`, or undefined if not registered. */
+  get(name: string): Counter | Gauge | Histogram | undefined {
+    return this.metrics.get(name);
+  }
+
   /** The names of every registered metric, in registration order. */
   names(): string[] {
     return [...this.metrics.keys()];
