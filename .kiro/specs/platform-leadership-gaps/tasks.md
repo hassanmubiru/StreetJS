@@ -242,7 +242,7 @@ Each property-based test is tagged with the comment format:
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 12. Interactive Developer Experience
-  - [~] 12.1 Implement the DX data builders in core/devtools logic
+  - [-] 12.1 Implement the DX data builders in core/devtools logic
     - Implement `buildRouteTree()` (method + path from registered routes), `buildDependencyGraph()` (reuse the import-walk from `scripts/check-cycles.mjs`), and the `InspectorResult` model (status/headers/body; on failure error + retained input)
     - _Design: Components → Interactive Developer Experience_
     - _Requirements: 7.2, 7.3, 7.4, 7.5_
@@ -270,7 +270,7 @@ Each property-based test is tagged with the comment format:
     - _Requirements: 7.9_
 
 - [ ] 13. Upgrade System and codemods
-  - [~] 13.1 Implement version resolution and breaking-change analysis
+  - [-] 13.1 Implement version resolution and breaking-change analysis
     - In `packages/core/src/devx/` add `resolveVersions()` (detect installed, resolve target argument defaulting to latest; on unresolvable version halt with no file writes and an error naming the version) and `analyzeBreakingChanges()` producing `BreakingChange[]` with area + recommendation + optional `codemodId`
     - _Design: Components → Upgrade System; Error Handling 8.2_
     - _Requirements: 8.1, 8.2, 8.3, 8.4_
@@ -305,7 +305,7 @@ Each property-based test is tagged with the comment format:
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 15. Kafka Coordinator Readiness Gate and Chaos
-  - [~] 15.1 Implement the Coordinator Readiness Gate
+  - [-] 15.1 Implement the Coordinator Readiness Gate
     - Extend `packages/core/src/transports/kafka/client.ts` with `CoordinatorReadinessGate` that waits up to 30s for a successful `FindCoordinator` and `__consumer_offsets` stability (topic exists, every partition has a live leader); on timeout do not begin consuming and preserve committed offsets
     - _Design: Components → Kafka Reliability; Error Handling 9.2_
     - _Requirements: 9.1, 9.2_
@@ -329,7 +329,7 @@ Each property-based test is tagged with the comment format:
     - _Requirements: 9.4, 9.5, 9.6, 9.7, 9.8_
 
 - [ ] 16. Advanced Observability
-  - [~] 16.1 Instrument and export the new subsystem metrics (metrics first)
+  - [-] 16.1 Instrument and export the new subsystem metrics (metrics first)
     - Before any dashboard/alert references them, instrument and export the PostgreSQL, Kafka, RabbitMQ, and Plugin Host metrics listed in the design via the metrics endpoint
     - _Design: Components → Advanced Observability (metrics-first table)_
     - _Requirements: 10.1, 10.2_
