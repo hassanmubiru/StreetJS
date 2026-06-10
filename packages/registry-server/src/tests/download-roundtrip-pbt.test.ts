@@ -32,9 +32,11 @@ const NUM_RUNS = 100;
 // ── Generators ────────────────────────────────────────────────────────────────
 //
 // A WELL-FORMED manifest (so publish reaches the storage step) under the `acme`
-// namespace our test publisher owns, plus ARBITRARY tarball bytes — including
-// the empty buffer and bytes that exercise every value 0..255 — so the round
-// trip is tested across the full byte space, not just printable ASCII.
+// namespace our test publisher owns, plus ARBITRARY (non-empty) tarball bytes
+// that exercise every value 0..255 — so the round trip is tested across the
+// full byte space, not just printable ASCII. The registry legitimately rejects
+// an empty tarball (a package must have bytes), so the empty buffer is outside
+// the round-trip input space and the generator starts at length 1.
 
 const ALPHA = 'abcdefghijklmnopqrstuvwxyz';
 const TOKEN_CHARS = 'abcdefghijklmnopqrstuvwxyz0123456789-_';
