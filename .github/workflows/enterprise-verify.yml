@@ -1,0 +1,53 @@
+# .github/workflows/enterprise-verify.yml
+# Enterprise Console APIs Layer B verification (Requirement 6.10). The verifier
+# starts a PostgreSQL container and the running app (server.mjs) against it, then
+# drives the full enterprise console REST surface over HTTP through the
+# zero-dependency `CommandRunner`, which emits the machine-readable
+# enterprise.api.artifact.json (executed command, exit code, passed/failed
+# counts).
+#
+# Honest BLOCKED: when no container runtime is available the suite skips and the
+# runner records an honest BLOCKED with the specific missing prerequisite, so the
+# step does not fail. GitHub-hosted Linux runners ship Docker, so this normally
+# runs the real suite and earns VERIFIED.
+name: enterprise-verify
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'packages/core/src/enterprise/console/**'
+      - 'packages/core/src/verification/**'
+      - 'scripts/enterprise/**'
+      - 'scripts/verification/**'
+      - '.github/workflows/enterprise-verify.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  enterprise-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+
+      # The running app (server.mjs) imports the built console + PgPool from the
+      # core dist, so core must be built first.
+      - name: Build core
+        run: npm run build -w packages/core
+
+      # Enterprise console suite through CommandRunner → enterprise.api.artifact.json.
+      # Exit is non-zero only on a genuine suite failure; an honest BLOCKED is exit 0.
+      - name: Verify enterprise console APIs (CommandRunner)
+        run: node scripts/enterprise/verify.mjs
+
+      - name: Upload enterprise verification artifact
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: enterprise-api-verification
+          path: verification-artifacts/enterprise/
