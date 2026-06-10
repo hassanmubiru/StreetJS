@@ -24,7 +24,12 @@ Each property-based test is tagged with the comment format:
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.6, 1.9_
 
   - [ ]* 1.2 Write property test for status classification
-    - **Property 1: Status classification is deterministic and honors precedence** (fast-check, min 100 runs)
+    - **Property 1: Status classification is deterministic and honors precedence** (fast-check, min 100 runs) — built first)
+  - [ ] 1.1 Implement the status engine and shared types
+    - Create `packages/core/src/verification/status.ts` with `VerificationStatus`, `EvidenceComponents`, `BlockedReason`, `ClassifyInput`, and `classify()` honoring precedence NOT_IMPLEMENTED → BLOCKED → VERIFIED → PARTIAL (pure, Node-core only)
+    - _Design: Verification Artifact subsystem → Status engine_
+    - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.6, 1.9_
+
     - Use a `ClassifyInput` generator spanning `hasSourceCode`, all four evidence flags, `blocked`, `commandExitCode` (zero and non-zero), and `timedOut`
     - **Validates: Requirements 1.2, 1.3, 1.4, 1.6, 1.9, 1.10**
 
