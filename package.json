@@ -34,10 +34,12 @@
     "test:plugins-harness": "node --test scripts/tests/plugin-integration-harness.test.mjs",
     "verify:plugins": "node scripts/plugins/verify.mjs",
     "test:devtools-harness": "node --test scripts/tests/devtools-verify-harness.test.mjs",
+    "test:observability-harness": "node --test scripts/tests/observability-validate-harness.test.mjs",
     "verify:release": "node scripts/verification/run.mjs release.scorecard --docs -- node scripts/release/render-report.mjs",
     "verify:registry": "node scripts/registry/verify.mjs",
     "verify:enterprise": "node scripts/enterprise/verify.mjs",
-    "verify:devtools": "node scripts/devtools/verify.mjs"
+    "verify:devtools": "node scripts/devtools/verify.mjs",
+    "verify:observability": "node scripts/observability/run-validate.mjs"
   },
   "keywords": [
     "typescript",
