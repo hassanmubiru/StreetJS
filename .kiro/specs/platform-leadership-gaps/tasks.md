@@ -38,15 +38,15 @@ Each property-based test is tagged with the comment format:
     - _Design: Verification Artifact subsystem → Command runner; Architecture → Artifact directory layout (atomic writes)_
     - _Requirements: 1.7, 1.9, 1.10, 1.11_
 
-  - [-] 1.5 Write property test for BLOCKED prerequisite preservation
+  - [x] 1.5 Write property test for BLOCKED prerequisite preservation
     - **Property 2: BLOCKED preserves the missing prerequisite** (fast-check, min 100 runs)
     - **Validates: Requirements 1.5, 1.10**
 
-  - [-] 1.6 Write property test for artifact completeness and atomic writes
+  - [x] 1.6 Write property test for artifact completeness and atomic writes
     - **Property 3: Produced artifacts are complete and atomically written** (fast-check, min 100 runs; include induced write-failure points asserting no partial/leftover temp file)
     - **Validates: Requirements 1.7, 1.11**
 
-  - [-] 1.7 Write unit tests for runner process behavior and status enum
+  - [x] 1.7 Write unit tests for runner process behavior and status enum
     - Assert the four-status enum membership (1.1) and that `CommandRunner` kills a sleeping command at a small injected timeout (1.10 process side)
     - _Requirements: 1.1, 1.10_
 
@@ -59,7 +59,7 @@ Each property-based test is tagged with the comment format:
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 3. Lazy database initialization (foundational for cloud bootstrap)
-  - [~] 3.1 Implement `DB_INIT_MODE` and lazy bootstrap
+  - [-] 3.1 Implement `DB_INIT_MODE` and lazy bootstrap
     - Change `packages/core/src/main.ts` `bootstrap()` to support `lazy` (default for cloud), `eager`, and `provisioned`; in `lazy` register `PgPool` without calling `initialize()`, and add an idempotent `pool.ensureInitialized()` guard so first acquire/query warms up on demand
     - _Design: Architecture → Lazy database initialization (Requirement 2.12)_
     - _Requirements: 2.12_
@@ -74,7 +74,7 @@ Each property-based test is tagged with the comment format:
     - _Requirements: 2.12_
 
 - [ ] 4. Cloud Deployment Verification
-  - [~] 4.1 Extend the deployment generator with all seven targets, Helm chart, and HPA
+  - [-] 4.1 Extend the deployment generator with all seven targets, Helm chart, and HPA
     - Extend `packages/core/src/cloud/deployment.ts` with the `DeploymentTarget` union and `generateTargetAssets()`; extend `generateKubernetes` for production manifests + liveness/readiness probes, add the Helm chart (`deploy/helm/street/`) and the HPA autoscaling example
     - _Design: Components → Cloud Deployment Verifier (per-target deliverables table)_
     - _Requirements: 2.1, 2.2_
@@ -115,7 +115,7 @@ Each property-based test is tagged with the comment format:
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 6. DAST verification
-  - [~] 6.1 Extend the DAST verifier with an artifact emitter and expanded route surface
+  - [-] 6.1 Extend the DAST verifier with an artifact emitter and expanded route surface
     - Extend `packages/core/src/security/dast.ts` with `buildDastArtifact()` (per-severity counts, endpoints scanned/total, gate outcome, failure cause) and grow `dast/routes.json` to cover auth, RBAC-protected, file upload, and CRUD endpoints
     - _Design: Components → DAST verifier_
     - _Requirements: 3.1, 3.2, 3.7_
@@ -138,7 +138,7 @@ Each property-based test is tagged with the comment format:
     - _Requirements: 3.1, 3.3, 3.8, 3.9_
 
 - [ ] 7. Network Plugin Registry
-  - [~] 7.1 Implement core pagination helper and reuse signing primitives
+  - [-] 7.1 Implement core pagination helper and reuse signing primitives
     - Add `normalizePageSize()` (pure, in core) and confirm reuse of `signManifest`/`verifyManifest`/`manifestChecksum`
     - _Design: Components → Network Plugin Registry (`normalizePageSize`)_
     - _Requirements: 4.6_
