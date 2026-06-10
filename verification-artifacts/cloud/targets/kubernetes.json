@@ -1,16 +1,80 @@
 {
   "target": "kubernetes",
-  "status": "VERIFIED",
+  "status": "BLOCKED",
   "health": {
-    "live": true,
-    "ready": true,
-    "maxLatencyMs": 20
+    "live": false,
+    "ready": false,
+    "maxLatencyMs": 0
   },
-  "smoke": {
-    "passed": 2,
-    "failed": 0,
-    "errored": 0,
-    "durationMs": 2,
-    "output": "/health/live: PASS (20ms)\n/health/ready: PASS (1ms)\nPASS GET /health/live -> 200\nPASS GET /health/ready -> 200"
+  "blockedReason": {
+    "missingPrerequisite": "kind",
+    "kind": "runtime"
+  },
+  "offlineArtifacts": {
+    "target": "kubernetes",
+    "checks": [
+      {
+        "name": "validateDeploymentManifest",
+        "passed": true,
+        "errors": []
+      },
+      {
+        "name": "k8s-deployment",
+        "passed": true,
+        "errors": []
+      },
+      {
+        "name": "k8s-service",
+        "passed": true,
+        "errors": []
+      },
+      {
+        "name": "k8s-hpa",
+        "passed": true,
+        "errors": []
+      },
+      {
+        "name": "helm-chart-metadata",
+        "passed": true,
+        "errors": []
+      },
+      {
+        "name": "helm-values",
+        "passed": true,
+        "errors": []
+      },
+      {
+        "name": "helm-template-deployment",
+        "passed": true,
+        "errors": []
+      },
+      {
+        "name": "helm-template-service",
+        "passed": true,
+        "errors": []
+      },
+      {
+        "name": "helm-template-hpa",
+        "passed": true,
+        "errors": []
+      },
+      {
+        "name": "helm-lint",
+        "passed": false,
+        "errors": [
+          "helm not installed (offline check skipped)"
+        ],
+        "skipped": true
+      },
+      {
+        "name": "helm-template",
+        "passed": false,
+        "errors": [
+          "helm not installed (offline check skipped)"
+        ],
+        "skipped": true
+      }
+    ],
+    "allPassed": true
   }
 }
