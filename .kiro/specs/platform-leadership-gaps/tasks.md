@@ -156,19 +156,19 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Network Plugin Registry; Sequence → publish → install; Error Handling 4.4/4.9/4.10_
     - _Requirements: 4.1, 4.2, 4.3, 4.5, 4.6, 4.9, 4.10_
 
-  - [-] 7.5 Write property test for manifest metadata validation
+  - [x] 7.5 Write property test for manifest metadata validation
     - **Property 10: Manifest metadata validation accepts iff well-formed and non-duplicate** (fast-check, min 100 runs)
     - **Validates: Requirements 4.5, 4.10**
 
-  - [-] 7.6 Write property test for publish authentication and authorization
+  - [x] 7.6 Write property test for publish authentication and authorization
     - **Property 13: Publishing requires authentication and authorization** (fast-check, min 100 runs)
     - **Validates: Requirements 4.9**
 
-  - [-] 7.7 Write property test for the download round trip
+  - [x] 7.7 Write property test for the download round trip
     - **Property 9: Download is a byte-faithful round trip** (fast-check, min 100 runs)
     - **Validates: Requirements 4.3**
 
-  - [-] 7.8 Write property test for rejected versions and preservation of prior versions
+  - [x] 7.8 Write property test for rejected versions and preservation of prior versions
     - **Property 11: A rejected version never becomes installable and prior valid versions are preserved** (fast-check, min 100 runs)
     - **Validates: Requirements 4.4, 5.7, 5.8**
 
@@ -319,7 +319,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Kafka Reliability (chaos framework)_
     - _Requirements: 9.3, 9.4, 9.5, 9.6, 9.7, 9.8_
 
-  - [-] 15.4 Write property test for lost-message accounting
+  - [x] 15.4 Write property test for lost-message accounting
     - **Property 25: Lost-message accounting is exact** (fast-check, min 100 runs)
     - **Validates: Requirements 9.8**
 
