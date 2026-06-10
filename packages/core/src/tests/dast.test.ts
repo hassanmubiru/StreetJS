@@ -10,8 +10,10 @@ import assert from 'node:assert/strict';
 import { generateOpenApi } from '../http/openapi.js';
 import {
   validateOpenApiDocument, openApiOperations, parseZapReport,
-  summarizeFindings, evaluateDastGate, type DastFinding,
+  summarizeFindings, evaluateDastGate, buildDastArtifact,
+  type DastFinding, type DastArtifactDetails,
 } from '../security/dast.js';
+import { validateArtifact } from '../verification/artifact.js';
 
 describe('DAST — OpenAPI artifact validation & targets', () => {
   const doc = generateOpenApi([
