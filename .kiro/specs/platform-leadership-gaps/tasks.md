@@ -156,19 +156,19 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Network Plugin Registry; Sequence → publish → install; Error Handling 4.4/4.9/4.10_
     - _Requirements: 4.1, 4.2, 4.3, 4.5, 4.6, 4.9, 4.10_
 
-  - [~] 7.5 Write property test for manifest metadata validation
+  - [-] 7.5 Write property test for manifest metadata validation
     - **Property 10: Manifest metadata validation accepts iff well-formed and non-duplicate** (fast-check, min 100 runs)
     - **Validates: Requirements 4.5, 4.10**
 
-  - [~] 7.6 Write property test for publish authentication and authorization
+  - [-] 7.6 Write property test for publish authentication and authorization
     - **Property 13: Publishing requires authentication and authorization** (fast-check, min 100 runs)
     - **Validates: Requirements 4.9**
 
-  - [~] 7.7 Write property test for the download round trip
+  - [-] 7.7 Write property test for the download round trip
     - **Property 9: Download is a byte-faithful round trip** (fast-check, min 100 runs)
     - **Validates: Requirements 4.3**
 
-  - [~] 7.8 Write property test for rejected versions and preservation of prior versions
+  - [-] 7.8 Write property test for rejected versions and preservation of prior versions
     - **Property 11: A rejected version never becomes installable and prior valid versions are preserved** (fast-check, min 100 runs)
     - **Validates: Requirements 4.4, 5.7, 5.8**
 
@@ -292,7 +292,7 @@ Each property-based test is tagged with the comment format:
     - **Property 22: Codemods are idempotent** (fast-check, min 100 runs; source-string + codemod generator including already-migrated inputs)
     - **Validates: Requirements 8.6**
 
-  - [-] 13.6 Write property test for codemod failure safety
+  - [x] 13.6 Write property test for codemod failure safety
     - **Property 23: Codemods are safe on failure** (fast-check, min 100 runs; include unparseable inputs)
     - **Validates: Requirements 8.7**
 
@@ -310,7 +310,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Kafka Reliability; Error Handling 9.2_
     - _Requirements: 9.1, 9.2_
 
-  - [-] 15.2 Write property test for the gate timeout
+  - [x] 15.2 Write property test for the gate timeout
     - **Property 24: A gate timeout preserves committed offsets and does not consume** (fast-check, min 100 runs)
     - **Validates: Requirements 9.2**
 
@@ -319,7 +319,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Kafka Reliability (chaos framework)_
     - _Requirements: 9.3, 9.4, 9.5, 9.6, 9.7, 9.8_
 
-  - [~] 15.4 Write property test for lost-message accounting
+  - [-] 15.4 Write property test for lost-message accounting
     - **Property 25: Lost-message accounting is exact** (fast-check, min 100 runs)
     - **Validates: Requirements 9.8**
 
@@ -366,15 +366,15 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Release Engineering; Data Models → Release Scorecard_
     - _Requirements: 11.1, 11.2, 11.4, 11.5_
 
-  - [-] 18.2 Write property test for bounded release scores
+  - [x] 18.2 Write property test for bounded release scores
     - **Property 28: Release scores are bounded** (fast-check, min 100 runs)
     - **Validates: Requirements 11.1**
 
-  - [-] 18.3 Write property test for semver and release-notes validation
+  - [x] 18.3 Write property test for semver and release-notes validation
     - **Property 29: Semver and release-notes validation are correct** (fast-check, min 100 runs)
     - **Validates: Requirements 11.2, 11.3**
 
-  - [-] 18.4 Write property test for release health deltas
+  - [x] 18.4 Write property test for release health deltas
     - **Property 30: Release health deltas are exact** (fast-check, min 100 runs)
     - **Validates: Requirements 11.4**
 

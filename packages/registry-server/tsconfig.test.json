@@ -1,0 +1,13 @@
+{
+  // Test build: compiles src + src/tests into ./dist-test so the production
+  // ./dist (which is published) stays free of test files and devDependency
+  // imports (fast-check). Run with: npm run test:run.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist-test",
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "dist-test", "example"]
+}
