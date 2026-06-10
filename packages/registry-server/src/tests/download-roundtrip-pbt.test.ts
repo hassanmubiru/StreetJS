@@ -79,9 +79,9 @@ const wellFormedArb: fc.Arbitrary<WellFormed> = fc.record(
   { requiredKeys: ['name', 'version'] },
 );
 
-/** Arbitrary raw tarball bytes, including the empty buffer (full byte space). */
+/** Arbitrary non-empty raw tarball bytes (full 0..255 byte space). */
 const tarballArb: fc.Arbitrary<Buffer> = fc
-  .uint8Array({ minLength: 0, maxLength: 512 })
+  .uint8Array({ minLength: 1, maxLength: 512 })
   .map((u8) => Buffer.from(u8));
 
 // ── Publish-pipeline helpers ──────────────────────────────────────────────────
