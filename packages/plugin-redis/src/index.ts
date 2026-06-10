@@ -167,7 +167,7 @@ export class RedisClient {
       sock.connect(this.config.port, this.config.host, () => {
         sock.setTimeout(0);
         sock.removeListener('error', onError);
-        sock.on('data', (chunk) => this.onData(chunk));
+        sock.on('data', (chunk: Buffer | string) => this.onData(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)));
         sock.on('error', (err) => this.failAll(err));
         sock.on('close', () => this.failAll(new Error('connection closed')));
         this.socket = sock;
