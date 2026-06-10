@@ -4,6 +4,7 @@
 export { EnterpriseConsole } from './console.js';
 export type { EnterpriseConsoleOptions } from './console.js';
 export { CONSOLE_ROUTES } from './routes.js';
+export { consoleOpenApiSpec } from './openapi.js';
 export { InMemoryConsoleBackend, ConsoleNotFoundError } from './backend.js';
 export type {
   ConsoleArea,

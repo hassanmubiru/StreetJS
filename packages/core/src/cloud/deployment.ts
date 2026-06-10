@@ -1497,6 +1497,12 @@ export interface TargetVerification {
   blockedReason?: BlockedReason;
   /** Human-readable descriptions of each exceeded bound (retained for PARTIAL). */
   boundViolations?: string[];
+  /**
+   * Offline-verifiable evidence collected without credentials (Req 2.14). This
+   * is retained on the result — including on a BLOCKED target — so progress is
+   * provable even when the target cannot be deployed.
+   */
+  offlineArtifacts?: OfflineArtifactResult;
 }
 
 /**
@@ -1582,5 +1588,289 @@ export function buildDeploymentReport(results: TargetVerification[]): Deployment
   return {
     timestamp: new Date().toISOString(),
     targets: results.map(classifyTargetVerification),
+  };
+}
+
+// ── Prerequisite probes + offline-verifiable artifacts (Req 2.14, 1.5) ──────────
+//
+// Cloud deployment verification splits into two layers:
+//
+//  • Deploy-time prerequisites — the external binaries and credentials a target
+//    needs to actually deploy (kubectl/helm + KUBECONFIG, aws + AWS creds,
+//    wrangler + CLOUDFLARE_API_TOKEN, …). These live OUTSIDE the framework's
+//    control, so when one is absent the target is recorded BLOCKED with the
+//    specific missing dependency id (Requirement 2.14 / 1.5). The probes that
+//    actually inspect the environment live in `scripts/cloud/prereqs.mjs`; the
+//    *descriptors* of what each target requires are declared here so producers
+//    and tests agree on the dependency ids.
+//
+//  • Offline-verifiable artifacts — checks that need NEITHER credentials NOR a
+//    cloud connection: `validateDeploymentManifest()` over generated manifests,
+//    task-definition JSON-schema validation, GitHub Actions workflow lint, Helm
+//    chart structure, and `wrangler.toml` structure. `runOfflineArtifacts()`
+//    runs every credential-free check applicable to a target and returns the
+//    evidence so it can be recorded even when the target itself is BLOCKED.
+//    (The binary-backed offline checks — `helm lint`, `helm template`,
+//    `wrangler deploy --dry-run` — run from `scripts/cloud/prereqs.mjs` when the
+//    tool is installed; they layer onto this pure evidence.)
+//
+// All logic here is pure and zero-dependency (language built-ins only).
+
+/** A single deploy-time prerequisite a {@link DeploymentTarget} requires. */
+export interface DependencyDescriptor {
+  /** The specific missing-dependency id recorded on a BLOCKED target (Req 2.14). */
+  id: string;
+  /** Whether the dependency is an executable on PATH or an access credential. */
+  kind: 'runtime' | 'credential';
+  /** Human-readable description of the dependency. */
+  description: string;
+}
+
+/**
+ * Declare the deploy-time prerequisites for a {@link DeploymentTarget}: the CLI
+ * binaries that must be installed and the access credentials that must be
+ * present to deploy. When any of these is unavailable, the verifier records the
+ * target BLOCKED with the specific missing dependency id (Requirement 2.14 /
+ * 1.5) while still emitting the offline-verifiable evidence.
+ *
+ * The ids are grounded in the secrets and tools referenced by the generated
+ * deploy workflows so producers, scripts, and tests agree on a single set.
+ */
+export function targetDependencies(target: DeploymentTarget): DependencyDescriptor[] {
+  switch (target) {
+    case 'kubernetes':
+      return [
+        { id: 'kubectl', kind: 'runtime', description: 'Kubernetes CLI used to apply manifests' },
+        { id: 'helm', kind: 'runtime', description: 'Helm CLI used to lint/template/install the chart' },
+        { id: 'KUBECONFIG', kind: 'credential', description: 'kubeconfig granting access to the target cluster' },
+      ];
+    case 'cloudrun':
+      return [
+        { id: 'gcloud', kind: 'runtime', description: 'Google Cloud CLI used to replace the service' },
+        { id: 'GOOGLE_APPLICATION_CREDENTIALS', kind: 'credential', description: 'GCP service-account credentials' },
+      ];
+    case 'ecs':
+      return [
+        { id: 'aws', kind: 'runtime', description: 'AWS CLI used to register the task definition and update the service' },
+        { id: 'AWS_DEPLOY_ROLE', kind: 'credential', description: 'AWS deploy role / credentials for ECS' },
+      ];
+    case 'lambda':
+      return [
+        { id: 'aws', kind: 'runtime', description: 'AWS CLI used to update the function code' },
+        { id: 'AWS_DEPLOY_ROLE', kind: 'credential', description: 'AWS deploy role / credentials for Lambda' },
+      ];
+    case 'azure-functions':
+      return [
+        { id: 'func', kind: 'runtime', description: 'Azure Functions Core Tools used to publish' },
+        { id: 'AZURE_FUNCTIONAPP_PUBLISH_PROFILE', kind: 'credential', description: 'Azure Functions publish profile' },
+      ];
+    case 'gcf':
+      return [
+        { id: 'gcloud', kind: 'runtime', description: 'Google Cloud CLI used to deploy the function' },
+        { id: 'GOOGLE_APPLICATION_CREDENTIALS', kind: 'credential', description: 'GCP service-account credentials' },
+      ];
+    case 'cloudflare-workers':
+      return [
+        { id: 'wrangler', kind: 'runtime', description: 'Cloudflare Wrangler CLI used to deploy the Worker' },
+        { id: 'CLOUDFLARE_API_TOKEN', kind: 'credential', description: 'Cloudflare API token' },
+        { id: 'CLOUDFLARE_ACCOUNT_ID', kind: 'credential', description: 'Cloudflare account id' },
+      ];
+    default:
+      throw new Error(`targetDependencies: unknown target "${target as string}"`);
+  }
+}
+
+/**
+ * Structurally validate a GitHub Actions workflow YAML string offline (no
+ * network, no credentials). A well-formed workflow declares a top-level `on:`
+ * trigger and a `jobs:` block with at least one job that has a `runs-on:` runner
+ * and at least one step (`steps:` with a `uses:`/`run:`). This is the "workflow
+ * lint" offline-verifiable artifact (Requirement 2.14).
+ */
+export function lintWorkflow(yaml: string): ManifestValidationResult {
+  const errors: string[] = [];
+  const need = (cond: boolean, msg: string): void => { if (!cond) errors.push(msg); };
+
+  if (typeof yaml !== 'string' || yaml.trim() === '') {
+    return { valid: false, errors: ['workflow is empty'] };
+  }
+
+  need(/^on:/m.test(yaml), "missing top-level 'on:' trigger");
+  need(/^jobs:/m.test(yaml), "missing top-level 'jobs:' block");
+  need(/^\s+runs-on:\s*\S+/m.test(yaml), "missing 'runs-on:' for a job");
+  need(/^\s+steps:/m.test(yaml), "missing 'steps:' for a job");
+  need(/^\s*-\s+(uses|run):\s*\S/m.test(yaml), "no step declares a 'uses:' or 'run:'");
+
+  return { valid: errors.length === 0, errors };
+}
+
+/** The result of one offline-verifiable check. */
+export interface OfflineCheckResult {
+  /** Stable check name, e.g. `validateDeploymentManifest`, `workflow-lint`. */
+  name: string;
+  /** Whether the offline check passed. */
+  passed: boolean;
+  /** Validation errors when the check failed (empty when it passed). */
+  errors: string[];
+}
+
+/** The collected offline-verifiable evidence for a target. */
+export interface OfflineArtifactResult {
+  target: DeploymentTarget;
+  /** Each credential-free check run over the target's generated assets. */
+  checks: OfflineCheckResult[];
+  /** True iff every offline check passed. */
+  allPassed: boolean;
+}
+
+/** Assert a generated asset exists and is non-empty. */
+function presenceCheck(name: string, content: string | undefined, mustInclude?: RegExp): OfflineCheckResult {
+  const errors: string[] = [];
+  if (typeof content !== 'string' || content.trim() === '') {
+    errors.push('asset missing or empty');
+  } else if (mustInclude && !mustInclude.test(content)) {
+    errors.push(`asset does not match ${String(mustInclude)}`);
+  }
+  return { name, passed: errors.length === 0, errors };
+}
+
+/** Validate that a string parses as JSON (task-def / config JSON-schema gate). */
+function jsonCheck(name: string, content: string | undefined): OfflineCheckResult {
+  if (typeof content !== 'string' || content.trim() === '') {
+    return { name, passed: false, errors: ['asset missing or empty'] };
+  }
+  try {
+    JSON.parse(content);
+    return { name, passed: true, errors: [] };
+  } catch (err) {
+    return { name, passed: false, errors: [`invalid JSON: ${err instanceof Error ? err.message : String(err)}`] };
+  }
+}
+
+/** Structurally validate the generated Helm chart (offline, no helm binary). */
+function helmChartStructureChecks(assets: Record<string, string>): OfflineCheckResult[] {
+  const chart = assets['deploy/helm/street/Chart.yaml'];
+  const values = assets['deploy/helm/street/values.yaml'];
+  const checks: OfflineCheckResult[] = [];
+
+  const chartErrors: string[] = [];
+  if (typeof chart !== 'string' || chart.trim() === '') chartErrors.push('Chart.yaml missing');
+  else {
+    if (!/^name:\s*\S+/m.test(chart)) chartErrors.push("Chart.yaml missing 'name:'");
+    if (!/^version:\s*\S+/m.test(chart)) chartErrors.push("Chart.yaml missing 'version:'");
+  }
+  checks.push({ name: 'helm-chart-metadata', passed: chartErrors.length === 0, errors: chartErrors });
+
+  checks.push(presenceCheck('helm-values', values));
+
+  for (const tpl of ['deployment', 'service', 'hpa']) {
+    checks.push(presenceCheck(`helm-template-${tpl}`, assets[`deploy/helm/street/templates/${tpl}.yaml`]));
+  }
+  return checks;
+}
+
+/**
+ * Run every credential-free, offline-verifiable check applicable to a
+ * {@link DeploymentTarget} over its freshly generated assets and return the
+ * collected evidence (Requirement 2.14). These checks run without any cloud
+ * credentials or network connection, so they can be recorded even when the
+ * target is BLOCKED on a missing deploy-time prerequisite (Requirement 1.5).
+ *
+ * Covered offline artifacts:
+ *  - `validateDeploymentManifest()` over generated k8s / Cloud Run manifests
+ *  - task-definition + ECS service JSON-schema validation
+ *  - Helm chart structure (offline stand-in for `helm lint`/`helm template`)
+ *  - `wrangler.toml` structure (offline stand-in for `wrangler deploy --dry-run`)
+ *  - GitHub Actions workflow lint for every generated deploy workflow
+ */
+export function runOfflineArtifacts(target: DeploymentTarget, cfg: DeployConfig): OfflineArtifactResult {
+  const assets = generateTargetAssets(target, cfg);
+  const checks: OfflineCheckResult[] = [];
+
+  // Lint every generated GitHub Actions workflow in the bundle.
+  for (const [path, content] of Object.entries(assets)) {
+    if (path.startsWith('.github/workflows/') && path.endsWith('.yml')) {
+      const r = lintWorkflow(content);
+      checks.push({ name: `workflow-lint:${path}`, passed: r.valid, errors: r.errors });
+    }
+  }
+
+  switch (target) {
+    case 'kubernetes': {
+      const manifest = generateManifest('kubernetes', cfg);
+      const r = validateDeploymentManifest('kubernetes', manifest);
+      checks.push({ name: 'validateDeploymentManifest', passed: r.valid, errors: r.errors });
+      checks.push(presenceCheck('k8s-deployment', assets['deploy/k8s/deployment.yaml'], /\/health\/live/));
+      checks.push(presenceCheck('k8s-service', assets['deploy/k8s/service.yaml']));
+      checks.push(presenceCheck('k8s-hpa', assets['deploy/k8s/hpa.yaml'], /HorizontalPodAutoscaler/));
+      checks.push(...helmChartStructureChecks(assets));
+      break;
+    }
+    case 'cloudrun': {
+      const r = validateDeploymentManifest('cloudrun', assets['deploy/cloudrun/service.yaml']);
+      checks.push({ name: 'validateDeploymentManifest', passed: r.valid, errors: r.errors });
+      checks.push(presenceCheck('cloudrun-smoke', assets['scripts/cloud/cloudrun/smoke.mjs'], /\/health\/ready/));
+      break;
+    }
+    case 'ecs': {
+      const taskdef = validateDeploymentManifest('ecs', assets['deploy/ecs/taskdef.json']);
+      checks.push({ name: 'taskdef-schema', passed: taskdef.valid, errors: taskdef.errors });
+      const svc = validateEcsService(assets['deploy/ecs/service.json']);
+      checks.push({ name: 'ecs-service-schema', passed: svc.valid, errors: svc.errors });
+      break;
+    }
+    case 'lambda': {
+      checks.push(presenceCheck('lambda-handler', assets['deploy/lambda/handler.mjs'], /export async function handler/));
+      checks.push(presenceCheck('lambda-coldstart', assets['deploy/lambda/coldstart-validate.mjs'], /cold start/));
+      break;
+    }
+    case 'azure-functions': {
+      checks.push(jsonCheck('azure-host-json', assets['deploy/azure-functions/host.json']));
+      checks.push(jsonCheck('azure-function-json', assets['deploy/azure-functions/api/function.json']));
+      checks.push(presenceCheck('azure-adapter', assets['deploy/azure-functions/api/index.mjs'], /app\.fetch/));
+      break;
+    }
+    case 'gcf': {
+      checks.push(presenceCheck('gcf-entrypoint', assets['deploy/gcf/index.mjs'], /export const street/));
+      checks.push(presenceCheck('gcf-validate', assets['deploy/gcf/validate.mjs'], /\/health\/live/));
+      break;
+    }
+    case 'cloudflare-workers': {
+      const toml = assets['deploy/cloudflare-workers/wrangler.toml'];
+      const tomlErrors: string[] = [];
+      if (typeof toml !== 'string' || toml.trim() === '') tomlErrors.push('wrangler.toml missing');
+      else {
+        if (!/main\s*=\s*"\S+"/.test(toml)) tomlErrors.push("wrangler.toml missing 'main'");
+        if (!/compatibility_date\s*=/.test(toml)) tomlErrors.push("wrangler.toml missing 'compatibility_date'");
+      }
+      checks.push({ name: 'wrangler-config', passed: tomlErrors.length === 0, errors: tomlErrors });
+      checks.push(presenceCheck('cloudflare-worker', assets['deploy/cloudflare-workers/worker.mjs'], /async fetch\(/));
+      break;
+    }
+    default:
+      throw new Error(`runOfflineArtifacts: unknown target "${target as string}"`);
+  }
+
+  return { target, checks, allPassed: checks.every((c) => c.passed) };
+}
+
+/**
+ * Build a BLOCKED {@link TargetVerification} for a target whose deploy-time
+ * prerequisite is unavailable, while still attaching the offline-verifiable
+ * evidence so progress is provable (Requirement 2.14 / 1.5). The status is
+ * BLOCKED regardless of the offline evidence (a missing external prerequisite
+ * always wins), but the evidence is retained on the result.
+ */
+export function blockedTargetWithOfflineEvidence(
+  target: DeploymentTarget,
+  missing: DependencyDescriptor,
+  offline: OfflineArtifactResult,
+): TargetVerification {
+  return {
+    target,
+    status: 'BLOCKED',
+    health: { live: false, ready: false, maxLatencyMs: 0 },
+    blockedReason: { missingPrerequisite: missing.id, kind: missing.kind === 'credential' ? 'credential' : 'runtime' },
+    offlineArtifacts: offline,
   };
 }

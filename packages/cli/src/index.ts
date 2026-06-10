@@ -22,6 +22,7 @@ import { AnalyticsReportCommand, AuditExportCommand, ComplianceReportCommand, Re
 import { CertifyCommand } from './commands/certify.js';
 import { UpgradeCommand } from './commands/upgrade.js';
 import { VerifyCommand } from './commands/verify.js';
+import { RegistryCommand } from './commands/registry.js';
 import { readFileSync } from 'node:fs';
 
 // Read the version from package.json so it never drifts from the published
@@ -152,6 +153,10 @@ export async function runCli(argv: string[]): Promise<void> {
         await new PluginListCommand().execute(ctx);
         break;
 
+      case 'registry':
+        await new RegistryCommand().execute(ctx);
+        break;
+
       case 'analytics':
         if (ctx.args.positional[0] === 'report') {
           await new AnalyticsReportCommand().execute(ctx);
@@ -214,6 +219,7 @@ Commands:
   deploy:init --platform <k8s|cloudrun|ecs|nomad>  Write deployment manifests
   plugin:install <name>@<version>  Install a verified marketplace plugin
   plugin:list                     List installed plugins and their status
+  registry publish|install|search|list  Publish to / install from the Network Plugin Registry
   upgrade [path] [--write]        Apply migration codemods (dry-run by default; --list to see codemods)
   verify <capabilityId> -- <cmd>  Run a capability's verification command and emit a Verification Artifact
 
