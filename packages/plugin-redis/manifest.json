@@ -1,0 +1,6 @@
+{
+  "name": "street-plugin-redis",
+  "version": "1.0.0",
+  "capabilities": ["cache", "key-value", "redis"],
+  "permissions": ["net", "secrets", "middleware"]
+}

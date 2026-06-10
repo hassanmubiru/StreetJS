@@ -1,0 +1,6 @@
+{
+  "name": "street-plugin-s3",
+  "version": "1.0.0",
+  "capabilities": ["storage", "object-storage", "s3"],
+  "permissions": ["net", "secrets", "middleware"]
+}
