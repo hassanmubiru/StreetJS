@@ -27,10 +27,11 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createPublicKey, generateKeyPairSync } from 'node:crypto';
 import {
-  PluginHost, PluginModule, verifyManifest, signManifest,
+  PluginHost, verifyManifest, signManifest,
   PluginSignatureError, PluginManifestError,
   type PluginManifest,
 } from '../platform/plugins/host.js';
+import { PluginModule } from '../platform/plugins/sdk.js';
 import { assertWellFormedManifest } from '../platform/plugins/local-registry.js';
 
 // ── Locate the monorepo `packages/` directory from the compiled test file ────
