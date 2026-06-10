@@ -74,3 +74,19 @@ jobs:
       - name: Auth0 (client-credentials token)
         if: ${{ env.AUTH0_DOMAIN != '' }}
         run: node scripts/vendor/check-auth0.mjs
+
+      # Layer B: run every official plugin's REAL backing-service integration
+      # through CommandRunner, emitting one plugin.<id>.artifact.json each
+      # (pass result + plugin id + ISO-8601 timestamp). A plugin whose service
+      # or test account is absent is recorded BLOCKED with its missing
+      # prerequisite id — never mocked (Requirement 5.9).
+      - name: Plugin integration verification (Layer B)
+        run: node scripts/plugins/verify.mjs
+
+      - name: Upload plugin verification artifacts
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: plugin-verification-artifacts
+          path: verification-artifacts/plugins/
+          if-no-files-found: warn
