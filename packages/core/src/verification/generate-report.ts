@@ -52,7 +52,6 @@ import type { VerificationArtifact } from './artifact.js';
 import type { ArtifactSource } from './aggregator.js';
 import {
   computeCertification,
-  REPORT_CATEGORIES,
 } from './certification.js';
 import type { CertificationReport } from './certification.js';
 
