@@ -222,6 +222,7 @@ Commands:
   registry publish|install|search|list  Publish to / install from the Network Plugin Registry
   upgrade [path] [--write]        Apply migration codemods (dry-run by default; --list to see codemods)
   verify <capabilityId> -- <cmd>  Run a capability's verification command and emit a Verification Artifact
+  verify --aggregate              Compute the Platform Leadership decision from recorded artifacts
 
 Flags:
   --help, -h                      Show this help message
