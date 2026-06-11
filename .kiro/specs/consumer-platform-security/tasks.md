@@ -65,7 +65,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
   - [x] 4.1 Extend `packages/core/src/security/headers.ts` with override and explicit disable
     - Add `SecurityHeaderName`, extend `SecurityHeadersOptions` with `disable[]`, and confirm override semantics so a supplied value replaces the default and disabled names are omitted
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
-  - [-] 4.2 Write property test for header-set invariance with override and disable
+  - [ ] 4.2 Write property test for header-set invariance with override and disable
     - **Property 6: Security-header set invariance with override and disable**
     - **Validates: Requirements 4.2, 4.4, 4.5, 4.6**
   - [~] 4.3 Write unit tests for production-safe default header values
