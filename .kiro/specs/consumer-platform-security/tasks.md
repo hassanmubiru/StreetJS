@@ -13,7 +13,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
 ## Tasks
 
 - [ ] 1. Implement the pluggable backing-store abstraction
-  - [-] 1.1 Create the shared store abstraction in new `packages/core/src/security/store.ts`
+  - [x] 1.1 Create the shared store abstraction in new `packages/core/src/security/store.ts`
     - Define `KeyValueStore` and `CounterStore` interfaces and the `RateLimitStore` interface (`hit(key, nowMs, windowMs)`, `count(key, nowMs, windowMs)`) per the design
     - Implement `InMemoryRateLimitStore` by extracting/reusing the current Map-based sliding-window logic so it is interchangeable with a future Redis-backed store
     - Support an injected clock (now-provider) so window timing is deterministic in tests
@@ -23,7 +23,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - _Requirements: 3.8_
 
 - [ ] 2. Implement Phase 1 — Runtime Input Validator
-  - [-] 2.1 Add the Zod dependency and implement the Validator in new `packages/core/src/security/validation.ts`
+  - [x] 2.1 Add the Zod dependency and implement the Validator in new `packages/core/src/security/validation.ts`
     - Add `zod` to `packages/core/package.json` dependencies
     - Implement `RouteSchemas`, `InputSource`, `FieldIssue`, `ValidationError` (status 400, `toResponse()` emitting only `{path, message}` with no stack/internal types)
     - Implement `validate(schemas): MiddlewareFn` that parses each declared source before calling `next()` so the handler never runs on failure, writing parsed values to `ctx.state.valid.<source>`
@@ -44,7 +44,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - _Requirements: 2.1, 2.6, 2.7_
 
 - [ ] 3. Implement Phase 2 — Global Rate Limiting (extend `security/ratelimit.ts`)
-  - [~] 3.1 Extend `packages/core/src/security/ratelimit.ts` with scopes, stores, and window parsing
+  - [-] 3.1 Extend `packages/core/src/security/ratelimit.ts` with scopes, stores, and window parsing
     - Add `parseWindow(window)`, `RateScope`, `ScopedRateLimitOptions`, and the `rateLimit(opts): MiddlewareFn` factory supporting global/per-IP/per-user scopes
     - Wire the limiter to the `RateLimitStore` abstraction (default `InMemoryRateLimitStore`) and add `RedisRateLimitStore` (sorted-set per key) for cross-instance enforcement, preserving the existing sliding-window/`Retry-After`/`X-RateLimit-*` behavior
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8_
@@ -62,7 +62,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - _Requirements: 3.2_
 
 - [ ] 4. Implement Phase 3 — Security Headers (extend `security/headers.ts`)
-  - [~] 4.1 Extend `packages/core/src/security/headers.ts` with override and explicit disable
+  - [-] 4.1 Extend `packages/core/src/security/headers.ts` with override and explicit disable
     - Add `SecurityHeaderName`, extend `SecurityHeadersOptions` with `disable[]`, and confirm override semantics so a supplied value replaces the default and disabled names are omitted
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
   - [~] 4.2 Write property test for header-set invariance with override and disable
@@ -73,7 +73,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - _Requirements: 4.3_
 
 - [ ] 5. Implement Phase 4 — Media Upload Security (wrap `multipart/parser.ts`)
-  - [~] 5.1 Implement `UploadGuard` in new `packages/core/src/multipart/upload-guard.ts`
+  - [-] 5.1 Implement `UploadGuard` in new `packages/core/src/multipart/upload-guard.ts`
     - Consume `ParsedFile[]` from `MultipartParser`; implement `detectFormat(head)` (magic bytes for JPEG/PNG/GIF/PDF), `guard(file)`, and `UploadRejected` (413 size, 415 type/mime/image-only/malware)
     - Enforce size cap (unlink temp file on rejection), declared-vs-true MIME match, image-only mode, EXIF stripping, malware-scan hook invoked before persistence (fail-closed), and a random `storedName` with no path separators or client filename
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9_
@@ -94,7 +94,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - **Validates: Requirements 5.9**
 
 - [ ] 6. Implement Phase 5 — Field-Level Encryption
-  - [~] 6.1 Implement `EncryptedField` in new `packages/core/src/security/encrypted-field.ts`
+  - [-] 6.1 Implement `EncryptedField` in new `packages/core/src/security/encrypted-field.ts`
     - Reuse the AES-256-GCM layout from `vault.ts`/`session.ts`; implement `Keyring`, `KeyringEntry`, `EncryptedEnvelope`, the branded `EncryptedField<T>` type, and `FieldCipher` (`encrypt` generates a DEK and wraps it under the current KEK; `decrypt` unwraps by envelope version and throws on tamper)
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7_
   - [~] 6.2 Write property test for the encryption round-trip
@@ -108,7 +108,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - **Validates: Requirements 6.7**
 
 - [ ] 7. Implement Phase 6 — Abuse Prevention
-  - [~] 7.1 Implement `AbuseEngine` in new `packages/core/src/security/abuse.ts`
+  - [-] 7.1 Implement `AbuseEngine` in new `packages/core/src/security/abuse.ts`
     - Build a counter-backed engine over the `CounterStore`/`RateLimitStore` abstraction with injected clock; implement `recordLoginAttempt`, `recordSignupAttempt`, `isLockedOut`, `detectPasswordSpray`, and `score` returning structured `AbuseDecision` values, plus the IP-reputation hook
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7_
   - [~] 7.2 Write property test for login lockout threshold
