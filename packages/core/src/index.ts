@@ -137,6 +137,12 @@ export type { SessionData } from './security/session.js';
 export { encryptSecret, decryptSecret, loadConfig, constantTimeEqual } from './security/vault.js';
 export { RateLimiter, RateLimitException, RateLimit, getRateLimitMeta } from './security/ratelimit.js';
 export type { RateLimiterOptions, RateLimitDecoratorOptions } from './security/ratelimit.js';
+export {
+  systemClock, InMemoryRateLimitStore, InMemoryCounterStore, InMemoryKeyValueStore,
+} from './security/store.js';
+export type {
+  Clock, KeyValueStore, CounterStore, RateLimitStore, InMemoryRateLimitStoreOptions,
+} from './security/store.js';
 export { sanitizeString, sanitizeDeep, escapeHtml, xssMiddleware } from './security/xss.js';
 
 // ── Multipart ─────────────────────────────────────────────────────────────────
