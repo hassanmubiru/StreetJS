@@ -59,7 +59,7 @@ Each phase below is expressed at the requirements level with EARS acceptance cri
 
 1. THE Validator SHALL accept a Validation_Schema for each of the following External_Input sources independently: request body, query string, route parameters, headers, and cookies.
 2. WHEN a route declares a Validation_Schema for an External_Input source and an incoming request supplies a value that conforms to that schema, THE Validator SHALL pass the parsed and typed value to the route handler.
-3. IF an incoming request supplies a value that does not conform to its declared Validation_Schema, THEN THE Validator SHALL reject the request with HTTP status 400 and SHALL NOT invoke the route handler.
+3. IF an incoming request supplies a value that does not conform to its declared Validation_Schema, THEN THE Validator SHALL reject the request with HTTP status 400 before the route handler begins execution, so that the route handler does not run at all.
 4. WHEN the Validator rejects an External_Input, THE Validator SHALL produce a ValidationError whose serialized form lists each failing field path and the reason for failure.
 5. THE Validator SHALL format ValidationError responses so that the response body excludes raw stack traces and internal type information.
 6. WHEN a route handler receives a value validated by the Validator, THE Core_Package SHALL infer the handler parameter type from the Validation_Schema.
@@ -163,7 +163,7 @@ Each phase below is expressed at the requirements level with EARS acceptance cri
 1. THE SecretProvider SHALL build on the existing `packages/core/src/security/vault.ts` capabilities rather than replace them.
 2. THE SecretProvider SHALL define a single interface implemented by adapters for GitHub Secrets, AWS Secrets Manager, Azure Key Vault, and GCP Secret Manager.
 3. WHEN the application requests a secret by name, THE SecretProvider SHALL retrieve the secret value through the configured adapter.
-4. THE SecretProvider SHALL ensure that retrieved secret values are excluded from log output produced by the Core_Package.
+4. THE SecretProvider SHALL ensure that retrieved secret values are excluded from log output produced by the Core_Package, including log output produced during startup error handling.
 5. IF a secret that is declared as required cannot be retrieved at startup, THEN THE Core_Package SHALL terminate startup with a non-zero exit code and SHALL emit the missing secret's name without emitting its value.
 6. WHEN a secret value is rotated in the external store, THE SecretProvider SHALL retrieve the rotated value on the next request for that secret without requiring a process restart.
 
