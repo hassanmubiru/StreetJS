@@ -72,7 +72,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - Assert default CSP/HSTS/frame/referrer/permissions values restrict to same origin and deny framing
     - _Requirements: 4.3_
 
-- [ ] 5. Implement Phase 4 — Media Upload Security (wrap `multipart/parser.ts`)
+- [x] 5. Implement Phase 4 — Media Upload Security (wrap `multipart/parser.ts`)
   - [x] 5.1 Implement `UploadGuard` in new `packages/core/src/multipart/upload-guard.ts`
     - Consume `ParsedFile[]` from `MultipartParser`; implement `detectFormat(head)` (magic bytes for JPEG/PNG/GIF/PDF), `guard(file)`, and `UploadRejected` (413 size, 415 type/mime/image-only/malware)
     - Enforce size cap (unlink temp file on rejection), declared-vs-true MIME match, image-only mode, EXIF stripping, malware-scan hook invoked before persistence (fail-closed), and a random `storedName` with no path separators or client filename
@@ -86,24 +86,24 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
   - [x] 5.4 Write property test for EXIF segment removal
     - **Property 9: EXIF stripping removes all EXIF segments**
     - **Validates: Requirements 5.6**
-  - [-] 5.5 Write property test for malware-verdict persistence prevention
+  - [x] 5.5 Write property test for malware-verdict persistence prevention
     - **Property 10: Malware verdict prevents persistence**
     - **Validates: Requirements 5.7, 5.8**
-  - [-] 5.6 Write property test for always-safe stored filenames
+  - [x] 5.6 Write property test for always-safe stored filenames
     - **Property 11: Stored filename is always safe**
     - **Validates: Requirements 5.9**
 
-- [ ] 6. Implement Phase 5 — Field-Level Encryption
+- [x] 6. Implement Phase 5 — Field-Level Encryption
   - [x] 6.1 Implement `EncryptedField` in new `packages/core/src/security/encrypted-field.ts`
     - Reuse the AES-256-GCM layout from `vault.ts`/`session.ts`; implement `Keyring`, `KeyringEntry`, `EncryptedEnvelope`, the branded `EncryptedField<T>` type, and `FieldCipher` (`encrypt` generates a DEK and wraps it under the current KEK; `decrypt` unwraps by envelope version and throws on tamper)
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7_
-  - [-] 6.2 Write property test for the encryption round-trip
+  - [x] 6.2 Write property test for the encryption round-trip
     - **Property 12: Field-encryption round-trip**
     - **Validates: Requirements 6.2, 6.3, 6.4, 6.5**
-  - [-] 6.3 Write property test for key-rotation decryptability
+  - [x] 6.3 Write property test for key-rotation decryptability
     - **Property 13: Key rotation preserves decryptability**
     - **Validates: Requirements 6.6**
-  - [-] 6.4 Write property test for tamper detection
+  - [x] 6.4 Write property test for tamper detection
     - **Property 14: Tamper detection**
     - **Validates: Requirements 6.7**
 
@@ -111,16 +111,16 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
   - [x] 7.1 Implement `AbuseEngine` in new `packages/core/src/security/abuse.ts`
     - Build a counter-backed engine over the `CounterStore`/`RateLimitStore` abstraction with injected clock; implement `recordLoginAttempt`, `recordSignupAttempt`, `isLockedOut`, `detectPasswordSpray`, and `score` returning structured `AbuseDecision` values, plus the IP-reputation hook
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7_
-  - [~] 7.2 Write property test for login lockout threshold
+  - [-] 7.2 Write property test for login lockout threshold
     - **Property 15: Login lockout threshold**
     - **Validates: Requirements 7.1, 7.2**
-  - [~] 7.3 Write property test for signup throttling threshold
+  - [-] 7.3 Write property test for signup throttling threshold
     - **Property 16: Signup throttling threshold**
     - **Validates: Requirements 7.3**
-  - [~] 7.4 Write property test for password-spray classification
+  - [-] 7.4 Write property test for password-spray classification
     - **Property 17: Password-spray classification**
     - **Validates: Requirements 7.4**
-  - [~] 7.5 Write unit tests for suspicious-score computation and IP-reputation consultation
+  - [-] 7.5 Write unit tests for suspicious-score computation and IP-reputation consultation
     - Verify score combination, configured response action triggering, and the IP-reputation hook being consulted
     - _Requirements: 7.5, 7.6, 7.7_
 
@@ -128,7 +128,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
   - [x] 8.1 Implement `ModerationToolkit` in new `packages/core/src/security/moderation.ts`
     - Implement `ModerationStore` and an `InMemoryModerationStore` plus `ModerationToolkit` (`report`, `block`, `canMessage`, `mute`, `deliverable`, `queue`, `resolve`, `audit`); the audit log is append-only with no public mutation path, composing the patterns in `auth/audit-writer.ts`
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7_
-  - [~] 8.2 Write property test for mute scoping
+  - [-] 8.2 Write property test for mute scoping
     - **Property 19: Mute scoping**
     - **Validates: Requirements 8.4**
   - [~] 8.3 Write property test for audit-event immutability
