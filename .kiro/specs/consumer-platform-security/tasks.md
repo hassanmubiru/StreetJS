@@ -218,7 +218,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - Wire `computeCertification` over the captured artifact set to emit the eight-category scorecard, listing unverified features per not-fully-certified category and referencing artifact paths as evidence
     - _Requirements: 1.1, 12.1, 12.2, 12.3, 12.4, 12.5_
 
-- [ ] 20. Final checkpoint — full certification
+- [x] 20. Final checkpoint — full certification
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
