@@ -1,0 +1,3 @@
+true
+packages/core/src/security/dast.ts
+EXIT 0
