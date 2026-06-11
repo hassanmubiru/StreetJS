@@ -22,6 +22,7 @@
     "build": "tsc",
     "lint": "tsc --noEmit",
     "test": "tsc && node --test dist/tests/*.test.js",
+    "example": "npm run build && node examples/index.mjs",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
     "prepublishOnly": "npm run clean && npm run build"
   },
