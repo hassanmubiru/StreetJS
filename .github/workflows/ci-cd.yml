@@ -483,6 +483,46 @@ jobs:
       - name: High-severity dependency audit
         run: npm audit --audit-level=high
 
+  # ── package-integrity: tarball completeness + clean-install import ─────
+  # Purpose:   Catch the class of publish bug where the root barrel (or any
+  #            shipped module) imports a file that is NOT included in the npm
+  #            tarball — which makes a clean `import('streetjs')` crash with
+  #            ERR_MODULE_NOT_FOUND even though the build passed. Two gates:
+  #              1. verify:pack — closed-world static check that every relative
+  #                 import in every published module resolves within the tarball.
+  #              2. clean-install smoke test — `npm install` the packed tarball
+  #                 into a temp project and `import('streetjs')` for real.
+  # Depends:   Nothing (independent, fast). Runs on every PR/push so a broken
+  #            `files` allow-list is caught long before a release tag.
+  package-integrity:
+    name: Package Integrity (pack + clean-install import)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+
+      - name: Build @streetjs/core
+        run: npm run build -w packages/core
+
+      - name: Verify tarball integrity (every exported module ships)
+        run: npm run verify:pack -w packages/core
+
+      - name: Clean-install smoke test — import streetjs from the packed tarball
+        run: |
+          set -euo pipefail
+          TARBALL="$(cd packages/core && npm pack --silent)"
+          TARBALL_PATH="$PWD/packages/core/$TARBALL"
+          SMOKE_DIR="$(mktemp -d)"
+          cd "$SMOKE_DIR"
+          npm init -y >/dev/null 2>&1
+          npm install "$TARBALL_PATH" --no-audit --no-fund --loglevel=error
+          node --input-type=module -e "import('streetjs').then(m => { const n = Object.keys(m).length; if (n < 1) { console.error('::error::clean import of streetjs exported no symbols'); process.exit(1); } console.log('clean-install import OK — ' + n + ' exports'); }).catch(err => { console.error('::error::clean import of streetjs failed: ' + err.code + ' ' + err.message); process.exit(1); })"
+
   # ── certification: certification suites + DB E2E (release gate) ─────────
   # Purpose:   Run the security/observability/deployment/enterprise/
   #            documentation/repository certification suites plus the
@@ -711,6 +751,20 @@ jobs:
           fi
           echo "Core pack validation: OK"
           echo "$PACK" | grep 'total files'
+
+      - name: Verify @streetjs/core tarball integrity (every exported module ships)
+        run: npm run verify:pack -w packages/core
+
+      - name: Smoke test — clean install + import streetjs from the packed tarball
+        run: |
+          set -euo pipefail
+          TARBALL="$(cd packages/core && npm pack --silent)"
+          TARBALL_PATH="$PWD/packages/core/$TARBALL"
+          SMOKE_DIR="$(mktemp -d)"
+          cd "$SMOKE_DIR"
+          npm init -y >/dev/null 2>&1
+          npm install "$TARBALL_PATH" --no-audit --no-fund --loglevel=error
+          node --input-type=module -e "import('streetjs').then(m => { const n = Object.keys(m).length; if (n < 1) { console.error('::error::clean import of streetjs exported no symbols'); process.exit(1); } console.log('clean-install import OK — ' + n + ' exports'); }).catch(err => { console.error('::error::clean import of streetjs failed: ' + err.code + ' ' + err.message); process.exit(1); })"
 
       - name: Validate @streetjs/cli pack (no test files, has bin + templates)
         run: |
