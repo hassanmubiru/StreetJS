@@ -130,3 +130,81 @@ describe('computeLeadership — Platform Leadership exit criteria', () => {
     assert.deepEqual(a, b);
   });
 });
+
+// ── Roll-up capability resolution (design → Exit-Criteria set) ──────────────────
+//
+// `cloud.deploy`, `plugins.ecosystem`, and `kafka.chaos` are roll-ups: they hold
+// no artifact of their own. They are VERIFIED only when every member artifact a
+// verifier actually emits is VERIFIED, where members are matched by id prefix
+// (`cloud.deploy.<target>`, `plugin.<id>`, `kafka.coldstart` / `kafka.chaos.<scenario>`).
+
+describe('computeLeadership — roll-up capability resolution', () => {
+  /** All required capabilities VERIFIED, but the roll-ups expressed via members. */
+  function allVerifiedViaMembers(): VerificationArtifact[] {
+    const out: VerificationArtifact[] = [];
+    for (const id of PLATFORM_LEADERSHIP_CAPABILITIES) {
+      if (id === 'cloud.deploy') {
+        out.push(artifact('cloud.deploy.kubernetes', 'VERIFIED'));
+        out.push(artifact('cloud.deploy.cloudrun', 'VERIFIED'));
+      } else if (id === 'plugins.ecosystem') {
+        out.push(artifact('plugin.redis', 'VERIFIED'));
+        out.push(artifact('plugin.s3', 'VERIFIED'));
+      } else if (id === 'kafka.chaos') {
+        out.push(artifact('kafka.coldstart', 'VERIFIED'));
+        out.push(artifact('kafka.chaos.broker-restart', 'VERIFIED'));
+      } else {
+        out.push(artifact(id, 'VERIFIED'));
+      }
+    }
+    return out;
+  }
+
+  it('GRANTS when every roll-up member is VERIFIED (no bare roll-up artifact present)', () => {
+    const report = computeLeadership(allVerifiedViaMembers());
+    assert.equal(report.decision, 'GRANTED');
+    for (const id of ['cloud.deploy', 'plugins.ecosystem', 'kafka.chaos']) {
+      const entry = report.required.find((c) => c.capabilityId === id);
+      assert.ok(entry);
+      assert.equal(entry.status, 'VERIFIED');
+      assert.equal(entry.hasArtifact, true);
+    }
+  });
+
+  it('WITHHOLDS a roll-up when any single member is not VERIFIED', () => {
+    const artifacts = allVerifiedViaMembers().filter(
+      (a) => a.capabilityId !== 'plugin.s3',
+    );
+    artifacts.push(artifact('plugin.s3', 'BLOCKED'));
+
+    const report = computeLeadership(artifacts);
+    assert.equal(report.decision, 'WITHHELD');
+    const eco = report.required.find((c) => c.capabilityId === 'plugins.ecosystem');
+    assert.ok(eco);
+    assert.equal(eco.status, 'BLOCKED'); // most severe non-VERIFIED member surfaces
+    assert.equal(eco.hasArtifact, true);
+  });
+
+  it('treats a roll-up with no members as not VERIFIED (hasArtifact=false)', () => {
+    const artifacts = allVerifiedViaMembers().filter(
+      (a) => !a.capabilityId.startsWith('kafka.'),
+    );
+    const report = computeLeadership(artifacts);
+    assert.equal(report.decision, 'WITHHELD');
+    const kafka = report.required.find((c) => c.capabilityId === 'kafka.chaos');
+    assert.ok(kafka);
+    assert.equal(kafka.hasArtifact, false);
+    assert.equal(kafka.status, 'NOT_IMPLEMENTED');
+  });
+
+  it('a directly-recorded roll-up artifact takes precedence over member resolution', () => {
+    // Members say BLOCKED, but a bare cloud.deploy VERIFIED artifact wins.
+    const artifacts = allVerifiedViaMembers();
+    artifacts.push(artifact('cloud.deploy.ecs', 'BLOCKED'));
+    artifacts.push(artifact('cloud.deploy', 'VERIFIED'));
+
+    const report = computeLeadership(artifacts);
+    const cloud = report.required.find((c) => c.capabilityId === 'cloud.deploy');
+    assert.ok(cloud);
+    assert.equal(cloud.status, 'VERIFIED');
+  });
+});
