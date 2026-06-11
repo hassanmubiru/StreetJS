@@ -1,0 +1,88 @@
+# .github/workflows/platform-leadership.yml
+# Final Platform Leadership exit-criteria aggregation (Requirement 12.1 / 12.5).
+#
+# This is the last job in the verification chain. Every capability area emits its
+# own machine-readable Verification Artifact from its own workflow (dast.yml,
+# deploy-verify.yml, registry-verify.yml, vendor-integration.yml,
+# enterprise-verify.yml, devtools-verify.yml, kafka-integration.yml,
+# observability.yml, ci-cd-enforcement.yml). This job collects the latest
+# recorded artifacts, runs `street verify --aggregate`, and uploads the computed
+# `platform-leadership.report.json`.
+#
+# The Platform Leadership decision is computed SOLELY by the aggregator
+# (`computeLeadership`) from those recorded artifacts (Req 12.4). This job never
+# authors, sets, or edits the decision — it REFLECTS it: `street verify
+# --aggregate` mirrors the computed GRANTED/WITHHELD decision in its exit code,
+# so the job passes only when leadership is GRANTED and fails (without ever
+# overriding the result) when it is WITHHELD. A required capability with no
+# recorded artifact is treated as not VERIFIED (Req 12.3), so the gate cannot be
+# passed by omission.
+name: platform-leadership
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Weekly roll-up so the published decision tracks the latest evidence.
+    - cron: '0 6 * * 1'
+  pull_request:
+    paths:
+      - 'packages/core/src/verification/**'
+      - 'packages/cli/src/commands/verify.ts'
+      - 'scripts/verification/**'
+      - 'docs/platform-leadership.md'
+      - '.github/workflows/platform-leadership.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  platform-leadership:
+    name: Platform Leadership exit-criteria aggregation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      # Required so the GitHub CLI can list runs and download the per-area
+      # Verification Artifacts uploaded by the other verification workflows.
+      actions: read
+    env:
+      # Token used by scripts/verification/collect-artifacts.sh (gh CLI).
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+
+      # The aggregator lives in @streetjs/core and the `verify --aggregate`
+      # command in @streetjs/cli; build both before running them.
+      - name: Build core + CLI
+        run: |
+          npm run build -w packages/core
+          npm run build -w packages/cli
+
+      # Gather the latest recorded *.artifact.json from each capability area's
+      # verification workflow into verification-artifacts/. A missing artifact is
+      # NOT an error — the aggregator treats it as not VERIFIED (Req 12.3).
+      - name: Collect capability verification artifacts
+        run: bash scripts/verification/collect-artifacts.sh verification-artifacts
+
+      # The aggregator (computeLeadership) is the ONLY thing that computes the
+      # decision; this command persists its output verbatim to
+      # platform-leadership.report.json and mirrors GRANTED/WITHHELD in its exit
+      # code (Req 12.4/12.5). A WITHHELD decision fails this step — that is the
+      # gate reflecting, not setting, the computed result.
+      - name: Aggregate Platform Leadership decision
+        run: node packages/cli/bin/street.js verify --aggregate
+
+      # Always upload the report, even when the gate fails on WITHHELD, so the
+      # machine-readable decision and its provenance are retained as evidence.
+      - name: Upload platform-leadership report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: platform-leadership-report
+          path: verification-artifacts/platform-leadership.report.json
+          if-no-files-found: error
+          retention-days: 90
