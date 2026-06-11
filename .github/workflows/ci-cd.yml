@@ -135,6 +135,11 @@ jobs:
                   if not (f.endswith('.yml') or f.endswith('.yaml')):
                       continue
                   path = os.path.join(root, f)
+                  norm = path.replace(os.sep, '/')
+                  # Helm chart templates are Go-templated ({{- ... }}), not valid
+                  # YAML — skip them so the syntax check doesn't choke on templating.
+                  if 'deploy/helm/' in norm and '/templates/' in norm:
+                      continue
                   try:
                       data = yaml.safe_load(open(path))
                   except yaml.YAMLError as e:
@@ -216,6 +221,9 @@ jobs:
 
       - name: Build core package (CLI dependency)
         run: npm run build -w packages/core
+
+      - name: Build registry-server (CLI registry tests import its built output)
+        run: npm run build -w packages/registry-server
 
       - name: Build CLI package
         run: npm run build -w packages/cli
@@ -516,6 +524,7 @@ jobs:
       - name: Build packages + generate the compat shim
         run: |
           npm run build -w packages/core
+          npm run build -w packages/registry-server
           npm run build -w packages/cli
           node scripts/gen-core-compat.mjs
 
