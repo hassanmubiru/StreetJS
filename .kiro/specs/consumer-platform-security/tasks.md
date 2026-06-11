@@ -44,7 +44,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - _Requirements: 2.1, 2.6, 2.7_
 
 - [ ] 3. Implement Phase 2 — Global Rate Limiting (extend `security/ratelimit.ts`)
-  - [~] 3.1 Extend `packages/core/src/security/ratelimit.ts` with scopes, stores, and window parsing
+  - [-] 3.1 Extend `packages/core/src/security/ratelimit.ts` with scopes, stores, and window parsing
     - Add `parseWindow(window)`, `RateScope`, `ScopedRateLimitOptions`, and the `rateLimit(opts): MiddlewareFn` factory supporting global/per-IP/per-user scopes
     - Wire the limiter to the `RateLimitStore` abstraction (default `InMemoryRateLimitStore`) and add `RedisRateLimitStore` (sorted-set per key) for cross-instance enforcement, preserving the existing sliding-window/`Retry-After`/`X-RateLimit-*` behavior
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8_
