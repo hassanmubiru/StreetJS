@@ -44,7 +44,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - _Requirements: 2.1, 2.6, 2.7_
 
 - [ ] 3. Implement Phase 2 — Global Rate Limiting (extend `security/ratelimit.ts`)
-  - [ ] 3.1 Extend `packages/core/src/security/ratelimit.ts` with scopes, stores, and window parsing
+  - [~] 3.1 Extend `packages/core/src/security/ratelimit.ts` with scopes, stores, and window parsing
     - Add `parseWindow(window)`, `RateScope`, `ScopedRateLimitOptions`, and the `rateLimit(opts): MiddlewareFn` factory supporting global/per-IP/per-user scopes
     - Wire the limiter to the `RateLimitStore` abstraction (default `InMemoryRateLimitStore`) and add `RedisRateLimitStore` (sorted-set per key) for cross-instance enforcement, preserving the existing sliding-window/`Retry-After`/`X-RateLimit-*` behavior
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8_
@@ -73,7 +73,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - _Requirements: 4.3_
 
 - [ ] 5. Implement Phase 4 — Media Upload Security (wrap `multipart/parser.ts`)
-  - [ ] 5.1 Implement `UploadGuard` in new `packages/core/src/multipart/upload-guard.ts`
+  - [~] 5.1 Implement `UploadGuard` in new `packages/core/src/multipart/upload-guard.ts`
     - Consume `ParsedFile[]` from `MultipartParser`; implement `detectFormat(head)` (magic bytes for JPEG/PNG/GIF/PDF), `guard(file)`, and `UploadRejected` (413 size, 415 type/mime/image-only/malware)
     - Enforce size cap (unlink temp file on rejection), declared-vs-true MIME match, image-only mode, EXIF stripping, malware-scan hook invoked before persistence (fail-closed), and a random `storedName` with no path separators or client filename
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9_
