@@ -77,6 +77,8 @@ interface HeaderSink { setHeader(name: string, value: string): void }
  */
 export function computeSecurityHeaders(opts: SecurityHeadersOptions = {}): Record<string, string> {
   const headers: Record<string, string> = {};
+  // Override semantics (R4.4): a supplied option value replaces the default for
+  // its header; when no option is supplied the hardened default is used.
   if (opts.csp !== false) headers['Content-Security-Policy'] = buildCsp(opts.csp ?? DEFAULT_CSP);
   const hsts = opts.hstsMaxAge ?? 63072000;
   if (hsts > 0) headers['Strict-Transport-Security'] = `max-age=${hsts}; includeSubDomains; preload`;
@@ -86,6 +88,10 @@ export function computeSecurityHeaders(opts: SecurityHeadersOptions = {}): Recor
   headers['Cross-Origin-Resource-Policy'] = 'same-origin';
   headers['Referrer-Policy'] = opts.referrerPolicy ?? 'strict-origin-when-cross-origin';
   headers['Permissions-Policy'] = opts.permissionsPolicy ?? 'geolocation=(), microphone=(), camera=()';
+  // Explicit disable (R4.5): omit any header named in `disable` from the result.
+  if (opts.disable) {
+    for (const name of opts.disable) delete headers[name];
+  }
   return headers;
 }
 
