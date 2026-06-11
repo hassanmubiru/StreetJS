@@ -190,11 +190,11 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - Mirror the plugin layout and depend on `@streetjs/core`; provide blocking and reporting built on `ModerationToolkit`; include docs, tests, and runnable examples
     - _Requirements: 11.1, 11.4, 11.6_
 
-- [ ] 16. Implement Phase 10 — `@streetjs/dating-messaging`
+- [x] 16. Implement Phase 10 — `@streetjs/dating-messaging`
   - [x] 16.1 Scaffold and implement the `@streetjs/dating-messaging` package under `packages/dating-messaging`
     - Mirror the plugin layout and depend on `@streetjs/core` and `@streetjs/dating-profiles`; implement `MessageService.send` allowing messaging only between matched users, storing message content via `EncryptedField`, and refusing messaging while a block exists (composing `ModerationToolkit`); include docs, tests, and runnable examples
     - _Requirements: 11.1, 11.3, 11.5, 11.6_
-  - [-] 16.2 Write property test for block preventing messaging at the messaging layer
+  - [x] 16.2 Write property test for block preventing messaging at the messaging layer
     - **Property 18: Block prevents messaging**
     - **Validates: Requirements 8.3, 11.5**
     - Located in the `@streetjs/dating-messaging` package tests per the design
@@ -203,7 +203,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 18. Implement the certification harness (extends `verification/aggregator.ts`)
-  - [-] 18.1 Implement `computeCertification` and the capability set in new `packages/core/src/verification/certification.ts`
+  - [x] 18.1 Implement `computeCertification` and the capability set in new `packages/core/src/verification/certification.ts`
     - Define the frozen `CONSUMER_PLATFORM_CAPABILITIES`, `ReportCategory`, `CategoryStatus`, and `CertificationReport`; implement the pure `computeCertification(artifacts, now?)` that maps capabilities to the eight categories and derives statuses solely from recorded artifacts (missing artifact ⇒ not `VERIFIED`, listed in `unverified`), reusing `artifact.ts`/`status.ts`/`aggregator.ts`; re-export from `index.ts`
     - _Requirements: 1.5, 12.1, 12.2, 12.3, 12.4_
   - [~] 18.2 Write integration tests for `computeCertification`
