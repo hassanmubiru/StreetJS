@@ -37,6 +37,7 @@ RELEASE-CERTIFICATION.md
 benchmark-report.json
 benchmark-report.md
 benchmark-history.json
+ratelimit-benchmark.json
 
 # Verification Artifacts — produced by executed commands, uploaded from CI,
 # never hand-authored or source-controlled (samples may be added explicitly).
