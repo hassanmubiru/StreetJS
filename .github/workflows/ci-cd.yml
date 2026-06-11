@@ -550,8 +550,9 @@ jobs:
           # Install the locally packed core tarball too so `streetjs` resolves to
           # THIS build (its ^1.0.6 range is satisfied by the local tarball).
           npm install "$CORE_TARBALL" "$CLI_TARBALL" --no-audit --no-fund --loglevel=error
-          npx --no-install street --version
-          npx --no-install street --help >/dev/null
+          # Invoke the installed bin directly (more deterministic than npx flags).
+          ./node_modules/.bin/street --version
+          ./node_modules/.bin/street --help >/dev/null
           echo "@streetjs/cli clean-install smoke OK"
 
       - name: Clean-install smoke — @streetjs/core shim re-exports the local streetjs
