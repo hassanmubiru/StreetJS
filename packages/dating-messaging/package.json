@@ -1,0 +1,67 @@
+{
+  "name": "@streetjs/dating-messaging",
+  "version": "1.0.0",
+  "description": "Official Street Framework dating reference package: messaging between matched users with encrypted message content, refusing delivery while a block exists.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.js.map",
+    "dist/**/*.d.ts",
+    "dist/**/*.d.ts.map",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "tsc --noEmit -p tsconfig.json",
+    "test": "tsc -p tsconfig.test.json && node --test dist-test",
+    "example": "npm run build && node examples/index.mjs",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true});require('fs').rmSync('dist-test',{recursive:true,force:true})\"",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "keywords": [
+    "street",
+    "streetjs",
+    "street-framework",
+    "dating",
+    "messaging",
+    "encryption",
+    "moderation",
+    "blocking"
+  ],
+  "author": "street contributors",
+  "license": "MIT",
+  "homepage": "https://hassanmubiru.github.io/street/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hassanmubiru/street.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hassanmubiru/street/issues"
+  },
+  "dependencies": {
+    "@streetjs/core": "^1.0.6",
+    "@streetjs/dating-profiles": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "fast-check": "^3.23.2",
+    "typescript": "^6.0.3"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
