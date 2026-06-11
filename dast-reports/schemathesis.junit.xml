@@ -1,22 +1,22 @@
 <?xml version="1.0" ?>
-<testsuites disabled="0" errors="0" failures="0" tests="17" time="1.5396936269899015">
-	<testsuite disabled="0" errors="0" failures="0" name="schemathesis" skipped="0" tests="17" time="1.5396936269899015" hostname="error51">
-		<testcase name="GET /health" time="0.034316"/>
-		<testcase name="POST /auth/register" time="0.003680"/>
-		<testcase name="POST /auth/login" time="0.002679"/>
-		<testcase name="POST /auth/refresh" time="0.003129"/>
-		<testcase name="POST /auth/logout" time="0.002823"/>
-		<testcase name="GET /admin/users" time="0.002571"/>
-		<testcase name="POST /admin/users/{id}/roles" time="0.208893"/>
-		<testcase name="DELETE /admin/users/{id}" time="0.226898"/>
-		<testcase name="POST /files" time="0.003270"/>
-		<testcase name="GET /files/{id}" time="0.138762"/>
-		<testcase name="DELETE /files/{id}" time="0.177828"/>
-		<testcase name="GET /items" time="0.003139"/>
-		<testcase name="POST /items" time="0.002849"/>
-		<testcase name="GET /items/{id}" time="0.145629"/>
-		<testcase name="PUT /items/{id}" time="0.201843"/>
-		<testcase name="PATCH /items/{id}" time="0.173235"/>
-		<testcase name="DELETE /items/{id}" time="0.208151"/>
+<testsuites disabled="0" errors="0" failures="0" tests="17" time="1.3370626000178163">
+	<testsuite disabled="0" errors="0" failures="0" name="schemathesis" skipped="0" tests="17" time="1.3370626000178163" hostname="error51">
+		<testcase name="GET /health" time="0.032622"/>
+		<testcase name="POST /auth/register" time="0.003391"/>
+		<testcase name="POST /auth/login" time="0.002916"/>
+		<testcase name="POST /auth/refresh" time="0.004314"/>
+		<testcase name="POST /auth/logout" time="0.002845"/>
+		<testcase name="GET /admin/users" time="0.003724"/>
+		<testcase name="POST /admin/users/{id}/roles" time="0.206260"/>
+		<testcase name="DELETE /admin/users/{id}" time="0.141828"/>
+		<testcase name="POST /files" time="0.002544"/>
+		<testcase name="GET /files/{id}" time="0.124063"/>
+		<testcase name="DELETE /files/{id}" time="0.161940"/>
+		<testcase name="GET /items" time="0.002613"/>
+		<testcase name="POST /items" time="0.002706"/>
+		<testcase name="GET /items/{id}" time="0.126199"/>
+		<testcase name="PUT /items/{id}" time="0.190154"/>
+		<testcase name="PATCH /items/{id}" time="0.135220"/>
+		<testcase name="DELETE /items/{id}" time="0.193723"/>
 	</testsuite>
 </testsuites>
