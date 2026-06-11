@@ -92,6 +92,12 @@ export {
 export type {
   CapabilityStatus, LeadershipReport, ArtifactSource,
 } from './verification/aggregator.js';
+export {
+  CONSUMER_PLATFORM_CAPABILITIES, REPORT_CATEGORIES, computeCertification,
+} from './verification/certification.js';
+export type {
+  ReportCategory, CategoryStatus, CertificationReport,
+} from './verification/certification.js';
 
 // ── Release Engineering ───────────────────────────────────────────────────────
 export {
