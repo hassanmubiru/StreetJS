@@ -1,3 +1,0 @@
-]633;E;echo "=== unstaged diff names ===";5535053e-c716-4c8c-b465-bc5de3de65e4]633;C=== unstaged diff names ===
-=== staged diff names ===
-=== vs HEAD names ===

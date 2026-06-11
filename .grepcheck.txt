@@ -1,2 +1,0 @@
-245:const DAST_CAPABILITY_ID = 'dast.scan';
-66:const CAPABILITY_ID = 'dast.scan';
