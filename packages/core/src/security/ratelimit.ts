@@ -229,7 +229,11 @@ const WINDOW_UNIT_MS: Readonly<Record<string, number>> = {
 };
 
 // e.g. "1m", "30s", "2h", "500ms", "1.5h", or a bare "1000" (milliseconds).
-const WINDOW_RE = /^\s*(\d+(?:\.\d+)?)\s*(ms|s|m|h|d)?\s*$/i;
+// Whitespace is stripped via String.prototype.trim() BEFORE matching, so the
+// pattern itself contains no \s* groups — this avoids the ambiguous
+// whitespace-partition backtracking (polynomial ReDoS) that arises when
+// optional \s* groups surround an optional token. The pattern is linear.
+const WINDOW_RE = /^(\d+(?:\.\d+)?)(ms|s|m|h|d)?$/i;
 
 /**
  * Parse a human-readable window duration into milliseconds (R3.7).
@@ -249,7 +253,8 @@ export function parseWindow(window: string | number): number {
     return Math.floor(window);
   }
 
-  const match = WINDOW_RE.exec(window);
+  // Trim first so the pattern needs no (ambiguous) \s* groups (ReDoS-safe).
+  const match = WINDOW_RE.exec(window.trim());
   if (!match) {
     throw new Error(`Invalid rate-limit window: "${window}"`);
   }
