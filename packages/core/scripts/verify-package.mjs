@@ -42,6 +42,61 @@ function publishedFiles() {
 const SPECIFIER_RE =
   /(?:import|export)\b[^'"]*?\bfrom\s*['"](\.{1,2}\/[^'"]+)['"]|import\s*\(\s*['"](\.{1,2}\/[^'"]+)['"]\s*\)/g;
 
+/**
+ * Blank out comments and string/template literals so the import scanner only
+ * sees real top-level `import`/`export` statements — never `import` text that
+ * appears inside a string (e.g. generated deployment scaffolding emitted by
+ * `cloud/deployment.js`). Replaces literal/comment bodies with spaces to keep
+ * offsets and line structure intact.
+ */
+function stripStringsAndComments(src) {
+  let out = '';
+  let i = 0;
+  const n = src.length;
+  while (i < n) {
+    const ch = src[i];
+    const next = src[i + 1];
+    // Line comment
+    if (ch === '/' && next === '/') {
+      while (i < n && src[i] !== '\n') i++;
+      continue;
+    }
+    // Block comment
+    if (ch === '/' && next === '*') {
+      i += 2;
+      while (i < n && !(src[i] === '*' && src[i + 1] === '/')) {
+        out += src[i] === '\n' ? '\n' : ' ';
+        i++;
+      }
+      i += 2;
+      continue;
+    }
+    // String / template literal
+    if (ch === '"' || ch === "'" || ch === '`') {
+      const quote = ch;
+      out += ' ';
+      i++;
+      while (i < n) {
+        if (src[i] === '\\') {
+          i += 2;
+          continue;
+        }
+        if (src[i] === quote) {
+          i++;
+          break;
+        }
+        out += src[i] === '\n' ? '\n' : ' ';
+        i++;
+      }
+      out += ' ';
+      continue;
+    }
+    out += ch;
+    i++;
+  }
+  return out;
+}
+
 /** Resolve a relative specifier from `fromFile` to a published-set candidate path. */
 function resolveSpecifier(fromFile, spec) {
   const base = resolve(pkgRoot, dirname(fromFile), spec);
