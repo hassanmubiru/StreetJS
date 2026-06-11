@@ -161,7 +161,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - **Validates: Requirements 10.5, 10.6**
 
 - [ ] 11. Wire core public exports and documentation
-  - [-] 11.1 Re-export all new core modules from `packages/core/src/index.ts`
+  - [x] 11.1 Re-export all new core modules from `packages/core/src/index.ts`
     - Export `validation`, rate-limit additions, header additions, `upload-guard`, `encrypted-field`, `abuse`, `moderation`, `secret-provider`, `privacy`, and the store abstraction next to the existing security/verification exports (satisfies the Zero-Trust "public package exports" condition)
     - _Requirements: 1.1_
   - [-] 11.2 Write documentation for the new core subsystems
