@@ -107,20 +107,20 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - **Property 14: Tamper detection**
     - **Validates: Requirements 6.7**
 
-- [ ] 7. Implement Phase 6 — Abuse Prevention
+- [x] 7. Implement Phase 6 — Abuse Prevention
   - [x] 7.1 Implement `AbuseEngine` in new `packages/core/src/security/abuse.ts`
     - Build a counter-backed engine over the `CounterStore`/`RateLimitStore` abstraction with injected clock; implement `recordLoginAttempt`, `recordSignupAttempt`, `isLockedOut`, `detectPasswordSpray`, and `score` returning structured `AbuseDecision` values, plus the IP-reputation hook
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7_
-  - [-] 7.2 Write property test for login lockout threshold
+  - [x] 7.2 Write property test for login lockout threshold
     - **Property 15: Login lockout threshold**
     - **Validates: Requirements 7.1, 7.2**
-  - [-] 7.3 Write property test for signup throttling threshold
+  - [x] 7.3 Write property test for signup throttling threshold
     - **Property 16: Signup throttling threshold**
     - **Validates: Requirements 7.3**
-  - [-] 7.4 Write property test for password-spray classification
+  - [x] 7.4 Write property test for password-spray classification
     - **Property 17: Password-spray classification**
     - **Validates: Requirements 7.4**
-  - [-] 7.5 Write unit tests for suspicious-score computation and IP-reputation consultation
+  - [x] 7.5 Write unit tests for suspicious-score computation and IP-reputation consultation
     - Verify score combination, configured response action triggering, and the IP-reputation hook being consulted
     - _Requirements: 7.5, 7.6, 7.7_
 
@@ -128,7 +128,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
   - [x] 8.1 Implement `ModerationToolkit` in new `packages/core/src/security/moderation.ts`
     - Implement `ModerationStore` and an `InMemoryModerationStore` plus `ModerationToolkit` (`report`, `block`, `canMessage`, `mute`, `deliverable`, `queue`, `resolve`, `audit`); the audit log is append-only with no public mutation path, composing the patterns in `auth/audit-writer.ts`
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7_
-  - [-] 8.2 Write property test for mute scoping
+  - [x] 8.2 Write property test for mute scoping
     - **Property 19: Mute scoping**
     - **Validates: Requirements 8.4**
   - [~] 8.3 Write property test for audit-event immutability
