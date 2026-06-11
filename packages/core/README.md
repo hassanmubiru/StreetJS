@@ -2,7 +2,7 @@
 
 **Production-grade, memory-safe TypeScript backend framework built on Node.js core modules.**
 
-No Express. No `pg`. No Prisma. No Zod. Street is built entirely from `node:http`, `node:net`, `node:crypto`, `node:stream`, and `node:cluster` — plus two carefully chosen dependencies (`reflect-metadata` and `ws`). Every component enforces strict memory bounds and full type safety.
+No Express. No `pg`. No Prisma. Street is built entirely from `node:http`, `node:net`, `node:crypto`, `node:stream`, and `node:cluster` — plus three carefully chosen dependencies (`reflect-metadata`, `ws`, and `zod` for runtime input validation). Every component enforces strict memory bounds and full type safety.
 
 [![CI](https://github.com/hassanmubiru/street/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/hassanmubiru/street/actions/workflows/ci-cd.yml)
 [![npm version](https://img.shields.io/npm/v/streetjs)](https://www.npmjs.com/package/streetjs)
