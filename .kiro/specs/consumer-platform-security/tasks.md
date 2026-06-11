@@ -18,7 +18,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - Implement `InMemoryRateLimitStore` by extracting/reusing the current Map-based sliding-window logic so it is interchangeable with a future Redis-backed store
     - Support an injected clock (now-provider) so window timing is deterministic in tests
     - _Requirements: 3.8_
-  - [~] 1.2 Write unit tests for `InMemoryRateLimitStore`
+  - [-] 1.2 Write unit tests for `InMemoryRateLimitStore`
     - Cover hit/count semantics, window roll-off, and clock injection in a new `packages/core/src/tests/store.test.ts`
     - _Requirements: 3.8_
 
@@ -29,11 +29,11 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - Implement `validate(schemas): MiddlewareFn` that parses each declared source before calling `next()` so the handler never runs on failure, writing parsed values to `ctx.state.valid.<source>`
     - Implement `validated(ctx, schemas)` typed accessor (inferred handler types), `validateEnv` and `validateArgv` that collect failing names, print names to stderr, and `process.exit(1)` without emitting values
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8_
-  - [~] 2.2 Write property test for validation determinism and pass-through
+  - [-] 2.2 Write property test for validation determinism and pass-through
     - **Property 1: Validation determinism and conforming pass-through**
     - **Validates: Requirements 2.2, 2.9**
     - `packages/core/src/tests/validation-determinism-pbt.test.ts`, fast-check ≥100 runs
-  - [~] 2.3 Write property test for safe rejection before handler execution
+  - [-] 2.3 Write property test for safe rejection before handler execution
     - **Property 2: Invalid input is rejected safely before the handler runs**
     - **Validates: Requirements 2.3, 2.4, 2.5**
   - [~] 2.4 Write property test for startup never emitting secret/variable values
@@ -73,7 +73,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - _Requirements: 4.3_
 
 - [ ] 5. Implement Phase 4 — Media Upload Security (wrap `multipart/parser.ts`)
-  - [x] 5.1 Implement `UploadGuard` in new `packages/core/src/multipart/upload-guard.ts`
+  - [ ] 5.1 Implement `UploadGuard` in new `packages/core/src/multipart/upload-guard.ts`
     - Consume `ParsedFile[]` from `MultipartParser`; implement `detectFormat(head)` (magic bytes for JPEG/PNG/GIF/PDF), `guard(file)`, and `UploadRejected` (413 size, 415 type/mime/image-only/malware)
     - Enforce size cap (unlink temp file on rejection), declared-vs-true MIME match, image-only mode, EXIF stripping, malware-scan hook invoked before persistence (fail-closed), and a random `storedName` with no path separators or client filename
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9_
