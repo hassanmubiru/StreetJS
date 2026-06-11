@@ -79,10 +79,10 @@ describe('kafka chaos harness — pure artifact logic', () => {
     }
 
     // The cold-start + broker-restart pass counts reflect the full-scale targets.
-    const coldstart = artifacts.find((a) => a.capabilityId === 'kafka.coldstart');
+    const coldstart = artifacts.find((a) => a.capabilityId === 'kafka.coldstart').artifact;
     assert.equal(coldstart.details.passCount, 100);
     assert.equal(coldstart.details.total, 100);
-    const restart = artifacts.find((a) => a.capabilityId === 'kafka.chaos.broker-restart');
+    const restart = artifacts.find((a) => a.capabilityId === 'kafka.chaos.broker-restart').artifact;
     assert.equal(restart.details.passCount, 100);
   });
 
@@ -99,12 +99,12 @@ describe('kafka chaos harness — pure artifact logic', () => {
       params: PARAMS,
     });
 
-    const slow = artifacts.find((a) => a.capabilityId === 'kafka.chaos.slow-broker');
+    const slow = artifacts.find((a) => a.capabilityId === 'kafka.chaos.slow-broker').artifact;
     assert.equal(slow.status, 'PARTIAL', 'a scenario that lost messages must not be VERIFIED');
     assert.equal(slow.details.lostMessages, 3, 'the lost-message count is recorded exactly');
     assert.equal(slow.exitCode, 1);
 
-    const coldstart = artifacts.find((a) => a.capabilityId === 'kafka.coldstart');
+    const coldstart = artifacts.find((a) => a.capabilityId === 'kafka.coldstart').artifact;
     assert.equal(coldstart.status, 'VERIFIED', 'a passing scenario stays VERIFIED even when another fails');
   });
 
