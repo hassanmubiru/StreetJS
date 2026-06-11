@@ -131,10 +131,10 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
   - [x] 8.2 Write property test for mute scoping
     - **Property 19: Mute scoping**
     - **Validates: Requirements 8.4**
-  - [~] 8.3 Write property test for audit-event immutability
+  - [-] 8.3 Write property test for audit-event immutability
     - **Property 20: Audit-event immutability**
     - **Validates: Requirements 8.5, 8.7**
-  - [~] 8.4 Write unit tests for report/queue/resolve/block APIs
+  - [-] 8.4 Write unit tests for report/queue/resolve/block APIs
     - Verify report stored and queued, block records relationship, `canMessage` reflects block, and queue resolution
     - _Requirements: 8.1, 8.2, 8.3, 8.6_
 
@@ -142,7 +142,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
   - [x] 9.1 Implement `SecretProvider` in new `packages/core/src/security/secret-provider.ts`
     - Define the single `SecretProvider` interface and `GitHubSecretsProvider`, `AwsSecretsManagerProvider`, `AzureKeyVaultProvider`, `GcpSecretManagerProvider` adapters; implement `registerSecretForRedaction`/`redact` and `requireSecrets` (startup gate emitting only names, reusing vault's required-var behavior); refresh-on-read so rotated values appear without restart
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6_
-  - [~] 9.2 Write integration tests for adapters against mocked SDKs
+  - [-] 9.2 Write integration tests for adapters against mocked SDKs
     - Verify retrieval, rotation-on-next-read, and log redaction (including startup error paths) for all four adapters
     - _Requirements: 9.2, 9.3, 9.4, 9.6_
 
@@ -150,10 +150,10 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
   - [x] 10.1 Implement `PrivacyControls` in new `packages/core/src/security/privacy.ts`
     - Implement `PersonalDataSource` registration, `exportData`, `deleteAccount`, `enforceRetention` (one cycle), `setConsent`/`hasConsent`/`requireConsent` (latest decision wins, throws `ConsentRequiredError` when withdrawn)
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6_
-  - [~] 10.2 Write property test for deletion removing all personal data
+  - [-] 10.2 Write property test for deletion removing all personal data
     - **Property 21: Deletion removes all personal data**
     - **Validates: Requirements 10.2**
-  - [~] 10.3 Write property test for retention enforcement
+  - [-] 10.3 Write property test for retention enforcement
     - **Property 22: Retention enforcement removes exactly expired records**
     - **Validates: Requirements 10.3, 10.4**
   - [~] 10.4 Write property test for consent enforcement
