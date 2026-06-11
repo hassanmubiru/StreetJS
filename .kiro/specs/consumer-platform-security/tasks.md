@@ -171,13 +171,13 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
 - [~] 12. Checkpoint — core phases
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 13. Implement Phase 10 — `@streetjs/dating-auth`
-  - [-] 13.1 Scaffold and implement the `@streetjs/dating-auth` package under `packages/dating-auth`
+- [x] 13. Implement Phase 10 — `@streetjs/dating-auth`
+  - [x] 13.1 Scaffold and implement the `@streetjs/dating-auth` package under `packages/dating-auth`
     - Mirror the `@streetjs/plugin-*` layout (`package.json` with `main`/`types`/`exports`, `tsconfig.json`, `src/index.ts`, `README.md`, `examples/`); depend on `@streetjs/core` and wrap `JwtService`/`SessionManager`/`AbuseEngine` with no independent auth logic
     - _Requirements: 11.1, 11.6, 11.7_
 
 - [ ] 14. Implement Phase 10 — `@streetjs/dating-profiles`
-  - [-] 14.1 Scaffold and implement the `@streetjs/dating-profiles` package under `packages/dating-profiles`
+  - [x] 14.1 Scaffold and implement the `@streetjs/dating-profiles` package under `packages/dating-profiles`
     - Mirror the plugin layout and depend on `@streetjs/core`; implement `ProfileService` (`create`, `like`, `isMatch`) storing `bio` via `EncryptedField` and recording a `Match` on reciprocal likes; include docs, tests, and runnable examples
     - _Requirements: 11.1, 11.2, 11.6_
   - [~] 14.2 Write property test for reciprocal-like matching
@@ -185,8 +185,8 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - **Validates: Requirements 11.2**
     - Located in the `@streetjs/dating-profiles` package tests per the design
 
-- [ ] 15. Implement Phase 10 — `@streetjs/dating-moderation`
-  - [-] 15.1 Scaffold and implement the `@streetjs/dating-moderation` package under `packages/dating-moderation`
+- [x] 15. Implement Phase 10 — `@streetjs/dating-moderation`
+  - [x] 15.1 Scaffold and implement the `@streetjs/dating-moderation` package under `packages/dating-moderation`
     - Mirror the plugin layout and depend on `@streetjs/core`; provide blocking and reporting built on `ModerationToolkit`; include docs, tests, and runnable examples
     - _Requirements: 11.1, 11.4, 11.6_
 
