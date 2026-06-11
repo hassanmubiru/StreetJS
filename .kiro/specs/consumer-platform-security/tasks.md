@@ -48,16 +48,16 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - Add `parseWindow(window)`, `RateScope`, `ScopedRateLimitOptions`, and the `rateLimit(opts): MiddlewareFn` factory supporting global/per-IP/per-user scopes
     - Wire the limiter to the `RateLimitStore` abstraction (default `InMemoryRateLimitStore`) and add `RedisRateLimitStore` (sorted-set per key) for cross-instance enforcement, preserving the existing sliding-window/`Retry-After`/`X-RateLimit-*` behavior
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8_
-  - [-] 3.2 Implement the reproducible rate-limit benchmark harness
+  - [x] 3.2 Implement the reproducible rate-limit benchmark harness
     - Create `packages/core/src/benchmarks/ratelimit.bench.ts` measuring throughput (req/s) and per-request overhead, emitting metrics JSON for evidence capture
     - _Requirements: 3.9_
   - [-] 3.3 Write property test for window-duration parsing
     - **Property 4: Window-duration parsing is correct**
     - **Validates: Requirements 3.7**
-  - [-] 3.4 Write property test for sliding-window threshold behavior
+  - [x] 3.4 Write property test for sliding-window threshold behavior
     - **Property 5: Sliding-window rate-limit threshold behavior**
     - **Validates: Requirements 3.3, 3.4, 3.5, 3.6**
-  - [-] 3.5 Write unit tests for each rate-limit scope
+  - [x] 3.5 Write unit tests for each rate-limit scope
     - Verify global, per-IP, and per-user keying against `InMemoryRateLimitStore`
     - _Requirements: 3.2_
 
@@ -65,10 +65,10 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
   - [x] 4.1 Extend `packages/core/src/security/headers.ts` with override and explicit disable
     - Add `SecurityHeaderName`, extend `SecurityHeadersOptions` with `disable[]`, and confirm override semantics so a supplied value replaces the default and disabled names are omitted
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
-  - [ ] 4.2 Write property test for header-set invariance with override and disable
+  - [x] 4.2 Write property test for header-set invariance with override and disable
     - **Property 6: Security-header set invariance with override and disable**
     - **Validates: Requirements 4.2, 4.4, 4.5, 4.6**
-  - [~] 4.3 Write unit tests for production-safe default header values
+  - [-] 4.3 Write unit tests for production-safe default header values
     - Assert default CSP/HSTS/frame/referrer/permissions values restrict to same origin and deny framing
     - _Requirements: 4.3_
 
@@ -77,13 +77,13 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - Consume `ParsedFile[]` from `MultipartParser`; implement `detectFormat(head)` (magic bytes for JPEG/PNG/GIF/PDF), `guard(file)`, and `UploadRejected` (413 size, 415 type/mime/image-only/malware)
     - Enforce size cap (unlink temp file on rejection), declared-vs-true MIME match, image-only mode, EXIF stripping, malware-scan hook invoked before persistence (fail-closed), and a random `storedName` with no path separators or client filename
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9_
-  - [~] 5.2 Write property test for oversize rejection without persistence
+  - [-] 5.2 Write property test for oversize rejection without persistence
     - **Property 7: Oversize uploads are rejected and not persisted**
     - **Validates: Requirements 5.2**
-  - [~] 5.3 Write property test for magic-byte type enforcement
+  - [-] 5.3 Write property test for magic-byte type enforcement
     - **Property 8: Upload type enforcement from magic bytes**
     - **Validates: Requirements 5.3, 5.4, 5.5**
-  - [~] 5.4 Write property test for EXIF segment removal
+  - [-] 5.4 Write property test for EXIF segment removal
     - **Property 9: EXIF stripping removes all EXIF segments**
     - **Validates: Requirements 5.6**
   - [~] 5.5 Write property test for malware-verdict persistence prevention
