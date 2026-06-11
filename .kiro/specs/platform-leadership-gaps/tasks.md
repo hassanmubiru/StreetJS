@@ -55,7 +55,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Verification Artifact subsystem (CLI surface); package layout (`scripts/verification/run.mjs`)_
     - _Requirements: 1.7_
 
-- [ ] 2. Checkpoint - verification foundation
+- [x] 2. Checkpoint - verification foundation
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 3. Lazy database initialization (foundational for cloud bootstrap)
@@ -73,7 +73,7 @@ Each property-based test is tagged with the comment format:
     - Start the app with no PostgreSQL provisioned and assert startup < 30s and both health endpoints return 200 within 5s
     - _Requirements: 2.12_
 
-- [ ] 4. Cloud Deployment Verification
+- [x] 4. Cloud Deployment Verification
   - [x] 4.1 Extend the deployment generator with all seven targets, Helm chart, and HPA
     - Extend `packages/core/src/cloud/deployment.ts` with the `DeploymentTarget` union and `generateTargetAssets()`; extend `generateKubernetes` for production manifests + liveness/readiness probes, add the Helm chart (`deploy/helm/street/`) and the HPA autoscaling example
     - _Design: Components → Cloud Deployment Verifier (per-target deliverables table)_
@@ -269,7 +269,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Testing Strategy → Layer B_
     - _Requirements: 7.9_
 
-- [ ] 13. Upgrade System and codemods
+- [x] 13. Upgrade System and codemods
   - [x] 13.1 Implement version resolution and breaking-change analysis
     - In `packages/core/src/devx/` add `resolveVersions()` (detect installed, resolve target argument defaulting to latest; on unresolvable version halt with no file writes and an error naming the version) and `analyzeBreakingChanges()` producing `BreakingChange[]` with area + recommendation + optional `codemodId`
     - _Design: Components → Upgrade System; Error Handling 8.2_
