@@ -519,3 +519,195 @@ export function computeCertification(
 ### Certification (R1/R12)
 - Reuses `VerificationArtifact` (`verification/artifact.ts`) unchanged.
 - `CategoryStatus` / `CertificationReport` as above; `computedFrom` carries artifact paths as the evidence reference set.
+
+## Correctness Properties
+
+*A property is a characteristic or behavior that should hold true across all valid executions of a system — essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.*
+
+The following properties were derived from the EARS acceptance criteria via the prework analysis. Redundant criteria were consolidated (e.g. the six rate-limit header/threshold criteria fold into one threshold property; the encryption persistence/read/round-trip/envelope criteria fold into one round-trip property; the dating block criterion R11.5 is the same invariant as R8.3 exercised at the messaging layer). Each property is implemented by a single property-based test (`fast-check`, minimum 100 runs) tagged with **Feature: consumer-platform-security, Property N**.
+
+### Property 1: Validation determinism and conforming pass-through
+
+*For any* Validation_Schema and *any* input value that conforms to it, validating the value returns a value structurally equal to the schema-parsed value, and validating the same input repeatedly always returns structurally equal results.
+
+**Validates: Requirements 2.2, 2.9**
+
+### Property 2: Invalid input is rejected safely before the handler runs
+
+*For any* Validation_Schema and *any* input value that does not conform to it, validation rejects with HTTP status 400, the route handler is never invoked, the serialized `ValidationError` lists a field path and reason for each violated field, and the response body contains no stack trace or internal type information.
+
+**Validates: Requirements 2.3, 2.4, 2.5**
+
+### Property 3: Startup never emits secret/variable values
+
+*For any* declared environment variable or CLI argument whose value fails its Validation_Schema, startup terminates with a non-zero exit code and the emitted output contains the failing variable's name but never its value.
+
+**Validates: Requirements 2.8**
+
+### Property 4: Window-duration parsing is correct
+
+*For any* human-readable window duration string (e.g. `"30s"`, `"1m"`, `"2h"`), `parseWindow` returns the equivalent number of milliseconds.
+
+**Validates: Requirements 3.7**
+
+### Property 5: Sliding-window rate-limit threshold behavior
+
+*For any* configured maximum `M` and window `W`, and *any* sequence of timestamped requests for a key: every request whose count of prior in-window hits is below `M` is permitted and carries an `X-RateLimit-Remaining` header equal to the leftover allowance; the request that reaches `M` and any further request within the window is rejected with HTTP 429 and a `Retry-After` header expressing a positive number of seconds; and requests whose prior hits have aged out of `W` are counted as permitted again.
+
+**Validates: Requirements 3.3, 3.4, 3.5, 3.6**
+
+### Property 6: Security-header set invariance with override and disable
+
+*For any* route, response body, and supplied options under default configuration, the set of security-header names produced by `computeSecurityHeaders` is identical and independent of request/response content; *for any* supplied header value the output uses the supplied value in place of the default; and *for any* set of explicitly disabled header names those names are absent from the output.
+
+**Validates: Requirements 4.2, 4.4, 4.5, 4.6**
+
+### Property 7: Oversize uploads are rejected and not persisted
+
+*For any* uploaded file and configured `maxBytes`, the Upload_Guard accepts the file only when its size is at most `maxBytes`; a file exceeding `maxBytes` is rejected with HTTP 413 and its temporary file is removed (not persisted).
+
+**Validates: Requirements 5.2**
+
+### Property 8: Upload type enforcement from magic bytes
+
+*For any* uploaded file, the Upload_Guard determines the true format from the file's Magic_Byte_Signature independent of the declared MIME type; the file is accepted only when the detected format matches the declared MIME type and (when image-only mode is enabled) the detected format is an allowed image format; otherwise the upload is rejected with HTTP 415.
+
+**Validates: Requirements 5.3, 5.4, 5.5**
+
+### Property 9: EXIF stripping removes all EXIF segments
+
+*For any* accepted image containing EXIF metadata, the stored image produced in EXIF-stripping mode contains no EXIF metadata segments.
+
+**Validates: Requirements 5.6**
+
+### Property 10: Malware verdict prevents persistence
+
+*For any* accepted upload, the configured malware-scan hook is invoked before persistence, and *for any* file the hook reports as malicious the upload is rejected and the file is not persisted.
+
+**Validates: Requirements 5.7, 5.8**
+
+### Property 11: Stored filename is always safe
+
+*For any* client-supplied filename (including path-traversal and separator payloads), the generated stored filename contains no path separators and does not contain the client-supplied filename.
+
+**Validates: Requirements 5.9**
+
+### Property 12: Field-encryption round-trip
+
+*For any* supported plaintext value, encrypting then decrypting the value under a given keyring returns a value equal to the original plaintext, the stored envelope's ciphertext is not equal to the plaintext, and the envelope carries a wrapped Data_Encryption_Key together with the Key_Encryption_Key version used.
+
+**Validates: Requirements 6.2, 6.3, 6.4, 6.5**
+
+### Property 13: Key rotation preserves decryptability
+
+*For any* value encrypted under a Key_Encryption_Key version, after a new Key_Encryption_Key version is added and becomes current, decrypting the previously encrypted value still returns the original plaintext.
+
+**Validates: Requirements 6.6**
+
+### Property 14: Tamper detection
+
+*For any* encrypted envelope and *any* single-byte mutation of its ciphertext, authentication tag, or wrapped Data_Encryption_Key, decryption fails with an error and returns no plaintext.
+
+**Validates: Requirements 6.7**
+
+### Property 15: Login lockout threshold
+
+*For any* account, when the number of failed login attempts within the configured window reaches the configured threshold the account is placed into Account_Lockout for the configured duration, and while locked out every authentication attempt for that account is refused with a lockout-indicating response.
+
+**Validates: Requirements 7.1, 7.2**
+
+### Property 16: Signup throttling threshold
+
+*For any* source, when the number of signup attempts within the configured window reaches the configured threshold, further signup attempts from that source are throttled.
+
+**Validates: Requirements 7.3**
+
+### Property 17: Password-spray classification
+
+*For any* source, when failed logins span at least the configured number of distinct accounts within the configured window, the activity is classified as a password-spray pattern; otherwise it is not.
+
+**Validates: Requirements 7.4**
+
+### Property 18: Block prevents messaging
+
+*For any* pair of users, while a block relationship from user A to user B exists, user B is unable to send messages to user A; absent such a block, messaging is permitted. This invariant holds both in the Moderation_Toolkit and in the `@streetjs/dating-messaging` layer that composes it.
+
+**Validates: Requirements 8.3, 11.5**
+
+### Property 19: Mute scoping
+
+*For any* set of content items and mute relationships, content from a muted user is suppressed from the muting user's delivered view while remaining deliverable to every other recipient.
+
+**Validates: Requirements 8.4**
+
+### Property 20: Audit-event immutability
+
+*For any* sequence of public moderation operations (report, block, mute, resolve), each operation appends exactly one Audit_Event recording actor, target, action, and timestamp, and every previously recorded Audit_Event remains unchanged — the public API only appends to the audit log and never modifies prior events.
+
+**Validates: Requirements 8.5, 8.7**
+
+### Property 21: Deletion removes all personal data
+
+*For any* user and *any* personal data seeded across the registered data sources, after an account-deletion request completes for that user, every registered source returns no personal data for that user.
+
+**Validates: Requirements 10.2**
+
+### Property 22: Retention enforcement removes exactly expired records
+
+*For any* set of records with assigned ages and a configured retention policy, running a retention enforcement cycle removes exactly those records whose age exceeds their configured retention period and retains the rest.
+
+**Validates: Requirements 10.3, 10.4**
+
+### Property 23: Consent enforcement reflects the latest decision
+
+*For any* user, purpose, and sequence of consent grant/withdraw decisions (each recorded with purpose and timestamp), `requireConsent` refuses purpose-dependent processing if and only if the latest recorded decision for that purpose is a withdrawal.
+
+**Validates: Requirements 10.5, 10.6**
+
+### Property 24: Reciprocal likes produce a match
+
+*For any* sequence of likes between users, a match is recorded for a pair if and only if both users in the pair have liked each other.
+
+**Validates: Requirements 11.2**
+
+## Error Handling
+
+- **Validation (R2):** `ValidationError` carries HTTP 400 and a sanitized `issues` list. The router error handler serializes `error.toResponse()` only; stack traces and internal types are never written to the response body (R2.5). Startup validation failures call `process.exit(1)` after printing failing **names** to stderr (R2.8).
+- **Rate limiting (R3):** over-limit requests throw `RateLimitException` (existing, HTTP 429) with `Retry-After`. Backing-store failures (e.g. Redis unavailable) fail **closed or open per configuration**; the default in-memory store cannot fail this way. A `RedisRateLimitStore` connection error surfaces a typed error and the middleware falls back to permit-with-warning only when explicitly configured to (documented, security-relevant default is fail-closed).
+- **Uploads (R5):** `UploadRejected` distinguishes `413` (size) from `415` (type/MIME/image-only) and always unlinks the parser's temporary file on rejection so rejected files are never persisted. Malware-hook errors are treated as rejection (fail-closed).
+- **Encryption (R6):** `decrypt` throws on any GCM authentication failure (tampered `ct`/`tag`/`wrappedDek`) and never returns partial plaintext; missing KEK version in the keyring throws a descriptive error. This mirrors the existing `vault.decryptSecret`/`session.decrypt` fail-safe behavior.
+- **Abuse (R7):** lockout and throttle decisions are returned as structured `AbuseDecision` values (not thrown) so the auth layer chooses the HTTP response; `isLockedOut` is consulted before credential verification.
+- **Moderation (R8):** the store exposes no update/delete for audit events; attempts to mutate are impossible through the public API by construction (no method exists). Resolution updates touch `Report` records only, never `AuditEvent`s.
+- **Secrets (R8/R9):** retrieval failure for a **required** secret terminates startup non-zero emitting only the name (R9.5); retrieved values are registered for redaction so the logger masks them everywhere, including startup error handlers (R9.4).
+- **Privacy (R10):** `requireConsent` throws a typed `ConsentRequiredError` when the relevant purpose has been withdrawn (R10.6); export/delete operations are idempotent and safe to retry.
+- **Certification (R1/R12):** the existing `CommandRunner` already classifies timeouts and missing prerequisites as `BLOCKED`, writes artifacts atomically, and throws (leaving no partial artifact) on write failure. The new `computeCertification` is pure and never throws; a missing artifact yields a not-fully-certified category with the capability listed (R12.3).
+
+## Testing Strategy
+
+This feature is well suited to property-based testing for its pure, input-varying logic, and the repo already standardizes on `fast-check` with `node --test` (see `packages/core/src/tests/*-pbt.test.ts`). The strategy is dual: property tests for universal behavior, example/integration/smoke tests for everything else.
+
+**Property-based tests (PBT):**
+- Library: `fast-check` (already a dev dependency of `@streetjs/core`).
+- Each of the 24 Correctness Properties is implemented by exactly one property-based test, minimum **100 iterations**, located under `packages/core/src/tests/` (and the respective Phase 10 packages for Properties 18 and 24) following the existing `*-pbt.test.ts` naming.
+- Each test is tagged with a comment: **Feature: consumer-platform-security, Property N: {property text}**, and references the requirement IDs it validates.
+- Stateful subsystems (rate limiter, abuse engine, moderation) are tested against the `InMemory*` store implementations with an **injected clock** so window/lockout/retention timing is deterministic under generated timestamps.
+
+**Example-based unit tests:**
+- Per-source schema acceptance (R2.1), env/CLI happy path (R2.7), default header values (R4.3), each rate-limit scope (R3.2), malware-hook ordering (R5.7), suspicious-score computation and response action (R7.5/7.6), IP-reputation consultation (R7.7), report-store-and-queue and queue resolution (R8.1/8.6), block records relationship (R8.2), data export contents (R9.1).
+
+**Integration tests (1–3 examples, not PBT):**
+- `RedisRateLimitStore`, `RedisModerationStore`, and abuse counters against a real/mocked Redis to prove cross-instance consistency (R3.8); these are infrastructure-bound and do not vary meaningfully per input.
+- `SecretProvider` adapters (GitHub/AWS/Azure/GCP) against mocked SDKs to verify retrieval and rotation-on-next-read (R9.2/9.3/9.6) and log redaction (R9.4).
+- Upload storage to S3/R2 via the existing plugins for accepted files.
+- Certification: `computeCertification` over crafted artifact sets verifying category statuses, the unverified list when a contributing capability has no artifact, and that `computedFrom` references the evidence paths (R12.1–12.4).
+
+**Smoke / type tests:**
+- Type-level inference of handler parameters from schemas (R2.6).
+- Extension assertions confirming new code builds on existing modules (R3.1, R4.1, R5.1, R8.1-secrets, R9.1, R10.3/10.4-dating, R10.7).
+- Four Phase-10 packages build and export their public API (R11.1, R11.6).
+- Rate-limit benchmark harness runs and emits metrics JSON (R3.9).
+
+**Zero-Trust evidence capture (R1, R12):**
+- Every feature's verification step is executed through the existing `CommandRunner.run({ capabilityId, command, evidenceHints, outDir })` during task execution. The runner spawns the real command (build, `node --test`, lint, example run), derives the four evidence components, classifies a status via the pure `classify()` engine, and writes an atomic `<capabilityId>.artifact.json`.
+- After all capabilities run, `computeCertification` aggregates the recorded artifacts into the eight-category scorecard, deriving every status solely from artifacts and referencing the artifact paths as evidence.
+- No `VERIFIED` status or scorecard verdict is written into this design or the requirements; statuses exist only as the product of executed-command evidence captured during task execution.
