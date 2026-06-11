@@ -43,7 +43,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - Cover each `InputSource` (body/query/params/headers/cookies), startup happy path, and schema-inferred handler parameter types
     - _Requirements: 2.1, 2.6, 2.7_
 
-- [ ] 3. Implement Phase 2 — Global Rate Limiting (extend `security/ratelimit.ts`)
+- [x] 3. Implement Phase 2 — Global Rate Limiting (extend `security/ratelimit.ts`)
   - [x] 3.1 Extend `packages/core/src/security/ratelimit.ts` with scopes, stores, and window parsing
     - Add `parseWindow(window)`, `RateScope`, `ScopedRateLimitOptions`, and the `rateLimit(opts): MiddlewareFn` factory supporting global/per-IP/per-user scopes
     - Wire the limiter to the `RateLimitStore` abstraction (default `InMemoryRateLimitStore`) and add `RedisRateLimitStore` (sorted-set per key) for cross-instance enforcement, preserving the existing sliding-window/`Retry-After`/`X-RateLimit-*` behavior
@@ -51,7 +51,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
   - [x] 3.2 Implement the reproducible rate-limit benchmark harness
     - Create `packages/core/src/benchmarks/ratelimit.bench.ts` measuring throughput (req/s) and per-request overhead, emitting metrics JSON for evidence capture
     - _Requirements: 3.9_
-  - [-] 3.3 Write property test for window-duration parsing
+  - [x] 3.3 Write property test for window-duration parsing
     - **Property 4: Window-duration parsing is correct**
     - **Validates: Requirements 3.7**
   - [x] 3.4 Write property test for sliding-window threshold behavior
@@ -61,14 +61,14 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - Verify global, per-IP, and per-user keying against `InMemoryRateLimitStore`
     - _Requirements: 3.2_
 
-- [ ] 4. Implement Phase 3 — Security Headers (extend `security/headers.ts`)
+- [x] 4. Implement Phase 3 — Security Headers (extend `security/headers.ts`)
   - [x] 4.1 Extend `packages/core/src/security/headers.ts` with override and explicit disable
     - Add `SecurityHeaderName`, extend `SecurityHeadersOptions` with `disable[]`, and confirm override semantics so a supplied value replaces the default and disabled names are omitted
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
   - [x] 4.2 Write property test for header-set invariance with override and disable
     - **Property 6: Security-header set invariance with override and disable**
     - **Validates: Requirements 4.2, 4.4, 4.5, 4.6**
-  - [-] 4.3 Write unit tests for production-safe default header values
+  - [x] 4.3 Write unit tests for production-safe default header values
     - Assert default CSP/HSTS/frame/referrer/permissions values restrict to same origin and deny framing
     - _Requirements: 4.3_
 
@@ -77,19 +77,19 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - Consume `ParsedFile[]` from `MultipartParser`; implement `detectFormat(head)` (magic bytes for JPEG/PNG/GIF/PDF), `guard(file)`, and `UploadRejected` (413 size, 415 type/mime/image-only/malware)
     - Enforce size cap (unlink temp file on rejection), declared-vs-true MIME match, image-only mode, EXIF stripping, malware-scan hook invoked before persistence (fail-closed), and a random `storedName` with no path separators or client filename
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9_
-  - [-] 5.2 Write property test for oversize rejection without persistence
+  - [x] 5.2 Write property test for oversize rejection without persistence
     - **Property 7: Oversize uploads are rejected and not persisted**
     - **Validates: Requirements 5.2**
-  - [-] 5.3 Write property test for magic-byte type enforcement
+  - [x] 5.3 Write property test for magic-byte type enforcement
     - **Property 8: Upload type enforcement from magic bytes**
     - **Validates: Requirements 5.3, 5.4, 5.5**
-  - [-] 5.4 Write property test for EXIF segment removal
+  - [x] 5.4 Write property test for EXIF segment removal
     - **Property 9: EXIF stripping removes all EXIF segments**
     - **Validates: Requirements 5.6**
-  - [~] 5.5 Write property test for malware-verdict persistence prevention
+  - [-] 5.5 Write property test for malware-verdict persistence prevention
     - **Property 10: Malware verdict prevents persistence**
     - **Validates: Requirements 5.7, 5.8**
-  - [~] 5.6 Write property test for always-safe stored filenames
+  - [-] 5.6 Write property test for always-safe stored filenames
     - **Property 11: Stored filename is always safe**
     - **Validates: Requirements 5.9**
 
@@ -97,13 +97,13 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
   - [x] 6.1 Implement `EncryptedField` in new `packages/core/src/security/encrypted-field.ts`
     - Reuse the AES-256-GCM layout from `vault.ts`/`session.ts`; implement `Keyring`, `KeyringEntry`, `EncryptedEnvelope`, the branded `EncryptedField<T>` type, and `FieldCipher` (`encrypt` generates a DEK and wraps it under the current KEK; `decrypt` unwraps by envelope version and throws on tamper)
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7_
-  - [~] 6.2 Write property test for the encryption round-trip
+  - [-] 6.2 Write property test for the encryption round-trip
     - **Property 12: Field-encryption round-trip**
     - **Validates: Requirements 6.2, 6.3, 6.4, 6.5**
-  - [~] 6.3 Write property test for key-rotation decryptability
+  - [-] 6.3 Write property test for key-rotation decryptability
     - **Property 13: Key rotation preserves decryptability**
     - **Validates: Requirements 6.6**
-  - [~] 6.4 Write property test for tamper detection
+  - [-] 6.4 Write property test for tamper detection
     - **Property 14: Tamper detection**
     - **Validates: Requirements 6.7**
 
