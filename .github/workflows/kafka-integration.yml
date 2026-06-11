@@ -112,6 +112,9 @@ jobs:
         run: npx tsc
         working-directory: packages/core
 
+      - name: Run chaos harness unit tests (offline)
+        run: node --test scripts/tests/kafka-chaos-harness.test.mjs
+
       - name: Run cold-start + chaos suite and emit artifacts
         env:
           COLD_STARTS: ${{ github.event.inputs.cold_starts || '100' }}
