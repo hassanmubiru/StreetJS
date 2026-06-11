@@ -62,7 +62,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - _Requirements: 3.2_
 
 - [ ] 4. Implement Phase 3 — Security Headers (extend `security/headers.ts`)
-  - [-] 4.1 Extend `packages/core/src/security/headers.ts` with override and explicit disable
+  - [x] 4.1 Extend `packages/core/src/security/headers.ts` with override and explicit disable
     - Add `SecurityHeaderName`, extend `SecurityHeadersOptions` with `disable[]`, and confirm override semantics so a supplied value replaces the default and disabled names are omitted
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
   - [~] 4.2 Write property test for header-set invariance with override and disable
