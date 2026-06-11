@@ -214,7 +214,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
   - [x] 19.1 Implement the evidence-capture orchestration script
     - Implement a script that runs each capability's verification step through the existing `CommandRunner.run({ capabilityId, command, evidenceHints, outDir })` (build, `node --test`, lint, example run), writing one atomic `<capabilityId>.artifact.json` per capability so VERIFIED status derives from real executed-command output
     - _Requirements: 1.2, 1.3, 1.4, 12.5_
-  - [~] 19.2 Generate the Certification Report from captured artifacts
+  - [-] 19.2 Generate the Certification Report from captured artifacts
     - Wire `computeCertification` over the captured artifact set to emit the eight-category scorecard, listing unverified features per not-fully-certified category and referencing artifact paths as evidence
     - _Requirements: 1.1, 12.1, 12.2, 12.3, 12.4, 12.5_
 
