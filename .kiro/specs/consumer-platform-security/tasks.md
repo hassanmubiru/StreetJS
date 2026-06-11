@@ -33,7 +33,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - **Property 1: Validation determinism and conforming pass-through**
     - **Validates: Requirements 2.2, 2.9**
     - `packages/core/src/tests/validation-determinism-pbt.test.ts`, fast-check ≥100 runs
-  - [-] 2.3 Write property test for safe rejection before handler execution
+  - [ ] 2.3 Write property test for safe rejection before handler execution
     - **Property 2: Invalid input is rejected safely before the handler runs**
     - **Validates: Requirements 2.3, 2.4, 2.5**
   - [~] 2.4 Write property test for startup never emitting secret/variable values
