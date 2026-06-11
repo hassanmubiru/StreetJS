@@ -194,13 +194,17 @@ if want network-interruption; then
     docker network connect "$NET" "$CONTAINER" >/dev/null 2>&1 || true
     wait_healthy
     # Client must resume consuming within 60s of restoration (Req 9.6).
+    LAST_PRODUCED=0; LAST_DELIVERED=0; LAST_LOST=0; LAST_OK=0
     if account_messages "network-interruption"; then
       echo "  network-interruption: recovered, 0 lost"
+      emit_scenario "network-interruption" true true 1 1
     else
       echo "  network-interruption: FAILED (messages lost or probe error)"; FAILURES=$((FAILURES+1))
+      emit_scenario "network-interruption" true false 0 1
     fi
   else
     echo "  could not determine broker network; skipping network-interruption" >&2
+    emit_scenario "network-interruption" false false 0 1
   fi
 fi
 
@@ -212,10 +216,13 @@ if want connection-loss; then
   sleep 8
   docker unpause "$CONTAINER" >/dev/null 2>&1 || true
   wait_healthy
+  LAST_PRODUCED=0; LAST_DELIVERED=0; LAST_LOST=0; LAST_OK=0
   if account_messages "connection-loss"; then
     echo "  connection-loss: recovered, 0 lost"
+    emit_scenario "connection-loss" true true 1 1
   else
     echo "  connection-loss: FAILED (messages lost or probe error)"; FAILURES=$((FAILURES+1))
+    emit_scenario "connection-loss" true false 0 1
   fi
 fi
 
@@ -239,11 +246,15 @@ if want slow-broker; then
     docker unpause "$CONTAINER" >/dev/null 2>&1 || true
   fi
   # Messages must still be delivered with zero loss (Req 9.7).
+  LAST_PRODUCED=0; LAST_DELIVERED=0; LAST_LOST=0; LAST_OK=0
   if account_messages "slow-broker"; then
     echo "  slow-broker: delivered with 0 lost"
+    sb_ok=true
   else
     echo "  slow-broker: FAILED (messages lost or probe error)"; FAILURES=$((FAILURES+1))
+    sb_ok=false
   fi
+  emit_scenario "slow-broker" true "$sb_ok" "$( [ "$sb_ok" = true ] && echo 1 || echo 0 )" 1
   if [ "$TC_OK" -eq 1 ]; then
     docker exec "$CONTAINER" sh -c "tc qdisc del dev eth0 root netem" >/dev/null 2>&1 || true
   fi
@@ -259,6 +270,27 @@ echo "  restart cycles ok:     $RESTART_REC"
 echo "  produced (total):      $TOTAL_PRODUCED"
 echo "  delivered (committed): $TOTAL_DELIVERED"
 echo "  lost messages:         $TOTAL_LOST"
+
+# Machine-readable per-scenario summary for the artifact driver (Req 9.8).
+if [ -n "$CHAOS_SUMMARY_PATH" ]; then
+  mkdir -p "$(dirname "$CHAOS_SUMMARY_PATH")"
+  cat > "$CHAOS_SUMMARY_PATH" <<JSON
+{
+  "coldStarts": $COLD_STARTS,
+  "restartCycles": $RESTART_CYCLES,
+  "accountCount": $ACCOUNT_COUNT,
+  "slowBrokerMs": $SLOW_BROKER_MS,
+  "brokers": "$BROKERS",
+  "scenariosRequested": "$SCENARIOS",
+  "failures": $FAILURES,
+  "totalProduced": $TOTAL_PRODUCED,
+  "totalDelivered": $TOTAL_DELIVERED,
+  "totalLost": $TOTAL_LOST,
+  "scenarios": { $SCEN_JSON }
+}
+JSON
+  echo "  summary written:       $CHAOS_SUMMARY_PATH"
+fi
 
 if [ "$FAILURES" -eq 0 ] && [ "$TOTAL_LOST" -eq 0 ]; then
   echo "RELIABILITY CHECK PASSED (0 failures, $TOTAL_LOST lost messages)"

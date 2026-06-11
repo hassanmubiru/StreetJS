@@ -8,6 +8,18 @@ on:
       - '.github/workflows/kafka-integration.yml'
   pull_request:
   workflow_dispatch:
+    inputs:
+      cold_starts:
+        description: 'Cold-start count (full scale = 100)'
+        required: false
+        default: '100'
+      restart_cycles:
+        description: 'Broker-restart cycle count (full scale = 100)'
+        required: false
+        default: '100'
+  schedule:
+    # Weekly full-scale chaos run (Mondays 06:00 UTC).
+    - cron: '0 6 * * 1'
 
 permissions:
   contents: read
@@ -68,3 +80,50 @@ jobs:
           KAFKA_BROKERS: 127.0.0.1:9092
         run: node --test --test-timeout=60000 dist/src/integration/kafka/*.integration.test.js
         working-directory: packages/core
+
+  # Full-scale (100/100) cold-start + chaos suite (Layer B, Requirements
+  # 9.4–9.8, task 15.5). Runs only on demand or on the weekly schedule — it
+  # boots its own apache/kafka:3.7.1 (KRaft) broker via docker-compose and
+  # injects broker-restart / network-interruption / connection-loss / slow-broker
+  # faults, so it is far heavier than the per-PR integration job above. The
+  # driver emits one Verification Artifact per capability through CommandRunner
+  # (kafka.coldstart + kafka.chaos.*) and records an honest BLOCKED when no
+  # broker can be reached/started.
+  kafka-chaos:
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build core
+        run: npm run build -w packages/core
+
+      - name: Compile tests + integration suite
+        run: npx tsc
+        working-directory: packages/core
+
+      - name: Run cold-start + chaos suite and emit artifacts
+        env:
+          COLD_STARTS: ${{ github.event.inputs.cold_starts || '100' }}
+          RESTART_CYCLES: ${{ github.event.inputs.restart_cycles || '100' }}
+          KAFKA_BROKERS: 127.0.0.1:9092
+        run: node scripts/reliability/verify.mjs
+
+      - name: Upload Kafka verification artifacts
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: kafka-chaos-artifacts
+          path: verification-artifacts/kafka/*.artifact.json
+          if-no-files-found: warn
+          retention-days: 90

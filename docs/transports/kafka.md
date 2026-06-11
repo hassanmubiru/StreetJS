@@ -373,3 +373,63 @@ topics load and leaders are elected. The client gates these automatically:
 
 Verified: the integration suite passes **8/8 cold-broker restart cycles** and
 **100/100 consecutive runs** against a real `apache/kafka:3.7.1` broker.
+
+## Coordinator Readiness Gate
+
+Before consuming, the `CoordinatorReadinessGate` waits up to 30 s for a
+successful `FindCoordinator` response **and** `__consumer_offsets` stability
+(the topic exists and every partition has a live leader). On timeout it does not
+begin consuming and preserves any committed consumer offsets, so a not-yet-ready
+cluster never causes a partial join or offset loss.
+
+## Chaos verification & Verification Artifacts
+
+The Kafka client is verified under adverse conditions by a parameterized,
+reproducible chaos harness, `scripts/reliability/kafka-cold-start.sh`, that runs
+real fault scenarios against a live broker:
+
+| Scenario | Fault injected | Pass condition |
+|---|---|---|
+| `cold-start` | repeated fresh client bootstrap | 100 % pass, 0 lost messages |
+| `broker-restart` | `docker restart` the broker each cycle | recovers every cycle, 0 lost |
+| `network-interruption` | disconnect/reconnect the broker network | resumes within 60 s, all delivered |
+| `connection-loss` | pause/unpause the broker (TCP stall) | recovers, 0 lost |
+| `slow-broker` | inject ≥ 5000 ms response delay (netem) | still delivers, 0 lost |
+
+A **lost message** is a produced message never delivered to a *committed*
+consumer; the harness accounts `produced − deliveredToCommitted` after each
+scenario and requires zero loss overall.
+
+The suite is parameterized for the full-scale targets (100 cold starts /
+100 broker restarts):
+
+```bash
+# Full-scale local run (boots its own apache/kafka:3.7.1 broker via compose):
+COLD_STARTS=100 RESTART_CYCLES=100 scripts/reliability/kafka-cold-start.sh
+
+# Drive it through the verification runner so it emits artifacts:
+npm run verify:kafka-chaos
+```
+
+`npm run verify:kafka-chaos` (the `scripts/reliability/verify.mjs` driver) runs
+the suite through the zero-dependency `CommandRunner` and emits one
+machine-readable Verification Artifact per capability under
+`verification-artifacts/kafka/`:
+
+```
+kafka.coldstart.artifact.json
+kafka.chaos.broker-restart.artifact.json
+kafka.chaos.network-interruption.artifact.json
+kafka.chaos.connection-loss.artifact.json
+kafka.chaos.slow-broker.artifact.json
+```
+
+Each artifact records the parameter values, the pass count, the lost-message
+count, and an ISO-8601 timestamp. When no broker is reachable and no container
+runtime + `apache/kafka:3.7.1` image is available to start one, the driver
+records every capability as an honest **BLOCKED** with the specific missing
+prerequisite (`kafka-broker` / `docker-daemon` / `docker-image:apache/kafka:3.7.1`)
+— never a mock, never a false VERIFIED. The `kafka-integration` GitHub Actions
+workflow runs the full-scale suite on demand (`workflow_dispatch`) and on a
+weekly schedule, uploading the artifacts.
+
