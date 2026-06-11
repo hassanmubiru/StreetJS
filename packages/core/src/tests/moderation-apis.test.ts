@@ -21,8 +21,8 @@ import {
   ModerationToolkit,
   InMemoryModerationStore,
   UnknownReportError,
-  type Clock,
 } from '../security/moderation.js';
+import type { Clock } from '../security/store.js';
 
 // A fixed clock pins every createdAt/resolvedAt timestamp to a known value so
 // the tests can assert on them directly.
