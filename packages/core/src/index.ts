@@ -37,7 +37,7 @@ export {
 export {
   buildCsp, computeSecurityHeaders, securityHeadersMiddleware, DEFAULT_CSP,
 } from './security/headers.js';
-export type { CspDirectives, SecurityHeadersOptions } from './security/headers.js';
+export type { CspDirectives, SecurityHeadersOptions, SecurityHeaderName } from './security/headers.js';
 export {
   createMutualTlsServer, clientCertMiddleware, validateClientCert,
   certificateFingerprint, verifyCertificatePin, TrustStore, rotateServerCertificate,
@@ -150,6 +150,55 @@ export type {
   Clock, KeyValueStore, CounterStore, RateLimitStore, InMemoryRateLimitStoreOptions,
 } from './security/store.js';
 export { sanitizeString, sanitizeDeep, escapeHtml, xssMiddleware } from './security/xss.js';
+
+// ── Consumer Platform Security ────────────────────────────────────────────────
+// Runtime input validation (Phase 1, R2).
+export {
+  ValidationError, validate, validated, validateEnv, validateArgv,
+} from './security/validation.js';
+export type {
+  InputSource, RouteSchemas, FieldIssue, ValidatedState,
+} from './security/validation.js';
+// Field-level encryption (Phase 5, R6).
+export { Keyring, FieldCipher, isEncryptedField } from './security/encrypted-field.js';
+export type { KeyringEntry, EncryptedEnvelope, EncryptedField } from './security/encrypted-field.js';
+// Abuse prevention (Phase 6, R7).
+export { AbuseEngine } from './security/abuse.js';
+export type {
+  AbuseConfig, AuthSignal, AbuseReason, AbuseDecision, IpReputationHook,
+} from './security/abuse.js';
+// Moderation toolkit (Phase 7, R8).
+export { ModerationToolkit, InMemoryModerationStore, UnknownReportError } from './security/moderation.js';
+export type {
+  ModerationAction, ReportResolution, Report, AuditEvent as ModerationAuditEvent,
+  ModerationStore, ModerationToolkitOptions,
+} from './security/moderation.js';
+// Secrets management (Phase 8, R9). The provider interface and three cloud
+// adapter classes share names with the existing `cloud/secret-providers.ts`
+// exports, so the consumer-platform variants are re-exported under aliased
+// names to keep the public surface collision-free.
+export {
+  REDACTION_PLACEHOLDER, registerSecretForRedaction, redact, clearRedactionRegistry,
+  GitHubSecretsProvider, requireSecrets,
+  AwsSecretsManagerProvider as AwsSecretsProvider,
+  AzureKeyVaultProvider as AzureSecretsProvider,
+  GcpSecretManagerProvider as GcpSecretsProvider,
+} from './security/secret-provider.js';
+export type {
+  SecretProvider as SecretsProvider, SecretFetcher, SecretProviderBaseOptions,
+  GitHubSecretsProviderOptions, RequireSecretsOptions,
+  AwsSecretsManagerProviderOptions as AwsSecretsProviderOptions,
+  AzureKeyVaultProviderOptions as AzureSecretsProviderOptions,
+  GcpSecretManagerProviderOptions as GcpSecretsProviderOptions,
+} from './security/secret-provider.js';
+// Privacy controls (Phase 9, R10).
+export {
+  PrivacyControls, InMemoryRetentionStore, ConsentRequiredError,
+} from './security/privacy.js';
+export type {
+  PersonalDataSource, RetentionPolicy, RetainableRecord, RetentionRecordStore,
+  ConsentDecision, PrivacyControlsOptions,
+} from './security/privacy.js';
 
 // ── Multipart ─────────────────────────────────────────────────────────────────
 export { MultipartParser } from './multipart/parser.js';
