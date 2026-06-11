@@ -294,6 +294,7 @@ Hardened building blocks for high-risk consumer apps (dating, social, messaging,
 
 ```typescript
 import { z } from 'zod';
+import { randomBytes } from 'node:crypto';
 import {
   validate, validated,                       // runtime input validation (rejects bad input before the handler)
   rateLimit,                                  // scoped rate limiting: global / per-IP / per-user
