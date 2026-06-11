@@ -63,7 +63,7 @@ const TOTAL_BUDGET_MS = Number(
 // Health-endpoint startup budget — the target must respond within 30s (Req 3.1).
 const HEALTH_BUDGET_MS = Number(process.env.DAST_HEALTH_TIMEOUT_MS ?? '30000');
 
-const CAPABILITY_ID = 'security.dast';
+const CAPABILITY_ID = 'dast.scan';
 const start = Date.now();
 const deadline = start + TOTAL_BUDGET_MS;
 const remainingBudget = () => deadline - Date.now();

@@ -240,8 +240,9 @@ export function evaluateDastGate(findings: DastFinding[], opts: DastGateOptions 
 const DAST_GENERATOR_TOOL = 'street-dast';
 /** The DAST emitter's generator version (independent of package version on purpose). */
 const DAST_GENERATOR_VERSION = '1';
-/** The dotted capability id recorded by every DAST artifact. */
-const DAST_CAPABILITY_ID = 'security.dast';
+/** The dotted capability id recorded by every DAST artifact (the Platform
+ *  Leadership join key — see PLATFORM_LEADERSHIP_CAPABILITIES). */
+const DAST_CAPABILITY_ID = 'dast.scan';
 /** The scanners the DAST pipeline drives; always recorded even with zero findings. */
 const DAST_DEFAULT_TOOLS = ['schemathesis', 'zap-baseline', 'zap-api'] as const;
 

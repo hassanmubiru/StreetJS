@@ -128,7 +128,7 @@ describe('DAST — Verification Artifact emitter (buildDastArtifact)', () => {
     assert.equal(validateArtifact(artifact).valid, true, validateArtifact(artifact).errors.join('; '));
     const details = artifact.details as unknown as DastArtifactDetails;
     assert.deepEqual(details.counts, { info: 0, low: 1, medium: 0, high: 1, critical: 0 });
-    assert.equal(artifact.capabilityId, 'security.dast');
+    assert.equal(artifact.capabilityId, 'dast.scan');
     assert.ok(artifact.generator.tool.length > 0);
   });
 
