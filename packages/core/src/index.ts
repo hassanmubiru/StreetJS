@@ -135,8 +135,14 @@ export type { JwtPayload, JwtOptions } from './security/jwt.js';
 export { SessionManager } from './security/session.js';
 export type { SessionData } from './security/session.js';
 export { encryptSecret, decryptSecret, loadConfig, constantTimeEqual } from './security/vault.js';
-export { RateLimiter, RateLimitException, RateLimit, getRateLimitMeta } from './security/ratelimit.js';
-export type { RateLimiterOptions, RateLimitDecoratorOptions } from './security/ratelimit.js';
+export {
+  RateLimiter, RateLimitException, RateLimit, getRateLimitMeta,
+  rateLimit, parseWindow, RedisRateLimitStore,
+} from './security/ratelimit.js';
+export type {
+  RateLimiterOptions, RateLimitDecoratorOptions,
+  RateScope, ScopedRateLimitOptions, RedisLike, RedisRateLimitStoreOptions,
+} from './security/ratelimit.js';
 export {
   systemClock, InMemoryRateLimitStore, InMemoryCounterStore, InMemoryKeyValueStore,
 } from './security/store.js';
@@ -148,6 +154,8 @@ export { sanitizeString, sanitizeDeep, escapeHtml, xssMiddleware } from './secur
 // ── Multipart ─────────────────────────────────────────────────────────────────
 export { MultipartParser } from './multipart/parser.js';
 export type { ParsedFile, MultipartResult } from './multipart/parser.js';
+export { UploadGuard, UploadRejected, stripJpegExif } from './multipart/upload-guard.js';
+export type { UploadPolicy, UploadGuardResult, UploadRejectionCode } from './multipart/upload-guard.js';
 
 // ── WebSocket + SSE ───────────────────────────────────────────────────────────
 export { StreetWebSocketServer, StreetSocket } from './websocket/server.js';
