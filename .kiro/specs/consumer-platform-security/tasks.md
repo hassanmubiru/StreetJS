@@ -206,12 +206,12 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
   - [x] 18.1 Implement `computeCertification` and the capability set in new `packages/core/src/verification/certification.ts`
     - Define the frozen `CONSUMER_PLATFORM_CAPABILITIES`, `ReportCategory`, `CategoryStatus`, and `CertificationReport`; implement the pure `computeCertification(artifacts, now?)` that maps capabilities to the eight categories and derives statuses solely from recorded artifacts (missing artifact ⇒ not `VERIFIED`, listed in `unverified`), reusing `artifact.ts`/`status.ts`/`aggregator.ts`; re-export from `index.ts`
     - _Requirements: 1.5, 12.1, 12.2, 12.3, 12.4_
-  - [~] 18.2 Write integration tests for `computeCertification`
+  - [-] 18.2 Write integration tests for `computeCertification`
     - Over crafted artifact sets, verify category statuses, the unverified list when a contributing capability has no artifact, and that `computedFrom` references the evidence paths
     - _Requirements: 12.1, 12.2, 12.3, 12.4_
 
 - [ ] 19. Capture Zero-Trust evidence and produce the certification report
-  - [~] 19.1 Implement the evidence-capture orchestration script
+  - [-] 19.1 Implement the evidence-capture orchestration script
     - Implement a script that runs each capability's verification step through the existing `CommandRunner.run({ capabilityId, command, evidenceHints, outDir })` (build, `node --test`, lint, example run), writing one atomic `<capabilityId>.artifact.json` per capability so VERIFIED status derives from real executed-command output
     - _Requirements: 1.2, 1.3, 1.4, 12.5_
   - [~] 19.2 Generate the Certification Report from captured artifacts
