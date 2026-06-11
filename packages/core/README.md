@@ -288,6 +288,46 @@ app.use(authMiddleware);
 app.use(requireRoles('admin'));
 ```
 
+### Consumer platform security
+
+Hardened building blocks for high-risk consumer apps (dating, social, messaging, marketplaces) — all in the package root, built on `node:crypto` and the pluggable backing-store abstraction. See the full guide: [Consumer Platform Security](https://hassanmubiru.github.io/street/security/consumer-platform/).
+
+```typescript
+import { z } from 'zod';
+import {
+  validate, validated,                       // runtime input validation (rejects bad input before the handler)
+  rateLimit,                                  // scoped rate limiting: global / per-IP / per-user
+  securityHeadersMiddleware,                  // hardened default security headers
+  UploadGuard,                                // magic-byte + size + malware + EXIF-strip upload guard
+  Keyring, FieldCipher,                       // AES-256-GCM field-level encryption (envelope + key rotation)
+  AbuseEngine,                                // login lockout, signup throttle, password-spray, scoring
+  ModerationToolkit,                          // report / block / mute + append-only audit log
+  GitHubSecretsProvider, requireSecrets,      // pluggable secret providers + redaction + startup gate
+  PrivacyControls,                            // export / delete / retention / consent
+} from 'streetjs';
+
+// Validate every external input against a schema; the handler never runs on bad input.
+const schemas = {
+  body: z.object({ email: z.string().email(), age: z.number().int().min(18) }),
+  params: z.object({ id: z.string().uuid() }),
+};
+
+router.post('/users/:id', validate(schemas), async (ctx) => {
+  const { body, params } = validated(ctx, schemas);   // fully typed from the schemas
+  await createUser(params.id, body.email, body.age);
+});
+
+// Scoped rate limiting with a human-readable window
+router.use(rateLimit({ scope: 'ip', requests: 100, window: '1m' }));
+
+// Field-level encryption at rest (envelope encryption; rotate by adding KEK versions)
+const cipher = new FieldCipher(new Keyring([{ version: 1, kek: process.env.KEK_BYTES }]));
+const enc = cipher.encrypt('+1-555-0100');
+const plain = cipher.decrypt(enc);   // '+1-555-0100' — tamper throws, never returns plaintext
+```
+
+Included subsystems: **runtime input validation**, **scoped rate limiting** (in-memory or Redis-backed for multi-instance), **security headers**, **upload guard**, **field-level encryption**, **abuse prevention**, **moderation toolkit**, **pluggable secret providers**, and **privacy controls**. Official dating reference packages compose these primitives: [`@streetjs/dating-auth`](https://www.npmjs.com/package/@streetjs/dating-auth), [`@streetjs/dating-profiles`](https://www.npmjs.com/package/@streetjs/dating-profiles), [`@streetjs/dating-messaging`](https://www.npmjs.com/package/@streetjs/dating-messaging), and [`@streetjs/dating-moderation`](https://www.npmjs.com/package/@streetjs/dating-moderation).
+
 ### WebSocket
 
 ```typescript
