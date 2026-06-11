@@ -310,7 +310,10 @@ export class RegistryCommand {
 
   private apiBase(ctx: CliContext): string {
     const base = this.flag(ctx, 'registry') ?? process.env['STREET_REGISTRY_URL'] ?? 'http://localhost:8787';
-    return `${base.replace(/\/+$/, '')}/api/v1`;
+    // Strip trailing slashes with a linear scan (avoids polynomial ReDoS from /\/+$/).
+    let end = base.length;
+    while (end > 0 && base[end - 1] === '/') end -= 1;
+    return `${base.slice(0, end)}/api/v1`;
   }
 
   /** Encode a (possibly scoped) plugin name path-segment-by-segment, keeping the `/`. */
