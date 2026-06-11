@@ -147,7 +147,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - _Requirements: 9.2, 9.3, 9.4, 9.6_
 
 - [ ] 10. Implement Phase 9 — Privacy Controls
-  - [-] 10.1 Implement `PrivacyControls` in new `packages/core/src/security/privacy.ts`
+  - [ ] 10.1 Implement `PrivacyControls` in new `packages/core/src/security/privacy.ts`
     - Implement `PersonalDataSource` registration, `exportData`, `deleteAccount`, `enforceRetention` (one cycle), `setConsent`/`hasConsent`/`requireConsent` (latest decision wins, throws `ConsentRequiredError` when withdrawn)
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6_
   - [~] 10.2 Write property test for deletion removing all personal data
