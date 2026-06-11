@@ -160,11 +160,11 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - **Property 23: Consent enforcement reflects the latest decision**
     - **Validates: Requirements 10.5, 10.6**
 
-- [ ] 11. Wire core public exports and documentation
+- [x] 11. Wire core public exports and documentation
   - [x] 11.1 Re-export all new core modules from `packages/core/src/index.ts`
     - Export `validation`, rate-limit additions, header additions, `upload-guard`, `encrypted-field`, `abuse`, `moderation`, `secret-provider`, `privacy`, and the store abstraction next to the existing security/verification exports (satisfies the Zero-Trust "public package exports" condition)
     - _Requirements: 1.1_
-  - [-] 11.2 Write documentation for the new core subsystems
+  - [x] 11.2 Write documentation for the new core subsystems
     - Add written docs covering Validator, rate-limit scopes/stores, header config, upload guard, field encryption, abuse engine, moderation toolkit, secret providers, and privacy controls (satisfies the Zero-Trust "written documentation" condition)
     - _Requirements: 1.1, 1.5_
 
@@ -172,12 +172,12 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 13. Implement Phase 10 — `@streetjs/dating-auth`
-  - [~] 13.1 Scaffold and implement the `@streetjs/dating-auth` package under `packages/dating-auth`
+  - [-] 13.1 Scaffold and implement the `@streetjs/dating-auth` package under `packages/dating-auth`
     - Mirror the `@streetjs/plugin-*` layout (`package.json` with `main`/`types`/`exports`, `tsconfig.json`, `src/index.ts`, `README.md`, `examples/`); depend on `@streetjs/core` and wrap `JwtService`/`SessionManager`/`AbuseEngine` with no independent auth logic
     - _Requirements: 11.1, 11.6, 11.7_
 
 - [ ] 14. Implement Phase 10 — `@streetjs/dating-profiles`
-  - [~] 14.1 Scaffold and implement the `@streetjs/dating-profiles` package under `packages/dating-profiles`
+  - [-] 14.1 Scaffold and implement the `@streetjs/dating-profiles` package under `packages/dating-profiles`
     - Mirror the plugin layout and depend on `@streetjs/core`; implement `ProfileService` (`create`, `like`, `isMatch`) storing `bio` via `EncryptedField` and recording a `Match` on reciprocal likes; include docs, tests, and runnable examples
     - _Requirements: 11.1, 11.2, 11.6_
   - [~] 14.2 Write property test for reciprocal-like matching
@@ -186,7 +186,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - Located in the `@streetjs/dating-profiles` package tests per the design
 
 - [ ] 15. Implement Phase 10 — `@streetjs/dating-moderation`
-  - [~] 15.1 Scaffold and implement the `@streetjs/dating-moderation` package under `packages/dating-moderation`
+  - [-] 15.1 Scaffold and implement the `@streetjs/dating-moderation` package under `packages/dating-moderation`
     - Mirror the plugin layout and depend on `@streetjs/core`; provide blocking and reporting built on `ModerationToolkit`; include docs, tests, and runnable examples
     - _Requirements: 11.1, 11.4, 11.6_
 
