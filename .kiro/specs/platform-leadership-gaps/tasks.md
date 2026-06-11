@@ -383,7 +383,7 @@ Each property-based test is tagged with the comment format:
     - _Design: Components → Release Engineering (CI enforcement); Error Handling 11.3_
     - _Requirements: 11.3, 11.5, 11.6_
 
-- [ ] 19. Platform Leadership Exit-Criteria aggregator (built last)
+- [x] 19. Platform Leadership Exit-Criteria aggregator (built last)
   - [x] 19.1 Implement the exit-criteria aggregator
     - In `packages/core/src/verification/` add `PLATFORM_LEADERSHIP_CAPABILITIES`, `LeadershipReport`, and `computeLeadership()` that computes GRANTED iff every required capability is VERIFIED, else WITHHELD with the offending capabilities; a missing artifact is treated as not VERIFIED; the report records each required capability + status, the decision, ISO-8601 timestamp, and the artifact paths read
     - _Design: Components → Exit-criteria engine; Data Models → Exit-Criteria set + report_
@@ -402,7 +402,7 @@ Each property-based test is tagged with the comment format:
     - Grep/lint assertion confirming `platform-leadership.report.json` is produced solely by `computeLeadership` (no hand-authored writes)
     - _Requirements: 12.4_
 
-  - [-] 19.5 Wire the final platform-leadership CI aggregation job and exit-criteria docs
+  - [x] 19.5 Wire the final platform-leadership CI aggregation job and exit-criteria docs
     - Add the final `platform-leadership` GitHub Actions job that runs `street verify --aggregate`, uploads `platform-leadership.report.json`, and reflects (not sets) the computed decision in its pass/fail; author the exit-criteria docs published to GitHub Pages
     - _Design: Testing Strategy → CI integration and evidence retention_
     - _Requirements: 12.1, 12.5_
