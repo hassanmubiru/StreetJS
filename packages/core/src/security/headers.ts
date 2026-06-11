@@ -36,6 +36,19 @@ export const DEFAULT_CSP: CspDirectives = {
   'frame-ancestors': ['none'],
 };
 
+/**
+ * The set of security response headers managed by the middleware that an
+ * application may explicitly override or disable (R4.2/R4.4/R4.5). These are the
+ * always-on protections the middleware applies by default on every response.
+ */
+export type SecurityHeaderName =
+  | 'Content-Security-Policy'
+  | 'Strict-Transport-Security'
+  | 'X-Frame-Options'
+  | 'X-Content-Type-Options'
+  | 'Referrer-Policy'
+  | 'Permissions-Policy';
+
 export interface SecurityHeadersOptions {
   /** CSP directive map; defaults to {@link DEFAULT_CSP}. Pass `false` to omit CSP. */
   csp?: CspDirectives | false;
@@ -47,6 +60,13 @@ export interface SecurityHeadersOptions {
   referrerPolicy?: string;
   /** `Permissions-Policy` (default disables geolocation/mic/camera). */
   permissionsPolicy?: string;
+  /**
+   * Explicitly omit named headers from the response (R4.5). Any header named
+   * here is removed from the computed set even if a default or supplied value
+   * exists for it. Complements the existing per-header sentinels (`csp: false`,
+   * `hstsMaxAge: 0`).
+   */
+  disable?: SecurityHeaderName[];
 }
 
 interface HeaderSink { setHeader(name: string, value: string): void }
