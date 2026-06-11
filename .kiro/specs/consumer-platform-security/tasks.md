@@ -146,7 +146,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - Verify retrieval, rotation-on-next-read, and log redaction (including startup error paths) for all four adapters
     - _Requirements: 9.2, 9.3, 9.4, 9.6_
 
-- [ ] 10. Implement Phase 9 — Privacy Controls
+- [x] 10. Implement Phase 9 — Privacy Controls
   - [x] 10.1 Implement `PrivacyControls` in new `packages/core/src/security/privacy.ts`
     - Implement `PersonalDataSource` registration, `exportData`, `deleteAccount`, `enforceRetention` (one cycle), `setConsent`/`hasConsent`/`requireConsent` (latest decision wins, throws `ConsentRequiredError` when withdrawn)
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6_
@@ -156,15 +156,15 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
   - [x] 10.3 Write property test for retention enforcement
     - **Property 22: Retention enforcement removes exactly expired records**
     - **Validates: Requirements 10.3, 10.4**
-  - [-] 10.4 Write property test for consent enforcement
+  - [x] 10.4 Write property test for consent enforcement
     - **Property 23: Consent enforcement reflects the latest decision**
     - **Validates: Requirements 10.5, 10.6**
 
 - [ ] 11. Wire core public exports and documentation
-  - [~] 11.1 Re-export all new core modules from `packages/core/src/index.ts`
+  - [-] 11.1 Re-export all new core modules from `packages/core/src/index.ts`
     - Export `validation`, rate-limit additions, header additions, `upload-guard`, `encrypted-field`, `abuse`, `moderation`, `secret-provider`, `privacy`, and the store abstraction next to the existing security/verification exports (satisfies the Zero-Trust "public package exports" condition)
     - _Requirements: 1.1_
-  - [~] 11.2 Write documentation for the new core subsystems
+  - [-] 11.2 Write documentation for the new core subsystems
     - Add written docs covering Validator, rate-limit scopes/stores, header config, upload guard, field encryption, abuse engine, moderation toolkit, secret providers, and privacy controls (satisfies the Zero-Trust "written documentation" condition)
     - _Requirements: 1.1, 1.5_
 
