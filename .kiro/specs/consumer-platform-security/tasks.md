@@ -168,7 +168,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - Add written docs covering Validator, rate-limit scopes/stores, header config, upload guard, field encryption, abuse engine, moderation toolkit, secret providers, and privacy controls (satisfies the Zero-Trust "written documentation" condition)
     - _Requirements: 1.1, 1.5_
 
-- [~] 12. Checkpoint — core phases
+- [ ] 12. Checkpoint — core phases
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 13. Implement Phase 10 — `@streetjs/dating-auth`
@@ -199,7 +199,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - **Validates: Requirements 8.3, 11.5**
     - Located in the `@streetjs/dating-messaging` package tests per the design
 
-- [~] 17. Checkpoint — dating reference packages
+- [ ] 17. Checkpoint — dating reference packages
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 18. Implement the certification harness (extends `verification/aggregator.ts`)
@@ -214,11 +214,11 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
   - [x] 19.1 Implement the evidence-capture orchestration script
     - Implement a script that runs each capability's verification step through the existing `CommandRunner.run({ capabilityId, command, evidenceHints, outDir })` (build, `node --test`, lint, example run), writing one atomic `<capabilityId>.artifact.json` per capability so VERIFIED status derives from real executed-command output
     - _Requirements: 1.2, 1.3, 1.4, 12.5_
-  - [-] 19.2 Generate the Certification Report from captured artifacts
+  - [ ] 19.2 Generate the Certification Report from captured artifacts
     - Wire `computeCertification` over the captured artifact set to emit the eight-category scorecard, listing unverified features per not-fully-certified category and referencing artifact paths as evidence
     - _Requirements: 1.1, 12.1, 12.2, 12.3, 12.4, 12.5_
 
-- [~] 20. Final checkpoint — full certification
+- [ ] 20. Final checkpoint — full certification
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
