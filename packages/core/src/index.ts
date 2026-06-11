@@ -86,6 +86,12 @@ export { validateArtifact } from './verification/artifact.js';
 export type { VerificationArtifact, ArtifactValidationResult } from './verification/artifact.js';
 export { CommandRunner, DEFAULT_TIMEOUT_MS } from './verification/runner.js';
 export type { RunOptions, RunResult } from './verification/runner.js';
+export {
+  PLATFORM_LEADERSHIP_CAPABILITIES, computeLeadership,
+} from './verification/aggregator.js';
+export type {
+  CapabilityStatus, LeadershipReport, ArtifactSource,
+} from './verification/aggregator.js';
 
 // ── Release Engineering ───────────────────────────────────────────────────────
 export {
