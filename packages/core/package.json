@@ -301,7 +301,7 @@
     "dev": "tsc && node dist/main.js",
     "lint": "tsc --noEmit",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
-    "verify:pack": "node scripts/verify-package.mjs",
+    "verify:pack": "node ../../scripts/verify-package.mjs",
     "prepublishOnly": "npm run clean && npm run build && npm run lint && npm run verify:pack",
     "version:patch": "npm version patch --no-git-tag-version",
     "version:minor": "npm version minor --no-git-tag-version",

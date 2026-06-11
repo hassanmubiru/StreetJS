@@ -30,7 +30,8 @@
     "coverage": "c8 node --test dist/tests/argv.test.js dist/tests/create.test.js dist/tests/generate.test.js dist/tests/migrate.test.js",
     "coverage:pg": "c8 --check-coverage=false node --test dist/tests/migrate.test.js",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
-    "prepublishOnly": "npm run clean && npm run build"
+    "verify:pack": "node ../../scripts/verify-package.mjs",
+    "prepublishOnly": "npm run clean && npm run build && npm run verify:pack"
   },
   "c8": {
     "include": [

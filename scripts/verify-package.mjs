@@ -1,29 +1,37 @@
 // scripts/verify-package.mjs
-// Publish-time tarball integrity guard.
+// Shared publish-time tarball integrity guard for every publishable workspace
+// package (streetjs, @streetjs/cli, …).
 //
-// Catches the class of bug where the root barrel (or any shipped module) imports
-// a file that is NOT included in the npm tarball — which makes a clean
-// `import('streetjs')` crash with ERR_MODULE_NOT_FOUND even though the build
-// succeeded locally (because `dist/` has everything but `files` ships a subset).
+// Catches the class of bug where a shipped module imports a file that is NOT
+// included in the npm tarball — which makes a clean `import`/CLI run crash with
+// ERR_MODULE_NOT_FOUND even though the build succeeded locally (because `dist/`
+// has everything but the `files` allow-list ships a subset).
 //
 // It performs a CLOSED-WORLD consistency check, entirely offline:
-//   1. Ask npm for the exact file set that WOULD be published
-//      (`npm pack --dry-run --json`).
+//   1. Ask npm for the exact file set that WOULD be published for the package
+//      in the current working directory (`npm pack --dry-run --json`).
 //   2. For every published `.js` file, statically scan its relative
-//      `import`/`export ... from`/dynamic-`import()` specifiers.
+//      `import`/`export ... from`/dynamic-`import()` specifiers (string and
+//      comment regions are masked out so generated code emitted as template
+//      literals never produces a false positive).
 //   3. Assert every referenced relative module is also in the published set.
 //
-// Any missing reference fails the build with a precise list, so a broken tarball
-// can never be published. Run via `npm run verify:pack` (wired into
-// `prepublishOnly`).
+// Any missing reference fails with a precise list. Run per package via
+// `npm run verify:pack -w <package>` (each package's `verify:pack` script calls
+// `node ../../scripts/verify-package.mjs`), and it is wired into `prepublishOnly`.
+//
+// The package is selected by the current working directory, so the same script
+// serves every workspace package without modification.
 
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { dirname, join, normalize, relative, resolve } from 'node:path';
 
-const pkgRoot = resolve(dirname(new URL(import.meta.url).pathname), '..');
+// The package to inspect is the current working directory (npm sets this to the
+// package dir for `npm run -w <package>` and for `prepublishOnly`).
+const pkgRoot = process.cwd();
 
-/** Return the list of repo-relative paths npm would publish. */
+/** Return the list of package-relative paths npm would publish. */
 function publishedFiles() {
   const raw = execFileSync('npm', ['pack', '--dry-run', '--json'], {
     cwd: pkgRoot,
@@ -38,16 +46,16 @@ function publishedFiles() {
 
 // Match relative specifiers in: import ... from '.', export ... from '.',
 // and dynamic import('.'). Only relative specifiers (./ or ../) are checked;
-// bare specifiers (deps) are resolved by Node from node_modules at install time.
+// bare specifiers (deps like `streetjs`) are resolved by Node from node_modules
+// at install time and are out of scope for a tarball-completeness check.
 const SPECIFIER_RE =
   /(?:import|export)\b[^'"]*?\bfrom\s*['"](\.{1,2}\/[^'"]+)['"]|import\s*\(\s*['"](\.{1,2}\/[^'"]+)['"]\s*\)/g;
 
 /**
  * Build a byte mask over `src` where 1 marks a position inside a string
  * literal, template literal, or comment. Used to discard `import`-looking text
- * that appears INSIDE a string (e.g. the deployment scaffolding emitted as
- * template literals by `cloud/deployment.js`) — only `import`/`export` keywords
- * in real code positions count.
+ * that appears INSIDE a string (e.g. deployment scaffolding emitted as template
+ * literals) — only `import`/`export` keywords in real code positions count.
  */
 function buildMask(src) {
   const n = src.length;
@@ -99,11 +107,19 @@ function resolveSpecifier(fromFile, spec) {
 }
 
 function main() {
+  const pkgName = (() => {
+    try {
+      return JSON.parse(readFileSync(join(pkgRoot, 'package.json'), 'utf8')).name ?? pkgRoot;
+    } catch {
+      return pkgRoot;
+    }
+  })();
+
   const published = new Set(publishedFiles());
   const jsFiles = [...published].filter((p) => p.endsWith('.js'));
 
   if (jsFiles.length === 0) {
-    console.error('verify-package: no .js files in the publish set — did you build first?');
+    console.error(`verify-package(${pkgName}): no .js files in the publish set — did you build first?`);
     process.exit(1);
   }
 
@@ -131,7 +147,7 @@ function main() {
 
   if (missing.length > 0) {
     console.error(
-      `\n✗ verify-package: ${missing.length} import(s) reference files NOT included in the npm tarball:\n`,
+      `\n✗ verify-package(${pkgName}): ${missing.length} import(s) reference files NOT included in the npm tarball:\n`,
     );
     for (const { file, spec, candidates } of missing) {
       console.error(`  ${file}`);
@@ -145,7 +161,7 @@ function main() {
   }
 
   console.log(
-    `✓ verify-package: all ${jsFiles.length} published modules resolve within the tarball ` +
+    `✓ verify-package(${pkgName}): all ${jsFiles.length} published modules resolve within the tarball ` +
       `(${published.size} files total).`,
   );
 }
