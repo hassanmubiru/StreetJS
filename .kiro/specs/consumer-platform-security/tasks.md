@@ -180,7 +180,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
   - [x] 14.1 Scaffold and implement the `@streetjs/dating-profiles` package under `packages/dating-profiles`
     - Mirror the plugin layout and depend on `@streetjs/core`; implement `ProfileService` (`create`, `like`, `isMatch`) storing `bio` via `EncryptedField` and recording a `Match` on reciprocal likes; include docs, tests, and runnable examples
     - _Requirements: 11.1, 11.2, 11.6_
-  - [~] 14.2 Write property test for reciprocal-like matching
+  - [-] 14.2 Write property test for reciprocal-like matching
     - **Property 24: Reciprocal likes produce a match**
     - **Validates: Requirements 11.2**
     - Located in the `@streetjs/dating-profiles` package tests per the design
@@ -191,7 +191,7 @@ Per the Zero-Trust Standard, each feature's definition of done is: source implem
     - _Requirements: 11.1, 11.4, 11.6_
 
 - [ ] 16. Implement Phase 10 — `@streetjs/dating-messaging`
-  - [~] 16.1 Scaffold and implement the `@streetjs/dating-messaging` package under `packages/dating-messaging`
+  - [-] 16.1 Scaffold and implement the `@streetjs/dating-messaging` package under `packages/dating-messaging`
     - Mirror the plugin layout and depend on `@streetjs/core` and `@streetjs/dating-profiles`; implement `MessageService.send` allowing messaging only between matched users, storing message content via `EncryptedField`, and refusing messaging while a block exists (composing `ModerationToolkit`); include docs, tests, and runnable examples
     - _Requirements: 11.1, 11.3, 11.5, 11.6_
   - [~] 16.2 Write property test for block preventing messaging at the messaging layer
