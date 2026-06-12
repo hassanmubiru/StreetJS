@@ -499,6 +499,7 @@ jobs:
 
       - name: Verify tarball integrity (streetjs, @streetjs/cli, @streetjs/core shim)
         run: |
+          npm run verify:wasm -w packages/core
           npm run verify:pack -w packages/core
           npm run verify:pack -w packages/cli
           ( cd packages/core-compat && node ../../scripts/verify-package.mjs )
