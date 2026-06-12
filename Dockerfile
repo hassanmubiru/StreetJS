@@ -1,5 +1,5 @@
 # ---- Build stage ----
-FROM node:20-alpine AS builder
+FROM node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293 AS builder
 WORKDIR /build
 
 # Copy root package files for workspace resolution
@@ -22,7 +22,7 @@ RUN npx tsc --rootDir src --outDir dist/src \
 WORKDIR /build
 
 # ---- Production stage ----
-FROM gcr.io/distroless/nodejs20-debian12 AS runtime
+FROM gcr.io/distroless/nodejs20-debian12@sha256:6fe218dbad37e979c7542e670d28d6e23d3f53d2929693bc9cdded8b622f339f AS runtime
 WORKDIR /app
 
 # Copy compiled output
