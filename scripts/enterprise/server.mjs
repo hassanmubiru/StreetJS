@@ -307,7 +307,10 @@ async function main() {
       });
       return sendJson(res, response.status, response.body);
     } catch (err) {
-      return sendJson(res, 500, { error: 'internal_error', message: String(err?.message ?? err) });
+      // Log the detail server-side; return a generic body so the error message /
+      // stack is never exposed over HTTP (CWE-209: information exposure).
+      console.error(`[enterprise-server] request error: ${err instanceof Error ? err.stack : String(err)}`);
+      return sendJson(res, 500, { error: 'internal_error' });
     }
   });
 
