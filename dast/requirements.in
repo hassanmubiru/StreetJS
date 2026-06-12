@@ -1,0 +1,6 @@
+# DAST (Schemathesis) toolchain — top-level input.
+# Compile to the hash-pinned lockfile with:
+#   python3 -m piptools compile --generate-hashes --allow-unsafe \
+#     -o dast/requirements.txt dast/requirements.in
+# CI installs strictly from the lockfile: `pip install --require-hashes -r dast/requirements.txt`.
+schemathesis

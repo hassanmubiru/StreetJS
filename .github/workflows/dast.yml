@@ -40,7 +40,7 @@ jobs:
         run: node scripts/dast/export-openapi.mjs --routes dast/routes.json --out dast-reports/openapi.json
 
       - name: Install Schemathesis
-        run: pip install schemathesis
+        run: pip install --require-hashes -r dast/requirements.txt
 
       - name: Start target app
         run: |
