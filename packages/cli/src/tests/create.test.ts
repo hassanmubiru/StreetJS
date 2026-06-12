@@ -53,7 +53,9 @@ function makeContext(cwd: string, positionals: string[], flags: Record<string, s
     args: {
       command: 'create',
       positional: positionals,
-      flags,
+      // Default to --no-lockfile so unit tests don't spawn a network `npm
+      // install --package-lock-only`. Tests can override per-call.
+      flags: { 'no-lockfile': true, ...flags },
     },
   };
 }

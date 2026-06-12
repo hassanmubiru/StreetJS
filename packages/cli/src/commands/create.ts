@@ -54,6 +54,13 @@ export class CreateCommand {
       console.log('[street] Installing dependencies...\n');
       await this.installDependencies(targetDir);
     } else {
+      // Generate a package-lock.json so the scaffolded Dockerfile's `npm ci`
+      // works out of the box and installs are reproducible. Skip with
+      // --no-lockfile (e.g. offline scaffolding). Fail-soft: never blocks the
+      // scaffold if npm/network is unavailable.
+      if (!ctx.args.flags['no-lockfile']) {
+        await this.generateLockfile(targetDir);
+      }
       console.log('Next steps:');
       console.log(`  cd ${projectName}`);
       console.log('  npm install');
@@ -204,6 +211,36 @@ export class CreateCommand {
   }
 
   // ─── Helpers ──────────────────────────────────────────────────────────
+
+  /**
+   * Generate a `package-lock.json` for the freshly scaffolded project without
+   * installing node_modules (`npm install --package-lock-only`). This makes the
+   * scaffolded Dockerfile's `npm ci` work out of the box and gives reproducible,
+   * integrity-pinned installs. Fail-soft: if npm or the network is unavailable
+   * the scaffold still succeeds (the user can run `npm install` later).
+   */
+  private async generateLockfile(cwd: string): Promise<void> {
+    const { spawn } = await import('node:child_process');
+    await new Promise<void>((resolvePromise) => {
+      const proc = spawn('npm', ['install', '--package-lock-only', '--no-audit', '--no-fund'], {
+        cwd,
+        stdio: 'ignore',
+        shell: true,
+      });
+      proc.on('close', (code) => {
+        if (code === 0) {
+          console.log('[street] Generated package-lock.json (reproducible installs; enables `npm ci`).');
+        } else {
+          console.warn('[street] Could not generate package-lock.json (offline?). Run `npm install` before `npm ci` / the Docker build.');
+        }
+        resolvePromise();
+      });
+      proc.on('error', () => {
+        console.warn('[street] npm not available — skipped package-lock.json generation.');
+        resolvePromise();
+      });
+    });
+  }
 
   private async installDependencies(cwd: string): Promise<void> {
     const { spawn } = await import('node:child_process');

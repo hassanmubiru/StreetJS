@@ -190,10 +190,14 @@ else
 fi
 
 # ── 9. Install dependencies in generated project ──────────────────────────────
-step "Installing dependencies in generated project"
+step "Installing dependencies in generated project (npm ci, from the scaffold lockfile)"
 
-(cd "$PROJ" && npm install --registry https://registry.npmjs.org 2>&1 | tail -5)
-success "npm install completed"
+# `street create` generated a package-lock.json, so install strictly from it
+# with `npm ci` (pinned, integrity-verified) — exactly what the scaffolded
+# Dockerfile does.
+export npm_config_registry="https://registry.npmjs.org"
+(cd "$PROJ" && npm ci 2>&1 | tail -5)
+success "npm ci completed"
 
 # Verify @streetjs/core installed version matches expected
 INSTALLED_CORE=$(node -p "require('$PROJ/node_modules/@streetjs/core/package.json').version" 2>/dev/null || echo "")
