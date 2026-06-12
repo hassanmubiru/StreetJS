@@ -1,0 +1,17 @@
+# Code owners for the street framework.
+#
+# Owners are automatically requested for review on pull requests that touch
+# matching paths. Combined with a branch-protection rule that requires an
+# approving review before merge, this is what lets the OpenSSF Scorecard
+# "Code-Review" check credit changes as reviewed.
+#
+# Format: <path pattern>  <owner(s)>
+
+# Default owner for everything in the repo.
+*                           @hassanmubiru
+
+# Security-sensitive areas — keep an explicit owner so changes are always reviewed.
+/.github/                   @hassanmubiru
+/packages/core/src/security/    @hassanmubiru
+/packages/core/src/database/    @hassanmubiru
+/SECURITY.md                @hassanmubiru

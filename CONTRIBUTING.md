@@ -319,6 +319,24 @@ This test covers:
 
 ---
 
+## Code review and branch protection
+
+All changes land through **reviewed pull requests** — please do not push directly
+to `main`:
+
+1. Create a feature branch and push it.
+2. Open a pull request; the `.github/CODEOWNERS` owner is requested automatically.
+3. A maintainer reviews and **approves** before the PR is merged.
+4. Merge once required status checks pass.
+
+`main` is protected to require a pull request with at least one approving review
+and passing checks. This is also what lets the OpenSSF Scorecard `Code-Review`
+and `Branch-Protection` checks credit changes as reviewed. For solo/maintainer
+changes, a second maintainer (or a designated reviewer) provides the approval —
+GitHub does not allow approving your own pull request.
+
+---
+
 ## Commit message format
 
 ```
