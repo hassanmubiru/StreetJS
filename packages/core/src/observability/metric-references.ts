@@ -112,6 +112,65 @@ function stripStringLiterals(expr: string): string {
 }
 
 /**
+ * Strip PromQL label-matcher blocks `{ ... }`, range/subquery selectors
+ * `[ ... ]`, and aggregation/matching label lists (`by (le)`, `without (x)`,
+ * `group_left(a)`, ...) — replacing each with a single space — in one O(n)
+ * pass. Linear by construction, so (unlike `/\{[^}]*\}/g`, `/\[[^\]]*\]/g`, and
+ * `/\b(?:by|...)\s*\([^)]*\)/g`) it cannot be driven into polynomial
+ * backtracking by input with many unclosed `{`, `[`, or `keyword(` tokens.
+ *
+ * Expects string literals to have already been removed (see stripStringLiterals)
+ * so quote characters never appear inside the scanned spans.
+ */
+function stripSelectorsAndModifiers(s: string): string {
+  const n = s.length;
+  let out = '';
+  let i = 0;
+
+  /** Advance past the next `close` char (or to end of input); return new index. */
+  const skipPast = (from: number, close: string): number => {
+    let j = from;
+    while (j < n && s[j] !== close) j += 1;
+    return j < n ? j + 1 : j;
+  };
+
+  const isIdentChar = (c: string): boolean =>
+    (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c === '_' || c === ':';
+  const isIdentStart = (c: string): boolean =>
+    (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c === '_';
+
+  while (i < n) {
+    const ch = s[i]!;
+    if (ch === '{') {
+      i = skipPast(i + 1, '}');
+      out += ' ';
+    } else if (ch === '[') {
+      i = skipPast(i + 1, ']');
+      out += ' ';
+    } else if (isIdentStart(ch)) {
+      let j = i;
+      while (j < n && isIdentChar(s[j]!)) j += 1;
+      const word = s.slice(i, j);
+      // Look past whitespace for a `(` that would make this a modifier label list.
+      let k = j;
+      while (k < n && (s[k] === ' ' || s[k] === '\t' || s[k] === '\n' || s[k] === '\r')) k += 1;
+      if (MODIFIER_KEYWORDS.has(word) && s[k] === '(') {
+        // Drop the whole `keyword ( ... )` — its contents are label names.
+        i = skipPast(k + 1, ')');
+        out += ' ';
+      } else {
+        out += word;
+        i = j;
+      }
+    } else {
+      out += ch;
+      i += 1;
+    }
+  }
+  return out;
+}
+
+/**
  * Extract the set of metric names referenced by a single PromQL expression.
  * Conservative: function calls (identifier immediately followed by `(`),
  * reserved words, label names, durations, and numeric literals are excluded.
