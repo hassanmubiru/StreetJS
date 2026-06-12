@@ -122,7 +122,7 @@ export interface Paginated<T> {
  */
 export interface Publisher {
   id: string;
-  /** SHA-256 hex of the bearer API key presented at publish time. */
+  /** scrypt hex of the bearer API key presented at publish time. */
   apiKeyHash: string;
   /** Namespaces this publisher is allowed to publish under. */
   namespaces: string[];
