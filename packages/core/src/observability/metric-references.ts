@@ -57,7 +57,9 @@ const IDENT = /[a-zA-Z_:][a-zA-Z0-9_:]*/g;
 
 // Aggregation / matching modifiers whose parenthesised label lists must be
 // discarded before scanning (their contents are label names, not metrics).
-const MODIFIER_WITH_LABELS = /\b(?:by|without|on|ignoring|group_left|group_right)\s*\([^)]*\)/g;
+const MODIFIER_KEYWORDS = new Set<string>([
+  'by', 'without', 'on', 'ignoring', 'group_left', 'group_right',
+]);
 
 // PromQL keywords / operators that are identifiers but never metric names.
 const PROMQL_RESERVED = new Set<string>([
