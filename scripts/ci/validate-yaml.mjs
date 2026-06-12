@@ -23,10 +23,21 @@ let errors = 0;
 
 /** Recursively collect .yml/.yaml paths, skipping node_modules and .git. */
 function collect(dir, out) {
-  for (const entry of readdirSync(dir)) {
+  let entries;
+  try {
+    entries = readdirSync(dir);
+  } catch {
+    return; // unreadable directory — skip
+  }
+  for (const entry of entries) {
     if (entry === 'node_modules' || entry === '.git') continue;
     const path = join(dir, entry);
-    const st = statSync(path);
+    let st;
+    try {
+      st = statSync(path); // follows symlinks; throws on broken links
+    } catch {
+      continue; // broken symlink or vanished entry — skip
+    }
     if (st.isDirectory()) {
       collect(path, out);
     } else if (entry.endsWith('.yml') || entry.endsWith('.yaml')) {
