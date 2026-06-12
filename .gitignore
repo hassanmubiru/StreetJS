@@ -54,3 +54,10 @@ log.txt
 *.street.md
 # local CI tooling (kind/kubectl binaries) — never commit
 .tooling/
+
+# SQLite WASM runtime binary — not committed (Scorecard Binary-Artifacts).
+# Downloaded + SHA-256-verified at build time by
+# packages/core/src/database/sqlite/download-wasm.mjs (run via the core
+# package's prebuild/build:app scripts). The built dist/ tarball still bundles
+# it, so published consumers are unaffected.
+packages/core/src/database/sqlite/sqlite3.wasm
