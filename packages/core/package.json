@@ -281,9 +281,10 @@
     "statements": 60
   },
   "scripts": {
+    "prebuild": "node src/database/sqlite/download-wasm.mjs",
     "build": "tsc -p tsconfig.lib.json",
     "postbuild": "node -e \"const fs=require('fs');const p=require('path');const s='src/database/sqlite';const d='dist/database/sqlite';fs.mkdirSync(d,{recursive:true});for(const f of ['sqlite3.wasm','sqlite3-node.mjs'])fs.copyFileSync(p.join(s,f),p.join(d,f));\"",
-    "build:app": "tsc && node -e \"const fs=require('fs');const p=require('path');const s='src/database/sqlite';const d='dist/src/database/sqlite';fs.mkdirSync(d,{recursive:true});for(const f of ['sqlite3.wasm','sqlite3-node.mjs'])fs.copyFileSync(p.join(s,f),p.join(d,f));\"",
+    "build:app": "node src/database/sqlite/download-wasm.mjs && tsc && node -e \"const fs=require('fs');const p=require('path');const s='src/database/sqlite';const d='dist/src/database/sqlite';fs.mkdirSync(d,{recursive:true});for(const f of ['sqlite3.wasm','sqlite3-node.mjs'])fs.copyFileSync(p.join(s,f),p.join(d,f));\"",
     "start": "node dist/main.js",
     "test": "node --test dist/tests/integration.test.js",
     "verify:wasm": "node src/database/sqlite/download-wasm.mjs --verify",
