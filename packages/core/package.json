@@ -375,7 +375,7 @@
     "@types/ws": "^8.5.10",
     "c8": "^11.0.0",
     "esbuild": "^0.28.0",
-    "fast-check": "^3.23.2",
+    "fast-check": "^4.8.0",
     "js-yaml": "^4.2.0",
     "typescript": "^6.0.3"
   },
