@@ -102,16 +102,20 @@ check_pack_contents() {
 check_pack_contents "@streetjs/core" "$CORE_VERSION"
 check_pack_contents "@streetjs/cli"  "$CLI_VERSION"
 
-# ── 4. Install CLI globally from registry ─────────────────────────────────────
-step "Installing @streetjs/cli@$CLI_VERSION globally"
+# ── 4. Resolve the published CLI from the registry (pinned, ephemeral) ────────
+step "Resolving @streetjs/cli@$CLI_VERSION from the registry"
 
-npm install -g "@streetjs/cli@$CLI_VERSION" --registry https://registry.npmjs.org
-success "Installed @streetjs/cli@$CLI_VERSION globally"
+# Run the EXACT just-published version ephemerally via npx — no global install,
+# no PATH mutation, and pinned to the precise version under test. (This also
+# avoids an unpinnable `npm install -g` for a dynamically-versioned package.)
+export npm_config_registry="https://registry.npmjs.org"
+STREET_CLI=(npx --yes "@streetjs/cli@$CLI_VERSION")
+success "Using: npx --yes @streetjs/cli@$CLI_VERSION"
 
 # ── 5. Verify CLI version ─────────────────────────────────────────────────────
 step "Verifying CLI version"
 
-INSTALLED_VER=$(street --version 2>/dev/null | grep -oP '\d+\.\d+\.\d+' || echo "")
+INSTALLED_VER=$("${STREET_CLI[@]}" --version 2>/dev/null | grep -oP '\d+\.\d+\.\d+' || echo "")
 if [[ "$INSTALLED_VER" == "$CLI_VERSION" ]]; then
   success "street --version = $INSTALLED_VER ✔"
 else
@@ -125,7 +129,7 @@ VERIFY_DIR=$(mktemp -d)
 trap 'rm -rf "$VERIFY_DIR"' EXIT
 
 info "Working directory: $VERIFY_DIR"
-(cd "$VERIFY_DIR" && street create production-test 2>&1)
+(cd "$VERIFY_DIR" && "${STREET_CLI[@]}" create production-test 2>&1)
 success "street create production-test: OK"
 
 # ── 7. Validate generated structure ───────────────────────────────────────────
