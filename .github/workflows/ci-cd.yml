@@ -502,11 +502,12 @@ jobs:
   #            Two gates per package:
   #              1. verify:pack — closed-world static check that every relative
   #                 import in every published module resolves within the tarball.
-  #              2. clean-install smoke — `npm install` the packed tarball(s) into
-  #                 a temp project and import / run for real. The CLI and compat
-  #                 shim depend on `streetjs`, so the locally packed core tarball
-  #                 is installed alongside them to pin the dependency to THIS
-  #                 build (never the previously published, possibly broken, one).
+  #              2. clean-install smoke — `npm ci` the packed tarball(s) from a
+  #                 committed fixture lockfile and import / run for real. The CLI
+  #                 and compat shim depend on `streetjs`, so the locally packed
+  #                 core tarball is installed alongside them to pin the dependency
+  #                 to THIS build (never the previously published, possibly broken,
+  #                 one).
   # Depends:   Nothing (independent, fast). Runs on every PR/push so a broken
   #            `files` allow-list is caught long before a release tag.
   package-integrity:
@@ -816,11 +817,11 @@ jobs:
         run: |
           set -euo pipefail
           TARBALL="$(cd packages/core && npm pack --silent)"
-          TARBALL_PATH="$PWD/packages/core/$TARBALL"
-          SMOKE_DIR="$(mktemp -d)"
-          cd "$SMOKE_DIR"
-          npm init -y >/dev/null 2>&1
-          npm install "$TARBALL_PATH" --no-audit --no-fund --loglevel=error
+          # Install strictly from the committed fixture lockfile with `npm ci`
+          # (pinned); the local tarball is the artifact under verification.
+          cp "$PWD/packages/core/$TARBALL" ci/pack-smoke/core/streetjs.tgz
+          cd ci/pack-smoke/core
+          npm ci --no-audit --no-fund --loglevel=error
           node --input-type=module -e "import('streetjs').then(m => { const n = Object.keys(m).length; if (n < 1) { console.error('::error::clean import of streetjs exported no symbols'); process.exit(1); } console.log('clean-install import OK — ' + n + ' exports'); }).catch(err => { console.error('::error::clean import of streetjs failed: ' + err.code + ' ' + err.message); process.exit(1); })"
 
       - name: Validate @streetjs/cli pack (no test files, has bin + templates)
