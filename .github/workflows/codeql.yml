@@ -19,6 +19,11 @@ on:
   schedule:
     - cron: '29 20 * * 5'
 
+# Minimal top-level token scope (Scorecard Token-Permissions); jobs escalate
+# only the scopes they need.
+permissions:
+  contents: read
+
 jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
