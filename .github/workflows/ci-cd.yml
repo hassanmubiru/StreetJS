@@ -124,39 +124,7 @@ jobs:
           node-version: ${{ matrix.node }}
 
       - name: Validate YAML syntax
-        run: |
-          pip install pyyaml -q
-          python3 << 'PYEOF'
-          import os, sys, yaml
-          errors = 0
-          for root, dirs, files in os.walk('.'):
-              dirs[:] = [d for d in dirs if d not in ('node_modules', '.git')]
-              for f in files:
-                  if not (f.endswith('.yml') or f.endswith('.yaml')):
-                      continue
-                  path = os.path.join(root, f)
-                  norm = path.replace(os.sep, '/')
-                  # Helm chart templates are Go-templated ({{- ... }}), not valid
-                  # YAML — skip them so the syntax check doesn't choke on templating.
-                  if 'deploy/helm/' in norm and '/templates/' in norm:
-                      continue
-                  try:
-                      data = yaml.safe_load(open(path))
-                  except yaml.YAMLError as e:
-                      msg = str(e).replace('\n', ' | ')
-                      print(f'::error title=YAML Syntax Error,file={path}::{msg}')
-                      errors += 1
-                      continue
-                  if '.github/workflows/' in path:
-                      if not isinstance(data, dict):
-                          print(f'::error title=Invalid Workflow,file={path}::Root must be a mapping')
-                          errors += 1
-                      elif 'name' not in data:
-                          print(f'::warning title=Missing name,file={path}::Workflow missing name key')
-                  print(f'  OK: {path}')
-          if errors:
-              sys.exit(1)
-          PYEOF
+        run: node scripts/ci/validate-yaml.mjs
 
       - name: TypeScript check & build (with tests)
         run: npm run build:app -w packages/core
