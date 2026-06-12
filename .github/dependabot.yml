@@ -49,3 +49,34 @@ updates:
     versioning-strategy: increase
     cooldown:
       default-days: 7
+
+  # Keep the SHA-pinned Docker base images current. Base images are pinned by
+  # digest (Scorecard Pinned-Dependencies); Dependabot raises PRs to bump the
+  # digests so pinning never means shipping a stale, vulnerable base layer.
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "UTC"
+    labels:
+      - "dependencies"
+      - "docker"
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 7
+
+  - package-ecosystem: "docker"
+    directory: "/packages/registry-server"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "UTC"
+    labels:
+      - "dependencies"
+      - "docker"
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 7
