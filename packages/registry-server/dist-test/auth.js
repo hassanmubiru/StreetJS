@@ -2,7 +2,7 @@
 //
 // AUTHN MODEL (Req 4.9): publish requests MUST present a bearer token in the
 // `Authorization: Bearer <api-key>` header. The raw API key is never persisted;
-// publishers are registered by the SHA-256 hash of their key (`apiKeyHash`).
+// publishers are registered by a scrypt hash of their key (`apiKeyHash`).
 // A request authenticates iff its presented key hashes to a known publisher.
 //
 // AUTHZ MODEL (Req 4.9): a publisher owns a set of namespaces. The namespace of
@@ -13,10 +13,17 @@
 //
 // READS ARE PUBLIC: download / verify / search / list / versions require no
 // authentication. Only publish is gated.
-import { createHash } from 'node:crypto';
-/** SHA-256 hex of an API key. Used to register and to look up publishers. */
+import { scryptSync } from 'node:crypto';
+// API keys are hashed with a deliberately slow KDF (scrypt) rather than a fast
+// digest, so that leaking the publisher directory does not let an attacker
+// brute-force operator-chosen keys (CWE-916). The salt is a deterministic
+// application pepper — overridable via STREET_REGISTRY_KEY_SALT — which keeps
+// the hash a pure function of the key so the directory can look publishers up
+// by hash in O(1) and operators may precompute hashes offline.
+const API_KEY_SALT = process.env['STREET_REGISTRY_KEY_SALT'] ?? 'streetjs-registry::api-key::v1';
+/** scrypt-derived hex of an API key. Used to register and to look up publishers. */
 export function hashApiKey(apiKey) {
-    return createHash('sha256').update(apiKey, 'utf8').digest('hex');
+    return scryptSync(apiKey, API_KEY_SALT, 32).toString('hex');
 }
 /**
  * Derive a plugin's namespace from its name. The namespace is the portion
