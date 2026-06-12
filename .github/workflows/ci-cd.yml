@@ -544,21 +544,26 @@ jobs:
       - name: Clean-install smoke — import streetjs from the packed tarball
         run: |
           set -euo pipefail
-          SMOKE_DIR="$(mktemp -d)"
-          cd "$SMOKE_DIR"
-          npm init -y >/dev/null 2>&1
-          npm install "$CORE_TARBALL" --no-audit --no-fund --loglevel=error
+          # Copy the freshly packed tarball into the committed smoke fixture and
+          # install strictly from its lockfile with `npm ci` (no mutable/network
+          # resolution of the package under test). The fixture's lockfile pins the
+          # transitive deps by integrity; only the local tarball — the artifact we
+          # are verifying — is unpinned, by design.
+          cp "$CORE_TARBALL" ci/pack-smoke/core/streetjs.tgz
+          cd ci/pack-smoke/core
+          npm ci --no-audit --no-fund --loglevel=error
           node --input-type=module -e "import('streetjs').then(m => { const n = Object.keys(m).length; if (n < 1) { console.error('::error::clean import of streetjs exported no symbols'); process.exit(1); } console.log('streetjs clean-install import OK — ' + n + ' exports'); }).catch(err => { console.error('::error::clean import of streetjs failed: ' + err.code + ' ' + err.message); process.exit(1); })"
 
       - name: Clean-install smoke — @streetjs/cli runs against the local streetjs build
         run: |
           set -euo pipefail
-          SMOKE_DIR="$(mktemp -d)"
-          cd "$SMOKE_DIR"
-          npm init -y >/dev/null 2>&1
-          # Install the locally packed core tarball too so `streetjs` resolves to
-          # THIS build (its ^1.0.6 range is satisfied by the local tarball).
-          npm install "$CORE_TARBALL" "$CLI_TARBALL" --no-audit --no-fund --loglevel=error
+          # Copy both tarballs into the fixture so the CLI's `streetjs` dependency
+          # dedupes onto THIS build (never a previously published, possibly broken
+          # one), then install strictly from the lockfile with `npm ci`.
+          cp "$CORE_TARBALL" ci/pack-smoke/cli/streetjs.tgz
+          cp "$CLI_TARBALL" ci/pack-smoke/cli/street-cli.tgz
+          cd ci/pack-smoke/cli
+          npm ci --no-audit --no-fund --loglevel=error
           # Invoke the installed bin directly (more deterministic than npx flags).
           ./node_modules/.bin/street --version
           ./node_modules/.bin/street --help >/dev/null
@@ -567,12 +572,12 @@ jobs:
       - name: Clean-install smoke — @streetjs/core shim re-exports the local streetjs
         run: |
           set -euo pipefail
-          SMOKE_DIR="$(mktemp -d)"
-          cd "$SMOKE_DIR"
-          npm init -y >/dev/null 2>&1
           # compat pins streetjs to the exact version; the local core tarball
           # (same version) satisfies it, so the shim is exercised against THIS build.
-          npm install "$CORE_TARBALL" "$COMPAT_TARBALL" --no-audit --no-fund --loglevel=error
+          cp "$CORE_TARBALL" ci/pack-smoke/compat/streetjs.tgz
+          cp "$COMPAT_TARBALL" ci/pack-smoke/compat/street-core-compat.tgz
+          cd ci/pack-smoke/compat
+          npm ci --no-audit --no-fund --loglevel=error
           node --input-type=module -e "import('@streetjs/core').then(m => { const n = Object.keys(m).length; if (n < 1) { console.error('::error::@streetjs/core shim exported no symbols'); process.exit(1); } console.log('@streetjs/core shim clean-install import OK — ' + n + ' exports'); }).catch(err => { console.error('::error::@streetjs/core shim import failed: ' + err.code + ' ' + err.message); process.exit(1); })"
 
   # ── certification: certification suites + DB E2E (release gate) ─────────
