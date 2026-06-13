@@ -453,3 +453,4 @@ function requireId(value: unknown, field: string): string {
 }
 
 export * from './meili.js';
+export * from './elastic.js';
