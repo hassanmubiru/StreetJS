@@ -1,0 +1,43 @@
+{
+  "family": "streetjs",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "runtimePlatform": { "cpuArchitecture": "X86_64", "operatingSystemFamily": "LINUX" },
+  "containerDefinitions": [
+    {
+      "name": "streetjs",
+      "image": "ghcr.io/hassanmubiru/street:latest",
+      "essential": true,
+      "portMappings": [{ "containerPort": 3000, "protocol": "tcp" }],
+      "environment": [
+        { "name": "NODE_ENV", "value": "production" },
+        { "name": "HOST", "value": "0.0.0.0" },
+        { "name": "PORT", "value": "3000" }
+      ],
+      "secrets": [
+        { "name": "ALLOWED_ORIGINS", "valueFrom": "arn:aws:ssm:REGION:ACCOUNT:parameter/streetjs/ALLOWED_ORIGINS" },
+        { "name": "PG_PASSWORD", "valueFrom": "arn:aws:ssm:REGION:ACCOUNT:parameter/streetjs/PG_PASSWORD" },
+        { "name": "JWT_SECRET", "valueFrom": "arn:aws:ssm:REGION:ACCOUNT:parameter/streetjs/JWT_SECRET" },
+        { "name": "SESSION_KEY", "valueFrom": "arn:aws:ssm:REGION:ACCOUNT:parameter/streetjs/SESSION_KEY" },
+        { "name": "KEK", "valueFrom": "arn:aws:ssm:REGION:ACCOUNT:parameter/streetjs/KEK" }
+      ],
+      "healthCheck": {
+        "command": ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3000/health/live').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""],
+        "interval": 15,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 20
+      },
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/streetjs",
+          "awslogs-region": "REGION",
+          "awslogs-stream-prefix": "streetjs"
+        }
+      }
+    }
+  ]
+}
