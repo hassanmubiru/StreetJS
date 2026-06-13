@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# pre-push hook: blocks pushing a release tag (refs/tags/v*.*.*) whose version
+# does not match streetjs / @streetjs/core / @streetjs/cli at the tagged commit.
+# Prevents "phantom" tags that the publish workflow would reject after the fact.
+#
+# Enabled via core.hooksPath=.githooks (set by the repo `prepare` script).
+# Bypass intentionally with `git push --no-verify`.
+set -uo pipefail
+
+status=0
+# stdin: <local ref> <local sha> <remote ref> <remote sha>
+while read -r local_ref local_sha remote_ref remote_sha; do
+  case "$local_ref" in
+    refs/tags/v[0-9]*.[0-9]*.[0-9]*)
+      tag="${local_ref#refs/tags/}"
+      # local_sha is the tag object; resolve to the commit it points to.
+      commit="$(git rev-list -n1 "$tag" 2>/dev/null || echo "$local_sha")"
+      echo "[pre-push] verifying release tag ${tag} → ${commit:0:12}"
+      if ! node scripts/check-tag-version.mjs "$tag" "$commit"; then
+        echo "[pre-push] BLOCKED: ${tag} version mismatch. Use --no-verify to override." >&2
+        status=1
+      fi
+      ;;
+  esac
+done
+
+exit "$status"
