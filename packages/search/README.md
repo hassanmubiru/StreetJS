@@ -54,21 +54,37 @@ facets via a JSONB `attributes` column, and a GIN index on the `tsvector`.
 
 ## Providers compared
 
-| | InMemorySearchProvider | PgSearchProvider |
-|---|---|---|
-| matching | exact lowercased tokens | `tsquery` with **stemming** (`english`) |
-| ranking | summed term frequency | `ts_rank` |
-| filters / facets | attribute equality | JSONB `attributes` |
-| scale | small / single instance | production datasets |
+| | InMemorySearchProvider | PgSearchProvider | MeilisearchProvider |
+|---|---|---|---|
+| matching | exact lowercased tokens | `tsquery` + stemming | typo-tolerant, prefix |
+| ranking | term frequency | `ts_rank` | Meili ranking rules |
+| filters / facets | attribute equality | JSONB `attributes` | `filterableAttributes` |
+| scale | small / single instance | production datasets | dedicated search engine |
+
+```ts
+import { SearchService, MeilisearchProvider } from '@streetjs/search';
+
+const search = new SearchService({
+  provider: new MeilisearchProvider({
+    host: 'http://127.0.0.1:7700',
+    apiKey: process.env.MEILI_KEY,
+    index: 'products',
+    filterableAttributes: ['kind', 'color'],
+  }),
+});
+```
+
+Start a local Meilisearch with `docker compose -f docker-compose.search.yml up -d`.
 
 > Note: ranking *scores* are provider-specific; treat them as relative, not
 > portable. Result membership and ordering semantics are consistent.
 
 ## Roadmap
 
-Meilisearch and Elasticsearch providers implement the same `SearchProvider`
-interface and are tracked as follow-ups; application code does not change when
-swapping providers.
+An Elasticsearch provider implements the same `SearchProvider` interface and is
+tracked as a follow-up (its service container is already wired in
+`docker-compose.search.yml` and the Provider Integration CI workflow);
+application code does not change when swapping providers.
 
 ## API
 
@@ -78,14 +94,18 @@ swapping providers.
 - `suggest(prefix, { limit? })` → `string[]`
 - helper: `tokenize(text)`
 
-Providers: `InMemorySearchProvider`, `PgSearchProvider`. Schema: `SEARCH_MIGRATION_SQL`.
+Providers: `InMemorySearchProvider`, `PgSearchProvider`, `MeilisearchProvider`. Schema: `SEARCH_MIGRATION_SQL`.
 
 ## Testing
 
 ```bash
 npm run test -w packages/search       # unit + property tests (no DB)
+# live Postgres FTS:
 PG_HOST=127.0.0.1 PG_PORT=5433 PG_USER=street PG_PASSWORD=street_secret \
   PG_DATABASE=street_test npm run test -w packages/search
+# live Meilisearch:
+MEILI_HOST=http://127.0.0.1:7700 MEILI_KEY=street_test_key \
+  npm run test -w packages/search
 ```
 
 ## License
