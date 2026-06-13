@@ -101,6 +101,7 @@ export class AzureBlobStorageProvider implements StorageProvider {
     ].join('\n');
 
     const sig = createHmac('sha256', this.key).update(stringToSign, 'utf8').digest('base64');
+    if (process.env['AZURE_DEBUG']) console.error('STS<<<' + stringToSign + '>>>');
     return `SharedKey ${this.account}:${sig}`;
   }
 
