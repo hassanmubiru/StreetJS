@@ -1,6 +1,6 @@
 # @streetjs/plugin-redis
 
-Official [Street Framework](https://hassanmubiru.github.io/street/) plugin for a
+Official [StreetJS Framework](https://hassanmubiru.github.io/street/) plugin for a
 **Redis cache / key-value store**.
 
 It ships a `PluginModule` subclass that connects a Redis client on load and

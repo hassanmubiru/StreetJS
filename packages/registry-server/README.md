@@ -1,6 +1,6 @@
 # @streetjs/registry-server
 
-The Street Framework **Network Plugin Registry** — a network-accessible service
+The StreetJS Framework **Network Plugin Registry** — a network-accessible service
 that hosts, indexes, and serves signed plugins with a secure publish flow and a
 public install flow (Requirement 4).
 

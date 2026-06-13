@@ -4,7 +4,7 @@ title:     "Consumer Platform Security"
 parent:    "Security"
 nav_order: 2
 permalink: /security/consumer-platform/
-description: "Consumer-platform security subsystems in Street Framework — runtime validation, scoped rate limiting, security headers, upload guard, field encryption, abuse prevention, moderation, secret providers, and privacy controls."
+description: "Consumer-platform security subsystems in StreetJS Framework — runtime validation, scoped rate limiting, security headers, upload guard, field encryption, abuse prevention, moderation, secret providers, and privacy controls."
 ---
 
 {% include doc-styles.html %}
@@ -15,7 +15,7 @@ description: "Consumer-platform security subsystems in Street Framework — runt
 <p>The hardened building blocks for high-risk consumer apps — dating, social, messaging, marketplaces. Runtime validation, scoped rate limiting, upload guards, field encryption, abuse prevention, moderation, pluggable secrets, and privacy controls. All in <code>@streetjs/core</code>, exported from <code>streetjs</code>.</p>
 </div>
 
-These subsystems extend Street's existing security layer (`security/ratelimit.ts`, `security/headers.ts`, `multipart/parser.ts`, `security/vault.ts`) rather than replace it. Each one is built on `node:crypto` and the pluggable backing-store abstraction below, has no third-party runtime dependency beyond `zod` (used only by the Validator), and is re-exported from the package root.
+These subsystems extend StreetJS's existing security layer (`security/ratelimit.ts`, `security/headers.ts`, `multipart/parser.ts`, `security/vault.ts`) rather than replace it. Each one is built on `node:crypto` and the pluggable backing-store abstraction below, has no third-party runtime dependency beyond `zod` (used only by the Validator), and is re-exported from the package root.
 
 ```typescript
 import {
@@ -100,7 +100,7 @@ Any subset of the five sources — `body`, `query`, `params`, `headers`, `cookie
 
 ### Error shape
 
-`ValidationError` extends Street's `StreetException`, so the router error handler emits the 400 status and a safe body automatically:
+`ValidationError` extends StreetJS's `StreetException`, so the router error handler emits the 400 status and a safe body automatically:
 
 ```json
 {
@@ -394,7 +394,7 @@ const events = await mod.audit();
 
 ## Secret providers
 
-A single `SecretProvider` interface (`get(name)`) is implemented by first-class adapters for GitHub Secrets, AWS Secrets Manager, Azure Key Vault, and GCP Secret Manager. The cloud adapters delegate retrieval to Street's existing SDK-free providers and add refresh-on-read plus automatic log redaction.
+A single `SecretProvider` interface (`get(name)`) is implemented by first-class adapters for GitHub Secrets, AWS Secrets Manager, Azure Key Vault, and GCP Secret Manager. The cloud adapters delegate retrieval to StreetJS's existing SDK-free providers and add refresh-on-read plus automatic log redaction.
 
 > The provider interface and three cloud adapter classes share names with the existing `cloud/secret-providers.ts` exports, so the consumer-platform variants are re-exported under aliased names: `SecretsProvider`, `AwsSecretsProvider`, `AzureSecretsProvider`, `GcpSecretsProvider` (and `GitHubSecretsProvider`, which is unique).
 

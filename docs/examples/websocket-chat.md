@@ -4,7 +4,7 @@ title:     "WebSocket Chat"
 parent:    "Examples"
 nav_order: 2
 permalink: /examples/websocket-chat/
-description: "Real-time WebSocket chat example with Street Framework — rooms, authentication, broadcast."
+description: "Real-time WebSocket chat example with StreetJS Framework — rooms, authentication, broadcast."
 ---
 
 # Example: WebSocket Chat
@@ -102,7 +102,7 @@ wss.on('connection', chatHandler);
 ```html
 <!DOCTYPE html>
 <html>
-<head><title>Street Chat</title></head>
+<head><title>StreetJS Chat</title></head>
 <body>
   <div id="messages"></div>
   <input id="text" placeholder="Message..." />

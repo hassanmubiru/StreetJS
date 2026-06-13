@@ -4,12 +4,12 @@ title:     "WebSockets"
 parent:    "Realtime"
 nav_order: 1
 permalink: /realtime/websocket/
-description: "WebSocket server in Street Framework — bounded connections, heartbeat, typed events, gateways."
+description: "WebSocket server in StreetJS Framework — bounded connections, heartbeat, typed events, gateways."
 ---
 
 # WebSockets
 
-Street includes a bounded WebSocket server built on the `ws` library. It enforces a maximum connection count, sends periodic heartbeats to detect dead connections, and exposes a typed event emitter API.
+StreetJS includes a bounded WebSocket server built on the `ws` library. It enforces a maximum connection count, sends periodic heartbeats to detect dead connections, and exposes a typed event emitter API.
 
 ---
 

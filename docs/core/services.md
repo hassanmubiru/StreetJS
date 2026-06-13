@@ -4,7 +4,7 @@ title:     "Services"
 parent:    "Core"
 nav_order: 4
 permalink: /core/services/
-description: "How to write services in Street Framework — business logic layer, @Injectable decorator, constructor injection."
+description: "How to write services in StreetJS Framework — business logic layer, @Injectable decorator, constructor injection."
 ---
 
 # Services

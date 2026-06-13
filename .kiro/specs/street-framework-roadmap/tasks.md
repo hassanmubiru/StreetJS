@@ -1,8 +1,8 @@
-# Implementation Plan: Street Framework Roadmap v1.1 – v3.0
+# Implementation Plan: StreetJS Framework Roadmap v1.1 – v3.0
 
 ## Overview
 
-This plan tracks the implementation of the Street Framework roadmap across milestones v1.1 through v3.0. Tasks are grouped by version, and each group maps to the features described in the requirements and design documents.
+This plan tracks the implementation of the StreetJS Framework roadmap across milestones v1.1 through v3.0. Tasks are grouped by version, and each group maps to the features described in the requirements and design documents.
 
 Status markers used in this plan:
 - `[x]` — completed
@@ -46,7 +46,7 @@ Status markers used in this plan:
   - [x] 4.7 Write tests: verify `diagnostic` event fires on unhandled route error, verify stack frames are cleaned, verify dependency chain appears in DI error messages
 
 - [x] 5. v1.1 — CLI Operational Commands (info, doctor, env validate, audit)
-  - [x] 5.1 Create `packages/cli/src/commands/info.ts` with `InfoCommand`: read `package.json` for Street version, read `process.version` for Node, detect TypeScript version from `node_modules/typescript/package.json`, print aligned table
+  - [x] 5.1 Create `packages/cli/src/commands/info.ts` with `InfoCommand`: read `package.json` for StreetJS version, read `process.version` for Node, detect TypeScript version from `node_modules/typescript/package.json`, print aligned table
   - [x] 5.2 Create `packages/cli/src/commands/doctor.ts` with `DoctorCommand`: check Node.js >= 20, TypeScript >= 5.0, required env vars from `.env.example`, attempt DB connectivity ping via `PgConnection.connect()`; print ✓/✗ per check with versions and upgrade hints
   - [x] 5.3 Create env-validate logic in `DoctorCommand` (or separate `EnvValidateCommand`): dynamic-import `street.config.ts` from the project root, call `defineConfig()`, report per-variable pass/fail, exit code 0 or 1
   - [x] 5.4 Create `packages/cli/src/commands/audit.ts` with `AuditCommand`: spawn `npm audit --json`, parse JSON output, format CVE findings as a table with package name, severity, and fix recommendation

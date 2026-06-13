@@ -1,6 +1,6 @@
 # Example 04 — Realtime Chat (channels, presence, typing, broadcasting)
 
-Demonstrates Street's realtime channel system: named channels (rooms),
+Demonstrates StreetJS's realtime channel system: named channels (rooms),
 reference-counted presence, typing indicators, and scoped event broadcasting on
 top of the WebSocket server.
 

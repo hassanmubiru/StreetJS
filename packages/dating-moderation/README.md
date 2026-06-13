@@ -1,6 +1,6 @@
 # @streetjs/dating-moderation
 
-Official [Street Framework](https://hassanmubiru.github.io/street/) dating
+Official [StreetJS Framework](https://hassanmubiru.github.io/street/) dating
 reference package providing **blocking and reporting** for a dating app.
 
 It is a thin facade over the core `ModerationToolkit` (Phase 7 of the

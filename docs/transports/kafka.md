@@ -7,7 +7,7 @@ description: "Kafka for TypeScript backends — StreetJS ships a built-in Kafka 
 
 # Kafka Transport
 
-A from-scratch **Kafka binary protocol** client and stream transport for the Street Framework, built directly on `node:net` with **zero third-party libraries** (no `kafkajs`, no `node-rdkafka`). It implements size-prefixed request framing, RecordBatch v2 with CRC32C, an idempotent batching producer, and a consumer-group offset-committing consumer.
+A from-scratch **Kafka binary protocol** client and stream transport for the StreetJS Framework, built directly on `node:net` with **zero third-party libraries** (no `kafkajs`, no `node-rdkafka`). It implements size-prefixed request framing, RecordBatch v2 with CRC32C, an idempotent batching producer, and a consumer-group offset-committing consumer.
 
 - Source: `packages/core/src/transports/kafka/` (`primitives.ts`, `recordbatch.ts`, `connection.ts`, `client.ts`, `index.ts`)
 - Package: `streetjs`
@@ -259,7 +259,7 @@ await consumer.run(async (msg) => {
 
 ### StreamTransport adapter
 
-`KafkaStreamTransport` implements `StreamTransport`, so it plugs into Street's event-streaming layer (`publish(topic, payload)` / `subscribe(topic, groupId, handler)`).
+`KafkaStreamTransport` implements `StreamTransport`, so it plugs into StreetJS's event-streaming layer (`publish(topic, payload)` / `subscribe(topic, groupId, handler)`).
 
 ```typescript
 import { KafkaStreamTransport } from 'streetjs';

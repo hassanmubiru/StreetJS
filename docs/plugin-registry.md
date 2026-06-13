@@ -7,7 +7,7 @@ description: "StreetJS local plugin registry — publish, sign and verify plugin
 
 # Local Plugin Registry
 
-`LocalPluginRegistry` turns the Street [plugin system](./plugins.md) into a
+`LocalPluginRegistry` turns the StreetJS [plugin system](./plugins.md) into a
 plugin *ecosystem*: a dependency-free, in-process registry that stores signed
 plugin manifests, verifies their signatures, supports discovery, and installs
 plugins directly into a `PluginHost`. No marketplace UI, no network, no external

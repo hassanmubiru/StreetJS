@@ -2,7 +2,7 @@
 
 ## Overview
 
-This design specifies how the Street Framework closes the remaining **Platform Leadership Gaps** under a strict **zero-trust evidence standard**: no capability is "done" by assertion or estimation — only by a machine-readable **Verification Artifact** produced by an executed command. The design is organized around a single unifying subsystem (the **Verification Artifact subsystem**) into which all twelve requirement areas plug. Every area produces artifacts in one common schema; a single **Exit-Criteria Aggregator** reads those artifacts and computes the Platform Leadership classification mechanically.
+This design specifies how the StreetJS Framework closes the remaining **Platform Leadership Gaps** under a strict **zero-trust evidence standard**: no capability is "done" by assertion or estimation — only by a machine-readable **Verification Artifact** produced by an executed command. The design is organized around a single unifying subsystem (the **Verification Artifact subsystem**) into which all twelve requirement areas plug. Every area produces artifacts in one common schema; a single **Exit-Criteria Aggregator** reads those artifacts and computes the Platform Leadership classification mechanically.
 
 The design is deliberately grounded in what already exists in the repository, and extends it rather than reinventing it:
 

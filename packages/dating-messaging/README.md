@@ -1,6 +1,6 @@
 # @streetjs/dating-messaging
 
-Official [Street Framework](https://hassanmubiru.github.io/street/) dating
+Official [StreetJS Framework](https://hassanmubiru.github.io/street/) dating
 reference package providing **messaging between matched users** with
 **encrypted message content**, that **refuses delivery while a block exists**
 (Phase 10, R11.3/R11.5).

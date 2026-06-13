@@ -3,7 +3,7 @@ layout:     default
 title:      "Certification"
 nav_order:  16
 permalink:  /certification/
-description: "Street Framework certification summary — 10/10 production gates passed, with the full gate matrix, domain coverage, and links to detailed reports."
+description: "StreetJS Framework certification summary — 10/10 production gates passed, with the full gate matrix, domain coverage, and links to detailed reports."
 ---
 
 {% include doc-styles.html %}
@@ -11,7 +11,7 @@ description: "Street Framework certification summary — 10/10 production gates 
 <div class="doc-header">
 <span class="dh-label">Certification</span>
 <h1>Certification Summary</h1>
-<p>An at-a-glance view of Street's production-readiness gates. Every result below was produced by executing the certification suites — re-run <code>node scripts/run-certification.mjs</code> to regenerate <code>certification-report.json</code>.</p>
+<p>An at-a-glance view of StreetJS's production-readiness gates. Every result below was produced by executing the certification suites — re-run <code>node scripts/run-certification.mjs</code> to regenerate <code>certification-report.json</code>.</p>
 </div>
 
 ## Verdict

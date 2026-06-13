@@ -4,20 +4,20 @@ title:        "What Can Be Built"
 nav_order:    12
 has_children: false
 permalink:    /use-cases/
-description:  "What can be built with Street Framework — web apps, mobile backends, APIs, microservices, real-time systems, gaming, fintech, banking, IoT, healthcare, education, media, enterprise, AI infrastructure, cybersecurity, and government systems."
+description:  "What can be built with StreetJS Framework — web apps, mobile backends, APIs, microservices, real-time systems, gaming, fintech, banking, IoT, healthcare, education, media, enterprise, AI infrastructure, cybersecurity, and government systems."
 ---
 
-# What Can Be Built With Street Framework
+# What Can Be Built With StreetJS Framework
 
-Street is a **general-purpose TypeScript backend framework** comparable in scope to Express, Fastify, NestJS, Spring Boot, ASP.NET Core, and Laravel — with a TypeScript-first, memory-conscious, and security-focused design that makes it suitable for production workloads across every industry vertical.
+StreetJS is a **general-purpose TypeScript backend framework** comparable in scope to Express, Fastify, NestJS, Spring Boot, ASP.NET Core, and Laravel — with a TypeScript-first, memory-conscious, and security-focused design that makes it suitable for production workloads across every industry vertical.
 
-This page shows what you can build, how Street's architecture maps to each domain, and which framework features carry the most weight in each context.
+This page shows what you can build, how StreetJS's architecture maps to each domain, and which framework features carry the most weight in each context.
 
 ---
 
 ## Framework at a glance
 
-Before diving into use cases, here is the full capability surface Street brings to every project:
+Before diving into use cases, here is the full capability surface StreetJS brings to every project:
 
 | Capability | What it provides |
 |---|---|
@@ -48,7 +48,7 @@ Before diving into use cases, here is the full capability surface Street brings 
 
 ### Description
 
-Traditional and modern web applications — from server-rendered dashboards to single-page app backends — need a reliable HTTP layer, session management, file handling, and database access. Street handles all of these natively without reaching for third-party middleware.
+Traditional and modern web applications — from server-rendered dashboards to single-page app backends — need a reliable HTTP layer, session management, file handling, and database access. StreetJS handles all of these natively without reaching for third-party middleware.
 
 ### Typical architecture
 
@@ -56,7 +56,7 @@ Traditional and modern web applications — from server-rendered dashboards to s
 Browser / SPA
     │
     ▼
-Street HTTP Server
+StreetJS HTTP Server
     ├── securityHeaders + corsMiddleware + csrfMiddleware
     ├── SessionManager (AES-256-GCM cookies)
     ├── RateLimiter (per-IP sliding window)
@@ -66,7 +66,7 @@ Street HTTP Server
     └── SseConnection (live notifications)
 ```
 
-### Street features used
+### StreetJS features used
 
 - `streetApp` + `Router` — HTTP server and routing
 - `SessionManager` — encrypted cookie sessions
@@ -85,7 +85,7 @@ Street HTTP Server
 
 ### Example project ideas
 
-| Project | Key Street features |
+| Project | Key StreetJS features |
 |---|---|
 | Admin dashboard backend | Sessions, RBAC with `requireRoles`, PostgreSQL, SSE for live stats |
 | E-commerce storefront API | JWT auth, file uploads (product images), rate limiting, OpenAPI |
@@ -99,7 +99,7 @@ Street HTTP Server
 
 ### Description
 
-Mobile apps (iOS, Android, React Native, Flutter) need a stateless JSON API with fast authentication, push-notification triggers, file upload endpoints, and real-time data sync. Street's JWT-first design and WebSocket support make it a natural fit.
+Mobile apps (iOS, Android, React Native, Flutter) need a stateless JSON API with fast authentication, push-notification triggers, file upload endpoints, and real-time data sync. StreetJS's JWT-first design and WebSocket support make it a natural fit.
 
 ### Typical architecture
 
@@ -107,7 +107,7 @@ Mobile apps (iOS, Android, React Native, Flutter) need a stateless JSON API with
 Mobile Client
     │  (HTTPS + Bearer JWT)
     ▼
-Street HTTP Server
+StreetJS HTTP Server
     ├── authMiddleware (JWT verification)
     ├── requireRoles (RBAC)
     ├── RateLimiter (per-device IP)
@@ -118,7 +118,7 @@ Street HTTP Server
     └── PgPool → PostgreSQL
 ```
 
-### Street features used
+### StreetJS features used
 
 - `JwtService` — stateless auth, no server-side session storage
 - `authMiddleware` + `requireRoles` — per-route access control
@@ -136,7 +136,7 @@ Street HTTP Server
 
 ### Example project ideas
 
-| Project | Key Street features |
+| Project | Key StreetJS features |
 |---|---|
 | Social media app backend | JWT, WebSocket (feed updates), multipart (photo upload), PostgreSQL |
 | Fitness tracker API | JWT, PostgreSQL (time-series workouts), SSE (live workout feed) |
@@ -150,7 +150,7 @@ Street HTTP Server
 
 ### Description
 
-Street is purpose-built for API development. Its decorator-based routing, built-in validation, automatic OpenAPI generation, and parameterized query layer eliminate the boilerplate that dominates API projects in other frameworks.
+StreetJS is purpose-built for API development. Its decorator-based routing, built-in validation, automatic OpenAPI generation, and parameterized query layer eliminate the boilerplate that dominates API projects in other frameworks.
 
 ### Typical architecture
 
@@ -158,7 +158,7 @@ Street is purpose-built for API development. Its decorator-based routing, built-
 API Consumers (web, mobile, third-party)
     │
     ▼
-Street HTTP Server
+StreetJS HTTP Server
     ├── corsMiddleware (origin allowlist)
     ├── authMiddleware (JWT)
     ├── RateLimiter
@@ -168,7 +168,7 @@ Street HTTP Server
     └── /openapi.json (auto-generated spec)
 ```
 
-### Street features used
+### StreetJS features used
 
 - `@Controller`, `@Get`, `@Post`, `@Put`, `@Delete`, `@Patch` — declarative routing
 - `@Validate` — request body/query/params validation without Zod or Joi
@@ -186,7 +186,7 @@ Street HTTP Server
 
 ### Example project ideas
 
-| Project | Key Street features |
+| Project | Key StreetJS features |
 |---|---|
 | Public REST API (SaaS product) | OpenAPI, JWT, rate limiting, CORS, PostgreSQL |
 | Internal microservice API | DI container, PostgreSQL, health endpoint, clustering |
@@ -200,22 +200,22 @@ Street HTTP Server
 
 ### Description
 
-Microservice architectures decompose a system into small, independently deployable services. Street's minimal footprint, fast startup, DI container, and clustering support make each service lean and self-contained. Its native PostgreSQL driver means no shared ORM layer between services.
+Microservice architectures decompose a system into small, independently deployable services. StreetJS's minimal footprint, fast startup, DI container, and clustering support make each service lean and self-contained. Its native PostgreSQL driver means no shared ORM layer between services.
 
 ### Typical architecture
 
 ```
 API Gateway / Load Balancer
     │
-    ├── Street Service A (users)      ─── PostgreSQL DB A
-    ├── Street Service B (orders)     ─── PostgreSQL DB B
-    ├── Street Service C (inventory)  ─── PostgreSQL DB C
-    └── Street Service D (notifications) ─── WebhookDispatcher
+    ├── StreetJS Service A (users)      ─── PostgreSQL DB A
+    ├── StreetJS Service B (orders)     ─── PostgreSQL DB B
+    ├── StreetJS Service C (inventory)  ─── PostgreSQL DB C
+    └── StreetJS Service D (notifications) ─── WebhookDispatcher
               │
               └── Inter-service: HTTP webhooks (HMAC-signed)
 ```
 
-### Street features used
+### StreetJS features used
 
 - `streetApp` — lightweight per-service HTTP server
 - `ClusterCoordinator` — multi-core utilization per service
@@ -234,7 +234,7 @@ API Gateway / Load Balancer
 
 ### Example project ideas
 
-| Project | Key Street features |
+| Project | Key StreetJS features |
 |---|---|
 | User service | JWT, PostgreSQL, migrations, health endpoint |
 | Order processing service | PostgreSQL transactions, webhooks (payment triggers), clustering |
@@ -266,7 +266,7 @@ await app.listen();
 
 ### Description
 
-Real-time systems — live dashboards, collaborative tools, notification hubs, live sports scores, trading tickers — require persistent connections, low-latency message delivery, and robust connection lifecycle management. Street provides both WebSocket and SSE transports with built-in heartbeat and bounded connection pools.
+Real-time systems — live dashboards, collaborative tools, notification hubs, live sports scores, trading tickers — require persistent connections, low-latency message delivery, and robust connection lifecycle management. StreetJS provides both WebSocket and SSE transports with built-in heartbeat and bounded connection pools.
 
 ### Typical architecture
 
@@ -286,7 +286,7 @@ StreetWebSocketServer          SseConnection
          TelemetryTracker (connection metrics)
 ```
 
-### Street features used
+### StreetJS features used
 
 - `StreetWebSocketServer` — bounded WebSocket server with heartbeat
 - `WsServerOptions.authFn` — JWT authentication before upgrade
@@ -306,7 +306,7 @@ StreetWebSocketServer          SseConnection
 
 ### Example project ideas
 
-| Project | Key Street features |
+| Project | Key StreetJS features |
 |---|---|
 | Live sports scores platform | WebSocket broadcast, PostgreSQL, SSE for score tickers |
 | Collaborative document editor | WebSocket (operational transforms), JWT auth, PostgreSQL |
@@ -329,13 +329,13 @@ Game backends handle player authentication, matchmaking, leaderboards, inventory
 Game Clients (web, mobile, desktop)
     │
     ▼
-Street HTTP Server (REST API)
+StreetJS HTTP Server (REST API)
     ├── JWT auth (player sessions)
     ├── RateLimiter (anti-cheat, anti-abuse)
     ├── PgPool → PostgreSQL (player data, leaderboards)
     └── LruCache (hot leaderboard data)
 
-Street WebSocket Server (game state)
+StreetJS WebSocket Server (game state)
     ├── authFn (JWT on upgrade)
     ├── StreetSocket (per-player event stream)
     ├── broadcast (game events to room)
@@ -345,7 +345,7 @@ WebhookDispatcher
     └── Payment provider webhooks (in-game purchases)
 ```
 
-### Street features used
+### StreetJS features used
 
 - `JwtService` — player session tokens with short expiry
 - `StreetWebSocketServer` + `authFn` — authenticated real-time game state
@@ -364,7 +364,7 @@ WebhookDispatcher
 
 ### Example project ideas
 
-| Project | Key Street features |
+| Project | Key StreetJS features |
 |---|---|
 | Multiplayer game server | WebSocket, JWT, rate limiting, clustering, PostgreSQL |
 | Leaderboard service | LRU cache, PostgreSQL, REST API, OpenAPI |
@@ -387,7 +387,7 @@ Fintech platforms — payment processors, lending platforms, investment apps, cr
 Client Apps / Partner APIs
     │  (mTLS or JWT)
     ▼
-Street HTTP Server
+StreetJS HTTP Server
     ├── securityHeaders + HSTS
     ├── authMiddleware (JWT, short expiry)
     ├── requireRoles (RBAC: user / analyst / admin)
@@ -400,7 +400,7 @@ Street HTTP Server
     └── Vault (KEK-encrypted secrets at rest)
 ```
 
-### Street features used
+### StreetJS features used
 
 - `PgPool.transaction()` — ACID guarantees for fund transfers and ledger entries
 - `LedgerTransactionService` — multi-operation atomic transactions
@@ -422,7 +422,7 @@ Street HTTP Server
 
 ### Example project ideas
 
-| Project | Key Street features |
+| Project | Key StreetJS features |
 |---|---|
 | Payment processing API | PostgreSQL transactions, vault, JWT, webhooks, rate limiting |
 | Peer-to-peer lending platform | ACID transactions, JWT, RBAC, PostgreSQL, audit log |
@@ -463,7 +463,7 @@ Core banking systems require the highest levels of data integrity, auditability,
 Internal Banking Applications
     │  (mTLS + JWT, internal network only)
     ▼
-Street HTTP Server (internal API)
+StreetJS HTTP Server (internal API)
     ├── securityHeaders (HSTS, CSP, COOP)
     ├── authMiddleware (JWT, role-based)
     ├── requireRoles (teller / manager / auditor / admin)
@@ -479,7 +479,7 @@ ClusterCoordinator
     └── Multi-core primary + workers (zero-downtime rolling restart)
 ```
 
-### Street features used
+### StreetJS features used
 
 - `PgPool.transaction()` — serializable ACID transactions for account operations
 - `StreetMigrationRunner` — versioned, auditable schema changes
@@ -500,7 +500,7 @@ ClusterCoordinator
 
 ### Example project ideas
 
-| Project | Key Street features |
+| Project | Key StreetJS features |
 |---|---|
 | Core banking API | ACID transactions, vault (PII), RBAC, migrations, clustering |
 | Account management service | PostgreSQL, JWT, RBAC, OpenAPI, health endpoint |
@@ -523,14 +523,14 @@ IoT platforms ingest telemetry from thousands or millions of devices, store time
 IoT Devices (sensors, actuators, gateways)
     │  (HTTPS REST or WebSocket)
     ▼
-Street HTTP Server (ingestion API)
+StreetJS HTTP Server (ingestion API)
     ├── authMiddleware (device JWT or API key)
     ├── RateLimiter (per-device-ID)
     ├── Router → TelemetryController
     │       └── PgPool (time-series insert)
     └── WebhookDispatcher (automation triggers)
 
-Street WebSocket Server (device command channel)
+StreetJS WebSocket Server (device command channel)
     ├── authFn (device certificate / JWT)
     ├── StreetSocket (per-device bidirectional channel)
     └── broadcast (fleet-wide config push)
@@ -539,7 +539,7 @@ SseConnection
     └── Dashboard clients (live device feed)
 ```
 
-### Street features used
+### StreetJS features used
 
 - `RateLimiter` — per-device rate limiting (prevent rogue device flooding)
 - `StreetWebSocketServer` + `authFn` — authenticated persistent device connections
@@ -559,7 +559,7 @@ SseConnection
 
 ### Example project ideas
 
-| Project | Key Street features |
+| Project | Key StreetJS features |
 |---|---|
 | Smart home hub backend | WebSocket (device commands), PostgreSQL, SSE (dashboard), webhooks |
 | Industrial sensor platform | High-throughput REST ingestion, PostgreSQL, rate limiting, clustering |
@@ -574,7 +574,7 @@ SseConnection
 
 ### Description
 
-Healthcare systems handle protected health information (PHI) under regulations like HIPAA, GDPR, and HL7 FHIR. They require end-to-end encryption, strict access control, comprehensive audit logging, and zero-downtime deployments. Street's vault mode, RBAC, and ACID transactions address these requirements directly.
+Healthcare systems handle protected health information (PHI) under regulations like HIPAA, GDPR, and HL7 FHIR. They require end-to-end encryption, strict access control, comprehensive audit logging, and zero-downtime deployments. StreetJS's vault mode, RBAC, and ACID transactions address these requirements directly.
 
 ### Typical architecture
 
@@ -582,7 +582,7 @@ Healthcare systems handle protected health information (PHI) under regulations l
 Clinical Applications / Patient Portal
     │  (HTTPS + JWT)
     ▼
-Street HTTP Server
+StreetJS HTTP Server
     ├── securityHeaders (HSTS, CSP, COOP)
     ├── authMiddleware (JWT, short expiry)
     ├── requireRoles (patient / nurse / doctor / admin)
@@ -595,7 +595,7 @@ Street HTTP Server
     └── WebhookDispatcher (HL7 FHIR event notifications)
 ```
 
-### Street features used
+### StreetJS features used
 
 - `Vault` — AES-256-GCM encryption of PHI (diagnoses, prescriptions, lab results)
 - `requireRoles` — role-based access (patient can only see their own records)
@@ -617,7 +617,7 @@ Street HTTP Server
 
 ### Example project ideas
 
-| Project | Key Street features |
+| Project | Key StreetJS features |
 |---|---|
 | Electronic health record (EHR) API | Vault (PHI), RBAC, ACID transactions, migrations, audit log |
 | Patient portal backend | JWT, sessions, CSRF, PostgreSQL, SSE (appointment reminders) |
@@ -640,7 +640,7 @@ Education platforms — LMS systems, online course platforms, coding bootcamps, 
 Students / Instructors / Admins
     │
     ▼
-Street HTTP Server
+StreetJS HTTP Server
     ├── authMiddleware (JWT)
     ├── requireRoles (student / instructor / admin)
     ├── RateLimiter (quiz submission rate limiting)
@@ -652,7 +652,7 @@ Street HTTP Server
     └── WebhookDispatcher (grade webhooks to SIS)
 ```
 
-### Street features used
+### StreetJS features used
 
 - `requireRoles` — students see their own grades; instructors see their cohort
 - `MultipartParser` — assignment and video uploads streamed to disk
@@ -672,7 +672,7 @@ Street HTTP Server
 
 ### Example project ideas
 
-| Project | Key Street features |
+| Project | Key StreetJS features |
 |---|---|
 | LMS backend (Moodle alternative) | JWT, RBAC, PostgreSQL, file uploads, SSE, webhooks |
 | Online coding platform | WebSocket (live code execution), JWT, PostgreSQL, rate limiting |
@@ -687,7 +687,7 @@ Street HTTP Server
 
 ### Description
 
-Media platforms — video streaming services, podcast hosts, image galleries, news aggregators, live streaming backends — handle large binary assets, high read throughput, real-time viewer counts, and content delivery pipelines. Street's streaming multipart parser and WebSocket broadcast are central here.
+Media platforms — video streaming services, podcast hosts, image galleries, news aggregators, live streaming backends — handle large binary assets, high read throughput, real-time viewer counts, and content delivery pipelines. StreetJS's streaming multipart parser and WebSocket broadcast are central here.
 
 ### Typical architecture
 
@@ -695,7 +695,7 @@ Media platforms — video streaming services, podcast hosts, image galleries, ne
 Content Creators / Viewers
     │
     ▼
-Street HTTP Server
+StreetJS HTTP Server
     ├── authMiddleware (JWT)
     ├── RateLimiter (upload rate, API calls)
     ├── MultipartParser (video / audio / image upload → object storage)
@@ -707,7 +707,7 @@ Street HTTP Server
     └── WebhookDispatcher (CDN purge, transcoding triggers)
 ```
 
-### Street features used
+### StreetJS features used
 
 - `MultipartParser` — stream large video/audio files to disk or object storage
 - `StreetWebSocketServer` — live viewer counts, live chat, real-time reactions
@@ -726,7 +726,7 @@ Street HTTP Server
 
 ### Example project ideas
 
-| Project | Key Street features |
+| Project | Key StreetJS features |
 |---|---|
 | Video hosting platform | Multipart uploads, PostgreSQL, LRU cache, webhooks (transcoding) |
 | Podcast hosting backend | Multipart uploads, PostgreSQL, SSE (new episode alerts), JWT |
@@ -741,7 +741,7 @@ Street HTTP Server
 
 ### Description
 
-Enterprise software — ERP systems, CRM platforms, HR management, supply chain tools — serves large internal user bases with complex permission hierarchies, integration requirements, and strict audit trails. Street's DI container, RBAC, and ACID transactions map directly to enterprise patterns.
+Enterprise software — ERP systems, CRM platforms, HR management, supply chain tools — serves large internal user bases with complex permission hierarchies, integration requirements, and strict audit trails. StreetJS's DI container, RBAC, and ACID transactions map directly to enterprise patterns.
 
 ### Typical architecture
 
@@ -749,7 +749,7 @@ Enterprise software — ERP systems, CRM platforms, HR management, supply chain 
 Enterprise Users (web, desktop clients)
     │  (SSO JWT or SAML-to-JWT bridge)
     ▼
-Street HTTP Server
+StreetJS HTTP Server
     ├── securityHeaders
     ├── authMiddleware (JWT from SSO)
     ├── requireRoles (employee / manager / director / admin)
@@ -762,7 +762,7 @@ Street HTTP Server
     └── WebhookDispatcher (ERP integration events)
 ```
 
-### Street features used
+### StreetJS features used
 
 - `Container` (DI) — clean separation of controllers, services, repositories
 - `requireRoles` — hierarchical RBAC (employee → manager → director → admin)
@@ -782,7 +782,7 @@ Street HTTP Server
 
 ### Example project ideas
 
-| Project | Key Street features |
+| Project | Key StreetJS features |
 |---|---|
 | ERP backend | ACID transactions, RBAC, DI container, migrations, vault, telemetry |
 | CRM platform | PostgreSQL, JWT, RBAC, OpenAPI, webhooks (Salesforce sync) |
@@ -797,7 +797,7 @@ Street HTTP Server
 
 ### Description
 
-AI infrastructure backends — model serving APIs, training job orchestrators, vector database proxies, RAG pipelines, AI agent frameworks — need high-throughput request handling, streaming response delivery, and reliable job queuing. Street's SSE streaming and PostgreSQL integration make it a strong foundation for AI-adjacent services.
+AI infrastructure backends — model serving APIs, training job orchestrators, vector database proxies, RAG pipelines, AI agent frameworks — need high-throughput request handling, streaming response delivery, and reliable job queuing. StreetJS's SSE streaming and PostgreSQL integration make it a strong foundation for AI-adjacent services.
 
 ### Typical architecture
 
@@ -805,7 +805,7 @@ AI infrastructure backends — model serving APIs, training job orchestrators, v
 AI Clients (web apps, agents, notebooks)
     │
     ▼
-Street HTTP Server
+StreetJS HTTP Server
     ├── authMiddleware (JWT or API key)
     ├── RateLimiter (per-user token budget)
     ├── Router → InferenceController
@@ -816,7 +816,7 @@ Street HTTP Server
     └── LruCache (embedding cache, prompt cache)
 ```
 
-### Street features used
+### StreetJS features used
 
 - `SseConnection` — stream LLM token output to clients (ChatGPT-style streaming)
 - `RateLimiter` — per-user token rate limiting (requests per minute / tokens per day)
@@ -836,7 +836,7 @@ Street HTTP Server
 
 ### Example project ideas
 
-| Project | Key Street features |
+| Project | Key StreetJS features |
 |---|---|
 | LLM inference API | SSE (token streaming), JWT, rate limiting, PostgreSQL (history) |
 | RAG pipeline backend | Multipart (doc upload), PostgreSQL (pgvector), LRU cache, JWT |
@@ -868,7 +868,7 @@ async streamChat(ctx: StreetContext): Promise<void> {
 
 ### Description
 
-Cybersecurity platforms — SIEM systems, vulnerability scanners, threat intelligence feeds, SOC dashboards, penetration testing tools, and security automation platforms — need high-throughput event ingestion, real-time alerting, tamper-proof audit logs, and strict access control. Street's security-first design makes it uniquely suited here.
+Cybersecurity platforms — SIEM systems, vulnerability scanners, threat intelligence feeds, SOC dashboards, penetration testing tools, and security automation platforms — need high-throughput event ingestion, real-time alerting, tamper-proof audit logs, and strict access control. StreetJS's security-first design makes it uniquely suited here.
 
 ### Typical architecture
 
@@ -876,7 +876,7 @@ Cybersecurity platforms — SIEM systems, vulnerability scanners, threat intelli
 Security Agents / Sensors / SIEM Integrations
     │  (HTTPS + HMAC-signed payloads)
     ▼
-Street HTTP Server (event ingestion)
+StreetJS HTTP Server (event ingestion)
     ├── authMiddleware (JWT, short expiry)
     ├── requireRoles (analyst / engineer / admin)
     ├── RateLimiter (per-agent, per-source)
@@ -888,7 +888,7 @@ Street HTTP Server (event ingestion)
     └── Vault (API keys for threat intel feeds)
 ```
 
-### Street features used
+### StreetJS features used
 
 - `JwtService` — short-lived analyst tokens (15 min) with role claims
 - `requireRoles` — analyst / engineer / admin separation of duties
@@ -911,7 +911,7 @@ Street HTTP Server (event ingestion)
 
 ### Example project ideas
 
-| Project | Key Street features |
+| Project | Key StreetJS features |
 |---|---|
 | SIEM event ingestion API | Rate limiting, PostgreSQL, JWT, webhooks, clustering |
 | SOC real-time dashboard | WebSocket, SSE, JWT, RBAC, PostgreSQL |
@@ -934,7 +934,7 @@ Government systems — citizen portals, permit management, tax filing platforms,
 Citizens / Government Staff
     │  (HTTPS + MFA-backed JWT)
     ▼
-Street HTTP Server
+StreetJS HTTP Server
     ├── securityHeaders (HSTS preload, CSP, COOP, CORP)
     ├── authMiddleware (JWT from identity provider)
     ├── requireRoles (citizen / clerk / supervisor / admin)
@@ -950,7 +950,7 @@ Street HTTP Server
     └── ClusterCoordinator (high availability)
 ```
 
-### Street features used
+### StreetJS features used
 
 - `Vault` — AES-256-GCM encryption of citizen PII (SSN, address, tax ID)
 - `requireRoles` — strict separation between citizen self-service and staff access
@@ -973,7 +973,7 @@ Street HTTP Server
 
 ### Example project ideas
 
-| Project | Key Street features |
+| Project | Key StreetJS features |
 |---|---|
 | Citizen portal backend | Vault (PII), RBAC, CSRF, XSS, HSTS, PostgreSQL, multipart |
 | Permit management system | ACID transactions, RBAC, migrations, PostgreSQL, file uploads |
@@ -986,9 +986,9 @@ Street HTTP Server
 
 ## Framework comparison
 
-Street is positioned as a **general-purpose production backend framework** comparable to the following:
+StreetJS is positioned as a **general-purpose production backend framework** comparable to the following:
 
-| Framework | Language | Street advantage |
+| Framework | Language | StreetJS advantage |
 |---|---|---|
 | **Express** | JavaScript | TypeScript-first, memory bounds, built-in security, native PostgreSQL |
 | **Fastify** | JavaScript/TypeScript | Built-in auth, sessions, WebSocket, PostgreSQL — no plugin ecosystem needed |
@@ -999,13 +999,13 @@ Street is positioned as a **general-purpose production backend framework** compa
 | **Django** | Python | Async-native, TypeScript types, no GIL, horizontal scaling via clustering |
 | **Gin / Echo** | Go | Richer built-in feature set (auth, sessions, WebSocket, migrations) |
 
-Street does not require you to assemble a security stack from separate packages. JWT, sessions, rate limiting, XSS sanitization, CSRF protection, security headers, CORS, vault encryption, and HMAC-signed webhooks are all included and integrated.
+StreetJS does not require you to assemble a security stack from separate packages. JWT, sessions, rate limiting, XSS sanitization, CSRF protection, security headers, CORS, vault encryption, and HMAC-signed webhooks are all included and integrated.
 
 ---
 
-## Choosing Street for your project
+## Choosing StreetJS for your project
 
-Use Street when you need:
+Use StreetJS when you need:
 
 - **TypeScript throughout** — strict mode, `NodeNext` ESM, full type inference
 - **Security by default** — every security primitive built in, not bolted on
@@ -1021,4 +1021,4 @@ cd my-project && npm install && street dev
 ```
 
 {: .note }
-Street is MIT-licensed and runs on Node.js 20+. See the [Getting Started](/getting-started/installation/) guide to scaffold your first project in under 60 seconds.
+StreetJS is MIT-licensed and runs on Node.js 20+. See the [Getting Started](/getting-started/installation/) guide to scaffold your first project in under 60 seconds.

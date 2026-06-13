@@ -4,7 +4,7 @@ title:        "Examples"
 nav_order:    11
 has_children: true
 permalink:    /examples/
-description:  "Street Framework examples — REST API, WebSocket chat, file upload, authentication, SSE notifications."
+description:  "StreetJS Framework examples — REST API, WebSocket chat, file upload, authentication, SSE notifications."
 ---
 
 {% include doc-styles.html %}
@@ -15,7 +15,7 @@ description:  "Street Framework examples — REST API, WebSocket chat, file uplo
 <p>Complete, runnable examples for REST APIs, WebSocket chat, file uploads, and auth flows.</p>
 </div>
 
-Complete, runnable examples for common Street Framework use cases.
+Complete, runnable examples for common StreetJS Framework use cases.
 
 | Example | Description |
 |---|---|
@@ -25,4 +25,4 @@ Complete, runnable examples for common Street Framework use cases.
 | [User API](/examples/user-api/) | Full user management with auth, roles, sessions |
 | [Streaming Query](/examples/streaming-query/) | Stream large PostgreSQL result sets row-by-row |
 
-All examples assume you have run `street create my-app` and have a working Street project.
+All examples assume you have run `street create my-app` and have a working StreetJS project.

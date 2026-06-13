@@ -20,7 +20,7 @@ street --version   # street v1.0.3
 
 ## `street create <project-name>`
 
-Scaffolds a complete, production-ready Street project.
+Scaffolds a complete, production-ready StreetJS project.
 
 ```bash
 street create my-api

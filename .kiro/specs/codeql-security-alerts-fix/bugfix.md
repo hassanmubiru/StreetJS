@@ -2,7 +2,7 @@
 
 ## Introduction
 
-CodeQL static analysis on the `main` branch of the Street framework reported a batch of security alerts spanning several defect classes: a disabled TLS certificate validation path in the webhook dispatcher, multiple polynomial (ReDoS-prone) regular expressions applied to uncontrolled input, incomplete string escaping in the SBOM generator, incomplete multi-character XSS sanitization, weak password-hash computational effort in the MySQL wire driver (plus related test fixtures), and several GitHub Actions workflows missing an explicit top-level `permissions` block.
+CodeQL static analysis on the `main` branch of the StreetJS framework reported a batch of security alerts spanning several defect classes: a disabled TLS certificate validation path in the webhook dispatcher, multiple polynomial (ReDoS-prone) regular expressions applied to uncontrolled input, incomplete string escaping in the SBOM generator, incomplete multi-character XSS sanitization, weak password-hash computational effort in the MySQL wire driver (plus related test fixtures), and several GitHub Actions workflows missing an explicit top-level `permissions` block.
 
 These are existing defects in shipped code. The fix must close each genuine vulnerability while preserving all currently-correct behavior. Some alerts (the MySQL wire-protocol SHA1/SHA256 usage and its test fixtures) implement the MySQL Client/Server authentication protocol as specified; for those the defect to resolve is the absence of a documented justification/suppression rather than a behavioral change, since altering the hash would break protocol compatibility.
 

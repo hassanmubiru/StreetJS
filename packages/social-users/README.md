@@ -1,6 +1,6 @@
 # @streetjs/social-users
 
-Official Street Framework social module: the **follow graph**. It is the
+Official StreetJS Framework social module: the **follow graph**. It is the
 foundation the other social modules (`@streetjs/social-feed`,
 `@streetjs/social-comments`, `@streetjs/social-notifications`) build on.
 
@@ -33,7 +33,7 @@ await social.unfollow('ada', 'lin');          // { changed: true, mutual: false 
 
 ## Postgres-backed
 
-Compose Street's native `PgPool`. Run the exported migration once at bootstrap.
+Compose StreetJS's native `PgPool`. Run the exported migration once at bootstrap.
 
 ```ts
 import { PgPool } from 'streetjs';

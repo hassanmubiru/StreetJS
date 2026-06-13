@@ -1,6 +1,6 @@
-# Street Framework — REST API Example
+# StreetJS Framework — REST API Example
 
-A complete working REST API example built with Street Framework.
+A complete working REST API example built with StreetJS Framework.
 
 ## Quick Start
 

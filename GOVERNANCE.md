@@ -1,4 +1,4 @@
-# Street Framework — Governance
+# StreetJS Framework — Governance
 
 ## Roles
 

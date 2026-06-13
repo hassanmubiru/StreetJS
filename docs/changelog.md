@@ -3,7 +3,7 @@ layout:    default
 title:     "Changelog"
 nav_order: 17
 permalink: /changelog/
-description: "Street Framework changelog — release history for @streetjs/core and @streetjs/cli."
+description: "StreetJS Framework changelog — release history for @streetjs/core and @streetjs/cli."
 ---
 
 {% include doc-styles.html %}
@@ -14,7 +14,7 @@ description: "Street Framework changelog — release history for @streetjs/core 
 <p>Release history for <code>@streetjs/core</code> and <code>@streetjs/cli</code>. Follows <a href="https://keepachangelog.com">Keep a Changelog</a> and <a href="https://semver.org">Semantic Versioning</a>.</p>
 </div>
 
-All notable changes to Street Framework are documented here.
+All notable changes to StreetJS Framework are documented here.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).

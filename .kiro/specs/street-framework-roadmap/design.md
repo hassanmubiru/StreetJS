@@ -1,8 +1,8 @@
-# Design Document: Street Framework Roadmap v1.1 – v3.0
+# Design Document: StreetJS Framework Roadmap v1.1 – v3.0
 
 ## Overview
 
-This document specifies the technical architecture for all features in the Street Framework roadmap. Every design decision extends the existing v1.0 architecture: zero-external-dependency philosophy, pure Node.js core modules, the `MiddlewareFn` pipeline, decorator-based metadata, the `Container` DI singleton, and `StreetPostgresRepository<T>` as the data access foundation.
+This document specifies the technical architecture for all features in the StreetJS Framework roadmap. Every design decision extends the existing v1.0 architecture: zero-external-dependency philosophy, pure Node.js core modules, the `MiddlewareFn` pipeline, decorator-based metadata, the `Container` DI singleton, and `StreetPostgresRepository<T>` as the data access foundation.
 
 The framework source lives in `packages/core/src/` (ESM, NodeNext module resolution, `experimentalDecorators`, `emitDecoratorMetadata`, strict TypeScript). All new modules follow the same file layout conventions and are exported through `packages/core/src/index.ts`.
 
@@ -211,7 +211,7 @@ export class DiagnosticsReporter extends EventEmitter {
 class InfoCommand {
   async execute(ctx: CliContext): Promise<void>;
   // Reads package.json, process.version, tsconfig.json
-  // Prints aligned table: Street version, Node version, TS version, OS, project config
+  // Prints aligned table: StreetJS version, Node version, TS version, OS, project config
 }
 
 // street doctor

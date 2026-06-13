@@ -7,11 +7,11 @@ description: "WebAuthn and passkeys in StreetJS — passwordless, FIDO2 authenti
 
 # WebAuthn / Passkeys Guide
 
-Street's `WebAuthnService` implements the [WebAuthn Level 2](https://www.w3.org/TR/webauthn-2/) specification, enabling phishing-resistant passkey authentication. Users authenticate with a biometric sensor, hardware key, or device PIN — no password required.
+StreetJS's `WebAuthnService` implements the [WebAuthn Level 2](https://www.w3.org/TR/webauthn-2/) specification, enabling phishing-resistant passkey authentication. Users authenticate with a biometric sensor, hardware key, or device PIN — no password required.
 
 ## Security Properties
 
-| Property | How Street Enforces It |
+| Property | How StreetJS Enforces It |
 |----------|----------------------|
 | **Phishing-resistant** | `origin` is bound to the credential at registration; a different origin is rejected during authentication |
 | **Replay protection** | Each challenge is single-use and stored with an `expiresAt` timestamp |
@@ -161,7 +161,7 @@ app.use(async (ctx, next) => {
 
 ## COSE Key Storage
 
-Street stores public keys as **JWK JSON strings** in the database. During registration, `parseCredentialPublicKey()` reads the COSE EC2 key from `authData` and converts it:
+StreetJS stores public keys as **JWK JSON strings** in the database. During registration, `parseCredentialPublicKey()` reads the COSE EC2 key from `authData` and converts it:
 
 ```
 COSE map: { kty=2, alg=-7, crv=1, x=<32 bytes>, y=<32 bytes> }

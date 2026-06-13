@@ -1,6 +1,6 @@
 # @streetjs/storage
 
-Official Street Framework storage module: a **unified file-storage API** with
+Official StreetJS Framework storage module: a **unified file-storage API** with
 pluggable providers and cross-cutting concerns handled once at the service
 layer — upload limits, malware/scan hooks, transform hooks, and signed URLs.
 

@@ -7,7 +7,7 @@ description: "Official AWS S3 plugin for StreetJS — SigV4-signed object storag
 
 # Official Plugin: AWS S3
 
-`S3Plugin` is the first official reference plugin for the Street
+`S3Plugin` is the first official reference plugin for the StreetJS
 [plugin system](./plugins.md). It provides AWS S3 object storage, built on the
 framework's existing AWS SigV4 signer and `S3StorageAdapter` — no AWS SDK, no
 third-party dependencies.

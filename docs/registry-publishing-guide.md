@@ -51,7 +51,7 @@ with an error that identifies the offending field.
 ## 2. Generate a signing key
 
 Each publisher signs manifests with an **Ed25519** private key. Generate one
-with the Node runtime that ships with Street:
+with the Node runtime that ships with StreetJS:
 
 ```bash
 node -e "const {generateKeyPairSync}=require('node:crypto');const {privateKey}=generateKeyPairSync('ed25519');require('node:fs').writeFileSync('publisher.key.pem',privateKey.export({type:'pkcs8',format:'pem'}));"

@@ -1,4 +1,4 @@
-# Street Framework Website — Enterprise Audit Report
+# StreetJS Framework Website — Enterprise Audit Report
 
 > **Audit Team:** Senior UI/UX Designer, DevRel Lead, Documentation Architect, Frontend Architect, Growth Strategist, SEO Specialist, Accessibility Expert, Performance Engineer, Brand Designer, Product Marketing Expert
 > **Date:** May 31, 2026
@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-Street Framework has the technical foundation of a world-class framework — zero-dependency Node.js core architecture, PostgreSQL wire protocol driver, DI container, JWT, WebSockets, clustering, and a CLI toolchain. The **codebase is enterprise-grade**. The **documentation is comprehensive**. The **website is critically broken**.
+StreetJS Framework has the technical foundation of a world-class framework — zero-dependency Node.js core architecture, PostgreSQL wire protocol driver, DI container, JWT, WebSockets, clustering, and a CLI toolchain. The **codebase is enterprise-grade**. The **documentation is comprehensive**. The **website is critically broken**.
 
 ### Critical Finding
 
@@ -17,7 +17,7 @@ The homepage (`docs/index.md`) contains **zero HTML body content** — only ~12K
 
 The documentation subpages render via the just-the-docs Jekyll theme and are functional but generic.
 
-This audit addresses everything needed to transform Street Framework's web presence from invisible to world-class.
+This audit addresses everything needed to transform StreetJS Framework's web presence from invisible to world-class.
 
 ---
 
@@ -28,7 +28,7 @@ This audit addresses everything needed to transform Street Framework's web prese
 | Category | Score | Rationale |
 |---|---|---|
 | **Design** | 2/10 | CSS design tokens are competent, but zero rendered content means zero design. The just-the-docs theme is generic. |
-| **Branding** | 1/10 | No brand identity visible. The name "Street" has no logo, no icon, no visual identity. |
+| **Branding** | 1/10 | No brand identity visible. The name "StreetJS" has no logo, no icon, no visual identity. |
 | **Professionalism** | 1/10 | A blank homepage with CSS alone is amateurish and signals abandonment. |
 | **Trust** | 1/10 | No social proof, no stats, no testimonials, no visible project. |
 | **Developer Appeal** | 3/10 | The codebase itself is compelling, but the website actively repels developers. A developer who finds the GitHub repo will be impressed; one who lands on the website will leave immediately. |
@@ -83,7 +83,7 @@ The homepage (`docs/index.md`) is 334 lines of CSS-only with zero HTML content. 
 > Build production APIs on Node.js core. Zero fat dependencies.
 
 **Hero Subheadline:**
-> Street is a TypeScript-first backend framework with a native PostgreSQL wire driver, DI container, JWT auth, WebSockets, and clustering — all built on `node:http`, `node:crypto`, and `node:net`. Two runtime dependencies. Bounded memory. Unlimited potential.
+> StreetJS is a TypeScript-first backend framework with a native PostgreSQL wire driver, DI container, JWT auth, WebSockets, and clustering — all built on `node:http`, `node:crypto`, and `node:net`. Two runtime dependencies. Bounded memory. Unlimited potential.
 
 **Primary CTA:**
 > `Get Started →` (links to `/getting-started/installation`)
@@ -92,7 +92,7 @@ The homepage (`docs/index.md`) is 334 lines of CSS-only with zero HTML content. 
 > `View on GitHub` (links to GitHub repo)
 
 **Framework Positioning Statement:**
-> Street Framework is the TypeScript backend framework for engineers who refuse to compromise. No Express. No Prisma. No Zod. No ORM. Just Node.js core, strict TypeScript, and a zero-compromise architecture that enforces memory safety, security, and performance at every layer. Built for developers who understand that every dependency is a liability.
+> StreetJS Framework is the TypeScript backend framework for engineers who refuse to compromise. No Express. No Prisma. No Zod. No ORM. Just Node.js core, strict TypeScript, and a zero-compromise architecture that enforces memory safety, security, and performance at every layer. Built for developers who understand that every dependency is a liability.
 
 ---
 
@@ -111,11 +111,11 @@ The homepage (`docs/index.md`) is 334 lines of CSS-only with zero HTML content. 
 
 ### Friction Points
 
-1. **No interactive playground** — Cannot try Street in the browser
+1. **No interactive playground** — Cannot try StreetJS in the browser
 2. **No video tutorials** — Zero screencasts or walkthroughs
 3. **No API reference browser** — Only markdown files, no interactive API docs
 4. **No migration guide from Express/NestJS** — Missing comparison content
-5. **No "Why Street" page** — Missing the elevator pitch
+5. **No "Why StreetJS" page** — Missing the elevator pitch
 6. **No CLI demo/gif** — README has commands but no visual demo
 7. **No StackBlitz/CodeSandbox** — Cannot try without installing
 8. **No Discord/community link** — No place to ask questions
@@ -210,7 +210,7 @@ Contributing
 
 ```
 Getting Started
-├── What is Street? (2-min overview)
+├── What is StreetJS? (2-min overview)
 ├── Installation
 ├── Quick Start (5-min tutorial)
 ├── Your First API
@@ -315,7 +315,7 @@ Tutorials
 ├── Real-Time Chat Application
 ├── File Upload Service
 ├── Multi-Tenant SaaS Backend
-├── Microservices with Street
+├── Microservices with StreetJS
 
 Migration Guides
 ├── From Express.js
@@ -429,7 +429,7 @@ Inspired by laravel.com, nextjs.org, astro.build, nestjs.com, supabase.com.
 │  └────────────────────────────────────────┘      │
 │                                                  │
 │  ┌───── PERFORMANCE ─────────────────────┐      │
-│  │  [Benchmark chart comparing Street    │      │
+│  │  [Benchmark chart comparing StreetJS    │      │
 │  │   vs Express vs Fastify vs NestJS]    │      │
 │  └────────────────────────────────────────┘      │
 │                                                  │
@@ -457,7 +457,7 @@ Inspired by laravel.com, nextjs.org, astro.build, nestjs.com, supabase.com.
 │  ┌───── FOOTER ──────────────────────────┐      │
 │  │  Docs  │  API  │  GitHub  │  npm      │      │
 │  │  License  │  Contributors  │  v1.0.1  │      │
-│  │  © 2026 Street Contributors           │      │
+│  │  © 2026 StreetJS Contributors           │      │
 │  └────────────────────────────────────────┘      │
 └──────────────────────────────────────────────────┘
 ```
@@ -466,7 +466,7 @@ Inspired by laravel.com, nextjs.org, astro.build, nestjs.com, supabase.com.
 
 **Top Navigation:**
 ```
-[Street Logo]  Docs  API Reference  Examples  Blog  GitHub  npm  ★ Star
+[StreetJS Logo]  Docs  API Reference  Examples  Blog  GitHub  npm  ★ Star
 ```
 
 **Sidebar Navigation (Documentation):**
@@ -855,20 +855,20 @@ Inter is the industry standard for developer tools (used by Vercel, GitHub, GitL
 ### Recommended Metadata
 
 **Homepage Title:**
-> Street Framework — TypeScript Backend Framework for Production APIs
+> StreetJS Framework — TypeScript Backend Framework for Production APIs
 
 **Homepage Meta Description:**
-> Street is a production-grade TypeScript backend framework built on Node.js core. Native PostgreSQL driver, DI container, JWT auth, WebSockets, and clustering — with zero framework dependencies. Bounded memory, security-first.
+> StreetJS is a production-grade TypeScript backend framework built on Node.js core. Native PostgreSQL driver, DI container, JWT auth, WebSockets, and clustering — with zero framework dependencies. Bounded memory, security-first.
 
 **Open Graph:**
 ```html
-<meta property="og:title" content="Street Framework — TypeScript Backend Framework" />
+<meta property="og:title" content="StreetJS Framework — TypeScript Backend Framework" />
 <meta property="og:description" content="Build production APIs on Node.js core. Zero fat dependencies." />
 <meta property="og:image" content="https://hassanmubiru.github.io/street/assets/images/og-image.png" />
 <meta property="og:url" content="https://hassanmubiru.github.io/street" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Street Framework — TypeScript Backend Framework" />
+<meta name="twitter:title" content="StreetJS Framework — TypeScript Backend Framework" />
 <meta name="twitter:description" content="Build production APIs on Node.js core. Zero fat dependencies." />
 <meta name="twitter:image" content="https://hassanmubiru.github.io/street/assets/images/og-image.png" />
 ```
@@ -878,7 +878,7 @@ Inter is the industry standard for developer tools (used by Vercel, GitHub, GitL
 {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  "name": "Street Framework",
+  "name": "StreetJS Framework",
   "applicationCategory": "Backend Framework",
   "operatingSystem": "Linux, macOS, Windows",
   "description": "Production-grade TypeScript backend framework built on Node.js core.",
@@ -969,16 +969,16 @@ Inter is the industry standard for developer tools (used by Vercel, GitHub, GitL
 | Priority | Action | Expected Impact |
 |---|---|---|
 | P0 | Fix the website (blank page is killer) | High |
-| P1 | Create video content (5-min "Build an API with Street") | High |
-| P2 | Write "Why Street" blog posts comparing to Express/NestJS | High |
+| P1 | Create video content (5-min "Build an API with StreetJS") | High |
+| P2 | Write "Why StreetJS" blog posts comparing to Express/NestJS | High |
 | P3 | Create GitHub Discussions for community | Medium |
 | P4 | Add issue/PR templates | Medium |
 | P5 | Create CodeSandbox/StackBlitz starter | Medium |
 | P6 | Publish benchmarks vs Express, Fastify, NestJS | Medium |
 | P7 | Add GitHub Sponsors | Low (requires traction) |
 | P8 | Create plugin ecosystem guide | Low |
-| P9 | Create showcase page for projects using Street | Low |
-| P10 | Write migration guides (Express → Street, NestJS → Street) | Medium |
+| P9 | Create showcase page for projects using StreetJS | Low |
+| P10 | Write migration guides (Express → StreetJS, NestJS → StreetJS) | Medium |
 
 ### Community Page Content
 
@@ -989,7 +989,7 @@ Community
 ├── Stack Overflow
 ├── Contributing Guide
 ├── Code of Conduct
-├── Showcase (projects built with Street)
+├── Showcase (projects built with StreetJS)
 ├── Plugin Development
 └── Becoming a Sponsor
 ```
@@ -1000,7 +1000,7 @@ Community
 
 ### Comparison Table
 
-| Criteria | Street | Next.js | NestJS | Laravel | Astro | Nuxt |
+| Criteria | StreetJS | Next.js | NestJS | Laravel | Astro | Nuxt |
 |---|---|---|---|---|---|---|
 | **Branding** | ✗ None | ★★★★★ | ★★★★ | ★★★★★ | ★★★★★ | ★★★★ |
 | **Website** | ✗ Broken | ★★★★★ | ★★★★★ | ★★★★★ | ★★★★★ | ★★★★★ |
@@ -1011,7 +1011,7 @@ Community
 | **Adoption** | ✗ 1 star | ★★★★★ | ★★★★ | ★★★★★ | ★★★★★ | ★★★★ |
 | **Performance** | ★★★★★ | ★★★★ | ★★★ | ★★★ | ★★★★★ | ★★★★ |
 
-### Key Differentiators Street Must Emphasize
+### Key Differentiators StreetJS Must Emphasize
 
 1. **Zero framework dependencies** — No Express, no Zod, no Prisma, no ORM
 2. **Bounded memory** — Every component has an enforced memory cap
@@ -1021,7 +1021,7 @@ Community
 
 ### Competitive Positioning
 
-**Street should not compete head-to-head with Next.js or Laravel.** It should position as:
+**StreetJS should not compete head-to-head with Next.js or Laravel.** It should position as:
 
 > The TypeScript framework for engineers who value control over convenience, memory safety over magic, and Node.js core over abstractions.
 
@@ -1081,7 +1081,7 @@ The `docs/index.md` needs actual HTML content using the CSS classes already defi
       </div>
       <h1 class="gt">Build production APIs<br/>on <span class="gt-blue">Node.js core</span></h1>
       <p class="s-hero-sub">
-        Street is a TypeScript-first backend framework with native PostgreSQL,
+        StreetJS is a TypeScript-first backend framework with native PostgreSQL,
         dependency injection, JWT auth, WebSockets, and clustering —
         <strong>with zero framework dependencies.</strong>
       </p>
@@ -1103,7 +1103,7 @@ The `docs/index.md` needs actual HTML content using the CSS classes already defi
 
 #### Step 2: Create Logo
 
-**Text Logo:** "Street" in Inter Bold with a subtle blue accent bar above the 't'. The mark should be a simplified road/street icon — two parallel lines that form an 'S' shape.
+**Text Logo:** "StreetJS" in Inter Bold with a subtle blue accent bar above the 't'. The mark should be a simplified road/street icon — two parallel lines that form an 'S' shape.
 
 **Favicon:** 32×32 SVG of the street mark icon, blue on transparent.
 
@@ -1163,18 +1163,18 @@ The `docs/index.md` needs actual HTML content using the CSS classes already defi
 17. **Ensure proper color contrast** (WCAG AA minimum 4.5:1)
 18. **Theme the just-the-docs sidebar** with brand colors
 19. **Create custom 404 page**
-20. **Add version selector** in docs (for different Street versions)
+20. **Add version selector** in docs (for different StreetJS versions)
 21. **Add "Edit on GitHub" link** (already configured, good)
 22. **Add dark/light theme toggle** to docs
-23. **Create "Why Street" comparison page**
-24. **Create migration guides** (Express → Street, NestJS → Street)
+23. **Create "Why StreetJS" comparison page**
+24. **Create migration guides** (Express → StreetJS, NestJS → StreetJS)
 25. **Add interactive code examples** (CodeSandbox/StackBlitz)
 26. **Add CLI demo GIF** to README
 27. **Record getting-started screencast** (< 5 min)
 28. **Create API reference** with TypeDoc
 29. **Add search functionality** that works on GitHub Pages (Algolia DocSearch)
 30. **Add community page** with Discord/Discussions link
-31. **Create showcase page** with projects using Street
+31. **Create showcase page** with projects using StreetJS
 32. **Add performance benchmarks** vs Express, Fastify, NestJS
 33. **Create troubleshooting guide** with common errors
 34. **Add quick-start template** on homepage (copy-paste code)
@@ -1199,7 +1199,7 @@ The `docs/index.md` needs actual HTML content using the CSS classes already defi
 
 ## Conclusion
 
-Street Framework has **exceptional technical quality** — the codebase is clean, well-architected, and genuinely innovative in its zero-dependency approach. The documentation is comprehensive and well-written. The design system CSS is well-structured.
+StreetJS Framework has **exceptional technical quality** — the codebase is clean, well-architected, and genuinely innovative in its zero-dependency approach. The documentation is comprehensive and well-written. The design system CSS is well-structured.
 
 However, the **website is critically broken** — the homepage contains zero HTML body content. This single issue is responsible for ~80% of the low scores across all categories. Fixing this alone would move from 23/100 to ~45/100.
 

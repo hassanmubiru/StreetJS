@@ -7,7 +7,7 @@ description: "Migrate to StreetJS — move from @streetjs/core to streetjs, or f
 
 # Migration Guide
 
-This document covers version-to-version migration instructions for Street Framework.
+This document covers version-to-version migration instructions for StreetJS Framework.
 
 ## Package rename: `@streetjs/core` → `streetjs`
 

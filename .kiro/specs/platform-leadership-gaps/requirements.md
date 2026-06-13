@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This document specifies the requirements for the **Platform Leadership Gaps** feature of the Street Framework (StreetJS). Street is a TypeScript-first, zero-runtime-dependency, security-first backend framework built on Node.js core modules. This spec is scoped specifically to the remaining capability gaps that move the framework from its current certification level (~87, "Advanced Production Ready") to 90+ ("Enterprise Ready") and 95+ ("Platform Leadership"), as identified in the latest certification report. It does not re-specify the broader v1.1–v3.0 roadmap, which is covered by the existing `street-framework-roadmap` spec.
+This document specifies the requirements for the **Platform Leadership Gaps** feature of the StreetJS Framework (StreetJS). StreetJS is a TypeScript-first, zero-runtime-dependency, security-first backend framework built on Node.js core modules. This spec is scoped specifically to the remaining capability gaps that move the framework from its current certification level (~87, "Advanced Production Ready") to 90+ ("Enterprise Ready") and 95+ ("Platform Leadership"), as identified in the latest certification report. It does not re-specify the broader v1.1–v3.0 roadmap, which is covered by the existing `street-framework-roadmap` spec.
 
 The defining constraint of this spec is a **zero-trust evidence standard**. No capability is considered complete on the basis of estimation, intent, or partial scaffolding. Every capability MUST be backed by executable evidence — source code, automated tests, documentation, AND a machine-readable verification artifact produced by an executed command. Each requirement area defines explicitly what counts as VERIFIED, PARTIAL, BLOCKED, or NOT IMPLEMENTED so that completion is provable rather than asserted.
 
@@ -16,7 +16,7 @@ The following cross-cutting constraints apply to every requirement in this docum
 
 ## Glossary
 
-- **Street Framework / Framework**: The TypeScript-first backend framework, consisting of `@streetjs/core`, `@streetjs/cli`, and associated plugin and tooling packages.
+- **StreetJS Framework / Framework**: The TypeScript-first backend framework, consisting of `@streetjs/core`, `@streetjs/cli`, and associated plugin and tooling packages.
 - **CLI**: The `@streetjs/cli` command-line interface.
 - **Core**: The `@streetjs/core` runtime library, which carries zero runtime dependencies.
 - **Verification Artifact**: A machine-readable file (JSON or equivalent) produced by an executed command that records the inputs, outputs, exit status, and timestamp of a verification run.
@@ -30,14 +30,14 @@ The following cross-cutting constraints apply to every requirement in this docum
 - **Schemathesis**: A property-based API testing tool driven by an OpenAPI specification.
 - **ZAP**: The OWASP Zed Attack Proxy, used for baseline and API security scans.
 - **Severity Gate**: A CI control that fails a build when findings of a configured severity are present.
-- **Plugin Registry Service**: The REST service that hosts, indexes, and serves Street plugins.
+- **Plugin Registry Service**: The REST service that hosts, indexes, and serves StreetJS plugins.
 - **Plugin**: A versioned, signed extension package consumable by the Framework.
 - **Plugin Manifest**: A metadata document describing a plugin's identity, version, dependencies, and capabilities.
 - **Ed25519 Signature**: A digital signature over a plugin package used to verify authenticity and integrity.
-- **Official Plugin**: A plugin authored and verified by the Street Framework project.
+- **Official Plugin**: A plugin authored and verified by the StreetJS Framework project.
 - **Enterprise Console API**: The REST surface for tenant, policy, compliance, and administrative operations.
 - **Tenant**: A discrete customer or organizational unit with isolated data and configuration.
-- **Street Playground**: A browser-based interactive environment for testing routes, middleware, and plugins.
+- **StreetJS Playground**: A browser-based interactive environment for testing routes, middleware, and plugins.
 - **Route Explorer**: A browser-based visualization of the application's route tree.
 - **Dependency Graph Visualizer**: A browser-based visualization of the application's module dependency graph.
 - **API Inspector**: A browser-based request/response exploration tool.
@@ -78,7 +78,7 @@ The following cross-cutting constraints apply to every requirement in this docum
 
 ### Requirement 2: Cloud Deployment Verification
 
-**User Story:** As a platform engineer, I want every supported cloud adapter to be a deployment-verified target, so that I can deploy Street to my platform with confidence that it boots, serves health, and passes smoke tests.
+**User Story:** As a platform engineer, I want every supported cloud adapter to be a deployment-verified target, so that I can deploy StreetJS to my platform with confidence that it boots, serves health, and passes smoke tests.
 
 #### Acceptance Criteria
 
@@ -179,12 +179,12 @@ The following cross-cutting constraints apply to every requirement in this docum
 
 #### Acceptance Criteria
 
-1. THE Street Playground SHALL provide route testing, middleware testing, plugin testing, and an OpenAPI viewer.
+1. THE StreetJS Playground SHALL provide route testing, middleware testing, plugin testing, and an OpenAPI viewer.
 2. WHEN a developer opens the Route Explorer, THE Route Explorer SHALL render a visual route tree in which each registered route shows its HTTP method and path.
 3. WHEN a developer opens the Dependency Graph Visualizer, THE Dependency Graph Visualizer SHALL render a visual graph of the application's module dependencies as nodes and edges.
 4. WHEN a developer submits a request through the API Inspector, THE API Inspector SHALL render the response status, headers, and body.
 5. IF a request submitted through the API Inspector fails, THEN THE API Inspector SHALL display an error indication and SHALL retain the submitted request input.
-6. THE Street Playground, Route Explorer, Dependency Graph Visualizer, and API Inspector SHALL be delivered as a browser-based experience.
+6. THE StreetJS Playground, Route Explorer, Dependency Graph Visualizer, and API Inspector SHALL be delivered as a browser-based experience.
 7. THE interactive developer experience SHALL declare and enforce an authentication and authorization model governing access to the tools.
 8. THE interactive developer experience SHALL be integrated into the published documentation on the GitHub Pages docs site.
 9. WHEN the interactive developer experience is built and its test suite is executed, THE build SHALL succeed and THE tests SHALL pass, recorded in a Verification Artifact.
@@ -193,7 +193,7 @@ The following cross-cutting constraints apply to every requirement in this docum
 
 ### Requirement 8: Upgrade System
 
-**User Story:** As a developer upgrading Street across versions, I want automated version detection, breaking-change analysis, and codemods, so that I can migrate my application across breaking changes with minimal manual work.
+**User Story:** As a developer upgrading StreetJS across versions, I want automated version detection, breaking-change analysis, and codemods, so that I can migrate my application across breaking changes with minimal manual work.
 
 #### Acceptance Criteria
 
@@ -210,7 +210,7 @@ The following cross-cutting constraints apply to every requirement in this docum
 
 ### Requirement 9: Reliability Leadership — Kafka Chaos Verification
 
-**User Story:** As a reliability engineer, I want the Kafka integration to survive coordinator delays, broker restarts, network faults, and repeated cold starts without message loss, so that I can rely on Street's messaging under adverse conditions.
+**User Story:** As a reliability engineer, I want the Kafka integration to survive coordinator delays, broker restarts, network faults, and repeated cold starts without message loss, so that I can rely on StreetJS's messaging under adverse conditions.
 
 #### Acceptance Criteria
 
@@ -264,7 +264,7 @@ The following cross-cutting constraints apply to every requirement in this docum
 
 #### Acceptance Criteria
 
-1. WHERE all of the following capabilities simultaneously hold the VERIFIED Verification Status — DAST fully executed, cloud deployments verified, network plugin registry verified, official plugin ecosystem verified, enterprise APIs verified, Street Playground verified, Route Explorer verified, Dependency Graph Visualizer verified, Kafka chaos suite verified, observability packs verified, and release scorecards verified — THE Framework SHALL classify itself as Platform Leadership.
+1. WHERE all of the following capabilities simultaneously hold the VERIFIED Verification Status — DAST fully executed, cloud deployments verified, network plugin registry verified, official plugin ecosystem verified, enterprise APIs verified, StreetJS Playground verified, Route Explorer verified, Dependency Graph Visualizer verified, Kafka chaos suite verified, observability packs verified, and release scorecards verified — THE Framework SHALL classify itself as Platform Leadership.
 2. IF any capability listed in acceptance criterion 1 holds a Verification Status other than VERIFIED, THEN THE Framework SHALL withhold the Platform Leadership classification and SHALL record each such capability together with its current Verification Status.
 3. IF any capability listed in acceptance criterion 1 has no recorded Verification Artifact, THEN THE Framework SHALL treat that capability as not VERIFIED and SHALL withhold the Platform Leadership classification.
 4. THE Platform Leadership classification decision SHALL be computed from the recorded Verification Artifacts and SHALL NOT be authored, set, or edited by hand.

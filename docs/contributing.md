@@ -3,7 +3,7 @@ layout:    default
 title:     "Contributing"
 nav_order: 16
 permalink: /contributing/
-description: "How to contribute to Street Framework — development setup, testing, pull request process."
+description: "How to contribute to StreetJS Framework — development setup, testing, pull request process."
 ---
 
 {% include doc-styles.html %}
@@ -213,7 +213,7 @@ chore: bump streetjs to 1.0.5
 
 Open an issue at [github.com/hassanmubiru/issues](https://github.com/hassanmubiru/issues) with:
 
-- Street version (`street --version`, `npm list streetjs`)
+- StreetJS version (`street --version`, `npm list streetjs`)
 - Node.js version (`node --version`)
 - Minimal reproduction (ideally a single file)
 - Expected vs actual behaviour

@@ -7,7 +7,7 @@ description: "Observability in StreetJS — Prometheus metrics, OpenTelemetry tr
 
 # Observability
 
-Street ships with a complete observability stack: structured logging, Prometheus metrics, OpenTelemetry tracing, health checks, and a route performance profiler. All components are zero-dependency and self-contained.
+StreetJS ships with a complete observability stack: structured logging, Prometheus metrics, OpenTelemetry tracing, health checks, and a route performance profiler. All components are zero-dependency and self-contained.
 
 ## Components
 

@@ -1,4 +1,4 @@
-# Street Framework — Release Checklist
+# StreetJS Framework — Release Checklist
 
 Use this checklist for every release of `@streetjs/core` and `@streetjs/cli`.
 

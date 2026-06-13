@@ -1,6 +1,6 @@
 # @streetjs/plugin-auth0
 
-Official [Street Framework](https://hassanmubiru.github.io/street/) plugin for **Auth0 identity**.
+Official [StreetJS Framework](https://hassanmubiru.github.io/street/) plugin for **Auth0 identity**.
 
 It ships a `PluginModule` subclass that injects an Auth0 client into each request
 via middleware. Request building (OAuth2 client-credentials token endpoint, JSON

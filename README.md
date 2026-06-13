@@ -1,8 +1,8 @@
-# Street Framework
+# StreetJS Framework
 
 **Production-grade, memory-safe TypeScript backend framework built on Node.js core modules.**
 
-Street is built entirely from Node.js core — `node:http`, `node:net`, `node:crypto`, `node:stream`, `node:cluster` — plus two carefully chosen dependencies. **No Express. No pg. No Zod. No Prisma.** Every component enforces strict memory bounds and full type safety.
+StreetJS is built entirely from Node.js core — `node:http`, `node:net`, `node:crypto`, `node:stream`, `node:cluster` — plus two carefully chosen dependencies. **No Express. No pg. No Zod. No Prisma.** Every component enforces strict memory bounds and full type safety.
 
 ```bash
 npm install streetjs
@@ -100,7 +100,7 @@ This repository is an npm workspaces monorepo containing two packages:
 
 ### packages/core
 
-The framework library — the runtime your Street application depends on. Built entirely on Node.js core modules with only two dependencies (`reflect-metadata` and `ws`).
+The framework library — the runtime your StreetJS application depends on. Built entirely on Node.js core modules with only two dependencies (`reflect-metadata` and `ws`).
 
 ```bash
 npm install streetjs
@@ -124,7 +124,7 @@ Key modules:
 
 ### packages/cli
 
-The CLI tool for scaffolding, running, and managing Street projects. Installed globally or used via `npx`.
+The CLI tool for scaffolding, running, and managing StreetJS projects. Installed globally or used via `npx`.
 
 ```bash
 # Install globally
@@ -142,7 +142,7 @@ All commands are documented in the [CLI Commands](#cli-commands) section below.
 
 ### `street create <project-name>`
 
-Scaffolds a complete Street project with a production-ready structure.
+Scaffolds a complete StreetJS project with a production-ready structure.
 
 ```bash
 street create my-api

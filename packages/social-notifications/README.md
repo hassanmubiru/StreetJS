@@ -1,6 +1,6 @@
 # @streetjs/social-notifications
 
-Official Street Framework social module: a **per-user notification inbox** that
+Official StreetJS Framework social module: a **per-user notification inbox** that
 the other social modules feed into.
 
 - Create notifications with a type, optional actor/subject, and JSON payload

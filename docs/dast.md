@@ -7,7 +7,7 @@ description: "DAST pipeline for StreetJS — OpenAPI-driven dynamic application 
 
 # DAST Pipeline (OpenAPI-driven)
 
-Street ships an automated Dynamic Application Security Testing (DAST) pipeline
+StreetJS ships an automated Dynamic Application Security Testing (DAST) pipeline
 that uses the framework's generated OpenAPI spec as the source of truth. It
 combines **Schemathesis** (property-based, OpenAPI-driven fuzzing) and **OWASP
 ZAP** (baseline + API scan), and gates the build on High/Critical findings with

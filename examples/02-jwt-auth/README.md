@@ -1,6 +1,6 @@
-# Street Framework — JWT Authentication Example
+# StreetJS Framework — JWT Authentication Example
 
-Demonstrates JWT-based authentication with RBAC using Street Framework.
+Demonstrates JWT-based authentication with RBAC using StreetJS Framework.
 
 ## Quick Start
 

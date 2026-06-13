@@ -1,6 +1,6 @@
 # @streetjs/plugin-r2
 
-Official [Street Framework](https://hassanmubiru.github.io/street/) plugin for
+Official [StreetJS Framework](https://hassanmubiru.github.io/street/) plugin for
 **Cloudflare R2 object storage**.
 
 It ships a `PluginModule` subclass that injects an R2 client into each request

@@ -7,7 +7,7 @@ description: "Official SendGrid plugin for StreetJS — send transactional email
 
 # Official Plugin: SendGrid (email)
 
-`SendGridPlugin` is the second official reference plugin for the Street
+`SendGridPlugin` is the second official reference plugin for the StreetJS
 [plugin system](./plugins.md). It sends email via the SendGrid v3 API with no
 third-party SDK — pure `node:https`. Its request-building is deterministic and
 verified offline; the network send is a thin wrapper.

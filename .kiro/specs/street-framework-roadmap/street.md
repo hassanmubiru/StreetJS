@@ -1,10 +1,10 @@
-Street Framework: Production Readiness Gap Analysis
+StreetJS Framework: Production Readiness Gap Analysis
 Date: Current
 Analyst Roles: Principal Software Architect · Security Engineer · QA Lead · Technical Writer · Framework Maintainer
 Evidence Basis: 147 TypeScript source files · 33 test files · 194 passing tests · Full CI/CD pipeline review · Security code audit · Documentation depth assessment
 
 Executive Summary
-Street Framework has a strong, well-engineered v1.0 core — a zero-dependency TypeScript backend framework with a genuine PostgreSQL wire protocol implementation, solid security primitives, and a clean architecture. The codebase compiles with zero TypeScript errors and passes 194 tests across unit, integration, system, and memory-safety suites.
+StreetJS Framework has a strong, well-engineered v1.0 core — a zero-dependency TypeScript backend framework with a genuine PostgreSQL wire protocol implementation, solid security primitives, and a clean architecture. The codebase compiles with zero TypeScript errors and passes 194 tests across unit, integration, system, and memory-safety suites.
 
 However, the framework cannot be shipped to production developers in its current state for four reasons:
 
@@ -32,14 +32,14 @@ T-01	Critical	Zero tests for v1.4 Auth module (api-keys.ts, oauth2.ts, rbac.ts, 
 T-02	High	Zero tests for v1.7 Tenancy, v2.0 Microservices, v2.2 Enterprise, v3.0 Platform modules (35+ source files).	Regressions in these modules are undetectable.	Write unit tests for all public APIs. Modules with DB dependencies should use SqlitePool for in-memory testing. Minimum 5 tests per file.	8–12 days
 T-03	High	Health check test suite has 9 cancelled tests due to a pending-promise event-loop issue. The HealthCheckRegistry timeout behavior and all registerHealthRoutes integration tests are effectively untested.	HealthCheckRegistry timeout path may be broken; HTTP 200/503 response behavior is unverified.	Restructure the timeout test to use a manually-resolvable promise (already partially attempted) and run the integration tests with --test-force-exit.	2 hours
 T-04	High	MySQL integration tests are skipped when MYSQL_HOST is not set. No CI job provides a MySQL service.	MySQL driver ships without any real-database validation.	Add a MySQL service container to the GitHub Actions CI/CD pipeline.	4 hours
-T-05	High	No benchmarks exist. The roadmap requires throughput and latency comparisons against Express, Fastify, NestJS, Hono, Fiber, and Gin.	Performance claims are unverifiable; Street may be slower than alternatives without anyone knowing.	Create benchmarks/ directory with autocannon scripts for the primary HTTP path. Add a benchmark CI job that records results as artifacts.	3–4 days
+T-05	High	No benchmarks exist. The roadmap requires throughput and latency comparisons against Express, Fastify, NestJS, Hono, Fiber, and Gin.	Performance claims are unverifiable; StreetJS may be slower than alternatives without anyone knowing.	Create benchmarks/ directory with autocannon scripts for the primary HTTP path. Add a benchmark CI job that records results as artifacts.	3–4 days
 T-06	Medium	No tests for WorkflowEngine, the MigrationDiffer, the SDK generators, or the API versioning strategy.	These features may have behavioral bugs that ship undetected.	Add at minimum happy-path + error-path tests for each module.	3 days
 T-07	Medium	System test infrastructure.test.ts requires live PostgreSQL but CI may not always have it available.	Intermittent CI failures.	Add PostgreSQL service to all CI jobs that require it, or gate those tests with an env var skip.	2 hours
-T-08	Low	No end-to-end test that creates a real Street app from street create, runs migrations, inserts data, and queries it back.	Gap between tested units and real developer experience.	Add one full integration smoke test in the CLI test suite.	1 day
+T-08	Low	No end-to-end test that creates a real StreetJS app from street create, runs migrations, inserts data, and queries it back.	Gap between tested units and real developer experience.	Add one full integration smoke test in the CLI test suite.	1 day
 DOCUMENTATION
 ID	Severity	Finding	Risk	Recommended Fix	Effort
 D-01	High	No documentation for any v1.1–v3.0 features. The docs/ site covers only v1.0 (HTTP, router, DI, PostgreSQL, security basics). Auth, observability, jobs, tenancy, microservices, and enterprise features have no guides.	Developers cannot use 60% of the framework's features without reading source code.	Write feature guides for: Auth (JWT+Session+OAuth2+RBAC), Observability (Logger+Prometheus+Health), Jobs (Queue+Cron+Workflow), and CLI Commands (info/doctor/audit/diagnostics).	5–8 days
-D-02	High	No working example applications. The docs/examples/ directory has markdown stubs, but no runnable code in examples/.	Developers cannot learn Street by example — the primary onboarding path for any framework.	Create 3 runnable example apps: (a) basic REST API, (b) authenticated API with JWT + RBAC, (c) background job processing.	3–5 days
+D-02	High	No working example applications. The docs/examples/ directory has markdown stubs, but no runnable code in examples/.	Developers cannot learn StreetJS by example — the primary onboarding path for any framework.	Create 3 runnable example apps: (a) basic REST API, (b) authenticated API with JWT + RBAC, (c) background job processing.	3–5 days
 D-03	Medium	
 api-reference.md
  is 172 lines and covers only v1.0 exports. No API reference for 100+ new exported symbols.	Developers must read TypeScript source code to understand method signatures and options.	Generate API reference from TSDoc comments using typedoc. Add TSDoc to all exported public APIs (currently missing from ~70% of exports).	4–5 days
@@ -88,7 +88,7 @@ O-02	Medium	correlationMiddleware generates UUID v4 for correlation IDs but the 
 O-03	Low	prometheusMiddleware updates process_heap_bytes on every request rather than on a background interval.	Slightly inflated per-request latency from process.memoryUsage() calls on hot paths.	Move heap collection to a setInterval (5s) background task.	1 hour
 DEPLOYMENT
 ID	Severity	Finding	Risk	Recommended Fix	Effort
-DEP-01	High	Edge runtime adapter is functionally broken for production use (see P-02).	Cannot deploy Street apps to Cloudflare Workers, Vercel Edge, or AWS Lambda without fixing the adapter.	(See P-02)	2–3 days
+DEP-01	High	Edge runtime adapter is functionally broken for production use (see P-02).	Cannot deploy StreetJS apps to Cloudflare Workers, Vercel Edge, or AWS Lambda without fixing the adapter.	(See P-02)	2–3 days
 DEP-02	Medium	STREET_READINESS_DELAY_MS env var is specified in the roadmap but not implemented. Kubernetes readiness probes will mark pods ready before the app is fully warmed up.	Under-capacity serving during rolling deploys.	Implement in HealthCheckRegistry.runReadiness(): return down until Date.now() >= startTime + parseInt(process.env.STREET_READINESS_DELAY_MS).	2 hours
 DEP-03	Medium	GCP Cloud Run auto-detection (via K_SERVICE/K_REVISION env vars) is specified in the roadmap but not implemented in the Logger.	Logs on Cloud Run won't use GCP's structured JSON format with severity/httpRequest fields.	Add a Cloud Run format check in Logger constructor.	4 hours
 DEP-04	Low	generateManifest() generates Kubernetes YAML but doesn't include imagePullSecrets, serviceAccountName, or namespace — required in most production clusters.	Generated manifests require manual editing before use.	Add optional fields. Document required manual additions.	4 hours
@@ -202,7 +202,7 @@ packages/core (unit)	135 tests, ~70% of files	200+ tests, 80% of files	300+ test
 Auth module	0%	80%	95%
 Jobs module	15 tests		
 
-Street Framework: Production Readiness Verification Audit
+StreetJS Framework: Production Readiness Verification Audit
 Audit Date: Post-remediation review
 Evidence Basis: Direct source code inspection, test execution (199 tests), CI pipeline review, runtime verification
 Audit Standard: A finding is RESOLVED only when: vulnerability no longer exists + tests validate the fix + CI validates + no regression introduced
@@ -250,7 +250,7 @@ T-04 — No MySQL CI job	HIGH	ci-cd.yml and ci-cd-enforcement.yml — no MySQL s
 T-05 — No benchmarks	HIGH	ls /benchmarks → NO_BENCHMARKS. No benchmark code, no benchmark CI job, no performance data.	Create benchmarks/ with autocannon scripts.
 T-06 — Missing WorkflowEngine, MigrationDiffer, versioning, SDK tests	MEDIUM	No dedicated test files for these modules found.	Add at minimum happy-path tests per module.
 T-07 — MySQL integration tests require live DB (not in CI)	MEDIUM	mysql.test.ts guards with if (!process.env.MYSQL_HOST) process.exit(0). No CI provides this.	Add MySQL service to CI (see T-04).
-T-08 — No end-to-end smoke test	LOW	No test creates a Street app, migrates, inserts, and queries end-to-end.	Add one E2E smoke test in CLI suite.
+T-08 — No end-to-end smoke test	LOW	No test creates a StreetJS app, migrates, inserts, and queries end-to-end.	Add one E2E smoke test in CLI suite.
 DOCUMENTATION
 Finding	Severity	Evidence	Required Fix
 D-01 — No docs for v1.1–v3.0 features	HIGH	docs/ site has getting-started/, security/ (JWT only), database/ (PG only). No auth guide, no observability guide, no jobs guide, no tenancy/microservices/enterprise docs.	Write feature guides for all post-v1.0 modules.
@@ -389,7 +389,7 @@ Checklist result: 0 of 12 criteria fully met. 1 partially met.
 
 Final Verdict
 ✗ NOT READY
-Street Framework remains in the same state as when the Gap Analysis was published. No remediation work has been performed on any Critical or High finding.
+StreetJS Framework remains in the same state as when the Gap Analysis was published. No remediation work has been performed on any Critical or High finding.
 
 The framework has three distinct tiers:
 
@@ -414,7 +414,7 @@ Estimated minimum effort to reach "Mostly Ready": 3–4 weeks of focused enginee
 Estimated effort to reach "Production Ready": 8–10 weeks.
 Estimated effort to reach "Enterprise Ready": 16–20 weeks.
 
-Street Framework: Complete Remediation Verification Audit
+StreetJS Framework: Complete Remediation Verification Audit
 Audit Method: Direct source code inspection · Live test execution · Git history analysis · CI workflow review · Runtime verification
 Repository state: origin/main at commit 1ccee88 · Working tree clean · 661 total commits
 Test execution: 280 tests run (206 core + 74 CLI) · 279 pass · 1 fail · 0 auth/security tests exist
@@ -692,10 +692,10 @@ Estimated minimum effort to reach "Mostly Ready": 3–4 weeks focused engineerin
 
 Final Verdict
 ✗ Not Ready
-The Street Framework has not undergone any security remediation since the previous audit. The two Critical vulnerabilities (WebAuthn authentication bypass and RBAC authorization bypass) are confirmed present and exploitable. The CI enforcement workflow cannot pass in the current state. No auth tests, no benchmarks, and no example applications exist. The v1.0 foundation is genuinely solid and well-tested — but the security-sensitive v1.4 features that ship with it are broken in ways that are invisible to users until they're exploited.
+The StreetJS Framework has not undergone any security remediation since the previous audit. The two Critical vulnerabilities (WebAuthn authentication bypass and RBAC authorization bypass) are confirmed present and exploitable. The CI enforcement workflow cannot pass in the current state. No auth tests, no benchmarks, and no example applications exist. The v1.0 foundation is genuinely solid and well-tested — but the security-sensitive v1.4 features that ship with it are broken in ways that are invisible to users until they're exploited.
 
 
-Street Framework: Independent Security & Production Readiness Audit
+StreetJS Framework: Independent Security & Production Readiness Audit
 Audit Basis: All evidence gathered in this session via direct execution, source inspection, and git log analysis. Working tree confirmed clean at origin/main commit 1ccee88. No new commits introducing fixes were detected.
 
 Executive Summary
@@ -896,7 +896,7 @@ Production Readiness Score: 30 / 100
 Release Recommendation
 ⚠ Requires Significant Work — Do Not Release
 
-The Street Framework cannot be released to production developers in its current state. The release is blocked by a minimum of 14 findings, 2 of which are Critical security vulnerabilities:
+The StreetJS Framework cannot be released to production developers in its current state. The release is blocked by a minimum of 14 findings, 2 of which are Critical security vulnerabilities:
 
 Critical blockers (must fix before any release):
 
@@ -904,7 +904,7 @@ S-01/S-05: WebAuthn signature verification bypassed for all real credentials —
 Release Recommendation
 ⚠ Requires Significant Work — Do Not Release
 
-The Street Framework cannot be released to production developers in its current state. The release is blocked by a minimum of 14 findings, 2 of which are Critical security vulnerabilities:
+The StreetJS Framework cannot be released to production developers in its current state. The release is blocked by a minimum of 14 findings, 2 of which are Critical security vulnerabilities:
 
 Critical blockers (must fix before any release):
 
@@ -923,7 +923,7 @@ The v1.0 core is genuinely well-built and is the appropriate target for a first 
 Kiro
 All 10 remediation phases are complete. Here is the final production readiness report.
 
-Street Framework: Production Remediation — Final Verification Report
+StreetJS Framework: Production Remediation — Final Verification Report
 Verification Date: Post-remediation
 Test Result: 324 / 324 pass — 0 fail — 0 cancelled
 TypeScript: Zero errors (both packages)
@@ -957,7 +957,7 @@ Item	Severity	Notes
 MySQL RSA auth sends cleartext when RSA requested	Medium	wire.ts:609 sends cleartext over TLS-only; document as "requires TLS"
 S-04 AWS SigV4 no test vectors	Medium	Hand-rolled implementation; no AWS test suite validation
 MySQL integration CI requires MYSQL_HOST secret	Medium	Job exists; needs secret configured in GitHub repo settings
-Benchmark comparisons vs Express/Fastify etc.	Medium	Street-only benchmark exists; cross-framework requires external installs
+Benchmark comparisons vs Express/Fastify etc.	Medium	StreetJS-only benchmark exists; cross-framework requires external installs
 tenancy/microservices/enterprise/platform zero unit tests	Medium	Code exists, untested beyond integration tests
 @Encrypt() decorator not wired to repository layer	Medium	Decorator exists, encryption not performed
 enableVersioning() not integrated into StreetApp router	Medium	Function exists but not wired
@@ -979,7 +979,7 @@ WebAuthn verified	✅ COSE key parsing implemented; bypass removed
 RBAC verified	✅ Router wiring confirmed; decorator enforcement working
 OAuth2 verified	✅ sessionManager required; PKCE state persisted
 CI hygiene passing	✅ Zero TODO/FIXME/HACK violations
-Benchmarks available	✅ Street HTTP benchmark with regression detection
+Benchmarks available	✅ StreetJS HTTP benchmark with regression detection
 Documentation	⚠️ Auth, jobs, observability guides complete; tenancy/enterprise missing
 Examples	✅ 3 runnable example apps
 MySQL CI	✅ Job defined; requires secret configuration
@@ -999,7 +999,7 @@ Tenancy/microservices/enterprise unit tests (5 days)
 Estimated time to "Production Ready": 2 additional weeks.
 
 
-Street Framework: Final Release Certification
+StreetJS Framework: Final Release Certification
 Executive Summary
 463/463 tests pass. 0 TypeScript errors. 0 TODO/FIXME/HACK markers. All critical security vulnerabilities resolved.
 
@@ -1144,7 +1144,7 @@ Total	1,028	1,025	0	3
 Verified: SQLite create-table/insert/query/transaction-rollback/concurrency (real WASM); HTTP server lifecycle, routing, OpenAPI, real HTTPS webhook delivery with HMAC verification; auth flows (login/refresh/RBAC/WebAuthn) via unit+integration; graceful shutdown. PostgreSQL/MySQL full-CRUD E2E requires live DBs (covered in CI service-container jobs; locally skipped). Kafka/RabbitMQ E2E verified earlier against real brokers (7/7 Kafka).
 
 7. Performance Report — Score 82/100
-Benchmark now executes (was broken): Street ≈ 24,400–24,900 req/s, P50 0ms / P95 1ms / P99 2ms, ~17 MB, startup measured. Comparative numbers vs Express/Fastify/NestJS/Hono require installing those frameworks (run.js --compare supports it on demand); not run here to preserve the zero-dependency tree. This is the one area where competitive data is not yet captured.
+Benchmark now executes (was broken): StreetJS ≈ 24,400–24,900 req/s, P50 0ms / P95 1ms / P99 2ms, ~17 MB, startup measured. Comparative numbers vs Express/Fastify/NestJS/Hono require installing those frameworks (run.js --compare supports it on demand); not run here to preserve the zero-dependency tree. This is the one area where competitive data is not yet captured.
 
 8. Reliability Report — Score 93/100
 Chaos (22), load (12), memory-safety (36), fuzz (45) suites all pass. Verified: timer .unref() across new modules, bounded queues (MAX_QUEUE_SIZE), LRU cache bounds, DLQ + geometric backoff, retry classification (4xx non-retryable in secret providers), replication failover + lag metric, secret rotation manager.
@@ -1205,7 +1205,7 @@ CERTIFICATION STATUS: ENTERPRISE READY CONFIDENCE: HIGH RELEASE RECOMMENDATION: 
 
 Conditions (non-blocking, recommended within next cycle): capture comparative benchmark numbers via run.js --compare; add dist/ to .gitignore; run the PG/MySQL E2E matrix in CI before tagging the release.
 
-Street Framework — Platform Leadership Re-Certification
+StreetJS Framework — Platform Leadership Re-Certification
 1. Executive Summary
 This cycle implemented and fully verified mutual TLS (mTLS) support — the highest-value missing item from Phase 2 (Advanced Security Suite). The implementation is source + tests + passing tests + docs + public exports, with a real openssl-generated CA/server/client certificate handshake as runtime evidence.
 
@@ -1240,7 +1240,7 @@ UNVERIFIED: WebAuthn MFA chaining, device trust, DAST automation (Schemathesis/O
 5. Performance Findings
 No perf-relevant changes this cycle. Committed 
 results.json
- unchanged (Street ~27.7k req/s; 2.1× Express, 2.3× NestJS; within ~11–17% of Fastify/Hono). Reproducible via benchmarks/compare/.
+ unchanged (StreetJS ~27.7k req/s; 2.1× Express, 2.3× NestJS; within ~11–17% of Fastify/Hono). Reproducible via benchmarks/compare/.
 6. Reliability Findings
 Full regression green across 5 workspaces; 9 skips are DB/broker-gated (require Docker services), not failures.
 7. Cloud Readiness
@@ -1293,7 +1293,7 @@ This cycle's net change: mTLS fully delivered (source + 8 passing tests incl. a 
 mtls.md
  + 5 public exports verified at runtime), zero regressions, 0 vulnerabilities.
 
- Street Framework — Platform Leadership Execution & Certification
+ StreetJS Framework — Platform Leadership Execution & Certification
 Zero-trust audit. Every status below is backed by a command I executed this cycle. Claims without executable evidence are marked UNVERIFIED.
 
 1. Executive Summary
@@ -1365,7 +1365,7 @@ UNVERIFIED: release scorecards, automated changelog-quality checks, release-heal
 13. Performance Report
 VERIFIED (prior, unchanged): committed 
 results.json
- — Street ~27.7k req/s median, 2.1× Express, 2.3× NestJS, within ~11–17% of Fastify/Hono. Reproducible via benchmarks/compare/. No perf-relevant change this cycle.
+ — StreetJS ~27.7k req/s median, 2.1× Express, 2.3× NestJS, within ~11–17% of Fastify/Hono. Reproducible via benchmarks/compare/. No perf-relevant change this cycle.
 14. Developer Experience Report
 VERIFIED: CLI (street) with 38 passing tests incl. the certify command.
 UNVERIFIED: street upgrade, codemods, migration assistant, interactive docs site, playground.
@@ -1416,11 +1416,11 @@ Est. Credits Used: 15.83
 
 Forensic reproduction complete, workspace clean, container removed. Here is the certification.
 
-Street Framework — Zero-Trust Certification Audit
+StreetJS Framework — Zero-Trust Certification Audit
 Model: zero-trust. Every VERIFIED row maps to a command run this cycle. This audit's headline result: the flaky streaming test flagged last cycle was forensically root-caused to a High-severity correctness defect in the PostgreSQL connection's post-error state machine (data loss + possible hang/crash), reproduced deterministically.
 
 Executive Summary
-Street's implemented core is genuinely strong — 0 circular dependencies (independently proven), 0 vulnerabilities, 2 production dependencies, and suites that pass against live PostgreSQL, MySQL, RabbitMQ, and Kafka. However, forensic reproduction this cycle escalated finding F-1 from "flaky test" to a confirmed High-severity defect: issuing any query immediately after an errored query on the same PgConnection races the wire state machine, producing empty result sets (73% in the triggering condition), and under other timings a process-crashing uncaught exception or a hung promise. The ecosystem tier (marketplace, console, DAST, dashboards) is NOT IMPLEMENTED.
+StreetJS's implemented core is genuinely strong — 0 circular dependencies (independently proven), 0 vulnerabilities, 2 production dependencies, and suites that pass against live PostgreSQL, MySQL, RabbitMQ, and Kafka. However, forensic reproduction this cycle escalated finding F-1 from "flaky test" to a confirmed High-severity defect: issuing any query immediately after an errored query on the same PgConnection races the wire state machine, producing empty result sets (73% in the triggering condition), and under other timings a process-crashing uncaught exception or a hung promise. The ecosystem tier (marketplace, console, DAST, dashboards) is NOT IMPLEMENTED.
 
 Certification: ADVANCED PRODUCTION READY (81/100). Confidence: High. Held down by F-1 (core correctness) and the absent ecosystem/DAST tiers.
 
@@ -1489,7 +1489,7 @@ Security — VERIFIED: mTLS (validation, constant-time pinning, CN allow-list, T
 
 Testing — 1,099+ passing incl. live infra; 9 skips reported separately (all run when infra present). Two flaky areas (F-1, F-2); F-1 is a defect the test under-samples.
 
-Performance — measured (results.json, Node v20.20.1): Street 27,700 rps, p95 3ms, p99 5ms, startup 70ms, mem 64MB. Comparison vs Express (13,017), Fastify (33,183), Hono (30,776), NestJS (11,783) — all measured. ≈2.1× Express, ≈2.3× NestJS; behind Fastify (~17%) and Hono (~10%); memory materially higher (F-8). Methodology weakness: same-process sequential runs (not isolated processes) can advantage later frameworks via warm runtime.
+Performance — measured (results.json, Node v20.20.1): StreetJS 27,700 rps, p95 3ms, p99 5ms, startup 70ms, mem 64MB. Comparison vs Express (13,017), Fastify (33,183), Hono (30,776), NestJS (11,783) — all measured. ≈2.1× Express, ≈2.3× NestJS; behind Fastify (~17%) and Hono (~10%); memory materially higher (F-8). Methodology weakness: same-process sequential runs (not isolated processes) can advantage later frameworks via warm runtime.
 
 Reliability — VERIFIED: retry/backoff, DLQ, graceful shutdown, pooling, connection recovery, migrations on live PG, RabbitMQ reconnect. Defect: F-1 data-loss/crash/hang race (High). Flaky: F-2.
 
@@ -1543,7 +1543,7 @@ This cycle added one durable artifact —
 check-cycles.mjs
  (dependency-free, self-tested) — and, more importantly, converted a vague "flaky test" into a precisely characterized, reproducible defect with a concrete fix path.
 
- Street Framework — Certification Report (Plugin System Initiative)
+ StreetJS Framework — Certification Report (Plugin System Initiative)
 Initiative: the single highest-impact, fully-offline-verifiable item — a formal plugin system attacking the Ecosystem pillar (the lowest score at 45 and an explicit band-cap). Built on node:crypto only; no network, no new dependencies. Completed end-to-end before starting anything else.
 
 Executive Summary
@@ -1627,7 +1627,7 @@ Confidence: High — every claim is backed by a command executed this session ag
 
 Net change this initiative: a verified formal plugin system (host + Ed25519 signing + dependency/permission resolution + lifecycle + discovery), Ecosystem 45→62, overall 83→84, committed with source + 17 tests + docs + public exports, zero regressions. Second initiative not started, per instruction.
 
-Street Framework — Ecosystem Validation Sprint (S3 Reference Plugin)
+StreetJS Framework — Ecosystem Validation Sprint (S3 Reference Plugin)
 Scope: one complete, fully-verified reference plugin on PluginHost. No marketplace/registry/unrelated work. Plugin selected: AWS S3 — built on the framework's already-verified signAwsV4 + S3StorageAdapter, so its core logic (SigV4 signing) is deterministic and fully offline-verifiable.
 
 Evidence Table
@@ -1693,7 +1693,7 @@ Zero regressions: ✅ 757/51/211/83+38/14 all pass; 0 cycles; 0 vulnerabilities.
 No claims without executable evidence: ✅ every row above maps to a command run this session.
 Net change: the PluginHost is now proven production-usable by a complete, signed, permission-gated, lifecycle-tested official S3 plugin with deterministic offline-verifiable SigV4 signing; Ecosystem 62→68, overall ≈84.4→84.9, zero regressions.
 
-Street Framework — Plugin Registry MVP Sprint
+StreetJS Framework — Plugin Registry MVP Sprint
 Scope: a local, signed, in-process plugin registry integrated with PluginHost. No marketplace UI, no external services, no unrelated work. All evidence generated this session.
 
 Evidence Table
@@ -1759,7 +1759,7 @@ Tampered plugin rejected: ✅ at publish, at fetch re-verify, and at fromJSON.
 Zero regressions: ✅ 767 / 51 / 211 / 83+38 / 14 all pass; 0 cycles (212 files); 0 vulnerabilities.
 Net change: a verified local signed plugin registry (publish/fetch/list/search/verify + host integration + tamper-guarded persistence), Ecosystem 68→74, overall ≈84.9→85.4, committed with source + 10 tests + docs + exports, zero regressions.
 
-Street Framework — Platform Leadership Program: Certification Report
+StreetJS Framework — Platform Leadership Program: Certification Report
 Integrity statement: I will not mark any item VERIFIED without an executed command behind it. Items needing real cloud accounts, vendor API credentials, long-running broker chaos loops, or live scanners are labeled BLOCKED (no infra/creds here) — not "done." I completed and verified one priority (Observability) this session and fixed a real regression; I did not move the whole framework to 95.
 
 Executive Summary
@@ -1769,7 +1769,7 @@ What I VERIFIED this session (executed evidence)
 Item	Evidence	Result
 Prometheus rules valid	promtool check rules → SUCCESS: 9 rules found (local + CI)	✅ VERIFIED
 Alert behavior	promtool test rules street-rules.test.yml → SUCCESS (4 cases: error-rate fires, healthy quiet, target-down fires, fast budget-burn fires); runs in CI	✅ VERIFIED
-Grafana dashboard	JSON parses, "Street API", 4 panels	✅ VERIFIED
+Grafana dashboard	JSON parses, "StreetJS API", 4 panels	✅ VERIFIED
 emit-assets regression	imported @streetjs/core (unbuilt) → fixed to streetjs; full flow npm ci → build → emit → promtool green in CI run f626de1	✅ FIXED + VERIFIED
 Certification Matrix (all 19, evidence-based)
 #	Item	Source	Tests	Status
@@ -1813,7 +1813,7 @@ DAST execution — I can run the ZAP/Schemathesis pipeline via the existing scri
 Redis plugin + networked registry + route-explorer/dep-graph DX — genuine net-new builds.
 I deliberately stopped at what I could prove. Tell me which of the locally-verifiable items to tackle next — Kafka chaos/cold-start loop, DAST real execution, or kind K8s deploy-verify — and I'll build + run it with real evidence (those three don't need external accounts). The cloud and vendor items need your credentials first.
 
-Street Framework — Platform Leadership Phase: Certification Report
+StreetJS Framework — Platform Leadership Phase: Certification Report
 Integrity statement: Only items with executed-command evidence are marked VERIFIED. Items needing cloud accounts, vendor API keys, live brokers, or net-new services are marked BLOCKED/NOT IMPLEMENTED with the reason. I did not move the framework to 95.
 
 Executed evidence this session
@@ -1827,7 +1827,7 @@ Observability CI	dispatched run 1b6cfa5 → success	✅ VERIFIED
 Main CI/CD	run 1b6cfa5 → success	✅ VERIFIED
 Repo hygiene	untracked 272 root node_modules files that had crept in via CI	✅ FIXED
 Zero-trust decision I want you to see
-The prompt asked for PostgreSQL / Kafka / RabbitMQ dashboards. I verified that Street's metrics registry only exports http_requests_total, http_request_duration_seconds, and process_heap_bytes. Building PG/Kafka/RabbitMQ dashboards would mean fabricating panels against metrics the framework doesn't emit — a zero-trust violation. So I built only what's real (HTTP + runtime/heap) and am reporting the rest as a genuine prerequisite: the framework must first export DB/broker metrics before those dashboards can be honest.
+The prompt asked for PostgreSQL / Kafka / RabbitMQ dashboards. I verified that StreetJS's metrics registry only exports http_requests_total, http_request_duration_seconds, and process_heap_bytes. Building PG/Kafka/RabbitMQ dashboards would mean fabricating panels against metrics the framework doesn't emit — a zero-trust violation. So I built only what's real (HTTP + runtime/heap) and am reporting the rest as a genuine prerequisite: the framework must first export DB/broker metrics before those dashboards can be honest.
 
 Certification matrix (Priority 9 — Observability)
 Requirement	Status

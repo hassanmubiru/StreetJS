@@ -4,7 +4,7 @@ title:        "Core"
 nav_order:    4
 has_children: true
 permalink:    /core/
-description:  "Street Framework core concepts — HTTP server, router, controllers, services, dependency injection, middleware, OpenAPI."
+description:  "StreetJS Framework core concepts — HTTP server, router, controllers, services, dependency injection, middleware, OpenAPI."
 ---
 
 {% include doc-styles.html %}
@@ -15,7 +15,7 @@ description:  "Street Framework core concepts — HTTP server, router, controlle
 <p>Controllers, routing, middleware, DI container, and OpenAPI spec generation.</p>
 </div>
 
-The core module provides the HTTP server, router, dependency injection container, and all the building blocks for a Street application.
+The core module provides the HTTP server, router, dependency injection container, and all the building blocks for a StreetJS application.
 
 | Page | Description |
 |---|---|

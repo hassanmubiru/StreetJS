@@ -7,7 +7,7 @@ description: "Chaos and fault-injection testing in StreetJS — verify resilienc
 
 # Chaos / Fault-Injection Testing
 
-Street ships a fault-injection toolkit for verifying resilience — retries,
+StreetJS ships a fault-injection toolkit for verifying resilience — retries,
 backoff, circuit breakers, and graceful degradation — under adverse conditions.
 Faults are **deterministic when seeded**, so chaos tests are reproducible.
 Dependency-free; exported from `streetjs`.
@@ -68,7 +68,7 @@ const result = await retryWithBackoff(() => callFlakyService(), {
 `packages/core/src/tests/chaos.test.ts` (8 tests) covers deterministic
 `failEvery`/`failAfter`, seeded reproducible `errorRate`, latency injection,
 `wrap()`, `retryWithBackoff` surviving injected faults and rethrowing after
-exhaustion, and the HTTP chaos middleware emitting `503`s on a **live Street app**
+exhaustion, and the HTTP chaos middleware emitting `503`s on a **live StreetJS app**
 (verified: a `failEvery: 2` policy produces the status sequence
 `[200, 503, 200, 503]`).
 

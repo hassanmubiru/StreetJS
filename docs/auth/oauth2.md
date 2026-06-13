@@ -7,7 +7,7 @@ description: "OAuth2 in StreetJS — authorization-code and client-credentials f
 
 # OAuth2 + OIDC Guide
 
-Street's `OAuthManager` implements the OAuth2 Authorization Code flow with **PKCE** (Proof Key for Code Exchange, RFC 7636). PKCE is mandatory for all Street OAuth flows — it prevents authorization code interception attacks without requiring a client secret to be embedded in the browser.
+StreetJS's `OAuthManager` implements the OAuth2 Authorization Code flow with **PKCE** (Proof Key for Code Exchange, RFC 7636). PKCE is mandatory for all StreetJS OAuth flows — it prevents authorization code interception attacks without requiring a client secret to be embedded in the browser.
 
 ## How the PKCE Flow Works
 

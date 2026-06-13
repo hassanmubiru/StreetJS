@@ -1,6 +1,6 @@
-# Street Framework — Background Jobs Example
+# StreetJS Framework — Background Jobs Example
 
-Demonstrates the Street Framework job processing system: `@Job` decorator, `JobQueue`, `CronScheduler`, and Dead Letter Queue (DLQ) configuration.
+Demonstrates the StreetJS Framework job processing system: `@Job` decorator, `JobQueue`, `CronScheduler`, and Dead Letter Queue (DLQ) configuration.
 
 ## Prerequisites
 

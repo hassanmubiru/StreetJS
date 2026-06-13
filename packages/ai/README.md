@@ -1,6 +1,6 @@
 # @streetjs/ai
 
-Official Street Framework AI module: a **provider-agnostic** surface for LLM
+Official StreetJS Framework AI module: a **provider-agnostic** surface for LLM
 chat, embeddings, retrieval-augmented generation (RAG), and tool calling.
 
 - One `AiProvider` contract; swap implementations freely
