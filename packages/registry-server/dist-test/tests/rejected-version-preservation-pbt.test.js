@@ -78,11 +78,14 @@ function installableSet(service, names) {
     return out.sort();
 }
 // ── Generators ────────────────────────────────────────────────────────────────
-const suffixArb = fc.hexaString({ minLength: 1, maxLength: 8 });
+// Single lowercase-hex character unit. fast-check v4 removed `fc.hexaString`,
+// so hex strings are built from `fc.string` with an explicit hex `unit`.
+const hexChar = fc.constantFrom(...'0123456789abcdef');
+const suffixArb = fc.string({ unit: hexChar, minLength: 1, maxLength: 8 });
 // A non-empty, non-whitespace token so generated manifests pass the registry's
 // metadata validation (capabilities and dependency names must be non-empty
 // after trimming).
-const tokenArb = fc.hexaString({ minLength: 1, maxLength: 10 });
+const tokenArb = fc.string({ unit: hexChar, minLength: 1, maxLength: 10 });
 const capabilitiesArb = fc.array(tokenArb, { maxLength: 4 });
 const permissionsArb = fc.uniqueArray(fc.constantFrom('middleware', 'events', 'net', 'fs', 'db', 'secrets'), { maxLength: 6 });
 const dependenciesArb = fc.dictionary(tokenArb, fc
