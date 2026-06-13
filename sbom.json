@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:1cdc8911-8b3a-4949-a156-4926d0fc7a33",
+  "serialNumber": "urn:uuid:6291ca84-4769-49ab-91ee-776272519b67",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-06-07T08:30:48.509Z",
+    "timestamp": "2026-06-13T17:28:09.952Z",
     "tools": [
       {
         "vendor": "streetjs",
@@ -14,25 +14,11 @@
     ],
     "component": {
       "type": "application",
-      "name": "@streetjs/core",
-      "version": "1.0.5"
+      "name": "streetjs",
+      "version": "1.0.7"
     }
   },
   "components": [
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/%40streetjs/core@1.0.5",
-      "name": "@streetjs/core",
-      "version": "1.0.5",
-      "purl": "pkg:npm/%40streetjs/core@1.0.5",
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ]
-    },
     {
       "type": "library",
       "bom-ref": "pkg:npm/reflect-metadata@0.2.2",
@@ -49,10 +35,38 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/streetjs@1.0.7",
+      "name": "streetjs",
+      "version": "1.0.7",
+      "purl": "pkg:npm/streetjs@1.0.7",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/ws@8.21.0",
       "name": "ws",
       "version": "8.21.0",
       "purl": "pkg:npm/ws@8.21.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/zod@4.4.3",
+      "name": "zod",
+      "version": "4.4.3",
+      "purl": "pkg:npm/zod@4.4.3",
       "licenses": [
         {
           "license": {
