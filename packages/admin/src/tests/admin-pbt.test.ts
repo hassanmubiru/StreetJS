@@ -58,7 +58,6 @@ describe('Property: admin authorization & audit invariants', () => {
   });
 
   it('P1: audit count equals applied state changes', () => {
-    type Op = { t: 'createRole'; name: string } | { t: 'suspend' } | { t: 'activate' };
     const opArb = fc.oneof(
       fc.record({ t: fc.constant('createRole' as const), name: fc.stringMatching(/^[a-z]{1,6}$/) }),
       fc.record({ t: fc.constant('suspend' as const) }),
