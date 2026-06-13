@@ -68,11 +68,8 @@ jobs:
           MEILI_KEY: street_test_key
         run: npm run test -w packages/search
 
-  # Storage providers: Postgres + GCS (both implemented & verified). A GCS
-  # emulator (fake-gcs-server) backs the GCS provider integration tests.
-  # (Azure Blob provider is experimental/unverified — see
-  #  packages/storage/src/azure.ts — and is intentionally not wired here until
-  #  its SharedKey auth is verified.)
+  # Storage providers: Postgres + GCS + Azure Blob (all implemented & verified).
+  # fake-gcs-server backs the GCS provider; Azurite backs the Azure provider.
   storage-providers:
     runs-on: ubuntu-latest
     services:
@@ -91,6 +88,10 @@ jobs:
         image: fsouza/fake-gcs-server:1.49
         ports:
           - 4443:4443
+      azurite:
+        image: mcr.microsoft.com/azure-storage/azurite:3.32.0
+        ports:
+          - 10000:10000
 
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -106,7 +107,7 @@ jobs:
       - name: Build core (provides streetjs PgPool)
         run: npm run build -w packages/core
 
-      - name: Run storage provider integration tests (Postgres + GCS)
+      - name: Run storage provider integration tests (Postgres + GCS + Azure)
         env:
           PG_HOST: 127.0.0.1
           PG_PORT: '5433'
@@ -114,4 +115,5 @@ jobs:
           PG_PASSWORD: street_secret
           PG_DATABASE: street_test
           GCS_URL: http://127.0.0.1:4443
+          AZURITE_URL: http://127.0.0.1:10000
         run: npm run test -w packages/storage

@@ -5,9 +5,9 @@ pluggable providers and cross-cutting concerns handled once at the service
 layer — upload limits, malware/scan hooks, transform hooks, and signed URLs.
 
 - Providers: `InMemoryStorageProvider` (default), `LocalStorageProvider` (FS, traversal-safe),
-  `PgStorageProvider` (Postgres), `GcsStorageProvider` (Google Cloud Storage / fake-gcs) — all verified
-- `AzureBlobStorageProvider` is **experimental / unverified** (SharedKey auth not yet
-  confirmed against Azurite — see the file header). S3 / R2 ship as `@streetjs/plugin-s3` and `-r2`
+  `PgStorageProvider` (Postgres), `GcsStorageProvider` (Google Cloud Storage / fake-gcs),
+  `AzureBlobStorageProvider` (Azure Blob / Azurite, SharedKey auth) — all verified against live services
+- S3 / Cloudflare R2 ship as `@streetjs/plugin-s3` and `@streetjs/plugin-r2`
 - Upload size limits, async scan hooks (malware), transform hooks (image opt.)
 - HMAC signed URLs with expiry + verification
 
