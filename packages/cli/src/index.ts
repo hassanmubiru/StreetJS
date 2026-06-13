@@ -21,6 +21,7 @@ import { PluginInstallCommand, PluginListCommand } from './commands/plugin.js';
 import { AnalyticsReportCommand, AuditExportCommand, ComplianceReportCommand, RestoreCommand } from './commands/data-commands.js';
 import { CertifyCommand } from './commands/certify.js';
 import { UpgradeCommand } from './commands/upgrade.js';
+import { AddCommand } from './commands/add.js';
 import { VerifyCommand } from './commands/verify.js';
 import { RegistryCommand } from './commands/registry.js';
 import { readFileSync } from 'node:fs';
@@ -63,6 +64,10 @@ export async function runCli(argv: string[]): Promise<void> {
     switch (args.command) {
       case 'create':
         await new CreateCommand().execute(ctx);
+        break;
+
+      case 'add':
+        await new AddCommand().execute(ctx);
         break;
 
       case 'certify':
@@ -199,6 +204,8 @@ Usage:
 
 Commands:
   create <name>                   Scaffold a new Street project
+  create <name> --template <t>    Templates: app, saas, ecommerce, realtime-chat, dating-app
+  add <feature>                   Add a capability: auth, postgres, websocket, search, ai, commerce, storage, admin, social
   dev                             Start the development server with hot-reload
   build                           Compile the project for production
   start                           Start the production server

@@ -1,9 +1,77 @@
 // packages/cli/src/commands/create.ts
 // `street create <name>` — scaffolds a complete Street project from embedded templates.
 
-import { mkdir, writeFile, stat } from 'node:fs/promises';
+import { mkdir, writeFile, stat, readFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import type { CliContext } from '../index.js';
+
+/** Template variants: extra @streetjs deps + a starter module + a description. */
+interface TemplateSpec {
+  packages: Record<string, string>;
+  description: string;
+  starter: { path: string; content: string };
+}
+
+export const TEMPLATES: Record<string, TemplateSpec> = {
+  app: {
+    packages: {},
+    description: 'Minimal Street app (HTTP, DI, Postgres, health checks).',
+    starter: { path: '', content: '' },
+  },
+  saas: {
+    packages: { '@streetjs/admin': '^1.0.0' },
+    description: 'SaaS starter: user/role admin + audit log on top of the base app.',
+    starter: {
+      path: 'src/features/saas.ts',
+      content: `// SaaS feature wiring — admin users, roles (RBAC), and an audit log.
+import { AdminService } from '@streetjs/admin';
+
+export const admin = new AdminService();
+// await admin.createRole('system', { name: 'owner', permissions: ['*'] });
+`,
+    },
+  },
+  ecommerce: {
+    packages: { '@streetjs/commerce': '^1.0.0' },
+    description: 'Ecommerce starter: products, inventory, carts, orders, payments.',
+    starter: {
+      path: 'src/features/ecommerce.ts',
+      content: `// Ecommerce feature wiring — catalog, inventory (no-oversell), checkout.
+import { CommerceService } from '@streetjs/commerce';
+
+export const shop = new CommerceService();
+// const p = await shop.createProduct({ name: 'Widget', priceCents: 1500 });
+`,
+    },
+  },
+  'realtime-chat': {
+    packages: { '@streetjs/social-users': '^1.0.0' },
+    description: 'Realtime chat starter: WebSocket channels, presence, typing.',
+    starter: {
+      path: 'src/features/chat.ts',
+      content: `// Realtime chat wiring — channels, presence, typing over WebSockets.
+import { StreetWebSocketServer, ChannelHub } from 'streetjs';
+
+export const hub = new ChannelHub({ typingTtlMs: 5000 });
+export const wss = new StreetWebSocketServer();
+`,
+    },
+  },
+  'dating-app': {
+    packages: { '@streetjs/dating-profiles': '^1.0.0' },
+    description: 'Dating-app starter: profiles, likes, reciprocal matching.',
+    starter: {
+      path: 'src/features/dating.ts',
+      content: `// Dating-app wiring — encrypted profiles, likes, reciprocal matches.
+import { ProfileService } from '@streetjs/dating-profiles';
+import { FieldCipher, Keyring } from 'streetjs';
+import { randomBytes } from 'node:crypto';
+
+export const profiles = new ProfileService({ cipher: new FieldCipher(Keyring.fromKey(randomBytes(32))) });
+`,
+    },
+  },
+};
 
 
 
@@ -25,6 +93,15 @@ export class CreateCommand {
 
     const targetDir = resolve(ctx.cwd, projectName);
 
+    // Template variant (default 'app'). Variants overlay extra @streetjs
+    // packages + a starter module on top of the base scaffold.
+    const template = String(ctx.args.flags['template'] ?? 'app');
+    if (!TEMPLATES[template]) {
+      console.error(`[street] Unknown template "${template}". Available: ${Object.keys(TEMPLATES).join(', ')}`);
+      process.exitCode = 1;
+      return;
+    }
+
     // Check if target already exists
     try {
       const existing = await stat(targetDir);
@@ -45,6 +122,9 @@ export class CreateCommand {
 
     // Scaffold all files
     await this.scaffoldProject(targetDir, projectName);
+
+    // Apply the template overlay (extra deps + starter module + notes).
+    await this.applyTemplate(targetDir, template);
 
     console.log(`\n[street] Project "${projectName}" created successfully!\n`);
 
@@ -219,6 +299,38 @@ export class CreateCommand {
    * integrity-pinned installs. Fail-soft: if npm or the network is unavailable
    * the scaffold still succeeds (the user can run `npm install` later).
    */
+  /**
+   * Overlay a template variant on top of the base scaffold: merge extra
+   * @streetjs dependencies into package.json, write a starter module, and a
+   * TEMPLATE.md note. The 'app' template is a no-op overlay.
+   */
+  private async applyTemplate(targetDir: string, template: string): Promise<void> {
+    const spec = TEMPLATES[template];
+    if (!spec || template === 'app') return;
+
+    // Merge dependencies into package.json.
+    const pkgPath = join(targetDir, 'package.json');
+    const pkg = JSON.parse(await readFile(pkgPath, 'utf8')) as { dependencies?: Record<string, string> };
+    pkg.dependencies = { ...(pkg.dependencies ?? {}), ...spec.packages };
+    await writeFile(pkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
+
+    // Write the starter module.
+    if (spec.starter.path) {
+      const starterAbs = join(targetDir, spec.starter.path);
+      await mkdir(join(starterAbs, '..'), { recursive: true });
+      await writeFile(starterAbs, spec.starter.content, 'utf8');
+    }
+
+    // Write a TEMPLATE.md note.
+    await writeFile(
+      join(targetDir, 'TEMPLATE.md'),
+      `# Template: ${template}\n\n${spec.description}\n\nAdded packages: ${Object.keys(spec.packages).join(', ') || '(none)'}\nStarter module: ${spec.starter.path || '(none)'}\n`,
+      'utf8',
+    );
+
+    console.log(`[street] Applied "${template}" template: ${spec.description}`);
+  }
+
   private async generateLockfile(cwd: string): Promise<void> {
     const { spawn } = await import('node:child_process');
     await new Promise<void>((resolvePromise) => {
