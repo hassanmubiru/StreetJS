@@ -1,0 +1,59 @@
+name: Vendor Contract Tests
+
+# Live contract tests for the real AI providers (@streetjs/ai) and payment
+# gateways (@streetjs/commerce). Each provider's tests are gated inside the test
+# files on its credential env var, so this workflow is safe to run without any
+# secrets — ungated providers simply skip. Supply repository secrets to activate
+# the corresponding contract tests.
+#
+# Use TEST/sandbox credentials only (Stripe sk_test_..., PayPal sandbox token).
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 5 * * 1'   # weekly
+
+permissions:
+  contents: read
+
+jobs:
+  contract-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Secrets cannot be used in step-level `if:`; map to env and let the gated
+    # tests skip on absence.
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      OLLAMA_HOST: ${{ secrets.OLLAMA_HOST }}
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+      PAYPAL_ACCESS_TOKEN: ${{ secrets.PAYPAL_ACCESS_TOKEN }}
+      PAYPAL_BASE_URL: ${{ secrets.PAYPAL_BASE_URL }}
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # AI provider contract tests (OpenAI / Anthropic / Ollama). Each block
+      # self-skips unless its credential/host is present.
+      - name: AI provider contract tests
+        run: npm run test -w packages/ai
+
+      # Payment gateway contract tests (Stripe / PayPal). Self-skip unless the
+      # corresponding TEST credential is present.
+      - name: Payment gateway contract tests
+        run: npm run test -w packages/commerce
+
+      - name: Summary
+        if: ${{ always() }}
+        run: |
+          echo "Contract tests run with whatever vendor secrets are configured;"
+          echo "providers without secrets are skipped (not failed). Configure"
+          echo "OPENAI_API_KEY / ANTHROPIC_API_KEY / OLLAMA_HOST /"
+          echo "STRIPE_SECRET_KEY / PAYPAL_ACCESS_TOKEN to activate each."
