@@ -1,4 +1,6 @@
-# Requirements: CI Failure Fix — PgPool Waiter Enqueue & esbuild Audit
+# Requirements Document
+
+CI Failure Fix — PgPool Waiter Enqueue & esbuild Audit
 
 ## Introduction
 
