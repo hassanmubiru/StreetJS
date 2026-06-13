@@ -10,7 +10,7 @@ can be implemented in either order.
 
 ## Tasks
 
-- [ ] 1. Fix PgPool warm-path waiter enqueue
+- [x] 1. Fix PgPool warm-path waiter enqueue
   - In `packages/core/src/database/pool.ts`, change `acquire()` so it only
     `await this.ensureInitialized()` on the cold path (`if (!this.initialized)`),
     calling `_doAcquire()` in the same tick on the warm path so waiters are
@@ -21,7 +21,7 @@ can be implemented in either order.
     implementation (it currently describes the contract the old code violated).
   - _Requirements: 1.1, 1.2, 1.3, 2.1, 2.2, 2.3, 3.1, 3.2, 3.3, 3.4, 5.6_
 
-- [ ] 2. Verify the pool fix against the failing suites
+- [-] 2. Verify the pool fix against the failing suites
   - Run `npm run build:app -w packages/core` to recompile.
   - Run `node --test packages/core/dist/tests/memory-leak.test.js packages/core/dist/tests/wire-protocol.test.js` and confirm all pass.
   - Run `node --test packages/core/dist/tests/system/memory-safety.test.js` and
@@ -30,14 +30,14 @@ can be implemented in either order.
     does not consume waiter", and "acquire after close throws synchronously".
   - _Requirements: 5.1, 5.2, 5.6_
 
-- [ ] 3. Bump esbuild past the high-severity advisory
+- [-] 3. Bump esbuild past the high-severity advisory
   - In `packages/core/package.json`, raise the `esbuild` devDependency range to
     the first patched line outside the advisory range (e.g. `^0.29.0` or the
     current patched latest), keeping it in `devDependencies`.
   - Run `npm install` to refresh `package-lock.json`.
   - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
-- [ ] 4. Verify the audit and browser-build after the esbuild bump
+- [~] 4. Verify the audit and browser-build after the esbuild bump
   - Run `npm audit --audit-level=high` and confirm exit code 0.
   - Run the placeholder scan
     (`grep -RInE '\b(TODO|FIXME|HACK)\b|@ts-ignore' --include='*.ts' --exclude-dir=tests --exclude-dir=integration packages/core/src`)
@@ -48,7 +48,7 @@ can be implemented in either order.
     the API changed.
   - _Requirements: 4.1, 5.4, 5.5_
 
-- [ ] 5. Full regression pass
+- [~] 5. Full regression pass
   - Run `npm run build:app -w packages/core` then `npm run coverage -w packages/core`
     and confirm the Core suite completes with no failing tests.
   - Confirm no previously passing test regressed across the memory-leak,
