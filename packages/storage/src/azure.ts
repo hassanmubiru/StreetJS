@@ -1,10 +1,13 @@
 // packages/storage/src/azure.ts
-// Azure Blob Storage StorageProvider using SharedKey (HMAC-SHA256) auth. Works
-// against real Azure Blob and the Azurite emulator. Custom metadata travels via
-// x-ms-meta-* headers; content type via the blob's Content-Type.
+// Azure Blob Storage StorageProvider using SharedKey (HMAC-SHA256) auth,
+// implemented to the documented Blob canonicalization spec.
 //
-// SharedKey signing follows the Blob service canonicalization
-// (https://learn.microsoft.com/rest/api/storageservices/authorize-with-shared-key).
+// STATUS: EXPERIMENTAL / NOT YET VERIFIED. The SharedKey signature is rejected
+// by the Azurite emulator in local testing (403 AuthorizationFailure) and the
+// mismatch has not been isolated (recent Azurite no longer echoes the expected
+// string-to-sign). Do not rely on this provider until it has an integration
+// test passing against Azurite or real Azure. The GCS and Postgres providers
+// are verified; prefer those, or @streetjs/plugin-s3 / -r2, in the meantime.
 
 import { createHmac } from 'node:crypto';
 import type { StorageProvider, PutOptions, StoredObject, ObjectInfo } from './index.js';
