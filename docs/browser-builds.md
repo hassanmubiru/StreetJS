@@ -244,7 +244,7 @@ await build({
 
 ## Edge runtimes
 
-The same browser subset runs on edge runtimes (Vercel Edge Functions, Cloudflare Workers, Deno Deploy), which resolve the `"browser"` condition and have no Node built-ins. For full request handling at the edge, use the companion `@streetjs/edge` package and its `handleEdgeRequest` helper, which adapts the Web `Request`/`Response` (Fetch) API to Street's routing without touching `node:` modules.
+The same browser subset runs on edge runtimes (Vercel Edge Functions, Cloudflare Workers, Deno Deploy), which resolve the `"browser"` condition and have no Node built-ins. For full request handling at the edge, use the companion `@streetjs/edge` package and its `handleEdgeRequest` helper, which adapts the Web `Request`/`Response` (Fetch) API to StreetJS's routing without touching `node:` modules.
 
 ### Vercel Edge
 

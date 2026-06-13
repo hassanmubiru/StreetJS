@@ -1,11 +1,11 @@
 ---
 layout: default
-title: "Street Framework — Threat Model"
+title: "StreetJS Framework — Threat Model"
 nav_exclude: true
-description: "Street Framework — Threat Model — StreetJS, the production-grade, memory-safe TypeScript backend framework for Node.js."
+description: "StreetJS Framework — Threat Model — StreetJS, the production-grade, memory-safe TypeScript backend framework for Node.js."
 ---
 
-# Street Framework — Threat Model
+# StreetJS Framework — Threat Model
 
 Methodology: STRIDE over the framework's trust boundaries. Each control below is
 backed by source and tests (see `docs/SECURITY-CERTIFICATION.md` and the

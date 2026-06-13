@@ -23,7 +23,7 @@ npx @streetjs/cli <command>
 
 #### `street create <name>`
 
-Scaffold a new Street project.
+Scaffold a new StreetJS project.
 
 ```bash
 street create my-app

@@ -1,6 +1,6 @@
 # @streetjs/commerce
 
-Official Street Framework commerce module: products, inventory (with a strict
+Official StreetJS Framework commerce module: products, inventory (with a strict
 **no-oversell** guarantee), carts, coupons, orders, reviews, and a
 payment-gateway abstraction. All money is in integer minor units (cents).
 

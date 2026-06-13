@@ -4,7 +4,7 @@ title:     "File Upload"
 parent:    "Examples"
 nav_order: 3
 permalink: /examples/file-upload/
-description: "Streaming file upload example with Street Framework — multipart/form-data, disk storage, validation."
+description: "Streaming file upload example with StreetJS Framework — multipart/form-data, disk storage, validation."
 ---
 
 # Example: File Upload

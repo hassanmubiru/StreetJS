@@ -7,7 +7,7 @@ description: "Official StreetJS plugins — S3, SendGrid, Stripe, Twilio, Auth0 
 
 # Official Plugins
 
-Street ships a set of official reference plugins built on the
+StreetJS ships a set of official reference plugins built on the
 [plugin system](./plugins.md). Each declares a signed manifest, a config schema,
 capability metadata, a permission set, and lifecycle hooks, and exposes a client
 whose **request building is deterministic and verified offline**. The actual

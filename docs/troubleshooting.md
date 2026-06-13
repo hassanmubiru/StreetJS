@@ -117,7 +117,7 @@ The plugin package signature did not verify against the bundled public key.
 
 - Only install plugins from the official marketplace
 - If using a private registry, set `publicKey` to your registry's signing key
-- Report suspicious packages to the Street security team
+- Report suspicious packages to the StreetJS security team
 
 ### `Checksum mismatch`
 

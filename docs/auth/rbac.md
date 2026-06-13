@@ -7,7 +7,7 @@ description: "Role-based access control (RBAC) in StreetJS — fine-grained auth
 
 # Role-Based Access Control (RBAC)
 
-Street's RBAC system supports hierarchical roles, granular permissions, and decorator-based access control on controller methods. It is framework-agnostic and works with any authentication mechanism (JWT, session, API key).
+StreetJS's RBAC system supports hierarchical roles, granular permissions, and decorator-based access control on controller methods. It is framework-agnostic and works with any authentication mechanism (JWT, session, API key).
 
 ## Core Concepts
 

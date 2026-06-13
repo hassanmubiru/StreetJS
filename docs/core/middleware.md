@@ -389,7 +389,7 @@ async getOne(ctx: StreetContext): Promise<void> { /* ... */ }
 ```json
 {
   "openapi": "3.1.0",
-  "info": { "title": "Street API", "version": "1.0.0" },
+  "info": { "title": "StreetJS API", "version": "1.0.0" },
   "paths": {
     "/api/users/{id}": {
       "get": {

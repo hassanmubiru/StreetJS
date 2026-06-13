@@ -7,7 +7,7 @@ description: "StreetJS observability pack — Grafana dashboards, Prometheus ale
 
 # Observability Pack
 
-Street ships an **observability pack**: Grafana dashboards, Prometheus alert
+StreetJS ships an **observability pack**: Grafana dashboards, Prometheus alert
 rules, and an SLO pack, all built **only on metrics the framework actually
 exports** at runtime. An anti-fabrication guard plus a promtool-backed
 validation pipeline keep that guarantee enforceable, so your observability

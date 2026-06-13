@@ -1,4 +1,4 @@
-# Street Framework — Rollback Strategy
+# StreetJS Framework — Rollback Strategy
 
 This document covers the complete rollback procedure for a bad release of
 `@streetjs/core` or `@streetjs/cli`.

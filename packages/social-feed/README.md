@@ -1,6 +1,6 @@
 # @streetjs/social-feed
 
-Official Street Framework social module: **post publishing and timeline
+Official StreetJS Framework social module: **post publishing and timeline
 generation** over the follow graph (`@streetjs/social-users`).
 
 - Publish posts; read author (user) timelines and home timelines

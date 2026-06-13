@@ -3,7 +3,7 @@ layout:    default
 title:     "Roadmap"
 nav_order: 15
 permalink: /roadmap/
-description: "Street Framework roadmap — planned features, upcoming releases, and long-term vision."
+description: "StreetJS Framework roadmap — planned features, upcoming releases, and long-term vision."
 ---
 
 {% include doc-styles.html %}
@@ -11,10 +11,10 @@ description: "Street Framework roadmap — planned features, upcoming releases, 
 <div class="doc-header">
 <span class="dh-label">Project</span>
 <h1>Roadmap</h1>
-<p>Planned features, upcoming releases, and the long-term vision for Street Framework.</p>
+<p>Planned features, upcoming releases, and the long-term vision for StreetJS Framework.</p>
 </div>
 
-This page tracks planned features and improvements for Street Framework. Items are grouped by release milestone. Priorities shift based on community feedback — open an issue or discussion to influence the roadmap.
+This page tracks planned features and improvements for StreetJS Framework. Items are grouped by release milestone. Priorities shift based on community feedback — open an issue or discussion to influence the roadmap.
 
 ---
 

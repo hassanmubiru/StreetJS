@@ -1,6 +1,6 @@
 # @streetjs/social-comments
 
-Official Street Framework social module: **threaded comments** with reactions
+Official StreetJS Framework social module: **threaded comments** with reactions
 and `@mentions`, on any subject (a post, photo, listing — anything with an id).
 
 - Comments and threaded replies (`parentId`)

@@ -1,6 +1,6 @@
 # @streetjs/plugin-twilio
 
-Official [Street Framework](https://hassanmubiru.github.io/street/) plugin for **Twilio SMS**.
+Official [StreetJS Framework](https://hassanmubiru.github.io/street/) plugin for **Twilio SMS**.
 
 It ships a `PluginModule` subclass that injects a Twilio client into each request
 via middleware. Request building (HTTP Basic auth + form-encoded body) is pure and

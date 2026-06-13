@@ -16,7 +16,7 @@ Evidence-based as of commit `f64621f`. Generated from source inspection,
 | --- | --- | --- |
 | `@streetjs/core` | `reflect-metadata`, `ws` (2) | Framework: HTTP, router, DI, DB drivers, security, transports, observability, enterprise |
 | `@streetjs/cli` | `@streetjs/core` (1) | Scaffolding, generators, migrations, diagnostics, `certify` |
-| `@streetjs/edge` | none (0) | Web Fetch → Street adapter for edge runtimes |
+| `@streetjs/edge` | none (0) | Web Fetch → StreetJS adapter for edge runtimes |
 
 Dependency direction is strictly downward: `edge`/`cli` → `core`; `core` → only
 its two minimal third-party deps. No package depends "up". `@streetjs/edge`

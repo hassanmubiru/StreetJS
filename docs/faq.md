@@ -3,7 +3,7 @@ layout:    default
 title:     "FAQ"
 nav_order: 14
 permalink: /faq/
-description: "Frequently asked questions about Street Framework."
+description: "Frequently asked questions about StreetJS Framework."
 ---
 
 {% include doc-styles.html %}
@@ -18,17 +18,17 @@ description: "Frequently asked questions about Street Framework."
 
 ## General
 
-### What is Street Framework?
+### What is StreetJS Framework?
 
-Street is a production-grade TypeScript backend framework built entirely on Node.js core modules. It provides an HTTP server, router, dependency injection container, PostgreSQL driver, WebSocket server, security primitives, and a CLI — all without Express, pg, Prisma, or other heavy abstractions.
+StreetJS is a production-grade TypeScript backend framework built entirely on Node.js core modules. It provides an HTTP server, router, dependency injection container, PostgreSQL driver, WebSocket server, security primitives, and a CLI — all without Express, pg, Prisma, or other heavy abstractions.
 
 ### Why build another Node.js framework?
 
-Most Node.js frameworks layer abstractions on top of abstractions. Street takes the opposite approach: implement each component directly on Node.js core, enforce strict memory bounds, and expose a clean TypeScript API. The result is a framework where you can read and understand every line of the runtime.
+Most Node.js frameworks layer abstractions on top of abstractions. StreetJS takes the opposite approach: implement each component directly on Node.js core, enforce strict memory bounds, and expose a clean TypeScript API. The result is a framework where you can read and understand every line of the runtime.
 
-### Is Street production-ready?
+### Is StreetJS production-ready?
 
-Yes. Street is designed for production from the ground up — bounded memory, parameterized queries, SCRAM-SHA-256 PostgreSQL auth, AES-256-GCM sessions, and a comprehensive test suite including memory leak, wire protocol, load, fuzz, chaos, and security tests.
+Yes. StreetJS is designed for production from the ground up — bounded memory, parameterized queries, SCRAM-SHA-256 PostgreSQL auth, AES-256-GCM sessions, and a comprehensive test suite including memory leak, wire protocol, load, fuzz, chaos, and security tests.
 
 ### What are the two dependencies?
 
@@ -43,7 +43,7 @@ Everything else — HTTP, TLS, streams, crypto, cluster — ships with Node.js.
 
 ### What Node.js version is required?
 
-Node.js **20 or higher**. Street uses `node:test`, top-level `await`, `crypto.randomUUID()`, and other Node 20 APIs.
+Node.js **20 or higher**. StreetJS uses `node:test`, top-level `await`, `crypto.randomUUID()`, and other Node 20 APIs.
 
 ### What TypeScript version is required?
 
@@ -64,7 +64,7 @@ import 'reflect-metadata';  // must be first
 import { streetApp } from 'streetjs';
 ```
 
-### Can I use Street without the CLI?
+### Can I use StreetJS without the CLI?
 
 Yes. Install `streetjs` directly and set up your project manually. The CLI (`@streetjs/cli`) is optional tooling.
 
@@ -72,7 +72,7 @@ Yes. Install `streetjs` directly and set up your project manually. The CLI (`@st
 
 ## TypeScript
 
-### Why does Street require `NodeNext` module resolution?
+### Why does StreetJS require `NodeNext` module resolution?
 
 `NodeNext` is the correct module resolution mode for Node.js ESM. It requires explicit `.js` extensions on imports, which matches how Node.js resolves modules at runtime. Other modes (`bundler`, `node16`) have subtle differences that cause issues in production.
 
@@ -102,13 +102,13 @@ Add these to your `tsconfig.json`:
 
 ## Database
 
-### Does Street support databases other than PostgreSQL?
+### Does StreetJS support databases other than PostgreSQL?
 
 The built-in driver is PostgreSQL-only (wire protocol v3). For other databases, use the database's official Node.js driver and register it manually with the container.
 
 ### Do I need to install `pg`?
 
-No. Street implements the PostgreSQL wire protocol directly over `node:net`. There is no `pg` dependency.
+No. StreetJS implements the PostgreSQL wire protocol directly over `node:net`. There is no `pg` dependency.
 
 ### How do I run migrations?
 
@@ -121,7 +121,7 @@ street migrate:run
 node dist/main.js migrate
 ```
 
-### Does Street support connection pooling?
+### Does StreetJS support connection pooling?
 
 Yes. `PgPool` manages a bounded pool of connections with idle timeout, acquire timeout, and automatic dead connection replacement.
 
@@ -168,7 +168,7 @@ wss.on('connection', (socket, req) => {
 
 ## Performance
 
-### How does Street handle memory?
+### How does StreetJS handle memory?
 
 Every component has explicit bounds:
 
@@ -181,7 +181,7 @@ Every component has explicit bounds:
 | Rate limiter | 100K IPs, 1K timestamps/IP |
 | WebSocket connections | `maxConnections` |
 
-### Does Street support clustering?
+### Does StreetJS support clustering?
 
 Yes. Use `ClusterCoordinator` to spawn worker processes:
 
@@ -196,7 +196,7 @@ coordinator.start(() => bootstrap());
 
 ## Deployment
 
-### Can I deploy Street with Docker?
+### Can I deploy StreetJS with Docker?
 
 Yes. The generated `Dockerfile` uses a multi-stage build:
 
@@ -205,7 +205,7 @@ docker build -t my-api .
 docker run -p 3000:3000 --env-file .env my-api
 ```
 
-### Does Street work behind a reverse proxy (nginx, Caddy)?
+### Does StreetJS work behind a reverse proxy (nginx, Caddy)?
 
 Yes. Set `HOST=0.0.0.0` and let the proxy handle TLS termination. Trust the `X-Forwarded-For` header for real IP detection in the rate limiter.
 

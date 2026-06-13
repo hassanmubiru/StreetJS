@@ -1,6 +1,6 @@
 # @streetjs/search
 
-Official Street Framework search module: a **provider-based search API** —
+Official StreetJS Framework search module: a **provider-based search API** —
 indexing, ranked queries, equality filters, facet counts, and prefix
 suggestions — with an in-memory default and a PostgreSQL full-text-search
 adapter.

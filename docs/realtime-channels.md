@@ -1,6 +1,6 @@
 # Realtime Channels, Presence & Typing
 
-Street's realtime layer adds named channels (rooms), reference-counted presence,
+StreetJS's realtime layer adds named channels (rooms), reference-counted presence,
 typing indicators, and scoped broadcasting on top of the WebSocket server
 (`StreetWebSocketServer` / `StreetSocket`). The channel logic lives in
 `ChannelHub` and is transport-agnostic, so it can be unit-tested without sockets

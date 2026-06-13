@@ -4,7 +4,7 @@ title:     "REST API"
 parent:    "Examples"
 nav_order: 1
 permalink: /examples/rest-api/
-description: "Complete REST API example with Street Framework — CRUD endpoints, PostgreSQL, JWT authentication, pagination."
+description: "Complete REST API example with StreetJS Framework — CRUD endpoints, PostgreSQL, JWT authentication, pagination."
 ---
 
 # Example: REST API

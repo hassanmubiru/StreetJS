@@ -7,7 +7,7 @@ description: "Mutual TLS (mTLS) in StreetJS — client-certificate authenticatio
 
 # Mutual TLS (mTLS)
 
-Street ships first-class mutual-TLS support built only on Node's `node:https`,
+StreetJS ships first-class mutual-TLS support built only on Node's `node:https`,
 `node:tls`, and `node:crypto` — no third-party dependencies. It covers three
 common deployment needs:
 

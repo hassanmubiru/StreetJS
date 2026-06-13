@@ -3,7 +3,7 @@ layout:     default
 title:      "Platform Leadership"
 nav_order:  18
 permalink:  /platform-leadership/
-description: "Street Framework Platform Leadership exit criteria — the strict, machine-computed gate that grants the 95+ classification only when every platform capability is independently VERIFIED."
+description: "StreetJS Framework Platform Leadership exit criteria — the strict, machine-computed gate that grants the 95+ classification only when every platform capability is independently VERIFIED."
 ---
 
 {% include doc-styles.html %}
@@ -45,7 +45,7 @@ every chaos scenario verified.
 | `registry.publish-install` | Network plugin registry | `registry-verify.yml` |
 | `plugins.ecosystem` | Official plugin ecosystem | `vendor-integration.yml` |
 | `enterprise.api` | Enterprise Console APIs | `enterprise-verify.yml` |
-| `devx.playground` | Street Playground | `devtools-verify.yml` |
+| `devx.playground` | StreetJS Playground | `devtools-verify.yml` |
 | `devx.route-explorer` | Route Explorer | `devtools-verify.yml` |
 | `devx.dependency-graph` | Dependency Graph Visualizer | `devtools-verify.yml` |
 | `kafka.chaos` | Kafka chaos suite | `kafka-integration.yml` |

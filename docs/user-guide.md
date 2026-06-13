@@ -7,11 +7,11 @@ description: "StreetJS user guide — routing, middleware, authentication and da
 
 # User Guide
 
-This guide covers the primary Street framework concepts: routing, middleware, dependency injection, authentication, and the database layer.
+This guide covers the primary StreetJS framework concepts: routing, middleware, dependency injection, authentication, and the database layer.
 
 ## Routing
 
-Street uses decorator-based routing. Every controller is annotated with `@Controller(prefix)` and each handler with an HTTP method decorator.
+StreetJS uses decorator-based routing. Every controller is annotated with `@Controller(prefix)` and each handler with an HTTP method decorator.
 
 ```typescript
 import { Controller, Get, Post, Put, Delete } from 'streetjs';
@@ -53,7 +53,7 @@ app.use(loggingMiddleware);
 
 ## Dependency Injection
 
-Street ships a lightweight DI container. Mark classes with `@Injectable()` and resolve via `container.resolve(Class)`.
+StreetJS ships a lightweight DI container. Mark classes with `@Injectable()` and resolve via `container.resolve(Class)`.
 
 ```typescript
 import { Injectable, container } from 'streetjs';
@@ -130,7 +130,7 @@ class AdminController {
 
 ## Error Handling
 
-Throw Street exceptions from handlers — they're automatically serialized:
+Throw StreetJS exceptions from handlers — they're automatically serialized:
 
 ```typescript
 import { NotFoundException, BadRequestException } from 'streetjs';

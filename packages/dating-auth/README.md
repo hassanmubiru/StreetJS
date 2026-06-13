@@ -1,7 +1,7 @@
 # @streetjs/dating-auth
 
 Consumer-platform **dating authentication** reference package for the
-[Street Framework](https://hassanmubiru.github.io/street/).
+[StreetJS Framework](https://hassanmubiru.github.io/street/).
 
 This package introduces **no independent authentication logic**. It is a thin
 composition layer over three primitives that already ship in `@streetjs/core`

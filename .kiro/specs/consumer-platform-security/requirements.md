@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This spec defines a roadmap-level upgrade to the Street Framework so it can safely support high-risk consumer applications such as dating apps, social networks, messaging products, creator platforms, and marketplaces. The upgrade is organized as ten phases delivered under a single "Zero-Trust Certification Standard": no feature is considered complete until it has source implementation, public exports, documentation, automated tests, a passing build, green existing test suites, and recorded command evidence of those facts.
+This spec defines a roadmap-level upgrade to the StreetJS Framework so it can safely support high-risk consumer applications such as dating apps, social networks, messaging products, creator platforms, and marketplaces. The upgrade is organized as ten phases delivered under a single "Zero-Trust Certification Standard": no feature is considered complete until it has source implementation, public exports, documentation, automated tests, a passing build, green existing test suites, and recorded command evidence of those facts.
 
 The framework is an existing TypeScript monorepo. Core lives at `packages/core/src` and already contains a security module (`packages/core/src/security/`) with `headers.ts`, `ratelimit.ts`, `vault.ts`, `jwt.ts`, `session.ts`, `mtls.ts`, `xss.ts`, and `dast.ts`. A multipart parser exists at `packages/core/src/multipart/parser.ts`. Several phases (rate limiting, security headers, secrets/vault) therefore have partial implementations that this work MUST assess and extend rather than rebuild. The dating reference packages in Phase 10 are new packages under `packages/`.
 

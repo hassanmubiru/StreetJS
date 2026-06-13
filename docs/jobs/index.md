@@ -7,7 +7,7 @@ description: "Background jobs in StreetJS — a PostgreSQL-backed job queue, cro
 
 # Jobs Guide
 
-Street provides three complementary systems for background work:
+StreetJS provides three complementary systems for background work:
 
 | System | Use Case |
 |--------|---------|

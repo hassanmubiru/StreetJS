@@ -2,15 +2,15 @@
 
 ## Introduction
 
-This document specifies the requirements for the Street Framework implementation roadmap spanning versions v1.1 through v3.0. Street is a TypeScript-first, memory-safe, security-first, zero-runtime-dependency, production-grade backend framework built on Node.js core modules. The v1.0 baseline includes an HTTP server, regex router, controller decorators, DI container, PostgreSQL wire protocol driver, connection pool, repository layer, migration engine, ACID transactions, JWT auth, AES-GCM sessions, vault mode, rate limiter, XSS protection, security headers, CORS, multipart uploads, WebSockets, SSE, LRU cache, telemetry, cluster coordinator, webhook dispatcher, OpenAPI generator, CLI, Docker, and GitHub Actions CI/CD.
+This document specifies the requirements for the StreetJS Framework implementation roadmap spanning versions v1.1 through v3.0. StreetJS is a TypeScript-first, memory-safe, security-first, zero-runtime-dependency, production-grade backend framework built on Node.js core modules. The v1.0 baseline includes an HTTP server, regex router, controller decorators, DI container, PostgreSQL wire protocol driver, connection pool, repository layer, migration engine, ACID transactions, JWT auth, AES-GCM sessions, vault mode, rate limiter, XSS protection, security headers, CORS, multipart uploads, WebSockets, SSE, LRU cache, telemetry, cluster coordinator, webhook dispatcher, OpenAPI generator, CLI, Docker, and GitHub Actions CI/CD.
 
 Each version in this roadmap must satisfy the Absolute Implementation Policy: fully implemented with no stubs or mocks, fully tested against real databases and sockets, security-audited, memory-audited, benchmarked against Express/Fastify/NestJS/Hono/Fiber/Gin, fully documented, integrated into CI/CD, and shipped as a production-ready stable release before the next version begins.
 
 ## Glossary
 
-- **Street Framework**: The TypeScript-first backend framework being developed, built on Node.js core modules.
-- **Framework**: The Street Framework system, consisting of `@streetjs/core` and `@streetjs/cli` packages.
-- **CLI**: The `@streetjs/cli` command-line interface tool for scaffolding and managing Street projects.
+- **StreetJS Framework**: The TypeScript-first backend framework being developed, built on Node.js core modules.
+- **Framework**: The StreetJS Framework system, consisting of `@streetjs/core` and `@streetjs/cli` packages.
+- **CLI**: The `@streetjs/cli` command-line interface tool for scaffolding and managing StreetJS projects.
 - **Core**: The `@streetjs/core` runtime library.
 - **DI Container**: The Dependency Injection container managing singleton lifecycles and recursive resolution.
 - **Migration Engine**: The `StreetMigrationRunner` that applies ordered idempotent SQL migrations with a tracking table.
@@ -35,7 +35,7 @@ Each version in this roadmap must satisfy the Absolute Implementation Policy: fu
 - **Tenant**: A discrete customer or organizational unit with isolated data, configuration, and resource quotas in a multi-tenant deployment.
 - **Feature Flag**: A runtime toggle that enables or disables a feature without deploying new code.
 - **Audit Log**: An immutable, append-only record of security-relevant events with actor, action, resource, and timestamp.
-- **Plugin Marketplace**: A registry of verified community and vendor extensions for the Street Framework.
+- **Plugin Marketplace**: A registry of verified community and vendor extensions for the StreetJS Framework.
 
 ## Requirements
 
@@ -96,7 +96,7 @@ Each version in this roadmap must satisfy the Absolute Implementation Policy: fu
 
 #### Acceptance Criteria
 
-1. WHEN `street info` is executed, THE CLI SHALL print the Street Framework version, Node.js version, TypeScript version, operating system, and detected project configuration in a human-readable table.
+1. WHEN `street info` is executed, THE CLI SHALL print the StreetJS Framework version, Node.js version, TypeScript version, operating system, and detected project configuration in a human-readable table.
 2. WHEN `street doctor` is executed, THE CLI SHALL check Node.js version compatibility (≥20), TypeScript version compatibility (≥5.0), presence of required environment variables, database connectivity, and report a pass or fail status for each check.
 3. WHEN `street env validate` is executed, THE CLI SHALL load the project's `street.config.ts`, validate all declared environment variables, and exit with code 0 if all pass or code 1 with a per-variable report if any fail.
 4. WHEN `street audit` is executed, THE CLI SHALL list all direct and transitive npm dependencies, their installed versions, and flag any known CVEs using the npm audit registry.
@@ -108,7 +108,7 @@ Each version in this roadmap must satisfy the Absolute Implementation Policy: fu
 
 ### Requirement 6: Multi-Database Wire Protocol Drivers
 
-**User Story:** As a developer, I want native wire protocol support for MySQL, MariaDB, and SQLite, so that I can build Street applications against the most common relational databases without adding third-party ORM dependencies.
+**User Story:** As a developer, I want native wire protocol support for MySQL, MariaDB, and SQLite, so that I can build StreetJS applications against the most common relational databases without adding third-party ORM dependencies.
 
 #### Acceptance Criteria
 
@@ -368,7 +368,7 @@ Each version in this roadmap must satisfy the Absolute Implementation Policy: fu
 
 ### Requirement 26: GraphQL Server
 
-**User Story:** As a developer, I want a built-in GraphQL server, so that I can expose GraphQL APIs from a Street application without adding a separate GraphQL framework dependency.
+**User Story:** As a developer, I want a built-in GraphQL server, so that I can expose GraphQL APIs from a StreetJS application without adding a separate GraphQL framework dependency.
 
 #### Acceptance Criteria
 
@@ -422,10 +422,10 @@ Each version in this roadmap must satisfy the Absolute Implementation Policy: fu
 #### Acceptance Criteria
 
 1. THE Framework SHALL store webhook endpoint registrations (URL, event types, secret key) in a `street_webhook_endpoints` table and route events to matching endpoints on publication.
-2. WHEN a webhook event is published, THE Framework SHALL sign the payload with HMAC-SHA256 using the endpoint's secret key and include the signature in a `X-Street-Signature` header.
+2. WHEN a webhook event is published, THE Framework SHALL sign the payload with HMAC-SHA256 using the endpoint's secret key and include the signature in a `X-StreetJS-Signature` header.
 3. THE Framework SHALL implement webhook delivery with at-least-once semantics, retrying failed deliveries with exponential backoff for up to 72 hours before moving the event to a dead letter state.
 4. WHEN a webhook delivery request returns a non-2xx status, THE Framework SHALL record the response status and body (truncated to 1 KB) in the delivery log for debugging.
-5. THE Framework SHALL validate incoming webhook requests by verifying the `X-Street-Signature` header against the registered secret, rejecting invalid signatures with HTTP 401.
+5. THE Framework SHALL validate incoming webhook requests by verifying the `X-StreetJS-Signature` header against the registered secret, rejecting invalid signatures with HTTP 401.
 
 ---
 
@@ -526,7 +526,7 @@ Each version in this roadmap must satisfy the Absolute Implementation Policy: fu
 
 ### Requirement 38: Container Orchestration and Cloud Runtime Adapters
 
-**User Story:** As an operator, I want first-class support for Kubernetes, Cloud Run, ECS, and Nomad deployment targets, so that I can deploy Street applications to the most common container orchestration platforms with minimal configuration.
+**User Story:** As an operator, I want first-class support for Kubernetes, Cloud Run, ECS, and Nomad deployment targets, so that I can deploy StreetJS applications to the most common container orchestration platforms with minimal configuration.
 
 #### Acceptance Criteria
 
@@ -550,7 +550,7 @@ Each version in this roadmap must satisfy the Absolute Implementation Policy: fu
 
 ### Requirement 40: Service Mesh and Auto Scaling Metrics
 
-**User Story:** As an operator, I want service mesh compatibility and custom auto-scaling metrics, so that I can operate Street applications within Istio/Linkerd service meshes and export scaling signals to Kubernetes HPA.
+**User Story:** As an operator, I want service mesh compatibility and custom auto-scaling metrics, so that I can operate StreetJS applications within Istio/Linkerd service meshes and export scaling signals to Kubernetes HPA.
 
 #### Acceptance Criteria
 
@@ -561,11 +561,11 @@ Each version in this roadmap must satisfy the Absolute Implementation Policy: fu
 
 ### Requirement 41: Edge Runtime Support
 
-**User Story:** As a developer, I want a Street-compatible edge runtime adapter, so that I can run Street application logic in edge environments (Cloudflare Workers, Deno Deploy) with the same API surface.
+**User Story:** As a developer, I want a StreetJS-compatible edge runtime adapter, so that I can run StreetJS application logic in edge environments (Cloudflare Workers, Deno Deploy) with the same API surface.
 
 #### Acceptance Criteria
 
-1. THE Framework SHALL provide an `@streetjs/edge` adapter package that maps the Street `StreetContext` API to the Web Fetch API `Request`/`Response` types used by Cloudflare Workers and Deno Deploy.
+1. THE Framework SHALL provide an `@streetjs/edge` adapter package that maps the StreetJS `StreetContext` API to the Web Fetch API `Request`/`Response` types used by Cloudflare Workers and Deno Deploy.
 2. THE Framework SHALL provide a tree-shaking-compatible build of `@streetjs/core` that excludes Node.js-specific modules (`node:net`, `node:cluster`, `node:fs`) when bundled for edge targets.
 3. WHEN deployed to an edge runtime, THE Framework SHALL support all routing, middleware, DI, and request/response features that do not depend on persistent TCP connections or the filesystem.
 4. IF a feature requires Node.js-specific capabilities unavailable in the edge runtime, THEN THE Framework SHALL throw a `FeatureUnavailableInEdgeRuntimeError` with the feature name when that feature is initialized.
@@ -677,7 +677,7 @@ Each version in this roadmap must satisfy the Absolute Implementation Policy: fu
 
 ### Requirement 50: Plugin Marketplace and Extension SDK
 
-**User Story:** As a developer, I want a verified plugin marketplace and a first-class extension SDK, so that I can share and consume community-built Street plugins with confidence in quality and security.
+**User Story:** As a developer, I want a verified plugin marketplace and a first-class extension SDK, so that I can share and consume community-built StreetJS plugins with confidence in quality and security.
 
 #### Acceptance Criteria
 
@@ -694,7 +694,7 @@ Each version in this roadmap must satisfy the Absolute Implementation Policy: fu
 
 ### Requirement 51: Absolute Implementation Policy
 
-**User Story:** As a project maintainer, I want every shipped version to meet a comprehensive quality gate, so that the Street Framework maintains its production-grade reputation across all releases.
+**User Story:** As a project maintainer, I want every shipped version to meet a comprehensive quality gate, so that the StreetJS Framework maintains its production-grade reputation across all releases.
 
 #### Acceptance Criteria
 

@@ -4,7 +4,7 @@ title:        "CLI"
 nav_order:    3
 has_children: true
 permalink:    /cli/
-description:  "Street Framework CLI — street create, street dev, street build, street generate, street migrate."
+description:  "StreetJS Framework CLI — street create, street dev, street build, street generate, street migrate."
 ---
 
 {% include doc-styles.html %}
@@ -24,7 +24,7 @@ street --version   # street v1.0.3
 
 | Command | Description |
 |---|---|
-| [`street create <name>`](/cli/commands/#street-create-project-name) | Scaffold a new Street project |
+| [`street create <name>`](/cli/commands/#street-create-project-name) | Scaffold a new StreetJS project |
 | [`street dev`](/cli/commands/#street-dev) | Start dev server with hot-reload |
 | [`street build`](/cli/commands/#street-build) | Compile TypeScript for production |
 | [`street start`](/cli/commands/#street-start) | Start production server |

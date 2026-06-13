@@ -1,6 +1,6 @@
 # @streetjs/plugin-s3
 
-Official [Street Framework](https://hassanmubiru.github.io/street/) plugin for
+Official [StreetJS Framework](https://hassanmubiru.github.io/street/) plugin for
 **AWS S3 object storage**.
 
 It ships a `PluginModule` subclass that injects an S3 storage adapter into each

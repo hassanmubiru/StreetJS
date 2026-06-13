@@ -7,7 +7,7 @@ description: "RabbitMQ for TypeScript backends — StreetJS includes a built-in 
 
 # RabbitMQ Transport
 
-A from-scratch **AMQP 0-9-1** client and event transport for the Street Framework, built directly on `node:net` with **zero third-party libraries** (no `amqplib`, no `rascal`). It powers durable, at-least-once event delivery for the Street `EventBus` and can also be used standalone as a low-level publisher/consumer.
+A from-scratch **AMQP 0-9-1** client and event transport for the StreetJS Framework, built directly on `node:net` with **zero third-party libraries** (no `amqplib`, no `rascal`). It powers durable, at-least-once event delivery for the StreetJS `EventBus` and can also be used standalone as a low-level publisher/consumer.
 
 - Source: `packages/core/src/transports/rabbitmq/` (`codec.ts`, `connection.ts`, `index.ts`)
 - Package: `streetjs`
@@ -237,7 +237,7 @@ await conn.consume('orders.dlq', (msg) => {
 
 ### EventBus adapter usage
 
-`RabbitMqTransport` implements `EventBusTransport`, so it drops into the Street `EventBus`. Topics map to routing keys on the shared durable topic exchange; each subscription gets its own durable queue (`street.<topic>.<pid>`) wired to a `<exchange>.dlx` dead-letter exchange.
+`RabbitMqTransport` implements `EventBusTransport`, so it drops into the StreetJS `EventBus`. Topics map to routing keys on the shared durable topic exchange; each subscription gets its own durable queue (`street.<topic>.<pid>`) wired to a `<exchange>.dlx` dead-letter exchange.
 
 ```typescript
 import { EventBus, RabbitMqTransport } from 'streetjs';

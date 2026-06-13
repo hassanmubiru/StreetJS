@@ -4,7 +4,7 @@ title:        "Performance"
 nav_order:    8
 has_children: true
 permalink:    /performance/
-description:   "Street Framework benchmarks — throughput, latency, startup and memory versus Fastify, Hono, Express and NestJS. All numbers produced by execution."
+description:   "StreetJS Framework benchmarks — throughput, latency, startup and memory versus Fastify, Hono, Express and NestJS. All numbers produced by execution."
 ---
 
 {% include doc-styles.html %}
@@ -24,7 +24,7 @@ description:   "Street Framework benchmarks — throughput, latency, startup and
   <div class="st-metric"><span class="m-val">2</span><span class="m-lbl">Runtime deps</span><span class="m-sub">reflect-metadata, ws</span></div>
 </div>
 
-{% include callout.html type="note" title="How to read this" body="Street trades a little raw throughput for a fully in-house, memory-bounded stack (native PostgreSQL driver, JWT, sessions, WebSockets — no Express, no pg). It runs **~2.1× Express** and **~2.3× NestJS** while keeping a 2-dependency footprint." %}
+{% include callout.html type="note" title="How to read this" body="StreetJS trades a little raw throughput for a fully in-house, memory-bounded stack (native PostgreSQL driver, JWT, sessions, WebSockets — no Express, no pg). It runs **~2.1× Express** and **~2.3× NestJS** while keeping a 2-dependency footprint." %}
 
 ## Throughput — requests per second
 
@@ -32,7 +32,7 @@ description:   "Street Framework benchmarks — throughput, latency, startup and
   <p class="st-chart-title">GET / → {"status":"ok"} · median req/s · higher is better</p>
   <div class="st-bar-row"><span class="st-bar-name">Fastify</span><div class="st-bar-track"><div class="st-bar-fill" style="--w:98%"></div></div><span class="st-bar-val">33,183</span></div>
   <div class="st-bar-row"><span class="st-bar-name">Hono</span><div class="st-bar-track"><div class="st-bar-fill" style="--w:91%"></div></div><span class="st-bar-val">30,776</span></div>
-  <div class="st-bar-row is-me"><span class="st-bar-name">Street</span><div class="st-bar-track"><div class="st-bar-fill" style="--w:82%"></div></div><span class="st-bar-val">27,700</span></div>
+  <div class="st-bar-row is-me"><span class="st-bar-name">StreetJS</span><div class="st-bar-track"><div class="st-bar-fill" style="--w:82%"></div></div><span class="st-bar-val">27,700</span></div>
   <div class="st-bar-row"><span class="st-bar-name">Express</span><div class="st-bar-track"><div class="st-bar-fill" style="--w:39%"></div></div><span class="st-bar-val">13,017</span></div>
   <div class="st-bar-row"><span class="st-bar-name">NestJS</span><div class="st-bar-track"><div class="st-bar-fill" style="--w:35%"></div></div><span class="st-bar-val">11,783</span></div>
 </div>
@@ -43,7 +43,7 @@ description:   "Street Framework benchmarks — throughput, latency, startup and
   <p class="st-chart-title">99th-percentile response time · lower is better</p>
   <div class="st-bar-row"><span class="st-bar-name">Fastify</span><div class="st-bar-track"><div class="st-bar-fill" style="--w:38%"></div></div><span class="st-bar-val">3 ms</span></div>
   <div class="st-bar-row"><span class="st-bar-name">Hono</span><div class="st-bar-track"><div class="st-bar-fill" style="--w:38%"></div></div><span class="st-bar-val">3 ms</span></div>
-  <div class="st-bar-row is-me"><span class="st-bar-name">Street</span><div class="st-bar-track"><div class="st-bar-fill" style="--w:63%"></div></div><span class="st-bar-val">5 ms</span></div>
+  <div class="st-bar-row is-me"><span class="st-bar-name">StreetJS</span><div class="st-bar-track"><div class="st-bar-fill" style="--w:63%"></div></div><span class="st-bar-val">5 ms</span></div>
   <div class="st-bar-row"><span class="st-bar-name">Express</span><div class="st-bar-track"><div class="st-bar-fill" style="--w:100%"></div></div><span class="st-bar-val">8 ms</span></div>
   <div class="st-bar-row"><span class="st-bar-name">NestJS</span><div class="st-bar-track"><div class="st-bar-fill" style="--w:88%"></div></div><span class="st-bar-val">7 ms</span></div>
 </div>

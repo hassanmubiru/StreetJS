@@ -7,7 +7,7 @@ description: "The StreetJS plugin system — signed manifests, capability permis
 
 # Plugin System
 
-Street ships a formal, dependency-free plugin system built on `node:crypto`. It
+StreetJS ships a formal, dependency-free plugin system built on `node:crypto`. It
 covers the full in-process lifecycle of a plugin — registration, signature and
 integrity verification, capability/permission metadata, dependency and version
 resolution, lifecycle orchestration, and discovery. The network install flow

@@ -1,6 +1,6 @@
 # @streetjs/dating-profiles
 
-Official [Street Framework](https://hassanmubiru.github.io/street/) reference
+Official [StreetJS Framework](https://hassanmubiru.github.io/street/) reference
 package for **dating profiles, likes, and reciprocal matching** (Phase 10, R11.2).
 
 It composes hardened `@streetjs/core` primitives instead of reinventing them:

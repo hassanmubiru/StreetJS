@@ -7,7 +7,7 @@ description: "Authentication in StreetJS — JWT, sessions, OAuth2, RBAC, WebAut
 
 # Authentication
 
-Street provides a complete, production-grade authentication system out of the box. It covers every layer of a modern auth stack — JWT access tokens, server-side sessions, API keys, OAuth2/OIDC with PKCE, WebAuthn passkeys, refresh tokens, and role-based access control (RBAC). No external auth service required.
+StreetJS provides a complete, production-grade authentication system out of the box. It covers every layer of a modern auth stack — JWT access tokens, server-side sessions, API keys, OAuth2/OIDC with PKCE, WebAuthn passkeys, refresh tokens, and role-based access control (RBAC). No external auth service required.
 
 ## Overview
 

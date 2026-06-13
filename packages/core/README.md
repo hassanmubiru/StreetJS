@@ -2,7 +2,7 @@
 
 **Production-grade, memory-safe TypeScript backend framework built on Node.js core modules.**
 
-No Express. No `pg`. No Prisma. Street is built entirely from `node:http`, `node:net`, `node:crypto`, `node:stream`, and `node:cluster` — plus three carefully chosen dependencies (`reflect-metadata`, `ws`, and `zod` for runtime input validation). Every component enforces strict memory bounds and full type safety.
+No Express. No `pg`. No Prisma. StreetJS is built entirely from `node:http`, `node:net`, `node:crypto`, `node:stream`, and `node:cluster` — plus three carefully chosen dependencies (`reflect-metadata`, `ws`, and `zod` for runtime input validation). Every component enforces strict memory bounds and full type safety.
 
 [![CI](https://github.com/hassanmubiru/street/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/hassanmubiru/street/actions/workflows/ci-cd.yml)
 [![npm version](https://img.shields.io/npm/v/streetjs)](https://www.npmjs.com/package/streetjs)
@@ -82,7 +82,7 @@ See [`@streetjs/cli`](https://www.npmjs.com/package/@streetjs/cli) for all CLI c
 
 ## tsconfig.json requirements
 
-Street uses `NodeNext` module resolution and strict decorators. Your project needs:
+StreetJS uses `NodeNext` module resolution and strict decorators. Your project needs:
 
 ```json
 {
@@ -500,7 +500,7 @@ import {
   InternalException,
 } from 'streetjs';
 
-// Throw from any controller or middleware — Street catches and formats them
+// Throw from any controller or middleware — StreetJS catches and formats them
 throw new NotFoundException('User not found');
 throw new BadRequestException('Invalid email address');
 throw new UnauthorizedException('Token expired');

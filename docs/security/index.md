@@ -4,7 +4,7 @@ title:     "Security"
 nav_order: 7
 has_children: true
 permalink: /security/
-description: "Security features in Street Framework — JWT, sessions, AES-256-GCM vault, rate limiting, XSS sanitization, CORS, security headers."
+description: "Security features in StreetJS Framework — JWT, sessions, AES-256-GCM vault, rate limiting, XSS sanitization, CORS, security headers."
 ---
 
 {% include doc-styles.html %}
@@ -15,7 +15,7 @@ description: "Security features in Street Framework — JWT, sessions, AES-256-G
 <p>JWT, AES-256-GCM sessions, scrypt vault, rate limiting, XSS sanitizer, CSRF, CORS, CSP — all built in, no plugins needed.</p>
 </div>
 
-Street includes a complete security layer built on `node:crypto`. No third-party auth libraries — every primitive is implemented directly.
+StreetJS includes a complete security layer built on `node:crypto`. No third-party auth libraries — every primitive is implemented directly.
 
 > Building a high-risk consumer platform (dating, social, messaging, marketplace)? See [Consumer Platform Security]({{ '/security/consumer-platform/' | relative_url }}) for runtime input validation, scoped rate limiting, the upload guard, field-level encryption, abuse prevention, the moderation toolkit, pluggable secret providers, and privacy controls.
 

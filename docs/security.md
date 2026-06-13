@@ -7,13 +7,13 @@ description: "Backend security in StreetJS — JWT, AES-256-GCM sessions, rate l
 
 # Security Guide
 
-This document covers Street's built-in security features and best practices.
+This document covers StreetJS's built-in security features and best practices.
 
 ## Authentication
 
 ### JWT Tokens
 
-Street's `JwtService` uses HMAC-SHA256 by default with configurable expiry.
+StreetJS's `JwtService` uses HMAC-SHA256 by default with configurable expiry.
 
 ```typescript
 import { JwtService } from 'streetjs';
@@ -121,7 +121,7 @@ class Document {
 
 ### Vault
 
-Street uses AES-256-GCM envelope encryption with a Key Encryption Key (KEK).
+StreetJS uses AES-256-GCM envelope encryption with a Key Encryption Key (KEK).
 
 ```typescript
 import { encryptSecret, decryptSecret, loadConfig } from 'streetjs';
@@ -148,7 +148,7 @@ const awsProvider = new AwsSecretsManagerProvider({ region: 'us-east-1' });
 
 ### Security Headers
 
-Street applies security headers by default with `securityHeaders` middleware:
+StreetJS applies security headers by default with `securityHeaders` middleware:
 
 - `X-Content-Type-Options: nosniff`
 - `X-Frame-Options: DENY`

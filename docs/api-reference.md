@@ -13,7 +13,7 @@ Complete reference for the `streetjs` public API.
 
 ### `streetApp(options?): StreetApp`
 
-Creates and returns a Street application instance.
+Creates and returns a StreetJS application instance.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
@@ -68,7 +68,7 @@ All exceptions extend `StreetException` and are automatically serialized as JSON
 
 ### `PgPool`
 
-Pool of PostgreSQL connections using the Street wire driver.
+Pool of PostgreSQL connections using the StreetJS wire driver.
 
 ```typescript
 pool.query(sql, params?) // Execute a parameterized query

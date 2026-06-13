@@ -1,8 +1,8 @@
 # @streetjs/admin
 
-Official Street Framework admin module: user management, RBAC roles &
+Official StreetJS Framework admin module: user management, RBAC roles &
 permissions, authorization checks, and an append-only audit log with a query
-viewer — the back-office layer for any Street application.
+viewer — the back-office layer for any StreetJS application.
 
 - User management: create, list, suspend/activate, role assignment, delete
 - Roles & permissions (RBAC) with `domain:action` + `*` wildcards

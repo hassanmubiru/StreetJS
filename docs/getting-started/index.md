@@ -4,7 +4,7 @@ title:     "Getting Started"
 nav_order: 2
 has_children: true
 permalink: /getting-started/
-description: "Get started with Street Framework — install, scaffold, configure, run."
+description: "Get started with StreetJS Framework — install, scaffold, configure, run."
 ---
 
 {% include doc-styles.html %}
@@ -12,7 +12,7 @@ description: "Get started with Street Framework — install, scaffold, configure
 <div class="doc-header">
 <span class="dh-label">Getting Started</span>
 <h1>Getting Started</h1>
-<p>Everything you need to go from zero to a running Street application.</p>
+<p>Everything you need to go from zero to a running StreetJS application.</p>
 </div>
 
 | Page | Description |

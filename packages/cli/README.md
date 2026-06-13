@@ -1,6 +1,6 @@
 # @streetjs/cli
 
-**CLI for the Street framework — scaffold projects, generate code, run dev server, manage migrations.**
+**CLI for the StreetJS framework — scaffold projects, generate code, run dev server, manage migrations.**
 
 [![CI](https://github.com/hassanmubiru/street/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/hassanmubiru/street/actions/workflows/ci-cd.yml)
 [![npm version](https://img.shields.io/npm/v/@streetjs/cli)](https://www.npmjs.com/package/@streetjs/cli)
@@ -41,7 +41,7 @@ street dev
 
 ### `street create <project-name>`
 
-Scaffolds a complete, production-ready Street project.
+Scaffolds a complete, production-ready StreetJS project.
 
 ```bash
 street create my-api
