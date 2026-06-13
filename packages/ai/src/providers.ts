@@ -181,7 +181,7 @@ export class AnthropicProvider implements AiProvider {
     };
   }
 
-  async embed(): Promise<EmbedResponse> {
+  async embed(_request: EmbedRequest): Promise<EmbedResponse> {
     throw new Error('AnthropicProvider: embeddings are not supported; use OpenAiProvider or OllamaProvider for embeddings');
   }
 }
