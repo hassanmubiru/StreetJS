@@ -45,7 +45,9 @@ export function createAssistant(opts = {}) {
       }
       json(res, 404, { error: 'not found' });
     } catch (err) {
-      json(res, 500, { error: String(err?.message ?? err) });
+      // Do not leak exception/stack detail to clients; log it server-side.
+      console.error('[ai-assistant] request error:', err);
+      json(res, 500, { error: 'Internal Server Error' });
     }
   });
 

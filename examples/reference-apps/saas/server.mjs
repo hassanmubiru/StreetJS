@@ -14,7 +14,11 @@ export function createSaas(opts = {}) {
       if (req.method === 'GET' && req.url === '/users') return json(res, 200, { users: await admin.listUsers() });
       if (req.method === 'GET' && req.url === '/audit') return json(res, 200, { events: await admin.auditLog({ limit: 50 }) });
       json(res, 404, { error: 'not found' });
-    } catch (err) { json(res, 400, { error: String(err?.message ?? err) }); }
+    } catch (err) {
+      // Do not leak exception/stack detail to clients; log it server-side.
+      console.error('[saas] request error:', err);
+      json(res, 400, { error: 'Bad Request' });
+    }
   });
 
   return { admin, http, listen(p = 0) { return new Promise((r) => http.listen(p, () => r(http.address().port))); }, close() { return new Promise((r) => http.close(r)); } };
