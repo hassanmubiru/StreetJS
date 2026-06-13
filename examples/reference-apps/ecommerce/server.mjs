@@ -21,7 +21,12 @@ export function createStore(opts = {}) {
       }
       json(res, 404, { error: 'not found' });
     } catch (err) {
-      json(res, 400, { error: String(err?.name ?? 'Error') + ': ' + String(err?.message ?? err) });
+      // Map known domain errors to safe, fixed client messages; never echo raw
+      // exception text/stack. Log the full error server-side.
+      console.error('[ecommerce] request error:', err);
+      const safe = { InsufficientStockError: 'insufficient stock', PaymentError: 'payment failed' };
+      const name = err && typeof err === 'object' ? err.name : '';
+      json(res, 400, { error: safe[name] ?? 'Bad Request' });
     }
   });
 
