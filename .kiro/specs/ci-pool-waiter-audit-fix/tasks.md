@@ -37,7 +37,7 @@ can be implemented in either order.
   - Run `npm install` to refresh `package-lock.json`.
   - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
-- [~] 4. Verify the audit and browser-build after the esbuild bump
+- [-] 4. Verify the audit and browser-build after the esbuild bump
   - Run `npm audit --audit-level=high` and confirm exit code 0.
   - Run the placeholder scan
     (`grep -RInE '\b(TODO|FIXME|HACK)\b|@ts-ignore' --include='*.ts' --exclude-dir=tests --exclude-dir=integration packages/core/src`)
