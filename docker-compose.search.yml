@@ -1,0 +1,42 @@
+# Local search backends for the @streetjs/search provider integration tests.
+#
+# Usage:
+#   docker compose -f docker-compose.search.yml up -d
+#   MEILI_HOST=http://127.0.0.1:7700 MEILI_KEY=street_test_key \
+#     npm run test -w packages/search
+#   docker compose -f docker-compose.search.yml down -v
+#
+# Meilisearch backs MeilisearchProvider (implemented + tested). Elasticsearch is
+# provided for the ElasticsearchProvider (interface-ready follow-up).
+services:
+  meilisearch:
+    image: getmeili/meilisearch:v1.10
+    container_name: street_meili
+    restart: unless-stopped
+    environment:
+      MEILI_MASTER_KEY: street_test_key
+      MEILI_NO_ANALYTICS: "true"
+      MEILI_ENV: development
+    ports:
+      - "7700:7700"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:7700/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    container_name: street_es
+    restart: unless-stopped
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:9200/_cluster/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 40
