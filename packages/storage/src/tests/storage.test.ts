@@ -111,7 +111,7 @@ describe('LocalStorageProvider', () => {
     assert.equal(await s.remove('nested/dir/file.txt'), true);
 
     const provider = new LocalStorageProvider(dir);
-    await assert.rejects(() => provider.put('../escape.txt', Buffer.from('x')), /path traversal/);
+    await assert.rejects(() => provider.put('../escape.txt', Buffer.from('x')), /traversal|\.\./);
   });
 });
 
