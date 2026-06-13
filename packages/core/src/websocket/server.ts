@@ -3,6 +3,7 @@
 
 import { WebSocketServer, WebSocket } from 'ws';
 import type { IncomingMessage, Server } from 'node:http';
+import { randomUUID } from 'node:crypto';
 
 export type WsHandler = (socket: StreetSocket, req: IncomingMessage) => void;
 
@@ -23,7 +24,10 @@ export interface WsEvent {
 export class StreetSocket {
   private readonly listeners = new Map<string, Set<(data: unknown) => void>>();
   private readonly MAX_LISTENERS = 64;
+  private readonly closeHandlers = new Set<() => void>();
   private _closed = false;
+  /** Stable, unique id for this connection (used by the channel hub). */
+  readonly id: string = randomUUID();
 
   constructor(private readonly ws: WebSocket) {
     ws.on('message', (raw) => {
@@ -43,15 +47,28 @@ export class StreetSocket {
       }
     });
 
-    ws.on('close', () => {
-      this._closed = true;
-      this.listeners.clear();
-    });
+    ws.on('close', () => this._onClose());
+    ws.on('error', () => this._onClose());
+  }
 
-    ws.on('error', () => {
-      this._closed = true;
-      this.listeners.clear();
-    });
+  private _onClose(): void {
+    if (this._closed) return;
+    this._closed = true;
+    for (const cb of this.closeHandlers) {
+      try { cb(); } catch { /* isolate handler errors */ }
+    }
+    this.closeHandlers.clear();
+    this.listeners.clear();
+  }
+
+  /** Register a callback fired once when this connection closes (or errors). */
+  onClose(handler: () => void): this {
+    if (this._closed) {
+      handler();
+    } else {
+      this.closeHandlers.add(handler);
+    }
+    return this;
   }
 
   on(event: string, handler: (data: unknown) => void): this {
