@@ -17,12 +17,12 @@ const hub = new ChannelHub({ typingTtlMs: 5_000 });
 
 // ── Server ────────────────────────────────────────────────────────────────────
 const http = createServer();
-const wss = new StreetWebSocketServer({ path: '/ws' });
+const wss = new StreetWebSocketServer();
 
 wss.attach(http, (socket /* StreetSocket */, req) => {
-  // The member id comes from the query string (in production, derive it from an
+  // The member id comes from a header (in production, derive it from an
   // authenticated session via the server's authFn).
-  const memberId = new URL(req.url, 'http://x').searchParams.get('user') ?? 'anon';
+  const memberId = req.headers['x-user'] ?? 'anon';
 
   // Clean up channel membership automatically when the socket closes.
   hub.bind(socket);
