@@ -30,7 +30,7 @@ describe('Property: inventory never oversells', () => {
         const okGateway = new FakeGateway({ idGen: () => `p${++cnt}` });
         const failGateway = new FakeGateway({ declineAtOrAbove: 1 });
         const c = new CommerceService({ now: () => 1, idGen: () => `o${++cnt}` });
-        const p = c.createProduct({ name: 'P', priceCents: 100, id: 'prod' });
+        c.createProduct({ name: 'P', priceCents: 100, id: 'prod' });
 
         let restocked = 0;
         let sold = 0;
