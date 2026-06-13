@@ -19,8 +19,8 @@ jobs:
         with:
           persist-credentials: false
       - name: Dependency review (vulnerabilities + license policy)
-        # Tag-pinned; dependabot will pin to a SHA on update.
-        uses: actions/dependency-review-action@v4
+        # SHA-pinned; dependabot keeps this digest updated.
+        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
         with:
           # Fail on high+ severity advisories in newly introduced dependencies.
           fail-on-severity: high
