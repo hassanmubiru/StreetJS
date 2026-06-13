@@ -258,8 +258,24 @@ function requireNonEmpty(value: unknown, field: string): string {
 }
 
 function requireEmail(value: unknown): string {
-  if (typeof value !== 'string' || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value)) {
+  if (typeof value !== 'string' || !isValidEmail(value)) {
     throw new Error('AdminService: a valid email is required');
   }
   return value.toLowerCase();
+}
+
+/**
+ * Linear, backtracking-free email shape check (avoids the polynomial ReDoS of
+ * an `[^@\s]+@[^@\s]+\.[^@\s]+` style regex). Requires: exactly one `@`, a
+ * non-empty local part, a domain containing a non-edge `.`, and no whitespace.
+ */
+function isValidEmail(value: string): boolean {
+  if (/\s/.test(value)) return false; // single bounded scan, no backtracking
+  const at = value.indexOf('@');
+  if (at <= 0) return false; // '@' present and local part non-empty
+  if (value.indexOf('@', at + 1) !== -1) return false; // exactly one '@'
+  const domain = value.slice(at + 1);
+  const dot = domain.indexOf('.');
+  // domain must contain a '.' that is neither first nor last char.
+  return dot > 0 && dot < domain.length - 1;
 }
