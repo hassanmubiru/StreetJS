@@ -1,0 +1,38 @@
+# Gitleaks configuration for StreetJS.
+# Extends the upstream default ruleset and adds project-scoped allowlists for
+# well-known public test fixtures (documented emulator keys, obviously-fake
+# signing secrets in tests/examples) to keep the scan free of false positives.
+#
+# Run locally:  gitleaks detect --source . --config .gitleaks.toml --redact
+# CI enforces this on every push/PR (see .github/workflows/secret-scan.yml).
+
+title = "StreetJS Gitleaks Config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Known public/test fixtures that are not real secrets."
+
+# Paths that only ever contain fixtures, fakes, or sample env templates.
+paths = [
+  '''\.env\.example$''',
+  '''.*/tests/.*\.test\.ts$''',
+  '''.*/examples/.*''',
+  '''packages/.*/example/.*''',
+]
+
+# Specific well-known/public or obviously-fake values used in tests & docs.
+regexes = [
+  # Azurite's documented well-known development account key (public constant).
+  '''Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==''',
+  # Obviously-fake signing secrets used in unit tests / examples.
+  '''a-very-secret-signing-key''',
+  '''a-very-secret-key-1234''',
+  '''street_test_key''',
+  '''street_secret''',
+  # Placeholder/sample tokens in docs.
+  '''sk-\.\.\.''',
+  '''sk-ant-\.\.\.''',
+  '''sk_test_\.\.\.''',
+]
