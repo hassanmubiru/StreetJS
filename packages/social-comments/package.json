@@ -1,0 +1,65 @@
+{
+  "name": "@streetjs/social-comments",
+  "version": "1.0.0",
+  "description": "Official Street Framework social module: threaded comments with reactions and @mentions, with a pluggable store, in-memory default, and Postgres-backed adapter.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist/index.js",
+    "dist/index.js.map",
+    "dist/index.d.ts",
+    "dist/index.d.ts.map",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "lint": "tsc --noEmit",
+    "test": "tsc && node --test dist/tests/*.test.js",
+    "example": "npm run build && node examples/index.mjs",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "keywords": [
+    "street",
+    "streetjs",
+    "street-framework",
+    "social",
+    "comments",
+    "reactions",
+    "mentions"
+  ],
+  "author": "street contributors",
+  "license": "MIT",
+  "homepage": "https://hassanmubiru.github.io/street/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hassanmubiru/street.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hassanmubiru/street/issues"
+  },
+  "dependencies": {
+    "streetjs": "^1.0.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "fast-check": "^4.8.0",
+    "typescript": "^6.0.3"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
