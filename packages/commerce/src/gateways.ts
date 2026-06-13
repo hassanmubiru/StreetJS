@@ -3,8 +3,8 @@
 // `fetch`, so request shaping and response parsing are unit-testable without
 // network access. Both implement the PaymentGateway contract from ./index.
 
-import type { PaymentGateway, ChargeRequest, ChargeResult } from './index.js';
-import { PaymentError } from './index.js';
+import type { PaymentGateway, ChargeRequest, ChargeResult } from './types.js';
+import { PaymentError } from './types.js';
 
 export type FetchLike = (url: string, init: {
   method: string;
