@@ -11,12 +11,7 @@ import type {
   SearchProvider, SearchDocument, SearchResult, SearchHit, FacetValue, ResolvedSearchOptions, AttributeValue,
 } from './index.js';
 import { tokenize } from './index.js';
-
-export type FetchLike = (url: string, init?: {
-  method?: string;
-  headers?: Record<string, string>;
-  body?: string;
-}) => Promise<{ ok: boolean; status: number; text(): Promise<string>; json(): Promise<unknown> }>;
+import type { FetchLike } from './meili.js';
 
 export interface ElasticsearchProviderOptions {
   host: string;
