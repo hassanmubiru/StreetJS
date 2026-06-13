@@ -197,12 +197,18 @@ export class PgFeedStore implements FeedStore {
 
   async byAuthors(authorIds: string[], limit: number, before?: number): Promise<Post[]> {
     if (authorIds.length === 0) return [];
+    // Expand ids into individual placeholders rather than a Postgres array
+    // literal: parameterized, injection-safe, and independent of how the wire
+    // driver serializes array parameters.
+    const idPlaceholders = authorIds.map((_, i) => `$${i + 1}`).join(', ');
+    const beforeIdx = authorIds.length + 1;
+    const limitIdx = authorIds.length + 2;
     const res = await this.pool.query(
       `SELECT seq, id, author_id, text, (EXTRACT(EPOCH FROM created_at) * 1000)::bigint AS created_ms
        FROM street_social_posts
-       WHERE author_id = ANY($1) AND ($2::bigint IS NULL OR seq < $2)
-       ORDER BY seq DESC LIMIT $3`,
-      [authorIds, before ?? null, limit],
+       WHERE author_id IN (${idPlaceholders}) AND ($${beforeIdx}::bigint IS NULL OR seq < $${beforeIdx})
+       ORDER BY seq DESC LIMIT $${limitIdx}`,
+      [...authorIds, before ?? null, limit],
     );
     return res.rows.map(rowToPost);
   }
