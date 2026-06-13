@@ -340,3 +340,4 @@ export function validateKey(key: string): string {
 }
 
 export * from './pg.js';
+export * from './gcs.js';
