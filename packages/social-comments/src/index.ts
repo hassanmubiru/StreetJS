@@ -215,7 +215,8 @@ export class InMemoryCommentStore implements CommentStore {
     for (const key of this.reactions.get(commentId) ?? []) {
       if (key.startsWith(prefix)) out.push(key.slice(prefix.length));
     }
-    return out;
+    // Sorted for deterministic, store-independent ordering (matches PgCommentStore).
+    return out.sort();
   }
 }
 
