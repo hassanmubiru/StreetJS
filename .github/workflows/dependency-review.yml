@@ -1,0 +1,30 @@
+name: Dependency Review
+
+# Supply-chain protection on pull requests: GitHub's dependency-review-action
+# inspects added/changed dependencies for known vulnerabilities and
+# disallowed licenses, and fails the PR before risky dependencies are merged.
+# Complements dependabot (.github/dependabot.yml) and the Scorecard workflow.
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - name: Dependency review (vulnerabilities + license policy)
+        # Tag-pinned; dependabot will pin to a SHA on update.
+        uses: actions/dependency-review-action@v4
+        with:
+          # Fail on high+ severity advisories in newly introduced dependencies.
+          fail-on-severity: high
+          # License policy: deny known-incompatible copyleft/unknown licenses for
+          # an MIT-licensed project. Adjust as the policy evolves.
+          deny-licenses: AGPL-1.0-or-later, AGPL-3.0-or-later, GPL-2.0-or-later, GPL-3.0-or-later
+          comment-summary-in-pr: on-failure
