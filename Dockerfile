@@ -17,7 +17,8 @@ COPY packages/core/src packages/core/src
 # Build the runnable app server with an explicit layout (emits dist/src/**,
 # including main.js) and copy the SQLite wasm assets alongside it.
 WORKDIR /build/packages/core
-RUN npx tsc --rootDir src --outDir dist/src \
+RUN node src/database/sqlite/download-wasm.mjs \
+ && npx tsc --rootDir src --outDir dist/src \
  && node -e "const fs=require('fs'),p=require('path');const s='src/database/sqlite',d='dist/src/database/sqlite';fs.mkdirSync(d,{recursive:true});for(const f of ['sqlite3.wasm','sqlite3-node.mjs'])fs.copyFileSync(p.join(s,f),p.join(d,f));"
 WORKDIR /build
 
