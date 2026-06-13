@@ -42,6 +42,17 @@ describe('User & role management', () => {
     await assert.rejects(() => a.createUser('admin', { email: 'z@y.com', roles: ['ghost'] }), /Role "ghost" not found/);
   });
 
+  it('validates email shape without ReDoS (linear, backtracking-free)', async () => {
+    const a = svc();
+    for (const bad of ['', '@y.com', 'a@', 'a@b', 'a@.com', 'a@b.', 'a b@c.com', 'a@b c.com', 'a@@b.com', '!@!.' + '!.'.repeat(50_000)]) {
+      await assert.rejects(() => a.createUser('admin', { email: bad }), /valid email/, `should reject "${bad.slice(0, 12)}…"`);
+    }
+    // The pathological input above also asserts the check returns promptly
+    // (a polynomial regex would hang on it).
+    const ok = await a.createUser('admin', { email: 'Good.Name@sub.example.com' });
+    assert.equal(ok.email, 'good.name@sub.example.com');
+  });
+
   it('assign/revoke roles and suspend/activate', async () => {
     const a = svc();
     await a.createRole('admin', { name: 'mod' });
