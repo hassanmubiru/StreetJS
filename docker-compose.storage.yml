@@ -1,0 +1,37 @@
+# Local cloud-storage emulators for @streetjs/storage provider integration
+# tests. These back the Azure Blob and GCS providers (interface-ready
+# follow-ups); S3/R2 already ship as @streetjs/plugin-s3 and -r2.
+#
+# Usage:
+#   docker compose -f docker-compose.storage.yml up -d
+#   AZURITE_URL=http://127.0.0.1:10000 GCS_URL=http://127.0.0.1:4443 \
+#     npm run test -w packages/storage
+#   docker compose -f docker-compose.storage.yml down -v
+services:
+  # Azure Blob Storage emulator.
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:3.32.0
+    container_name: street_azurite
+    restart: unless-stopped
+    command: ["azurite-blob", "--blobHost", "0.0.0.0", "--blobPort", "10000"]
+    ports:
+      - "10000:10000"
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 10000 || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  # Google Cloud Storage emulator.
+  fake-gcs:
+    image: fsouza/fake-gcs-server:1.49
+    container_name: street_fake_gcs
+    restart: unless-stopped
+    command: ["-scheme", "http", "-host", "0.0.0.0", "-port", "4443", "-backend", "memory"]
+    ports:
+      - "4443:4443"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O- http://127.0.0.1:4443/storage/v1/b || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
