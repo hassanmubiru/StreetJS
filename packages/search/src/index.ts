@@ -451,3 +451,5 @@ function requireId(value: unknown, field: string): string {
   }
   return value;
 }
+
+export * from './meili.js';
