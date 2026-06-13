@@ -1,0 +1,51 @@
+# Google Cloud Run service for StreetJS (container target).
+# Deploy:
+#   gcloud run services replace deploy/cloud-run/service.yaml --region=$REGION
+# Rollback (Cloud Run keeps revisions):
+#   gcloud run services update-traffic streetjs --to-revisions=PREVIOUS=100 --region=$REGION
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: streetjs
+  annotations:
+    run.googleapis.com/launch-stage: GA
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "1"
+        autoscaling.knative.dev/maxScale: "20"
+    spec:
+      containerConcurrency: 80
+      timeoutSeconds: 300
+      containers:
+        - image: ghcr.io/hassanmubiru/street:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: HOST
+              value: "0.0.0.0"
+            - name: PORT
+              value: "3000"
+            # Provide ALLOWED_ORIGINS, PG_*, JWT_SECRET, SESSION_KEY, KEK via
+            # Secret Manager (mounted as env). The app refuses to boot in
+            # production without ALLOWED_ORIGINS (security-first default).
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          startupProbe:
+            httpGet:
+              path: /health/live
+              port: 3000
+            failureThreshold: 30
+            periodSeconds: 2
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 3000
+            periodSeconds: 10
+          # Cloud Run uses the startup/liveness probes above; readiness is
+          # validated by the deploy smoke test (scripts/deploy/smoke-test.sh).
