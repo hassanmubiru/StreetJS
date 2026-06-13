@@ -48,7 +48,7 @@ can be implemented in either order.
     the API changed.
   - _Requirements: 4.1, 5.4, 5.5_
 
-- [~] 5. Full regression pass
+- [-] 5. Full regression pass
   - Run `npm run build:app -w packages/core` then `npm run coverage -w packages/core`
     and confirm the Core suite completes with no failing tests.
   - Confirm no previously passing test regressed across the memory-leak,
