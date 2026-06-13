@@ -80,8 +80,9 @@ filter by `actorId`/`action`/`target`/`since`/`until`, paginate with
 
 ## Note on persistence
 
-State is in-memory for a single instance; the service is the seam for a
-persistent adapter (sibling `@streetjs/*` packages show the Postgres pattern).
+State lives behind a pluggable async `AdminStore`: `InMemoryAdminStore`
+(default) or `PgAdminStore` (Postgres, via `ADMIN_MIGRATION_SQL`). Both are
+verified by the same test suite.
 
 ## Testing
 
