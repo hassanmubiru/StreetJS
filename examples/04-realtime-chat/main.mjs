@@ -44,11 +44,11 @@ wss.attach(http, (socket /* StreetSocket */, req) => {
 
 await new Promise((resolve) => http.listen(0, resolve));
 const port = http.address().port;
-const url = (user) => `ws://127.0.0.1:${port}/ws?user=${user}`;
+const baseUrl = `ws://127.0.0.1:${port}`;
 
 // ── Tiny promise-based client helper ────────────────────────────────────────────
 function connect(user) {
-  const ws = new WebSocket(url(user));
+  const ws = new WebSocket(baseUrl, { headers: { 'x-user': user } });
   const events = [];
   ws.on('message', (raw) => events.push(JSON.parse(raw.toString('utf8'))));
   const send = (type, payload) => ws.send(JSON.stringify({ type, payload, ts: Date.now() }));
