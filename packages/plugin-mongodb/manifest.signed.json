@@ -1,0 +1,16 @@
+{
+  "name": "street-plugin-mongodb",
+  "version": "1.0.0",
+  "capabilities": [
+    "database",
+    "document-store",
+    "mongodb"
+  ],
+  "permissions": [
+    "net",
+    "secrets",
+    "middleware"
+  ],
+  "checksum": "be2b858830413dd66fc54778e585210806fc7f77877d83fb404f33d4e896b6ae",
+  "signature": "X9WoFSY3IACifKU+Vg2VxPNViboTkpjnZnfI6B1giP5ja8YVMImUT24zDkNXwyCHrYkP+l8qZ3CZWvItKwFeCg=="
+}
