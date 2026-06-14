@@ -190,7 +190,7 @@ export function ProfileSettings(props: ProfileSettingsProps): ReactNode {
     e.preventDefault();
     setBusy(true); setError(undefined); setSaved(false);
     try {
-      const r = await client.request(props.path ?? '/auth/profile', { method: 'PATCH', body: { name, email } });
+      const r = await client.request('PATCH', props.path ?? '/auth/profile', { body: { name, email } });
       setSaved(true);
       props.onSuccess?.(r);
     } catch (err) { setError(err); } finally { setBusy(false); }
