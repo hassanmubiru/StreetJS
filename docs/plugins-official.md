@@ -2,7 +2,7 @@
 layout: default
 title: "Official Plugins"
 nav_exclude: true
-description: "Official StreetJS plugins — S3, SendGrid, Stripe, Twilio, Auth0, R2 and NATS integrations with signed, verified manifests."
+description: "Official StreetJS plugins — S3, SendGrid, Stripe, Twilio, Auth0, R2, NATS, Kafka and RabbitMQ integrations with signed, verified manifests."
 ---
 
 # Official Plugins
