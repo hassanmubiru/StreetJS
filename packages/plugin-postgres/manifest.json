@@ -1,0 +1,6 @@
+{
+  "name": "street-plugin-postgres",
+  "version": "1.0.0",
+  "capabilities": ["database", "sql", "postgres"],
+  "permissions": ["net", "middleware"]
+}
