@@ -57,16 +57,14 @@ const COLUMNS = Symbol('streetjs:orm:columns');
 const RELATIONS = Symbol('streetjs:orm:relations');
 
 function columnsOf(ctor: Ctor): ColumnMeta[] {
-  if (!Object.prototype.hasOwnProperty.call(ctor, COLUMNS)) {
-    (ctor as { [COLUMNS]?: ColumnMeta[] })[COLUMNS] = [];
-  }
-  return (ctor as { [COLUMNS]: ColumnMeta[] })[COLUMNS];
+  const holder = ctor as unknown as { [COLUMNS]?: ColumnMeta[] };
+  if (!Object.prototype.hasOwnProperty.call(ctor, COLUMNS)) holder[COLUMNS] = [];
+  return holder[COLUMNS]!;
 }
 function relationsOf(ctor: Ctor): RelationMeta[] {
-  if (!Object.prototype.hasOwnProperty.call(ctor, RELATIONS)) {
-    (ctor as { [RELATIONS]?: RelationMeta[] })[RELATIONS] = [];
-  }
-  return (ctor as { [RELATIONS]: RelationMeta[] })[RELATIONS];
+  const holder = ctor as unknown as { [RELATIONS]?: RelationMeta[] };
+  if (!Object.prototype.hasOwnProperty.call(ctor, RELATIONS)) holder[RELATIONS] = [];
+  return holder[RELATIONS]!;
 }
 
 // ── Decorators ────────────────────────────────────────────────────────────────
