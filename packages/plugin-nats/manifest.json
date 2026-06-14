@@ -1,0 +1,6 @@
+{
+  "name": "street-plugin-nats",
+  "version": "1.0.0",
+  "capabilities": ["messaging", "pubsub", "nats"],
+  "permissions": ["net", "middleware"]
+}
