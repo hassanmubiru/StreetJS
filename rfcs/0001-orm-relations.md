@@ -1,13 +1,20 @@
 ---
 rfc: 0001
 title: First-party ORM — relations, eager/lazy loading, and model-driven migrations
-status: Proposed
+status: Accepted        # Draft | Proposed | FCP | Accepted | Implemented | Declined | Withdrawn
 authors: ["@hassanmubiru"]
 created: 2026-06-14
 tracking-issue:
 ---
 
 # RFC 0001 — First-party ORM (`@streetjs/orm`)
+
+> **Implementation status (0.1.0 preview):** relations (1:1/1:N/N:M), eager
+> (batched, N+1-safe) + lazy loading, relation filtering, and the safe
+> parameterized query planner are **implemented and tested** — 23 offline unit
+> tests + 4 live-PostgreSQL integration tests (CI: `orm-integration.yml`).
+> **Model-driven migration generation remains the next milestone** (not yet
+> implemented).
 
 ## Summary
 
