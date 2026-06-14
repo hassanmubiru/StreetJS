@@ -26,6 +26,8 @@ credentials).
     <tr><td data-label="Plugin">Auth0</td><td data-label="Package symbol"><code>Auth0Plugin</code></td><td data-label="Capability">auth</td><td data-label="Offline logic">client-credentials token request (JSON)</td></tr>
     <tr><td data-label="Plugin">R2</td><td data-label="Package symbol"><code>R2Plugin</code></td><td data-label="Capability">object-storage</td><td data-label="Offline logic">S3-compatible SigV4 (<code>region=auto</code>)</td></tr>
     <tr><td data-label="Plugin">NATS</td><td data-label="Package symbol"><code>NatsPlugin</code></td><td data-label="Capability">messaging / pubsub</td><td data-label="Offline logic">dependency-free NATS text protocol (PUB/SUB/MSG codec)</td></tr>
+    <tr><td data-label="Plugin">Kafka</td><td data-label="Package symbol"><code>KafkaPlugin</code></td><td data-label="Capability">messaging / streaming</td><td data-label="Offline logic">wraps the dependency-free core Kafka protocol client</td></tr>
+    <tr><td data-label="Plugin">RabbitMQ</td><td data-label="Package symbol"><code>RabbitMqPlugin</code></td><td data-label="Capability">messaging / queue</td><td data-label="Offline logic">wraps the dependency-free core AMQP 0-9-1 transport</td></tr>
   </tbody>
 </table>
 
