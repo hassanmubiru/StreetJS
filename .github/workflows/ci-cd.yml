@@ -901,3 +901,42 @@ jobs:
         run: npm deprecate @streetjs/core "Renamed to 'streetjs'. Install 'streetjs' instead; @streetjs/core re-exports it unchanged. See https://github.com/hassanmubiru/street/blob/main/docs/migration.md"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # ── Provenance gate ──────────────────────────────────────────────────
+      # A release MUST carry an npm provenance attestation. A manual/local
+      # publish (or a publish that lost --provenance) produces no attestation;
+      # this step fails the release loudly so the regression that affected
+      # 1.0.7 cannot recur silently. Waits briefly for registry propagation.
+      - name: Verify published provenance attestations
+        run: |
+          set -euo pipefail
+          sleep 20
+          VERSION="${GITHUB_REF_NAME#v}"
+          fail=0
+          for spec in "streetjs@$VERSION" "@streetjs/core@$VERSION" "@streetjs/cli@$VERSION"; do
+            att=$(npm view "$spec" dist.attestations --json 2>/dev/null || echo "")
+            if [ -z "$att" ] || [ "$att" = "null" ] || [ "$att" = "{}" ]; then
+              echo "::error::$spec was published WITHOUT a provenance attestation"
+              fail=1
+            else
+              echo "Provenance OK: $spec"
+            fi
+          done
+          if [ "$fail" -ne 0 ]; then
+            echo "::error::One or more packages lack provenance — publish via CI with --provenance (not a manual publish)."
+            exit 1
+          fi
+
+      # ── Per-release SBOM ─────────────────────────────────────────────────
+      # The committed sbom.json is a snapshot; regenerate it from the exact
+      # dependency tree of THIS release and attach it as a retained artifact
+      # so every tag has a reproducible CycloneDX bill of materials.
+      - name: Generate per-release SBOM
+        run: node scripts/generate-sbom.mjs "sbom-${GITHUB_REF_NAME}.json"
+
+      - name: Upload release SBOM artifact
+        if: success() || failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: sbom-${{ github.ref_name }}
+          path: sbom-${{ github.ref_name }}.json
