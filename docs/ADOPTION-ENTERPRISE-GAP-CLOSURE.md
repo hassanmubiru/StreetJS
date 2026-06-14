@@ -68,9 +68,13 @@ or a documented compensating control — unblocks enterprise evaluations.
 
 ## 3. Data Layer Evolution (first-party ORM)
 
-**Status: PARTIAL** — `query-builder.ts`, `repository.ts`, `migrations.ts`
-(`MigrationDiffer`), `schema-inspector.ts` exist (**IMPLEMENTED**), but there is
-**no relations DSL, eager/lazy loading, or model→migration generation (GAP)**.
+**Status: relations + eager/lazy loading SHIPPED this cycle** as `@streetjs/orm`
+0.1.0 (RFC 0001 → Accepted). Implemented + tested: entity/relation decorators,
+a safe parameterized query planner, eager loading (1:1/1:N/N:M, batched +
+N+1-safe), relation filtering, and lazy loading — **23 offline unit tests + 4
+live-PostgreSQL integration tests** (CI: `orm-integration.yml`, green).
+**Model-driven migration generation remains the one open sub-item (GAP)** — the
+next milestone, building on the existing `MigrationDiffer` + `schema-inspector`.
 
 **Design (incremental, on top of the existing repository):**
 
