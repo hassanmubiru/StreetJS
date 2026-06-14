@@ -3,7 +3,7 @@
 
 import {
   inject, provide, ref, shallowRef, onScopeDispose, watch,
-  type InjectionKey, type Ref, type ShallowRef,
+  type App, type InjectionKey, type Ref, type ShallowRef,
 } from 'vue';
 import {
   createStreetClient, type StreetClient, type StreetClientConfig,
@@ -23,6 +23,16 @@ export function provideStreetClient(clientOrConfig: StreetClient | StreetClientC
 export function useApi(): StreetClient {
   const client = inject(KEY, null);
   if (!client) throw new Error('No StreetJS client provided — call provideStreetClient() in a parent setup().');
+  return client;
+}
+
+/**
+ * App-level install: provide a client to an entire Vue app (use outside setup,
+ * e.g. from `app.use(...)` or a Nuxt plugin). Returns the resolved client.
+ */
+export function installStreetClient(app: App, clientOrConfig: StreetClient | StreetClientConfig): StreetClient {
+  const client = 'request' in clientOrConfig ? (clientOrConfig as StreetClient) : createStreetClient(clientOrConfig as StreetClientConfig);
+  app.provide(KEY, client);
   return client;
 }
 
