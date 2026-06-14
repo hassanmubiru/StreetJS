@@ -77,7 +77,7 @@ describe('@streetjs/orm — live PostgreSQL', () => {
     const users = orm.getRepository(User);
     const rows = await users.find({ where: { id: 1 }, with: { posts: { where: { published: true } } } });
     assert.equal(rows[0].posts.length, 1);
-    assert.equal(rows[0].posts[0].id, 10);
+    assert.equal(Number(rows[0].posts[0].id), 10); // PgPool returns int columns as strings
   });
 
   it('belongsTo + manyToMany', async (t) => {
