@@ -280,3 +280,33 @@ Ranked by (adoption + enterprise + community impact) ÷ effort.
 - Every capability is tagged VERIFIED / IMPLEMENTED / PARTIAL / NOT IMPLEMENTED.
 - No certification or adoption metric is claimed without evidence; community/adoption scored low precisely because no public signal was verifiable.
 - The binding constraints are **adoption, community, ecosystem breadth, and compliance evidence** — not core engineering.
+
+---
+
+## Appendix A — Phase 1 Execution Log (shipped this cycle)
+
+Evidence-tagged record of Phase 1 quick-wins implemented in this work cycle.
+
+| Item | Change | Status | Evidence |
+|------|--------|--------|----------|
+| Provenance gate | `test-and-publish` fails if any published package lacks a `dist.attestations` attestation | VERIFIED (YAML valid; logic inspected) | `.github/workflows/ci-cd.yml` |
+| Idempotent publish | Each publish step skips versions already on the registry (no `E409`) | VERIFIED (YAML valid) | `.github/workflows/ci-cd.yml` |
+| Per-release SBOM | CI regenerates a CycloneDX SBOM per tag + uploads artifact | VERIFIED (generator runs: CycloneDX 1.5, sha256) | `scripts/generate-sbom.mjs`, workflow |
+| SEO structured data | `softwareVersion` corrected to 1.0.7; brand title → "StreetJS" | IMPLEMENTED | `docs/_includes/head_custom.html`, `docs/_config.yml` |
+| Funding | Added `FUNDING.yml` (GitHub Sponsors entry) | IMPLEMENTED | `.github/FUNDING.yml` |
+| Community links | README "Community & Support" section (Discussions, issues, security, migration, contributing) | IMPLEMENTED | `README.md` |
+| Migration guides | Express, NestJS, Fastify → StreetJS, with side-by-side runnable snippets using the real public API | IMPLEMENTED | `docs/migration-from-{express,nestjs,fastify}.md` |
+| Content backlog | 100 blog + 50 video + 25 talk topics, grounded in existing capabilities | IMPLEMENTED | `docs/_marketing/content-backlog.md` |
+
+**Pre-existing SEO (re-verified, stronger than initially scored):** the docs already
+ship `jekyll-seo-tag`, `jekyll-sitemap`, search index, and rich JSON-LD
+(`SoftwareApplication`, `FAQPage`, `BreadcrumbList`, `APIReference`). The
+discoverability gap is now primarily **off-site** (Search Console submission,
+backlinks) rather than on-site markup.
+
+**Manual actions still required (external accounts — cannot be automated here):**
+- Enable GitHub Discussions + create Discord; the README links are already in place.
+- Generate an npm **Automation** token so CI can publish with provenance (the
+  provenance gate then proves it on the next release).
+- Submit the sitemap to Google Search Console / Bing (verification assets present).
+- Enroll in GitHub Sponsors so the `FUNDING.yml` button renders.
