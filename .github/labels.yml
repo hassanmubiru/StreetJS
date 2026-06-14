@@ -1,0 +1,31 @@
+# StreetJS issue/PR label manifest.
+# Apply with a label-sync action (e.g. micnncim/action-label-syncer) or the
+# GitHub CLI: `gh label create <name> --color <hex> --description "<desc>"`.
+
+- name: good-first-issue
+  color: "7057ff"
+  description: Scoped, well-documented task suitable for a first contribution
+- name: help-wanted
+  color: "008672"
+  description: Maintainers would welcome help on this
+- name: mentorship-available
+  color: "0e8a16"
+  description: A maintainer will mentor a contributor through this task
+- name: documentation
+  color: "0075ca"
+  description: Improvements or additions to documentation
+- name: security
+  color: "d93f0b"
+  description: Security-relevant; handle per SECURITY.md (no exploit details in public)
+- name: ecosystem
+  color: "fbca04"
+  description: Plugins, registry, and third-party integration
+- name: rfc
+  color: "5319e7"
+  description: Tracks or relates to an RFC (see rfcs/)
+- name: "priority:critical"
+  color: "b60205"
+  description: Production-impacting; needs immediate attention
+- name: regression
+  color: "e11d21"
+  description: Worked in a previous release, broken now

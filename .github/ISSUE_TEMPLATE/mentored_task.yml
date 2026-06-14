@@ -1,0 +1,45 @@
+name: "Mentored task / good first issue"
+description: "Maintainers: file a scoped, mentorable task for new contributors."
+labels: ["good-first-issue", "help-wanted"]
+body:
+  - type: markdown
+    attributes:
+      value: "Use this to create a well-scoped task a new contributor can finish quickly. Keep it small and self-contained."
+  - type: textarea
+    id: task
+    attributes:
+      label: Task
+      description: What should be done, in one or two sentences.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context & pointers
+      description: Relevant files, prior art, and any background. Link the code.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: A checklist that makes "done" unambiguous (incl. which tests to run).
+      placeholder: |
+        - [ ] ...
+        - [ ] `npm test -w packages/<pkg>` passes
+    validations:
+      required: true
+  - type: dropdown
+    id: mentorship
+    attributes:
+      label: Mentorship
+      options:
+        - "A maintainer will mentor (add the mentorship-available label)"
+        - "Self-serve (no mentor needed)"
+    validations:
+      required: true
+  - type: input
+    id: area
+    attributes:
+      label: Area / package
+      placeholder: "packages/orm, docs, .github/workflows, ..."
