@@ -1,0 +1,29 @@
+{
+  "name": "@streetjs/react",
+  "version": "0.1.0",
+  "description": "React hooks for StreetJS (auth, query, mutation, realtime, search, AI) built on @streetjs/client.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "exports": { ".": { "import": "./dist/index.js", "types": "./dist/index.d.ts" } },
+  "files": ["dist/**/*.js","dist/**/*.js.map","dist/**/*.d.ts","dist/**/*.d.ts.map","README.md"],
+  "scripts": {
+    "build": "tsc",
+    "lint": "tsc --noEmit",
+    "test": "node --test test/*.test.mjs",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "keywords": ["street", "streetjs", "react", "hooks", "client"],
+  "author": "street contributors",
+  "license": "MIT",
+  "homepage": "https://hassanmubiru.github.io/street/",
+  "repository": { "type": "git", "url": "git+https://github.com/hassanmubiru/street.git" },
+  "bugs": { "url": "https://github.com/hassanmubiru/street/issues" },
+  "dependencies": { "@streetjs/client": "^0.1.0" },
+  "peerDependencies": { "react": ">=18" },
+  "devDependencies": { "@types/node": "^25.9.1", "@types/react": "^18.3.0", "react": "^18.3.1", "typescript": "^6.0.3" },
+  "engines": { "node": ">=20.0.0" },
+  "publishConfig": { "access": "public" }
+}
