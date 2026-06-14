@@ -52,8 +52,8 @@ jobs:
       - name: Build @streetjs/orm
         run: npm run build -w packages/orm
 
-      - name: Offline unit tests (metadata, planner, repository)
-        run: node --test packages/orm/test/metadata.test.mjs packages/orm/test/dialect.test.mjs packages/orm/test/repository.test.mjs
+      - name: Offline unit tests (metadata, planner, repository, migrations)
+        run: node --test packages/orm/test/metadata.test.mjs packages/orm/test/dialect.test.mjs packages/orm/test/repository.test.mjs packages/orm/test/migrations.test.mjs
 
       - name: Live PostgreSQL integration
         env:
