@@ -1,0 +1,6 @@
+{
+  "name": "street-plugin-openai",
+  "version": "1.0.0",
+  "capabilities": ["ai", "llm", "embeddings"],
+  "permissions": ["net", "secrets", "middleware"]
+}
