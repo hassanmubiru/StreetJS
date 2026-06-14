@@ -70,6 +70,16 @@ export const FEATURES: Record<string, FeatureSpec> = {
     description: 'NATS publish/subscribe messaging (dependency-free protocol client)',
     snippet: "import { NatsPlugin } from '@streetjs/plugin-nats';\nconst nats = new NatsPlugin({ host: '127.0.0.1', port: 4222 });",
   },
+  kafka: {
+    packages: ['@streetjs/plugin-kafka'],
+    description: 'Apache Kafka streaming (wraps the dependency-free core Kafka client)',
+    snippet: "import { KafkaPlugin } from '@streetjs/plugin-kafka';\nconst kafka = new KafkaPlugin({ brokers: ['127.0.0.1:9092'] });",
+  },
+  rabbitmq: {
+    packages: ['@streetjs/plugin-rabbitmq'],
+    description: 'RabbitMQ messaging (wraps the dependency-free core AMQP 0-9-1 transport)',
+    snippet: "import { RabbitMqPlugin } from '@streetjs/plugin-rabbitmq';\nconst mq = new RabbitMqPlugin({ host: '127.0.0.1', port: 5672 });",
+  },
 };
 
 export class AddCommand {
