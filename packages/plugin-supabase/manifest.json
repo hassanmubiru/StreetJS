@@ -1,0 +1,6 @@
+{
+  "name": "street-plugin-supabase",
+  "version": "1.0.0",
+  "capabilities": ["database", "postgrest", "supabase"],
+  "permissions": ["net", "secrets", "middleware"]
+}
