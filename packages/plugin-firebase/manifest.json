@@ -1,0 +1,6 @@
+{
+  "name": "street-plugin-firebase",
+  "version": "1.0.0",
+  "capabilities": ["auth", "identity", "firebase"],
+  "permissions": ["net", "secrets", "middleware"]
+}
