@@ -849,7 +849,14 @@ jobs:
         run: npm run lint -w packages/core
 
       - name: Publish streetjs to npm
-        run: npm publish -w packages/core --provenance --access public
+        run: |
+          set -euo pipefail
+          VERSION=$(node -p "require('./packages/core/package.json').version")
+          if npm view "streetjs@$VERSION" version >/dev/null 2>&1; then
+            echo "streetjs@$VERSION is already published — skipping (idempotent re-run)."
+          else
+            npm publish -w packages/core --provenance --access public
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -862,12 +869,26 @@ jobs:
           ( cd packages/core-compat && node ../../scripts/verify-package.mjs )
 
       - name: Publish @streetjs/core (compat shim) to npm
-        run: npm publish -w packages/core-compat --provenance --access public
+        run: |
+          set -euo pipefail
+          VERSION=$(node -p "require('./packages/core-compat/package.json').version")
+          if npm view "@streetjs/core@$VERSION" version >/dev/null 2>&1; then
+            echo "@streetjs/core@$VERSION is already published — skipping (idempotent re-run)."
+          else
+            npm publish -w packages/core-compat --provenance --access public
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @streetjs/cli to npm
-        run: npm publish -w packages/cli --provenance --access public
+        run: |
+          set -euo pipefail
+          VERSION=$(node -p "require('./packages/cli/package.json').version")
+          if npm view "@streetjs/cli@$VERSION" version >/dev/null 2>&1; then
+            echo "@streetjs/cli@$VERSION is already published — skipping (idempotent re-run)."
+          else
+            npm publish -w packages/cli --provenance --access public
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
