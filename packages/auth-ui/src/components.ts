@@ -131,7 +131,7 @@ export function MFASetup(props: MFASetupProps): ReactNode {
   const begin = async (): Promise<void> => {
     setBusy(true); setError(undefined);
     try {
-      const r = await client.request<{ otpauthUrl?: string; secret?: string }>(props.setupPath ?? '/auth/mfa/setup', { method: 'POST' });
+      const r = await client.request<{ otpauthUrl?: string; secret?: string }>('POST', props.setupPath ?? '/auth/mfa/setup');
       setSecret(r.secret); setOtpauthUrl(r.otpauthUrl);
     } catch (err) { setError(err); } finally { setBusy(false); }
   };
@@ -139,7 +139,7 @@ export function MFASetup(props: MFASetupProps): ReactNode {
     e.preventDefault();
     setBusy(true); setError(undefined);
     try {
-      const r = await client.request(props.verifyPath ?? '/auth/mfa/verify', { method: 'POST', body: { code } });
+      const r = await client.request('POST', props.verifyPath ?? '/auth/mfa/verify', { body: { code } });
       setVerified(true);
       props.onSuccess?.(r);
     } catch (err) { setError(err); } finally { setBusy(false); }
