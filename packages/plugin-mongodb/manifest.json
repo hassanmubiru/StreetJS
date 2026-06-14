@@ -1,0 +1,6 @@
+{
+  "name": "street-plugin-mongodb",
+  "version": "1.0.0",
+  "capabilities": ["database", "document-store", "mongodb"],
+  "permissions": ["net", "secrets", "middleware"]
+}
