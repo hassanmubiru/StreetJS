@@ -29,7 +29,7 @@ name: street CI/CD
 #   workflow_dispatch: Manual trigger with a suite selector for system tests
 "on":
   push:
-    branches: [main, develop]
+    branches: [main, develop, 'feature/**', 'fix/**', 'chore/**']
     tags: ['v*.*.*']
   pull_request:
     branches: [main]
@@ -122,6 +122,25 @@ jobs:
       - uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
+
+      # Diagnostics: makes publish-gate decisions self-explanatory in logs.
+      # `test-and-publish` runs only when github.ref starts with refs/tags/v;
+      # on a branch push the ref is refs/heads/<branch>, so it is (correctly)
+      # skipped. This step prints the context so that is obvious at a glance.
+      - name: Debug Context
+        env:
+          EVENT: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          echo "Event:  $EVENT"
+          echo "Ref:    $REF"
+          echo "Branch/Tag: $REF_NAME"
+          if [ "${REF#refs/tags/v}" != "$REF" ]; then
+            echo "→ tag push: test-and-publish WILL run (publishes to npm)."
+          else
+            echo "→ not a vN tag: test-and-publish is correctly SKIPPED (no publish)."
+          fi
 
       - name: Validate YAML syntax
         run: node scripts/ci/validate-yaml.mjs
@@ -732,6 +751,17 @@ jobs:
         with:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
+
+      - name: Debug Context
+        env:
+          EVENT: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          echo "Event:  $EVENT"
+          echo "Ref:    $REF"
+          echo "Tag:    $REF_NAME"
+          echo "This job runs only for refs/tags/v* — publishing ${REF_NAME} to npm."
 
       - name: Verify version matches tag
         run: |
