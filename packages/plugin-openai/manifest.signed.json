@@ -1,0 +1,16 @@
+{
+  "name": "street-plugin-openai",
+  "version": "1.0.0",
+  "capabilities": [
+    "ai",
+    "llm",
+    "embeddings"
+  ],
+  "permissions": [
+    "net",
+    "secrets",
+    "middleware"
+  ],
+  "checksum": "8dcf72efea79f838eb40438070358157ca21dd1fd6c4974284ef7443b4b3cd6e",
+  "signature": "BYO8qJ+QAu+Wxm8aJOx8xQN++22dTnJ9If53ibs+vi6IPUjPvePWlPMdYf52stzrQoSCxbokEYZnu5Cegq5pCw=="
+}
