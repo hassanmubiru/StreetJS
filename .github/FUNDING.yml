@@ -1,0 +1,6 @@
+# StreetJS funding configuration.
+# The "Sponsor" button appears once the corresponding account is enabled.
+# GitHub Sponsors must be enabled for the account before the github: entry renders.
+github: [hassanmubiru]
+# open_collective: streetjs   # uncomment once an Open Collective is created
+# Add other platforms (patreon, ko_fi, custom: [url]) as they are set up.
