@@ -59,6 +59,7 @@ const OFFICIAL_PLUGIN_PACKAGES: ReadonlyArray<{ dir: string; category: string }>
   { dir: 'plugin-sendgrid', category: 'messaging' },
   { dir: 'plugin-stripe', category: 'payments' },
   { dir: 'plugin-auth0', category: 'identity' },
+  { dir: 'plugin-nats', category: 'messaging' },
 ];
 
 function pkgPath(pkgDir: string, ...rest: string[]): string {
