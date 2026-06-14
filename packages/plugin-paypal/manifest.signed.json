@@ -1,0 +1,15 @@
+{
+  "name": "street-plugin-paypal",
+  "version": "1.0.0",
+  "capabilities": [
+    "payments",
+    "paypal"
+  ],
+  "permissions": [
+    "net",
+    "secrets",
+    "middleware"
+  ],
+  "checksum": "6e139cad342a21e2de2506d5335a34e79da280f51175b2c365bae2f21a6b7f97",
+  "signature": "Lk8oueQ/SKO26C9aBkqtg2q1aAUvSklNIOXCnpbsEsQFVXOi8Dt0FkztDmNscYeXtz2zbZafDxXIas8mbhAmDg=="
+}
