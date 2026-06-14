@@ -92,7 +92,7 @@ export function ForgotPasswordForm(props: ForgotPasswordProps): ReactNode {
     e.preventDefault();
     setBusy(true); setError(undefined);
     try {
-      const r = await client.request(props.path ?? '/auth/forgot-password', { method: 'POST', body: { email } });
+      const r = await client.request('POST', props.path ?? '/auth/forgot-password', { body: { email } });
       setSent(true);
       props.onSuccess?.(r);
     } catch (err) { setError(err); } finally { setBusy(false); }
