@@ -60,6 +60,8 @@ const OFFICIAL_PLUGIN_PACKAGES: ReadonlyArray<{ dir: string; category: string }>
   { dir: 'plugin-stripe', category: 'payments' },
   { dir: 'plugin-auth0', category: 'identity' },
   { dir: 'plugin-nats', category: 'messaging' },
+  { dir: 'plugin-kafka', category: 'messaging' },
+  { dir: 'plugin-rabbitmq', category: 'messaging' },
 ];
 
 function pkgPath(pkgDir: string, ...rest: string[]): string {
