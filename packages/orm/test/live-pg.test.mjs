@@ -94,6 +94,6 @@ describe('@streetjs/orm — live PostgreSQL', () => {
     const u = await users.findOne({ where: { id: 2 } });
     const posts = await users.loadRelation(u, 'posts');
     assert.equal(posts.length, 1);
-    assert.equal(posts[0].id, 12);
+    assert.equal(Number(posts[0].id), 12); // PgPool returns int columns as strings
   });
 });
