@@ -174,18 +174,20 @@ when a `v*.*.*` tag is pushed. It:
 3. Runs CLI test suite (86 tests)
 4. Validates pack output (no test files, no dist/src)
 5. Runs `street create` smoke test
-6. Publishes `@streetjs/core` with npm provenance
-7. Publishes `@streetjs/cli` with npm provenance
+6. Publishes `streetjs` (core) with npm provenance
+7. Publishes `@streetjs/core` (compat shim) + `@streetjs/cli` with npm provenance
+8. **Provenance gate** — verifies every published version carries a provenance
+   attestation (fails the release if a manual publish bypassed it)
+9. Regenerates a per-release CycloneDX **SBOM** and uploads it as a retained artifact
 
-To trigger via CI instead of local publish:
-```bash
-git tag -a "v1.0.5" -m "Release v1.0.5"
-git push origin "v1.0.5"
-# CI handles the rest — monitor at github.com/hassanmubiru/actions
-```
+Each publish step is **idempotent** — if the version is already on the registry
+(e.g. a re-run, or after a manual publish), that step is skipped instead of
+failing with `E409`.
 
 Required GitHub secrets:
-- `NPM_TOKEN` — npm automation token with publish access
+- `NPM_TOKEN` — npm **Automation** token (bypasses 2FA OTP; a classic "Publish"
+  token will fail in CI with `EOTP`). A Granular Access Token with publish scope
+  also works.
 - `PG_PASSWORD` — PostgreSQL password for integration tests
 - `KEK` — key encryption key for vault tests
 - `JWT_SECRET` — JWT secret for auth tests
