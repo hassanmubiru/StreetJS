@@ -1,0 +1,6 @@
+{
+  "name": "street-plugin-rabbitmq",
+  "version": "1.0.0",
+  "capabilities": ["messaging", "queue", "rabbitmq"],
+  "permissions": ["net", "middleware"]
+}
