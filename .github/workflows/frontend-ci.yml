@@ -1,0 +1,74 @@
+name: Frontend Integrations CI
+
+# Builds, type-checks and tests the framework integration packages that sit on
+# top of @streetjs/client: react, next, vue, nuxt and the UI kits. These declare
+# React/Vue/Next as PEER dependencies, so the install relies on the repo .npmrc
+# (legacy-peer-deps=true) to keep monorepo resolution deterministic. Offline only
+# — no services required; verification is build + tsc --noEmit + export-shape tests.
+
+on:
+  push:
+    paths:
+      - 'packages/client/**'
+      - 'packages/react/**'
+      - 'packages/next/**'
+      - 'packages/vue/**'
+      - 'packages/nuxt/**'
+      - 'packages/auth-ui/**'
+      - 'packages/ai-ui/**'
+      - 'packages/admin-ui/**'
+      - '.github/workflows/frontend-ci.yml'
+  pull_request:
+    paths:
+      - 'packages/client/**'
+      - 'packages/react/**'
+      - 'packages/next/**'
+      - 'packages/vue/**'
+      - 'packages/nuxt/**'
+      - 'packages/auth-ui/**'
+      - 'packages/ai-ui/**'
+      - 'packages/admin-ui/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  frontend-ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20', '22']
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Build @streetjs/client
+        run: npm run build -w packages/client
+      - name: Build @streetjs/react
+        run: npm run build -w packages/react
+      - name: Build @streetjs/next
+        run: npm run build -w packages/next
+      - name: Build @streetjs/vue
+        run: npm run build -w packages/vue
+      - name: Build @streetjs/nuxt
+        run: npm run build -w packages/nuxt
+      - name: Type-check all integrations
+        run: |
+          npm run lint -w packages/client
+          npm run lint -w packages/react
+          npm run lint -w packages/next
+          npm run lint -w packages/vue
+          npm run lint -w packages/nuxt
+      - name: Tests
+        run: |
+          npm test -w packages/client
+          npm test -w packages/react
+          npm test -w packages/next
+          npm test -w packages/vue
+          npm test -w packages/nuxt
