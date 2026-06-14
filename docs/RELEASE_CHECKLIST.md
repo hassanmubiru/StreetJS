@@ -65,7 +65,15 @@ street create smoke-test
 ./scripts/release.sh patch --dry-run
 ```
 
-### Option B — Manual step-by-step
+> ⚠️ **Provenance warning:** Prefer CI publishing (tag push). A **local/manual
+> `npm publish` produces NO provenance attestation** — npm provenance requires
+> the OIDC token that only GitHub Actions provides. The `test-and-publish` job
+> now includes a **provenance gate** that fails the release if any package lands
+> on the registry without an attestation, so a manual publish will be flagged.
+> Only publish manually as a last resort (e.g. a CI auth outage), and re-publish
+> a patch via CI as soon as possible to restore provenance.
+
+### Option B — Manual step-by-step (last resort — loses provenance)
 
 ```bash
 # 1. Bump versions
