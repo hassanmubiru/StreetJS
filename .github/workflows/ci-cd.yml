@@ -732,7 +732,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: [build-and-test, migration-integration]
-    if: startsWith(github.ref, 'refs/tags/v')
+    # Publish only on a semver tag push. The workflow trigger (tags: v*.*.*)
+    # already enforces the MAJOR.MINOR.PATCH shape; this gate independently
+    # confirms the ref is a tag (not a branch/PR) so the job can never publish
+    # off a branch even if the trigger is later loosened.
+    if: github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
 
     concurrency:
       group: publish-${{ github.ref }}

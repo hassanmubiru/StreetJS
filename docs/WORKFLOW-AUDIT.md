@@ -163,3 +163,17 @@ The skip was **the release gate working as designed**, not a misconfiguration.
 The actionable improvements are feature-branch CI coverage and self-documenting
 diagnostics — both applied — while preserving the safe, deterministic,
 tag-based publish model.
+
+## 8. Follow-up — gate tightened
+
+The publish gate was tightened from the looser string check to an explicit
+tag-type guard (defense-in-depth, so it can never publish off a branch even if
+the trigger is later loosened):
+
+```diff
+-    if: startsWith(github.ref, 'refs/tags/v')
++    if: github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
+```
+
+Validated: YAML parses, zizmor reports no findings. Behaviour is unchanged for
+branch pushes (still skipped) and `v*.*.*` tag pushes (still publish).
