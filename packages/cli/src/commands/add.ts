@@ -65,6 +65,11 @@ export const FEATURES: Record<string, FeatureSpec> = {
     description: 'Follow graph, feeds, comments, notifications',
     snippet: "import { FollowService } from '@streetjs/social-users';",
   },
+  nats: {
+    packages: ['@streetjs/plugin-nats'],
+    description: 'NATS publish/subscribe messaging (dependency-free protocol client)',
+    snippet: "import { NatsPlugin } from '@streetjs/plugin-nats';\nconst nats = new NatsPlugin({ host: '127.0.0.1', port: 4222 });",
+  },
 };
 
 export class AddCommand {
