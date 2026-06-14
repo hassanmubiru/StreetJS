@@ -13,6 +13,7 @@
 // @streetjs/cli equal the tag version; non-zero otherwise.
 
 import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 
 const PKGS = [
   ['streetjs', 'packages/core/package.json'],
@@ -34,7 +35,7 @@ function versionAt(path) {
   try {
     content = execFileSync('git', ['show', `${commitish}:${path}`], { encoding: 'utf8' });
   } catch {
-    content = execFileSync('cat', [path], { encoding: 'utf8' });
+    content = readFileSync(path, { encoding: 'utf8' });
   }
   return JSON.parse(content).version;
 }
