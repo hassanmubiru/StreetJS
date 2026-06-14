@@ -1,0 +1,6 @@
+{
+  "name": "street-plugin-kafka",
+  "version": "1.0.0",
+  "capabilities": ["messaging", "streaming", "kafka"],
+  "permissions": ["net", "middleware"]
+}
