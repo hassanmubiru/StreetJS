@@ -1,0 +1,75 @@
+name: Publish ORM
+
+# Publishes @streetjs/orm to npm with provenance. Idempotent: a version already
+# on the registry is skipped. Trigger manually, or by pushing an `orm-v*` tag.
+#
+# Required secret: NPM_TOKEN (npm Automation token — bypasses 2FA OTP).
+
+on:
+  push:
+    tags: ['orm-v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-orm-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish @streetjs/orm
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      contents: read
+      id-token: write   # required for npm provenance
+
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Build core (orm compiles against streetjs)
+        run: npm run build -w packages/core
+
+      - name: Build @streetjs/orm
+        run: npm run build -w packages/orm
+
+      - name: Offline unit tests
+        run: node --test packages/orm/test/metadata.test.mjs packages/orm/test/dialect.test.mjs packages/orm/test/repository.test.mjs packages/orm/test/migrations.test.mjs
+
+      - name: Publish (idempotent, with provenance)
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          NAME=$(node -p "require('./packages/orm/package.json').name")
+          VERSION=$(node -p "require('./packages/orm/package.json').version")
+          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "$NAME@$VERSION already published — skipping."
+          else
+            npm publish -w packages/orm --provenance --access public
+            echo "Published $NAME@$VERSION"
+          fi
+
+      - name: Verify provenance attestation
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          sleep 15
+          VERSION=$(node -p "require('./packages/orm/package.json').version")
+          att=$(npm view "@streetjs/orm@$VERSION" dist.attestations --json 2>/dev/null || echo "")
+          if [ -z "$att" ] || [ "$att" = "null" ] || [ "$att" = "{}" ]; then
+            echo "::error::@streetjs/orm@$VERSION published without a provenance attestation"
+            exit 1
+          fi
+          echo "Provenance OK: @streetjs/orm@$VERSION"
