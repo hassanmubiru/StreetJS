@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/plugin-stripe",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Official Street Framework plugin: Stripe payments. Signed manifest, PluginModule SDK.",
   "type": "module",
   "main": "./dist/index.js",

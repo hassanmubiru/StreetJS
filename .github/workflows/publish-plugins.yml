@@ -121,3 +121,32 @@ jobs:
           fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # Required because each plugin's prepublishOnly re-runs build → sign;
+          # without the key here the manifest would be re-signed with an
+          # ephemeral key, clobbering the official signature.
+          STREET_PLUGIN_SIGNING_KEY: ${{ secrets.STREET_PLUGIN_SIGNING_KEY }}
+
+      # Fail loud if the packed manifest is not signed by the official key — this
+      # catches a prepublishOnly re-sign clobbering the signature.
+      - name: Verify packed manifest is officially signed
+        if: steps.target.outputs.skip == 'false'
+        run: |
+          node -e "
+            const { execFileSync } = require('node:child_process');
+            const { mkdtempSync, readFileSync, rmSync } = require('node:fs');
+            const { join } = require('node:path');
+            const { tmpdir } = require('node:os');
+            (async () => {
+              const { verifyManifest, officialPluginPublicKey } = await import('streetjs');
+              const dir = mkdtempSync(join(tmpdir(), 'verify-'));
+              const tgz = execFileSync('npm', ['pack', '-w', 'packages/${{ matrix.plugin }}', '--silent', '--pack-destination='+dir], { encoding: 'utf8' }).trim().split('\n').pop().trim();
+              execFileSync('tar', ['-xzf', join(dir, tgz), '-C', dir]);
+              const signed = JSON.parse(readFileSync(join(dir, 'package', 'manifest.signed.json'), 'utf8'));
+              rmSync(dir, { recursive: true, force: true });
+              if (!verifyManifest(signed, officialPluginPublicKey())) {
+                console.error('::error::${{ matrix.plugin }} manifest is NOT signed by the official key');
+                process.exit(1);
+              }
+              console.log('${{ matrix.plugin }} manifest verified against the official key');
+            })();
+          "

@@ -1,12 +1,25 @@
 {
   "name": "@streetjs/plugin-clerk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Official StreetJS plugin: Clerk identity backend API (dependency-free HTTPS client).",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": { ".": { "import": "./dist/index.js", "types": "./dist/index.d.ts" } },
-  "files": ["dist/**/*.js","dist/**/*.js.map","dist/**/*.d.ts","dist/**/*.d.ts.map","manifest.json","manifest.signed.json","README.md"],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.js.map",
+    "dist/**/*.d.ts",
+    "dist/**/*.d.ts.map",
+    "manifest.json",
+    "manifest.signed.json",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc && npm run sign",
     "sign": "node scripts/sign.mjs",
@@ -15,15 +28,39 @@
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
     "prepublishOnly": "npm run clean && npm run build"
   },
-  "keywords": ["street","streetjs","street-framework","plugin","clerk","auth","identity"],
+  "keywords": [
+    "street",
+    "streetjs",
+    "street-framework",
+    "plugin",
+    "clerk",
+    "auth",
+    "identity"
+  ],
   "author": "street contributors",
   "license": "MIT",
   "homepage": "https://hassanmubiru.github.io/street/",
-  "repository": { "type": "git", "url": "git+https://github.com/hassanmubiru/street.git" },
-  "bugs": { "url": "https://github.com/hassanmubiru/street/issues" },
-  "dependencies": { "streetjs": "^1.0.6" },
-  "devDependencies": { "@types/node": "^25.9.1", "typescript": "^6.0.3" },
-  "peerDependencies": { "typescript": ">=5.0.0" },
-  "engines": { "node": ">=20.0.0" },
-  "publishConfig": { "access": "public" }
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hassanmubiru/street.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hassanmubiru/street/issues"
+  },
+  "dependencies": {
+    "streetjs": "^1.0.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "typescript": "^6.0.3"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
 }
