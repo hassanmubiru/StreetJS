@@ -7,7 +7,7 @@
 
 export {
   Entity, Column, PrimaryKey, HasMany, HasOne, BelongsTo, ManyToMany,
-  EntityRegistry, OrmError, isSafeIdentifier,
+  EntityRegistry, OrmError, isSafeIdentifier, isSafeSqlType,
 } from './metadata.js';
 export type {
   Ctor, RelationKind, ColumnMeta, RelationMeta, EntityMeta,
@@ -15,6 +15,9 @@ export type {
 
 export { buildSelect, buildRelationLoad } from './dialect.js';
 export type { SqlQuery } from './dialect.js';
+
+export { planMigration, introspectSchema } from './migrations.js';
+export type { ExistingSchema, MigrationPlan, MigrationOptions } from './migrations.js';
 
 export { Repository } from './repository.js';
 export type { QueryablePool, FindOptions, WithSpec } from './repository.js';

@@ -4,6 +4,7 @@
 
 import { EntityRegistry, type Ctor } from './metadata.js';
 import { Repository, type QueryablePool } from './repository.js';
+import { planMigration, introspectSchema, type MigrationPlan, type MigrationOptions } from './migrations.js';
 
 export interface OrmOptions {
   pool: QueryablePool;
@@ -28,5 +29,15 @@ export class Orm {
       this.repos.set(key, repo);
     }
     return repo as unknown as Repository<T>;
+  }
+
+  /**
+   * Generate a model-driven migration for one entity by diffing its metadata
+   * against the live database schema. Returns up/down SQL; does not apply it.
+   */
+  async makeMigration(ctor: new (...args: never[]) => object, opts: MigrationOptions = {}): Promise<MigrationPlan> {
+    const meta = this.registry.get(ctor as unknown as Ctor);
+    const existing = await introspectSchema(this.pool, meta.table);
+    return planMigration(meta, existing, opts);
   }
 }

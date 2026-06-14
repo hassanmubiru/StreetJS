@@ -27,7 +27,7 @@ function assertIdent(kind: string, name: string): string {
 export type Ctor<T = unknown> = new (...args: any[]) => T;
 export type RelationKind = 'hasOne' | 'hasMany' | 'belongsTo' | 'manyToMany';
 
-export interface ColumnMeta { property: string; column: string; primary: boolean; }
+export interface ColumnMeta { property: string; column: string; primary: boolean; sqlType: string; }
 
 export interface RelationMeta {
   property: string;
@@ -76,17 +76,33 @@ export function Entity(table: string): ClassDecorator {
   };
 }
 
-export function Column(column?: string): PropertyDecorator {
+/** A SQL column type is a conservative token (letters, digits, spaces, parens). */
+export function isSafeSqlType(t: string): boolean {
+  return typeof t === 'string' && /^[A-Za-z][A-Za-z0-9 ()]*$/.test(t);
+}
+
+function assertType(t: string): string {
+  if (!isSafeSqlType(t)) throw new OrmError(`Invalid SQL type: ${JSON.stringify(t)}`);
+  return t;
+}
+
+export function Column(column?: string, opts?: { type?: string }): PropertyDecorator {
   return (proto, property) => {
     const name = column ?? String(property);
-    columnsOf(proto.constructor as Ctor).push({ property: String(property), column: assertIdent('column', name), primary: false });
+    columnsOf(proto.constructor as Ctor).push({
+      property: String(property), column: assertIdent('column', name), primary: false,
+      sqlType: assertType(opts?.type ?? 'text'),
+    });
   };
 }
 
-export function PrimaryKey(column?: string): PropertyDecorator {
+export function PrimaryKey(column?: string, opts?: { type?: string }): PropertyDecorator {
   return (proto, property) => {
     const name = column ?? String(property);
-    columnsOf(proto.constructor as Ctor).push({ property: String(property), column: assertIdent('column', name), primary: true });
+    columnsOf(proto.constructor as Ctor).push({
+      property: String(property), column: assertIdent('column', name), primary: true,
+      sqlType: assertType(opts?.type ?? 'integer'),
+    });
   };
 }
 
