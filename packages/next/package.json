@@ -1,0 +1,29 @@
+{
+  "name": "@streetjs/next",
+  "version": "0.1.0",
+  "description": "Next.js helpers for StreetJS: server/edge clients and auth/session helpers over @streetjs/client.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "exports": { ".": { "import": "./dist/index.js", "types": "./dist/index.d.ts" } },
+  "files": ["dist/**/*.js","dist/**/*.js.map","dist/**/*.d.ts","dist/**/*.d.ts.map","README.md"],
+  "scripts": {
+    "build": "tsc",
+    "lint": "tsc --noEmit",
+    "test": "node --test test/*.test.mjs",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "keywords": ["street", "streetjs", "next", "nextjs", "ssr", "edge"],
+  "author": "street contributors",
+  "license": "MIT",
+  "homepage": "https://hassanmubiru.github.io/street/",
+  "repository": { "type": "git", "url": "git+https://github.com/hassanmubiru/street.git" },
+  "bugs": { "url": "https://github.com/hassanmubiru/street/issues" },
+  "dependencies": { "@streetjs/client": "^0.1.0" },
+  "peerDependencies": { "next": ">=14", "react": ">=18" },
+  "devDependencies": { "@types/node": "^25.9.1", "typescript": "^6.0.3" },
+  "engines": { "node": ">=20.0.0" },
+  "publishConfig": { "access": "public" }
+}
