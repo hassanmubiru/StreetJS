@@ -53,6 +53,19 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.0.9] — 2026-06-14
+
+### Changed
+- **Guarded auto-publish on `main`** — the publish job now runs on pushes to
+  `main` as well as on `v*` tags. Publishing remains safe via idempotent steps:
+  a version already on npm is skipped, so `main` only publishes after a version
+  bump. The version check verifies all packages are in lockstep (and matches the
+  tag on a tag push), and the provenance attestation gate still applies.
+- The `npm deprecate @streetjs/core` step is now non-fatal (idempotent re-runs
+  return E422, which must not fail a release).
+
+---
+
 ## [1.0.8] — 2026-06-14
 
 ### Added
