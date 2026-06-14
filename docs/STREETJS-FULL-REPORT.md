@@ -26,7 +26,7 @@ proven longevity.
 | `@streetjs/core` (compat shim) | **1.0.9** | ✅ |
 | `@streetjs/cli` | **1.0.9** | ✅ |
 | `@streetjs/plugin-*` (×18) | **1.0.1** | ✅ + official Ed25519 signature |
-| `@streetjs/orm` | 0.1.0 (in-repo; not yet published) | — |
+| `@streetjs/orm` | **0.1.0** (published) | ✅ |
 
 Repo: **38 packages**, **25 CI workflows**. Latest full `ci-cd` run on `main`:
 **success (VERIFIED)**.
@@ -44,11 +44,13 @@ logging.
 
 ## 4. Data layer (PARTIAL → relations SHIPPED)
 
-`@streetjs/orm` 0.1.0 adds entity/relation decorators, a **safe parameterized
-query planner**, eager loading (1:1/1:N/N:M, batched + **N+1-safe**), relation
-filtering, and lazy loading. **VERIFIED:** 23 offline unit tests + 4
-live-PostgreSQL integration tests (CI `orm-integration.yml`, green). **GAP:**
-model-driven migration generation (RFC 0001's next milestone).
+`@streetjs/orm` **0.1.0 (published to npm with provenance)** adds entity/relation
+decorators, a **safe parameterized query planner**, eager loading (1:1/1:N/N:M,
+batched + **N+1-safe**), relation filtering, lazy loading, **and model-driven
+migration generation** (`Orm.makeMigration` diffs metadata vs the live schema →
+up/down SQL). **VERIFIED:** 29 offline unit tests + 5 live-PostgreSQL integration
+tests (incl. a migration generate→apply→idempotent round-trip), CI
+`orm-integration.yml` green. RFC 0001 fully implemented.
 
 ## 5. Ecosystem (VERIFIED)
 
