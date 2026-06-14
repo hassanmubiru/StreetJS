@@ -53,6 +53,29 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.0.8] — 2026-06-14
+
+### Added
+- **Official plugin trust store** — `OFFICIAL_PLUGIN_PUBLIC_KEY_PEM` and
+  `officialPluginPublicKey()` exported from core so a `PluginHost` verifies
+  official `@streetjs/plugin-*` signatures out-of-the-box.
+
+### Changed
+- **Release hardening** — the npm publish job now enforces a **provenance gate**
+  (fails if any published package lacks an attestation), regenerates a per-release
+  CycloneDX **SBOM** artifact, and makes each publish step **idempotent**.
+
+### Ecosystem (separate `@streetjs/plugin-*` packages)
+- Published **18 official, Ed25519-signed, dependency-free plugins** with npm
+  provenance: redis, s3, r2, stripe, sendgrid, twilio, auth0, nats, kafka,
+  rabbitmq, postgres, mysql, mongodb, paypal, openai, clerk, supabase, firebase.
+  `scripts/verify-official-signatures.mjs` verifies all 18 against the official key.
+
+### Docs
+- Migration guides from Express, NestJS, and Fastify.
+
+---
+
 ## [1.0.7] — 2026-06-11
 
 ### Fixed
@@ -315,7 +338,7 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-## [1.0.0] — 2024-01-15
+## [1.0.0] — 2025-12-15
 
 ### Added
 
