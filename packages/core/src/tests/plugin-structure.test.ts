@@ -62,6 +62,13 @@ const OFFICIAL_PLUGIN_PACKAGES: ReadonlyArray<{ dir: string; category: string }>
   { dir: 'plugin-nats', category: 'messaging' },
   { dir: 'plugin-kafka', category: 'messaging' },
   { dir: 'plugin-rabbitmq', category: 'messaging' },
+  { dir: 'plugin-postgres', category: 'database' },
+  { dir: 'plugin-mysql', category: 'database' },
+  { dir: 'plugin-paypal', category: 'payments' },
+  { dir: 'plugin-openai', category: 'ai' },
+  { dir: 'plugin-clerk', category: 'identity' },
+  { dir: 'plugin-supabase', category: 'database' },
+  { dir: 'plugin-firebase', category: 'identity' },
 ];
 
 function pkgPath(pkgDir: string, ...rest: string[]): string {
