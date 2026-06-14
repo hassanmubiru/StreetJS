@@ -50,7 +50,7 @@ function findPackagesDir(): string {
 
 const PACKAGES_DIR = findPackagesDir();
 
-/** The seven official plugin packages and their requirement grouping (Req 5.1–5.5). */
+/** The official plugin packages and their requirement grouping (Req 5.1–5.5). */
 const OFFICIAL_PLUGIN_PACKAGES: ReadonlyArray<{ dir: string; category: string }> = [
   { dir: 'plugin-redis', category: 'storage' },
   { dir: 'plugin-s3', category: 'storage' },
