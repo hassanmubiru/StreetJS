@@ -1,0 +1,6 @@
+{
+  "name": "street-plugin-clerk",
+  "version": "1.0.0",
+  "capabilities": ["auth", "identity", "clerk"],
+  "permissions": ["net", "secrets", "middleware"]
+}
