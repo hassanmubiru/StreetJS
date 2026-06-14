@@ -32,6 +32,13 @@ PrimaryKey()(Profile.prototype, 'id'); Column('user_id')(Profile.prototype, 'use
 Column('bio')(Profile.prototype, 'bio'); Entity('orm_profiles')(Profile);
 PrimaryKey()(Tag.prototype, 'id'); Column('name')(Tag.prototype, 'name'); Entity('orm_tags')(Tag);
 
+// A standalone entity for the migration round-trip test.
+class Widget {}
+PrimaryKey()(Widget.prototype, 'id');
+Column('label')(Widget.prototype, 'label');
+Column('qty', { type: 'integer' })(Widget.prototype, 'qty');
+Entity('orm_widgets')(Widget);
+
 describe('@streetjs/orm — live PostgreSQL', () => {
   let pool;
   let orm;
@@ -59,7 +66,8 @@ describe('@streetjs/orm — live PostgreSQL', () => {
       'INSERT INTO orm_post_tags VALUES (10,5),(10,6)',
     ];
     for (const sql of ddl) await pool.query(sql, []);
-    orm = new Orm({ pool, entities: [User, Post, Profile, Tag] });
+    orm = new Orm({ pool, entities: [User, Post, Profile, Tag, Widget] });
+    await pool.query('DROP TABLE IF EXISTS orm_widgets CASCADE', []);
   });
 
   after(async () => { if (pool) await pool.close(); });
@@ -95,5 +103,26 @@ describe('@streetjs/orm — live PostgreSQL', () => {
     const posts = await users.loadRelation(u, 'posts');
     assert.equal(posts.length, 1);
     assert.equal(Number(posts[0].id), 12); // PgPool returns int columns as strings
+  });
+
+  it('model-driven migration: generate → apply → idempotent', async (t) => {
+    if (!HOST) { t.skip('PG_HOST not set'); return; }
+    // Table does not exist yet → plan is a CREATE TABLE.
+    const plan = await orm.makeMigration(Widget);
+    assert.equal(plan.up.length, 1);
+    assert.match(plan.up[0], /^CREATE TABLE "orm_widgets"/);
+
+    // Apply it for real.
+    for (const sql of plan.up) await pool.query(sql, []);
+
+    // Re-plan against the now-existing schema → no changes (idempotent).
+    const plan2 = await orm.makeMigration(Widget);
+    assert.deepEqual(plan2.up, []);
+
+    // The ORM can now query the created table.
+    await pool.query("INSERT INTO orm_widgets VALUES (1, 'a', 3)", []);
+    const rows = await orm.getRepository(Widget).find({ where: { id: 1 } });
+    assert.equal(rows[0].label, 'a');
+    assert.equal(Number(rows[0].qty), 3);
   });
 });
