@@ -69,6 +69,7 @@ const OFFICIAL_PLUGIN_PACKAGES: ReadonlyArray<{ dir: string; category: string }>
   { dir: 'plugin-clerk', category: 'identity' },
   { dir: 'plugin-supabase', category: 'database' },
   { dir: 'plugin-firebase', category: 'identity' },
+  { dir: 'plugin-mongodb', category: 'database' },
 ];
 
 function pkgPath(pkgDir: string, ...rest: string[]): string {
