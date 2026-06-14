@@ -1,0 +1,16 @@
+{
+  "name": "street-plugin-firebase",
+  "version": "1.0.0",
+  "capabilities": [
+    "auth",
+    "identity",
+    "firebase"
+  ],
+  "permissions": [
+    "net",
+    "secrets",
+    "middleware"
+  ],
+  "checksum": "facac785e434dfe7baca75e54435b4b3a86bbf42fe3d17902c7d95893e60a6e2",
+  "signature": "zSIPgCoHKoHwwB5kLVBPuUVWOLjiiZ0StonVdBe8Gxqji0HKwL9J01Lkgj2XXs3PAhuO2srV/Km+8Jfx3f9LAQ=="
+}
