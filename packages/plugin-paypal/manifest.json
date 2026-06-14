@@ -1,0 +1,6 @@
+{
+  "name": "street-plugin-paypal",
+  "version": "1.0.0",
+  "capabilities": ["payments", "paypal"],
+  "permissions": ["net", "secrets", "middleware"]
+}
