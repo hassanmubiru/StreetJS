@@ -1,0 +1,15 @@
+{
+  "name": "street-plugin-postgres",
+  "version": "1.0.0",
+  "capabilities": [
+    "database",
+    "sql",
+    "postgres"
+  ],
+  "permissions": [
+    "net",
+    "middleware"
+  ],
+  "checksum": "8e13cb9c215f1f7acab4664286b90aca8cf9d41c4a04d5100429c0b98444d497",
+  "signature": "PCO+5Rz5VU5IqaX4sThwk7S5lFw20MIl4gP9yJXlnQRt51aqim74nvnxYMcajsuImYQgmK2zkAC0PsZgTrPNCQ=="
+}
