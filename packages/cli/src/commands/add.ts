@@ -80,6 +80,41 @@ export const FEATURES: Record<string, FeatureSpec> = {
     description: 'RabbitMQ messaging (wraps the dependency-free core AMQP 0-9-1 transport)',
     snippet: "import { RabbitMqPlugin } from '@streetjs/plugin-rabbitmq';\nconst mq = new RabbitMqPlugin({ host: '127.0.0.1', port: 5672 });",
   },
+  'postgres-plugin': {
+    packages: ['@streetjs/plugin-postgres'],
+    description: 'PostgreSQL pool as a signed plugin (wraps the native core PgPool)',
+    snippet: "import { PostgresPlugin } from '@streetjs/plugin-postgres';\nconst pg = new PostgresPlugin({ host: '127.0.0.1', port: 5432, user, password, database });",
+  },
+  mysql: {
+    packages: ['@streetjs/plugin-mysql'],
+    description: 'MySQL/MariaDB pool (wraps the native, dependency-free core driver)',
+    snippet: "import { MysqlPlugin } from '@streetjs/plugin-mysql';\nconst mysql = new MysqlPlugin({ host: '127.0.0.1', user, password, database });",
+  },
+  paypal: {
+    packages: ['@streetjs/plugin-paypal'],
+    description: 'PayPal Orders v2 (dependency-free HTTPS client)',
+    snippet: "import { PayPalPlugin } from '@streetjs/plugin-paypal';\nconst paypal = new PayPalPlugin({ clientId, clientSecret, environment: 'sandbox' });",
+  },
+  openai: {
+    packages: ['@streetjs/plugin-openai'],
+    description: 'OpenAI chat + embeddings (dependency-free HTTPS client)',
+    snippet: "import { OpenAiPlugin } from '@streetjs/plugin-openai';\nconst openai = new OpenAiPlugin({ apiKey: process.env.OPENAI_API_KEY });",
+  },
+  clerk: {
+    packages: ['@streetjs/plugin-clerk'],
+    description: 'Clerk identity backend API (dependency-free HTTPS client)',
+    snippet: "import { ClerkPlugin } from '@streetjs/plugin-clerk';\nconst clerk = new ClerkPlugin({ secretKey: process.env.CLERK_SECRET_KEY });",
+  },
+  supabase: {
+    packages: ['@streetjs/plugin-supabase'],
+    description: 'Supabase PostgREST data API (dependency-free HTTPS client)',
+    snippet: "import { SupabasePlugin } from '@streetjs/plugin-supabase';\nconst sb = new SupabasePlugin({ url: process.env.SUPABASE_URL, apiKey: process.env.SUPABASE_KEY });",
+  },
+  firebase: {
+    packages: ['@streetjs/plugin-firebase'],
+    description: 'Firebase Auth (Identity Toolkit) REST (dependency-free HTTPS client)',
+    snippet: "import { FirebasePlugin } from '@streetjs/plugin-firebase';\nconst fb = new FirebasePlugin({ apiKey: process.env.FIREBASE_API_KEY });",
+  },
 };
 
 export class AddCommand {
