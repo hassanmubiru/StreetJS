@@ -27,7 +27,7 @@
   "scripts": {
     "build": "tsc",
     "test": "node --test dist/tests/argv.test.js dist/tests/create.test.js dist/tests/create-templates.test.js dist/tests/create-frontend.test.js dist/tests/add.test.js dist/tests/generate.test.js dist/tests/migrate.test.js dist/tests/upgrade.test.js && node --test --test-force-exit dist/tests/index.test.js dist/tests/dev.test.js dist/tests/info.test.js dist/tests/registry.test.js dist/tests/verify.test.js",
-    "coverage": "c8 node --test dist/tests/argv.test.js dist/tests/create.test.js dist/tests/generate.test.js dist/tests/migrate.test.js",
+    "coverage": "c8 node --test dist/tests/argv.test.js dist/tests/create.test.js dist/tests/create-templates.test.js dist/tests/create-frontend.test.js dist/tests/generate.test.js dist/tests/migrate.test.js",
     "coverage:pg": "c8 --check-coverage=false node --test dist/tests/migrate.test.js",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
     "verify:pack": "node ../../scripts/verify-package.mjs",
