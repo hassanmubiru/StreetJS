@@ -249,17 +249,18 @@ pre.highlight code {
   a { color: var(--text-muted) !important; &:hover { color: var(--accent) !important; } } }
 .site-footer { background: var(--surface) !important; border-top:1px solid var(--border) !important; font-size:.8rem !important; color: var(--text-muted) !important;
   a { color: var(--text-muted) !important; &:hover { color: var(--accent) !important; } } }
-.back-to-top { display:inline-flex !important; align-items:center !important; gap:.4rem !important;
+// just-the-docs renders this as <a href="#top" id="back-to-top">, so target the id.
+#back-to-top { display:inline-flex !important; align-items:center !important; gap:.4rem !important;
   padding:.5rem .95rem !important; margin:.5rem 0 !important;
   background: var(--bg) !important; border:1px solid var(--border) !important; border-radius:9px !important;
   color: var(--text-muted) !important; font-family:'Inter',sans-serif !important; font-size:.8rem !important; font-weight:600 !important;
   text-decoration:none !important; cursor:pointer !important; box-shadow:0 1px 2px rgba(0,0,0,.04) !important;
   transition:transform .16s ease, border-color .16s ease, color .16s ease, background .16s ease, box-shadow .16s ease !important; }
-.back-to-top::before { content:'↑' !important; font-size:.95rem !important; line-height:1 !important; }
-.back-to-top:hover { border-color: var(--accent-line) !important; color: var(--accent) !important; background: var(--accent-soft) !important;
+#back-to-top::before { content:'↑' !important; font-size:.95rem !important; line-height:1 !important; }
+#back-to-top:hover { border-color: var(--accent-line) !important; color: var(--accent) !important; background: var(--accent-soft) !important;
   transform:translateY(-1px) !important; box-shadow:0 4px 10px rgba(0,0,0,.08) !important; }
-.back-to-top:active { transform:translateY(0) !important; }
-.back-to-top:focus-visible { outline:2px solid var(--accent) !important; outline-offset:2px !important; }
+#back-to-top:active { transform:translateY(0) !important; }
+#back-to-top:focus-visible { outline:2px solid var(--accent) !important; outline-offset:2px !important; }
 
 // ── Syntax highlighting (driven by --syn-* variables, light & dark) ────────────
 .highlight {
