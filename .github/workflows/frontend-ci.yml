@@ -58,6 +58,12 @@ jobs:
         run: npm run build -w packages/vue
       - name: Build @streetjs/nuxt
         run: npm run build -w packages/nuxt
+      - name: Build @streetjs/auth-ui
+        run: npm run build -w packages/auth-ui
+      - name: Build @streetjs/ai-ui
+        run: npm run build -w packages/ai-ui
+      - name: Build @streetjs/admin-ui
+        run: npm run build -w packages/admin-ui
       - name: Type-check all integrations
         run: |
           npm run lint -w packages/client
@@ -65,6 +71,9 @@ jobs:
           npm run lint -w packages/next
           npm run lint -w packages/vue
           npm run lint -w packages/nuxt
+          npm run lint -w packages/auth-ui
+          npm run lint -w packages/ai-ui
+          npm run lint -w packages/admin-ui
       - name: Tests
         run: |
           npm test -w packages/client
@@ -72,3 +81,6 @@ jobs:
           npm test -w packages/next
           npm test -w packages/vue
           npm test -w packages/nuxt
+          npm test -w packages/auth-ui
+          npm test -w packages/ai-ui
+          npm test -w packages/admin-ui
