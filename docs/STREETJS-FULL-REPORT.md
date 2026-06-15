@@ -149,6 +149,12 @@ with `FAQPage` JSON-LD), an example-app catalog, and a
 90/180/365-day content targets. Migration guides (Express/Nest/Fastify), SEO
 (sitemap, JSON-LD), enterprise trust package, compliance mappings.
 
+**Low-cost deployment (this session):** a [StreetJS on a Budget](/deployment/budget/)
+guide with **measured** footprint — bare HTTP server **~64 MB RSS**, **+SQLite
+~94 MB**, ~5.7k req/s single-process, ~30 KB/WebSocket — and concrete
+under-$10 / under-$25 / under-$50 monthly stacks (SQLite→Postgres, self-hosted,
+Caddy TLS, R2 zero-egress storage) with a managed-vs-self-hosted cost comparison.
+
 ## 9. Governance, community & sustainability (IMPLEMENTED this program)
 
 - **Governance:** `GOVERNANCE.md` extended with Steering Committee (odd seats,
