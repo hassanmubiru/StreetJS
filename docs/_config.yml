@@ -52,8 +52,8 @@ aux_links:
 
 aux_links_new_tab: true
 
-# Enable "Edit on GitHub" links on each page
-gh_edit_link:           true
+# "Edit on GitHub" links disabled (set to true to re-enable)
+gh_edit_link:           false
 gh_edit_link_text:      "Edit this page on GitHub"
 gh_edit_repository:     "https://github.com/hassanmubiru/street"
 gh_edit_branch:         "main"
