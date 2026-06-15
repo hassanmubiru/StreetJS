@@ -241,10 +241,15 @@ export class PgPool {
     }
   }
 
-  /** Remove a pooled connection from the connections array */
+  /** Remove a pooled connection from the connections array and release its socket. */
   private _removeConnection(pooled: PooledConnection): void {
     const idx = this.connections.indexOf(pooled);
     if (idx !== -1) this.connections.splice(idx, 1);
+    // Close the underlying connection so its socket is released. Without this, a
+    // half-open connection dropped via the dead-connection paths (e.g. after a
+    // database restart) would be removed from the pool array but leak its socket,
+    // since close() only iterates connections still in the array.
+    pooled.conn.close().catch(() => undefined);
   }
 
   /** Create a replacement connection if under max and not closed */
