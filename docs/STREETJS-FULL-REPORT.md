@@ -149,7 +149,11 @@ with `FAQPage` JSON-LD), an example-app catalog, and a
 - **No third-party production proof** — reference apps are first-party; case-study
   framework is in place, awaiting real submissions.
 - **Compliance is documentation-only** — mappings drafted; no certification/audit.
-- **ORM model-migrations not implemented**; **`@streetjs/orm` not yet published**.
+- **Frontend packages are 0.1.0 previews** — published with provenance and CI-green,
+  but pre-1.0 and without full DOM render tests (verified by build + type-check +
+  export-shape/pure-function tests); APIs may change before 1.0.
+- **Tutorial/example coverage is early** — 6 tutorials + 5 comparisons + 4 example
+  pages published against 90/180/365-day targets of 20/50/100 tutorials.
 - **Hiring pool** for "StreetJS developers" does not exist.
 
 ## 11. Readiness by audience
