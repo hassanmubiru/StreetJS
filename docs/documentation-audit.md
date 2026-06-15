@@ -54,13 +54,11 @@ no nav entry, SEO `title`, or `description`.
 
 ## Recommendations (ranked)
 
-1. **Add front-matter to `realtime-channels.md`** (it's linked from a tutorial). — *low effort, real UX win*
-2. Add a `BreadcrumbList` JSON-LD via a shared include for nested pages. — *SEO*
-3. Confirm branding assets resolve (`/assets/images/logo.svg`, `og.png`,
-   favicon, apple-touch-icon) — referenced in `_config.yml`; verify files exist
-   and add any missing (`favicon.svg`, `apple-touch-icon.png`).
-4. Add anchor-validation to the audit script (`#heading` targets). — *tooling*
-5. Periodically re-run this audit in CI (a `docs-audit` job) to keep it at zero.
+1. ✅ **Front-matter added to `realtime-channels.md`** (was linked from a tutorial without it).
+2. ✅ **`SoftwareApplication` version refreshed** in `head_custom.html` (1.0.7 → 1.0.9); JSON-LD is centralized there (Software/FAQ/Breadcrumb/APIReference) — do **not** duplicate inline on pages.
+3. ✅ **`favicon.svg` added** and wired in `head_custom.html`. **Still recommended:** generate raster `favicon.ico` + `apple-touch-icon.png` from `logo.svg` for older-browser/iOS coverage (binary assets — not generated here), then add their `<link>` tags.
+4. Add a `docs-audit` CI job running `scripts/audit/site-audit.mjs` to keep broken-links at zero.
+5. Add anchor-validation (`#heading` targets) to the audit script.
 
 ## Reproduce
 
