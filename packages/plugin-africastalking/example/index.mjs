@@ -38,7 +38,7 @@ console.log('SMS response:', res.SMSMessageData?.Message);
 
 // 4. USSD router (pure, offline).
 const ussd = createUssdRouter()
-  .menu('CON Welcome\n1. Balance\n2. Buy airtime')
+  .menu('Welcome\n1. Balance\n2. Buy airtime')
   .input('1', () => end('Your balance is KES 500'))
   .input('2', (_req, segs) => (segs.length === 1 ? con('Enter amount:') : end(`Buying KES ${segs[1]} airtime`)))
   .end('Invalid choice.');
