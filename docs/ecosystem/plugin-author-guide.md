@@ -143,6 +143,7 @@ const signed = signManifest(JSON.parse(/* manifest.json */), privateKey);
 
 Publish from CI with the key injected as a secret:
 
+{% raw %}
 ```yaml
 - name: Publish
   env:
@@ -150,6 +151,7 @@ Publish from CI with the key injected as a secret:
     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
   run: npm publish --provenance --access public
 ```
+{% endraw %}
 
 Consumers verify with the framework's `verifyManifest()` against your published
 `manifest.pub`.
