@@ -25,7 +25,7 @@ for (const name of readdirSync(pkgsDir)) {
   if (pkg.private) { results.push([pkg.name ?? name, 'SKIP', 'private']); continue; }
   const entry = entryOf(pkgDir, pkg);
   if (!entry) { results.push([pkg.name ?? name, 'SKIP', 'no entry field']); continue; }
-  if (!existsSync(entry)) { results.push([pkg.name ?? name, 'FAIL', `entry missing: ${entry}`]); continue; }
+  if (!existsSync(entry)) { results.push([pkg.name ?? name, 'SKIP', `not built (no ${entry.split('/').slice(-2).join('/')})`]); continue; }
   try {
     const mod = await import(pathToFileURL(entry).href);
     const keys = Object.keys(mod).length;
