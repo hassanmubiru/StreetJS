@@ -168,7 +168,7 @@ on paper for many backend capabilities; it is far behind on the social/market mo
 |------|:-----:|:----:|:-:|
 | Real comparative benchmark suite (vs Express/Fastify) with published methodology | M | Low | +4 |
 | Run full soak (60-min) + 10k-WS + chaos matrix in CI, publish artifacts | M | Med | +3 |
-| Fix `@streetjs/core` shim so all 46 cold-build; make `build --workspaces` green | S | Low | +2 |
+| Fix `@streetjs/core` shim so all 46 cold-build; make `build --workspaces` green | ✅ **DONE** | Low | +2 |
 | DAST execution evidence + K8s real-cluster verification in CI | M | Med | +3 |
 | Expand tutorials 6→20 + interactive API playground bundling OpenAPI | M | Low | +3 |
 | Second active maintainer onboarded (bus factor 1→2) | M | High (people) | +5 |
