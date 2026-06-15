@@ -10,8 +10,8 @@
 // (Azurite) endpoints. Verified against Azurite in the integration suite.
 
 import { createHmac } from 'node:crypto';
-import type { StorageProvider, PutOptions, StoredObject, ObjectInfo } from './index.js';
-import { validateKey } from './index.js';
+import type { StorageProvider, PutOptions, StoredObject, ObjectInfo } from './internal.js';
+import { validateKey } from './internal.js';
 
 const API_VERSION = '2021-12-02';
 

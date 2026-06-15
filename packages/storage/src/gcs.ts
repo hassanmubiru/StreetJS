@@ -6,8 +6,8 @@
 // Auth: pass an OAuth `accessToken` for real GCS. The emulator needs none.
 
 import { randomBytes } from 'node:crypto';
-import type { StorageProvider, PutOptions, StoredObject, ObjectInfo } from './index.js';
-import { validateKey } from './index.js';
+import type { StorageProvider, PutOptions, StoredObject, ObjectInfo } from './internal.js';
+import { validateKey } from './internal.js';
 
 /** Fetch with the binary + json reads this provider needs. */
 export type GcsFetch = (url: string, init?: {

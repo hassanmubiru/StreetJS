@@ -3,8 +3,8 @@
 // TEXT column (reliable round-trip across the Street wire driver); metadata is
 // JSONB. Apply STORAGE_MIGRATION_SQL once at bootstrap.
 
-import type { StorageProvider, PutOptions, StoredObject, ObjectInfo } from './index.js';
-import { validateKey } from './index.js';
+import type { StorageProvider, PutOptions, StoredObject, ObjectInfo } from './internal.js';
+import { validateKey } from './internal.js';
 
 /** Schema for the Postgres storage provider. */
 export const STORAGE_MIGRATION_SQL = `
