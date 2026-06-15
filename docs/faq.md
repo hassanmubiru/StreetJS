@@ -232,21 +232,3 @@ See the [Contributing Guide](/contributing/).
 ### Is there a roadmap?
 
 See the [Roadmap](/roadmap/).
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": [
-    {"@type": "Question", "name": "Why StreetJS?", "acceptedAnswer": {"@type": "Answer", "text": "StreetJS is a batteries-included TypeScript backend framework built on Node.js core with a tiny dependency footprint. Auth, realtime, jobs, ORM, AI, and security are built in, so you can self-host a full backend cheaply without assembling many third-party services."}},
-    {"@type": "Question", "name": "How does StreetJS compare to NestJS?", "acceptedAnswer": {"@type": "Answer", "text": "Both use decorators and dependency injection. StreetJS runs directly on Node core (no Express/Fastify adapter), ships a native PostgreSQL driver, and has a much smaller dependency tree. NestJS has a far larger ecosystem and community."}},
-    {"@type": "Question", "name": "How does StreetJS compare to Fastify?", "acceptedAnswer": {"@type": "Answer", "text": "Both are performance-minded. Fastify is a fast router with a rich plugin ecosystem; StreetJS bundles DI, ORM, auth, and realtime as first-class features. Fastify has a larger, more mature ecosystem."}},
-    {"@type": "Question", "name": "Is StreetJS production ready?", "acceptedAnswer": {"@type": "Answer", "text": "The engineering is published, signed, provenance-attested, and CI-green with runtime certification. It is suitable for solo developers, internal tools, and early adopters today. It is not yet a default for risk-averse enterprises needing a large ecosystem, hiring pool, audited compliance, and third-party production proof."}},
-    {"@type": "Question", "name": "Is StreetJS open source?", "acceptedAnswer": {"@type": "Answer", "text": "Yes — MIT licensed, with public governance, an RFC process, and a signed plugin ecosystem."}},
-    {"@type": "Question", "name": "What is the security model?", "acceptedAnswer": {"@type": "Answer", "text": "Built-in JWT/sessions/RBAC/MFA, rate limiting, validation, XSS sanitization, field-level encryption, vault mode, and mTLS. Supply chain is hardened with npm provenance, SBOMs, Ed25519-signed plugins, CodeQL, and secret scanning. Compliance materials are control mappings, not audited attestations."}},
-    {"@type": "Question", "name": "How does the plugin model work?", "acceptedAnswer": {"@type": "Answer", "text": "Plugins extend a PluginModule SDK and ship an Ed25519-signed manifest verified against a trust key. Official plugins are signed with the project key in CI; a signature-enforcing host rejects tampered or untrusted manifests."}},
-    {"@type": "Question", "name": "Does StreetJS support an ORM?", "acceptedAnswer": {"@type": "Answer", "text": "Yes — @streetjs/orm provides entity/relation decorators, eager loading (N+1-safe), and model-driven migration generation, on top of a safe parameterized query planner."}},
-    {"@type": "Question", "name": "Does StreetJS support frontend frameworks?", "acceptedAnswer": {"@type": "Answer", "text": "Yes — a framework-agnostic @streetjs/client SDK plus React, Next, Vue, and Nuxt adapters and React UI kits, all consuming public APIs. No frontend dependency is added to core. These packages are 0.1.x previews."}}
-  ]
-}
-</script>
