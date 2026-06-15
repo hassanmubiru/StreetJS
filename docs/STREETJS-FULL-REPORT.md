@@ -183,7 +183,17 @@ Caddy TLS, R2 zero-egress storage) with a managed-vs-self-hosted cost comparison
   export-shape/pure-function tests); APIs may change before 1.0.
 - **Tutorial/example coverage is early** — 6 tutorials + 5 comparisons + 4 example
   pages published against 90/180/365-day targets of 20/50/100 tutorials.
+- **Performance is unbenchmarked head-to-head** — single-box numbers measured
+  (~5.7k req/s, ~64 MB idle), but **no comparative benchmark** vs Fastify/Express
+  exists; treat perf as architecturally-favorable-but-unproven.
 - **Hiring pool** for "StreetJS developers" does not exist.
+
+> A brutally honest, evidence-tiered competitive audit (vs Express/Fastify/NestJS/
+> Laravel/Django/Spring/ASP.NET) lives in `docs/STREETJS-GAP-ANALYSIS.md`. Its
+> realistic composite score is **~62/100** — engineering ~80s, dragged down by
+> adoption (30), market competitiveness (48), and enterprise readiness (55). The
+> remaining gap to incumbents is **~80% social/market (community, ecosystem,
+> proof, hiring), ~20% technical**.
 
 ## 11. Readiness by audience
 
