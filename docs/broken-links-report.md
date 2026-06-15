@@ -16,12 +16,12 @@ description: "Internal link + navigation audit of the StreetJS site."
 
 | Metric | Value |
 |--------|------:|
-| Pages crawled | 142 |
-| Known permalinks | 134 |
+| Pages crawled | 144 |
+| Known permalinks | 140 |
 | **Broken internal links** | **0** |
 | Pages missing `title` | 0 |
 | Pages missing `description` | 0 |
-| Files without front-matter | 12 (deep report docs — see [Documentation Audit](/documentation-audit/)) |
+| Files without front-matter | 11 (deep report docs — see [Documentation Audit](/documentation-audit/)) |
 
 ## What was checked
 
