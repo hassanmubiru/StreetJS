@@ -18,7 +18,7 @@
 // The package depends only on `@streetjs/core`; the in-memory store is the
 // default, and any `ModerationStore` (e.g. a Redis-backed implementation) or a
 // pre-constructed `ModerationToolkit` may be injected for production use.
-import { ModerationToolkit, InMemoryModerationStore, } from '@streetjs/core';
+import { ModerationToolkit, InMemoryModerationStore, } from 'streetjs';
 /**
  * Dating-app blocking and reporting, built on the core {@link ModerationToolkit}
  * (R11.4).
@@ -92,5 +92,5 @@ export class DatingModeration {
         return this.toolkit.audit();
     }
 }
-export { ModerationToolkit, InMemoryModerationStore, UnknownReportError } from '@streetjs/core';
+export { ModerationToolkit, InMemoryModerationStore, UnknownReportError } from 'streetjs';
 //# sourceMappingURL=index.js.map
