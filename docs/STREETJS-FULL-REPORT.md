@@ -98,9 +98,14 @@ keeps monorepo dev installs deterministic and has no effect on published package
 provenance**, verified against the official key (`verify-official-signatures.mjs`,
 18/18): databases (postgres, mysql, **mongodb**), messaging (nats, kafka,
 rabbitmq), payments (stripe, paypal), identity (auth0, clerk, firebase,
-supabase), AI (openai), storage (s3, r2), email/SMS (sendgrid, twilio). Search
-backends covered by `@streetjs/search`. Certification levels (Official/Verified/
-Community) + review checklists documented (`docs/ecosystem/`).
+supabase), AI (openai), storage (s3, r2), email/SMS (sendgrid, twilio). A **19th
+plugin, `@streetjs/plugin-africastalking`** (Africa's Talking: SMS/Bulk SMS/Voice/
+USSD/Airtime/Mobile Money, sandbox+production, zero third-party deps), is **built,
+33/33 tests green, and passes the certification structure suite (229/229)** — added
+to `publish-plugins.yml`, **pending its first npm publish** (CI signs it with the
+official key at publish). Search backends covered by `@streetjs/search`.
+Certification levels (Official/Verified/Community) + review checklists +
+[Plugin Author Guide](/ecosystem/plugin-author-guide/) documented (`docs/ecosystem/`).
 
 ## 6. Testing & runtime certification (VERIFIED)
 
