@@ -60,7 +60,13 @@ jobs:
           node-version: '20'
 
       - name: Build all workspaces
-        run: npm run build --workspaces --if-present
+        run: |
+          # Build core first: its package name is "streetjs", which other
+          # workspaces import. `--workspaces` builds alphabetically (admin before
+          # core), so core must be built up front or dependents fail to resolve it.
+          npm run build -w packages/core
+          npm run build -w packages/cli
+          npm run build --workspaces --if-present
 
       - name: Assert build leaves the tree clean (no manifest re-signing on build)
         run: |
