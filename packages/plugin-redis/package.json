@@ -21,11 +21,11 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsc && npm run sign",
+    "build": "tsc",
     "sign": "node scripts/sign.mjs",
     "lint": "tsc --noEmit",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
-    "prepublishOnly": "npm run clean && npm run build"
+    "prepublishOnly": "npm run clean && npm run build && npm run sign"
   },
   "keywords": [
     "street",

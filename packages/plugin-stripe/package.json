@@ -24,11 +24,11 @@
     "example/**/*"
   ],
   "scripts": {
-    "build": "tsc && node scripts/sign-manifest.mjs",
+    "build": "tsc",
     "sign": "node scripts/sign-manifest.mjs",
     "lint": "tsc --noEmit",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
-    "prepublishOnly": "npm run clean && npm run build"
+    "prepublishOnly": "npm run clean && npm run build && npm run sign"
   },
   "dependencies": {
     "streetjs": "^1.0.6"
