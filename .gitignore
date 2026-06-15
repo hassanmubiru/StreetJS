@@ -67,3 +67,5 @@ packages/core/src/database/sqlite/sqlite3.wasm
 *.CLAUDE.md
 CLAUDE.md
 artifacts/
+
+.scaffold-test/
