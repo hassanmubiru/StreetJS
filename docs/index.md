@@ -183,7 +183,7 @@ description: "StreetJS — production-grade, memory-safe TypeScript backend fram
 <!-- ════════════════════════ HERO ════════════════════════ -->
 <section class="hero">
   <div class="hero-in">
-    <span class="tag"><span class="dot"></span>v1.0.6 · MIT · Node 20+ · TypeScript 5</span>
+    <span class="tag"><span class="dot"></span>v1.0.9 · MIT · Node 20+ · TypeScript 5</span>
     <h1><span class="grad">TypeScript backends,<br>without the bloat</span></h1>
     <p class="hero-sub">Production-grade and memory-safe, built straight from Node.js core. Every feature implemented in-house — no Express, no pg, no Prisma.</p>
     <div class="nots">
