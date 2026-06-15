@@ -68,6 +68,7 @@ const leaked = remaining.length;
 if (leaked > 0) {
   console.log('post-close socket detail:', remaining.map((s) => ({
     destroyed: s.destroyed, readable: s.readable, writable: s.writable, pending: s.pending,
+    remote: `${s.remoteAddress ?? '?'}:${s.remotePort ?? '?'}`, local: `${s.localPort ?? '?'}`,
   })));
 }
 

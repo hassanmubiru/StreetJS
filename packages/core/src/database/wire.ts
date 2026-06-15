@@ -507,14 +507,17 @@ export class PgConnection {
         if (this.queryReject) { this.queryReject(err); this.queryReject = null; }
         if (this.streamTarget) { this.streamTarget.finalize(err); this.streamTarget = null; }
         this._drainGate(); // wake any acquirers so they fail fast (no hang)
+        try { socket.destroy(); } catch { /* already gone */ } // guarantee socket teardown (no half-open leak)
       });
 
       socket.once('close', () => {
         this.state = 'closed';
         const err = new Error('PostgreSQL connection closed unexpectedly');
+        if (this.authReject) { this.authReject(err); this.authReject = null; } // reject a pending connect (outage)
         if (this.queryReject) { this.queryReject(err); this.queryReject = null; }
         if (this.streamTarget) { this.streamTarget.finalize(err); this.streamTarget = null; }
         this._drainGate(); // wake any acquirers so they fail fast (no hang)
+        if (this.socket && !this.socket.destroyed) { try { this.socket.destroy(); } catch { /* noop */ } }
       });
     });
   }
