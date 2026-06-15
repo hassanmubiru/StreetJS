@@ -28,6 +28,18 @@ describe('buildUrl', () => {
     assert.equal(buildUrl('/api/', '/users', { a: 1, b: undefined, c: 'x' }), '/api/users?a=1&c=x');
     assert.equal(buildUrl('https://h.co', 'ping'), 'https://h.co/ping');
   });
+  it('trims multiple trailing slashes (regex-free)', () => {
+    assert.equal(buildUrl('https://h.co///', '/users'), 'https://h.co/users');
+    assert.equal(buildUrl('/api///', 'x'), '/api/x');
+  });
+  it('handles a 100k-slash base in linear time without throwing (ReDoS guard)', () => {
+    const evil = 'https://h.co' + '/'.repeat(100_000);
+    const start = process.hrtime.bigint();
+    const out = buildUrl(evil, '/users');
+    const ms = Number(process.hrtime.bigint() - start) / 1e6;
+    assert.equal(out, 'https://h.co/users');
+    assert.ok(ms < 50, `expected <50ms, took ${ms.toFixed(2)}ms`);
+  });
 });
 
 describe('resource CRUD', () => {
