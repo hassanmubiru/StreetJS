@@ -1,13 +1,24 @@
 {
   "name": "@streetjs/nuxt",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Nuxt 3 plugin + composables for StreetJS, built on @streetjs/vue and @streetjs/client.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "sideEffects": false,
-  "exports": { ".": { "import": "./dist/index.js", "types": "./dist/index.d.ts" } },
-  "files": ["dist/**/*.js","dist/**/*.js.map","dist/**/*.d.ts","dist/**/*.d.ts.map","README.md"],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.js.map",
+    "dist/**/*.d.ts",
+    "dist/**/*.d.ts.map",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
     "lint": "tsc --noEmit",
@@ -15,15 +26,40 @@
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
     "prepublishOnly": "npm run clean && npm run build"
   },
-  "keywords": ["street", "streetjs", "nuxt", "vue", "composables", "client"],
+  "keywords": [
+    "street",
+    "streetjs",
+    "nuxt",
+    "vue",
+    "composables",
+    "client"
+  ],
   "author": "street contributors",
   "license": "MIT",
   "homepage": "https://hassanmubiru.github.io/street/",
-  "repository": { "type": "git", "url": "git+https://github.com/hassanmubiru/street.git" },
-  "bugs": { "url": "https://github.com/hassanmubiru/street/issues" },
-  "dependencies": { "@streetjs/client": "^0.1.0", "@streetjs/vue": "^0.1.0" },
-  "peerDependencies": { "vue": ">=3.4" },
-  "devDependencies": { "@types/node": "^25.9.2", "typescript": "^6.0.3", "vue": "^3.4.0" },
-  "engines": { "node": ">=20.0.0" },
-  "publishConfig": { "access": "public" }
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hassanmubiru/street.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hassanmubiru/street/issues"
+  },
+  "dependencies": {
+    "@streetjs/client": "^0.1.0",
+    "@streetjs/vue": "^0.1.0"
+  },
+  "peerDependencies": {
+    "vue": ">=3.4"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.2",
+    "typescript": "^6.0.3",
+    "vue": "^3.4.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
 }

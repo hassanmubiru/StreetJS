@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/client",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Universal, framework-agnostic, zero-dependency type-safe client SDK for StreetJS backends (browser + Node).",
   "type": "module",
   "main": "./dist/index.js",
@@ -26,14 +26,36 @@
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
     "prepublishOnly": "npm run clean && npm run build"
   },
-  "keywords": ["street", "streetjs", "client", "sdk", "api", "realtime", "isomorphic"],
+  "keywords": [
+    "street",
+    "streetjs",
+    "client",
+    "sdk",
+    "api",
+    "realtime",
+    "isomorphic"
+  ],
   "author": "street contributors",
   "license": "MIT",
   "homepage": "https://hassanmubiru.github.io/street/",
-  "repository": { "type": "git", "url": "git+https://github.com/hassanmubiru/street.git" },
-  "bugs": { "url": "https://github.com/hassanmubiru/street/issues" },
-  "devDependencies": { "@types/node": "^25.9.2", "typescript": "^6.0.3" },
-  "peerDependencies": { "typescript": ">=5.0.0" },
-  "engines": { "node": ">=20.0.0" },
-  "publishConfig": { "access": "public" }
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hassanmubiru/street.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hassanmubiru/street/issues"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.2",
+    "typescript": "^6.0.3"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
 }

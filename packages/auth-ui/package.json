@@ -1,13 +1,24 @@
 {
   "name": "@streetjs/auth-ui",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Accessible, themeable React auth components for StreetJS (login, register, forgot-password, MFA, profile) built on @streetjs/react.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "sideEffects": false,
-  "exports": { ".": { "import": "./dist/index.js", "types": "./dist/index.d.ts" } },
-  "files": ["dist/**/*.js","dist/**/*.js.map","dist/**/*.d.ts","dist/**/*.d.ts.map","README.md"],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.js.map",
+    "dist/**/*.d.ts",
+    "dist/**/*.d.ts.map",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
     "lint": "tsc --noEmit",
@@ -15,15 +26,43 @@
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
     "prepublishOnly": "npm run clean && npm run build"
   },
-  "keywords": ["street", "streetjs", "react", "auth", "ui", "components", "login", "mfa"],
+  "keywords": [
+    "street",
+    "streetjs",
+    "react",
+    "auth",
+    "ui",
+    "components",
+    "login",
+    "mfa"
+  ],
   "author": "street contributors",
   "license": "MIT",
   "homepage": "https://hassanmubiru.github.io/street/",
-  "repository": { "type": "git", "url": "git+https://github.com/hassanmubiru/street.git" },
-  "bugs": { "url": "https://github.com/hassanmubiru/street/issues" },
-  "dependencies": { "@streetjs/client": "^0.1.0", "@streetjs/react": "^0.1.0" },
-  "peerDependencies": { "react": ">=18" },
-  "devDependencies": { "@types/node": "^25.9.2", "@types/react": "^18.3.0", "react": "^18.3.1", "typescript": "^6.0.3" },
-  "engines": { "node": ">=20.0.0" },
-  "publishConfig": { "access": "public" }
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hassanmubiru/street.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hassanmubiru/street/issues"
+  },
+  "dependencies": {
+    "@streetjs/client": "^0.1.0",
+    "@streetjs/react": "^0.1.0"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.2",
+    "@types/react": "^18.3.0",
+    "react": "^18.3.1",
+    "typescript": "^6.0.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
 }
