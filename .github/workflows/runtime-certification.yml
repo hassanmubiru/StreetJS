@@ -59,7 +59,7 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Build buildable workspaces (fixpoint)
+      - name: Build all workspaces (ordered + strict final pass)
         run: |
           # Core ("streetjs") must build before anything that imports it.
           npm run build -w packages/core
