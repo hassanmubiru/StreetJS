@@ -30,9 +30,13 @@ proven longevity.
 | `@streetjs/{client,react,next,vue,nuxt}` | **0.1.0** (published) | ✅ |
 | `@streetjs/{auth-ui,ai-ui,admin-ui}` | **0.1.0** (published) | ✅ |
 
-Repo: **46 packages**, **29 CI workflows**. Latest full `ci-cd` run on `main`:
+Repo: **46 packages**, **31 CI workflows**. Latest full `ci-cd` run on `main`:
 **success (VERIFIED)**. Frontend packages additionally gated by `frontend-ci.yml`
-(Node 20/22) and published via `publish-frontend.yml`.
+(Node 20/22) and published via `publish-frontend.yml`. **Workspace build is
+reproducible:** `import-smoke` reports **46/46 packages load, 0 fail, 0 skip**;
+circular-dependency scan **0 cycles** repo-wide (after fixing barrel cycles in
+`storage` and `search`); the former publish-only `@streetjs/core` shim is now
+workspace-buildable and its dependents were migrated to `streetjs`.
 
 ## 3. Architecture & core (IMPLEMENTED; exercised by green CI)
 
