@@ -17,7 +17,7 @@ description: "Front-matter, navigation, and SEO audit of the StreetJS documentat
 |-------|-------:|
 | Pages with front-matter & a `title` | **all pass** (0 missing) |
 | Pages with front-matter & a `description` | **all pass** (0 missing) |
-| Markdown files with **no** front-matter | 12 |
+| Markdown files with **no** front-matter | 11 |
 
 ## Files without front-matter (intentional vs. to-fix)
 
