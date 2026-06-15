@@ -49,7 +49,7 @@ the relevant guide; standalone walkthroughs are published incrementally (see the
 | Topic | Reference |
 |-------|-----------|
 | High-Traffic API Design | [Performance](/performance/) |
-| Zero-Trust Security Architecture | [Security](/security/), [Threat Model](/THREAT-MODEL/) |
+| Zero-Trust Security Architecture | [Security](/security/) |
 | Observability & Monitoring | [Observability](/observability/) |
 | Kubernetes Deployment | [Deployment](/deployment/) |
 | Enterprise RBAC & Audit Logging | [Enterprise](/enterprise/) |
