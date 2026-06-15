@@ -16,37 +16,14 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { promises as fs } from 'node:fs';
 import { join, normalize, sep } from 'node:path';
+import { validateKey } from './internal.js';
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+// ── Types (defined in ./internal.js to avoid a barrel import cycle) ─────────────
 
-export interface PutOptions {
-  contentType?: string;
-  metadata?: Record<string, string>;
-}
+export type { PutOptions, StoredObject, ObjectInfo, StorageProvider } from './internal.js';
+export { validateKey } from './internal.js';
 
-export interface StoredObject {
-  key: string;
-  data: Buffer;
-  contentType: string;
-  size: number;
-  metadata: Record<string, string>;
-}
-
-export interface ObjectInfo {
-  key: string;
-  size: number;
-  contentType: string;
-}
-
-/** Pluggable storage backend. Keys are forward-slash paths (e.g. `a/b.png`). */
-export interface StorageProvider {
-  readonly name: string;
-  put(key: string, data: Buffer, options?: PutOptions): Promise<ObjectInfo>;
-  get(key: string): Promise<StoredObject | undefined>;
-  delete(key: string): Promise<boolean>;
-  exists(key: string): Promise<boolean>;
-  list(prefix?: string): Promise<ObjectInfo[]>;
-}
+import type { PutOptions, ObjectInfo, StoredObject, StorageProvider } from './internal.js';
 
 // ── In-memory provider (default) ───────────────────────────────────────────────
 
@@ -325,19 +302,7 @@ export class StorageService {
   }
 }
 
-// ── key validation (shared) ─────────────────────────────────────────────────────
-
-/** Validate an object key: non-empty, no NUL, no `..` segments, no leading `/`. */
-export function validateKey(key: string): string {
-  if (typeof key !== 'string' || key.length === 0) {
-    throw new Error('storage: key must be a non-empty string');
-  }
-  if (key.includes('\u0000')) throw new Error('storage: key must not contain NUL');
-  if (key.startsWith('/') || key.startsWith('\\')) throw new Error('storage: key must be relative');
-  const parts = key.split(/[/\\]/);
-  if (parts.some((p) => p === '..')) throw new Error('storage: key must not contain ".." segments');
-  return key;
-}
+// ── key validation lives in ./internal.js (re-exported above) ───────────────────
 
 export * from './pg.js';
 export * from './gcs.js';
