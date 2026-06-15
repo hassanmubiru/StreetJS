@@ -1,0 +1,73 @@
+{
+  "name": "@streetjs/plugin-africastalking",
+  "version": "1.0.0",
+  "description": "Official Street Framework plugin: Africa's Talking (SMS, Bulk SMS, Voice, USSD, Airtime, Mobile Money). Signed manifest, PluginModule SDK, zero third-party deps.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./manifest": "./manifest.json",
+    "./manifest.signed": "./manifest.signed.json"
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.js.map",
+    "dist/**/*.d.ts",
+    "dist/**/*.d.ts.map",
+    "manifest.json",
+    "manifest.signed.json",
+    "README.md",
+    "example/**/*"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "sign": "node scripts/sign-manifest.mjs",
+    "lint": "tsc --noEmit",
+    "test": "node --test test/*.test.mjs",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "prepublishOnly": "npm run clean && npm run build && npm run sign"
+  },
+  "dependencies": {
+    "streetjs": "^1.0.9"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.2",
+    "typescript": "^6.0.3"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": [
+    "street",
+    "streetjs",
+    "street-plugin",
+    "africas-talking",
+    "africastalking",
+    "sms",
+    "ussd",
+    "voice",
+    "airtime",
+    "mobile-money",
+    "africa"
+  ],
+  "author": "street contributors",
+  "license": "MIT",
+  "homepage": "https://hassanmubiru.github.io/street/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hassanmubiru/street.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hassanmubiru/street/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
