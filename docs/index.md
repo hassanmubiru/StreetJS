@@ -6,6 +6,24 @@ permalink:   /
 description: "StreetJS — production-grade, memory-safe TypeScript backend framework. Native PostgreSQL, JWT, WebSockets, clustering. 2 dependencies."
 ---
 
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "StreetJS",
+  "applicationCategory": "DeveloperApplication",
+  "applicationSubCategory": "Backend Web Framework",
+  "operatingSystem": "Node.js 20+",
+  "description": "Batteries-included TypeScript backend framework built on Node.js core: native PostgreSQL/MySQL/SQLite drivers, JWT/sessions/RBAC/MFA, WebSockets and realtime channels, jobs, ORM, AI, and observability — with a tiny dependency footprint and a signed plugin ecosystem.",
+  "url": "https://hassanmubiru.github.io/street/",
+  "downloadUrl": "https://www.npmjs.com/package/streetjs",
+  "codeRepository": "https://github.com/hassanmubiru/street",
+  "programmingLanguage": "TypeScript",
+  "license": "https://opensource.org/licenses/MIT",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
