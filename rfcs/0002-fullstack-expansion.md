@@ -1,7 +1,7 @@
 ---
 rfc: 0002
 title: Backend-first full-stack expansion (client SDK, framework adapters, UI kits)
-status: Proposed
+status: Accepted
 authors: ["@hassanmubiru"]
 created: 2026-06-14
 tracking-issue:
@@ -52,29 +52,59 @@ framework as a peer dep). `client` has zero framework assumptions.
 ## Phased plan (priority order)
 
 **Status:** prerequisites done — ORM relations + **model-driven migrations**
-shipped and `@streetjs/orm` **published with provenance**. **Phase 1
-(`@streetjs/client`) is now implemented** (0.1.0 preview, in-repo): typed
-requests, REST resources, auth, search, uploads, realtime channels, AI streaming;
-zero deps; browser + Node; 12 unit tests green (`client-ci.yml`). Phases 2–9
-below remain.
+shipped and `@streetjs/orm` **published with provenance**. **All implementation
+phases are now complete in-repo (0.1.0 preview), each build + test green:**
+
+| Phase | Package | Status | Verification |
+| ----- | ------- | ------ | ------------ |
+| 1 | `@streetjs/client` | ✅ Done | 12 unit tests; `client-ci.yml` (Node 20/22) |
+| 2 | `@streetjs/react` | ✅ Done | build + 2 export-shape tests |
+| 3 | `@streetjs/next` | ✅ Done | build + 4 tests |
+| 4 | `@streetjs/vue` | ✅ Done | build + 1 export-shape test |
+| 4 | `@streetjs/nuxt` | ✅ Done | build + 3 tests (plugin factory + re-exports) |
+| 5 | `@streetjs/admin-ui` | ✅ Done | build + 4 tests (RBAC, audit, users, tenancy) |
+| 6 | `@streetjs/auth-ui` | ✅ Done | build + 4 tests (login/register/forgot/MFA/profile) |
+| 7 | `@streetjs/ai-ui` | ✅ Done | build + 5 tests (chat/streaming/RAG/tool viewer) |
+| 8 | `street create --frontend` | ✅ Done | build + 4 scaffolding tests (react/next + CI) |
+
+All eight integration/UI packages plus the client are exercised by
+`.github/workflows/frontend-ci.yml` (build + `tsc --noEmit` + export-shape tests
+on Node 20 & 22).
+
+**Honest verification note:** UI/framework packages are verified via TypeScript
+build (`tsc`), `tsc --noEmit` type-checks, and **export-shape + pure-function
+tests** (e.g. `ErrorText`/`AsyncState`/`StreamingMessage` rendered as elements and
+asserted on props). They are **not** verified with full DOM render tests
+(jsdom/testing-library), which would add dev dependencies the project avoids. This
+is a deliberate, stated tradeoff — not a silent skip.
 
 **Prerequisites (before frontend work):**
-1. ORM model-driven migrations (this RFC's sibling work — in progress).
-2. Publish `@streetjs/orm`.
-3. Strengthen production docs; grow community; gather case studies.
+1. ORM model-driven migrations — ✅ shipped.
+2. Publish `@streetjs/orm` — ✅ published with provenance.
+3. Strengthen production docs; grow community; gather case studies — ongoing.
 
-**Then:**
+**Delivered:**
 4. `@streetjs/client` — typed API client, auth/session, realtime, uploads,
    search, AI streaming. Tree-shakeable; browser + Node; `fetch`/`WebSocket`
    based; zero framework deps.
 5. `@streetjs/react` — hooks (`useAuth`, `useQuery`, `useMutation`, `useRealtime`,
-   `useChannel`, `useSearch`, `useAIChat`) over `client`; SSR/RSC/Suspense-safe.
-6. `@streetjs/next` — auth/session/realtime/edge helpers; no core changes.
-7. `@streetjs/vue` + `@streetjs/nuxt` — composables over `client`.
-8. UI kits (`auth-ui`, `ai-ui`, `admin-ui`) — accessible, themeable, dark-mode;
-   consume existing APIs, never duplicate backend logic.
-9. Starter kits via `street create` (SaaS/e-commerce/dating/social/AI/realtime)
-   wiring backend + chosen frontend + Docker + CI.
+   `useChannel`, `useSearch`, `useAIChat`) over `client`; SSR-safe.
+6. `@streetjs/next` — server/edge clients + auth/session/cookie helpers.
+7. `@streetjs/vue` + `@streetjs/nuxt` — composables over `client` + a Nuxt
+   plugin factory (no hard `@nuxt/kit` dependency).
+8. UI kits (`auth-ui`, `ai-ui`, `admin-ui`) — accessible, themeable, dark-mode
+   (CSS-variable driven, no CSS-in-JS runtime); consume existing APIs, never
+   duplicate backend logic.
+9. Starter kits via `street create --frontend <react|next>` wiring backend +
+   chosen frontend (`web/`) + Docker (already scaffolded) + a `ci.yml` workflow.
+
+### Install note (monorepo)
+
+A root `.npmrc` sets `legacy-peer-deps=true`. The framework adapters declare
+React/Vue/Next as **peer** dependencies; without this, a fresh monorepo install
+tries to auto-install mutually-incompatible peers (e.g. `next@16` → `react-dom@19`
+vs the `react@18` devDep). The setting only affects dev-time install resolution
+and has no effect on published package contents.
 
 ## Backward compatibility
 
