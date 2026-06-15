@@ -27,6 +27,8 @@ proven longevity.
 | `@streetjs/cli` | **1.0.9** | ✅ |
 | `@streetjs/plugin-*` (×18) | **1.0.1** | ✅ + official Ed25519 signature |
 | `@streetjs/orm` | **0.1.0** (published) | ✅ |
+| `@streetjs/{client,react,next,vue,nuxt}` | **0.1.0** (published) | ✅ |
+| `@streetjs/{auth-ui,ai-ui,admin-ui}` | **0.1.0** (published) | ✅ |
 
 Repo: **46 packages**, **29 CI workflows**. Latest full `ci-cd` run on `main`:
 **success (VERIFIED)**. Frontend packages additionally gated by `frontend-ci.yml`
