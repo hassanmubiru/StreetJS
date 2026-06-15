@@ -133,7 +133,7 @@ harness pattern and tracked for follow-up.
   the plugin contract, defensive config validation, Ed25519 manifest signing
   (release-only, key-required), the CI git-clean gate, and the certification path.
 - Existing: [Tutorials & Examples Program](/adoption/tutorials-and-examples-program/),
-  [contributor path](/community/contributor-path.md), [framework comparisons](/compare/),
+  [contributor path](/community/contributor-path/), [framework comparisons](/compare/),
   case-study templates (`docs/case-studies/`).
 
 ---
