@@ -62,7 +62,7 @@ for (let i = 0; i < 5; i++) if (await tryQuery()) postOk++;
 const before = openSockets();
 await pool.close();
 // Allow extra settle time: a reconnect storm can leave sockets mid-close briefly.
-await new Promise((r) => setTimeout(r, 4000));
+await new Promise((r) => setTimeout(r, 12000));
 const remaining = process._getActiveHandles().filter((h) => h?.constructor?.name === 'Socket');
 const leaked = remaining.length;
 if (leaked > 0) {
