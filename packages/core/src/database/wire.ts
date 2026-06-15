@@ -981,14 +981,22 @@ export class PgConnection {
 
   /** Close the connection gracefully */
   async close(): Promise<void> {
-    if (this.state === 'closed') return;
+    const socket = this.socket;
+    const wasOpen = this.state !== 'closed';
     this.state = 'closed';
+    if (!socket) return;
+    // Always destroy the socket, even if state was already 'closed' (e.g. a peer
+    // reset/restart set state via the error/close handler without tearing the
+    // socket down). Otherwise the half-open socket leaks past pool.close().
+    if (socket.destroyed) { this.socket = null; return; }
     return new Promise((resolve) => {
-      if (!this.socket) { resolve(); return; }
-      this.socket.write(buildTerminateMessage(), () => {
-        this.socket?.destroy();
-        resolve();
-      });
+      const done = (): void => { try { socket.destroy(); } catch { /* already gone */ } this.socket = null; resolve(); };
+      if (wasOpen) {
+        try { socket.write(buildTerminateMessage(), () => done()); }
+        catch { done(); }
+      } else {
+        done();
+      }
     });
   }
 
