@@ -507,17 +507,14 @@ export class PgConnection {
         if (this.queryReject) { this.queryReject(err); this.queryReject = null; }
         if (this.streamTarget) { this.streamTarget.finalize(err); this.streamTarget = null; }
         this._drainGate(); // wake any acquirers so they fail fast (no hang)
-        try { socket.destroy(); } catch { /* already gone */ } // guarantee socket teardown (no half-open leak)
       });
 
       socket.once('close', () => {
         this.state = 'closed';
         const err = new Error('PostgreSQL connection closed unexpectedly');
-        if (this.authReject) { this.authReject(err); this.authReject = null; } // reject a pending connect (outage)
         if (this.queryReject) { this.queryReject(err); this.queryReject = null; }
         if (this.streamTarget) { this.streamTarget.finalize(err); this.streamTarget = null; }
         this._drainGate(); // wake any acquirers so they fail fast (no hang)
-        if (this.socket && !this.socket.destroyed) { try { this.socket.destroy(); } catch { /* noop */ } }
       });
     });
   }
@@ -984,33 +981,14 @@ export class PgConnection {
 
   /** Close the connection gracefully */
   async close(): Promise<void> {
-    const socket = this.socket;
-    const wasOpen = this.state !== 'closed';
+    if (this.state === 'closed') return;
     this.state = 'closed';
-    if (!socket) return;
-    if (socket.destroyed) { this.socket = null; return; }
     return new Promise((resolve) => {
-      let settled = false;
-      const done = (): void => {
-        if (settled) return;
-        settled = true;
-        try { socket.destroy(); } catch { /* already gone */ }
-        this.socket = null;
+      if (!this.socket) { resolve(); return; }
+      this.socket.write(buildTerminateMessage(), () => {
+        this.socket?.destroy();
         resolve();
-      };
-      // Always destroy promptly. For a healthy socket we send a graceful
-      // Terminate first; but a ghost socket (peer vanished without FIN/RST) may
-      // never flush the write callback, so a short fallback timer guarantees the
-      // socket is destroyed and never leaks past close().
-      const fallback = setTimeout(done, 250);
-      fallback.unref?.();
-      if (wasOpen) {
-        try { socket.write(buildTerminateMessage(), () => { clearTimeout(fallback); done(); }); }
-        catch { clearTimeout(fallback); done(); }
-      } else {
-        clearTimeout(fallback);
-        done();
-      }
+      });
     });
   }
 
