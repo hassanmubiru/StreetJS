@@ -632,7 +632,8 @@ interface Health { status: string; uptime: number }
 
 export default function Home() {
   const { session, loading } = useAuth();
-  const health = useQuery<Health>(() => fetch('/api/../health').then((r) => r.json()));
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? '';
+  const health = useQuery<Health>(() => fetch(apiUrl + '/health').then((r) => r.json()));
 
   return (
     <main style={{ maxWidth: 640, margin: '40px auto', padding: 16 }}>
