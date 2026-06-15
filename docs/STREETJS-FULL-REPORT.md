@@ -52,6 +52,37 @@ up/down SQL). **VERIFIED:** 29 offline unit tests + 5 live-PostgreSQL integratio
 tests (incl. a migration generate→apply→idempotent round-trip), CI
 `orm-integration.yml` green. RFC 0001 fully implemented.
 
+## 4a. Full-stack expansion (IMPLEMENTED; RFC 0002 Accepted)
+
+Additive, backend-first expansion — **no frontend dependency entered core** and
+**no core subsystem was rewritten** (RFC 0002 hard constraints honored). Nine new
+packages, each consuming `@streetjs/client` or public HTTP/WS APIs only, never
+core internals:
+
+| Package | Role | Verification |
+| ------- | ---- | ------------ |
+| `@streetjs/client` | Universal, zero-dep typed SDK (requests, REST, auth, search, uploads, realtime, AI streaming) | 12 unit tests; `client-ci.yml` Node 20/22 |
+| `@streetjs/react` | Hooks over the client (auth/query/mutation/realtime/search/AI) | build + 2 tests |
+| `@streetjs/next` | Server/edge clients + auth/session/cookie helpers | build + 4 tests |
+| `@streetjs/vue` | Vue 3 composables | build + 1 test |
+| `@streetjs/nuxt` | Nuxt plugin factory + composable re-exports | build + 3 tests |
+| `@streetjs/auth-ui` | Login/Register/Forgot/MFA/Profile React components | build + 4 tests |
+| `@streetjs/ai-ui` | Chat/Streaming/RAG search/Tool viewer | build + 5 tests |
+| `@streetjs/admin-ui` | RBAC/Audit/User management/Multi-tenancy | build + 4 tests |
+| `street create --frontend` | Scaffolds a `web/` React (Vite) or Next app + `ci.yml` | build + 4 tests |
+
+All exercised by `.github/workflows/frontend-ci.yml` (build + `tsc --noEmit` +
+tests on Node 20 & 22). **Honest scope note:** UI/adapter packages are verified by
+TypeScript build, type-check, and export-shape + pure-function tests — **not** full
+DOM render tests (which would add jsdom/testing-library dev deps the project
+avoids). This is a stated tradeoff, not a silent skip. The framework adapters
+declare React/Vue/Next as **peer** deps; a root `.npmrc` (`legacy-peer-deps=true`)
+keeps monorepo dev installs deterministic and has no effect on published packages.
+
+> Not yet published to npm: the nine packages above are in-repo 0.1.0 previews.
+> Publishing them (so `street create --frontend` installs cleanly for end users)
+> is the remaining release step.
+
 ## 5. Ecosystem (VERIFIED)
 
 18 official, dependency-free, Ed25519-signed plugins, all **1.0.1 with
