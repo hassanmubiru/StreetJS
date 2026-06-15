@@ -24,7 +24,7 @@ Express, Laravel, Django, ASP.NET Core, Spring Boot).
 
 | Dimension | Score | Basis / deduction |
 |-----------|:----:|-------------------|
-| Architecture | **86** | VERIFIED: 46 packages, clean module boundaries, 0 circular deps repo-wide (after 2 fixes this session), native drivers, additive frontend layer. Deduction: a publish-only `@streetjs/core` shim with no workspace dist blocks ~4 packages from cold-building — a real graph wart. |
+| Architecture | **88** | VERIFIED: 46 packages, clean module boundaries, 0 circular deps repo-wide, native drivers, additive frontend layer. The former `@streetjs/core` cold-build wart is **resolved** — dependents migrated to `streetjs` and the shim is now workspace-buildable; **import-smoke 46/46, 0 skips**. |
 | Security | **80** | VERIFIED: 18/18 Ed25519-signed plugins, provenance, SBOM, CodeQL/secret-scanning green, JWT/MFA/RBAC/vault/mTLS in source. Deduction: compliance is **documentation-only** (no audit); DAST has a workflow but **no execution evidence** seen; multi-tenant isolation not penetration-tested. |
 | Reliability | **78** | VERIFIED: runtime cert 9/9, PG/MySQL/SQLite lifecycle + clean teardown, chaos **recovery** (~1s). PARTIAL: full soak (only 30s locally; 30/60-min scheduled), 10k-WS (only 1k locally), chaos matrix (only PG restart). No DR tooling. |
 | Performance | **UNKNOWN (est. 70)** | No comparative benchmark executed. Native Node-core HTTP + native PG driver are *architecturally* favorable; 5k req @ ~5.7k rps / 1k WS @ 100% delivery were VERIFIED locally, but **no head-to-head vs Fastify/Express** exists. Treat as unproven. |
