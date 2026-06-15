@@ -70,6 +70,7 @@ const OFFICIAL_PLUGIN_PACKAGES: ReadonlyArray<{ dir: string; category: string }>
   { dir: 'plugin-supabase', category: 'database' },
   { dir: 'plugin-firebase', category: 'identity' },
   { dir: 'plugin-mongodb', category: 'database' },
+  { dir: 'plugin-africastalking', category: 'messaging' },
 ];
 
 function pkgPath(pkgDir: string, ...rest: string[]): string {
