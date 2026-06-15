@@ -61,13 +61,10 @@ jobs:
 
       - name: Build buildable workspaces (fixpoint)
         run: |
-          # Build plugins strictly (they are self-contained — the Phase 1 git-clean
-          # gate below depends on them). Then fixpoint-build the rest, tolerating
-          # failures: a few packages depend on the publish-only @streetjs/core shim
-          # (no workspace dist) and cannot cold-build here — verify:runtime marks
-          # those SKIP (never silent-pass). We deliberately do NOT run a strict
-          # `--workspaces` pass, which would fail on that known, separately-tracked
-          # limitation rather than on a real regression.
+          # Core ("streetjs") must build before anything that imports it.
+          npm run build -w packages/core
+          # Plugins build strictly (self-contained besides streetjs) — the Phase 1
+          # git-clean gate below depends on them.
           for p in $(ls -d packages/plugin-*/ | sed 's#/$##'); do
             npm run build -w "$p"
           done
