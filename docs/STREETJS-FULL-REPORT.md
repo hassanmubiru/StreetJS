@@ -129,8 +129,14 @@ soak (event-loop/RSS/handle leak gate), WS scale (1k/5k/10k), and DB-restart cha
 Gitleaks + TruffleHog secret scanning, dependency review + high-sev audit, CodeQL,
 zizmor workflow lint, npm provenance + CI provenance gate, per-release CycloneDX
 SBOM, Ed25519 plugin signing with an embedded official trust key, Actions pinned
-to SHAs. Recently resolved CodeQL alerts: ReDoS (#110), `cat` subprocess (#107),
-plus the earlier admin ReDoS and stack-trace exposures.
+to SHAs. Resolved CodeQL alerts: polynomial-ReDoS in `client/realtime.ts` (×2) and
+`client/http.ts` (×1) — all confirmed **fixed** via the code-scanning API, **0
+open polynomial-ReDoS alerts repo-wide**; earlier ReDoS (#110), `cat` subprocess
+(#107), admin ReDoS, stack-trace exposures. **Plugin-signing hardened:** `build`
+never signs; `sign` requires `STREET_PLUGIN_SIGNING_KEY` and fails without it;
+`prepublishOnly` runs `build && sign`; a CI gate asserts `build` leaves the tree
+clean — closing an earlier footgun where a keyless build re-signed manifests with
+an ephemeral key. 18/18 published signatures still verify.
 
 ## 8. Deployment & docs (IMPLEMENTED)
 
