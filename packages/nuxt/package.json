@@ -23,7 +23,7 @@
   "bugs": { "url": "https://github.com/hassanmubiru/street/issues" },
   "dependencies": { "@streetjs/client": "^0.1.0", "@streetjs/vue": "^0.1.0" },
   "peerDependencies": { "vue": ">=3.4" },
-  "devDependencies": { "@types/node": "^25.9.1", "typescript": "^6.0.3", "vue": "^3.4.0" },
+  "devDependencies": { "@types/node": "^25.9.2", "typescript": "^6.0.3", "vue": "^3.4.0" },
   "engines": { "node": ">=20.0.0" },
   "publishConfig": { "access": "public" }
 }

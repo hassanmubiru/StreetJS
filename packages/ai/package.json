@@ -50,7 +50,7 @@
     "url": "https://github.com/hassanmubiru/street/issues"
   },
   "devDependencies": {
-    "@types/node": "^25.9.1",
+    "@types/node": "^25.9.2",
     "fast-check": "^4.8.0",
     "typescript": "^6.0.3"
   },
