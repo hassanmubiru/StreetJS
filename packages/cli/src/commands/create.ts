@@ -347,6 +347,352 @@ export class CreateCommand {
     console.log(`[street] Applied "${template}" template: ${spec.description}`);
   }
 
+  /**
+   * Scaffold an optional frontend app under `web/`, wired to the backend via
+   * @streetjs/client + @streetjs/react. 'react' produces a Vite SPA; 'next'
+   * produces a minimal App-Router Next.js app. The frontend is a sibling app
+   * (its own package.json) — it never becomes a dependency of the backend.
+   */
+  private async scaffoldFrontend(targetDir: string, frontend: string, projectName: string): Promise<void> {
+    const webDir = join(targetDir, 'web');
+    if (frontend === 'react') {
+      await mkdir(join(webDir, 'src'), { recursive: true });
+      await writeFile(join(webDir, 'package.json'), this.renderWebReactPackageJson(projectName), 'utf8');
+      await writeFile(join(webDir, 'tsconfig.json'), this.renderWebReactTsconfig(), 'utf8');
+      await writeFile(join(webDir, 'vite.config.ts'), this.renderViteConfig(), 'utf8');
+      await writeFile(join(webDir, 'index.html'), this.renderWebIndexHtml(projectName), 'utf8');
+      await writeFile(join(webDir, 'src', 'main.tsx'), this.renderWebReactMain(), 'utf8');
+      await writeFile(join(webDir, 'src', 'App.tsx'), this.renderWebReactApp(projectName), 'utf8');
+      await writeFile(join(webDir, '.env.example'), 'VITE_API_URL=http://localhost:3000\n', 'utf8');
+      console.log('[street] Scaffolded React (Vite) frontend in web/.');
+    } else if (frontend === 'next') {
+      await mkdir(join(webDir, 'app'), { recursive: true });
+      await writeFile(join(webDir, 'package.json'), this.renderWebNextPackageJson(projectName), 'utf8');
+      await writeFile(join(webDir, 'tsconfig.json'), this.renderWebNextTsconfig(), 'utf8');
+      await writeFile(join(webDir, 'next.config.mjs'), this.renderNextConfig(), 'utf8');
+      await writeFile(join(webDir, 'app', 'layout.tsx'), this.renderNextLayout(projectName), 'utf8');
+      await writeFile(join(webDir, 'app', 'page.tsx'), this.renderNextPage(projectName), 'utf8');
+      await writeFile(join(webDir, 'app', 'providers.tsx'), this.renderNextProviders(), 'utf8');
+      await writeFile(join(webDir, '.env.example'), 'NEXT_PUBLIC_API_URL=http://localhost:3000\n', 'utf8');
+      console.log('[street] Scaffolded Next.js (App Router) frontend in web/.');
+    }
+  }
+
+  /** Write a GitHub Actions workflow that builds (and tests) the backend, and the web app when present. */
+  private async scaffoldCI(targetDir: string, frontend: string): Promise<void> {
+    await mkdir(join(targetDir, '.github', 'workflows'), { recursive: true });
+    await writeFile(join(targetDir, '.github', 'workflows', 'ci.yml'), this.renderCIWorkflow(frontend), 'utf8');
+    console.log('[street] Added GitHub Actions CI workflow (.github/workflows/ci.yml).');
+  }
+
+  private renderWebReactPackageJson(projectName: string): string {
+    return JSON.stringify({
+      name: `${projectName}-web`,
+      version: '0.1.0',
+      private: true,
+      type: 'module',
+      scripts: {
+        dev: 'vite',
+        build: 'tsc && vite build',
+        preview: 'vite preview',
+        lint: 'tsc --noEmit',
+      },
+      dependencies: {
+        '@streetjs/client': '^0.1.0',
+        '@streetjs/react': '^0.1.0',
+        react: '^18.3.1',
+        'react-dom': '^18.3.1',
+      },
+      devDependencies: {
+        '@types/react': '^18.3.0',
+        '@types/react-dom': '^18.3.0',
+        '@vitejs/plugin-react': '^4.3.1',
+        typescript: '^5.4.5',
+        vite: '^5.4.0',
+      },
+    }, null, 2) + '\n';
+  }
+
+  private renderWebReactTsconfig(): string {
+    return `{
+  "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src"]
+}
+`;
+  }
+
+  private renderViteConfig(): string {
+    return `import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+// Proxies /api and /auth to the Street backend during development.
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    proxy: {
+      '/api': 'http://localhost:3000',
+      '/auth': 'http://localhost:3000',
+      '/search': 'http://localhost:3000',
+    },
+  },
+});
+`;
+  }
+
+  private renderWebIndexHtml(projectName: string): string {
+    return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${projectName}</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+`;
+  }
+
+  private renderWebReactMain(): string {
+    return `import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { createStreetClient } from '@streetjs/client';
+import { StreetProvider } from '@streetjs/react';
+import { App } from './App.js';
+
+const client = createStreetClient({
+  baseUrl: import.meta.env.VITE_API_URL ?? '',
+  credentials: 'include',
+});
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <StreetProvider client={client}>
+      <App />
+    </StreetProvider>
+  </StrictMode>,
+);
+`;
+  }
+
+  private renderWebReactApp(projectName: string): string {
+    return `import { useQuery, useAuth } from '@streetjs/react';
+
+interface Health { status: string; uptime: number }
+
+export function App() {
+  const { session, loading } = useAuth();
+  const health = useQuery<Health>(() =>
+    fetch((import.meta.env.VITE_API_URL ?? '') + '/health').then((r) => r.json()),
+  );
+
+  return (
+    <main style={{ fontFamily: 'system-ui, sans-serif', maxWidth: 640, margin: '40px auto', padding: 16 }}>
+      <h1>${projectName}</h1>
+      <p>Frontend wired to the Street backend via <code>@streetjs/client</code> + <code>@streetjs/react</code>.</p>
+      <section>
+        <h2>Backend health</h2>
+        {health.loading ? <p>Checking…</p> : <pre>{JSON.stringify(health.data, null, 2)}</pre>}
+      </section>
+      <section>
+        <h2>Session</h2>
+        {loading ? <p>Loading…</p> : <pre>{JSON.stringify(session ?? null, null, 2)}</pre>}
+      </section>
+    </main>
+  );
+}
+`;
+  }
+
+  private renderWebNextPackageJson(projectName: string): string {
+    return JSON.stringify({
+      name: `${projectName}-web`,
+      version: '0.1.0',
+      private: true,
+      scripts: {
+        dev: 'next dev',
+        build: 'next build',
+        start: 'next start',
+        lint: 'next lint',
+      },
+      dependencies: {
+        '@streetjs/client': '^0.1.0',
+        '@streetjs/react': '^0.1.0',
+        '@streetjs/next': '^0.1.0',
+        next: '^14.2.0',
+        react: '^18.3.1',
+        'react-dom': '^18.3.1',
+      },
+      devDependencies: {
+        '@types/node': '^20.14.0',
+        '@types/react': '^18.3.0',
+        '@types/react-dom': '^18.3.0',
+        typescript: '^5.4.5',
+      },
+    }, null, 2) + '\n';
+  }
+
+  private renderWebNextTsconfig(): string {
+    return `{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "preserve",
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "incremental": true,
+    "plugins": [{ "name": "next" }]
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
+`;
+  }
+
+  private renderNextConfig(): string {
+    return `/** @type {import('next').NextConfig} */
+const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
+
+const nextConfig = {
+  async rewrites() {
+    // Proxy API/auth calls to the Street backend so cookies stay first-party.
+    return [
+      { source: '/api/:path*', destination: apiUrl + '/api/:path*' },
+      { source: '/auth/:path*', destination: apiUrl + '/auth/:path*' },
+      { source: '/search', destination: apiUrl + '/search' },
+    ];
+  },
+};
+
+export default nextConfig;
+`;
+  }
+
+  private renderNextLayout(projectName: string): string {
+    return `import type { ReactNode } from 'react';
+import { Providers } from './providers.js';
+
+export const metadata = { title: '${projectName}' };
+
+export default function RootLayout({ children }: { children: ReactNode }) {
+  return (
+    <html lang="en">
+      <body style={{ fontFamily: 'system-ui, sans-serif' }}>
+        <Providers>{children}</Providers>
+      </body>
+    </html>
+  );
+}
+`;
+  }
+
+  private renderNextProviders(): string {
+    return `'use client';
+
+import type { ReactNode } from 'react';
+import { useMemo } from 'react';
+import { createStreetClient } from '@streetjs/client';
+import { StreetProvider } from '@streetjs/react';
+
+export function Providers({ children }: { children: ReactNode }) {
+  const client = useMemo(
+    () => createStreetClient({ baseUrl: process.env.NEXT_PUBLIC_API_URL ?? '', credentials: 'include' }),
+    [],
+  );
+  return <StreetProvider client={client}>{children}</StreetProvider>;
+}
+`;
+  }
+
+  private renderNextPage(projectName: string): string {
+    return `'use client';
+
+import { useQuery, useAuth } from '@streetjs/react';
+
+interface Health { status: string; uptime: number }
+
+export default function Home() {
+  const { session, loading } = useAuth();
+  const health = useQuery<Health>(() => fetch('/api/../health').then((r) => r.json()));
+
+  return (
+    <main style={{ maxWidth: 640, margin: '40px auto', padding: 16 }}>
+      <h1>${projectName}</h1>
+      <p>Next.js App Router frontend on the Street backend via @streetjs/next.</p>
+      <section>
+        <h2>Session</h2>
+        {loading ? <p>Loading…</p> : <pre>{JSON.stringify(session ?? null, null, 2)}</pre>}
+      </section>
+      <section>
+        <h2>Backend health</h2>
+        {health.loading ? <p>Checking…</p> : <pre>{JSON.stringify(health.data, null, 2)}</pre>}
+      </section>
+    </main>
+  );
+}
+`;
+  }
+
+  private renderCIWorkflow(frontend: string): string {
+    const webJob = frontend === 'none' ? '' : `
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install
+      - run: npm run lint
+      - run: npm run build
+`;
+    return `name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install
+      - run: npm run build
+${webJob}`;
+  }
+
   private async generateLockfile(cwd: string): Promise<void> {
     const { spawn } = await import('node:child_process');
     await new Promise<void>((resolvePromise) => {
