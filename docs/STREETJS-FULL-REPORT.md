@@ -102,7 +102,7 @@ supabase), AI (openai), storage (s3, r2), email/SMS (sendgrid, twilio). Search
 backends covered by `@streetjs/search`. Certification levels (Official/Verified/
 Community) + review checklists documented (`docs/ecosystem/`).
 
-## 6. Testing (VERIFIED)
+## 6. Testing & runtime certification (VERIFIED)
 
 Full `ci-cd` pipeline green on `main`: core integration (Node 20+22 vs live PG),
 CLI + migration, memory-leak, 6 system-test suites, MySQL, certification + DB
@@ -110,6 +110,19 @@ E2E, package-integrity clean-install smoke, benchmark regression gate. CLI
 148/148; plugin-structure 217/217; ORM 23 offline + 4 live-PG; MongoDB live SCRAM
 path in CI (`mongodb-integration.yml`). All **0 skips** except documented
 conditional integration tests.
+
+**Runtime certification (this session, reusable):** `npm run verify:runtime`
+(`scripts/audit/verify-runtime.mjs`, **zero added dependencies**) ran **9/9 PASS →
+CERTIFIED**: import smoke (46/46), circular scan (0), live HTTP pipeline, plugin
+config validation, 18/18 signatures, PG/MySQL/SQLite lifecycle + clean socket
+teardown, and a 20× start/stop memory check (**0 MB drift**). Output:
+`docs/runtime-certification.md`. A new `runtime-certification.yml` workflow runs
+this in CI with live PG+MySQL **and asserts a clean tree after a strict full
+`--workspaces` build** (Phase-1 signing gate). Scaled reliability harnesses added
+(`soak.mjs`, `ws-scale.mjs`, `chaos.mjs`) with a nightly `soak-scale-chaos.yml`:
+soak (event-loop/RSS/handle leak gate), WS scale (1k/5k/10k), and DB-restart chaos
+(recovery VERIFIED ~1s). See `docs/RUNTIME-STABILITY-VERIFICATION.md` and
+`docs/PRODUCTION-HARDENING-PROGRAM.md`.
 
 ## 7. Security & supply chain (VERIFIED)
 
