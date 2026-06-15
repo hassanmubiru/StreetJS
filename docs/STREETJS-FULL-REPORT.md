@@ -118,8 +118,13 @@ plus the earlier admin ReDoS and stack-trace exposures.
 ## 8. Deployment & docs (IMPLEMENTED)
 
 Distroless Docker + health endpoints; Cloud Run/ECS/Vercel/Cloudflare manifests;
-5 verified reference apps. ~50 doc pages + migration guides (Express/Nest/Fastify),
-SEO (sitemap, JSON-LD), enterprise trust package, compliance mappings.
+5 verified reference apps. **130 doc pages** (Jekyll/just-the-docs, Pages build
+green) including a new **tutorials** track (6 published; beginner path complete),
+**framework comparison** pages (vs Express/Fastify/NestJS/Laravel/Django, each
+with `FAQPage` JSON-LD), an example-app catalog, and a
+[Tutorials & Examples Program](/adoption/tutorials-and-examples-program/) with
+90/180/365-day content targets. Migration guides (Express/Nest/Fastify), SEO
+(sitemap, JSON-LD), enterprise trust package, compliance mappings.
 
 ## 9. Governance, community & sustainability (IMPLEMENTED this program)
 
