@@ -66,3 +66,4 @@ packages/core/src/database/sqlite/sqlite3.wasm
 *.street-signing.pem
 *.CLAUDE.md
 CLAUDE.md
+artifacts/
