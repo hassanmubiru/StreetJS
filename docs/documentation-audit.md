@@ -32,7 +32,7 @@ no nav entry, SEO `title`, or `description`.
 *(`RELEASE_CHECKLIST.md`, `ROLLBACK.md` are excluded from the build in `_config.yml`.)*
 
 **Recommended to add front-matter (user-facing, linked from tutorials):**
-- `realtime-channels.md` — linked from the [Realtime tutorial](/tutorials/realtime/); add `title`/`description`/`permalink`.
+- `realtime-channels.md` — **fixed this pass** (added `title`/`description`/`permalink`).
 - `runtime-certification.md` — auto-generated cert; consider a small front-matter header.
 
 ## Navigation reachability
