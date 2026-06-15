@@ -28,8 +28,9 @@ proven longevity.
 | `@streetjs/plugin-*` (×18) | **1.0.1** | ✅ + official Ed25519 signature |
 | `@streetjs/orm` | **0.1.0** (published) | ✅ |
 
-Repo: **38 packages**, **25 CI workflows**. Latest full `ci-cd` run on `main`:
-**success (VERIFIED)**.
+Repo: **46 packages**, **29 CI workflows**. Latest full `ci-cd` run on `main`:
+**success (VERIFIED)**. Frontend packages additionally gated by `frontend-ci.yml`
+(Node 20/22) and published via `publish-frontend.yml`.
 
 ## 3. Architecture & core (IMPLEMENTED; exercised by green CI)
 
