@@ -1,4 +1,4 @@
-import { FieldCipher, ModerationToolkit, type EncryptedField } from '@streetjs/core';
+import { FieldCipher, ModerationToolkit, type EncryptedField } from 'streetjs';
 import { ProfileService } from '@streetjs/dating-profiles';
 /**
  * A stored message. The `body` is held as an {@link EncryptedField} so the
@@ -96,7 +96,7 @@ export declare class MessageService {
     /** All messages exchanged between two users (order-independent), in order. */
     conversation(a: string, b: string): Promise<Message[]>;
 }
-export type { EncryptedField } from '@streetjs/core';
-export { FieldCipher, ModerationToolkit, Keyring } from '@streetjs/core';
+export type { EncryptedField } from 'streetjs';
+export { FieldCipher, ModerationToolkit, Keyring } from 'streetjs';
 export { ProfileService } from '@streetjs/dating-profiles';
 //# sourceMappingURL=index.d.ts.map

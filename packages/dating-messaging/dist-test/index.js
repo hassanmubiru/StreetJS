@@ -17,7 +17,7 @@
 // hold here unchanged. Storage of the resulting (encrypted) messages is
 // pluggable through `MessageStore`; an in-memory implementation ships for
 // tests, examples, and single-instance deployments.
-import { FieldCipher, ModerationToolkit, } from '@streetjs/core';
+import { FieldCipher, ModerationToolkit, } from 'streetjs';
 import { ProfileService } from '@streetjs/dating-profiles';
 /** Default in-process {@link MessageStore}. */
 export class InMemoryMessageStore {
@@ -121,7 +121,7 @@ export class MessageService {
         return this.store.conversation(requireId(a, 'a'), requireId(b, 'b'));
     }
 }
-export { FieldCipher, ModerationToolkit, Keyring } from '@streetjs/core';
+export { FieldCipher, ModerationToolkit, Keyring } from 'streetjs';
 export { ProfileService } from '@streetjs/dating-profiles';
 function requireId(value, field) {
     if (typeof value !== 'string' || value.length === 0) {

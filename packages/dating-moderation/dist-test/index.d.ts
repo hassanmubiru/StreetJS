@@ -1,4 +1,4 @@
-import { ModerationToolkit, type ModerationStore, type ModerationAuditEvent, type Report, type Clock } from '@streetjs/core';
+import { ModerationToolkit, type ModerationStore, type ModerationAuditEvent, type Report, type Clock } from 'streetjs';
 /** Options for {@link DatingModeration}. */
 export interface DatingModerationOptions {
     /**
@@ -63,6 +63,6 @@ export declare class DatingModeration {
     /** The append-only moderation audit log (composes R8.5/R8.7). */
     auditLog(): Promise<readonly ModerationAuditEvent[]>;
 }
-export type { ModerationAuditEvent, Report, ModerationStore, Clock } from '@streetjs/core';
-export { ModerationToolkit, InMemoryModerationStore, UnknownReportError } from '@streetjs/core';
+export type { ModerationAuditEvent, Report, ModerationStore, Clock } from 'streetjs';
+export { ModerationToolkit, InMemoryModerationStore, UnknownReportError } from 'streetjs';
 //# sourceMappingURL=index.d.ts.map
