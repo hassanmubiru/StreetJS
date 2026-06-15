@@ -3,6 +3,7 @@
 // Uses a simple JSON envelope: { type, channel, data }.
 
 import { StreetClientError } from './errors.js';
+import { trimTrailingSlashes } from './http.js';
 import type { StreetClientConfig } from './http.js';
 
 export interface RealtimeMessage<T = unknown> { type: string; channel?: string; data?: T; }
@@ -14,20 +15,6 @@ interface WsLike {
   addEventListener(type: string, cb: (ev: { data?: unknown }) => void): void;
 }
 type WsCtor = new (url: string) => WsLike;
-
-/**
- * Remove every trailing '/' from a string in linear time.
- *
- * Regex-free by design: the previous `/\/+$/` is a polynomial-ReDoS risk on
- * uncontrolled input (CodeQL js/polynomial-redos). This scans from the end with
- * `charCodeAt` (47 === '/') and a single `slice`, giving O(n) deterministic
- * behavior with no backtracking.
- */
-function trimTrailingSlashes(value: string): string {
-  let end = value.length;
-  while (end > 0 && value.charCodeAt(end - 1) === 47 /* '/' */) end -= 1;
-  return end === value.length ? value : value.slice(0, end);
-}
 
 /**
  * Rewrite a leading http(s) scheme to the matching ws(s) scheme:

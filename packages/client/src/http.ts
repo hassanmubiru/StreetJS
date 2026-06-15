@@ -32,9 +32,22 @@ export interface RequestOptions {
   signal?: AbortSignal;
 }
 
+/**
+ * Remove every trailing '/' from a string in linear time (regex-free).
+ *
+ * Replaces the polynomial-ReDoS-prone `/\/+$/` (CodeQL js/polynomial-redos) with
+ * a deterministic O(n) scan: walk back over '/' (charCode 47) and `slice` once.
+ * Exported for reuse by other client modules (e.g. realtime URL building).
+ */
+export function trimTrailingSlashes(value: string): string {
+  let end = value.length;
+  while (end > 0 && value.charCodeAt(end - 1) === 47 /* '/' */) end -= 1;
+  return end === value.length ? value : value.slice(0, end);
+}
+
 /** Join a base URL and a path, then append a query string (skipping null/undefined). */
 export function buildUrl(baseUrl: string, path: string, query?: Query): string {
-  const base = baseUrl.replace(/\/+$/, '');
+  const base = trimTrailingSlashes(baseUrl);
   const p = path.startsWith('/') ? path : `/${path}`;
   let url = `${base}${p}`;
   if (query) {
