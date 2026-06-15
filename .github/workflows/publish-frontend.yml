@@ -1,0 +1,90 @@
+name: Publish Frontend Packages
+
+# Publishes the full-stack expansion packages (RFC 0002) to npm with provenance,
+# in dependency order: client -> react/next/vue -> nuxt -> auth-ui/ai-ui/admin-ui.
+# Idempotent: any version already on the registry is skipped. Trigger manually,
+# or by pushing a `frontend-v*` tag.
+#
+# Required secret: NPM_TOKEN (npm Automation token — bypasses 2FA OTP).
+
+on:
+  push:
+    tags: ['frontend-v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-frontend-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Build, test & publish frontend packages
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    permissions:
+      contents: read
+      id-token: write   # required for npm provenance
+
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Build all packages (dependency order)
+        run: |
+          set -euo pipefail
+          for p in client react next vue nuxt auth-ui ai-ui admin-ui; do
+            npm run build -w "packages/$p"
+          done
+
+      - name: Test all packages
+        run: |
+          set -euo pipefail
+          for p in client react next vue nuxt auth-ui ai-ui admin-ui; do
+            npm test -w "packages/$p"
+          done
+
+      - name: Publish (idempotent, with provenance)
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          for p in client react next vue nuxt auth-ui ai-ui admin-ui; do
+            NAME=$(node -p "require('./packages/$p/package.json').name")
+            VERSION=$(node -p "require('./packages/$p/package.json').version")
+            if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+              echo "$NAME@$VERSION already published — skipping."
+            else
+              npm publish -w "packages/$p" --provenance --access public
+              echo "Published $NAME@$VERSION"
+            fi
+          done
+
+      - name: Verify provenance attestations
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          sleep 20
+          fail=0
+          for p in client react next vue nuxt auth-ui ai-ui admin-ui; do
+            NAME=$(node -p "require('./packages/$p/package.json').name")
+            VERSION=$(node -p "require('./packages/$p/package.json').version")
+            att=$(npm view "$NAME@$VERSION" dist.attestations --json 2>/dev/null || echo "")
+            if [ -z "$att" ] || [ "$att" = "null" ] || [ "$att" = "{}" ]; then
+              echo "::error::$NAME@$VERSION published without a provenance attestation"
+              fail=1
+            else
+              echo "Provenance OK: $NAME@$VERSION"
+            fi
+          done
+          exit "$fail"
