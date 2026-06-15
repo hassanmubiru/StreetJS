@@ -2,7 +2,7 @@
 
 > Consolidated, evidence-based status. Tags: **VERIFIED** (executed proof this
 > cycle), **IMPLEMENTED** (in repo, not re-run here), **PARTIAL**, **GAP**.
-> No marketing. Generated 2026-06-14 against `main`.
+> No marketing. Generated 2026-06-15 against `main`.
 
 ## 1. Executive summary
 
