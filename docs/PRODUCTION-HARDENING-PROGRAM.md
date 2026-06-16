@@ -1,3 +1,11 @@
+---
+layout:    default
+title:     "Production Hardening Program"
+nav_exclude: true
+permalink: /PRODUCTION-HARDENING-PROGRAM/
+description: "StreetJS operational-maturity hardening program — every claim backed by executable evidence."
+---
+
 # StreetJS — Final Production Hardening Program
 
 > Operational-maturity phase. Zero-trust: every claim has executable evidence.

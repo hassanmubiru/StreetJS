@@ -1,3 +1,11 @@
+---
+layout:    default
+title:     "Runtime Stability Verification Report"
+nav_exclude: true
+permalink: /RUNTIME-STABILITY-VERIFICATION/
+description: "Zero-trust runtime stability audit of StreetJS — every claim backed by command output and observed evidence."
+---
+
 # StreetJS — Runtime Stability Verification Report
 
 > Zero-trust audit. Every claim carries executable evidence (command + observed

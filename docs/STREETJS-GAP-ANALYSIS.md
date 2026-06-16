@@ -1,3 +1,11 @@
+---
+layout:    default
+title:     "Gap Analysis & Roadmap Audit"
+nav_exclude: true
+permalink: /STREETJS-GAP-ANALYSIS/
+description: "Brutally honest, evidence-based competitive gap analysis of StreetJS for a skeptical CTO, security auditor, and OSS maintainer."
+---
+
 # StreetJS — Final Gap Analysis & Roadmap Audit
 
 > Brutally honest, evidence-based. Written for a skeptical CTO, security auditor,

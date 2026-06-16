@@ -1,3 +1,11 @@
+---
+layout:    default
+title:     "Platform Leadership & Adoption Acceleration Program"
+nav_exclude: true
+permalink: /PLATFORM-LEADERSHIP-ADOPTION-PROGRAM/
+description: "Evidence-based gap analysis and acceleration program for StreetJS platform leadership and adoption."
+---
+
 # StreetJS — Platform Leadership & Adoption Acceleration Program
 
 > Evidence-based gap analysis. Every claim is tagged **VERIFIED** (confirmed with

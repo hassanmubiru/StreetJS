@@ -1,3 +1,11 @@
+---
+layout:    default
+title:     "GitHub Actions Workflow Audit"
+nav_exclude: true
+permalink: /WORKFLOW-AUDIT/
+description: "Zero-trust audit of the StreetJS GitHub Actions workflows, determined entirely from the workflow files."
+---
+
 # GitHub Actions Workflow Audit — "Test & Publish" Skip
 
 > Zero-trust audit determined entirely from the workflow files in
@@ -97,9 +105,9 @@ Added to the always-running `build-and-test` job (and to `test-and-publish`):
 ```yaml
 - name: Debug Context
   env:
-    EVENT: ${{ github.event_name }}
-    REF: ${{ github.ref }}
-    REF_NAME: ${{ github.ref_name }}
+    EVENT: {% raw %}${{ github.event_name }}{% endraw %}
+    REF: {% raw %}${{ github.ref }}{% endraw %}
+    REF_NAME: {% raw %}${{ github.ref_name }}{% endraw %}
   run: |
     echo "Event:  $EVENT"
     echo "Ref:    $REF"
