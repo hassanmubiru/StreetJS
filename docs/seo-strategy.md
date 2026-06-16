@@ -25,6 +25,8 @@ description:  "Evidence-based technical SEO audit and 12-month search-ranking st
 > 1. Homepage SEO `<title>`/`og:title` now leads with **"TypeScript Backend Framework"** instead of "Home" (`docs/index.md` front-matter; home excluded from sidebar nav since the header logo links home).
 > 2. `Organization` JSON-LD added to the homepage (`head_custom.html`).
 > 3. `og.png` verified at **1200×630**.
+> 4. GitHub repo topics extended to 20 (added `orm`, `realtime`, `self-hosted`, `api-framework`); `streetjs` npm package and repo About already point to the docs site.
+> 5. Shipped the 5 missing comparison pages: Spring Boot, ASP.NET Core, Auth0, Firebase, Pusher.
 >
 > Still requires the maintainer (cannot be done from the repo alone): **Search
 > Console verification** — paste the verification token into
