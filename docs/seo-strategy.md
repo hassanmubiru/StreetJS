@@ -154,11 +154,11 @@ Difficulty is a 1–5 estimate (5 = hardest). Value is strategic, not just volum
 | `/compare/streetjs-vs-express/` | VERIFIED | — |
 | `/compare/streetjs-vs-laravel/` | VERIFIED | — |
 | `/compare/streetjs-vs-django/` | VERIFIED | — |
-| `/compare/streetjs-vs-spring/` | GAP | Medium |
-| `/compare/streetjs-vs-aspnet/` | GAP | Medium |
-| `/compare/streetjs-vs-auth0/` | GAP | High (self-host angle) |
-| `/compare/streetjs-vs-pusher/` | GAP | High (realtime angle) |
-| `/compare/streetjs-vs-firebase/` | GAP | High (full-stack angle) |
+| `/compare/streetjs-vs-spring/` | IMPLEMENTED | — |
+| `/compare/streetjs-vs-aspnet/` | IMPLEMENTED | — |
+| `/compare/streetjs-vs-auth0/` | IMPLEMENTED | — |
+| `/compare/streetjs-vs-pusher/` | IMPLEMENTED | — |
+| `/compare/streetjs-vs-firebase/` | IMPLEMENTED | — |
 
 > Keep the existing `streetjs-vs-X` slug convention for consistency. The brief
 > suggested `/compare/nestjs/` etc.; the existing `streetjs-vs-nestjs` slug is
