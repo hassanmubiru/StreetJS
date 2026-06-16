@@ -23,6 +23,9 @@ description: "Measurable StreetJS adoption KPIs across community, ecosystem, ent
 ## KPIs and targets
 
 ### Community
+
+<div class="scorecard" markdown="1">
+
 | Metric | Baseline | Q+1 | Q+2 | Q+4 | Source |
 |--------|:--------:|:---:|:---:|:---:|--------|
 | External contributors (merged PR) | 0 | 3 | 8 | 20 | GitHub |
@@ -30,34 +33,47 @@ description: "Measurable StreetJS adoption KPIs across community, ecosystem, ent
 | Active Discussions threads / quarter | 0 | 20 | 50 | 150 | GitHub Discussions |
 | Discord members | 0 | 100 | 300 | 1000 | Discord |
 | Active release-capable maintainers (bus factor) | 1 | 2 | 3 | 3+ | MAINTAINERS |
-{: .scorecard}
+
+</div>
 
 ### Ecosystem
+
+<div class="scorecard" markdown="1">
+
 | Metric | Baseline | Q+1 | Q+2 | Q+4 | Source |
 |--------|:--------:|:---:|:---:|:---:|--------|
 | Official plugins | 18 | 18 | 20 | 24 | monorepo |
 | Verified (3rd-party) plugins | 0 | 2 | 5 | 15 | registry |
 | Community plugins listed | 0 | 5 | 15 | 40 | registry |
 | `streetjs` weekly npm downloads | measure | +50% | +150% | +500% | npm |
-{: .scorecard}
+
+</div>
 
 ### Enterprise
+
+<div class="scorecard" markdown="1">
+
 | Metric | Baseline | Q+1 | Q+2 | Q+4 | Source |
 |--------|:--------:|:---:|:---:|:---:|--------|
 | Documented evaluations | 0 | 2 | 5 | 12 | inbound |
 | Pilots | 0 | 1 | 3 | 6 | inbound |
 | Production deployments (reported) | n/a (no signal) | 1 | 3 | 8 | case studies |
 | Compliance evidence requests served | 0 | 2 | 5 | 12 | inbound |
-{: .scorecard}
+
+</div>
 
 ### Documentation
+
+<div class="scorecard" markdown="1">
+
 | Metric | Baseline | Q+1 | Q+2 | Q+4 | Source |
 |--------|:--------:|:---:|:---:|:---:|--------|
 | Guides with runnable examples | high | maintain | maintain | maintain | docs CI |
 | Docs search usage (queries/mo) | measure | grow | grow | grow | site analytics |
 | Migration guides | 3 | 3 | 4 | 5 | docs |
 | Reproducible case studies | 0 | 1 | 3 | 6 | `docs/case-studies/` |
-{: .scorecard}
+
+</div>
 
 ## How metrics are collected
 

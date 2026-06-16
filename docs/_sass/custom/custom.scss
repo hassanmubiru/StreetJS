@@ -518,7 +518,7 @@ pre.highlight { -webkit-overflow-scrolling: touch; }
 // Columns: 1 Metric · 2 Baseline · 3 Q+1 · 4 Q+2 · 5 Q+4 (goal) · 6 Source
 // Tag a Markdown table with `{: .scorecard}` to opt in.
 // ═══════════════════════════════════════════════════════════════════════════
-.main-content table.scorecard {
+.main-content .scorecard table {
   border-color: var(--border) !important;
   box-shadow: var(--shadow-md) !important;
 
@@ -562,7 +562,7 @@ pre.highlight { -webkit-overflow-scrolling: touch; }
   tbody tr:hover td { background: var(--surface) !important; }
   tbody tr:hover td:nth-child(5) { background: var(--accent-soft) !important; }
 }
-html[data-theme="dark"] .main-content table.scorecard td:nth-child(5) { color: var(--accent) !important; }
+html[data-theme="dark"] .main-content .scorecard table td:nth-child(5) { color: var(--accent) !important; }
 
 // Legend above the scorecard tables
 .scorecard-legend {
