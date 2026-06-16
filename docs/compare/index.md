@@ -26,6 +26,19 @@ smaller — we say so plainly on each page.
 | [StreetJS vs NestJS](/compare/streetjs-vs-nestjs/) | Similar decorator/DI ergonomics; StreetJS is far lighter on dependencies. |
 | [StreetJS vs Laravel](/compare/streetjs-vs-laravel/) | Laravel (PHP) vs a TypeScript-native equivalent feature set. |
 | [StreetJS vs Django](/compare/streetjs-vs-django/) | Django (Python) batteries-included vs TypeScript-first with the same breadth. |
+| [StreetJS vs Spring Boot](/compare/streetjs-vs-spring/) | JVM enterprise standard vs a TypeScript integrated framework with a tiny dependency surface. |
+| [StreetJS vs ASP.NET Core](/compare/streetjs-vs-aspnet/) | Microsoft's fast .NET framework vs a lightweight TypeScript equivalent. |
+
+### Self-hosted vs managed services
+
+StreetJS bundles capabilities you'd otherwise buy as managed services. These pages
+frame the build-and-self-host vs buy-managed tradeoff honestly.
+
+| Comparison | TL;DR |
+|------------|-------|
+| [StreetJS vs Auth0](/compare/streetjs-vs-auth0/) | Self-hosted built-in auth (JWT/sessions/RBAC/MFA) vs a managed identity provider. |
+| [StreetJS vs Firebase](/compare/streetjs-vs-firebase/) | Self-hosted relational backend vs Google's managed NoSQL BaaS. |
+| [StreetJS vs Pusher](/compare/streetjs-vs-pusher/) | Built-in self-hosted WebSockets vs a managed realtime pub/sub service. |
 
 ## How to read these
 
