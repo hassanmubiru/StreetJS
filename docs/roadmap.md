@@ -3,7 +3,7 @@ layout:    default
 title:     "Roadmap"
 nav_order: 15
 permalink: /roadmap/
-description: "StreetJS Framework roadmap — planned features, upcoming releases, and long-term vision."
+description: "StreetJS Framework roadmap — what has shipped in the 1.0.x line, and what is being explored next."
 ---
 
 {% include doc-styles.html %}
@@ -11,112 +11,85 @@ description: "StreetJS Framework roadmap — planned features, upcoming releases
 <div class="doc-header">
 <span class="dh-label">Project</span>
 <h1>Roadmap</h1>
-<p>Planned features, upcoming releases, and the long-term vision for StreetJS Framework.</p>
+<p>What has shipped, and what is being explored next for StreetJS.</p>
 </div>
 
-This page tracks planned features and improvements for StreetJS Framework. Items are grouped by release milestone. Priorities shift based on community feedback — open an issue or discussion to influence the roadmap.
+This page tracks the direction of StreetJS. Priorities shift based on community
+feedback — open an issue or discussion to influence it.
+
+> **Current release: v1.0.9.** Much of what earlier drafts of this roadmap listed
+> as "future" has already landed in the 1.0.x line. The list below reflects what
+> is actually in the codebase today. Items are verified against the published
+> `streetjs` package, the `@streetjs/*` packages, and the docs.
 
 ---
 
-## v1.1 — Developer Experience
+## Shipped — available now
 
-**Target:** Q3 2026
+### Core runtime
+- [x] HTTP server on `node:http`; compiled-regex router with parameter extraction
+- [x] IoC container with constructor injection and circular-dependency detection
+- [x] Middleware pipeline, typed context, `@Validate` schemas
+- [x] OpenAPI 3.1 generation from decorators (served at `/openapi.json`)
+- [x] **API versioning** — `@ApiVersion` / `@Deprecated` with `Deprecation`/`Sunset` headers
+- [x] Clustering (`node:cluster`, IPC heartbeat, auto-restart), telemetry (ring buffer, P50/P99)
+- [x] LRU cache, webhook dispatcher (HMAC + exponential backoff), streaming multipart upload
 
-- [ ] **`street dev` hot-reload** — use `node --watch` instead of manual `fs.watch` for more reliable file change detection
-- [ ] **`street generate middleware <name>`** — generate middleware boilerplate
-- [ ] **`street generate gateway <name>`** — generate WebSocket gateway boilerplate
-- [ ] **`street generate migration <name>`** — alias for `street migrate:create`
-- [ ] **Config validation** — validate `street.config.ts` at startup and print actionable errors
-- [ ] **Better error messages** — structured error output with file/line references for common mistakes (missing `reflect-metadata`, wrong tsconfig, etc.)
-- [ ] **`street info`** — print project info, versions, and environment diagnostics
+### Database
+- [x] Native **PostgreSQL** wire driver (protocol v3, SCRAM-SHA-256 / MD5 / cleartext)
+- [x] Native **MySQL / MariaDB** driver
+- [x] **SQLite** support
+- [x] Connection pool with bounded acquire queue; repository pattern (parameterized queries)
+- [x] SQL migration runner, **query builder**, **schema introspection**, seeder, query profiler
+- [x] First-party ORM — `@streetjs/orm` (dialects, metadata, migrations, repositories)
 
----
+### Auth & security
+- [x] JWT (HMAC-SHA256, `timingSafeEqual`), AES-256-GCM sessions, scrypt vault
+- [x] **OAuth 2.0 / OIDC**, **WebAuthn / passkeys**, **MFA**, **mTLS**
+- [x] **RBAC** decorators and helpers
+- [x] Sliding-window rate limiter, recursive XSS sanitizer, security headers, CORS, CSRF
 
-## v1.2 — Database
-
-**Target:** Q4 2026
-
-- [ ] **MySQL/MariaDB wire driver** — native MySQL protocol implementation (no `mysql2` dependency)
-- [ ] **SQLite support** — via `node:sqlite` (Node 22+)
-- [ ] **Query builder** — fluent, type-safe query builder that compiles to parameterized SQL
-- [ ] **Schema introspection** — generate TypeScript types from an existing database schema
-- [ ] **Migration diffing** — detect schema drift between migrations and current database state
-
----
-
-## v1.3 — Observability
-
-**Target:** Q1 2027
-
-- [ ] **OpenTelemetry integration** — traces, metrics, and logs via OTLP exporter
-- [ ] **Structured logging** — built-in JSON logger with request correlation IDs
-- [ ] **Health check DSL** — declarative health checks for database, cache, external services
-- [ ] **Prometheus metrics endpoint** — expose `/metrics` in Prometheus text format
-- [ ] **Distributed tracing** — W3C `traceparent` header propagation
-
----
-
-## v1.4 — Auth
-
-**Target:** Q2 2027
-
-- [ ] **OAuth 2.0 / OIDC** — built-in provider integrations (Google, GitHub, Microsoft)
-- [ ] **Refresh token rotation** — automatic JWT refresh with sliding expiry
-- [ ] **API key authentication** — header-based API key middleware with rate limiting per key
-- [ ] **RBAC helpers** — role-based access control decorators (`@RequireRole`, `@RequirePermission`)
-- [ ] **Passkey / WebAuthn** — FIDO2 authentication support
-
----
-
-## v2.0 — Architecture
-
-**Target:** 2027
-
-- [ ] **HTTP/2 support** — native `node:http2` server with multiplexing
-- [ ] **gRPC support** — Protocol Buffers + gRPC server via `node:net`
-- [ ] **Message queue integration** — built-in adapters for Redis Streams, NATS, and RabbitMQ
-- [ ] **Microservice toolkit** — service discovery, circuit breaker, retry policies
-- [ ] **Edge runtime** — compatibility layer for Cloudflare Workers and Deno Deploy
-
----
-
-## Completed
-
-### v1.0 ✅
-
-- [x] HTTP server (`node:http`)
-- [x] Compiled-regex router with parameter extraction
-- [x] IoC container with constructor injection
-- [x] PostgreSQL wire protocol v3 (SCRAM-SHA-256, MD5, cleartext auth)
-- [x] Connection pool with bounded acquire queue
-- [x] Repository pattern with parameterized queries
-- [x] SQL migration runner with tracking table
-- [x] JWT (HMAC-SHA256, `timingSafeEqual`)
-- [x] Sessions (AES-256-GCM, random IV)
-- [x] Vault mode (scrypt + AES-256-GCM)
-- [x] Sliding-window rate limiter (BigInt nanosecond precision)
-- [x] XSS sanitizer (recursive deep sanitization)
-- [x] Security headers middleware
-- [x] CORS middleware
-- [x] WebSocket server (bounded, heartbeat, typed events)
+### Realtime & messaging
+- [x] Bounded WebSocket server (heartbeat, typed events) + channels/presence
 - [x] Server-Sent Events (heartbeat, backpressure)
-- [x] Streaming multipart file upload (≤128 KB heap)
-- [x] LRU cache (TTL, O(1) eviction)
-- [x] Telemetry tracker (ring buffer, P50/P99 latency)
-- [x] Cluster coordinator (`node:cluster`, IPC heartbeat, auto-restart)
-- [x] Webhook dispatcher (HMAC-SHA256, exponential backoff)
-- [x] OpenAPI 3.1 spec generation
-- [x] CLI: `street create`, `street dev`, `street build`, `street start`, `street test`
-- [x] CLI: `street generate controller/service/repository`
-- [x] CLI: `street migrate:create`, `street migrate:run`
-- [x] Docker multi-stage build
-- [x] GitHub Actions CI/CD with npm provenance publish
+- [x] Transports: **Kafka**, **RabbitMQ**, **Redis (RESP/Streams)**, **NATS** (plugin)
+
+### Observability
+- [x] **OpenTelemetry** (OTLP traces/metrics/logs), structured JSON logger with correlation IDs
+- [x] **Prometheus** `/metrics` + recording/alerting rules, Grafana dashboard, health checks, analytics
+
+### Microservices & architecture
+- [x] **HTTP/2** server, **gRPC** (Protocol Buffers parser + server)
+- [x] **Circuit breaker**, **service registry** (discovery), distributed lock, CQRS, saga, event bus/store
+- [x] **Edge runtime** — `@streetjs/edge`
+
+### Developer experience
+- [x] CLI: `create`, `dev`, `build`, `start`, `test`, `generate`, `migrate`, `seed`
+- [x] CLI: `info`, `doctor`, `diagnostics`, `audit`, `certify`, `deploy`, `plugin`, `registry`, `upgrade`, `add`
+- [x] Project templates (`app`, `saas`, `ecommerce`, `realtime-chat`, `dating-app`) + `--frontend react|next`
+- [x] **SDK generators** — TypeScript and Python clients from the OpenAPI spec
+- [x] Docker multi-stage build; GitHub Actions CI/CD with npm provenance + signed plugins
+
+---
+
+## Exploring next
+
+These are directions under consideration, not commitments. They are largely
+ecosystem- and adoption-driven rather than core-runtime gaps.
+
+- **More official plugins** — expanding the signed `@streetjs/plugin-*` catalog (payments, messaging, regional providers).
+- **More database dialects & tooling** — broader introspection and migration diffing.
+- **Tutorials & runnable examples** — growing the catalog incrementally (see the [Tutorials & Examples Program](/adoption/tutorials-and-examples-program/)).
+- **Community & governance growth** — see the [Adoption & Go-To-Market Roadmap](/adoption/go-to-market-roadmap/).
+
+The honest current gaps are awareness, ecosystem breadth, and community size —
+not core capabilities.
 
 ---
 
 ## How to influence the roadmap
 
+- **Open a feature request** at [github.com/hassanmubiru/street/issues](https://github.com/hassanmubiru/street/issues)
+- **Start a discussion** at [github.com/hassanmubiru/street/discussions](https://github.com/hassanmubiru/street/discussions)
 - **Vote** on existing issues with 👍
-- **Open a feature request** at [github.com/hassanmubiru/issues](https://github.com/hassanmubiru/issues)
-- **Start a discussion** at [github.com/hassanmubiru/discussions](https://github.com/hassanmubiru/discussions)
 - **Contribute** — see the [Contributing Guide](/contributing/)
