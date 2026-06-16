@@ -3,6 +3,7 @@ layout: default
 title: Security Whitepaper
 parent: Enterprise
 nav_order: 3
+permalink: /enterprise/security-whitepaper/
 description: "StreetJS security mechanisms: plugin signing, provenance, SBOM, audit logging, encryption, vault, mTLS, rate limiting, DAST."
 ---
 

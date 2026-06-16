@@ -3,6 +3,7 @@ layout: default
 title: Contributor Path
 parent: Community
 nav_order: 1
+permalink: /community/contributor-path/
 description: "The StreetJS contributor journey: first contribution, reviewer, maintainer, and steering committee."
 ---
 

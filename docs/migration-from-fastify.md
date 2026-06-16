@@ -2,6 +2,7 @@
 layout: default
 title: Migrating from Fastify
 nav_order: 10
+permalink: /migration-from-fastify/
 description: "Move a Fastify app to StreetJS — routes, hooks, schema validation, and plugins mapped to decorators and built-in middleware."
 ---
 
