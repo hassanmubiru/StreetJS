@@ -2,6 +2,7 @@
 layout: default
 title: Migrating from NestJS
 nav_order: 9
+permalink: /migration-from-nestjs/
 description: "Move a NestJS app to StreetJS — decorators, DI, guards, and exceptions map almost one-to-one, with no module boilerplate."
 ---
 
