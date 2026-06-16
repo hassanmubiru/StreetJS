@@ -512,3 +512,68 @@ pre.highlight { -webkit-overflow-scrolling: touch; }
   }
   .main-content table.st-responsive td:first-child { color: var(--text-primary) !important; font-weight: 600 !important; }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SCORECARD / KPI TABLES — premium treatment for quarterly-target tables
+// Columns: 1 Metric · 2 Baseline · 3 Q+1 · 4 Q+2 · 5 Q+4 (goal) · 6 Source
+// Tag a Markdown table with `{: .scorecard}` to opt in.
+// ═══════════════════════════════════════════════════════════════════════════
+.main-content table.scorecard {
+  border-color: var(--border) !important;
+  box-shadow: var(--shadow-md) !important;
+
+  thead tr { background: linear-gradient(135deg, var(--accent-soft), var(--surface)) !important; }
+  th {
+    color: var(--text-secondary) !important; font-size:.7rem !important; letter-spacing:.08em !important;
+    border-bottom:1px solid var(--border-strong) !important;
+  }
+
+  // Metric (first column): the label, emphasized and left-aligned.
+  td:first-child { font-weight:600 !important; color: var(--text-primary) !important; }
+
+  // Numeric/target columns (Baseline → Q+4): tabular monospace, centered.
+  td:nth-child(2), td:nth-child(3), td:nth-child(4), td:nth-child(5) {
+    font-family:'JetBrains Mono','SFMono-Regular',Consolas,monospace !important;
+    text-align:center !important; font-variant-numeric: tabular-nums !important; font-size:.86rem !important;
+  }
+
+  // Baseline (col 2): the honest starting point — de-emphasized.
+  th:nth-child(2) { color: var(--text-muted) !important; }
+  td:nth-child(2) { color: var(--text-muted) !important; }
+
+  // Q+4 (col 5): the one-year goal — highlighted to draw the eye to the target.
+  th:nth-child(5) {
+    color: var(--accent) !important; background: var(--accent-soft) !important;
+    border-bottom-color: var(--accent-line) !important;
+  }
+  td:nth-child(5) {
+    color: var(--accent-hover) !important; font-weight:700 !important;
+    background: var(--accent-soft) !important; border-left:1px solid var(--accent-line) !important;
+    border-right:1px solid var(--accent-line) !important;
+  }
+  tbody tr:last-child td:nth-child(5) { border-bottom:1px solid var(--accent-line) !important; }
+
+  // Source (last col): provenance — small and muted.
+  td:nth-child(6) {
+    color: var(--text-muted) !important; font-size:.78rem !important; text-align:right !important; white-space:nowrap !important;
+  }
+  th:nth-child(6) { text-align:right !important; }
+
+  tbody tr:hover td { background: var(--surface) !important; }
+  tbody tr:hover td:nth-child(5) { background: var(--accent-soft) !important; }
+}
+html[data-theme="dark"] .main-content table.scorecard td:nth-child(5) { color: var(--accent) !important; }
+
+// Legend above the scorecard tables
+.scorecard-legend {
+  font-size:.82rem !important; color: var(--text-muted) !important;
+  display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; margin:.25rem 0 1.5rem !important;
+}
+.scorecard-legend .sc-base {
+  font-family:'JetBrains Mono',monospace; font-size:.74rem; font-weight:600; color: var(--text-muted);
+  border:1px solid var(--border); border-radius:5px; padding:.05rem .4rem;
+}
+.scorecard-legend .sc-goal {
+  font-family:'JetBrains Mono',monospace; font-size:.74rem; font-weight:700; color: var(--accent);
+  background: var(--accent-soft); border:1px solid var(--accent-line); border-radius:5px; padding:.05rem .4rem;
+}
