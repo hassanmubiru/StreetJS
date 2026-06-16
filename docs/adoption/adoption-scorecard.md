@@ -2,6 +2,7 @@
 layout: default
 title: Adoption Scorecard
 nav_order: 70
+permalink: /adoption/adoption-scorecard/
 description: "Measurable StreetJS adoption KPIs across community, ecosystem, enterprise, and documentation, with quarterly targets."
 ---
 

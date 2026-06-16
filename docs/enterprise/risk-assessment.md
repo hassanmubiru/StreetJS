@@ -3,6 +3,7 @@ layout: default
 title: Risk Assessment
 parent: Enterprise
 nav_order: 2
+permalink: /enterprise/risk-assessment/
 description: "StreetJS risk assessment: supply-chain, operational, plugin, and credential risks with mitigations and residual risk."
 ---
 

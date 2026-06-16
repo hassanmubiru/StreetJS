@@ -3,6 +3,7 @@ layout: default
 title: Procurement FAQ
 parent: Enterprise
 nav_order: 4
+permalink: /enterprise/procurement-faq/
 description: "StreetJS procurement FAQ for CTOs, architects, and security teams: licensing, support, security, compliance, longevity."
 ---
 

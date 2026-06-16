@@ -2,6 +2,7 @@
 layout: default
 title: Migrating from Express
 nav_order: 8
+permalink: /migration-from-express/
 description: "Move an Express app to StreetJS — side-by-side routing, middleware, error handling, and body parsing with runnable examples."
 ---
 

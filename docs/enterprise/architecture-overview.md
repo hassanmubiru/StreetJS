@@ -3,6 +3,7 @@ layout: default
 title: Architecture Overview
 parent: Enterprise
 nav_order: 1
+permalink: /enterprise/architecture-overview/
 description: "StreetJS architecture for enterprise evaluators: security model, plugin trust, dependency philosophy, runtime isolation."
 ---
 
