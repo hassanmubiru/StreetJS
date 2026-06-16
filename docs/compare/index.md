@@ -4,7 +4,7 @@ title:        "Compare"
 nav_order:    13
 has_children: true
 permalink:    /compare/
-description:   "How StreetJS compares to Express, Fastify, NestJS, Laravel, and Django — honest feature tables, where each fits, and migration paths."
+description:   "How StreetJS compares to Express, Fastify, NestJS, Laravel, Django, Spring Boot, ASP.NET Core, Auth0, Firebase, and Pusher — honest feature tables, where each fits, and migration paths."
 ---
 
 {% include doc-styles.html %}
