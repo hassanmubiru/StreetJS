@@ -7,8 +7,8 @@ Thank you for your interest in contributing. This document explains how to set u
 ## Development setup
 
 ```bash
-git clone https://github.com/your-org/street.git
-cd street
+git clone https://github.com/hassanmubiru/StreetJS.git
+cd StreetJS
 npm install
 ```
 
