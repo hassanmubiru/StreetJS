@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/vue",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Vue 3 composables for StreetJS (api, auth, realtime, search, AI) built on @streetjs/client.",
   "type": "module",
   "main": "./dist/index.js",

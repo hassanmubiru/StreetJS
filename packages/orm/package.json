@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/orm",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "First-party ORM for StreetJS: entity/relation decorators, eager/lazy loading, and a safe parameterized query planner (RFC 0001).",
   "type": "module",
   "main": "./dist/index.js",
@@ -25,15 +25,39 @@
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
     "prepublishOnly": "npm run clean && npm run build"
   },
-  "keywords": ["street", "streetjs", "orm", "postgres", "relations", "migrations"],
+  "keywords": [
+    "street",
+    "streetjs",
+    "orm",
+    "postgres",
+    "relations",
+    "migrations"
+  ],
   "author": "street contributors",
   "license": "MIT",
   "homepage": "https://hassanmubiru.github.io/StreetJS/",
-  "repository": { "type": "git", "url": "git+https://github.com/hassanmubiru/StreetJS.git" },
-  "bugs": { "url": "https://github.com/hassanmubiru/StreetJS/issues" },
-  "dependencies": { "reflect-metadata": "^0.2.2", "streetjs": "^1.0.6" },
-  "devDependencies": { "@types/node": "^25.9.2", "typescript": "^6.0.3" },
-  "peerDependencies": { "typescript": ">=5.0.0" },
-  "engines": { "node": ">=20.0.0" },
-  "publishConfig": { "access": "public" }
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hassanmubiru/StreetJS.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hassanmubiru/StreetJS/issues"
+  },
+  "dependencies": {
+    "reflect-metadata": "^0.2.2",
+    "streetjs": "^1.0.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.2",
+    "typescript": "^6.0.3"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
 }

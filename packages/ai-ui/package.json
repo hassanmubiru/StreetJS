@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/ai-ui",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Accessible, themeable React AI components for StreetJS (chat, streaming, RAG search, tool viewer) built on @streetjs/react.",
   "type": "module",
   "main": "./dist/index.js",

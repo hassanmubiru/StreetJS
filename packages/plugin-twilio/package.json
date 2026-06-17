@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/plugin-twilio",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Official Street Framework plugin: Twilio SMS. Signed manifest, PluginModule SDK.",
   "type": "module",
   "main": "./dist/index.js",

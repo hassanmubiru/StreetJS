@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/plugin-africastalking",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Official Street Framework plugin: Africa's Talking (SMS, Bulk SMS, Voice, USSD, Airtime, Mobile Money). Signed manifest, PluginModule SDK, zero third-party deps.",
   "type": "module",
   "main": "./dist/index.js",

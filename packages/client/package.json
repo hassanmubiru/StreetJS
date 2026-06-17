@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/client",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Universal, framework-agnostic, zero-dependency type-safe client SDK for StreetJS backends (browser + Node).",
   "type": "module",
   "main": "./dist/index.js",
