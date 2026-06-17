@@ -19,10 +19,10 @@ description:   "Get involved with StreetJS — contributor path, governance, the
 
 | | |
 |---|---|
-| **Ask & discuss** | [GitHub Discussions](https://github.com/hassanmubiru/street/discussions) |
-| **Report issues** | [GitHub Issues](https://github.com/hassanmubiru/street/issues) |
-| **Contribute code/docs** | [Contributing guide](/contributing/) · [good first issues](https://github.com/hassanmubiru/street/labels/good%20first%20issue) |
-| **Propose changes** | [RFC process](https://github.com/hassanmubiru/street/tree/main/rfcs) |
+| **Ask & discuss** | [GitHub Discussions](https://github.com/hassanmubiru/StreetJS/discussions) |
+| **Report issues** | [GitHub Issues](https://github.com/hassanmubiru/StreetJS/issues) |
+| **Contribute code/docs** | [Contributing guide](/contributing/) · [good first issues](https://github.com/hassanmubiru/StreetJS/labels/good%20first%20issue) |
+| **Propose changes** | [RFC process](https://github.com/hassanmubiru/StreetJS/tree/main/rfcs) |
 | **Report a vulnerability** | [Security policy](/security/) |
 
 ## Contributor path
@@ -53,4 +53,4 @@ is fully automated and signed, so onboarding a co-maintainer is low-risk.
 ## Code of Conduct
 
 All participation is governed by the project
-[Code of Conduct](https://github.com/hassanmubiru/street/blob/main/CODE_OF_CONDUCT.md).
+[Code of Conduct](https://github.com/hassanmubiru/StreetJS/blob/main/CODE_OF_CONDUCT.md).

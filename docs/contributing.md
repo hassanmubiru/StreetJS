@@ -30,7 +30,7 @@ Contributions are welcome — bug fixes, documentation improvements, new feature
 ### Clone and install
 
 ```bash
-git clone https://github.com/hassanmubiru/street.git
+git clone https://github.com/hassanmubiru/StreetJS.git
 cd street
 npm install
 ```

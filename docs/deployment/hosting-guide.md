@@ -39,7 +39,7 @@ npm view street-framework        # Check unscoped alternative
 To change the name, edit `package.json`:
 
 ```json
-{ "name": "@hassanmubiru/street" }
+{ "name": "@hassanmubiru/StreetJS" }
 ```
 
 ---

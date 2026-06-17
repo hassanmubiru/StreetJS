@@ -41,10 +41,10 @@
   "homepage": "https://hassanmubiru.github.io/street/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hassanmubiru/street.git"
+    "url": "git+https://github.com/hassanmubiru/StreetJS.git"
   },
   "bugs": {
-    "url": "https://github.com/hassanmubiru/street/issues"
+    "url": "https://github.com/hassanmubiru/StreetJS/issues"
   },
   "dependencies": {
     "streetjs": "^1.0.9",

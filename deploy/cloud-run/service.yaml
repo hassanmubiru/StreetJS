@@ -19,7 +19,7 @@ spec:
       containerConcurrency: 80
       timeoutSeconds: 300
       containers:
-        - image: ghcr.io/hassanmubiru/street:latest
+        - image: ghcr.io/hassanmubiru/StreetJS:latest
           ports:
             - containerPort: 3000
           env:

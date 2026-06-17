@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Report a security vulnerability
-    url: https://github.com/hassanmubiru/street/security/advisories/new
+    url: https://github.com/hassanmubiru/StreetJS/security/advisories/new
     about: Please report vulnerabilities privately — never in public issues. See SECURITY.md.
   - name: Questions & discussion
-    url: https://github.com/hassanmubiru/street/discussions
+    url: https://github.com/hassanmubiru/StreetJS/discussions
     about: Ask questions and discuss ideas with the community.

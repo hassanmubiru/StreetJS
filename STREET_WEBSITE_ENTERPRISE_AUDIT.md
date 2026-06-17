@@ -3,7 +3,7 @@
 > **Audit Team:** Senior UI/UX Designer, DevRel Lead, Documentation Architect, Frontend Architect, Growth Strategist, SEO Specialist, Accessibility Expert, Performance Engineer, Brand Designer, Product Marketing Expert
 > **Date:** May 31, 2026
 > **Site:** https://hassanmubiru.github.io/street
-> **Repository:** https://github.com/hassanmubiru/street
+> **Repository:** https://github.com/hassanmubiru/StreetJS
 
 ---
 
@@ -1092,7 +1092,7 @@ The `docs/index.md` needs actual HTML content using the CSS classes already defi
         <a href="/street/getting-started/installation" class="s-btn s-btn-primary">
           Get Started →
         </a>
-        <a href="https://github.com/hassanmubiru/street" class="s-btn s-btn-ghost">
+        <a href="https://github.com/hassanmubiru/StreetJS" class="s-btn s-btn-ghost">
           View on GitHub
         </a>
       </div>

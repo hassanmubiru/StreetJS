@@ -24,7 +24,7 @@ flowchart LR
 
 1. Read `CONTRIBUTING.md` and install Node 20+.
 2. `git clone` → `npm ci` → `npm run build -w packages/core`.
-3. Pick a [`good-first-issue`](https://github.com/hassanmubiru/street/labels/good-first-issue)
+3. Pick a [`good-first-issue`](https://github.com/hassanmubiru/StreetJS/labels/good-first-issue)
    (each is scoped, has acceptance criteria, and a mentor where labeled
    `mentorship-available`).
 4. Make the change, run the relevant package's tests (`npm test -w packages/<pkg>`),

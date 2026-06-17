@@ -200,8 +200,8 @@ import { ClusterCoordinator }    from 'streetjs/cluster';
 - 🚀 [Getting Started](https://hassanmubiru.github.io/street/getting-started/)
 - 🧩 [Plugins](https://hassanmubiru.github.io/street/plugins/)
 - ⚖️ [Compare vs Express / Fastify / NestJS](https://hassanmubiru.github.io/street/compare/)
-- 💬 [GitHub & Discussions](https://github.com/hassanmubiru/street)
-- 📦 [`@streetjs/cli`](https://www.npmjs.com/package/@streetjs/cli) · [Changelog](https://github.com/hassanmubiru/street/blob/main/CHANGELOG.md)
+- 💬 [GitHub & Discussions](https://github.com/hassanmubiru/StreetJS)
+- 📦 [`@streetjs/cli`](https://www.npmjs.com/package/@streetjs/cli) · [Changelog](https://github.com/hassanmubiru/StreetJS/blob/main/CHANGELOG.md)
 
 ## License
 

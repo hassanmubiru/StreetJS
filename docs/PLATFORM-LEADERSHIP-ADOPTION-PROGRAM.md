@@ -13,7 +13,7 @@ description: "Evidence-based gap analysis and acceleration program for StreetJS 
 > complete, not re-run here), **PARTIAL** (present but below competitor parity), or
 > **NOT IMPLEMENTED** (absent). No marketing language. No unverified scoring.
 
-Date: 2026-06-14 · Repo: `hassanmubiru/street` · npm: `streetjs@1.0.7` (VERIFIED live)
+Date: 2026-06-14 · Repo: `hassanmubiru/StreetJS` · npm: `streetjs@1.0.7` (VERIFIED live)
 
 ---
 

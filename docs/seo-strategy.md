@@ -263,7 +263,7 @@ auth, full-stack, and native realtime).
   "url": "https://hassanmubiru.github.io/street/",
   "logo": "https://hassanmubiru.github.io/street/assets/images/logo.svg",
   "sameAs": [
-    "https://github.com/hassanmubiru/street",
+    "https://github.com/hassanmubiru/StreetJS",
     "https://www.npmjs.com/package/streetjs"
   ]
 }

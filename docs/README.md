@@ -86,7 +86,7 @@ Every component enforces an upper bound on memory:
 ### Quick install
 
 ```bash
-git clone https://github.com/hassanmubiru/street.git my-app
+git clone https://github.com/hassanmubiru/StreetJS.git my-app
 cd my-app
 cd packages/core && npm install && npx tsc
 ```

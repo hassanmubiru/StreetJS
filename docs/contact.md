@@ -16,12 +16,12 @@ description: "How to reach the StreetJS project — GitHub Issues, Discussions, 
 
 | I want to… | Use |
 |------------|-----|
-| **Ask a question / discuss an idea** | [GitHub Discussions](https://github.com/hassanmubiru/street/discussions) |
-| **Report a bug / request a feature** | [GitHub Issues](https://github.com/hassanmubiru/street/issues) |
+| **Ask a question / discuss an idea** | [GitHub Discussions](https://github.com/hassanmubiru/StreetJS/discussions) |
+| **Report a bug / request a feature** | [GitHub Issues](https://github.com/hassanmubiru/StreetJS/issues) |
 | **Report a security vulnerability** | See the [Security Policy](/security/) — please do **not** open a public issue for vulnerabilities |
-| **Contribute** | [Contributing guide](/contributing/) · [good first issues](https://github.com/hassanmubiru/street/labels/good%20first%20issue) |
-| **Propose a significant change** | [RFC process](https://github.com/hassanmubiru/street/tree/main/rfcs) |
-| **Procurement / partnership / business** | Open a [Discussion](https://github.com/hassanmubiru/street/discussions) tagged appropriately, or see [Enterprise](/enterprise/) |
+| **Contribute** | [Contributing guide](/contributing/) · [good first issues](https://github.com/hassanmubiru/StreetJS/labels/good%20first%20issue) |
+| **Propose a significant change** | [RFC process](https://github.com/hassanmubiru/StreetJS/tree/main/rfcs) |
+| **Procurement / partnership / business** | Open a [Discussion](https://github.com/hassanmubiru/StreetJS/discussions) tagged appropriately, or see [Enterprise](/enterprise/) |
 
 ## Security reporting
 
@@ -31,6 +31,6 @@ filing a public issue, so a fix can ship before details are public.
 
 ## Project links
 
-- GitHub: <https://github.com/hassanmubiru/street>
+- GitHub: <https://github.com/hassanmubiru/StreetJS>
 - npm (core): <https://www.npmjs.com/package/streetjs>
 - Documentation: [/](/)

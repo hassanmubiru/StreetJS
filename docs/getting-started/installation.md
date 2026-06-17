@@ -43,7 +43,7 @@ psql --version   # psql (PostgreSQL) 14.x or higher
 ### From the repository
 
 ```bash
-git clone https://github.com/hassanmubiru/street.git my-api
+git clone https://github.com/hassanmubiru/StreetJS.git my-api
 cd my-api
 ```
 

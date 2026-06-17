@@ -31,7 +31,7 @@ the changelog and a GitHub Security Advisory.
 discussions, or pull requests.**
 
 Report vulnerabilities privately through GitHub's
-[private vulnerability reporting](https://github.com/hassanmubiru/street/security/advisories/new):
+[private vulnerability reporting](https://github.com/hassanmubiru/StreetJS/security/advisories/new):
 
 1. Go to the repository's **Security** tab.
 2. Select **Report a vulnerability**.

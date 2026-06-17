@@ -2,7 +2,7 @@
 
 **CLI for the StreetJS framework — scaffold projects, generate code, run dev server, manage migrations.**
 
-[![CI](https://github.com/hassanmubiru/street/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/hassanmubiru/street/actions/workflows/ci-cd.yml)
+[![CI](https://github.com/hassanmubiru/StreetJS/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/hassanmubiru/StreetJS/actions/workflows/ci-cd.yml)
 [![npm version](https://img.shields.io/npm/v/@streetjs/cli)](https://www.npmjs.com/package/@streetjs/cli)
 [![npm downloads](https://img.shields.io/npm/dm/@streetjs/cli)](https://www.npmjs.com/package/@streetjs/cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -326,10 +326,10 @@ docker compose up
 ## Links
 
 - [Documentation](https://hassanmubiru.github.io/street)
-- [GitHub](https://github.com/hassanmubiru/street)
+- [GitHub](https://github.com/hassanmubiru/StreetJS)
 - [npm — @streetjs/cli](https://www.npmjs.com/package/@streetjs/cli)
 - [npm — streetjs](https://www.npmjs.com/package/streetjs)
-- [Changelog](https://github.com/hassanmubiru/street/blob/main/CHANGELOG.md)
+- [Changelog](https://github.com/hassanmubiru/StreetJS/blob/main/CHANGELOG.md)
 
 ## License
 

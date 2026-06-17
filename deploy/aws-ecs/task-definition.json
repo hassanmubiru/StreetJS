@@ -8,7 +8,7 @@
   "containerDefinitions": [
     {
       "name": "streetjs",
-      "image": "ghcr.io/hassanmubiru/street:latest",
+      "image": "ghcr.io/hassanmubiru/StreetJS:latest",
       "essential": true,
       "portMappings": [{ "containerPort": 3000, "protocol": "tcp" }],
       "environment": [

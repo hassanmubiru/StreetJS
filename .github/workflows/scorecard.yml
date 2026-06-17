@@ -1,6 +1,6 @@
 # OpenSSF Scorecard — supply-chain security analysis.
 # Publishes results so the README badge (api.securityscorecards.dev) and the
-# viewer (securityscorecards.dev/viewer/?uri=github.com/hassanmubiru/street)
+# viewer (securityscorecards.dev/viewer/?uri=github.com/hassanmubiru/StreetJS)
 # resolve. Without a published run the viewer reports "invalid repo path".
 name: Scorecard supply-chain security
 

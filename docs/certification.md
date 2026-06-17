@@ -109,22 +109,22 @@ description: "StreetJS Framework certification summary — 10/10 production gate
 
 <div class="st-cards">
 
-  <a class="st-card has-ic" href="https://github.com/hassanmubiru/street/blob/main/docs/SECURITY-CERTIFICATION.md">
+  <a class="st-card has-ic" href="https://github.com/hassanmubiru/StreetJS/blob/main/docs/SECURITY-CERTIFICATION.md">
     <span class="st-card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
     <div><p class="st-card-t">Security</p><p class="st-card-d">JWT, AES-256-GCM sessions, scrypt vault, rate limiting, security headers — 74/74 system checks.</p></div>
   </a>
 
-  <a class="st-card has-ic" href="https://github.com/hassanmubiru/street/blob/main/docs/PERFORMANCE-CERTIFICATION.md">
+  <a class="st-card has-ic" href="https://github.com/hassanmubiru/StreetJS/blob/main/docs/PERFORMANCE-CERTIFICATION.md">
     <span class="st-card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
     <div><p class="st-card-t">Performance</p><p class="st-card-d">27.5k req/s median, 2ms P50, 70ms startup — measured, run-by-run.</p></div>
   </a>
 
-  <a class="st-card has-ic" href="https://github.com/hassanmubiru/street/blob/main/docs/OBSERVABILITY-CERTIFICATION.md">
+  <a class="st-card has-ic" href="https://github.com/hassanmubiru/StreetJS/blob/main/docs/OBSERVABILITY-CERTIFICATION.md">
     <span class="st-card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 5-6"/></svg></span>
     <div><p class="st-card-t">Observability</p><p class="st-card-d">Prometheus rules (promtool-validated), Grafana dashboard, tracing and health checks.</p></div>
   </a>
 
-  <a class="st-card has-ic" href="https://github.com/hassanmubiru/street/blob/main/docs/DEPLOYMENT-CERTIFICATION.md">
+  <a class="st-card has-ic" href="https://github.com/hassanmubiru/StreetJS/blob/main/docs/DEPLOYMENT-CERTIFICATION.md">
     <span class="st-card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 1 0 0-9 5.8 5.8 0 0 0-11.3-1.6A4 4 0 0 0 6.5 19z"/></svg></span>
     <div><p class="st-card-t">Deployment</p><p class="st-card-d">Kubernetes manifest generation, kind-cluster apply and liveness smoke test.</p></div>
   </a>

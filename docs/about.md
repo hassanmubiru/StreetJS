@@ -47,7 +47,7 @@ with a tiny dependency footprint**, and ship them as one coherent framework.
 
 StreetJS is MIT-licensed and governed by a documented model with a Steering
 Committee and a public RFC process. See [Community](/community/) and the
-[`GOVERNANCE.md`](https://github.com/hassanmubiru/street/blob/main/GOVERNANCE.md).
+[`GOVERNANCE.md`](https://github.com/hassanmubiru/StreetJS/blob/main/GOVERNANCE.md).
 
 ## Roadmap vision
 

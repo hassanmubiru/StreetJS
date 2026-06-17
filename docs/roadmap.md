@@ -89,7 +89,7 @@ not core capabilities.
 
 ## How to influence the roadmap
 
-- **Open a feature request** at [github.com/hassanmubiru/street/issues](https://github.com/hassanmubiru/street/issues)
-- **Start a discussion** at [github.com/hassanmubiru/street/discussions](https://github.com/hassanmubiru/street/discussions)
+- **Open a feature request** at [github.com/hassanmubiru/StreetJS/issues](https://github.com/hassanmubiru/StreetJS/issues)
+- **Start a discussion** at [github.com/hassanmubiru/StreetJS/discussions](https://github.com/hassanmubiru/StreetJS/discussions)
 - **Vote** on existing issues with 👍
 - **Contribute** — see the [Contributing Guide](/contributing/)

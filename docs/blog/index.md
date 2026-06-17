@@ -31,4 +31,4 @@ Planned topics (contributions welcome — see [Community](/community/)):
 3. *Signing the plugin ecosystem* — Ed25519 manifests, provenance, and the trust model.
 4. *From SQLite to PostgreSQL without rewrites* — the shared repository pattern.
 
-> Want to write one? Open a [Discussion](https://github.com/hassanmubiru/street/discussions) or a PR.
+> Want to write one? Open a [Discussion](https://github.com/hassanmubiru/StreetJS/discussions) or a PR.

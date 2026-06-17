@@ -10,7 +10,7 @@
 
 > **TL;DR** — StreetJS is a memory-safe TypeScript backend framework built straight on Node.js core. Native PostgreSQL wire driver, JWT, sessions, WebSockets, clustering, Kafka and RabbitMQ — no Express, no `pg`, no Prisma. Two runtime dependencies.
 >
-> `npm install streetjs` · [Docs](https://hassanmubiru.github.io/street/) · [GitHub](https://github.com/hassanmubiru/street) · [npm](https://www.npmjs.com/package/streetjs)
+> `npm install streetjs` · [Docs](https://hassanmubiru.github.io/street/) · [GitHub](https://github.com/hassanmubiru/StreetJS) · [npm](https://www.npmjs.com/package/streetjs)
 
 ## Why another framework?
 
@@ -61,7 +61,7 @@ StreetJS publishes a [certification summary](https://hassanmubiru.github.io/stre
 ## Links
 
 - 📖 Docs: https://hassanmubiru.github.io/street/
-- 💻 GitHub: https://github.com/hassanmubiru/street
+- 💻 GitHub: https://github.com/hassanmubiru/StreetJS
 - 📦 npm: https://www.npmjs.com/package/streetjs
 
 ---

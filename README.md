@@ -11,14 +11,14 @@ Auth, realtime, ORM, jobs, messaging, observability and a signed plugin ecosyste
 [![npm version](https://img.shields.io/npm/v/streetjs?color=2563EB&label=streetjs)](https://www.npmjs.com/package/streetjs)
 [![npm downloads](https://img.shields.io/npm/dm/streetjs?color=2563EB)](https://www.npmjs.com/package/streetjs)
 [![License: MIT](https://img.shields.io/badge/license-MIT-64748B.svg)](LICENSE)
-[![CI](https://github.com/hassanmubiru/street/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/hassanmubiru/street/actions/workflows/ci-cd.yml)
-[![CodeQL](https://github.com/hassanmubiru/street/actions/workflows/codeql.yml/badge.svg)](https://github.com/hassanmubiru/street/actions/workflows/codeql.yml)
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/hassanmubiru/street/badge)](https://securityscorecards.dev/viewer/?uri=github.com/hassanmubiru/street)
+[![CI](https://github.com/hassanmubiru/StreetJS/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/hassanmubiru/StreetJS/actions/workflows/ci-cd.yml)
+[![CodeQL](https://github.com/hassanmubiru/StreetJS/actions/workflows/codeql.yml/badge.svg)](https://github.com/hassanmubiru/StreetJS/actions/workflows/codeql.yml)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/hassanmubiru/StreetJS/badge)](https://securityscorecards.dev/viewer/?uri=github.com/hassanmubiru/StreetJS)
 [![npm provenance](https://img.shields.io/badge/npm-provenance-2563EB?logo=npm)](https://www.npmjs.com/package/streetjs)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D20-3C873A)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/typescript-%3E%3D5.0-3178C6)](https://www.typescriptlang.org)
 
-[**Documentation**](https://hassanmubiru.github.io/street/) · [**Get Started**](https://hassanmubiru.github.io/street/getting-started/) · [**Compare**](https://hassanmubiru.github.io/street/compare/) · [**Plugins**](https://hassanmubiru.github.io/street/plugins/) · [**Discussions**](https://github.com/hassanmubiru/street/discussions)
+[**Documentation**](https://hassanmubiru.github.io/street/) · [**Get Started**](https://hassanmubiru.github.io/street/getting-started/) · [**Compare**](https://hassanmubiru.github.io/street/compare/) · [**Plugins**](https://hassanmubiru.github.io/street/plugins/) · [**Discussions**](https://github.com/hassanmubiru/StreetJS/discussions)
 
 </div>
 
@@ -173,8 +173,8 @@ Report vulnerabilities privately via the [Security Policy](SECURITY.md).
 
 ## Community
 
-- 💬 [Discussions](https://github.com/hassanmubiru/street/discussions) — questions, ideas, show-and-tell
-- 🐛 [Issues](https://github.com/hassanmubiru/street/issues) — bugs and feature requests
+- 💬 [Discussions](https://github.com/hassanmubiru/StreetJS/discussions) — questions, ideas, show-and-tell
+- 🐛 [Issues](https://github.com/hassanmubiru/StreetJS/issues) — bugs and feature requests
 - 🧭 [Contributing Guide](CONTRIBUTING.md) · [Contributor Path](https://hassanmubiru.github.io/street/community/contributor-path/) · [Code of Conduct](CODE_OF_CONDUCT.md)
 - 🏛️ [Governance](GOVERNANCE.md) & RFC process
 - 🗺️ [Roadmap](https://hassanmubiru.github.io/street/roadmap/) · [Adoption & Go-To-Market Roadmap](https://hassanmubiru.github.io/street/adoption/go-to-market-roadmap/)

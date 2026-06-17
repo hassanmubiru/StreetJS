@@ -39,16 +39,16 @@ back_to_top_text: "Back to top"
 # Nav footer links
 footer_content: >
   Copyright &copy; 2026 street contributors.
-  Distributed under the <a href="https://github.com/hassanmubiru/street/blob/main/LICENSE">MIT license.</a>
+  Distributed under the <a href="https://github.com/hassanmubiru/StreetJS/blob/main/LICENSE">MIT license.</a>
   &nbsp;|&nbsp;
   <a href="https://www.npmjs.com/package/streetjs">npm</a>
   &nbsp;|&nbsp;
-  <a href="https://github.com/hassanmubiru/street">GitHub</a>
+  <a href="https://github.com/hassanmubiru/StreetJS">GitHub</a>
 
 # Aux links (top-right navigation)
 aux_links:
   "GitHub":
-    - "https://github.com/hassanmubiru/street"
+    - "https://github.com/hassanmubiru/StreetJS"
   "npm":
     - "https://www.npmjs.com/package/streetjs"
 
@@ -57,7 +57,7 @@ aux_links_new_tab: true
 # "Edit on GitHub" links disabled (set to true to re-enable)
 gh_edit_link:           false
 gh_edit_link_text:      "Edit this page on GitHub"
-gh_edit_repository:     "https://github.com/hassanmubiru/street"
+gh_edit_repository:     "https://github.com/hassanmubiru/StreetJS"
 gh_edit_branch:         "main"
 gh_edit_source:         docs
 gh_edit_view_mode:      "edit"

@@ -51,5 +51,5 @@ ROI-ranked path to security audit, pen-test, and SOC 2 readiness.
 ## Talk to us
 
 For procurement or partnership questions, open a
-[GitHub Discussion](https://github.com/hassanmubiru/street/discussions) or see
+[GitHub Discussion](https://github.com/hassanmubiru/StreetJS/discussions) or see
 [Contact](/contact/).
