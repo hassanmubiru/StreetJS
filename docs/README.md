@@ -166,7 +166,7 @@ curl http://localhost:3000/api/hello
 
 ## CLI Usage
 
-street ships with a built-in CLI kernel. Commands run when `process.argv` contains a known command name; otherwise the HTTP server boots.
+StreetJS ships with a built-in CLI kernel. Commands run when `process.argv` contains a known command name; otherwise the HTTP server boots.
 
 ```bash
 # Run database migrations
