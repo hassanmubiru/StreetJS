@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/plugin-mysql",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Official StreetJS plugin: MySQL/MariaDB connection pool (wraps the native, dependency-free core driver).",
   "type": "module",
   "main": "./dist/index.js",

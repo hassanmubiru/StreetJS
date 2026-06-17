@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/plugin-nats",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Official StreetJS plugin: NATS publish/subscribe messaging (dependency-free protocol client).",
   "type": "module",
   "main": "./dist/index.js",
