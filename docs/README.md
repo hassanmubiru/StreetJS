@@ -1,11 +1,11 @@
 ---
 layout: default
-title: "street"
+title: "StreetJS"
 nav_exclude: true
-description: "street — StreetJS, the production-grade, memory-safe TypeScript backend framework for Node.js."
+description: "StreetJS — the production-grade, memory-safe TypeScript backend framework for Node.js."
 ---
 
-# street
+# StreetJS
 
 **Production-grade, memory-safe TypeScript backend framework built on Node.js core modules.**
 
