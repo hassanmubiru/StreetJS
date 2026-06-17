@@ -230,7 +230,7 @@ Vault Mode uses:
 
 The auth tag provides tamper detection — if the blob is modified in transit or storage, decryption throws immediately. The salt ensures two encryptions of the same secret produce different blobs.
 
-See [Vault Mode documentation](../security/vault-mode.md) for full details.
+See [Vault Mode documentation](../security/index.md) for full details.
 
 ---
 
