@@ -6,7 +6,7 @@
   "dependencies": {
     "express": "^5.2.1",
     "fastify": "^5.8.5",
-    "hono": "^4.12.23",
+    "hono": "^4.12.25",
     "@hono/node-server": "^1.13.7",
     "@nestjs/core": "^11.1.24",
     "@nestjs/common": "^11.1.24",
