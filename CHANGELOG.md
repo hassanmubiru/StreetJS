@@ -7,6 +7,13 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.0.10] - 2026-06-17
+
+### Changed
+- Documentation: modernized the GitHub and npm READMEs (accurate dependency count
+  of 3, 47-package monorepo, 19 official plugins; added hero, comparison table,
+  Official Plugins, and Security & Supply Chain sections). No API changes.
+
 ## [Unreleased]
 
 ### Added
