@@ -100,7 +100,7 @@ npm run test -w packages/core
 ## Code standards
 
 - **TypeScript strict mode** — all `strict`, `noImplicitAny`, `noUnusedLocals` flags must pass
-- **No new runtime dependencies** — street's dependency count (2) is intentional
+- **No new runtime dependencies** — StreetJS's dependency count (2) is intentional
 - **Memory bounds required** — every new collection, queue, or cache must have an explicit upper bound
 - **No `any` casts** — use typed generics or unknown with type guards
 - **`.js` extensions on imports** — NodeNext ESM requires explicit extensions in source
