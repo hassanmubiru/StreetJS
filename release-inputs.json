@@ -3,13 +3,13 @@
   "scorecard": {
     "security": 73,
     "reliability": 75,
-    "coverage": 60,
+    "coverage": 77,
     "performance": 70
   },
   "thresholds": {
     "security": 70,
     "reliability": 70,
-    "coverage": 60,
+    "coverage": 70,
     "performance": 60
   },
   "health": {
