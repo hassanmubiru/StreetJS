@@ -53,7 +53,7 @@ Every system in StreetJS is engineered with one overriding principle: **bounded 
 
 ### Why no `express`, `pg`, `zod`, or `prisma`?
 
-Each abstraction you add is a leak surface, a version conflict, and a maintenance burden. street trades familiar API comfort for **total control**:
+Each abstraction you add is a leak surface, a version conflict, and a maintenance burden. StreetJS trades familiar API comfort for **total control**:
 
 - **No ORM** — You write SQL. The driver executes it row-by-row with backpressure.
 - **No validation library** — Schema rules are plain TypeScript objects validated inline.
