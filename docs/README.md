@@ -230,36 +230,36 @@ The bundled example implements a full user management API:
 
 | Section | Contents |
 |---|---|
-| [Getting Started](docs/getting-started/installation.md) | Install, configure, first server |
-| [Dependency Injection](docs/core/dependency-injection.md) | `@Injectable`, container, resolution |
-| [Routing](docs/core/routing.md) | Route decorators, params, middleware |
-| [Controllers](docs/core/controllers.md) | `@Controller`, full handler patterns |
+| [Getting Started](getting-started/installation.md) | Install, configure, first server |
+| [Dependency Injection](core/dependency-injection.md) | `@Injectable`, container, resolution |
+| [Routing](core/routing.md) | Route decorators, params, middleware |
+| [Controllers](core/controllers.md) | `@Controller`, full handler patterns |
 | Validation | Schema validation, field rules (covered in Getting Started) |
 | Exception Handling | Typed exceptions, global error handler (covered in First Server) |
-| [PostgreSQL Driver](docs/database/postgres-wire-driver.md) | Wire protocol, queries, streaming |
-| [Repositories](docs/database/repositories.md) | Generic repository, typed rows |
+| [PostgreSQL Driver](database/postgres-wire-driver.md) | Wire protocol, queries, streaming |
+| [Repositories](database/repositories.md) | Generic repository, typed rows |
 | Transactions | ACID, `BEGIN`/`COMMIT`/`ROLLBACK` (covered in Repositories) |
 | Streaming Results | Backpressure, row-by-row streaming (covered in PostgreSQL Driver) |
 | Migrations | SQL migrations, idempotency (covered in CLI) |
-| [JWT](docs/security/jwt.md) | Sign, verify, timing-safe |
+| [JWT](security/jwt.md) | Sign, verify, timing-safe |
 | Sessions | AES-256-GCM, tamper detection (covered in JWT) |
 | Vault Mode | KEK, scrypt key derivation (covered in Configuration) |
 | Rate Limiting | Sliding window, BigInt timing |
 | XSS Protection | Deep sanitization |
-| [WebSocket](docs/realtime/websocket.md) | Events, broadcast, heartbeat |
+| [WebSocket](realtime/websocket.md) | Events, broadcast, heartbeat |
 | SSE | Server-Sent Events, keep-alive (covered in WebSocket) |
-| [File Uploads](docs/storage/multipart-uploads.md) | Streaming to disk, cleanup |
-| [Telemetry](docs/performance/telemetry.md) | Heap, latency, request tracking |
+| [File Uploads](storage/multipart-uploads.md) | Streaming to disk, cleanup |
+| [Telemetry](performance/telemetry.md) | Heap, latency, request tracking |
 | Caching | LRU, TTL, eviction |
 | Clustering | Workers, IPC heartbeat, restart (covered in Docker) |
 | Memory Safety | Principles, bounded behavior (covered in Docker) |
-| [CLI](docs/cli/commands.md) | `@Command`, argv, flags |
-| [Docker](docs/deployment/docker.md) | Distroless, multi-stage, CI/CD |
+| [CLI](cli/commands.md) | `@Command`, argv, flags |
+| [Docker](deployment/docker.md) | Distroless, multi-stage, CI/CD |
 | Production | Env vars, security hardening (covered in Docker) |
 | CI/CD | GitHub Actions, single workflow (covered in Docker) |
-| [Integration Tests](docs/testing/integration-tests.md) | `node:test`, live DB, cleanup |
-| [User API Example](docs/examples/user-api.md) | Full CRUD walkthrough |
-| [Streaming Query](docs/examples/streaming-query.md) | Large dataset streaming |
+| [Integration Tests](testing/integration-tests.md) | `node:test`, live DB, cleanup |
+| [User API Example](examples/user-api.md) | Full CRUD walkthrough |
+| [Streaming Query](examples/streaming-query.md) | Large dataset streaming |
 | Secure Auth Example | JWT + session auth (covered in User API) |
 | WebSocket Chat | Real-time messaging (covered in WebSocket) |
 | File Upload Service | Multipart upload (covered in File Uploads) |
