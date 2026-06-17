@@ -98,7 +98,7 @@ stream.on('end', () => console.log('Done'));
 stream.on('error', (err) => console.error('Error:', err));
 ```
 
-See [Streaming Results](./streaming-results.md) for backpressure details.
+Streaming with row-by-row backpressure is covered in the sections above.
 
 ### Closing
 
