@@ -948,11 +948,21 @@ jobs:
       - name: Deprecate @streetjs/core (renamed to streetjs)
         # Best-effort and idempotent: the deprecation only needs to be applied
         # once and already is. npm returns E422 when re-applying an unchanged
-        # deprecation, so this must never fail the release (per the note above).
+        # deprecation, so we compare the live message first and skip the PUT when
+        # it already matches. continue-on-error stays as a safety net so a
+        # transient registry error here can never fail/unpublish the release.
         continue-on-error: true
-        run: npm deprecate @streetjs/core "Renamed to 'streetjs'. Install 'streetjs' instead; @streetjs/core re-exports it unchanged. See https://github.com/hassanmubiru/street/blob/main/docs/migration.md"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          msg="Renamed to 'streetjs'. Install 'streetjs' instead; @streetjs/core re-exports it unchanged. See https://github.com/hassanmubiru/StreetJS/blob/main/docs/migration.md"
+          current="$(npm view @streetjs/core deprecated 2>/dev/null || true)"
+          if [ "$current" = "$msg" ]; then
+            echo "Deprecation message already up to date; skipping npm deprecate."
+          else
+            echo "Applying deprecation message to @streetjs/core."
+            npm deprecate @streetjs/core "$msg"
+          fi
 
       # ── Provenance gate ──────────────────────────────────────────────────
       # A release MUST carry an npm provenance attestation. A manual/local
