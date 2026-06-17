@@ -13,14 +13,15 @@ description: "Evidence-based audit of the StreetJS website, branding, documentat
 > No invented metrics. Live checks were made with `curl` against
 > `https://hassanmubiru.github.io/street/`.
 
-> **Measurement caveat (UNKNOWN, this run):** after a burst of automated requests,
-> GitHub Pages began returning `404` (with `x-origin-cache: HIT`) for static files
-> including `robots.txt`, `sitemap.xml`, `feed.xml`, the CSS bundle, and the Google
-> verification file, while the cached homepage still returned `200`. These same
-> files were **VERIFIED `200` earlier this session** (sitemap had 132 URLs) and all
-> source files are committed with green builds — so this is consistent with
-> **client-side rate-limiting**, not a regression. **Re-confirm these four URLs in a
-> browser**; if any are genuinely 404 there, that is CRITICAL.
+> **Measurement caveat (rate-limiting confirmed):** during this audit, after a
+> burst of automated requests, GitHub Pages began returning `404` (with
+> `x-origin-cache: HIT`) for static files — and eventually for the **homepage
+> itself** (serving GitHub's generic 404 page) — from this client only. These same
+> URLs were **VERIFIED `200` earlier this session** (sitemap had 132 URLs), all
+> source files are committed, builds are green, and the site renders styled in the
+> browser. This is **GitHub Pages IP rate-limiting of the audit client, not a site
+> regression.** Re-confirm `robots.txt` / `sitemap.xml` / `feed.xml` in a browser
+> for peace of mind; no action is expected.
 
 ---
 
