@@ -114,6 +114,10 @@ jobs:
           PG_USER: street
           PG_PASSWORD: street_secret
           PG_DATABASE: street_test
-          GCS_URL: http://127.0.0.1:4443
+          # fake-gcs-server serves HTTPS on 4443 with a self-signed cert. Point
+          # the client at https:// and disable TLS verification for this local
+          # emulator only (undici honours NODE_TLS_REJECT_UNAUTHORIZED).
+          GCS_URL: https://127.0.0.1:4443
+          NODE_TLS_REJECT_UNAUTHORIZED: '0'
           AZURITE_URL: http://127.0.0.1:10000
         run: npm run test -w packages/storage
