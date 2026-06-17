@@ -59,8 +59,8 @@ const pkg = {
   author: 'street contributors',
   license: 'MIT',
   homepage: 'https://hassanmubiru.github.io/street/',
-  repository: { type: 'git', url: 'git+https://github.com/hassanmubiru/street.git' },
-  bugs: { url: 'https://github.com/hassanmubiru/street/issues' },
+  repository: { type: 'git', url: 'git+https://github.com/hassanmubiru/StreetJS.git' },
+  bugs: { url: 'https://github.com/hassanmubiru/StreetJS/issues' },
   engines: { node: '>=20.0.0' },
   publishConfig: { access: 'public', registry: 'https://registry.npmjs.org/' },
 };
