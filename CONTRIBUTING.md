@@ -137,7 +137,7 @@ PG_HOST=localhost PG_USER=street PG_PASSWORD=street PG_DATABASE=street_dev \
 
 ## Test suite reference
 
-street has three layers of testing. All run with `node:test` and `node:assert/strict` — no test framework dependencies.
+StreetJS has three layers of testing. All run with `node:test` and `node:assert/strict` — no test framework dependencies.
 
 ### Integration tests
 
