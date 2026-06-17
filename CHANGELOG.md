@@ -9,6 +9,8 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [1.0.11] - 2026-06-17
 
+Repository rename and release-pipeline hardening. No API changes.
+
 ### Changed
 - Repository rename: updated all `repository`/`bugs` URLs, documentation links,
   CI badges, and the GitHub Pages base URL from `hassanmubiru/street` to
