@@ -100,7 +100,14 @@ jobs:
         env:
           PLUGIN: ${{ matrix.plugin }}
           STREET_PLUGIN_SIGNING_KEY: ${{ secrets.STREET_PLUGIN_SIGNING_KEY }}
-        run: npm run build -w "packages/$PLUGIN"
+        # Sign here too (not only via prepublishOnly): when the publish step is
+        # skipped for an already-published version, prepublishOnly never runs, so
+        # without this the later "verify packed manifest" step would pack an
+        # unsigned manifest and fail. Signing with the official key in this step
+        # keeps the manifest valid on both the publish and skip paths.
+        run: |
+          npm run build -w "packages/$PLUGIN"
+          npm run sign -w "packages/$PLUGIN"
 
       - name: Run plugin tests (if present)
         if: steps.target.outputs.skip == 'false'
