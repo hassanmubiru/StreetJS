@@ -37,9 +37,9 @@
       "measured": "2026-06-17"
     },
     "coverage": {
-      "score": 60,
-      "source": "packages/core c8 enforced floor (lines/functions/branches/statements = 60, check-coverage=true). This is the committed hard lower bound; CI fails below it, so actual coverage is >= 60.",
-      "note": "Conservative lower-bound score. Raise once a measured aggregate coverage number is wired into this file from the CI coverage artifacts."
+      "score": 77,
+      "source": "Measured aggregate line coverage 77.03% (5247/6812 lines) from the CI core-coverage artifact (c8/lcov), run 27691850656, commit a665651d, Node 20. Branches 78.37%, functions 64.77%. Exceeds the committed c8 floor of 60.",
+      "note": "Headline = line coverage. Function coverage (64.77%) is the lowest sub-metric; consider raising it before tightening the coverage threshold further."
     },
     "reliability": {
       "score": 75,
