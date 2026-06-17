@@ -42,15 +42,19 @@ jobs:
       - name: Build all packages (dependency order)
         run: |
           set -euo pipefail
-          for p in client react next vue nuxt auth-ui ai-ui admin-ui; do
+          for p in client edge react next vue nuxt auth-ui ai-ui admin-ui; do
             npm run build -w "packages/$p"
           done
 
       - name: Test all packages
         run: |
           set -euo pipefail
-          for p in client react next vue nuxt auth-ui ai-ui admin-ui; do
-            npm test -w "packages/$p"
+          for p in client edge react next vue nuxt auth-ui ai-ui admin-ui; do
+            if node -e "process.exit(require('./packages/'+process.argv[1]+'/package.json').scripts?.test?0:1)" "$p"; then
+              npm test -w "packages/$p"
+            else
+              echo "no test script for $p — skipping"
+            fi
           done
 
       - name: Publish (idempotent, with provenance)
@@ -58,7 +62,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           set -euo pipefail
-          for p in client react next vue nuxt auth-ui ai-ui admin-ui; do
+          for p in client edge react next vue nuxt auth-ui ai-ui admin-ui; do
             NAME=$(node -p "require('./packages/$p/package.json').name")
             VERSION=$(node -p "require('./packages/$p/package.json').version")
             if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
@@ -76,7 +80,7 @@ jobs:
           set -euo pipefail
           sleep 20
           fail=0
-          for p in client react next vue nuxt auth-ui ai-ui admin-ui; do
+          for p in client edge react next vue nuxt auth-ui ai-ui admin-ui; do
             NAME=$(node -p "require('./packages/$p/package.json').name")
             VERSION=$(node -p "require('./packages/$p/package.json').version")
             att=$(npm view "$NAME@$VERSION" dist.attestations --json 2>/dev/null || echo "")
