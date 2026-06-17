@@ -7,6 +7,16 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.0.11] - 2026-06-17
+
+### Changed
+- Repository rename: updated all `repository`/`bugs` URLs, documentation links,
+  CI badges, and the GitHub Pages base URL from `hassanmubiru/street` to
+  `hassanmubiru/StreetJS` so npm provenance validation matches the renamed
+  repository. Hardened the release workflow's `@streetjs/core` deprecation step
+  to skip re-applying an unchanged message (avoids a benign E422 annotation).
+  No API changes.
+
 ## [1.0.10] - 2026-06-17
 
 ### Changed
