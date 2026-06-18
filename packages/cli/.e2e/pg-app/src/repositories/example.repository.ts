@@ -6,7 +6,7 @@
 // configured. If it isn't, queries throw a clear error that the framework turns
 // into an HTTP 503 — the server keeps running.
 
-import { Injectable, container, PgPool } from 'streetjs';
+import { Injectable, container, PgPool, ServiceUnavailableException } from 'streetjs';
 import type { Item } from '../services/example.service.js';
 
 type Row = Record<string, unknown>;
@@ -24,14 +24,12 @@ function rowToItem(row: Row): Item {
 
 @Injectable()
 export class ExampleRepository {
-  /** Lazily resolve the pool; throw a clear, recoverable error if unconfigured. */
+  /** Lazily resolve the pool; throw a 503 (not a crash) if unconfigured. */
   private get pool(): PgPool {
     try {
       return container.resolve(PgPool);
     } catch {
-      const err = new Error('Database not configured — set credentials in .env (see .env.example).') as Error & { statusCode?: number };
-      err.statusCode = 503;
-      throw err;
+      throw new ServiceUnavailableException('Database not configured — set credentials in .env (see .env.example).');
     }
   }
 
