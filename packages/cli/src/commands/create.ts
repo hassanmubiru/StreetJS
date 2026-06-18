@@ -1649,6 +1649,11 @@ SQLITE_PATH=:memory:
 JWT_SECRET=change-this-to-a-long-random-string
 SESSION_KEY=change-this-to-another-random-string
 
+# CORS — comma-separated allowlist of trusted origins. Leave empty in dev to
+# allow all origins (*). REQUIRED in production (no wildcard fallback).
+# Example: CORS_ORIGINS=https://app.example.com,https://admin.example.com
+CORS_ORIGINS=
+
 # Paths
 UPLOADS_DIR=./uploads
 MIGRATIONS_DIR=./migrations
