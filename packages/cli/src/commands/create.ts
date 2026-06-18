@@ -1011,7 +1011,7 @@ ${isSqlite ? `  // SQLite: zero-config, no server or credentials required. The d
 
   // Global middleware
   app.use(securityHeaders);
-  app.use(corsMiddleware(['*']));
+  app.use(corsMiddleware(corsOrigins));
   app.use(xssMiddleware);
   app.use(telemetryMiddleware(telemetry));
   app.use(rateLimiter.middleware());
