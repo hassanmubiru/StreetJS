@@ -1002,7 +1002,7 @@ ${isSqlite ? `  // SQLite: zero-config, no server or credentials required. The d
     try {
       await app.close();
       await wsServer.close();
-      await pool.close();
+      ${isSqlite ? 'await pool.close();' : 'if (pool) await pool.close();'}
       telemetry.destroy();
       rateLimiter.destroy();
     } catch (err) {
