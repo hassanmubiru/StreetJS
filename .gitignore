@@ -92,3 +92,4 @@ packages/cli/.fin/
 packages/cli/.t/
 packages/cli/.tmp-scaffold/
 packages/cli/.itest/
+packages/cli/.itest-*/
