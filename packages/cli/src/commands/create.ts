@@ -1208,16 +1208,26 @@ export class ExampleService {
 `;
   }
 
-  private renderExampleRepository(): string {
+  private renderExampleRepository(database = 'sqlite'): string {
+    const isSqlite = database === 'sqlite';
+    const PoolType = isSqlite ? 'SqlitePool' : 'PgPool';
+    // SQLite uses '?' positional placeholders; PostgreSQL uses '$1', '$2', …
+    const ph = (n: number): string => (isSqlite ? '?' : `$${n}`);
     return `// src/repositories/example.repository.ts
-// Example repository using the Street framework's PostgreSQL pool directly.
+// Example repository backed by the Street framework's ${isSqlite ? 'SQLite' : 'PostgreSQL'} pool.
+//
+// The pool is resolved LAZILY (inside each method), not in a field initializer,
+// so the repository can be constructed even when the database is not yet
+// configured. If it isn't, queries throw a clear error that the framework turns
+// into an HTTP 503 — the server keeps running.
 
-import { Injectable, container, PgPool } from 'streetjs';
-import type { PgRow } from 'streetjs';
+import { Injectable, container, ${PoolType} } from 'streetjs';
 import type { Item } from '../services/example.service.js';
 
+type Row = Record<string, unknown>;
+
 /** Map a database row to an Item */
-function rowToItem(row: PgRow): Item {
+function rowToItem(row: Row): Item {
   return {
     id: String(row['id'] ?? ''),
     name: String(row['name'] ?? ''),
@@ -1229,20 +1239,29 @@ function rowToItem(row: PgRow): Item {
 
 @Injectable()
 export class ExampleRepository {
-  private readonly pool = container.resolve(PgPool);
+  /** Lazily resolve the pool; throw a clear, recoverable error if unconfigured. */
+  private get pool(): ${PoolType} {
+    try {
+      return container.resolve(${PoolType});
+    } catch {
+      const err = new Error('Database not configured — set credentials in .env (see .env.example).') as Error & { statusCode?: number };
+      err.statusCode = 503;
+      throw err;
+    }
+  }
 
   async findAll(page: number, limit: number): Promise<{ items: Item[]; total: number }> {
     const offset = (page - 1) * limit;
 
     const [dataResult, countResult] = await Promise.all([
       this.pool.query(
-        'SELECT * FROM items ORDER BY created_at DESC LIMIT $1 OFFSET $2',
+        'SELECT * FROM items ORDER BY created_at DESC LIMIT ${ph(1)} OFFSET ${ph(2)}',
         [limit, offset]
       ),
       this.pool.query('SELECT COUNT(*) AS total FROM items'),
     ]);
 
-    const items = dataResult.rows.map(rowToItem);
+    const items = (dataResult.rows as Row[]).map(rowToItem);
     const total = parseInt(String(countResult.rows[0]?.['total'] ?? '0'), 10);
 
     return { items, total };
@@ -1250,29 +1269,29 @@ export class ExampleRepository {
 
   async findById(id: string): Promise<Item | null> {
     const result = await this.pool.query(
-      'SELECT * FROM items WHERE id = $1',
+      'SELECT * FROM items WHERE id = ${ph(1)}',
       [id]
     );
-    const row = result.rows[0];
+    const row = result.rows[0] as Row | undefined;
     return row ? rowToItem(row) : null;
   }
 
   async create(item: Item): Promise<void> {
     await this.pool.query(
-      \`INSERT INTO items (id, name, description, created_at, updated_at)\n       VALUES ($1, $2, $3, $4, $5)\`,
+      \`INSERT INTO items (id, name, description, created_at, updated_at)\n       VALUES (${ph(1)}, ${ph(2)}, ${ph(3)}, ${ph(4)}, ${ph(5)})\`,
       [item.id, item.name, item.description, item.createdAt.toISOString(), item.updatedAt.toISOString()]
     );
   }
 
   async update(item: Item): Promise<void> {
     await this.pool.query(
-      \`UPDATE items\n       SET name = $1, description = $2, updated_at = $3\n       WHERE id = $4\`,
+      \`UPDATE items\n       SET name = ${ph(1)}, description = ${ph(2)}, updated_at = ${ph(3)}\n       WHERE id = ${ph(4)}\`,
       [item.name, item.description, item.updatedAt.toISOString(), item.id]
     );
   }
 
   async delete(id: string): Promise<void> {
-    await this.pool.query('DELETE FROM items WHERE id = $1', [id]);
+    await this.pool.query('DELETE FROM items WHERE id = ${ph(1)}', [id]);
   }
 }
 `;
