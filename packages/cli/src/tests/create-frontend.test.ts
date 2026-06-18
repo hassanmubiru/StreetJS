@@ -80,4 +80,65 @@ describe('street create --frontend', () => {
       assert.ok(pkg.dependencies['next'], 'depends on next');
     });
   });
+
+  // ── TypeScript resolution / bundler compatibility (regression) ──────────
+  // Vite (react) and Next (next) use bundler module resolution: a local import
+  // with a hardcoded `.js` extension pointing at a `.tsx`/`.ts` file fails to
+  // resolve ("Module not found: Can't resolve './providers.js'"). Local imports
+  // in frontend source must be extensionless.
+  const LOCAL_JS_IMPORT = /from\s+['"]\.\.?\/[^'"]*\.js['"]/;
+
+  function readFrontendSources(web: string): Array<[string, string]> {
+    const files = [
+      'src/main.tsx', 'src/App.tsx',           // react
+      'app/layout.tsx', 'app/page.tsx', 'app/providers.tsx', // next
+    ];
+    const out: Array<[string, string]> = [];
+    for (const f of files) {
+      const p = join(web, f);
+      if (existsSync(p)) out.push([f, readFileSync(p, 'utf8')]);
+    }
+    return out;
+  }
+
+  for (const frontend of ['react', 'next'] as const) {
+    it(`${frontend} frontend has no hardcoded .js extensions on local imports`, async () => {
+      await withTempDir(async (dir) => {
+        const restore = capture();
+        try { await new CreateCommand().execute(ctx(dir, ['proj'], { frontend })); } finally { restore(); }
+        const web = join(dir, 'proj', 'web');
+        const sources = readFrontendSources(web);
+        assert.ok(sources.length > 0, 'frontend sources generated');
+        for (const [name, content] of sources) {
+          assert.ok(!LOCAL_JS_IMPORT.test(content), `${name} must not import a local module with a .js extension`);
+        }
+      });
+    });
+  }
+
+  it('next layout imports ./providers extensionless and providers.tsx exists (App Router)', async () => {
+    await withTempDir(async (dir) => {
+      const restore = capture();
+      try { await new CreateCommand().execute(ctx(dir, ['proj'], { frontend: 'next' })); } finally { restore(); }
+      const web = join(dir, 'proj', 'web');
+      assert.ok(existsSync(join(web, 'app', 'providers.tsx')), 'app/providers.tsx generated');
+      const layout = readFileSync(join(web, 'app', 'layout.tsx'), 'utf8');
+      assert.ok(/from\s+['"]\.\/providers['"]/.test(layout), "layout imports './providers' (no .js)");
+      assert.ok(!layout.includes("./providers.js"), "layout must not import './providers.js'");
+      // App Router essentials: layout default export + metadata, page default export.
+      const page = readFileSync(join(web, 'app', 'page.tsx'), 'utf8');
+      assert.ok(/export default function/.test(layout), 'layout has a default export (App Router)');
+      assert.ok(/export default function/.test(page), 'page has a default export (App Router)');
+    });
+  });
+
+  it('react main imports ./App extensionless (Vite resolution)', async () => {
+    await withTempDir(async (dir) => {
+      const restore = capture();
+      try { await new CreateCommand().execute(ctx(dir, ['proj'], { frontend: 'react' })); } finally { restore(); }
+      const main = readFileSync(join(dir, 'proj', 'web', 'src', 'main.tsx'), 'utf8');
+      assert.ok(/from\s+['"]\.\/App['"]/.test(main), "main imports './App' (no .js)");
+      assert.ok(!main.includes("./App.js"), "main must not import './App.js'");
+    });
+  });
 });
