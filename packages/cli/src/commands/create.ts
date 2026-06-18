@@ -1517,9 +1517,10 @@ CMD ["node", "dist/main.js"]
 `;
   }
 
-  private renderDockerCompose(): string {
-    return `# docker-compose.yml
-# Development environment with PostgreSQL.
+  private renderDockerCompose(database = 'sqlite'): string {
+    if (database === 'sqlite') {
+      return `# docker-compose.yml
+# Development environment (SQLite — no database server required).
 
 services:
   app:
@@ -1532,6 +1533,32 @@ services:
       NODE_ENV: development
       PORT: "3000"
       HOST: "0.0.0.0"
+      DB_DRIVER: sqlite
+      # ':memory:' is ephemeral. For production, switch to PostgreSQL:
+      # recreate the project with \`--database postgres\`.
+      SQLITE_PATH: ":memory:"
+      JWT_SECRET: dev-jwt-secret-change-in-production
+      SESSION_KEY: dev-session-key-change-in-production
+    volumes:
+      - ./uploads:/app/uploads
+`;
+    }
+    return `# docker-compose.yml
+# Development environment with PostgreSQL. Compose provisions the database with
+# credentials that match the app — no host PostgreSQL or manual setup needed.
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      PORT: "3000"
+      HOST: "0.0.0.0"
+      DB_DRIVER: postgres
       PG_HOST: postgres
       PG_PORT: "5432"
       PG_DATABASE: street
@@ -1567,22 +1594,52 @@ volumes:
 `;
   }
 
-  private renderEnvExample(): string {
-    return `# .env.example — Copy to .env and fill in your values
+  private renderEnvExample(database = 'sqlite'): string {
+    if (database === 'sqlite') {
+      return `# .env.example — Copy to .env. SQLite needs no credentials; this works as-is.
 
 # Server
 PORT=3000
 HOST=0.0.0.0
 NODE_ENV=development
 
-# Database
+# Database (SQLite — zero-config)
+DB_DRIVER=sqlite
+# ':memory:' is an ephemeral in-process database (resets on restart).
+# Set a file path for local persistence, or switch to PostgreSQL for production
+# by recreating with \`--database postgres\`.
+SQLITE_PATH=:memory:
+
+# Security — generate long random strings before deploying
+JWT_SECRET=change-this-to-a-long-random-string
+SESSION_KEY=change-this-to-another-random-string
+
+# Paths
+UPLOADS_DIR=./uploads
+MIGRATIONS_DIR=./migrations
+`;
+    }
+    return `# .env.example — Copy to .env and fill in your values.
+#
+# PG_USER, PG_PASSWORD, and PG_DATABASE are REQUIRED and have no defaults — the
+# app validates them on startup and will not guess credentials. If you don't
+# have a PostgreSQL server, either run \`docker compose up\` (provisions one) or
+# recreate the project with \`--database sqlite\` for a zero-config local database.
+
+# Server
+PORT=3000
+HOST=0.0.0.0
+NODE_ENV=development
+
+# Database (PostgreSQL) — REQUIRED
+DB_DRIVER=postgres
 PG_HOST=localhost
 PG_PORT=5432
-PG_DATABASE=street
-PG_USER=postgres
-PG_PASSWORD=postgres
+PG_DATABASE=
+PG_USER=
+PG_PASSWORD=
 
-# Security
+# Security — generate long random strings before deploying
 JWT_SECRET=change-this-to-a-long-random-string
 SESSION_KEY=change-this-to-another-random-string
 
