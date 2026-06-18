@@ -1011,12 +1011,15 @@ ${isSqlite ? `  // SQLite: zero-config, no server or credentials required. The d
 
   // Global middleware
   app.use(securityHeaders);
-  app.use(corsMiddleware(['*']));
+  app.use(corsMiddleware(corsOrigins));
   app.use(xssMiddleware);
   app.use(telemetryMiddleware(telemetry));
   app.use(rateLimiter.middleware());
 
   // Register controllers
+  // NOTE: the example routes below are UNAUTHENTICATED. Before exposing this
+  // service publicly, protect mutating/data routes with auth middleware (see
+  // JwtService / SessionManager wired above, and src/middleware/auth.ts).
   app.registerController(HealthController);
   app.registerController(ExampleController);
 
