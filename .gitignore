@@ -91,3 +91,4 @@ packages/cli/.e2e/
 packages/cli/.fin/
 packages/cli/.t/
 packages/cli/.tmp-scaffold/
+packages/cli/.itest/
