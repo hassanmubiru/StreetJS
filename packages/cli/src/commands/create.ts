@@ -286,7 +286,7 @@ export class CreateCommand {
     // .env.example
     await writeFile(
       join(targetDir, '.env.example'),
-      this.renderEnvExample(),
+      this.renderEnvExample(database),
       'utf8'
     );
 
