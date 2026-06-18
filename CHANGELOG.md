@@ -7,6 +7,25 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.0.12] - 2026-06-18
+
+Secure-by-default scaffold boot. The `street create` scaffold no longer fails on
+first run with `password authentication failed for user "postgres"`.
+
+### Changed
+- `@streetjs/cli` scaffold now defaults to **SQLite** (zero-config) so a freshly
+  created project starts with no database server or credentials. Added
+  `street create --database <sqlite|postgres>`.
+- PostgreSQL scaffold validates `PG_USER`/`PG_PASSWORD`/`PG_DATABASE` before
+  connecting and degrades gracefully (the dev server starts; database-backed
+  routes return 503) instead of crashing on a connection failure.
+- Generated apps derive valid ephemeral JWT/session keys in development when
+  unset (required explicitly in production), removing two more first-run crashes.
+- Driver-aware `.env.example` / `docker-compose.yml`; non-wildcard CORS via
+  `CORS_ORIGINS`; unauthenticated example-route notice.
+- Added an integration test that scaffolds, compiles, and boots a generated
+  project, asserting it serves a request with no auth failure.
+
 ## [1.0.11] - 2026-06-17
 
 Repository rename and release-pipeline hardening. No API changes.
