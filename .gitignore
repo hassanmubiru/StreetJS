@@ -85,3 +85,9 @@ CLAUDE.md
 artifacts/
 
 .scaffold-test/
+
+# CLI scaffold scratch dirs used by local manual testing (never committed)
+packages/cli/.e2e/
+packages/cli/.fin/
+packages/cli/.t/
+packages/cli/.tmp-scaffold/
