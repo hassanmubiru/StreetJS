@@ -1017,6 +1017,9 @@ ${isSqlite ? `  // SQLite: zero-config, no server or credentials required. The d
   app.use(rateLimiter.middleware());
 
   // Register controllers
+  // WARNING: The example routes below are UNAUTHENTICATED and must be protected
+  // before public exposure. Use JwtService or SessionManager (see src/middleware/auth.ts)
+  // to add authentication guards before deploying to production.
   app.registerController(HealthController);
   app.registerController(ExampleController);
 

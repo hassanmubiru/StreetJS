@@ -6,10 +6,10 @@ All work is surgical edits to the template strings emitted by four `render*` met
 
 ## Tasks
 
-- [ ] 1. Close the CORS and notice gaps in renderMainTs
-  - [-] 1.1 R5.2 — change emitted `app.use(corsMiddleware(['*']));` to `app.use(corsMiddleware(corsOrigins));`; do not alter the existing corsOrigins resolver logic; no import changes.
+- [x] 1. Close the CORS and notice gaps in renderMainTs
+  - [x] 1.1 R5.2 — change emitted `app.use(corsMiddleware(['*']));` to `app.use(corsMiddleware(corsOrigins));`; do not alter the existing corsOrigins resolver logic; no import changes.
     - _Requirements: 5.2_
-  - [~] 1.2 R7 — add an emitted comment immediately above the registerController(HealthController)/registerController(ExampleController) block stating the example routes are unauthenticated and must be protected before public exposure, referencing JwtService/SessionManager and src/middleware/auth.ts; comment-only, no routing change.
+  - [x] 1.2 R7 — add an emitted comment immediately above the registerController(HealthController)/registerController(ExampleController) block stating the example routes are unauthenticated and must be protected before public exposure, referencing JwtService/SessionManager and src/middleware/auth.ts; comment-only, no routing change.
     - _Requirements: 7.1_
 
 - [ ] 2. Close the discoverability gaps in the emitted config files
