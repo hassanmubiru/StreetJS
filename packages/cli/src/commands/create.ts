@@ -956,10 +956,6 @@ ${isSqlite ? `  // SQLite: zero-config, no server or credentials required. The d
   });
   container.register(StreetWebSocketServer, wsServer);
 
-  container.register(
-    StreetMigrationRunner,
-    new StreetMigrationRunner(pool)
-  );
   container.register(JwtService, new JwtService(process.env['JWT_SECRET'] ?? 'dev-secret'));
   container.register(SessionManager, new SessionManager(process.env['SESSION_KEY'] ?? 'dev-session-key'));
   container.register(WebhookDispatcher, new WebhookDispatcher());
