@@ -79,7 +79,7 @@ describe('street create --database', () => {
       try { await new CreateCommand().execute(ctx(dir, ['proj'], { database: 'postgres' })); } finally { restore(); }
 
       const config = read(dir, 'proj', 'street.config.ts');
-      assert.ok(!config.includes("?? 'postgres'"), 'no postgres/postgres credential guess');
+      assert.ok(!/pg(User|Password):[^\n]*\?\?/.test(config), 'no guessed pgUser/pgPassword credential default');
       assert.ok(config.includes("pgUser: process.env['PG_USER']"), 'pgUser comes only from env');
 
       const main = read(dir, 'proj', 'src/main.ts');
