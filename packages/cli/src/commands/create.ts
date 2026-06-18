@@ -1577,8 +1577,6 @@ services:
       SQLITE_PATH: ":memory:"
       JWT_SECRET: dev-jwt-secret-change-in-production
       SESSION_KEY: dev-session-key-change-in-production
-      # Empty = allow all origins (dev only). Set an allowlist for production.
-      CORS_ORIGINS: ""
     volumes:
       - ./uploads:/app/uploads
 `;
@@ -1606,8 +1604,6 @@ services:
       PG_PASSWORD: street_pass
       JWT_SECRET: dev-jwt-secret-change-in-production
       SESSION_KEY: dev-session-key-change-in-production
-      # Empty = allow all origins (dev only). Set an allowlist for production.
-      CORS_ORIGINS: ""
     depends_on:
       postgres:
         condition: service_healthy
@@ -1689,11 +1685,6 @@ PG_PASSWORD=
 # Security — generate long random strings before deploying
 JWT_SECRET=change-this-to-a-long-random-string
 SESSION_KEY=change-this-to-another-random-string
-
-# CORS — comma-separated allowlist of trusted origins. Leave empty in dev to
-# allow all origins (*). REQUIRED in production (no wildcard fallback).
-# Example: CORS_ORIGINS=https://app.example.com,https://admin.example.com
-CORS_ORIGINS=
 
 # Paths
 UPLOADS_DIR=./uploads
