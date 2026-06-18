@@ -3,6 +3,7 @@
 
 import 'reflect-metadata';
 import { resolve } from 'node:path';
+import { randomBytes } from 'node:crypto';
 import {
   streetApp,
   container,
@@ -28,6 +29,24 @@ async function bootstrap(): Promise<void> {
   const host = process.env['HOST'] ?? '0.0.0.0';
   const uploadsDir = resolve(process.env['UPLOADS_DIR'] ?? './uploads');
   // Note: MIGRATIONS_DIR env var is used by the migration runner internally
+
+  // ── Secrets ──────────────────────────────────────────────────────────
+  // JwtService requires a secret ≥32 chars; SessionManager requires a 64-char
+  // hex key. In development we generate a valid ephemeral key when one isn't
+  // provided (so first run works with zero config). In production these MUST be
+  // set explicitly — we fail fast rather than start with throwaway keys.
+  const isProd = (process.env['NODE_ENV'] ?? 'development') === 'production';
+  const resolveSecret = (name: string, bytes: number): string => {
+    const provided = process.env[name];
+    if (provided && provided.length > 0) return provided;
+    if (isProd) {
+      throw new Error(`${name} must be set in production. Generate one with: openssl rand -hex ${bytes}`);
+    }
+    console.warn(`[street] ${name} not set — using an ephemeral development key. Set it in .env for stable sessions/tokens and for production.`);
+    return randomBytes(bytes).toString('hex');
+  };
+  const jwtSecret = resolveSecret('JWT_SECRET', 24);   // 48 hex chars (≥32)
+  const sessionKey = resolveSecret('SESSION_KEY', 32);  // 64 hex chars
 
   // ── Database ─────────────────────────────────────────────────────────
   // SQLite: zero-config, no server or credentials required. The default
@@ -58,8 +77,8 @@ async function bootstrap(): Promise<void> {
   });
   container.register(StreetWebSocketServer, wsServer);
 
-  container.register(JwtService, new JwtService(process.env['JWT_SECRET'] ?? 'dev-secret'));
-  container.register(SessionManager, new SessionManager(process.env['SESSION_KEY'] ?? 'dev-session-key'));
+  container.register(JwtService, new JwtService(jwtSecret));
+  container.register(SessionManager, new SessionManager(sessionKey));
   container.register(WebhookDispatcher, new WebhookDispatcher());
   container.register(LruCache, new LruCache({ maxEntries: 1000, ttlMs: 60_000 }));
 
