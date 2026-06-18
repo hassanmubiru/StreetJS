@@ -842,7 +842,8 @@ export default {
 `;
   }
 
-  private renderMainTs(): string {
+  private renderMainTs(database = 'sqlite'): string {
+    const isSqlite = database === 'sqlite';
     return `// src/main.ts
 // Street application entry point.
 
@@ -858,9 +859,8 @@ import {
   TelemetryTracker,
   RateLimiter,
   StreetWebSocketServer,
-  PgPool,
-  StreetMigrationRunner,
-  JwtService,
+  ${isSqlite ? 'SqlitePool' : 'PgPool'},
+  ${isSqlite ? '' : 'StreetMigrationRunner,\n  '}JwtService,
   SessionManager,
   WebhookDispatcher,
   LruCache,
@@ -875,20 +875,76 @@ async function bootstrap(): Promise<void> {
   const uploadsDir = resolve(process.env['UPLOADS_DIR'] ?? './uploads');
   // Note: MIGRATIONS_DIR env var is used by the migration runner internally
 
-  // ── Database pool ────────────────────────────────────────────────────
-  const pool = new PgPool({
-    host: process.env['PG_HOST'] ?? 'localhost',
-    port: parseInt(process.env['PG_PORT'] ?? '5432', 10),
-    user: process.env['PG_USER'] ?? 'postgres',
-    password: process.env['PG_PASSWORD'] ?? '',
-    database: process.env['PG_DATABASE'] ?? 'street',
-    minConnections: 2,
-    maxConnections: 10,
-    idleTimeoutMs: 30_000,
-    acquireTimeoutMs: 5_000,
-  });
-  await pool.initialize();
-  container.register(PgPool, pool);
+  // ── Database ─────────────────────────────────────────────────────────
+${isSqlite ? `  // SQLite: zero-config, no server or credentials required. The default
+  // ':memory:' database is ephemeral (resets on restart). Set SQLITE_PATH to a
+  // file for local persistence, or recreate with \\\`--database postgres\\\` for
+  // production.
+  const pool = new SqlitePool({ filePath: process.env['SQLITE_PATH'] ?? ':memory:' });
+  // Bootstrap the example schema so the app works out of the box.
+  await pool.query(
+    \`CREATE TABLE IF NOT EXISTS items (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      description TEXT NOT NULL DEFAULT '',
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )\`
+  );
+  container.register(SqlitePool, pool);
+  console.log('[street] Database ready (sqlite).');` : `  // PostgreSQL: validate credentials BEFORE opening a connection. We never
+  // guess a username/password — missing credentials are a configuration error,
+  // not something to paper over with 'postgres'/'postgres'.
+  function requireEnv(name: string): string | null {
+    const v = process.env[name];
+    return v && v.length > 0 ? v : null;
+  }
+  const pgUser = requireEnv('PG_USER');
+  const pgPassword = requireEnv('PG_PASSWORD');
+  const pgDatabase = requireEnv('PG_DATABASE');
+
+  let pool: PgPool | null = null;
+  if (!pgUser || !pgPassword || !pgDatabase) {
+    const missing = [
+      !pgUser ? 'PG_USER' : null,
+      !pgPassword ? 'PG_PASSWORD' : null,
+      !pgDatabase ? 'PG_DATABASE' : null,
+    ].filter(Boolean).join(', ');
+    console.warn(
+      \`[street] Database not configured: missing \${missing}.\\n\` +
+      '[street] Copy .env.example to .env and set your PostgreSQL credentials,\\n' +
+      '[street] or recreate the project with: street create <name> --database sqlite\\n' +
+      '[street] The server will start, but database-backed routes will return 503 until configured.'
+    );
+  } else {
+    pool = new PgPool({
+      host: process.env['PG_HOST'] ?? 'localhost',
+      port: parseInt(process.env['PG_PORT'] ?? '5432', 10),
+      user: pgUser,
+      password: pgPassword,
+      database: pgDatabase,
+      minConnections: 2,
+      maxConnections: 10,
+      idleTimeoutMs: 30_000,
+      acquireTimeoutMs: 5_000,
+    });
+    try {
+      await pool.initialize();
+      container.register(PgPool, pool);
+      container.register(StreetMigrationRunner, new StreetMigrationRunner(pool));
+      console.log('[street] Database ready (postgres).');
+    } catch (err) {
+      // Do not crash the dev server on a database connection failure — surface a
+      // clear, actionable message and keep serving (health + non-DB routes work).
+      console.warn(
+        \`[street] Could not connect to PostgreSQL: \${err instanceof Error ? err.message : String(err)}\\n\` +
+        '[street] Check PG_HOST/PG_PORT/PG_USER/PG_PASSWORD/PG_DATABASE in your .env.\\n' +
+        '[street] The server will start, but database-backed routes will return 503 until the database is reachable.'
+      );
+      await pool.close().catch(() => {});
+      pool = null;
+    }
+  }`}
 
   // ── Services ─────────────────────────────────────────────────────────
   const telemetry = new TelemetryTracker(60_000);
