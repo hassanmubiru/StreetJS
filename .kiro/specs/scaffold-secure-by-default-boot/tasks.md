@@ -13,7 +13,7 @@ All work is surgical edits to the template strings emitted by four `render*` met
     - _Requirements: 7.1_
 
 - [ ] 2. Close the discoverability gaps in the emitted config files
-  - [~] 2.1 R6.2 — in renderEnvExample postgres branch, add a CORS_ORIGINS entry (value emitted empty) after SESSION_KEY using the same explanatory comment as the sqlite branch.
+  - [x] 2.1 R6.2 — in renderEnvExample postgres branch, add a CORS_ORIGINS entry (value emitted empty) after SESSION_KEY using the same explanatory comment as the sqlite branch.
     - _Requirements: 6.2_
   - [~] 2.2 R6.3 + R6.4 — in renderDockerCompose, add CORS_ORIGINS (emitted empty, with a one-line clarifying comment) to the app service environment block in BOTH sqlite and postgres branches; note NODE_ENV: development makes empty valid.
     - _Requirements: 6.3, 6.4_
