@@ -1604,8 +1604,10 @@ services:
       PG_DATABASE: street
       PG_USER: street
       PG_PASSWORD: street_pass
-      JWT_SECRET: dev-jwt-secret-change-in-production
-      SESSION_KEY: dev-session-key-change-in-production
+      # JWT_SECRET / SESSION_KEY are auto-generated as valid ephemeral dev keys
+      # when unset (NODE_ENV=development). Set them for stable sessions / prod.
+      # CORS_ORIGINS empty = allow all in development; set an allowlist for prod.
+      CORS_ORIGINS: ""
     depends_on:
       postgres:
         condition: service_healthy
