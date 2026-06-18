@@ -957,8 +957,8 @@ ${isSqlite ? `  // SQLite: zero-config, no server or credentials required. The d
   });
   container.register(StreetWebSocketServer, wsServer);
 
-  container.register(JwtService, new JwtService(process.env['JWT_SECRET'] ?? 'dev-secret'));
-  container.register(SessionManager, new SessionManager(process.env['SESSION_KEY'] ?? 'dev-session-key'));
+  container.register(JwtService, new JwtService(jwtSecret));
+  container.register(SessionManager, new SessionManager(sessionKey));
   container.register(WebhookDispatcher, new WebhookDispatcher());
   container.register(LruCache, new LruCache({ maxEntries: 1000, ttlMs: 60_000 }));
 
