@@ -20,13 +20,13 @@ All work is surgical edits to the template strings emitted by four `render*` met
 
 - [x] 3. Checkpoint - ensure all tests pass; ask the user if questions arise.
 
-- [ ] 4. Add gap-coverage and regression-lock assertions
+- [x] 4. Add gap-coverage and regression-lock assertions
   - [x] 4.1 Gap-coverage: R5.2 main.ts contains corsMiddleware(corsOrigins) and NOT corsMiddleware(['*']) (both variants); R7 main.ts contains the unauthenticated-routes notice (both variants); R6.2 postgres .env.example contains CORS_ORIGINS; R6.3/6.4 both docker-compose variants contain CORS_ORIGINS in the app env block. Extend existing test files.
     - _Requirements: 5.2, 6.2, 6.3, 6.4, 7.1_
-  - [~] 4.2 Regression locks: R1 (items CREATE TABLE IF NOT EXISTS + "Database ready (sqlite)." log), R2 (resolveSecret('JWT_SECRET',24)/('SESSION_KEY',32)), R4 (lazy get pool() + ServiceUnavailableException), R6.1 (sqlite .env.example retains CORS_ORIGINS).
+  - [x] 4.2 Regression locks: R1 (items CREATE TABLE IF NOT EXISTS + "Database ready (sqlite)." log), R2 (resolveSecret('JWT_SECRET',24)/('SESSION_KEY',32)), R4 (lazy get pool() + ServiceUnavailableException), R6.1 (sqlite .env.example retains CORS_ORIGINS).
     - _Requirements: 1.1, 1.2, 1.3, 2.3, 2.4, 4.1, 4.3, 6.1_
 
-- [~] 5. Verification gate — run `npm run build` then `npm test` in packages/cli; require zero failures and zero skips (Rule 8); baseline 102 + 50 passing; surface any breach.
+- [x] 5. Verification gate — run `npm run build` then `npm test` in packages/cli; require zero failures and zero skips (Rule 8); baseline 102 + 50 passing; surface any breach.
   - _Requirements: 1, 2, 4, 5.2, 6, 7_
 
 ## Notes
