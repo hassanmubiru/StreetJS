@@ -112,6 +112,18 @@ export class CreateCommand {
       return;
     }
 
+    // Database driver (default 'sqlite' — zero-config, works out of the box with
+    // no local database server or credentials). 'postgres' is for production;
+    // its generated startup validates credentials and degrades gracefully rather
+    // than crashing when the database is unreachable.
+    const database = String(ctx.args.flags['database'] ?? 'sqlite').toLowerCase();
+    const DATABASES = ['sqlite', 'postgres'];
+    if (!DATABASES.includes(database)) {
+      console.error(`[street] Unknown database "${database}". Available: ${DATABASES.join(', ')}`);
+      process.exitCode = 1;
+      return;
+    }
+
     // Check if target already exists
     try {
       const existing = await stat(targetDir);
