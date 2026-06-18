@@ -1689,9 +1689,17 @@ PG_DATABASE=
 PG_USER=
 PG_PASSWORD=
 
-# Security — generate long random strings before deploying
-JWT_SECRET=change-this-to-a-long-random-string
-SESSION_KEY=change-this-to-another-random-string
+# Security — left empty so they are auto-generated as valid ephemeral dev keys
+# (NODE_ENV=development). REQUIRED in production:
+#   JWT_SECRET:  openssl rand -hex 24   (≥32 chars)
+#   SESSION_KEY: openssl rand -hex 32   (exactly 64 hex chars)
+JWT_SECRET=
+SESSION_KEY=
+
+# CORS — comma-separated allowlist of trusted origins. Leave empty in dev to
+# allow all origins (*). REQUIRED in production (no wildcard fallback).
+# Example: CORS_ORIGINS=https://app.example.com,https://admin.example.com
+CORS_ORIGINS=
 
 # Paths
 UPLOADS_DIR=./uploads
