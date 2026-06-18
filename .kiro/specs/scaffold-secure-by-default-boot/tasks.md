@@ -7,26 +7,26 @@ All work is surgical edits to the template strings emitted by four `render*` met
 ## Tasks
 
 - [ ] 1. Close the CORS and notice gaps in renderMainTs
-  - [ ] 1.1 R5.2 — change emitted `app.use(corsMiddleware(['*']));` to `app.use(corsMiddleware(corsOrigins));`; do not alter the existing corsOrigins resolver logic; no import changes.
+  - [~] 1.1 R5.2 — change emitted `app.use(corsMiddleware(['*']));` to `app.use(corsMiddleware(corsOrigins));`; do not alter the existing corsOrigins resolver logic; no import changes.
     - _Requirements: 5.2_
-  - [ ] 1.2 R7 — add an emitted comment immediately above the registerController(HealthController)/registerController(ExampleController) block stating the example routes are unauthenticated and must be protected before public exposure, referencing JwtService/SessionManager and src/middleware/auth.ts; comment-only, no routing change.
+  - [~] 1.2 R7 — add an emitted comment immediately above the registerController(HealthController)/registerController(ExampleController) block stating the example routes are unauthenticated and must be protected before public exposure, referencing JwtService/SessionManager and src/middleware/auth.ts; comment-only, no routing change.
     - _Requirements: 7.1_
 
 - [ ] 2. Close the discoverability gaps in the emitted config files
-  - [ ] 2.1 R6.2 — in renderEnvExample postgres branch, add a CORS_ORIGINS entry (value emitted empty) after SESSION_KEY using the same explanatory comment as the sqlite branch.
+  - [~] 2.1 R6.2 — in renderEnvExample postgres branch, add a CORS_ORIGINS entry (value emitted empty) after SESSION_KEY using the same explanatory comment as the sqlite branch.
     - _Requirements: 6.2_
-  - [ ] 2.2 R6.3 + R6.4 — in renderDockerCompose, add CORS_ORIGINS (emitted empty, with a one-line clarifying comment) to the app service environment block in BOTH sqlite and postgres branches; note NODE_ENV: development makes empty valid.
+  - [~] 2.2 R6.3 + R6.4 — in renderDockerCompose, add CORS_ORIGINS (emitted empty, with a one-line clarifying comment) to the app service environment block in BOTH sqlite and postgres branches; note NODE_ENV: development makes empty valid.
     - _Requirements: 6.3, 6.4_
 
-- [ ] 3. Checkpoint - ensure all tests pass; ask the user if questions arise.
+- [~] 3. Checkpoint - ensure all tests pass; ask the user if questions arise.
 
 - [ ] 4. Add gap-coverage and regression-lock assertions
-  - [ ] 4.1 Gap-coverage: R5.2 main.ts contains corsMiddleware(corsOrigins) and NOT corsMiddleware(['*']) (both variants); R7 main.ts contains the unauthenticated-routes notice (both variants); R6.2 postgres .env.example contains CORS_ORIGINS; R6.3/6.4 both docker-compose variants contain CORS_ORIGINS in the app env block. Extend existing test files.
+  - [~] 4.1 Gap-coverage: R5.2 main.ts contains corsMiddleware(corsOrigins) and NOT corsMiddleware(['*']) (both variants); R7 main.ts contains the unauthenticated-routes notice (both variants); R6.2 postgres .env.example contains CORS_ORIGINS; R6.3/6.4 both docker-compose variants contain CORS_ORIGINS in the app env block. Extend existing test files.
     - _Requirements: 5.2, 6.2, 6.3, 6.4, 7.1_
-  - [ ] 4.2 Regression locks: R1 (items CREATE TABLE IF NOT EXISTS + "Database ready (sqlite)." log), R2 (resolveSecret('JWT_SECRET',24)/('SESSION_KEY',32)), R4 (lazy get pool() + ServiceUnavailableException), R6.1 (sqlite .env.example retains CORS_ORIGINS).
+  - [~] 4.2 Regression locks: R1 (items CREATE TABLE IF NOT EXISTS + "Database ready (sqlite)." log), R2 (resolveSecret('JWT_SECRET',24)/('SESSION_KEY',32)), R4 (lazy get pool() + ServiceUnavailableException), R6.1 (sqlite .env.example retains CORS_ORIGINS).
     - _Requirements: 1.1, 1.2, 1.3, 2.3, 2.4, 4.1, 4.3, 6.1_
 
-- [ ] 5. Verification gate — run `npm run build` then `npm test` in packages/cli; require zero failures and zero skips (Rule 8); baseline 102 + 50 passing; surface any breach.
+- [~] 5. Verification gate — run `npm run build` then `npm test` in packages/cli; require zero failures and zero skips (Rule 8); baseline 102 + 50 passing; surface any breach.
   - _Requirements: 1, 2, 4, 5.2, 6, 7_
 
 ## Notes
