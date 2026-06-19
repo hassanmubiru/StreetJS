@@ -402,9 +402,14 @@ await app.listen();
       <div><div class="dt">Security <span class="arr">→</span></div><p class="dd">JWT, sessions, rate limiting, XSS, vault and CSRF.</p></div>
     </a>
 
-    <a href="{{ site.baseurl }}/realtime/websocket/" class="dc">
+    <a href="{{ site.baseurl }}/realtime/" class="dc">
       <span class="dic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
       <div><div class="dt">Real-time <span class="arr">→</span></div><p class="dd">WebSocket server, SSE, typed events and heartbeat.</p></div>
+    </a>
+
+    <a href="{{ site.baseurl }}/ai/" class="dc">
+      <span class="dic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 1 4 4 4 4 0 0 1 0 8 4 4 0 0 1-8 0 4 4 0 0 1 0-8 4 4 0 0 1 4-4z"/><path d="M12 8v8M8 12h8"/></svg></span>
+      <div><div class="dt">AI <span class="arr">→</span></div><p class="dd">Provider-agnostic chat, embeddings, RAG and tool calling.</p></div>
     </a>
 
     <a href="{{ site.baseurl }}/deployment/docker/" class="dc">
