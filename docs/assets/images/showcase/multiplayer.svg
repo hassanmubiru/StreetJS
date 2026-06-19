@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img" aria-label="Multiplayer reference app cover">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0B1220"/><stop offset="1" stop-color="#111C32"/>
+    </linearGradient>
+    <linearGradient id="ac" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3B82F6"/><stop offset="1" stop-color="#2563EB"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" rx="20" fill="url(#bg)"/>
+  <g fill="none" stroke="#1E293B" stroke-width="1"><path d="M0 60h640M0 120h640M0 180h640M0 240h640M0 300h640"/></g>
+  <g stroke="#2563EB" stroke-width="2.5" opacity="0.8">
+    <path d="M320 160 160 100M320 160 500 110M320 160 180 240M320 160 470 250M320 160 320 70"/>
+  </g>
+  <g>
+    <circle cx="320" cy="160" r="30" fill="url(#ac)"/>
+    <circle cx="160" cy="100" r="18" fill="#1E3A6E"/>
+    <circle cx="500" cy="110" r="18" fill="#1E3A6E"/>
+    <circle cx="180" cy="240" r="18" fill="#1E3A6E"/>
+    <circle cx="470" cy="250" r="18" fill="#1E3A6E"/>
+    <circle cx="320" cy="70" r="18" fill="#1E3A6E"/>
+  </g>
+  <text x="40" y="320" font-family="Inter,Arial,sans-serif" font-size="20" font-weight="700" fill="#E2E8F0">Multiplayer</text>
+  <text x="380" y="320" font-family="monospace" font-size="13" fill="#64748B">rooms · broadcast · state sync</text>
+</svg>
