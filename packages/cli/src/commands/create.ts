@@ -614,14 +614,18 @@ export default nextConfig;
 
   private renderNextLayout(projectName: string): string {
     return `import type { ReactNode } from 'react';
+import './globals.css';
 import { Providers } from './providers';
 
-export const metadata = { title: '${projectName}' };
+export const metadata = {
+  title: '${projectName} — StreetJS + Next.js',
+  description: 'Full-stack TypeScript app powered by StreetJS: auth, realtime, ORM, jobs, AI, and plugins.',
+};
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body style={{ fontFamily: 'system-ui, sans-serif' }}>
+      <body>
         <Providers>{children}</Providers>
       </body>
     </html>
