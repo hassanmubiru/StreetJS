@@ -23,7 +23,9 @@ description:  "Authentication in StreetJS — JWT access tokens, server-side ses
 .cap-note{border:1px solid var(--border);background:var(--elevated);border-radius:12px;padding:16px 18px;color:var(--text-secondary);margin:22px 0}
 </style>
 
-StreetJS treats authentication as a first-class concern rather than a plugin you bolt on later. Every layer of a modern auth stack ships in the box and is covered by tests.
+## Why authentication is built in
+
+Most backends bolt authentication on with a handful of third-party libraries that each own a slice of the problem — token signing here, sessions there, OAuth somewhere else. StreetJS treats authentication as a first-class concern instead, so every layer of a modern auth stack ships in the box, shares one model, and is covered by tests. You own your user data and avoid a per-active-user bill from an external identity service.
 
 ## What's included
 
@@ -55,16 +57,26 @@ StreetJS treats authentication as a first-class concern rather than a plugin you
 
 </div>
 
-## Hosted identity providers
+Prefer a managed identity service? First-party plugins integrate StreetJS auth with [Auth0](https://www.npmjs.com/package/@streetjs/plugin-auth0), [Clerk](https://www.npmjs.com/package/@streetjs/plugin-clerk), [Firebase](https://www.npmjs.com/package/@streetjs/plugin-firebase), and [Supabase](https://www.npmjs.com/package/@streetjs/plugin-supabase). See the full list on the [Plugins]({{ '/plugins/' | relative_url }}) page.
 
-Prefer a managed identity service? First-party plugins integrate StreetJS auth with external providers:
+## Example
 
-- [Auth0](https://www.npmjs.com/package/@streetjs/plugin-auth0)
-- [Clerk](https://www.npmjs.com/package/@streetjs/plugin-clerk)
-- [Firebase](https://www.npmjs.com/package/@streetjs/plugin-firebase)
-- [Supabase](https://www.npmjs.com/package/@streetjs/plugin-supabase)
+Issue a token, then protect routes with the auth middleware:
 
-See the full list on the [Plugins]({{ '/plugins/' | relative_url }}) page.
+```ts
+import { streetApp, JwtService, authMiddleware } from 'streetjs';
+
+const jwt = new JwtService(process.env.JWT_SECRET!);
+const app = streetApp({ port: 3000 });
+
+// Sign a token after verifying credentials
+const token = jwt.sign({ sub: user.id, roles: ['member'] }, { expiresIn: '15m' });
+
+// Require a valid token on everything below
+app.use(authMiddleware(jwt));
+
+await app.listen();
+```
 
 <div class="cap-note">
 Authentication and authorization are part of the broader <a href="{{ '/security/' | relative_url }}">Security &amp; Trust Center</a>, which also covers the encrypted vault, rate limiting, CORS, CSRF, XSS sanitization, and security headers.
