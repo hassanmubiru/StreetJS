@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use StreetJS in your work, please cite it using the metadata below."
+title: "StreetJS"
+abstract: "A production-grade, memory-safe TypeScript backend framework built on Node.js core — native PostgreSQL driver, JWT, WebSockets, and clustering."
+type: software
+authors:
+  - name: "StreetJS contributors"
+repository-code: "https://github.com/hassanmubiru/StreetJS"
+url: "https://hassanmubiru.github.io/StreetJS/"
+license: MIT
+version: "1.0.18"
+keywords:
+  - typescript
+  - backend
+  - framework
+  - nodejs
+  - api
