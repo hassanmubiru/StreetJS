@@ -1,0 +1,319 @@
+  /** Best-effort: the CLI version that scaffolded this project (for display). */
+  private cliVersion(): string {
+    try {
+      const url = new URL('../../package.json', import.meta.url);
+      const pkg = JSON.parse(readFileSync(url, 'utf8')) as { version?: string };
+      return pkg.version ? 'v' + pkg.version : '';
+    } catch {
+      return '';
+    }
+  }
+
+  private renderNextPage(_projectName: string): string {
+    return `'use client';
+
+import { useEffect, useState } from 'react';
+import { useQuery, useAuth } from '@streetjs/react';
+
+const DOCS = 'https://hassanmubiru.github.io/StreetJS/';
+const GITHUB = 'https://github.com/hassanmubiru/StreetJS';
+const NPM = 'https://www.npmjs.com/package/streetjs';
+const VERSION = '${this.cliVersion()}';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
+
+interface Health { status?: string; uptime?: number }
+
+type RealtimeState = 'connecting' | 'connected' | 'disconnected' | 'unconfigured';
+
+function useRealtimeStatus(apiUrl: string): RealtimeState {
+  const [state, setState] = useState<RealtimeState>(apiUrl ? 'connecting' : 'unconfigured');
+  useEffect(() => {
+    if (!apiUrl || typeof WebSocket === 'undefined') { setState('unconfigured'); return; }
+    const wsUrl = apiUrl.replace(/^http/, 'ws').replace(/\\/$/, '') + '/realtime';
+    let ws: WebSocket | null = null;
+    try { ws = new WebSocket(wsUrl); } catch { setState('disconnected'); return; }
+    const onOpen = () => setState('connected');
+    const onDown = () => setState('disconnected');
+    ws.addEventListener('open', onOpen);
+    ws.addEventListener('error', onDown);
+    ws.addEventListener('close', onDown);
+    return () => { ws?.removeEventListener('open', onOpen); ws?.removeEventListener('error', onDown); ws?.removeEventListener('close', onDown); ws?.close(); };
+  }, [apiUrl]);
+  return state;
+}
+
+const QUICKSTART = ['npx @streetjs/cli create my-app', 'cd my-app', 'npm install', 'npm run dev'];
+
+const FEATURES: Array<{ title: string; desc: string }> = [
+  { title: 'Authentication', desc: 'JWT authentication, sessions, permissions, and role-based access control.' },
+  { title: 'Realtime', desc: 'WebSockets, channels, presence, and live updates.' },
+  { title: 'Database', desc: 'SQLite and PostgreSQL support with ORM integration.' },
+  { title: 'Jobs & Scheduling', desc: 'Background processing and scheduled workloads.' },
+  { title: 'Security', desc: 'Plugin signing, provenance, SBOM generation, and a dependency-light architecture.' },
+  { title: 'TypeScript First', desc: 'Built for modern TypeScript development from the ground up.' },
+];
+
+const WHY: string[] = [
+  'Dependency-light architecture',
+  'Self-host friendly deployment',
+  'Built-in authentication support',
+  'Built-in realtime capabilities',
+  'Plugin ecosystem',
+  'Supply-chain integrity features',
+  'TypeScript-first development',
+];
+
+const DX: string[] = [
+  'Fast project scaffolding',
+  'Hot reload',
+  'CLI tooling',
+  'Modular architecture',
+  'Plugin system',
+  'API-first workflows',
+];
+
+const RESOURCES: Array<{ icon: string; title: string; desc: string; href: string }> = [
+  { icon: '📘', title: 'Documentation', desc: 'Guides, references, and concepts.', href: DOCS },
+  { icon: '🚀', title: 'Getting Started', desc: 'Build your first app step by step.', href: DOCS + 'getting-started/' },
+  { icon: '💻', title: 'GitHub', desc: 'Source code and issues.', href: GITHUB },
+  { icon: '🧩', title: 'Examples', desc: 'Reference apps and patterns.', href: DOCS + 'examples/' },
+  { icon: '💬', title: 'Community', desc: 'Discussions and support.', href: GITHUB + '/discussions' },
+];
+
+export default function Home() {
+  const auth = useAuth();
+  const health = useQuery<Health>(() => fetch(API_URL + '/health').then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }));
+  const realtime = useRealtimeStatus(API_URL);
+  const [copied, setCopied] = useState(false);
+
+  const backendOk = !health.loading && !health.error;
+  const hasSession = Boolean(auth.session);
+
+  const copy = () => {
+    try { void navigator.clipboard.writeText(QUICKSTART.join(String.fromCharCode(10))); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch { /* clipboard unavailable */ }
+  };
+
+  const status: Array<{ label: string; state: 'ok' | 'pending' | 'idle'; detail: string }> = [
+    { label: 'Backend Status', state: health.loading ? 'pending' : backendOk ? 'ok' : 'idle', detail: backendOk ? 'Ready' : health.loading ? 'Checking' : 'Not connected' },
+    { label: 'API Connectivity', state: health.loading ? 'pending' : backendOk ? 'ok' : 'idle', detail: backendOk ? 'Connected' : health.loading ? 'Checking' : 'Offline' },
+    { label: 'Authentication', state: 'ok', detail: hasSession ? 'Signed in' : 'Ready' },
+    { label: 'Realtime', state: realtime === 'connected' ? 'ok' : realtime === 'connecting' ? 'pending' : 'idle', detail: realtime === 'connected' ? 'Connected' : realtime === 'connecting' ? 'Connecting' : realtime === 'unconfigured' ? 'Ready' : 'Offline' },
+  ];
+
+  return (
+    <div className="page">
+      <header className="topbar">
+        <span className="brand">StreetJS</span>
+        <nav className="topnav">
+          <a href={DOCS}>Docs</a>
+          <a href={GITHUB} target="_blank" rel="noreferrer">GitHub</a>
+        </nav>
+      </header>
+
+      <section className="hero">
+        {VERSION ? <span className="pill">{VERSION}</span> : null}
+        <h1>Build Production Applications Faster</h1>
+        <p className="lead">
+          StreetJS is a modern TypeScript backend framework designed for authentication, realtime
+          features, APIs, jobs, and databases with a focus on simplicity, performance, and security.
+        </p>
+        <div className="actions">
+          <a className="btn btn-primary" href={DOCS + 'getting-started/'}>Get Started</a>
+          <a className="btn btn-ghost" href={GITHUB} target="_blank" rel="noreferrer">GitHub</a>
+        </div>
+      </section>
+
+      <section className="quickstart">
+        <div className="qs-head">
+          <h2 className="section-title">Quick Start</h2>
+          <button className="btn btn-small" onClick={copy} type="button">{copied ? 'Copied' : 'Copy'}</button>
+        </div>
+        <div className="codeblock">
+          {QUICKSTART.map((line) => (<span key={line} className="code-line"><span className="prompt">$</span> {line}</span>))}
+        </div>
+        <p className="muted">Create and run a StreetJS application in minutes.</p>
+      </section>
+
+      <section>
+        <h2 className="section-title">Core Features</h2>
+        <div className="grid">
+          {FEATURES.map((f) => (
+            <div key={f.title} className="card">
+              <h3>{f.title}</h3>
+              <p>{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <h2 className="section-title">Framework Status</h2>
+        <div className="status-grid">
+          {status.map((s) => (
+            <div key={s.label} className="status-card">
+              <span className={'dot dot-' + s.state} />
+              <div>
+                <div className="status-label">{s.label}</div>
+                <div className="status-detail">{s.detail}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="two-col">
+        <div className="panel">
+          <h2 className="section-title">Why StreetJS</h2>
+          <ul className="checklist">
+            {WHY.map((w) => (<li key={w}><span className="check">✓</span> {w}</li>))}
+          </ul>
+        </div>
+        <div className="panel">
+          <h2 className="section-title">Built for Developers</h2>
+          <ul className="checklist">
+            {DX.map((d) => (<li key={d}><span className="check">✓</span> {d}</li>))}
+          </ul>
+        </div>
+      </section>
+
+      <section>
+        <h2 className="section-title">Resources</h2>
+        <div className="grid">
+          {RESOURCES.map((r) => (
+            <a key={r.title} className="card card-link" href={r.href} target="_blank" rel="noreferrer">
+              <span className="card-icon" aria-hidden="true">{r.icon}</span>
+              <h3>{r.title}</h3>
+              <p>{r.desc}</p>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      <footer className="footer">
+        <nav className="footer-links">
+          <a href={DOCS} target="_blank" rel="noreferrer">Documentation</a>
+          <a href={GITHUB} target="_blank" rel="noreferrer">GitHub</a>
+          <a href={NPM} target="_blank" rel="noreferrer">npm</a>
+          <a href={DOCS + 'security/'} target="_blank" rel="noreferrer">Security</a>
+          <a href={GITHUB + '/discussions'} target="_blank" rel="noreferrer">Community</a>
+        </nav>
+        <span className="muted">MIT Licensed{VERSION ? ' · StreetJS ' + VERSION : ''}</span>
+      </footer>
+    </div>
+  );
+}
+`;
+  }
+
+  private renderNextGlobalsCss(): string {
+    return `:root {
+  --bg: #ffffff;
+  --bg-soft: #f6f7f9;
+  --surface: #ffffff;
+  --border: #e6e8ec;
+  --text: #0b1220;
+  --muted: #5b667a;
+  --brand: #4f46e5;
+  --brand-2: #7c3aed;
+  --ok: #16a34a;
+  --idle: #94a3b8;
+  --code-bg: #0f172a;
+  --code-fg: #e2e8f0;
+  --shadow: 0 1px 2px rgba(16,24,40,.06), 0 10px 30px rgba(16,24,40,.06);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b1020;
+    --bg-soft: #0e1430;
+    --surface: #121a33;
+    --border: #243049;
+    --text: #e7ecf5;
+    --muted: #9aa6bd;
+    --brand: #8b8cff;
+    --brand-2: #b58bff;
+    --ok: #34d399;
+    --idle: #64748b;
+    --code-bg: #060a17;
+    --code-fg: #d7e0f0;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 34px rgba(0,0,0,.35);
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--brand); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code, .codeblock { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+
+.page { max-width: 1040px; margin: 0 auto; padding: 24px 20px 72px; display: flex; flex-direction: column; gap: 44px; }
+
+.topbar { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; }
+.brand { font-weight: 800; letter-spacing: -.01em; font-size: 18px; }
+.topnav { display: flex; gap: 18px; font-weight: 600; font-size: 14px; }
+.topnav a { color: var(--muted); }
+
+.hero { text-align: center; padding: 40px 8px 8px; background:
+  radial-gradient(900px 400px at 50% -10%, color-mix(in srgb, var(--brand) 16%, transparent), transparent 70%); border-radius: 20px; }
+.pill { display: inline-block; font-size: 12px; font-weight: 700; color: var(--brand); background: color-mix(in srgb, var(--brand) 12%, transparent); border: 1px solid color-mix(in srgb, var(--brand) 30%, transparent); padding: 4px 12px; border-radius: 999px; }
+.hero h1 { font-size: clamp(32px, 6vw, 56px); line-height: 1.05; letter-spacing: -.03em; margin: 16px auto 12px; max-width: 18ch; }
+.hero .lead { color: var(--muted); font-size: clamp(16px, 2.3vw, 19px); max-width: 64ch; margin: 0 auto 28px; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+.btn { display: inline-flex; align-items: center; justify-content: center; padding: 11px 20px; border-radius: 11px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-weight: 650; font-size: 15px; cursor: pointer; transition: transform .05s ease, box-shadow .15s ease, background .15s ease; }
+.btn:hover { text-decoration: none; box-shadow: var(--shadow); }
+.btn:active { transform: translateY(1px); }
+.btn-primary { background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; border-color: transparent; }
+.btn-ghost { background: transparent; }
+.btn-small { padding: 6px 12px; font-size: 13px; }
+
+.section-title { font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 16px; }
+
+.quickstart .qs-head { display: flex; align-items: center; justify-content: space-between; }
+.codeblock { background: var(--code-bg); color: var(--code-fg); border-radius: 14px; padding: 18px 20px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; overflow: auto; }
+.code-line { white-space: pre; }
+.prompt { color: #64748b; user-select: none; }
+.muted { color: var(--muted); font-size: 14px; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 22px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 8px; color: var(--text); }
+.card h3 { margin: 0; font-size: 16px; letter-spacing: -.01em; }
+.card p { margin: 0; color: var(--muted); font-size: 14px; }
+.card-link { transition: transform .08s ease, box-shadow .15s ease; }
+.card-link:hover { text-decoration: none; transform: translateY(-2px); box-shadow: 0 14px 36px rgba(16,24,40,.12); }
+.card-icon { font-size: 22px; }
+
+.status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+.status-card { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; box-shadow: var(--shadow); }
+.status-label { font-weight: 650; font-size: 14px; }
+.status-detail { color: var(--muted); font-size: 13px; }
+.dot { width: 11px; height: 11px; border-radius: 50%; flex: 0 0 auto; }
+.dot-ok { background: var(--ok); box-shadow: 0 0 0 4px color-mix(in srgb, var(--ok) 18%, transparent); }
+.dot-pending { background: var(--brand); box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 18%, transparent); }
+.dot-idle { background: var(--idle); box-shadow: 0 0 0 4px color-mix(in srgb, var(--idle) 16%, transparent); }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 22px; box-shadow: var(--shadow); }
+.checklist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.checklist li { display: flex; align-items: center; gap: 10px; font-size: 15px; }
+.check { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: color-mix(in srgb, var(--ok) 16%, transparent); color: var(--ok); font-size: 12px; font-weight: 800; flex: 0 0 auto; }
+
+.footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; border-top: 1px solid var(--border); padding-top: 24px; }
+.footer-links { display: flex; flex-wrap: wrap; gap: 18px; font-weight: 600; font-size: 14px; }
+.footer-links a { color: var(--muted); }
+
+@media (max-width: 760px) {
+  .two-col { grid-template-columns: 1fr; }
+}
+`;
+  }
