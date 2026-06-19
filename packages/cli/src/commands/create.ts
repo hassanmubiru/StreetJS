@@ -422,6 +422,11 @@ export class CreateCommand {
         typescript: '^5.4.5',
         vite: '^5.4.0',
       },
+      // Force a patched transitive postcss (build tooling pins an older one):
+      // GHSA-qx2v-qp2m-jg93 (XSS in CSS stringify) is fixed in 8.5.10.
+      overrides: {
+        postcss: '^8.5.10',
+      },
     }, null, 2) + '\n';
   }
 
