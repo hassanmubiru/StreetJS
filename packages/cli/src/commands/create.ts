@@ -544,9 +544,9 @@ export function App() {
       version: '0.1.0',
       private: true,
       scripts: {
-        dev: 'next dev',
+        dev: 'next dev -p 3001',
         build: 'next build',
-        start: 'next start',
+        start: 'next start -p 3001',
         lint: 'next lint',
       },
       dependencies: {
