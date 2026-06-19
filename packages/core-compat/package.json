@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/core",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "DEPRECATED — use `streetjs` instead. Backward-compatibility shim that re-exports the streetjs package.",
   "type": "module",
   "main": "./dist/index.js",
@@ -123,7 +123,7 @@
     "README.md"
   ],
   "dependencies": {
-    "streetjs": "1.0.13"
+    "streetjs": "1.0.14"
   },
   "keywords": [
     "streetjs",

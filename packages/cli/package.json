@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/cli",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "Street Framework CLI \u2014 scaffold, generate, migrate, and run TypeScript backend projects.",
   "type": "module",
   "main": "./dist/index.js",
