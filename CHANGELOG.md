@@ -7,6 +7,15 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.0.16] - 2026-06-18
+
+### Changed
+- `--frontend next` starter replaced with a polished developer dashboard: hero,
+  live system-status cards (backend / database / realtime / auth), an API health
+  demo, auth readiness, a realtime indicator, a feature showcase, resource links,
+  and a footer — styled with a bundled `app/globals.css` (no new dependencies).
+  It never renders raw `null`/`undefined` and shows graceful fallback states.
+
 ## [1.0.15] - 2026-06-18
 
 ### Fixed
