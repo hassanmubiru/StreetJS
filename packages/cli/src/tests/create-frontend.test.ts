@@ -132,6 +132,42 @@ describe('street create --frontend', () => {
     });
   });
 
+  it('next starter is a polished dashboard, not a debug page', async () => {
+    await withTempDir(async (dir) => {
+      const restore = capture();
+      try { await new CreateCommand().execute(ctx(dir, ['proj'], { frontend: 'next' })); } finally { restore(); }
+      const web = join(dir, 'proj', 'web');
+      const page = readFileSync(join(web, 'app', 'page.tsx'), 'utf8');
+      const layout = readFileSync(join(web, 'app', 'layout.tsx'), 'utf8');
+
+      // Stylesheet is generated and wired in.
+      assert.ok(existsSync(join(web, 'app', 'globals.css')), 'app/globals.css generated');
+      assert.ok(layout.includes("import './globals.css'"), 'layout imports the stylesheet');
+
+      // Never render raw null/undefined session (the old debug-page smell).
+      assert.ok(!page.includes('JSON.stringify(session'), 'does not dump raw session JSON');
+      assert.ok(!/session\s*\?\?\s*null/.test(page), "no 'session ?? null' rendering");
+
+      // Required sections / value proposition present.
+      for (const needle of [
+        'StreetJS + Next.js',     // hero
+        'System Status',          // status cards
+        'API Health',             // health demo
+        'Authentication',         // auth readiness
+        'Realtime',               // realtime demo
+        'What you can build',     // feature showcase
+        'Resources',              // quick-start resources
+      ]) {
+        assert.ok(page.includes(needle), `dashboard includes "${needle}"`);
+      }
+      // Graceful, never-blank states.
+      assert.ok(page.includes('Not configured') || page.includes('Available'), 'shows graceful fallback states');
+      // Doc + GitHub links present.
+      assert.ok(page.includes('hassanmubiru.github.io/StreetJS'), 'links to documentation');
+      assert.ok(page.includes('github.com/hassanmubiru/StreetJS'), 'links to GitHub');
+    });
+  });
+
   it('react main imports ./App extensionless (Vite resolution)', async () => {
     await withTempDir(async (dir) => {
       const restore = capture();
