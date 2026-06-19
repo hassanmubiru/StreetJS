@@ -180,6 +180,24 @@ describe('street create --frontend', () => {
     });
   });
 
+  it('next dev avoids the backend port and proxies health without warnings', async () => {
+    await withTempDir(async (dir) => {
+      const restore = capture();
+      try { await new CreateCommand().execute(ctx(dir, ['proj'], { frontend: 'next' })); } finally { restore(); }
+      const web = join(dir, 'proj', 'web');
+      const pkg = JSON.parse(readFileSync(join(web, 'package.json'), 'utf8'));
+      const cfg = readFileSync(join(web, 'next.config.mjs'), 'utf8');
+
+      // Dev server must not collide with the backend's default port 3000.
+      assert.ok(/next dev -p (?!3000)\d+/.test(pkg.scripts.dev), 'next dev runs on a non-3000 port');
+      // Health is proxied to the backend (was a 404 when missing).
+      assert.ok(cfg.includes("source: '/health'"), 'next.config proxies /health to the backend');
+      assert.ok(cfg.includes('/auth/:path*') && cfg.includes('/api/:path*'), 'next.config proxies api/auth');
+      // Workspace root pinned so Next does not warn about multiple lockfiles.
+      assert.ok(cfg.includes('turbopack') && cfg.includes('root:'), 'next.config pins turbopack.root');
+    });
+  });
+
 
   it('react main imports ./App extensionless (Vite resolution)', async () => {
     await withTempDir(async (dir) => {
