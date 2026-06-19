@@ -7,6 +7,19 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.0.13] - 2026-06-18
+
+Fix the `--frontend next` (and `--frontend react`) scaffold failing to build with
+`Module not found: Can't resolve './providers.js'`.
+
+### Fixed
+- Generated frontend source no longer uses hardcoded `.js` extensions on local
+  imports: Next `app/layout.tsx` imports `./providers` and React `src/main.tsx`
+  imports `./App` (bundler/TypeScript resolution; Vite and Next App Router).
+- Added regression tests asserting no local `.js`-extension imports in either
+  frontend scaffold, plus App Router structure checks. Verified a generated Next
+  project passes `npm install` + `npm run build`.
+
 ## [1.0.12] - 2026-06-18
 
 Secure-by-default scaffold boot. The `street create` scaffold no longer fails on
