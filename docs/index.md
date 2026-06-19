@@ -387,9 +387,14 @@ await app.listen();
       <div><div class="dt">Dependency injection <span class="arr">→</span></div><p class="dd">IoC container, constructor injection and singletons.</p></div>
     </a>
 
-    <a href="{{ site.baseurl }}/database/postgres-wire-driver/" class="dc">
+    <a href="{{ site.baseurl }}/authentication/" class="dc">
+      <span class="dic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><circle cx="12" cy="16" r="1"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+      <div><div class="dt">Authentication <span class="arr">→</span></div><p class="dd">JWT, sessions, OAuth2/OIDC, WebAuthn passkeys and RBAC.</p></div>
+    </a>
+
+    <a href="{{ site.baseurl }}/orm/" class="dc">
       <span class="dic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/></svg></span>
-      <div><div class="dt">PostgreSQL <span class="arr">→</span></div><p class="dd">Wire driver, connection pool, repositories, migrations.</p></div>
+      <div><div class="dt">Database &amp; ORM <span class="arr">→</span></div><p class="dd">Native PostgreSQL driver, repositories, entities and migrations.</p></div>
     </a>
 
     <a href="{{ site.baseurl }}/security/" class="dc">
