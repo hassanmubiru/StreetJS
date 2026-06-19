@@ -1014,3 +1014,52 @@ jobs:
         with:
           name: sbom-${{ github.ref_name }}
           path: sbom-${{ github.ref_name }}.json
+
+      # ── Signed GitHub Release (tag pushes only) ──────────────────────────
+      # npm provenance (above) attests the published packages, but the OpenSSF
+      # Scorecard "Signed-Releases" check inspects GitHub *Release* assets. On a
+      # tag push we pack the published tarballs, sign each one keyless with
+      # cosign (Sigstore — uses the job's id-token, no long-lived key), and
+      # publish a GitHub Release carrying the tarballs, their .sig + .pem
+      # certificates, and the CycloneDX SBOM. These steps run AFTER npm publish
+      # and its provenance gate, so a failure here can never affect what is
+      # already on the registry.
+      - name: Install cosign
+        if: ${{ github.ref_type == 'tag' }}
+        uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da # v3.7.0
+
+      - name: Pack and sign release tarballs
+        if: ${{ github.ref_type == 'tag' }}
+        run: |
+          set -euo pipefail
+          mkdir -p release-assets
+          for pkg in core core-compat cli; do
+            tgz=$(cd "packages/$pkg" && npm pack --silent)
+            mv "packages/$pkg/$tgz" "release-assets/$tgz"
+          done
+          # Include the per-release CycloneDX SBOM generated above.
+          [ -f "sbom-${GITHUB_REF_NAME}.json" ] && cp "sbom-${GITHUB_REF_NAME}.json" release-assets/
+          cd release-assets
+          for f in *.tgz; do
+            cosign sign-blob --yes \
+              --output-signature "$f.sig" \
+              --output-certificate "$f.pem" \
+              "$f"
+          done
+          echo "Signed release assets:"; ls -la
+
+      - name: Publish signed GitHub Release
+        if: ${{ github.ref_type == 'tag' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "Release $GITHUB_REF_NAME exists — uploading signed assets (clobber)."
+            gh release upload "$GITHUB_REF_NAME" release-assets/* --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" \
+              --title "$GITHUB_REF_NAME" \
+              --generate-notes \
+              release-assets/*
+          fi
