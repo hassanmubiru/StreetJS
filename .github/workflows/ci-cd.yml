@@ -902,8 +902,11 @@ jobs:
           VERSION=$(node -p "require('./packages/core/package.json').version")
           if npm view "streetjs@$VERSION" version >/dev/null 2>&1; then
             echo "streetjs@$VERSION is already published — skipping (idempotent re-run)."
-          else
-            npm publish -w packages/core --provenance --access public
+          elif ! npm publish -w packages/core --provenance --access public 2>publish.err; then
+            cat publish.err
+            grep -qiE "cannot publish over|previously published|E409|E403" publish.err \
+              && echo "streetjs@$VERSION already on the registry (publish race) — treating as success." \
+              || exit 1
           fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -922,8 +925,14 @@ jobs:
           VERSION=$(node -p "require('./packages/core-compat/package.json').version")
           if npm view "@streetjs/core@$VERSION" version >/dev/null 2>&1; then
             echo "@streetjs/core@$VERSION is already published — skipping (idempotent re-run)."
-          else
-            npm publish -w packages/core-compat --provenance --access public
+          elif ! npm publish -w packages/core-compat --provenance --access public 2>publish.err; then
+            cat publish.err
+            # The idempotency guard above can lose a race with npm registry
+            # replication ("npm view" reads a stale replica). Treat an
+            # already-published error as success rather than failing the release.
+            grep -qiE "cannot publish over|previously published|E409|E403" publish.err \
+              && echo "@streetjs/core@$VERSION already on the registry (publish race) — treating as success." \
+              || exit 1
           fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -934,8 +943,11 @@ jobs:
           VERSION=$(node -p "require('./packages/cli/package.json').version")
           if npm view "@streetjs/cli@$VERSION" version >/dev/null 2>&1; then
             echo "@streetjs/cli@$VERSION is already published — skipping (idempotent re-run)."
-          else
-            npm publish -w packages/cli --provenance --access public
+          elif ! npm publish -w packages/cli --provenance --access public 2>publish.err; then
+            cat publish.err
+            grep -qiE "cannot publish over|previously published|E409|E403" publish.err \
+              && echo "@streetjs/cli@$VERSION already on the registry (publish race) — treating as success." \
+              || exit 1
           fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
