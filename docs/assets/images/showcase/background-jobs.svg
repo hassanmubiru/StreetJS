@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img" aria-label="Background Jobs reference app cover">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0B1220"/><stop offset="1" stop-color="#111C32"/>
+    </linearGradient>
+    <linearGradient id="ac" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3B82F6"/><stop offset="1" stop-color="#2563EB"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" rx="20" fill="url(#bg)"/>
+  <g fill="none" stroke="#1E293B" stroke-width="1"><path d="M0 60h640M0 120h640M0 180h640M0 240h640M0 300h640"/></g>
+  <g>
+    <rect x="40" y="110" width="120" height="40" rx="8" fill="#15294A" stroke="#2563EB" stroke-width="1.5"/>
+    <rect x="180" y="110" width="120" height="40" rx="8" fill="#15294A" stroke="#2563EB" stroke-width="1.5"/>
+    <rect x="320" y="110" width="120" height="40" rx="8" fill="#1E2A44"/>
+    <path d="M160 130h20M300 130h20" stroke="#475569" stroke-width="2"/>
+    <text x="58" y="135" font-family="monospace" font-size="13" fill="#93A4C2">job #1</text>
+    <text x="198" y="135" font-family="monospace" font-size="13" fill="#93A4C2">job #2</text>
+    <text x="338" y="135" font-family="monospace" font-size="13" fill="#64748B">queued…</text>
+  </g>
+  <g transform="translate(470,180)" fill="none" stroke="url(#ac)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="40" cy="40" r="34"/><path d="M40 14v26l18 10"/>
+  </g>
+  <g font-family="monospace" font-size="12" fill="#34D399">
+    <text x="40" y="200">✓ retry · backoff · cron scheduler</text>
+  </g>
+  <text x="40" y="320" font-family="Inter,Arial,sans-serif" font-size="20" font-weight="700" fill="#E2E8F0">Background Jobs</text>
+</svg>

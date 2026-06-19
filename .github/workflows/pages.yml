@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - 'docs/**'
+      - 'packages/cli/package.json'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -31,6 +32,18 @@ jobs:
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           persist-credentials: false
+
+      # Single source of truth for the displayed version is the published CLI
+      # package. Inject it into the Jekyll config at build time so the homepage
+      # hero and SoftwareApplication JSON-LD (both read {{ site.version }}) can
+      # never drift from the released package. The committed `version:` in
+      # docs/_config.yml remains a valid fallback for local builds.
+      - name: Sync site version from @streetjs/cli
+        run: |
+          VERSION="$(node -p "require('./packages/cli/package.json').version")"
+          echo "Injecting CLI version '$VERSION' into docs/_config.yml"
+          sed -i -E "s/^version:.*/version:     \"${VERSION}\"/" docs/_config.yml
+          grep -E "^version:" docs/_config.yml
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@12fd324f1d0b43274fdc8130f6980590a667c455 # v1.312.0
