@@ -7,6 +7,13 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.0.14] - 2026-06-18
+
+### Changed
+- `--frontend next` scaffold now uses **Next.js 16** with **React 19** (was Next
+  14 / React 18), clearing the high-severity advisory carried by the older Next
+  release. Verified a generated project passes `npm install` + `npm run build`.
+
 ## [1.0.13] - 2026-06-18
 
 Fix the `--frontend next` (and `--frontend react`) scaffold failing to build with
