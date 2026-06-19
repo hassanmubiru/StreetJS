@@ -437,6 +437,16 @@ await app.listen();
       <div><div class="dt">FAQ <span class="arr">→</span></div><p class="dd">Common questions, migration guides and troubleshooting.</p></div>
     </a>
 
+    <a href="{{ site.baseurl }}/showcase/" class="dc">
+      <span class="dic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="14" rx="2"/><path d="M3 21h18M8 17v4M16 17v4"/></svg></span>
+      <div><div class="dt">Showcase <span class="arr">→</span></div><p class="dd">Reference apps and starters built with StreetJS.</p></div>
+    </a>
+
+    <a href="{{ site.baseurl }}/compare/" class="dc">
+      <span class="dic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 8l-3 5h6zM19 8l-3 5h6z"/><path d="M7 21h10"/></svg></span>
+      <div><div class="dt">Compare <span class="arr">→</span></div><p class="dd">StreetJS vs Express, Fastify, NestJS, AdonisJS and more.</p></div>
+    </a>
+
   </div>
 </section>
 
