@@ -385,6 +385,7 @@ export class CreateCommand {
       await writeFile(join(webDir, 'app', 'layout.tsx'), this.renderNextLayout(projectName), 'utf8');
       await writeFile(join(webDir, 'app', 'page.tsx'), this.renderNextPage(projectName), 'utf8');
       await writeFile(join(webDir, 'app', 'providers.tsx'), this.renderNextProviders(), 'utf8');
+      await writeFile(join(webDir, 'app', 'globals.css'), this.renderNextGlobalsCss(), 'utf8');
       await writeFile(join(webDir, '.env.example'), 'NEXT_PUBLIC_API_URL=http://localhost:3000\n', 'utf8');
       console.log('[street] Scaffolded Next.js (App Router) frontend in web/.');
     }
@@ -652,32 +653,278 @@ export function Providers({ children }: { children: ReactNode }) {
 `;
   }
 
-  private renderNextPage(projectName: string): string {
+  private renderNextPage(_projectName: string): string {
     return `'use client';
 
+import { useEffect, useState } from 'react';
 import { useQuery, useAuth } from '@streetjs/react';
 
-interface Health { status: string; uptime: number }
+const DOCS = 'https://hassanmubiru.github.io/StreetJS/';
+const GITHUB = 'https://github.com/hassanmubiru/StreetJS';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
+
+interface Health { status?: string; uptime?: number }
+
+type RealtimeState = 'connecting' | 'connected' | 'disconnected' | 'unconfigured';
+
+/** Track a websocket connection to the backend realtime endpoint (browser only). */
+function useRealtimeStatus(apiUrl: string): { state: RealtimeState; since: string | null } {
+  const [state, setState] = useState<RealtimeState>(apiUrl ? 'connecting' : 'unconfigured');
+  const [since, setSince] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!apiUrl || typeof WebSocket === 'undefined') {
+      setState('unconfigured');
+      return;
+    }
+    const wsUrl = apiUrl.replace(/^http/, 'ws').replace(/\\/$/, '') + '/realtime';
+    let ws: WebSocket | null = null;
+    try {
+      ws = new WebSocket(wsUrl);
+    } catch {
+      setState('disconnected');
+      return;
+    }
+    const onOpen = () => { setState('connected'); setSince(new Date().toLocaleTimeString()); };
+    const onClose = () => setState('disconnected');
+    ws.addEventListener('open', onOpen);
+    ws.addEventListener('error', onClose);
+    ws.addEventListener('close', onClose);
+    return () => { ws?.removeEventListener('open', onOpen); ws?.removeEventListener('error', onClose); ws?.removeEventListener('close', onClose); ws?.close(); };
+  }, [apiUrl]);
+
+  return { state, since };
+}
+
+const FEATURES: Array<{ title: string; desc: string; href: string }> = [
+  { title: 'Authentication', desc: 'JWT, sessions, WebAuthn, and pluggable providers — secure by default.', href: DOCS + 'security/' },
+  { title: 'Realtime', desc: 'WebSockets and SSE with channels, backpressure, and bounded connections.', href: DOCS + 'realtime-channels/' },
+  { title: 'ORM', desc: 'Typed repositories and migrations over a native PostgreSQL driver — no heavy deps.', href: DOCS + 'database/' },
+  { title: 'Jobs', desc: 'Background jobs and schedules with a built-in dashboard.', href: DOCS + 'guides/' },
+  { title: 'AI', desc: 'First-class AI helpers and streaming chat via official plugins.', href: DOCS + 'ecosystem/' },
+  { title: 'Plugins', desc: '19 official, signed plugins: Stripe, Kafka, S3, OpenAI, and more.', href: DOCS + 'plugins-official/' },
+];
+
+const RESOURCES: Array<{ title: string; href: string }> = [
+  { title: 'Documentation', href: DOCS },
+  { title: 'Tutorials', href: DOCS + 'tutorials/' },
+  { title: 'Examples', href: DOCS + 'examples/' },
+  { title: 'Official Plugins', href: DOCS + 'plugins-official/' },
+  { title: 'GitHub', href: GITHUB },
+];
 
 export default function Home() {
-  const { session, loading } = useAuth();
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? '';
-  const health = useQuery<Health>(() => fetch(apiUrl + '/health').then((r) => r.json()));
+  const auth = useAuth();
+  const health = useQuery<Health>(() => fetch(API_URL + '/health').then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }));
+  const realtime = useRealtimeStatus(API_URL);
+
+  const backendOk = !health.loading && !health.error;
+  const dbReady = backendOk; // backend health implies its database is reachable
+  const hasSession = Boolean(auth.session);
+
+  const statuses: Array<{ label: string; ok: boolean | null; detail: string }> = [
+    { label: 'Backend', ok: health.loading ? null : backendOk, detail: backendOk ? 'Connected' : health.loading ? 'Checking…' : 'Not reachable' },
+    { label: 'Database', ok: health.loading ? null : dbReady, detail: dbReady ? 'Ready' : 'Not configured' },
+    { label: 'Realtime', ok: realtime.state === 'connecting' ? null : realtime.state === 'connected', detail: realtime.state === 'connected' ? 'Ready' : realtime.state === 'connecting' ? 'Connecting…' : realtime.state === 'unconfigured' ? 'Not configured' : 'Disconnected' },
+    { label: 'Authentication', ok: true, detail: hasSession ? 'Signed in' : 'Available' },
+  ];
 
   return (
-    <main style={{ maxWidth: 640, margin: '40px auto', padding: 16 }}>
-      <h1>${projectName}</h1>
-      <p>Next.js App Router frontend on the Street backend via @streetjs/next.</p>
+    <main className="page">
+      <header className="hero">
+        <span className="badge">StreetJS Starter</span>
+        <h1>StreetJS + Next.js</h1>
+        <p className="lead">
+          Build full-stack TypeScript applications with authentication, realtime APIs, jobs,
+          databases, AI, and plugins.
+        </p>
+        <div className="actions">
+          <a className="btn btn-primary" href={DOCS}>Get Started</a>
+          <a className="btn" href={DOCS}>Documentation</a>
+          <a className="btn btn-ghost" href={GITHUB} target="_blank" rel="noreferrer">GitHub</a>
+        </div>
+      </header>
+
       <section>
-        <h2>Session</h2>
-        {loading ? <p>Loading…</p> : <pre>{JSON.stringify(session ?? null, null, 2)}</pre>}
+        <h2 className="section-title">System Status</h2>
+        <div className="status-grid">
+          {statuses.map((s) => (
+            <div key={s.label} className="status-card">
+              <span className={'dot ' + (s.ok === null ? 'dot-pending' : s.ok ? 'dot-ok' : 'dot-warn')} />
+              <div>
+                <div className="status-label">{s.label}</div>
+                <div className="status-detail">{s.ok === null ? s.detail : s.ok ? '✓ ' + s.detail : '⚠ ' + s.detail}</div>
+              </div>
+            </div>
+          ))}
+        </div>
       </section>
+
+      <div className="two-col">
+        <section className="panel">
+          <h2 className="section-title">API Health</h2>
+          <p className="muted"><code>GET {API_URL || '<NEXT_PUBLIC_API_URL>'}/health</code></p>
+          {health.loading ? (
+            <p className="muted">Loading…</p>
+          ) : health.error ? (
+            <div className="notice notice-warn">Backend unavailable. Start it with <code>street dev</code> and set <code>NEXT_PUBLIC_API_URL</code>.</div>
+          ) : (
+            <pre className="code">{JSON.stringify(health.data ?? { status: 'ok' }, null, 2)}</pre>
+          )}
+        </section>
+
+        <section className="panel">
+          <h2 className="section-title">Authentication</h2>
+          {auth.loading ? (
+            <p className="muted">Checking session…</p>
+          ) : hasSession ? (
+            <>
+              <div className="notice notice-ok">You are signed in.</div>
+              <button className="btn" onClick={() => { void auth.logout(); }}>Log out</button>
+            </>
+          ) : (
+            <>
+              <div className="notice">Authentication Ready — configure a provider to enable login.</div>
+              <div className="actions">
+                <button className="btn btn-primary" disabled>Login</button>
+                <button className="btn" disabled>Register</button>
+              </div>
+              <p className="muted">See the <a href={DOCS + 'security/'}>auth guide</a> to wire up a provider.</p>
+            </>
+          )}
+        </section>
+      </div>
+
+      <section className="panel">
+        <h2 className="section-title">Realtime</h2>
+        <p>
+          {realtime.state === 'connected' ? '🟢 Connected' : realtime.state === 'connecting' ? '🟡 Connecting…' : realtime.state === 'unconfigured' ? '⚪ Not configured' : '🔴 Disconnected'}
+          {realtime.since ? <span className="muted"> · since {realtime.since}</span> : null}
+        </p>
+        <p className="muted">Powered by <code>@streetjs/client</code> over WebSockets.</p>
+      </section>
+
       <section>
-        <h2>Backend health</h2>
-        {health.loading ? <p>Checking…</p> : <pre>{JSON.stringify(health.data, null, 2)}</pre>}
+        <h2 className="section-title">What you can build</h2>
+        <div className="grid">
+          {FEATURES.map((f) => (
+            <a key={f.title} className="card" href={f.href} target="_blank" rel="noreferrer">
+              <h3>{f.title}</h3>
+              <p>{f.desc}</p>
+              <span className="card-link">Docs →</span>
+            </a>
+          ))}
+        </div>
       </section>
+
+      <section>
+        <h2 className="section-title">Resources</h2>
+        <div className="chips">
+          {RESOURCES.map((r) => (
+            <a key={r.title} className="chip" href={r.href} target="_blank" rel="noreferrer">{r.title}</a>
+          ))}
+        </div>
+      </section>
+
+      <footer className="footer">
+        <span>StreetJS · Next.js · Node 20+</span>
+        <span className="footer-links">
+          <a href={DOCS} target="_blank" rel="noreferrer">Documentation</a>
+          <a href={GITHUB} target="_blank" rel="noreferrer">GitHub</a>
+        </span>
+      </footer>
     </main>
   );
+}
+`;
+  }
+
+  private renderNextGlobalsCss(): string {
+    return `:root {
+  --bg: #f7f8fa;
+  --surface: #ffffff;
+  --border: #e6e8ec;
+  --text: #0f172a;
+  --muted: #64748b;
+  --brand: #4f46e5;
+  --brand-2: #7c3aed;
+  --ok: #16a34a;
+  --warn: #d97706;
+  --shadow: 0 1px 2px rgba(16,24,40,.06), 0 8px 24px rgba(16,24,40,.05);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.55;
+}
+
+a { color: var(--brand); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: .9em; background: #eef1f6; padding: 1px 6px; border-radius: 6px; }
+
+.page { max-width: 980px; margin: 0 auto; padding: 32px 20px 64px; display: flex; flex-direction: column; gap: 36px; }
+
+.hero {
+  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+  color: #fff;
+  border-radius: 18px;
+  padding: 40px 32px;
+  box-shadow: var(--shadow);
+}
+.hero h1 { font-size: clamp(28px, 5vw, 44px); margin: 12px 0 8px; letter-spacing: -.02em; }
+.hero .lead { font-size: clamp(15px, 2.2vw, 18px); margin: 0 0 24px; max-width: 60ch; opacity: .95; }
+.badge { display: inline-block; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; background: rgba(255,255,255,.18); padding: 5px 10px; border-radius: 999px; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; padding: 10px 18px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-weight: 600; font-size: 14px; cursor: pointer; transition: transform .05s ease, box-shadow .15s ease; }
+.btn:hover { text-decoration: none; box-shadow: var(--shadow); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+.btn-primary { background: #fff; color: var(--brand); border-color: transparent; }
+.hero .btn { border-color: rgba(255,255,255,.35); background: rgba(255,255,255,.08); color: #fff; }
+.hero .btn-primary { background: #fff; color: var(--brand); }
+.btn-ghost { background: transparent; }
+
+.section-title { font-size: 18px; margin: 0 0 14px; letter-spacing: -.01em; }
+
+.status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
+.status-card { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; box-shadow: var(--shadow); }
+.status-label { font-weight: 600; font-size: 14px; }
+.status-detail { color: var(--muted); font-size: 13px; }
+.dot { width: 12px; height: 12px; border-radius: 50%; flex: 0 0 auto; }
+.dot-ok { background: var(--ok); box-shadow: 0 0 0 4px rgba(22,163,74,.12); }
+.dot-warn { background: var(--warn); box-shadow: 0 0 0 4px rgba(217,119,6,.12); }
+.dot-pending { background: #cbd5e1; box-shadow: 0 0 0 4px rgba(148,163,184,.15); }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); }
+.muted { color: var(--muted); font-size: 14px; }
+.code { background: #0f172a; color: #e2e8f0; border-radius: 10px; padding: 14px; overflow: auto; font-size: 13px; }
+.notice { border: 1px solid var(--border); background: #f8fafc; border-radius: 10px; padding: 12px 14px; font-size: 14px; margin: 0 0 12px; }
+.notice-ok { border-color: rgba(22,163,74,.3); background: rgba(22,163,74,.08); }
+.notice-warn { border-color: rgba(217,119,6,.3); background: rgba(217,119,6,.08); }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.card { display: flex; flex-direction: column; gap: 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); color: var(--text); transition: transform .08s ease, box-shadow .15s ease; }
+.card:hover { text-decoration: none; transform: translateY(-2px); box-shadow: 0 10px 30px rgba(16,24,40,.10); }
+.card h3 { margin: 0; font-size: 16px; }
+.card p { margin: 0; color: var(--muted); font-size: 14px; }
+.card-link { margin-top: 6px; color: var(--brand); font-weight: 600; font-size: 13px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.chip { background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 8px 16px; font-size: 14px; font-weight: 600; box-shadow: var(--shadow); }
+
+.footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; border-top: 1px solid var(--border); padding-top: 20px; color: var(--muted); font-size: 14px; }
+.footer-links { display: flex; gap: 16px; }
+
+@media (max-width: 720px) {
+  .two-col { grid-template-columns: 1fr; }
 }
 `;
   }
