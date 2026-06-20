@@ -39,7 +39,7 @@ description: "StreetJS — the TypeScript framework for modern backend applicati
 .home .s-title{font-size:clamp(1.7rem,3.4vw,2.3rem);font-weight:800;letter-spacing:-.03em;
   line-height:1.16;color:var(--ink);margin:0 0 .7rem}
 .home .s-sub{font-size:1.05rem;color:var(--muted);line-height:1.7;margin:0 0 2.6rem;max-width:640px}
-.home code{font-family:var(--fm);font-size:.84em;background:var(--a-soft);color:#1D4ED8;
+.home code{font-family:var(--fm);font-size:.84em;background:var(--a-soft);color:var(--accent);
   padding:.12em .42em;border-radius:5px;border:1px solid var(--a-line)}
 
 /* ── 1 · Hero ───────────────────────────────────────────────────────────── */
