@@ -4,6 +4,8 @@ title: "Template — Migration Case Study"
 parent: Case Studies
 nav_order: 1
 description: "Template for a StreetJS migration case study."
+sitemap:     false
+noindex:     true
 ---
 
 # Migration Case Study — <project / org>

@@ -3,6 +3,8 @@ layout: default
 title: "StreetJS Framework — Threat Model"
 nav_exclude: true
 description: "StreetJS Framework — Threat Model — StreetJS, the production-grade, memory-safe TypeScript backend framework for Node.js."
+sitemap:     false
+noindex:     true
 ---
 
 # StreetJS Framework — Threat Model

@@ -4,6 +4,8 @@ title: "Template — Benchmark Report"
 parent: Case Studies
 nav_order: 3
 description: "Template for a reproducible StreetJS benchmark report."
+sitemap:     false
+noindex:     true
 ---
 
 # Benchmark Report — <scenario>

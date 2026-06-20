@@ -4,6 +4,8 @@ title: "Template — Production Deployment Report"
 parent: Case Studies
 nav_order: 2
 description: "Template for a StreetJS production deployment report."
+sitemap:     false
+noindex:     true
 ---
 
 # Production Deployment Report — <project / org>
