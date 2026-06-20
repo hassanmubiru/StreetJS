@@ -239,8 +239,8 @@ pre.highlight code {
 // ── Buttons ──────────────────────────────────────────────────────────────────
 .btn, a.btn { font-family:'Inter',sans-serif !important; font-weight:600 !important; border-radius:9px !important; transition:all .16s ease !important; text-decoration:none !important; }
 .btn-primary, a.btn-primary {
-  background: var(--accent) !important; border:1px solid var(--accent) !important; color:#fff !important; box-shadow:0 4px 14px -4px rgba(37,99,235,.45) !important;
-  &:hover { background: var(--accent-hover) !important; border-color: var(--accent-hover) !important; transform:translateY(-1px) !important; }
+  background: var(--accent-solid) !important; border:1px solid var(--accent-solid) !important; color:#fff !important; box-shadow:0 4px 14px -4px rgba(37,99,235,.45) !important;
+  &:hover { background: var(--accent-solid-hover) !important; border-color: var(--accent-solid-hover) !important; transform:translateY(-1px) !important; }
 }
 
 // ── Callouts ─────────────────────────────────────────────────────────────────
