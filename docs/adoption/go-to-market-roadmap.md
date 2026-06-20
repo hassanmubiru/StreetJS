@@ -30,7 +30,7 @@ a *social/market* metric. The single highest-leverage action in the next year is
 **onboarding a second maintainer** (bus factor 1→2); the second is **landing the
 first 10 real production users** and converting 3 into named case studies.
 
-**One-line positioning:** *"The batteries-included TypeScript backend you can
+**One-line positioning:** *"The integrated TypeScript backend you can
 self-host for the price of a coffee — auth, realtime, jobs, and a database driver
 in one signed, ~64 MB dependency-light runtime."* Compete on **total cost of
 ownership + supply-chain integrity + cohesion**, not on ecosystem size.
