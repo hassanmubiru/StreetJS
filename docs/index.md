@@ -20,7 +20,7 @@ description: "StreetJS — the TypeScript framework for modern backend applicati
 
 /* ── Tokens — mapped to the global light/dark design system ──────────────── */
 .home{
-  --ink:var(--text-primary);--body:var(--text-secondary);--muted:var(--text-muted);--faint:var(--text-muted);
+  --ink:var(--heading);--body:var(--text-secondary);--muted:var(--text-muted);--faint:var(--text-muted);
   --a:var(--accent);--a2:var(--accent);--a-hover:var(--accent-hover);--a-soft:var(--accent-soft);--a-line:var(--accent-line);
   --bd:var(--border);--bd2:var(--border-strong);--card:var(--elevated);
   --code:var(--code-bg);--code-line:var(--code-border);
