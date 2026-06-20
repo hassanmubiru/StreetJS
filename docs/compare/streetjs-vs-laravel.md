@@ -9,7 +9,7 @@ description: "StreetJS vs Laravel compared — a fully integrated PHP framework 
 
 # StreetJS vs Laravel
 
-**In one line:** Laravel is the gold standard for batteries-included web
+**In one line:** Laravel is the gold standard for integrated web
 development in PHP; StreetJS brings a comparable integrated feature set to a
 TypeScript/Node stack.
 
@@ -51,7 +51,7 @@ in first.
 ## Honest tradeoffs
 
 Laravel is vastly more mature with a far larger ecosystem and community. If your
-team is in PHP or wants the deepest batteries-included experience available today,
+team is in PHP or wants the deepest integrated experience available today,
 Laravel is the safe, excellent choice. StreetJS is for teams that want a similar
 breadth in a TypeScript-first, Node-native stack.
 
