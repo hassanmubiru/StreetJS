@@ -1,6 +1,11 @@
 <!-- Street docs: favicons / branding -->
 <link rel="icon" type="image/svg+xml" href="{{ '/assets/images/favicon.svg' | relative_url }}">
 
+{%- if page.noindex -%}
+<!-- Street docs: internal/working document — keep out of search indexes -->
+<meta name="robots" content="noindex, follow">
+{%- endif -%}
+
 <!-- Street docs: theme init (runs before paint to avoid flash) -->
 <script>
   (function () {
