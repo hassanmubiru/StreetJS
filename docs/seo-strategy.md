@@ -83,7 +83,7 @@ The foundation is genuinely strong. The losses are in **on-page targeting** and
 > **RECOMMENDATION — homepage title.** `just-the-docs` uses `page.title` for the
 > sidebar nav label, so renaming the home page to a long keyword string would break
 > the nav. The safe fix is to override only the SEO title in `head_custom.html`
-> (emit a `<title>` and `og:title` of *"StreetJS — Batteries-Included TypeScript
+> (emit a `<title>` and `og:title` of *"StreetJS — TypeScript
 > Backend Framework"* on `page.url == "/"`) while leaving the nav label as "Home".
 > This is the single highest-leverage on-page change.
 
