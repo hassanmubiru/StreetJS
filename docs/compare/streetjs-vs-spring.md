@@ -4,7 +4,7 @@ title:     "StreetJS vs Spring Boot"
 parent:    "Compare"
 nav_order: 6
 permalink: /compare/streetjs-vs-spring/
-description: "StreetJS vs Spring Boot compared — both are batteries-included, DI-driven backend frameworks. StreetJS is TypeScript on Node.js with a tiny dependency surface; Spring Boot is the mature JVM standard with a vast ecosystem."
+description: "StreetJS vs Spring Boot compared — both are integrated, DI-driven backend frameworks. StreetJS is TypeScript on Node.js with a tiny dependency surface; Spring Boot is the mature JVM standard with a vast ecosystem."
 ---
 
 # StreetJS vs Spring Boot
