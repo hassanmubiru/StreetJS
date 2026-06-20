@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/hassanmubiru/StreetJS/main/docs/assets/images/logo-512.png" alt="StreetJS logo" width="100" height="100">
+</p>
+
 # @streetjs/plugin-nats
 
 Official StreetJS plugin: **NATS** publish/subscribe messaging.
