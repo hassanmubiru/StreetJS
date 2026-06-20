@@ -4,7 +4,7 @@ title:     "StreetJS vs Laravel"
 parent:    "Compare"
 nav_order: 4
 permalink: /compare/streetjs-vs-laravel/
-description: "StreetJS vs Laravel compared — a batteries-included PHP framework vs a TypeScript-native backend with a comparable feature set (ORM, auth, queues, realtime)."
+description: "StreetJS vs Laravel compared — a fully integrated PHP framework vs a TypeScript-native backend with a comparable feature set (ORM, auth, queues, realtime)."
 ---
 
 # StreetJS vs Laravel
