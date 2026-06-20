@@ -21,7 +21,7 @@ smaller — we say so plainly on each page.
 
 | Comparison | TL;DR |
 |------------|-------|
-| [StreetJS vs Express](/compare/streetjs-vs-express/) | Express is a minimal router; StreetJS is a batteries-included, typed backend. |
+| [StreetJS vs Express](/compare/streetjs-vs-express/) | Express is a minimal router; StreetJS is an integrated, typed backend. |
 | [StreetJS vs Fastify](/compare/streetjs-vs-fastify/) | Both performance-focused; StreetJS adds DI, ORM, auth, realtime out of the box. |
 | [StreetJS vs NestJS](/compare/streetjs-vs-nestjs/) | Similar decorator/DI ergonomics; StreetJS is far lighter on dependencies. |
 | [StreetJS vs Laravel](/compare/streetjs-vs-laravel/) | Laravel (PHP) vs a TypeScript-native equivalent feature set. |
