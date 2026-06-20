@@ -288,6 +288,31 @@ pre.highlight code {
   .gi { color: var(--success) !important; }
 }
 
+// ── Homepage code window — guaranteed dark editor surface (dark mode) ──────────
+// Jekyll's {% highlight %} tag emits <figure class="highlight"><pre><code>; the
+// bare <pre> carries no `.highlight` class, so the generic code-surface override
+// misses it and the theme's light code background bleeds through as a light-gray
+// rectangle. Force the editor surface on every node and apply an editor-grade
+// palette (outer frame #0B1220, code panel #111827) matching Next.js / Vercel.
+html[data-theme="dark"] {
+  .home .win.codewin { background: #0B1220 !important; border-color: rgba(255,255,255,.08) !important; }
+  .home .win.codewin .win-bar { background: #0B1220 !important; border-bottom-color: rgba(255,255,255,.08) !important; }
+  .home .codewin figure.highlight,
+  .home .codewin div.highlighter-rouge,
+  .home .codewin div.highlight,
+  .home .codewin pre,
+  .home .codewin pre.highlight { background: #111827 !important; }
+  .home .codewin pre code,
+  .home .codewin code { background: transparent !important; color: #D1D5DB !important; }
+  .home .codewin .highlight {
+    color: #D1D5DB !important;
+    .c,.c1,.cm,.cp,.cs                                   { color: #94A3B8 !important; } // comments
+    .k,.kd,.kn,.kp,.kr,.o,.ow                            { color: #60A5FA !important; } // keywords
+    .nd                                                  { color: #22C55E !important; } // decorators
+    .s,.s1,.s2,.sb,.sc,.sd,.se,.sh,.si,.sx,.sr,.ss,.dl   { color: #FBBF24 !important; } // strings
+  }
+}
+
 // ── DEPTH & STRUCTURE — soft canvas + floating content card ─────────────────────
 @media (min-width: 50rem) {
   .main { background-color: var(--canvas) !important; }
