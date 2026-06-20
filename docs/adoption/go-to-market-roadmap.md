@@ -213,7 +213,7 @@ an organizational/legal entity and follow once revenue or sponsorship exists.
 - Not the Laravel/Django/Spring enterprise-incumbent fight head-on.
 
 **Recommended market position:** **"The cost-efficient, supply-chain-safe,
-batteries-i_PLACEHOLDER_will_not_match and own their
+integrated TypeScript backend for teams who want to self-host and own their
 stack."** This avoids feature-for-feature war with NestJS/Fastify and targets an
 underserved, growing segment (cost-fatigue + dependency-risk).
 
