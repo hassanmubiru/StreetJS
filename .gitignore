@@ -93,3 +93,6 @@ packages/cli/.t/
 packages/cli/.tmp-scaffold/
 packages/cli/.itest/
 packages/cli/.itest-*/
+
+# Kiro spec working files — kept local, not source-controlled
+.kiro/specs/
