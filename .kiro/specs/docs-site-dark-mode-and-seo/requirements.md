@@ -82,7 +82,7 @@ dark mode, so that no light rectangle breaks the page.
 5. Existing syntax highlighting (functions, types, numbers) SHALL be preserved, and
    light-mode code SHALL be unchanged.
 
-### Requirement 4 — No light-gray leaks in dark mode
+### Requirement 4: No light-gray leaks in dark mode
 
 **User Story:** As a reader, I want no element stuck light in dark mode, so the
 experience is cohesive.
@@ -96,7 +96,7 @@ experience is cohesive.
 4. THE generic `.btn` override SHALL NOT change the appearance of `.btn-primary` or
    colored button variants.
 
-### Requirement 5 — Clean sitemap
+### Requirement 5: Clean sitemap
 
 **User Story:** As a site owner, I want the sitemap to list only public pages, so
 that search engines index the right content.
