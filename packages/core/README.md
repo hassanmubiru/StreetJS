@@ -1,14 +1,25 @@
-# streetjs
+<p align="center">
+  <img src="https://raw.githubusercontent.com/hassanmubiru/StreetJS/main/docs/assets/images/logo-512.png" alt="StreetJS logo" width="120" height="120">
+</p>
 
-**The batteries-included TypeScript backend framework — built on Node.js core, not on a pile of dependencies.**
+<h1 align="center">streetjs</h1>
 
-Auth, realtime, native database drivers, jobs, messaging and OpenAPI — included by default. **No Express. No `pg`. No Prisma.** Just three runtime dependencies (`reflect-metadata`, `ws`, `zod`).
+<p align="center">
+  <strong>The TypeScript backend framework — built on Node.js core, not on a pile of dependencies.</strong>
+</p>
 
-[![npm version](https://img.shields.io/npm/v/streetjs?color=2563EB)](https://www.npmjs.com/package/streetjs)
-[![npm downloads](https://img.shields.io/npm/dm/streetjs?color=2563EB)](https://www.npmjs.com/package/streetjs)
-[![License: MIT](https://img.shields.io/badge/license-MIT-64748B.svg)](https://opensource.org/licenses/MIT)
-[![Node.js](https://img.shields.io/badge/node-%3E%3D20-3C873A)](https://nodejs.org)
-[![TypeScript](https://img.shields.io/badge/typescript-%3E%3D5.0-3178C6)](https://www.typescriptlang.org)
+<p align="center">
+  Auth, realtime, native database drivers, jobs, messaging and OpenAPI, included by default.<br>
+  No Express. No <code>pg</code>. No Prisma. Just three runtime dependencies (<code>reflect-metadata</code>, <code>ws</code>, <code>zod</code>).
+</p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/streetjs"><img src="https://img.shields.io/npm/v/streetjs?color=2563EB" alt="npm version"></a>
+  <a href="https://www.npmjs.com/package/streetjs"><img src="https://img.shields.io/npm/dm/streetjs?color=2563EB" alt="npm downloads"></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-64748B.svg" alt="License: MIT"></a>
+  <a href="https://nodejs.org"><img src="https://img.shields.io/badge/node-%3E%3D20-3C873A" alt="Node.js"></a>
+  <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/typescript-%3E%3D5.0-3178C6" alt="TypeScript"></a>
+</p>
 
 ---
 
