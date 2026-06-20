@@ -10,7 +10,7 @@ description: "StreetJS vs Express.js compared — TypeScript-first DI, native Po
 # StreetJS vs Express
 
 **In one line:** Express is a minimal, unopinionated HTTP router you assemble from
-many third-party packages; StreetJS is a typed, batteries-included backend
+many third-party packages; StreetJS is a typed, integrated backend
 framework with DI, database, auth, and realtime built in.
 
 ---
