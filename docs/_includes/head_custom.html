@@ -6,6 +6,17 @@
 <meta name="robots" content="noindex, follow">
 {%- endif -%}
 
+{%- comment -%}
+  Google Search Console verification (meta-tag method, homepage only).
+  Paste the content token from GSC → "HTML tag" option into `google_verify`
+  in _config.yml. The tag renders only when a real token is set, so there is
+  never an empty <meta ... content=""> tag, and it stays off every other page.
+{%- endcomment -%}
+{%- if page.url == "/" and site.google_verify and site.google_verify != "" -%}
+<meta name="google-site-verification" content="{{ site.google_verify }}">
+{%- endif -%}
+
+
 <!-- Street docs: theme init (runs before paint to avoid flash) -->
 <script>
   (function () {
