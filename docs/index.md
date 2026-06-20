@@ -109,11 +109,12 @@ description: "StreetJS — the TypeScript framework for modern backend applicati
 .home .fbadge svg{width:13px;height:13px;color:var(--a)}
 
 /* ── Code window (code renders INSIDE the frame) ────────────────────────── */
-.home .codewin figure.highlight,.home .codewin div.highlighter-rouge{margin:0!important;border:none!important;
+.home .codewin figure.highlight,.home .codewin div.highlighter-rouge,.home .codewin div.highlight{margin:0!important;border:none!important;
   border-radius:0!important;box-shadow:none!important;background:var(--code)!important}
-.home .codewin pre.highlight{margin:0!important;border:none!important;border-radius:0!important;
+.home .codewin pre,.home .codewin pre.highlight{margin:0!important;border:none!important;border-radius:0!important;
   box-shadow:none!important;padding:1.5rem 1.7rem!important;background:var(--code)!important;
   max-height:none!important;overflow-x:auto!important}
+.home .codewin pre code,.home .codewin code{background:none!important;background-color:transparent!important;border:none!important;padding:0!important}
 
 /* ── 3 · Feature grid (Why StreetJS) ────────────────────────────────────── */
 .home .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:1rem}
