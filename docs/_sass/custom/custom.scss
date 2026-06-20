@@ -96,10 +96,12 @@ html[data-theme="dark"] {
   --code-header:   #161E2E;
   --code-shadow:   0 1px 2px rgba(0,0,0,.4), 0 10px 30px -16px rgba(0,0,0,.7);
 
-  // Syntax palette — DARK (each clears AA on --code-bg #111827)
-  --syn-comment:   #8B98AC;
-  --syn-string:    #6EE7B7;
-  --syn-keyword:   #93C5FD;
+  // Syntax palette — DARK / editor-grade (each clears AA on --code-bg #111827).
+  // Promoted site-wide so every code panel matches the homepage editor surface.
+  --syn-comment:   #94A3B8;   // 6.9:1
+  --syn-string:    #FBBF24;   // amber  10.6:1
+  --syn-keyword:   #60A5FA;   // blue   7.0:1
+  --syn-decorator: #22C55E;   // green  7.8:1
   --syn-function:  #C4B5FD;
   --syn-number:    #FCA5A5;
   --syn-type:      #67E8F9;
