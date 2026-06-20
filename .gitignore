@@ -96,3 +96,6 @@ packages/cli/.itest-*/
 
 # Kiro spec working files — kept local, not source-controlled
 .kiro/specs/
+
+# Local-only website enterprise audit (not source-controlled)
+STREET_WEBSITE_ENTERPRISE_AUDIT.md
