@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/hassanmubiru/StreetJS/main/docs/assets/images/logo-512.png" alt="StreetJS logo" width="100" height="100">
+</p>
+
 # @streetjs/social-feed
 
 Official StreetJS Framework social module: **post publishing and timeline

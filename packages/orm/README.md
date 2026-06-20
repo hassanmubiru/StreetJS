@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/hassanmubiru/StreetJS/main/docs/assets/images/logo-512.png" alt="StreetJS logo" width="100" height="100">
+</p>
+
 # @streetjs/orm
 
 First-party ORM for StreetJS (RFC 0001) — entity/relation decorators, a **safe

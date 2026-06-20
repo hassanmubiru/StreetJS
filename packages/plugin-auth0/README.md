@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/hassanmubiru/StreetJS/main/docs/assets/images/logo-512.png" alt="StreetJS logo" width="100" height="100">
+</p>
+
 # @streetjs/plugin-auth0
 
 Official [StreetJS Framework](https://hassanmubiru.github.io/StreetJS/) plugin for **Auth0 identity**.
