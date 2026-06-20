@@ -112,7 +112,7 @@ that search engines index the right content.
 4. Genuine public documentation (including plugin certification docs) SHALL remain
    in the sitemap.
 
-### Requirement 6 — Google Search Console meta-tag verification
+### Requirement 6: Google Search Console meta-tag verification
 
 **User Story:** As a site owner, I want meta-tag verification on the homepage, so I
 can verify the property in Search Console without relying only on the HTML file.
