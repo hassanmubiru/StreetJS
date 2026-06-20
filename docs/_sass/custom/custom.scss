@@ -52,6 +52,7 @@
   --syn-type:      #0891B2;
   --syn-prop:      #1F2937;
   --syn-command:   #EA580C;
+  --syn-decorator: #1F2937;   // = code text in light (no light-mode change)
 
   --shadow-sm: 0 1px 2px rgba(15,23,42,.05);
   --shadow-md: 0 1px 3px rgba(15,23,42,.06), 0 8px 24px -16px rgba(15,23,42,.18);
@@ -277,12 +278,13 @@ pre.highlight code {
   .c,.c1,.cm,.cp,.cs       { color: var(--syn-comment) !important; font-style:italic !important; }
   .k,.kd,.kn,.kp,.kr       { color: var(--syn-keyword) !important; }
   .kt                      { color: var(--syn-type) !important; }
-  .s,.s1,.s2,.sb,.sc,.sd,.se,.sh,.si,.sx,.sr,.ss { color: var(--syn-string) !important; }
+  .s,.s1,.s2,.sb,.sc,.sd,.se,.sh,.si,.sx,.sr,.ss,.dl { color: var(--syn-string) !important; }
   .nf,.fm                  { color: var(--syn-function) !important; }
   .nc,.nn,.no              { color: var(--syn-type) !important; }
   .nt                      { color: var(--syn-command) !important; }
   .na,.nv,.vi,.nl          { color: var(--syn-prop) !important; }
-  .n,.nb,.ni,.nd,.py       { color: var(--code-text) !important; }
+  .nd                      { color: var(--syn-decorator) !important; } // decorators
+  .n,.nb,.ni,.py           { color: var(--code-text) !important; }
   .m,.mf,.mh,.mi,.mo,.il   { color: var(--syn-number) !important; }
   .o,.ow                   { color: var(--syn-keyword) !important; }
   .p                       { color: var(--code-text) !important; }
