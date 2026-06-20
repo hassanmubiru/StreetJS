@@ -4,6 +4,8 @@ title:      "Certification"
 nav_order:  16
 permalink:  /certification/
 description: "StreetJS Framework certification summary — 10/10 production gates passed, with the full gate matrix, domain coverage, and links to detailed reports."
+sitemap:     false
+noindex:     true
 ---
 
 {% include doc-styles.html %}
