@@ -1,4 +1,4 @@
-# Requirements — Docs Site: Dark Mode & SEO
+# Requirements Document
 
 ## Introduction
 
