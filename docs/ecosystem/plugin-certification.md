@@ -5,6 +5,8 @@ parent: Ecosystem
 nav_order: 1
 permalink: /ecosystem/plugin-certification/
 description: "StreetJS plugin certification levels (Official, Verified, Community), review checklists, and the plugin scorecard."
+sitemap:     false
+noindex:     true
 ---
 
 # Plugin Certification Program

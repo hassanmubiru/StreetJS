@@ -4,6 +4,8 @@ title:     "Runtime Certification"
 nav_exclude: true
 permalink: /runtime-certification/
 description: "Auto-generated StreetJS runtime certification results from npm run verify:runtime."
+sitemap:     false
+noindex:     true
 ---
 
 # StreetJS Runtime Certification
