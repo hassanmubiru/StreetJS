@@ -278,11 +278,11 @@ pre.highlight code {
 // ── Tables (responsive: scroll on small screens) ───────────────────────────────
 .main-content table {
   border-collapse:separate !important; border-spacing:0 !important; border:1px solid var(--border) !important;
-  border-radius:12px !important; overflow:hidden !important; font-size:.9rem !important; width:100% !important; box-shadow: var(--shadow-sm) !important;
+  border-radius:12px !important; overflow:hidden !important; font-size:.9rem !important; width:100% !important; box-shadow: var(--shadow-sm) !important; background: var(--elevated) !important;
   thead tr { background: var(--surface) !important; }
   th { font-size:.72rem !important; font-weight:700 !important; text-transform:uppercase !important; letter-spacing:.07em !important;
-       color: var(--text-muted) !important; padding:.8rem 1rem !important; border-bottom:1px solid var(--border) !important; white-space:nowrap !important; }
-  td { padding:.8rem 1rem !important; border-bottom:1px solid var(--border) !important; color: var(--text-secondary) !important; vertical-align:top !important; line-height:1.6 !important; }
+       color: var(--text-muted) !important; padding:.8rem 1rem !important; border-bottom:1px solid var(--border) !important; white-space:nowrap !important; background-color: transparent !important; }
+  td { padding:.8rem 1rem !important; border-bottom:1px solid var(--border) !important; color: var(--text-secondary) !important; vertical-align:top !important; line-height:1.6 !important; background-color: transparent !important; }
   tr:last-child td { border-bottom:none !important; }
   tbody tr:hover td { background: var(--surface) !important; }
   td:first-child { color: var(--text-primary) !important; font-weight:500 !important; }
