@@ -9,7 +9,7 @@ description: "StreetJS vs Django compared — a fully integrated Python framewor
 
 # StreetJS vs Django
 
-**In one line:** Django is the batteries-included standard for Python web
+**In one line:** Django is the integrated standard for Python web
 development; StreetJS offers a comparable integrated feature set on a
 TypeScript/Node stack.
 
