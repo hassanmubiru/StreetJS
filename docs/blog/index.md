@@ -26,7 +26,7 @@ The blog is just getting started. In the meantime:
 
 Planned topics (contributions welcome — see [Community](/community/)):
 
-1. *Why StreetJS has ~2 dependencies* — the case for a native-driver, batteries-included core.
+1. *Why StreetJS has ~2 dependencies* — the case for a native-driver, fully integrated core.
 2. *Self-hosting a full backend for under $10/month* — based on the [budget guide](/deployment/budget/).
 3. *Signing the plugin ecosystem* — Ed25519 manifests, provenance, and the trust model.
 4. *From SQLite to PostgreSQL without rewrites* — the shared repository pattern.
