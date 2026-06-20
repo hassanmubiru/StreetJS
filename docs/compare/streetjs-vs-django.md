@@ -4,7 +4,7 @@ title:     "StreetJS vs Django"
 parent:    "Compare"
 nav_order: 5
 permalink: /compare/streetjs-vs-django/
-description: "StreetJS vs Django compared — a batteries-included Python framework vs a TypeScript-native backend with ORM, auth, admin, and realtime."
+description: "StreetJS vs Django compared — a fully integrated Python framework vs a TypeScript-native backend with ORM, auth, admin, and realtime."
 ---
 
 # StreetJS vs Django

@@ -25,7 +25,7 @@ smaller — we say so plainly on each page.
 | [StreetJS vs Fastify](/compare/streetjs-vs-fastify/) | Both performance-focused; StreetJS adds DI, ORM, auth, realtime out of the box. |
 | [StreetJS vs NestJS](/compare/streetjs-vs-nestjs/) | Similar decorator/DI ergonomics; StreetJS is far lighter on dependencies. |
 | [StreetJS vs Laravel](/compare/streetjs-vs-laravel/) | Laravel (PHP) vs a TypeScript-native equivalent feature set. |
-| [StreetJS vs Django](/compare/streetjs-vs-django/) | Django (Python) batteries-included vs TypeScript-first with the same breadth. |
+| [StreetJS vs Django](/compare/streetjs-vs-django/) | Django (Python) integrated stack vs TypeScript-first with the same breadth. |
 | [StreetJS vs Spring Boot](/compare/streetjs-vs-spring/) | JVM enterprise standard vs a TypeScript integrated framework with a tiny dependency surface. |
 | [StreetJS vs ASP.NET Core](/compare/streetjs-vs-aspnet/) | Microsoft's fast .NET framework vs a lightweight TypeScript equivalent. |
 
