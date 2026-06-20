@@ -288,6 +288,20 @@ pre.highlight code {
   td:first-child { color: var(--text-primary) !important; font-weight:500 !important; }
 }
 
+// ── Remaining theme light-defaults (full-site dark-mode audit) ─────────────────
+// just-the-docs hardcodes #fff / #f5f6fa / #eeebee on these elements, ignoring the
+// theme variables. Bind each to a design token so nothing stays light in dark mode.
+// (Generic .btn uses NON-important background so it never overrides .btn-primary.)
+.btn:not(.btn-primary):not(.btn-blue):not(.btn-green):not(.btn-purple):not(.btn-outline) {
+  background-color: var(--surface-2); color: var(--text-secondary);
+  &:hover { background-color: var(--surface); color: var(--text-primary); } }
+.search-button { background-color: var(--elevated) !important; color: var(--text-secondary) !important; border:1px solid var(--border) !important; }
+div.opaque { background-color: var(--bg) !important; }
+a.skip-to-main:focus, a.skip-to-main:active { background-color: var(--elevated) !important; color: var(--accent) !important; }
+.bg-grey-lt-000 { background-color: var(--surface) !important; }
+.bg-grey-lt-100 { background-color: var(--surface-2) !important; }
+.code-example, .listingblock > .title { border-color: var(--border) !important; }
+
 // ── Buttons ──────────────────────────────────────────────────────────────────
 .btn, a.btn { font-family:'Inter',sans-serif !important; font-weight:600 !important; border-radius:9px !important; transition:all .16s ease !important; text-decoration:none !important; }
 .btn-primary, a.btn-primary {
