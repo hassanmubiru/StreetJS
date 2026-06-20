@@ -23,7 +23,7 @@ locally, and existing public URLs / SEO must be preserved.
 
 ## Requirements
 
-### Requirement 1 — Homepage redesign
+### Requirement 1: Homepage redesign
 
 **User Story:** As a first-time visitor, I want the homepage to present StreetJS
 like a modern backend framework, so that I can quickly understand what it is and
@@ -47,7 +47,7 @@ how to start.
 7. WHEN the redesign is published THE homepage front-matter (`permalink: /`, title,
    description) SHALL be preserved so the URL and SEO metadata do not change.
 
-### Requirement 2 — Premium dark theme
+### Requirement 2: Premium dark theme
 
 **User Story:** As a reader in dark mode, I want a soft, low-glare theme, so that
 the site is comfortable and consistent with modern framework sites.
@@ -63,7 +63,7 @@ the site is comfortable and consistent with modern framework sites.
 5. THE theme SHALL continue to respect `prefers-color-scheme` and the existing
    `data-theme` toggle, and the light theme SHALL be visually unchanged.
 
-### Requirement 3 — Code panels in dark mode (site-wide)
+### Requirement 3: Code panels in dark mode (site-wide)
 
 **User Story:** As a reader, I want every code block to look like a dark editor in
 dark mode, so that no light rectangle breaks the page.
