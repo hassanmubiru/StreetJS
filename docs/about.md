@@ -11,14 +11,14 @@ description: "What StreetJS is and why it exists — a comprehensive, dependency
 <div class="doc-header">
 <span class="dh-label">About</span>
 <h1>About StreetJS</h1>
-<p>A batteries-included TypeScript backend framework built straight from Node.js core — auth, realtime, jobs, ORM, AI, and security in one signed, dependency-light runtime.</p>
+<p>A complete TypeScript backend framework built straight from Node.js core — auth, realtime, jobs, ORM, AI, and security in one signed, dependency-light runtime.</p>
 </div>
 
 ## Mission
 
 Make it possible to build and **self-host** a complete, production-grade backend in
 TypeScript without assembling a dozen third-party services and dependencies — and
-without the cost and lock-in that usually comes with "batteries-included" platforms.
+without the cost and lock-in that usually comes with fully managed platforms.
 
 ## Why StreetJS exists
 
