@@ -166,9 +166,28 @@ body {
   &::placeholder { color: var(--text-muted) !important; }
 }
 .search-result { &:hover, &.active { background: var(--accent-soft) !important; } }
+.search-result:hover, .search-result.active { background-color: var(--accent-soft) !important; }
 .search-result-title { color: var(--text-primary) !important; }
 .search-result-rel-url { color: var(--text-muted) !important; }
 .search-overlay, .search-active .search-overlay { background: rgba(15,23,42,.4) !important; }
+.search-input-wrap { background: var(--bg) !important; box-shadow: none !important; border-radius: 9px !important; }
+.search-active .search-input-wrap { box-shadow: var(--shadow-md) !important; }
+.search-results {
+  background: var(--elevated) !important; border: 1px solid var(--border) !important;
+  border-radius: 10px !important; box-shadow: var(--shadow-md) !important;
+}
+
+// ── Top nav bar (main-header: search + aux-nav) ────────────────────────────────
+// just-the-docs hardcodes a light border and light hover/fade backgrounds here,
+// which ignore the theme. Bind them to design tokens so the bar follows dark mode.
+.main-header { background-color: var(--bg) !important; border-bottom: 1px solid var(--border) !important; }
+// The site title gets a light text-overflow fade gradient on hover — remove it.
+.site-title:hover { background-image: none !important; }
+// Long sidebar nav links use a light fade gradient for overflow; neutralise it so
+// no light smudge appears in dark mode (links keep their own hover background).
+.side-bar .nav-list .nav-list-item .nav-list-link { background-image: none !important; }
+// Standalone horizontal rules use a hardcoded light fill.
+hr { background-color: var(--border) !important; }
 
 // ── Content typography ─────────────────────────────────────────────────────────
 .main-content {
