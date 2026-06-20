@@ -3,7 +3,7 @@ layout:    default
 title:     "About"
 nav_order: 95
 permalink: /about/
-description: "What StreetJS is and why it exists — a batteries-included, dependency-light, supply-chain-safe TypeScript backend framework built on Node.js core."
+description: "What StreetJS is and why it exists — a comprehensive, dependency-light, supply-chain-safe TypeScript backend framework built on Node.js core."
 ---
 
 {% include doc-styles.html %}
