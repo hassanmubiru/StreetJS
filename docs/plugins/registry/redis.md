@@ -14,7 +14,7 @@ description:  "Official Street Framework plugin: Redis cache / key-value store (
 **Official Street Framework plugin: Redis cache / key-value store (dependency-free RESP2 client).**
 
 - **Category:** [Cache & KV](/StreetJS/plugins/category/cache-and-kv/)
-- **Tier:** Official (signed manifest, dependency-free)
+- **Tier:** Official · **Signed** · **Dependency-free**
 - **Version:** `v1.0.2`
 - **npm:** [@streetjs/plugin-redis](https://www.npmjs.com/package/@streetjs/plugin-redis)
 
@@ -31,8 +31,29 @@ description:  "Official Street Framework plugin: Redis cache / key-value store (
 npm install @streetjs/plugin-redis
 ```
 
-## Usage
+## Quick start
 
-Register the plugin with the StreetJS plugin host. See the [Plugin System](/StreetJS/plugins/) guide for the full registration, capability, and signature-verification model, and the package README on npm for plugin-specific configuration.
+Register the plugin with the StreetJS plugin host, then use it from your
+controllers/services. See the package README on npm for the full configuration
+and API, and the [Plugin System](/StreetJS/plugins/) guide for registration,
+capabilities and signature verification.
 
-Browse more in the [Plugin Marketplace](/StreetJS/plugins/marketplace/) or other [Cache & KV](/StreetJS/plugins/category/cache-and-kv/) plugins.
+## Compatibility
+
+| | |
+|---|---|
+| StreetJS | `>=1.0.0` |
+| Node.js | `>=20` |
+| TypeScript | `>=5.0` (NodeNext) |
+
+See the [compatibility matrix](/StreetJS/compatibility/) for the full support grid.
+
+## Certification
+
+This is an **Official** plugin — maintained by the StreetJS team in the monorepo,
+CI-tested, and published with a signed manifest. See the
+[plugin certification levels](/StreetJS/ecosystem/plugin-certification/).
+
+
+
+Browse the full [Plugin Marketplace](/StreetJS/plugins/marketplace/) or all [Cache & KV](/StreetJS/plugins/category/cache-and-kv/) plugins.
