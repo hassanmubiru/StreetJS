@@ -72,6 +72,24 @@ export const profiles = new ProfileService({ cipher: new FieldCipher(Keyring.fro
 `,
     },
   },
+  ai: {
+    packages: { '@streetjs/ai': '^1.0.0' },
+    description: 'AI starter: provider-agnostic chat, embeddings and RAG (OpenAI/Anthropic/Ollama).',
+    starter: {
+      path: 'src/features/ai.ts',
+      content: `// AI feature wiring — provider-agnostic chat + retrieval (RAG).
+import { InMemoryVectorStore } from '@streetjs/ai';
+
+// In-memory vector store for local/dev; swap for a persistent store in production.
+export const vectors = new InMemoryVectorStore();
+
+// Configure a provider (OpenAI / Anthropic / Ollama) and uncomment to enable chat + RAG:
+// import { ChatSession, RagPipeline } from '@streetjs/ai';
+// export const chat = new ChatSession({ provider });
+// export const rag = new RagPipeline({ store: vectors, provider });
+`,
+    },
+  },
 };
 
 
