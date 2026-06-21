@@ -1,5 +1,23 @@
 # StreetJS Phase 18 — Ecosystem Expansion & Adoption Execution Plan
 
+> ## Execution log (shipped, not just planned)
+> - **Plugin marketplace** — `/plugins/marketplace/` + 8 category pages + 19
+>   per-plugin detail pages (with trust signals), generated from real packages by
+>   `scripts/gen-plugins-data.mjs`, wired into the Pages build. **LIVE.**
+> - **`street create --starter`** flag + friendly aliases + new `ai` starter,
+>   tested (coverage 92.59% branches), **published in `streetjs`/`@streetjs/cli`
+>   1.0.20.**
+> - **Security & Trust Center** (`/trust/`) + **Compatibility Matrix**
+>   (`/compatibility/`) + **Starters catalog** (`/starters/`). **LIVE.**
+> - **Content engine** — first evidence-based article published:
+>   `/blog/why-2-dependencies/`. **LIVE.**
+> - Homepage Ecosystem grid + top-nav updated to surface marketplace, starters,
+>   and the Trust Center.
+> - **Requires human/external action (cannot be done from the repo):** enabling
+>   GitHub Discussions (repo setting), creating Dev.to/Hashnode/LinkedIn/X/YouTube
+>   accounts, and seeding good-first-issues on the tracker.
+
+
 > Execution-focused. Workstream 1 is **IMPLEMENTED** in this commit; the rest are
 > scoped specs with schemas, folder structures, and scoring. Constraints honored:
 > GitHub Pages + npm + current monorepo, solo-maintainer realistic, no new infra,
