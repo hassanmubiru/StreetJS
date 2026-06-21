@@ -23,12 +23,12 @@
       "slug": "database"
     },
     {
-      "name": "Messaging",
-      "slug": "messaging"
+      "name": "Frontend & Views",
+      "slug": "frontend-and-views"
     },
     {
-      "name": "Other",
-      "slug": "other"
+      "name": "Messaging",
+      "slug": "messaging"
     },
     {
       "name": "Payments",
@@ -250,6 +250,28 @@
       ]
     },
     {
+      "name": "@streetjs/plugin-htmx",
+      "slug": "htmx",
+      "title": "Htmx",
+      "description": "Official StreetJS plugin: HTMX support — a dependency-free view engine (layouts, partials), HX-request detection, response-header helpers and CSRF form fields for server-rendered apps.",
+      "version": "1.0.0",
+      "category": "Frontend & Views",
+      "catSlug": "frontend-and-views",
+      "tier": "Official",
+      "npm": "https://www.npmjs.com/package/@streetjs/plugin-htmx",
+      "keywords": [
+        "street",
+        "streetjs",
+        "street-plugin",
+        "htmx",
+        "html",
+        "server-rendered",
+        "ssr",
+        "views",
+        "templates"
+      ]
+    },
+    {
       "name": "@streetjs/plugin-kafka",
       "slug": "kafka",
       "title": "Kafka",
@@ -350,28 +372,6 @@
         "sms",
         "messaging",
         "notifications"
-      ]
-    },
-    {
-      "name": "@streetjs/plugin-htmx",
-      "slug": "htmx",
-      "title": "Htmx",
-      "description": "Official StreetJS plugin: HTMX support — a dependency-free view engine (layouts, partials), HX-request detection, response-header helpers and CSRF form fields for server-rendered apps.",
-      "version": "1.0.0",
-      "category": "Other",
-      "catSlug": "other",
-      "tier": "Official",
-      "npm": "https://www.npmjs.com/package/@streetjs/plugin-htmx",
-      "keywords": [
-        "street",
-        "streetjs",
-        "street-plugin",
-        "htmx",
-        "html",
-        "server-rendered",
-        "ssr",
-        "views",
-        "templates"
       ]
     },
     {

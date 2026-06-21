@@ -13,7 +13,7 @@ description:  "Official StreetJS plugin: HTMX support — a dependency-free view
 
 **Official StreetJS plugin: HTMX support — a dependency-free view engine (layouts, partials), HX-request detection, response-header helpers and CSRF form fields for server-rendered apps.**
 
-- **Category:** [Other](/StreetJS/plugins/category/other/)
+- **Category:** [Frontend & Views](/StreetJS/plugins/category/frontend-and-views/)
 - **Tier:** Official · **Signed** · **Dependency-free**
 - **Version:** `v1.0.0`
 - **npm:** [@streetjs/plugin-htmx](https://www.npmjs.com/package/@streetjs/plugin-htmx)
@@ -56,4 +56,4 @@ CI-tested, and published with a signed manifest. See the
 
 
 
-Browse the full [Plugin Marketplace](/StreetJS/plugins/marketplace/) or all [Other](/StreetJS/plugins/category/other/) plugins.
+Browse the full [Plugin Marketplace](/StreetJS/plugins/marketplace/) or all [Frontend & Views](/StreetJS/plugins/category/frontend-and-views/) plugins.
