@@ -178,6 +178,102 @@ export const shop = new CommerceService();
 // const p = await shop.createProduct({ name: 'Widget', priceCents: 1500 });
 `,
     },
+    extraFiles: [
+      {
+        path: 'migrations/001_commerce.sql',
+        content: `-- Marketplace/ecommerce schema — catalog, inventory, carts, orders, payments.
+-- Apply with: street migrate:run  (PostgreSQL syntax; adjust types for SQLite).
+
+CREATE TABLE IF NOT EXISTS products (
+  id          BIGSERIAL PRIMARY KEY,
+  name        TEXT NOT NULL,
+  description TEXT,
+  price_cents INTEGER NOT NULL CHECK (price_cents >= 0),
+  currency    TEXT NOT NULL DEFAULT 'usd',
+  active      BOOLEAN NOT NULL DEFAULT true,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS inventory (
+  product_id BIGINT PRIMARY KEY REFERENCES products(id) ON DELETE CASCADE,
+  quantity   INTEGER NOT NULL DEFAULT 0 CHECK (quantity >= 0)
+);
+
+CREATE TABLE IF NOT EXISTS carts (
+  id         BIGSERIAL PRIMARY KEY,
+  user_id    BIGINT,
+  status     TEXT NOT NULL DEFAULT 'open',  -- open | ordered | abandoned
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS cart_items (
+  id         BIGSERIAL PRIMARY KEY,
+  cart_id    BIGINT NOT NULL REFERENCES carts(id) ON DELETE CASCADE,
+  product_id BIGINT NOT NULL REFERENCES products(id),
+  quantity   INTEGER NOT NULL CHECK (quantity > 0),
+  UNIQUE (cart_id, product_id)
+);
+
+CREATE TABLE IF NOT EXISTS orders (
+  id          BIGSERIAL PRIMARY KEY,
+  user_id     BIGINT,
+  total_cents INTEGER NOT NULL,
+  status      TEXT NOT NULL DEFAULT 'pending',  -- pending | paid | shipped | cancelled
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS order_items (
+  id              BIGSERIAL PRIMARY KEY,
+  order_id        BIGINT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  product_id      BIGINT NOT NULL REFERENCES products(id),
+  quantity        INTEGER NOT NULL CHECK (quantity > 0),
+  unit_price_cents INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS payments (
+  id               BIGSERIAL PRIMARY KEY,
+  order_id         BIGINT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  provider         TEXT NOT NULL DEFAULT 'stripe',
+  provider_ref     TEXT,
+  amount_cents     INTEGER NOT NULL,
+  status           TEXT NOT NULL DEFAULT 'requires_payment',
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_cart_items_cart ON cart_items(cart_id);
+CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
+CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id, created_at DESC);
+`,
+      },
+      {
+        path: 'COMMERCE.md',
+        content: `# Marketplace / ecommerce starter
+
+Scaffolded with \`street create --starter marketplace\`. Overlays a catalog →
+cart → checkout → payment flow on the base app.
+
+## Included
+
+- **Catalog & inventory** — \`products\`, \`inventory\` (no-oversell via a CHECK constraint).
+- **Carts** — \`carts\`, \`cart_items\`.
+- **Orders** — \`orders\`, \`order_items\` (immutable unit price at purchase time).
+- **Payments** — \`payments\` (Stripe-ready; add \`@streetjs/plugin-stripe\`).
+- **Search** — add \`@streetjs/search\` for product search (PG full-text default).
+
+## Schema
+
+See \`migrations/001_commerce.sql\` — apply with \`street migrate:run\`.
+
+## Suggested order flow
+
+1. \`POST /carts\` → open cart · 2. \`POST /carts/:id/items\` → add product
+3. \`POST /orders\` → snapshot cart to order · 4. payment webhook marks order \`paid\`.
+
+Generate modules with \`street generate controller|service|repository <name>\`.
+See the [Starters guide](https://hassanmubiru.github.io/StreetJS/starters/).
+`,
+      },
+    ],
   },
   'realtime-chat': {
     packages: { '@streetjs/social-users': '^1.0.0' },
@@ -191,6 +287,66 @@ export const hub = new ChannelHub({ typingTtlMs: 5000 });
 export const wss = new StreetWebSocketServer();
 `,
     },
+    extraFiles: [
+      {
+        path: 'migrations/001_realtime.sql',
+        content: `-- Realtime chat schema — channels, membership and message history.
+-- Apply with: street migrate:run  (PostgreSQL syntax; adjust types for SQLite).
+
+CREATE TABLE IF NOT EXISTS channels (
+  id         BIGSERIAL PRIMARY KEY,
+  name       TEXT NOT NULL,
+  is_private BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS channel_members (
+  channel_id BIGINT NOT NULL REFERENCES channels(id) ON DELETE CASCADE,
+  user_id    BIGINT NOT NULL,
+  joined_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (channel_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS messages (
+  id         BIGSERIAL PRIMARY KEY,
+  channel_id BIGINT NOT NULL REFERENCES channels(id) ON DELETE CASCADE,
+  user_id    BIGINT NOT NULL,
+  body       TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_messages_channel_created ON messages(channel_id, created_at DESC);
+`,
+      },
+      {
+        path: 'REALTIME.md',
+        content: `# Realtime chat starter
+
+Scaffolded with \`street create --starter realtime\`. Overlays WebSocket channels,
+presence and typing indicators on the base app.
+
+## Included
+
+- **WebSocket server** — bounded \`StreetWebSocketServer\` with heartbeat.
+- **Channels & presence** — \`ChannelHub\` (typing TTL configurable) in \`src/features/chat.ts\`.
+- **Message history** — \`channels\`, \`channel_members\`, \`messages\` (see migration).
+- **Auth-on-upgrade** — gate the WS upgrade with the core auth middleware.
+
+## Schema
+
+See \`migrations/001_realtime.sql\` — apply with \`street migrate:run\`.
+
+## Flow
+
+Client connects → authenticates on upgrade → joins a channel → messages are
+broadcast to channel members and persisted to \`messages\`. Presence/typing are
+in-memory via \`ChannelHub\`. For multi-instance fan-out, add \`@streetjs/plugin-redis\`.
+
+See the [Starters guide](https://hassanmubiru.github.io/StreetJS/starters/) and
+[Realtime docs](https://hassanmubiru.github.io/StreetJS/realtime/).
+`,
+      },
+    ],
   },
   'dating-app': {
     packages: { '@streetjs/dating-profiles': '^1.0.0' },
