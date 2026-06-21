@@ -17,6 +17,17 @@
 > **Remaining:** sign + publish via the keyed plugin-publish flow (needs the org
 > signing key); then `--frontend htmx` starter (Phase 4, P1) and `/docs/htmx/`
 > (Phase 6, P1).
+>
+> **Phase 4 `--frontend htmx` starter — IMPLEMENTED in source (this commit):**
+> `street create <app> --frontend htmx` scaffolds a server-rendered views tree
+> (`src/views/{layouts,partials,pages}`), `public/app.css`, a `ViewsController`
+> (todos CRUD via HTMX fragments), `HTMX.md` wiring guide, and adds the
+> `@streetjs/plugin-htmx` dependency — no `web/` SPA, and CI gets no web job.
+> 121 CLI tests pass; coverage 92.4% branches. **NOT released to npm yet** because
+> the generated app depends on the still-unpublished `@streetjs/plugin-htmx`
+> (a generated `npm install` would fail until the plugin ships). Gate the CLI
+> release on publishing the plugin.
+
 
 
 > Evidence-based, repo-grounded. Tags: **VERIFIED** (confirmed in repo) ·
