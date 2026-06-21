@@ -7,7 +7,9 @@ description:  "Official StreetJS Cache & KV plugins — signed, dependency-free,
 ---
 # Cache & KV Plugins
 
-1 official Cache & KV plugin for StreetJS. All are signed, dependency-free, and installable from npm. See the full [Plugin Marketplace](/StreetJS/plugins/marketplace/).
+Add caching and key-value storage to your StreetJS backend with dependency-free clients that speak the protocol directly — ideal for sessions, rate-limit state, and hot data.
+
+1 official Cache & KV plugin, all installable from npm. See the full [Plugin Marketplace](/StreetJS/plugins/marketplace/).
 
 | Plugin | Description | Version | Links |
 |--------|-------------|---------|-------|

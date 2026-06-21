@@ -7,7 +7,9 @@ description:  "Official StreetJS AI plugins — signed, dependency-free, install
 ---
 # AI Plugins
 
-1 official AI plugin for StreetJS. All are signed, dependency-free, and installable from npm. See the full [Plugin Marketplace](/StreetJS/plugins/marketplace/).
+Add LLM chat, embeddings and retrieval to StreetJS with provider-agnostic AI plugins — dependency-free HTTPS clients for the major model providers.
+
+1 official AI plugin, all installable from npm. See the full [Plugin Marketplace](/StreetJS/plugins/marketplace/).
 
 | Plugin | Description | Version | Links |
 |--------|-------------|---------|-------|

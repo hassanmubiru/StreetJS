@@ -7,7 +7,9 @@ description:  "Official StreetJS Database plugins — signed, dependency-free, i
 ---
 # Database Plugins
 
-4 official Database plugins for StreetJS. All are signed, dependency-free, and installable from npm. See the full [Plugin Marketplace](/StreetJS/plugins/marketplace/).
+Connect StreetJS to SQL and document databases with native, dependency-free drivers — no `pg`, `mysql2` or `mongodb` npm packages. Each plugin speaks the database wire protocol directly over Node core for pooling, streaming and authentication you can audit.
+
+4 official Database plugins, all installable from npm. See the full [Plugin Marketplace](/StreetJS/plugins/marketplace/).
 
 | Plugin | Description | Version | Links |
 |--------|-------------|---------|-------|

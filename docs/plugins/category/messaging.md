@@ -7,7 +7,9 @@ description:  "Official StreetJS Messaging plugins — signed, dependency-free, 
 ---
 # Messaging Plugins
 
-5 official Messaging plugins for StreetJS. All are signed, dependency-free, and installable from npm. See the full [Plugin Marketplace](/StreetJS/plugins/marketplace/).
+Publish/subscribe and stream events from StreetJS with dependency-free clients for the major brokers — wire-protocol implementations over Node core, no heavyweight SDKs.
+
+5 official Messaging plugins, all installable from npm. See the full [Plugin Marketplace](/StreetJS/plugins/marketplace/).
 
 | Plugin | Description | Version | Links |
 |--------|-------------|---------|-------|

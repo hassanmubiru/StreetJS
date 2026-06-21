@@ -7,7 +7,9 @@ description:  "Official StreetJS Auth & Identity plugins — signed, dependency-
 ---
 # Auth & Identity Plugins
 
-3 official Auth & Identity plugins for StreetJS. All are signed, dependency-free, and installable from npm. See the full [Plugin Marketplace](/StreetJS/plugins/marketplace/).
+Authenticate users in StreetJS with identity-provider plugins on top of the framework’s built-in JWT, sessions, OAuth2/OIDC and RBAC — bring your IdP without leaving the type-safe stack.
+
+3 official Auth & Identity plugins, all installable from npm. See the full [Plugin Marketplace](/StreetJS/plugins/marketplace/).
 
 | Plugin | Description | Version | Links |
 |--------|-------------|---------|-------|

@@ -7,7 +7,9 @@ description:  "Official StreetJS Storage plugins — signed, dependency-free, in
 ---
 # Storage Plugins
 
-2 official Storage plugins for StreetJS. All are signed, dependency-free, and installable from npm. See the full [Plugin Marketplace](/StreetJS/plugins/marketplace/).
+Store and serve files from StreetJS with object-storage plugins for the major providers — signed, dependency-free clients for uploads, downloads and presigned URLs.
+
+2 official Storage plugins, all installable from npm. See the full [Plugin Marketplace](/StreetJS/plugins/marketplace/).
 
 | Plugin | Description | Version | Links |
 |--------|-------------|---------|-------|

@@ -7,7 +7,9 @@ description:  "Official StreetJS Communications plugins — signed, dependency-f
 ---
 # Communications Plugins
 
-1 official Communications plugin for StreetJS. All are signed, dependency-free, and installable from npm. See the full [Plugin Marketplace](/StreetJS/plugins/marketplace/).
+Send SMS, email, voice and notifications from StreetJS with dependency-free provider plugins — transactional messaging wired into your controllers and jobs.
+
+1 official Communications plugin, all installable from npm. See the full [Plugin Marketplace](/StreetJS/plugins/marketplace/).
 
 | Plugin | Description | Version | Links |
 |--------|-------------|---------|-------|

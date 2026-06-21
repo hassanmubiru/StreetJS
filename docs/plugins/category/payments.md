@@ -7,7 +7,9 @@ description:  "Official StreetJS Payments plugins — signed, dependency-free, i
 ---
 # Payments Plugins
 
-2 official Payments plugins for StreetJS. All are signed, dependency-free, and installable from npm. See the full [Plugin Marketplace](/StreetJS/plugins/marketplace/).
+Accept payments in your StreetJS app with provider plugins built on dependency-free HTTPS clients — subscriptions, orders and webhooks without bundling a vendor SDK.
+
+2 official Payments plugins, all installable from npm. See the full [Plugin Marketplace](/StreetJS/plugins/marketplace/).
 
 | Plugin | Description | Version | Links |
 |--------|-------------|---------|-------|
