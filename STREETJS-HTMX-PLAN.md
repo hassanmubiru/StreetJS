@@ -27,6 +27,12 @@
 > the generated app depends on the still-unpublished `@streetjs/plugin-htmx`
 > (a generated `npm install` would fail until the plugin ships). Gate the CLI
 > release on publishing the plugin.
+>
+> **Phase 6 `/docs/htmx/` — IMPLEMENTED & LIVE (this commit):** an 8-page docs
+> section (Getting Started, Rendering Views, Partials & Fragments, Forms & CSRF,
+> Authentication, Realtime, Deployment + landing) under `/htmx/`, nested in the
+> sidebar, all returning 200 and in the sitemap. No npm dependency — shippable now.
+
 
 
 
