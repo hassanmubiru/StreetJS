@@ -9,6 +9,14 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.0.20] - 2026-06-21
+
+### Added
+- `street create --starter <name>` flag (alias of `--template`) with friendly
+  aliases (`realtime`→`realtime-chat`, `marketplace`→`ecommerce`,
+  `dating`→`dating-app`), plus a new **`ai`** starter overlaying `@streetjs/ai`
+  (chat, embeddings, RAG scaffolding). Non-breaking — `--template` still works.
+
 ## [1.0.19] - 2026-06-20
 
 ### Changed
