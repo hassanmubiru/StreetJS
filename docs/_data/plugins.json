@@ -1,0 +1,387 @@
+{
+  "generated": "2026-06-21",
+  "count": 19,
+  "categories": [
+    "AI",
+    "Auth & Identity",
+    "Cache & KV",
+    "Communications",
+    "Database",
+    "Messaging",
+    "Payments",
+    "Storage"
+  ],
+  "plugins": [
+    {
+      "name": "@streetjs/plugin-openai",
+      "slug": "openai",
+      "title": "Openai",
+      "description": "Official StreetJS plugin: OpenAI chat + embeddings (dependency-free HTTPS client).",
+      "version": "1.0.2",
+      "category": "AI",
+      "tier": "Official",
+      "npm": "https://www.npmjs.com/package/@streetjs/plugin-openai",
+      "keywords": [
+        "street",
+        "streetjs",
+        "street-framework",
+        "plugin",
+        "openai",
+        "ai",
+        "llm",
+        "embeddings"
+      ]
+    },
+    {
+      "name": "@streetjs/plugin-auth0",
+      "slug": "auth0",
+      "title": "Auth0",
+      "description": "Official Street Framework plugin: Auth0 identity.",
+      "version": "1.0.2",
+      "category": "Auth & Identity",
+      "tier": "Official",
+      "npm": "https://www.npmjs.com/package/@streetjs/plugin-auth0",
+      "keywords": [
+        "street",
+        "streetjs",
+        "street-plugin",
+        "auth0",
+        "auth",
+        "identity",
+        "oauth2"
+      ]
+    },
+    {
+      "name": "@streetjs/plugin-clerk",
+      "slug": "clerk",
+      "title": "Clerk",
+      "description": "Official StreetJS plugin: Clerk identity backend API (dependency-free HTTPS client).",
+      "version": "1.0.2",
+      "category": "Auth & Identity",
+      "tier": "Official",
+      "npm": "https://www.npmjs.com/package/@streetjs/plugin-clerk",
+      "keywords": [
+        "street",
+        "streetjs",
+        "street-framework",
+        "plugin",
+        "clerk",
+        "auth",
+        "identity"
+      ]
+    },
+    {
+      "name": "@streetjs/plugin-firebase",
+      "slug": "firebase",
+      "title": "Firebase",
+      "description": "Official StreetJS plugin: Firebase Auth (Identity Toolkit) REST (dependency-free HTTPS client).",
+      "version": "1.0.2",
+      "category": "Auth & Identity",
+      "tier": "Official",
+      "npm": "https://www.npmjs.com/package/@streetjs/plugin-firebase",
+      "keywords": [
+        "street",
+        "streetjs",
+        "street-framework",
+        "plugin",
+        "firebase",
+        "auth",
+        "identity"
+      ]
+    },
+    {
+      "name": "@streetjs/plugin-redis",
+      "slug": "redis",
+      "title": "Redis",
+      "description": "Official Street Framework plugin: Redis cache / key-value store (dependency-free RESP2 client).",
+      "version": "1.0.2",
+      "category": "Cache & KV",
+      "tier": "Official",
+      "npm": "https://www.npmjs.com/package/@streetjs/plugin-redis",
+      "keywords": [
+        "street",
+        "streetjs",
+        "street-framework",
+        "plugin",
+        "redis",
+        "cache",
+        "key-value",
+        "storage"
+      ]
+    },
+    {
+      "name": "@streetjs/plugin-africastalking",
+      "slug": "africastalking",
+      "title": "Africastalking",
+      "description": "Official Street Framework plugin: Africa's Talking (SMS, Bulk SMS, Voice, USSD, Airtime, Mobile Money).",
+      "version": "1.0.1",
+      "category": "Communications",
+      "tier": "Official",
+      "npm": "https://www.npmjs.com/package/@streetjs/plugin-africastalking",
+      "keywords": [
+        "street",
+        "streetjs",
+        "street-plugin",
+        "africas-talking",
+        "africastalking",
+        "sms",
+        "ussd",
+        "voice",
+        "airtime",
+        "mobile-money",
+        "africa"
+      ]
+    },
+    {
+      "name": "@streetjs/plugin-mongodb",
+      "slug": "mongodb",
+      "title": "Mongodb",
+      "description": "Official StreetJS plugin: MongoDB (dependency-free BSON + OP_MSG + SCRAM-SHA-256 client).",
+      "version": "1.0.2",
+      "category": "Database",
+      "tier": "Official",
+      "npm": "https://www.npmjs.com/package/@streetjs/plugin-mongodb",
+      "keywords": [
+        "street",
+        "streetjs",
+        "street-framework",
+        "plugin",
+        "mongodb",
+        "mongo",
+        "database",
+        "bson"
+      ]
+    },
+    {
+      "name": "@streetjs/plugin-mysql",
+      "slug": "mysql",
+      "title": "Mysql",
+      "description": "Official StreetJS plugin: MySQL/MariaDB connection pool (wraps the native, dependency-free core driver).",
+      "version": "1.0.2",
+      "category": "Database",
+      "tier": "Official",
+      "npm": "https://www.npmjs.com/package/@streetjs/plugin-mysql",
+      "keywords": [
+        "street",
+        "streetjs",
+        "street-framework",
+        "plugin",
+        "mysql",
+        "mariadb",
+        "database",
+        "sql"
+      ]
+    },
+    {
+      "name": "@streetjs/plugin-postgres",
+      "slug": "postgres",
+      "title": "Postgres",
+      "description": "Official StreetJS plugin: PostgreSQL connection pool (wraps the native, dependency-free core driver).",
+      "version": "1.0.2",
+      "category": "Database",
+      "tier": "Official",
+      "npm": "https://www.npmjs.com/package/@streetjs/plugin-postgres",
+      "keywords": [
+        "street",
+        "streetjs",
+        "street-framework",
+        "plugin",
+        "postgres",
+        "postgresql",
+        "database",
+        "sql"
+      ]
+    },
+    {
+      "name": "@streetjs/plugin-supabase",
+      "slug": "supabase",
+      "title": "Supabase",
+      "description": "Official StreetJS plugin: Supabase PostgREST data API (dependency-free HTTPS client).",
+      "version": "1.0.2",
+      "category": "Database",
+      "tier": "Official",
+      "npm": "https://www.npmjs.com/package/@streetjs/plugin-supabase",
+      "keywords": [
+        "street",
+        "streetjs",
+        "street-framework",
+        "plugin",
+        "supabase",
+        "database",
+        "postgrest"
+      ]
+    },
+    {
+      "name": "@streetjs/plugin-kafka",
+      "slug": "kafka",
+      "title": "Kafka",
+      "description": "Official StreetJS plugin: Apache Kafka streaming (wraps the dependency-free core Kafka client).",
+      "version": "1.0.2",
+      "category": "Messaging",
+      "tier": "Official",
+      "npm": "https://www.npmjs.com/package/@streetjs/plugin-kafka",
+      "keywords": [
+        "street",
+        "streetjs",
+        "street-framework",
+        "plugin",
+        "kafka",
+        "streaming",
+        "messaging",
+        "events"
+      ]
+    },
+    {
+      "name": "@streetjs/plugin-nats",
+      "slug": "nats",
+      "title": "Nats",
+      "description": "Official StreetJS plugin: NATS publish/subscribe messaging (dependency-free protocol client).",
+      "version": "1.0.2",
+      "category": "Messaging",
+      "tier": "Official",
+      "npm": "https://www.npmjs.com/package/@streetjs/plugin-nats",
+      "keywords": [
+        "street",
+        "streetjs",
+        "street-framework",
+        "plugin",
+        "nats",
+        "messaging",
+        "pubsub",
+        "events"
+      ]
+    },
+    {
+      "name": "@streetjs/plugin-rabbitmq",
+      "slug": "rabbitmq",
+      "title": "Rabbitmq",
+      "description": "Official StreetJS plugin: RabbitMQ messaging (wraps the dependency-free core AMQP 0-9-1 transport).",
+      "version": "1.0.2",
+      "category": "Messaging",
+      "tier": "Official",
+      "npm": "https://www.npmjs.com/package/@streetjs/plugin-rabbitmq",
+      "keywords": [
+        "street",
+        "streetjs",
+        "street-framework",
+        "plugin",
+        "rabbitmq",
+        "amqp",
+        "messaging",
+        "queue"
+      ]
+    },
+    {
+      "name": "@streetjs/plugin-sendgrid",
+      "slug": "sendgrid",
+      "title": "Sendgrid",
+      "description": "Official Street Framework plugin: SendGrid email.",
+      "version": "1.0.2",
+      "category": "Messaging",
+      "tier": "Official",
+      "npm": "https://www.npmjs.com/package/@streetjs/plugin-sendgrid",
+      "keywords": [
+        "street",
+        "streetjs",
+        "street-plugin",
+        "sendgrid",
+        "email",
+        "messaging",
+        "notifications"
+      ]
+    },
+    {
+      "name": "@streetjs/plugin-twilio",
+      "slug": "twilio",
+      "title": "Twilio",
+      "description": "Official Street Framework plugin: Twilio SMS.",
+      "version": "1.0.2",
+      "category": "Messaging",
+      "tier": "Official",
+      "npm": "https://www.npmjs.com/package/@streetjs/plugin-twilio",
+      "keywords": [
+        "street",
+        "streetjs",
+        "street-plugin",
+        "twilio",
+        "sms",
+        "messaging",
+        "notifications"
+      ]
+    },
+    {
+      "name": "@streetjs/plugin-paypal",
+      "slug": "paypal",
+      "title": "Paypal",
+      "description": "Official StreetJS plugin: PayPal Orders v2 (dependency-free HTTPS client).",
+      "version": "1.0.2",
+      "category": "Payments",
+      "tier": "Official",
+      "npm": "https://www.npmjs.com/package/@streetjs/plugin-paypal",
+      "keywords": [
+        "street",
+        "streetjs",
+        "street-framework",
+        "plugin",
+        "paypal",
+        "payments"
+      ]
+    },
+    {
+      "name": "@streetjs/plugin-stripe",
+      "slug": "stripe",
+      "title": "Stripe",
+      "description": "Official Street Framework plugin: Stripe payments.",
+      "version": "1.0.2",
+      "category": "Payments",
+      "tier": "Official",
+      "npm": "https://www.npmjs.com/package/@streetjs/plugin-stripe",
+      "keywords": [
+        "street",
+        "streetjs",
+        "street-plugin",
+        "stripe",
+        "payments",
+        "billing"
+      ]
+    },
+    {
+      "name": "@streetjs/plugin-r2",
+      "slug": "r2",
+      "title": "R2",
+      "description": "Official Street Framework plugin: Cloudflare R2 object storage.",
+      "version": "1.0.2",
+      "category": "Storage",
+      "tier": "Official",
+      "npm": "https://www.npmjs.com/package/@streetjs/plugin-r2",
+      "keywords": [
+        "street",
+        "streetjs",
+        "street-plugin",
+        "r2",
+        "cloudflare",
+        "object-storage",
+        "storage"
+      ]
+    },
+    {
+      "name": "@streetjs/plugin-s3",
+      "slug": "s3",
+      "title": "S3",
+      "description": "Official Street Framework plugin: AWS S3 object storage.",
+      "version": "1.0.2",
+      "category": "Storage",
+      "tier": "Official",
+      "npm": "https://www.npmjs.com/package/@streetjs/plugin-s3",
+      "keywords": [
+        "street",
+        "streetjs",
+        "street-plugin",
+        "s3",
+        "aws",
+        "object-storage",
+        "storage"
+      ]
+    }
+  ]
+}
