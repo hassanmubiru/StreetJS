@@ -54,6 +54,7 @@ for (const d of dirs) {
     description: (pj.description || '').replace(/\s*Signed manifest.*$/i, '').trim(),
     version: pj.version,
     category: categorize(pj.name, pj.keywords),
+    catSlug: slugify(categorize(pj.name, pj.keywords)),
     tier: 'Official',
     npm: `https://www.npmjs.com/package/${pj.name}`,
     keywords: pj.keywords || [],
