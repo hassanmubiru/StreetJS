@@ -1,6 +1,6 @@
 {
   "name": "streetjs",
-  "version": "1.0.21",
+  "version": "1.0.22",
   "description": "Production-grade TypeScript backend framework. Native PostgreSQL wire driver, JWT, WebSockets, clustering, runtime input validation, field-level encryption, abuse prevention, moderation & privacy controls. No Express. No pg. No Prisma. 3 dependencies.",
   "type": "module",
   "main": "./dist/index.js",
