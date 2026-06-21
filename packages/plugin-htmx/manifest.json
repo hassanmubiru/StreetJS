@@ -1,0 +1,6 @@
+{
+  "name": "street-plugin-htmx",
+  "version": "1.0.0",
+  "capabilities": ["views", "htmx", "html-rendering"],
+  "permissions": ["middleware"]
+}
