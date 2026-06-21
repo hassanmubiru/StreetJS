@@ -11,6 +11,8 @@ interface TemplateSpec {
   packages: Record<string, string>;
   description: string;
   starter: { path: string; content: string };
+  /** Optional additional files written verbatim into the project (e.g. SQL migrations, docs). */
+  extraFiles?: { path: string; content: string }[];
 }
 
 export const TEMPLATES: Record<string, TemplateSpec> = {
