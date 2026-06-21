@@ -26,6 +26,9 @@ surfaces (real-time chat, discussions, recognition, mentorship cadence).
 ### 30 days
 - Enable + seed **GitHub Discussions** (Q&A, Ideas, Show-and-tell); pin a
   "start here" post linking docs/community + RFC index. GAP→fix
+  **— IMPLEMENTED:** Discussions enabled; seeded a "Start here" welcome
+  (#66, Announcements) + Q&A (#67), Ideas (#68) and Show-and-tell (#69) threads.
+  (Pinning the welcome post is a one-click UI action — not exposed via API.)
 - Add a **contributors wall** to `/community/` (all-contributors or CI-generated
   from git history — GitHub-Pages-safe static JSON). GAP→fix
 - Label and curate **20 good-first-issues** mapped to Workstream A/D gaps
