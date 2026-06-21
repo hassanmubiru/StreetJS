@@ -66,3 +66,47 @@ describe('street create --template', () => {
     });
   }
 });
+
+describe('street create --starter (alias of --template)', () => {
+  it('--starter saas behaves like --template saas', async () => {
+    await withTempDir(async (dir) => {
+      const restore = capture();
+      try { await new CreateCommand().execute(ctx(dir, ['proj'], { starter: 'saas' })); } finally { restore(); }
+      assert.equal(process.exitCode, 0);
+      const proj = join(dir, 'proj');
+      assert.ok(existsSync(join(proj, TEMPLATES.saas.starter.path)), 'saas starter module should exist');
+      const pkg = JSON.parse(readFileSync(join(proj, 'package.json'), 'utf8'));
+      assert.ok(pkg.dependencies['@streetjs/admin'], 'should depend on @streetjs/admin');
+    });
+  });
+
+  it('--starter ai scaffolds the AI starter', async () => {
+    await withTempDir(async (dir) => {
+      const restore = capture();
+      try { await new CreateCommand().execute(ctx(dir, ['proj'], { starter: 'ai' })); } finally { restore(); }
+      assert.equal(process.exitCode, 0);
+      const proj = join(dir, 'proj');
+      assert.ok(existsSync(join(proj, 'src', 'features', 'ai.ts')), 'ai starter module should exist');
+      const pkg = JSON.parse(readFileSync(join(proj, 'package.json'), 'utf8'));
+      assert.ok(pkg.dependencies['@streetjs/ai'], 'should depend on @streetjs/ai');
+    });
+  });
+
+  it('resolves friendly aliases (realtime -> realtime-chat)', async () => {
+    await withTempDir(async (dir) => {
+      const restore = capture();
+      try { await new CreateCommand().execute(ctx(dir, ['rt'], { starter: 'realtime' })); } finally { restore(); }
+      assert.equal(process.exitCode, 0);
+      assert.ok(existsSync(join(dir, 'rt', TEMPLATES['realtime-chat'].starter.path)), 'realtime alias should scaffold realtime-chat');
+    });
+  });
+
+  it('rejects an unknown starter', async () => {
+    await withTempDir(async (dir) => {
+      const restore = capture();
+      try { await new CreateCommand().execute(ctx(dir, ['proj'], { starter: 'nope' })); } finally { restore(); }
+      assert.equal(process.exitCode, 1);
+      process.exitCode = 0;
+    });
+  });
+});
