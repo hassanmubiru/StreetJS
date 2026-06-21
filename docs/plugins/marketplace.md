@@ -78,7 +78,7 @@ description:  "Browse official StreetJS plugins — databases, cache, messaging,
   <div class="chips" id="mkt-chips">
     <span class="chip on" data-cat="all">All</span>
     {%- for c in data.categories -%}
-    <span class="chip" data-cat="{{ c }}">{{ c }}</span>
+    <span class="chip" data-cat="{{ c.name }}">{{ c.name }}</span>
     {%- endfor -%}
   </div>
 </div>
