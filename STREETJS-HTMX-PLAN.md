@@ -32,6 +32,19 @@
 > section (Getting Started, Rendering Views, Partials & Fragments, Forms & CSRF,
 > Authentication, Realtime, Deployment + landing) under `/htmx/`, nested in the
 > sidebar, all returning 200 and in the sitemap. No npm dependency — shippable now.
+>
+> **SHIPPED (2026-06-22):** the full HTMX ecosystem is live.
+> - **`@streetjs/plugin-htmx@1.0.0` PUBLISHED to npm** via `publish-plugins.yml`
+>   (run 27917833990) — signed manifest verified against the official key,
+>   provenance attested (sigstore logIndex 1902539622). Confirmed live:
+>   `npm view @streetjs/plugin-htmx version` → `1.0.0`.
+> - **`unlisted` flag removed** from `packages/plugin-htmx/package.json`; marketplace
+>   regenerated → **20 plugins**, htmx listed under a new **"Frontend & Views"**
+>   category (`scripts/gen-plugins-data.mjs`). Pages redeploys with the new entry.
+> - **CLI release `v1.0.23` cut** (core + cli + compat bumped, lockfile + `_config.yml`
+>   synced, CHANGELOG entry, tag pushed → CI publishes). Now `street create
+>   --frontend htmx` works end-to-end: the generated app's `@streetjs/plugin-htmx`
+>   dependency resolves. 130 CLI tests + 51 integration tests pass.
 
 
 
