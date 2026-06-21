@@ -10,7 +10,8 @@
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
-    "./manifest": "./manifest.json"
+    "./manifest": "./manifest.json",
+    "./manifest.signed": "./manifest.signed.json"
   },
   "files": [
     "dist/index.js",
@@ -26,26 +27,27 @@
     "dist/htmx.d.ts",
     "dist/htmx.d.ts.map",
     "manifest.json",
+    "manifest.signed.json",
     "README.md",
     "example/**/*"
   ],
   "scripts": {
     "build": "tsc",
+    "sign": "node scripts/sign-manifest.mjs",
     "lint": "tsc --noEmit",
     "test": "node --test dist/tests/htmx.test.js",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
-    "prepublishOnly": "npm run clean && npm run build"
+    "prepublishOnly": "npm run clean && npm run build && npm run sign"
+  },
+  "dependencies": {
+    "streetjs": "^1.0.6"
   },
   "devDependencies": {
     "@types/node": "^25.9.2",
     "typescript": "^6.0.3"
   },
   "peerDependencies": {
-    "streetjs": ">=1.0.0",
     "typescript": ">=5.0.0"
-  },
-  "peerDependenciesMeta": {
-    "streetjs": { "optional": true }
   },
   "engines": {
     "node": ">=20.0.0"
