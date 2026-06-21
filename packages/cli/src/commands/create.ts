@@ -424,7 +424,7 @@ export class CreateCommand {
     // Optional frontend scaffold (default 'none'). Adds a `web/` app wired to
     // @streetjs/client + @streetjs/react, plus a CI workflow that builds both.
     const frontend = String(ctx.args.flags['frontend'] ?? 'none').toLowerCase();
-    const FRONTENDS = ['none', 'react', 'next'];
+    const FRONTENDS = ['none', 'react', 'next', 'htmx'];
     if (!FRONTENDS.includes(frontend)) {
       console.error(`[street] Unknown frontend "${frontend}". Available: ${FRONTENDS.join(', ')}`);
       process.exitCode = 1;
