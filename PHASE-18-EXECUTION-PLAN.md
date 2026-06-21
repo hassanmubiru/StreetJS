@@ -299,7 +299,9 @@ and to the right.
 ### Risks & mitigations
 - **Solo-maintainer bandwidth** → atomized content workflow; mechanical GFIs;
   automate marketplace/contributors data.
-- **Data drift** (marketplace) → wire `gen-plugins-data.mjs` into CI/release.
+- **Data drift** (marketplace) → wire `gen-plugDeploy succeeded (with the generator step). Let me verify the new category and detail pages are live and indexed.
+
+ins-data.mjs` into CI/release.
 - **SEO regression** → strict URL/JSON-LD/sitemap guardrails on every new page.
 - **Dependency-free erosion** → policy gate on new plugins.
 - **Over-building features** → this plan funds ecosystem leverage, not framework
