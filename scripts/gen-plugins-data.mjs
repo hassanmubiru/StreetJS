@@ -61,7 +61,7 @@ for (const d of dirs) {
   });
 }
 plugins.sort((a, b) => a.category.localeCompare(b.category) || a.title.localeCompare(b.title));
-const categories = [...new Set(plugins.map((p) => p.category))].sort();
+const categories = [...new Set(plugins.map((p) => p.category))].sort().map((name) => ({ name, slug: slugify(name) }));
 
 // ── 1. data file ─────────────────────────────────────────────────────────────
 if (!existsSync(dataDir)) mkdirSync(dataDir, { recursive: true });
@@ -73,8 +73,7 @@ writeFileSync(
 // ── 2. category pages (clean dir first so removed categories don't linger) ─────
 rmSync(catDir, { recursive: true, force: true });
 mkdirSync(catDir, { recursive: true });
-for (const cat of categories) {
-  const cslug = slugify(cat);
+for (const { name: cat, slug: cslug } of categories) {
   const inCat = plugins.filter((p) => p.category === cat);
   const fm = [
     '---',
