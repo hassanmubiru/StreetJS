@@ -2,14 +2,38 @@
   "generated": "2026-06-21",
   "count": 19,
   "categories": [
-    "AI",
-    "Auth & Identity",
-    "Cache & KV",
-    "Communications",
-    "Database",
-    "Messaging",
-    "Payments",
-    "Storage"
+    {
+      "name": "AI",
+      "slug": "ai"
+    },
+    {
+      "name": "Auth & Identity",
+      "slug": "auth-and-identity"
+    },
+    {
+      "name": "Cache & KV",
+      "slug": "cache-and-kv"
+    },
+    {
+      "name": "Communications",
+      "slug": "communications"
+    },
+    {
+      "name": "Database",
+      "slug": "database"
+    },
+    {
+      "name": "Messaging",
+      "slug": "messaging"
+    },
+    {
+      "name": "Payments",
+      "slug": "payments"
+    },
+    {
+      "name": "Storage",
+      "slug": "storage"
+    }
   ],
   "plugins": [
     {
@@ -19,6 +43,7 @@
       "description": "Official StreetJS plugin: OpenAI chat + embeddings (dependency-free HTTPS client).",
       "version": "1.0.2",
       "category": "AI",
+      "catSlug": "ai",
       "tier": "Official",
       "npm": "https://www.npmjs.com/package/@streetjs/plugin-openai",
       "keywords": [
@@ -39,6 +64,7 @@
       "description": "Official Street Framework plugin: Auth0 identity.",
       "version": "1.0.2",
       "category": "Auth & Identity",
+      "catSlug": "auth-and-identity",
       "tier": "Official",
       "npm": "https://www.npmjs.com/package/@streetjs/plugin-auth0",
       "keywords": [
@@ -58,6 +84,7 @@
       "description": "Official StreetJS plugin: Clerk identity backend API (dependency-free HTTPS client).",
       "version": "1.0.2",
       "category": "Auth & Identity",
+      "catSlug": "auth-and-identity",
       "tier": "Official",
       "npm": "https://www.npmjs.com/package/@streetjs/plugin-clerk",
       "keywords": [
@@ -77,6 +104,7 @@
       "description": "Official StreetJS plugin: Firebase Auth (Identity Toolkit) REST (dependency-free HTTPS client).",
       "version": "1.0.2",
       "category": "Auth & Identity",
+      "catSlug": "auth-and-identity",
       "tier": "Official",
       "npm": "https://www.npmjs.com/package/@streetjs/plugin-firebase",
       "keywords": [
@@ -96,6 +124,7 @@
       "description": "Official Street Framework plugin: Redis cache / key-value store (dependency-free RESP2 client).",
       "version": "1.0.2",
       "category": "Cache & KV",
+      "catSlug": "cache-and-kv",
       "tier": "Official",
       "npm": "https://www.npmjs.com/package/@streetjs/plugin-redis",
       "keywords": [
@@ -116,6 +145,7 @@
       "description": "Official Street Framework plugin: Africa's Talking (SMS, Bulk SMS, Voice, USSD, Airtime, Mobile Money).",
       "version": "1.0.1",
       "category": "Communications",
+      "catSlug": "communications",
       "tier": "Official",
       "npm": "https://www.npmjs.com/package/@streetjs/plugin-africastalking",
       "keywords": [
@@ -139,6 +169,7 @@
       "description": "Official StreetJS plugin: MongoDB (dependency-free BSON + OP_MSG + SCRAM-SHA-256 client).",
       "version": "1.0.2",
       "category": "Database",
+      "catSlug": "database",
       "tier": "Official",
       "npm": "https://www.npmjs.com/package/@streetjs/plugin-mongodb",
       "keywords": [
@@ -159,6 +190,7 @@
       "description": "Official StreetJS plugin: MySQL/MariaDB connection pool (wraps the native, dependency-free core driver).",
       "version": "1.0.2",
       "category": "Database",
+      "catSlug": "database",
       "tier": "Official",
       "npm": "https://www.npmjs.com/package/@streetjs/plugin-mysql",
       "keywords": [
@@ -179,6 +211,7 @@
       "description": "Official StreetJS plugin: PostgreSQL connection pool (wraps the native, dependency-free core driver).",
       "version": "1.0.2",
       "category": "Database",
+      "catSlug": "database",
       "tier": "Official",
       "npm": "https://www.npmjs.com/package/@streetjs/plugin-postgres",
       "keywords": [
@@ -199,6 +232,7 @@
       "description": "Official StreetJS plugin: Supabase PostgREST data API (dependency-free HTTPS client).",
       "version": "1.0.2",
       "category": "Database",
+      "catSlug": "database",
       "tier": "Official",
       "npm": "https://www.npmjs.com/package/@streetjs/plugin-supabase",
       "keywords": [
@@ -218,6 +252,7 @@
       "description": "Official StreetJS plugin: Apache Kafka streaming (wraps the dependency-free core Kafka client).",
       "version": "1.0.2",
       "category": "Messaging",
+      "catSlug": "messaging",
       "tier": "Official",
       "npm": "https://www.npmjs.com/package/@streetjs/plugin-kafka",
       "keywords": [
@@ -238,6 +273,7 @@
       "description": "Official StreetJS plugin: NATS publish/subscribe messaging (dependency-free protocol client).",
       "version": "1.0.2",
       "category": "Messaging",
+      "catSlug": "messaging",
       "tier": "Official",
       "npm": "https://www.npmjs.com/package/@streetjs/plugin-nats",
       "keywords": [
@@ -258,6 +294,7 @@
       "description": "Official StreetJS plugin: RabbitMQ messaging (wraps the dependency-free core AMQP 0-9-1 transport).",
       "version": "1.0.2",
       "category": "Messaging",
+      "catSlug": "messaging",
       "tier": "Official",
       "npm": "https://www.npmjs.com/package/@streetjs/plugin-rabbitmq",
       "keywords": [
@@ -278,6 +315,7 @@
       "description": "Official Street Framework plugin: SendGrid email.",
       "version": "1.0.2",
       "category": "Messaging",
+      "catSlug": "messaging",
       "tier": "Official",
       "npm": "https://www.npmjs.com/package/@streetjs/plugin-sendgrid",
       "keywords": [
@@ -297,6 +335,7 @@
       "description": "Official Street Framework plugin: Twilio SMS.",
       "version": "1.0.2",
       "category": "Messaging",
+      "catSlug": "messaging",
       "tier": "Official",
       "npm": "https://www.npmjs.com/package/@streetjs/plugin-twilio",
       "keywords": [
@@ -316,6 +355,7 @@
       "description": "Official StreetJS plugin: PayPal Orders v2 (dependency-free HTTPS client).",
       "version": "1.0.2",
       "category": "Payments",
+      "catSlug": "payments",
       "tier": "Official",
       "npm": "https://www.npmjs.com/package/@streetjs/plugin-paypal",
       "keywords": [
@@ -334,6 +374,7 @@
       "description": "Official Street Framework plugin: Stripe payments.",
       "version": "1.0.2",
       "category": "Payments",
+      "catSlug": "payments",
       "tier": "Official",
       "npm": "https://www.npmjs.com/package/@streetjs/plugin-stripe",
       "keywords": [
@@ -352,6 +393,7 @@
       "description": "Official Street Framework plugin: Cloudflare R2 object storage.",
       "version": "1.0.2",
       "category": "Storage",
+      "catSlug": "storage",
       "tier": "Official",
       "npm": "https://www.npmjs.com/package/@streetjs/plugin-r2",
       "keywords": [
@@ -371,6 +413,7 @@
       "description": "Official Street Framework plugin: AWS S3 object storage.",
       "version": "1.0.2",
       "category": "Storage",
+      "catSlug": "storage",
       "tier": "Official",
       "npm": "https://www.npmjs.com/package/@streetjs/plugin-s3",
       "keywords": [

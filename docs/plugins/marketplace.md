@@ -48,8 +48,8 @@ description:  "Browse official StreetJS plugins — databases, cache, messaging,
   border-radius:14px;padding:1.25rem;transition:all .16s ease}
 .mkt .card:hover{border-color:var(--accent-line);transform:translateY(-3px);box-shadow:var(--shadow-md)}
 .mkt .card-top{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.6rem}
-.mkt .cat{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--accent);
-  background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:100px;padding:.2rem .6rem}
+.mkt .cat{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--accent)!important;
+  background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:100px;padding:.2rem .6rem;text-decoration:none!important}
 .mkt .tier{font-size:.66rem;font-weight:700;color:var(--success);background:var(--success-soft);
   border:1px solid var(--success-line);border-radius:100px;padding:.2rem .6rem}
 .mkt .card h3{font-size:1.02rem!important;font-weight:700!important;color:var(--text-primary)!important;margin:.1rem 0 .35rem!important}
