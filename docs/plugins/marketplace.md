@@ -87,15 +87,15 @@ description:  "Browse official StreetJS plugins — databases, cache, messaging,
   {%- for p in data.plugins -%}
   <div class="card" data-cat="{{ p.category }}" data-text="{{ p.name }} {{ p.title }} {{ p.description }} {{ p.keywords | join: ' ' }}">
     <div class="card-top">
-      <span class="cat">{{ p.category }}</span>
+      <a class="cat" href="{{ site.baseurl }}/plugins/category/{{ p.catSlug }}/">{{ p.category }}</a>
       <span class="tier">{{ p.tier }}</span>
     </div>
-    <h3>{{ p.title }}</h3>
+    <h3><a href="{{ site.baseurl }}/plugins/{{ p.slug }}/" style="color:inherit;text-decoration:none">{{ p.title }}</a></h3>
     <p class="pkg">{{ p.name }}</p>
     <p class="desc">{{ p.description }}</p>
     <div class="row">
-      <span class="ver">v{{ p.version }}</span>
-      <a class="npm" href="{{ p.npm }}" target="_blank" rel="noopener">View on npm →</a>
+      <a class="ver" href="{{ site.baseurl }}/plugins/{{ p.slug }}/" style="text-decoration:none">Details →</a>
+      <a class="npm" href="{{ p.npm }}" target="_blank" rel="noopener">npm →</a>
     </div>
   </div>
   {%- endfor -%}
