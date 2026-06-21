@@ -34,6 +34,29 @@ describe('street create --frontend', () => {
     });
   });
 
+  it('htmx frontend scaffolds server-rendered views (no web/) + plugin dep + CI without a web job', async () => {
+    await withTempDir(async (dir) => {
+      const restore = capture();
+      try { await new CreateCommand().execute(ctx(dir, ['hx'], { frontend: 'htmx' })); } finally { restore(); }
+      assert.equal(process.exitCode, 0);
+      const proj = join(dir, 'hx');
+      assert.ok(!existsSync(join(proj, 'web')), 'htmx has no web/ SPA');
+      for (const f of ['src/views/layouts/main.html', 'src/views/partials/nav.html',
+                       'src/views/pages/home.html', 'src/views/pages/login.html',
+                       'src/views/pages/dashboard.html', 'src/controllers/views.controller.ts',
+                       'public/app.css', 'HTMX.md']) {
+        assert.ok(existsSync(join(proj, f)), `${f} should exist`);
+      }
+      const pkg = JSON.parse(readFileSync(join(proj, 'package.json'), 'utf8'));
+      assert.ok(pkg.dependencies['@streetjs/plugin-htmx'], 'should depend on @streetjs/plugin-htmx');
+      const ci = readFileSync(join(proj, '.github/workflows/ci.yml'), 'utf8');
+      assert.ok(!/working-directory: web/.test(ci), 'htmx CI should not include a web job');
+      const layout = readFileSync(join(proj, 'src/views/layouts/main.html'), 'utf8');
+      assert.ok(layout.includes('{{{ body }}}'), 'layout has a body placeholder');
+      assert.ok(layout.includes('htmx.org'), 'layout loads htmx');
+    });
+  });
+
   it('default scaffold has no web/ but always gets a CI workflow', async () => {
     await withTempDir(async (dir) => {
       const restore = capture();
