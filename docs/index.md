@@ -350,6 +350,11 @@ export class UsersController {
       <div><div class="dt">Plugins <span class="arr">→</span></div><p class="dd">Browse 20+ official, signed, dependency-free plugins — databases, payments, auth, storage and AI.</p></div>
     </a>
 
+    <a href="{{ site.baseurl }}/starters/" class="dc">
+      <span class="dic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
+      <div><div class="dt">Starters <span class="arr">→</span></div><p class="dd">Scaffold a SaaS, AI, realtime or marketplace backend in one command with <code>--starter</code>.</p></div>
+    </a>
+
     <a href="{{ site.baseurl }}/community/" class="dc">
       <span class="dic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
       <div><div class="dt">Community <span class="arr">→</span></div><p class="dd">Contributor path, governance, the RFC process and good first issues.</p></div>
