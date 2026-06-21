@@ -1309,7 +1309,7 @@ code, .codeblock { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monosp
   }
 
   private renderCIWorkflow(frontend: string): string {
-    const webJob = frontend === 'none' ? '' : `
+    const webJob = (frontend === 'none' || frontend === 'htmx') ? '' : `
   web:
     runs-on: ubuntu-latest
     timeout-minutes: 15
