@@ -167,3 +167,72 @@ describe('street create --starter (alias of --template)', () => {
     });
   });
 });
+
+describe('saas overlay registration + alias preservation', () => {
+  // The exact byte content of the 001_saas.sql migration as registered in the
+  // template. Task 1 must leave this entry untouched while adding new overlay
+  // entries and always-on packages.
+  const saas001 = TEMPLATES.saas.extraFiles?.find((f) => f.path === 'migrations/001_saas.sql');
+
+  it('registers the always-on composition packages and keeps the rest install-on-demand', () => {
+    const deps = TEMPLATES.saas.packages;
+    for (const dep of ['@streetjs/admin', '@streetjs/admin-ui', '@streetjs/plugin-htmx', '@streetjs/auth-ui']) {
+      assert.ok(deps[dep], `saas packages should include always-on ${dep}`);
+    }
+    // Billing / email / postgres remain install-on-demand (not bundled).
+    for (const dep of ['@streetjs/plugin-stripe', '@streetjs/plugin-sendgrid', '@streetjs/plugin-postgres']) {
+      assert.ok(!deps[dep], `${dep} should stay install-on-demand, not bundled`);
+    }
+  });
+
+  it('still registers the 001_saas.sql overlay entry with its existing tables', () => {
+    assert.ok(saas001, '001_saas.sql must remain registered in extraFiles');
+    for (const t of ['users', 'organizations', 'memberships', 'invitations', 'subscriptions', 'audit_logs', 'notifications']) {
+      assert.ok(saas001!.content.includes(t), `001_saas.sql should still define ${t}`);
+    }
+  });
+
+  it('scaffolds 001_saas.sql byte-identical to its registered template content', async () => {
+    await withTempDir(async (dir) => {
+      const restore = capture();
+      try { await new CreateCommand().execute(ctx(dir, ['proj'], { starter: 'saas' })); } finally { restore(); }
+      assert.equal(process.exitCode, 0);
+      const written = readFileSync(join(dir, 'proj', 'migrations', '001_saas.sql'));
+      assert.equal(written.toString('utf8'), saas001!.content, '001_saas.sql written content must be byte-identical to the registered template');
+    });
+  });
+
+  it('--starter saas and --template saas produce identical paths and byte-identical contents', async () => {
+    await withTempDir(async (starterDir) => {
+      await withTempDir(async (templateDir) => {
+        const restore = capture();
+        try {
+          await new CreateCommand().execute(ctx(starterDir, ['proj'], { starter: 'saas' }));
+          await new CreateCommand().execute(ctx(templateDir, ['proj'], { template: 'saas' }));
+        } finally { restore(); }
+        assert.equal(process.exitCode, 0);
+
+        const a = snapshotDir(join(starterDir, 'proj'));
+        const b = snapshotDir(join(templateDir, 'proj'));
+
+        // Identical set of generated file paths.
+        assert.deepEqual([...a.keys()].sort(), [...b.keys()].sort(), 'starter and template scaffolds must generate the same file paths');
+
+        // Byte-identical contents for every generated file.
+        for (const [path, buf] of a) {
+          assert.ok(b.get(path)!.equals(buf), `file ${path} must be byte-identical between --starter and --template`);
+        }
+      });
+    });
+  });
+
+  it('an unknown starter exits 1 and writes no project files', async () => {
+    await withTempDir(async (dir) => {
+      const restore = capture();
+      try { await new CreateCommand().execute(ctx(dir, ['proj'], { starter: 'definitely-not-a-starter' })); } finally { restore(); }
+      assert.equal(process.exitCode, 1);
+      assert.ok(!existsSync(join(dir, 'proj')), 'no project directory should be written for an unknown starter');
+      process.exitCode = 0;
+    });
+  });
+});
