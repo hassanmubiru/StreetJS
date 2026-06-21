@@ -7,6 +7,8 @@ on:
     paths:
       - 'docs/**'
       - 'packages/cli/package.json'
+      - 'packages/plugin-*/package.json'
+      - 'scripts/gen-plugins-data.mjs'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
