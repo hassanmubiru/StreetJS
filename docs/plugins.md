@@ -8,6 +8,10 @@ description: "The StreetJS plugin system — signed manifests, capability permis
 
 # Plugin System
 
+> **Looking for plugins to install?** Browse the
+> [**Plugin Marketplace**](/StreetJS/plugins/marketplace/) — 20+ official, signed,
+> dependency-free plugins for databases, payments, auth, storage, messaging and AI.
+
 StreetJS ships a formal, dependency-free plugin system built on `node:crypto`. It
 covers the full in-process lifecycle of a plugin — registration, signature and
 integrity verification, capability/permission metadata, dependency and version
