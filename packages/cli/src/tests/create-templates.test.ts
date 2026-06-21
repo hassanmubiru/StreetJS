@@ -117,6 +117,32 @@ describe('street create --starter (alias of --template)', () => {
     });
   });
 
+  it('realtime starter scaffolds channels/messages migration + REALTIME.md', async () => {
+    await withTempDir(async (dir) => {
+      const restore = capture();
+      try { await new CreateCommand().execute(ctx(dir, ['rt'], { starter: 'realtime' })); } finally { restore(); }
+      assert.equal(process.exitCode, 0);
+      const proj = join(dir, 'rt');
+      assert.ok(existsSync(join(proj, 'migrations', '001_realtime.sql')), 'realtime migration should exist');
+      assert.ok(existsSync(join(proj, 'REALTIME.md')), 'REALTIME.md should exist');
+      const sql = readFileSync(join(proj, 'migrations', '001_realtime.sql'), 'utf8');
+      for (const t of ['channels', 'channel_members', 'messages']) assert.ok(sql.includes(t), `migration should define ${t}`);
+    });
+  });
+
+  it('marketplace starter scaffolds the commerce migration + COMMERCE.md', async () => {
+    await withTempDir(async (dir) => {
+      const restore = capture();
+      try { await new CreateCommand().execute(ctx(dir, ['mk'], { starter: 'marketplace' })); } finally { restore(); }
+      assert.equal(process.exitCode, 0);
+      const proj = join(dir, 'mk');
+      assert.ok(existsSync(join(proj, 'migrations', '001_commerce.sql')), 'commerce migration should exist');
+      assert.ok(existsSync(join(proj, 'COMMERCE.md')), 'COMMERCE.md should exist');
+      const sql = readFileSync(join(proj, 'migrations', '001_commerce.sql'), 'utf8');
+      for (const t of ['products', 'inventory', 'carts', 'orders', 'payments']) assert.ok(sql.includes(t), `migration should define ${t}`);
+    });
+  });
+
   it('rejects an unknown starter', async () => {
     await withTempDir(async (dir) => {
       const restore = capture();
