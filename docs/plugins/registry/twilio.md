@@ -14,7 +14,7 @@ description:  "Official Street Framework plugin: Twilio SMS. Official, signed, d
 **Official Street Framework plugin: Twilio SMS.**
 
 - **Category:** [Messaging](/StreetJS/plugins/category/messaging/)
-- **Tier:** Official (signed manifest, dependency-free)
+- **Tier:** Official · **Signed** · **Dependency-free**
 - **Version:** `v1.0.2`
 - **npm:** [@streetjs/plugin-twilio](https://www.npmjs.com/package/@streetjs/plugin-twilio)
 
@@ -31,8 +31,34 @@ description:  "Official Street Framework plugin: Twilio SMS. Official, signed, d
 npm install @streetjs/plugin-twilio
 ```
 
-## Usage
+## Quick start
 
-Register the plugin with the StreetJS plugin host. See the [Plugin System](/StreetJS/plugins/) guide for the full registration, capability, and signature-verification model, and the package README on npm for plugin-specific configuration.
+Register the plugin with the StreetJS plugin host, then use it from your
+controllers/services. See the package README on npm for the full configuration
+and API, and the [Plugin System](/StreetJS/plugins/) guide for registration,
+capabilities and signature verification.
 
-Browse more in the [Plugin Marketplace](/StreetJS/plugins/marketplace/) or other [Messaging](/StreetJS/plugins/category/messaging/) plugins.
+## Compatibility
+
+| | |
+|---|---|
+| StreetJS | `>=1.0.0` |
+| Node.js | `>=20` |
+| TypeScript | `>=5.0` (NodeNext) |
+
+See the [compatibility matrix](/StreetJS/compatibility/) for the full support grid.
+
+## Certification
+
+This is an **Official** plugin — maintained by the StreetJS team in the monorepo,
+CI-tested, and published with a signed manifest. See the
+[plugin certification levels](/StreetJS/ecosystem/plugin-certification/).
+
+## Related plugins
+
+- [@streetjs/plugin-kafka](/StreetJS/plugins/kafka/) — Official StreetJS plugin: Apache Kafka streaming (wraps the dependency-free core Kafka client).
+- [@streetjs/plugin-nats](/StreetJS/plugins/nats/) — Official StreetJS plugin: NATS publish/subscribe messaging (dependency-free protocol client).
+- [@streetjs/plugin-rabbitmq](/StreetJS/plugins/rabbitmq/) — Official StreetJS plugin: RabbitMQ messaging (wraps the dependency-free core AMQP 0-9-1 transport).
+- [@streetjs/plugin-sendgrid](/StreetJS/plugins/sendgrid/) — Official Street Framework plugin: SendGrid email.
+
+Browse the full [Plugin Marketplace](/StreetJS/plugins/marketplace/) or all [Messaging](/StreetJS/plugins/category/messaging/) plugins.

@@ -14,7 +14,7 @@ description:  "Official Street Framework plugin: Auth0 identity. Official, signe
 **Official Street Framework plugin: Auth0 identity.**
 
 - **Category:** [Auth & Identity](/StreetJS/plugins/category/auth-and-identity/)
-- **Tier:** Official (signed manifest, dependency-free)
+- **Tier:** Official · **Signed** · **Dependency-free**
 - **Version:** `v1.0.2`
 - **npm:** [@streetjs/plugin-auth0](https://www.npmjs.com/package/@streetjs/plugin-auth0)
 
@@ -31,8 +31,32 @@ description:  "Official Street Framework plugin: Auth0 identity. Official, signe
 npm install @streetjs/plugin-auth0
 ```
 
-## Usage
+## Quick start
 
-Register the plugin with the StreetJS plugin host. See the [Plugin System](/StreetJS/plugins/) guide for the full registration, capability, and signature-verification model, and the package README on npm for plugin-specific configuration.
+Register the plugin with the StreetJS plugin host, then use it from your
+controllers/services. See the package README on npm for the full configuration
+and API, and the [Plugin System](/StreetJS/plugins/) guide for registration,
+capabilities and signature verification.
 
-Browse more in the [Plugin Marketplace](/StreetJS/plugins/marketplace/) or other [Auth & Identity](/StreetJS/plugins/category/auth-and-identity/) plugins.
+## Compatibility
+
+| | |
+|---|---|
+| StreetJS | `>=1.0.0` |
+| Node.js | `>=20` |
+| TypeScript | `>=5.0` (NodeNext) |
+
+See the [compatibility matrix](/StreetJS/compatibility/) for the full support grid.
+
+## Certification
+
+This is an **Official** plugin — maintained by the StreetJS team in the monorepo,
+CI-tested, and published with a signed manifest. See the
+[plugin certification levels](/StreetJS/ecosystem/plugin-certification/).
+
+## Related plugins
+
+- [@streetjs/plugin-clerk](/StreetJS/plugins/clerk/) — Official StreetJS plugin: Clerk identity backend API (dependency-free HTTPS client).
+- [@streetjs/plugin-firebase](/StreetJS/plugins/firebase/) — Official StreetJS plugin: Firebase Auth (Identity Toolkit) REST (dependency-free HTTPS client).
+
+Browse the full [Plugin Marketplace](/StreetJS/plugins/marketplace/) or all [Auth & Identity](/StreetJS/plugins/category/auth-and-identity/) plugins.

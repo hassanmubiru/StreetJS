@@ -14,7 +14,7 @@ description:  "Official StreetJS plugin: Supabase PostgREST data API (dependency
 **Official StreetJS plugin: Supabase PostgREST data API (dependency-free HTTPS client).**
 
 - **Category:** [Database](/StreetJS/plugins/category/database/)
-- **Tier:** Official (signed manifest, dependency-free)
+- **Tier:** Official · **Signed** · **Dependency-free**
 - **Version:** `v1.0.2`
 - **npm:** [@streetjs/plugin-supabase](https://www.npmjs.com/package/@streetjs/plugin-supabase)
 
@@ -31,8 +31,33 @@ description:  "Official StreetJS plugin: Supabase PostgREST data API (dependency
 npm install @streetjs/plugin-supabase
 ```
 
-## Usage
+## Quick start
 
-Register the plugin with the StreetJS plugin host. See the [Plugin System](/StreetJS/plugins/) guide for the full registration, capability, and signature-verification model, and the package README on npm for plugin-specific configuration.
+Register the plugin with the StreetJS plugin host, then use it from your
+controllers/services. See the package README on npm for the full configuration
+and API, and the [Plugin System](/StreetJS/plugins/) guide for registration,
+capabilities and signature verification.
 
-Browse more in the [Plugin Marketplace](/StreetJS/plugins/marketplace/) or other [Database](/StreetJS/plugins/category/database/) plugins.
+## Compatibility
+
+| | |
+|---|---|
+| StreetJS | `>=1.0.0` |
+| Node.js | `>=20` |
+| TypeScript | `>=5.0` (NodeNext) |
+
+See the [compatibility matrix](/StreetJS/compatibility/) for the full support grid.
+
+## Certification
+
+This is an **Official** plugin — maintained by the StreetJS team in the monorepo,
+CI-tested, and published with a signed manifest. See the
+[plugin certification levels](/StreetJS/ecosystem/plugin-certification/).
+
+## Related plugins
+
+- [@streetjs/plugin-mongodb](/StreetJS/plugins/mongodb/) — Official StreetJS plugin: MongoDB (dependency-free BSON + OP_MSG + SCRAM-SHA-256 client).
+- [@streetjs/plugin-mysql](/StreetJS/plugins/mysql/) — Official StreetJS plugin: MySQL/MariaDB connection pool (wraps the native, dependency-free core driver).
+- [@streetjs/plugin-postgres](/StreetJS/plugins/postgres/) — Official StreetJS plugin: PostgreSQL connection pool (wraps the native, dependency-free core driver).
+
+Browse the full [Plugin Marketplace](/StreetJS/plugins/marketplace/) or all [Database](/StreetJS/plugins/category/database/) plugins.
