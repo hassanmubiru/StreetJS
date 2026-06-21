@@ -1,0 +1,77 @@
+{
+  "name": "@streetjs/plugin-htmx",
+  "version": "1.0.0",
+  "description": "Official StreetJS plugin: HTMX support — a dependency-free view engine (layouts, partials), HX-request detection, response-header helpers and CSRF form fields for server-rendered apps.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./manifest": "./manifest.json"
+  },
+  "files": [
+    "dist/index.js",
+    "dist/index.js.map",
+    "dist/index.d.ts",
+    "dist/index.d.ts.map",
+    "dist/view-engine.js",
+    "dist/view-engine.js.map",
+    "dist/view-engine.d.ts",
+    "dist/view-engine.d.ts.map",
+    "dist/htmx.js",
+    "dist/htmx.js.map",
+    "dist/htmx.d.ts",
+    "dist/htmx.d.ts.map",
+    "manifest.json",
+    "README.md",
+    "example/**/*"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "lint": "tsc --noEmit",
+    "test": "node --test dist/tests/htmx.test.js",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.2",
+    "typescript": "^6.0.3"
+  },
+  "peerDependencies": {
+    "streetjs": ">=1.0.0",
+    "typescript": ">=5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "streetjs": { "optional": true }
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": [
+    "street",
+    "streetjs",
+    "street-plugin",
+    "htmx",
+    "html",
+    "server-rendered",
+    "ssr",
+    "views",
+    "templates"
+  ],
+  "author": "street contributors",
+  "license": "MIT",
+  "homepage": "https://hassanmubiru.github.io/StreetJS/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hassanmubiru/StreetJS.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hassanmubiru/StreetJS/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
