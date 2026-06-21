@@ -9,6 +9,15 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.0.21] - 2026-06-21
+
+### Added
+- Richer **SaaS starter** (`street create --starter saas`): now scaffolds a
+  multi-tenant schema migration (`migrations/001_saas.sql` — organizations, teams,
+  memberships, invitations, subscriptions, audit logs, notifications), an
+  architecture guide (`SAAS.md`), and a Stripe billing env sample
+  (`.env.saas.example`). Templates can now ship multiple overlay files.
+
 ## [1.0.20] - 2026-06-21
 
 ### Added
