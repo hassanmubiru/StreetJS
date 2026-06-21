@@ -27,8 +27,22 @@ Scaffold a new StreetJS project.
 
 ```bash
 street create my-app
-street create my-app --template minimal
+street create my-app --starter saas        # SaaS overlay (admin users, roles, audit log)
+street create my-app --starter ai          # AI overlay (@streetjs/ai: chat, embeddings, RAG)
+street create my-app --starter realtime    # WebSocket channels, presence, typing
+street create my-app --starter marketplace # products, inventory, carts, orders, payments
+street create my-app --frontend next --database postgres
 ```
+
+**Flags**
+
+| Flag | Values | Default | Notes |
+|------|--------|---------|-------|
+| `--starter` (alias `--template`) | `saas`, `ai`, `realtime`, `marketplace`, `ecommerce`, `realtime-chat`, `dating-app`, `app` | `app` | Overlays extra `@streetjs/*` packages + a starter module. Friendly aliases: `realtime`→`realtime-chat`, `marketplace`→`ecommerce`, `dating`→`dating-app`. |
+| `--frontend` | `none`, `react`, `next` | `none` | Scaffolds a `web/` app + CI building both tiers. |
+| `--database` | `sqlite`, `postgres` | `sqlite` | `sqlite` boots with zero config; `postgres` degrades gracefully if unreachable. |
+| `--install` / `-i` | — | off | Auto-install dependencies after scaffolding. |
+
 
 ### Database Migrations
 
