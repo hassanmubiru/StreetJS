@@ -9,6 +9,17 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.0.23] - 2026-06-22
+
+### Added
+- **`street create --frontend htmx`** scaffolds a server-rendered frontend into
+  the backend: a `src/views/` tree (layouts + partials + pages), a
+  `ViewsController`, an `HTMX.md` wiring guide, and the `@streetjs/plugin-htmx`
+  dependency. The app renders HTML and uses [HTMX](https://htmx.org) to swap
+  fragments — no SPA and no client build step. Pairs with the newly published
+  [`@streetjs/plugin-htmx`](https://www.npmjs.com/package/@streetjs/plugin-htmx)
+  (dependency-free view engine + `HX-*` helpers + CSRF form fields).
+
 ## [1.0.22] - 2026-06-21
 
 ### Added
