@@ -714,8 +714,162 @@ export class CreateCommand {
       await writeFile(join(webDir, 'app', 'globals.css'), this.renderNextGlobalsCss(), 'utf8');
       await writeFile(join(webDir, '.env.example'), 'NEXT_PUBLIC_API_URL=http://localhost:3000\n', 'utf8');
       console.log('[street] Scaffolded Next.js (App Router) frontend in web/.');
+    } else if (frontend === 'htmx') {
+      await this.scaffoldHtmx(targetDir);
     }
   }
+
+  /**
+   * Scaffold an HTMX (server-rendered) frontend *into the backend* — HTMX has no
+   * separate SPA, so this adds a views tree, a views controller, and the
+   * @streetjs/plugin-htmx dependency. The app renders HTML; HTMX swaps fragments.
+   */
+  private async scaffoldHtmx(targetDir: string): Promise<void> {
+    // Add the plugin dependency.
+    const pkgPath = join(targetDir, 'package.json');
+    const pkg = JSON.parse(await readFile(pkgPath, 'utf8')) as { dependencies?: Record<string, string> };
+    pkg.dependencies = { ...(pkg.dependencies ?? {}), '@streetjs/plugin-htmx': '^1.0.0' };
+    await writeFile(pkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
+
+    await mkdir(join(targetDir, 'src', 'views', 'layouts'), { recursive: true });
+    await mkdir(join(targetDir, 'src', 'views', 'partials'), { recursive: true });
+    await mkdir(join(targetDir, 'src', 'views', 'pages'), { recursive: true });
+    await mkdir(join(targetDir, 'public'), { recursive: true });
+
+    const layout = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }}</title>
+  <script src="https://unpkg.com/htmx.org@2.0.4" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="/public/app.css">
+</head>
+<body>
+  {{> nav }}
+  <main>{{{ body }}}</main>
+</body>
+</html>
+`;
+    const nav = `<nav><a href="/">Home</a> · <a href="/dashboard">Dashboard</a> · <a href="/login">Login</a></nav>\n`;
+    const todoItem = `<li id="todo-{{ id }}">{{ text }}</li>\n`;
+    const home = `<h1>{{ title }}</h1>
+<p>A server-rendered StreetJS + HTMX app. No SPA, no build step.</p>
+<form hx-post="/todos" hx-target="#todos" hx-swap="beforeend" hx-on::after-request="this.reset()">
+  <input name="text" placeholder="Add a todo" required>
+  <button type="submit">Add</button>
+</form>
+<ul id="todos">{{{ todos }}}</ul>
+`;
+    const login = `<h1>Log in</h1>
+<form hx-post="/login" hx-target="#error">
+  <div id="error"></div>
+  <input name="email" type="email" placeholder="Email" required>
+  <input name="password" type="password" placeholder="Password" required>
+  <button type="submit">Log in</button>
+</form>
+`;
+    const register = `<h1>Create account</h1>
+<form hx-post="/register" hx-target="#error">
+  <div id="error"></div>
+  <input name="email" type="email" placeholder="Email" required>
+  <input name="password" type="password" placeholder="Password" required>
+  <button type="submit">Sign up</button>
+</form>
+`;
+    const dashboard = `<h1>Dashboard</h1>
+<p>Welcome, {{ user.email }}.</p>
+<div hx-get="/notifications" hx-trigger="every 5s" hx-swap="innerHTML">Loading notifications…</div>
+`;
+    await writeFile(join(targetDir, 'src/views/layouts/main.html'), layout, 'utf8');
+    await writeFile(join(targetDir, 'src/views/partials/nav.html'), nav, 'utf8');
+    await writeFile(join(targetDir, 'src/views/partials/todo-item.html'), todoItem, 'utf8');
+    await writeFile(join(targetDir, 'src/views/pages/home.html'), home, 'utf8');
+    await writeFile(join(targetDir, 'src/views/pages/login.html'), login, 'utf8');
+    await writeFile(join(targetDir, 'src/views/pages/register.html'), register, 'utf8');
+    await writeFile(join(targetDir, 'src/views/pages/dashboard.html'), dashboard, 'utf8');
+    await writeFile(join(targetDir, 'public', 'app.css'), 'body{font-family:system-ui,sans-serif;max-width:48rem;margin:2rem auto;padding:0 1rem;line-height:1.6}nav{margin-bottom:2rem}\n', 'utf8');
+
+    const controller = `import 'reflect-metadata';
+import { Controller, Get, Post } from 'streetjs';
+import type { StreetContext } from 'streetjs';
+
+// HTMX views controller. \`ctx.htmx\` is attached by HtmxPlugin.middleware()
+// (registered in main.ts). \`view()\` returns the full layout on navigation and
+// just the page fragment on an HTMX request.
+@Controller('/')
+export class ViewsController {
+  private todos: { id: number; text: string }[] = [];
+  private nextId = 1;
+
+  @Get('/')
+  async home(ctx: StreetContext): Promise<void> {
+    const todos = this.todos.map((t) => ctx.htmx.engine.partial('todo-item', t)).join('');
+    ctx.htmx.view('home', { title: 'Home', todos });
+  }
+
+  @Post('/todos')
+  async addTodo(ctx: StreetContext): Promise<void> {
+    const { text } = ctx.body as { text: string };
+    const todo = { id: this.nextId++, text };
+    this.todos.push(todo);
+    ctx.htmx.hx({ trigger: 'todoAdded' }).partial('todo-item', todo); // returns just the new <li>
+  }
+
+  @Get('/dashboard')
+  async dashboard(ctx: StreetContext): Promise<void> {
+    ctx.htmx.view('dashboard', { title: 'Dashboard', user: { email: 'you@example.com' } });
+  }
+
+  @Get('/login')
+  async login(ctx: StreetContext): Promise<void> {
+    ctx.htmx.view('login', { title: 'Log in' });
+  }
+
+  @Get('/register')
+  async register(ctx: StreetContext): Promise<void> {
+    ctx.htmx.view('register', { title: 'Create account' });
+  }
+}
+`;
+    await writeFile(join(targetDir, 'src/controllers/views.controller.ts'), controller, 'utf8');
+
+    const note = `# HTMX frontend
+
+This project renders HTML on the server and uses [HTMX](https://htmx.org) to swap
+fragments — no SPA, no client build step. Powered by \`@streetjs/plugin-htmx\`.
+
+## Wire it up (one-time)
+
+Add these lines to \`src/main.ts\`:
+
+\`\`\`ts
+import HtmxPlugin from '@streetjs/plugin-htmx';
+import { ViewsController } from './controllers/views.controller.js';
+
+// after the other app.use(...) middleware:
+app.use(HtmxPlugin.middleware({ viewsDir: 'src/views', layout: 'main' }));
+// with the other app.registerController(...) calls:
+app.registerController(ViewsController);
+\`\`\`
+
+## Layout
+
+\`\`\`
+src/views/
+  layouts/main.html      # contains {{{ body }}}; loads htmx
+  partials/              # nav, todo-item
+  pages/                 # home, login, register, dashboard
+public/app.css
+\`\`\`
+
+Template syntax: \`{{ x }}\` (escaped), \`{{{ x }}}\` (raw), \`{{> name }}\` (partial).
+Compose lists by rendering partials in the controller (see \`views.controller.ts\`).
+
+Docs: https://hassanmubiru.github.io/StreetJS/starters/
+`;
+    await writeFile(join(targetDir, 'HTMX.md'), note, 'utf8');
+    console.log('[street] Scaffolded HTMX (server-rendered) views in src/views/ + @streetjs/plugin-htmx.');
 
   /** Write a GitHub Actions workflow that builds (and tests) the backend, and the web app when present. */
   private async scaffoldCI(targetDir: string, frontend: string): Promise<void> {
