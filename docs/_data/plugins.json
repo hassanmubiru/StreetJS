@@ -1,6 +1,6 @@
 {
   "generated": "2026-06-21",
-  "count": 19,
+  "count": 20,
   "categories": [
     {
       "name": "AI",
@@ -25,6 +25,10 @@
     {
       "name": "Messaging",
       "slug": "messaging"
+    },
+    {
+      "name": "Other",
+      "slug": "other"
     },
     {
       "name": "Payments",
@@ -346,6 +350,28 @@
         "sms",
         "messaging",
         "notifications"
+      ]
+    },
+    {
+      "name": "@streetjs/plugin-htmx",
+      "slug": "htmx",
+      "title": "Htmx",
+      "description": "Official StreetJS plugin: HTMX support — a dependency-free view engine (layouts, partials), HX-request detection, response-header helpers and CSRF form fields for server-rendered apps.",
+      "version": "1.0.0",
+      "category": "Other",
+      "catSlug": "other",
+      "tier": "Official",
+      "npm": "https://www.npmjs.com/package/@streetjs/plugin-htmx",
+      "keywords": [
+        "street",
+        "streetjs",
+        "street-plugin",
+        "htmx",
+        "html",
+        "server-rendered",
+        "ssr",
+        "views",
+        "templates"
       ]
     },
     {
