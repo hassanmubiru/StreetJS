@@ -870,6 +870,7 @@ Docs: https://hassanmubiru.github.io/StreetJS/starters/
 `;
     await writeFile(join(targetDir, 'HTMX.md'), note, 'utf8');
     console.log('[street] Scaffolded HTMX (server-rendered) views in src/views/ + @streetjs/plugin-htmx.');
+  }
 
   /** Write a GitHub Actions workflow that builds (and tests) the backend, and the web app when present. */
   private async scaffoldCI(targetDir: string, frontend: string): Promise<void> {
