@@ -1,0 +1,27 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# GitHub Linguist overrides
+#
+# Goal: make GitHub's language statistics reflect hand-written StreetJS source.
+# Only VENDORED third-party code and GENERATED build artifacts are reclassified.
+# All genuine source — including every scripts/*.mjs automation file, package
+# tests, and runnable examples — remains counted. No source is hidden to inflate
+# any language percentage. Evidence: LANGUAGE-STATS-AUDIT.md.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# VENDORED — upstream SQLite WebAssembly/JS amalgamation (Emscripten "glue code"
+# + the sqlite3 JS API). Third-party, not authored by StreetJS; the file header
+# states "The author disclaims copyright to this source code." ~387 KB — the
+# single largest JavaScript contributor in the repo.
+packages/core/src/database/sqlite/sqlite3-node.mjs linguist-vendored=true
+
+# GENERATED — compiled test artifacts checked into the repo (built from the
+# TypeScript sources that sit alongside them). ~150 KB across 68 files.
+**/dist-test/** linguist-generated=true
+
+# GENERATED — build output that may be tracked. `dist/` is normally gitignored,
+# so this is a defensive no-op when absent.
+**/dist/** linguist-generated=true
+
+# GENERATED — npm lockfiles. These are `data` (already excluded from the language
+# bar); marked for correctness and to match Linguist's own defaults.
+**/package-lock.json linguist-generated=true
