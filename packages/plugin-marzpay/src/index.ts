@@ -13,6 +13,7 @@
 // (3.1, 4.1, 5.x, 6.x, 7.x, 8.x).
 
 import { createHmac, timingSafeEqual } from 'node:crypto';
+import { request as httpsRequest } from 'node:https';
 
 import { PluginError, type PluginManifest } from 'streetjs';
 
