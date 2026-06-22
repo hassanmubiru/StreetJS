@@ -49,6 +49,7 @@ export const TEMPLATES: Record<string, TemplateSpec> = {
     //   --with-billing   → @streetjs/plugin-stripe (billing webhook controller)
     //   --with-admin-ui  → @streetjs/auth-ui + @streetjs/admin-ui (React screens)
     //   --with-email     → email via @streetjs/plugin-sendgrid (injected Mailer)
+    //   --with-marzpay   → @streetjs/plugin-marzpay (MarzPay billing modules)
     // Billing/email and the Postgres driver (@streetjs/plugin-postgres) stay
     // install-on-demand (see SAAS.md).
     packages: {
