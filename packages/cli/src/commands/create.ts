@@ -4371,13 +4371,38 @@ Add these lines to \`src/main.ts\`:
 
 \`\`\`ts
 import HtmxPlugin from '@streetjs/plugin-htmx';
+import { MarzPayPlugin } from '@streetjs/plugin-marzpay';
 import { ViewsController } from './controllers/views.controller.js';
+import { MarzPayViewsController } from './controllers/marzpay.controller.js';
 
 // after the other app.use(...) middleware:
 app.use(HtmxPlugin.middleware({ viewsDir: 'src/views', layout: 'main' }));
+// MarzPay injects a client into ctx.state['marzpay'] for the controller below:
+app.use(MarzPayPlugin({ apiKey: process.env.MARZPAY_API_KEY!, secretKey: process.env.MARZPAY_SECRET!, environment: 'sandbox' }));
 // with the other app.registerController(...) calls:
 app.registerController(ViewsController);
+app.registerController(MarzPayViewsController);
 \`\`\`
+
+## MarzPay (server-rendered, no SPA)
+
+\`@streetjs/plugin-marzpay\` powers server-rendered checkout. The fragments under
+\`src/views/pages/marzpay/\` submit via \`hx-post\`; \`marzpay.controller.ts\` calls the
+injected client and swaps in the response:
+
+\`\`\`
+src/views/pages/marzpay/
+  checkout.html       # payment initialization form (hx-post /marzpay/checkout)
+  redirect.html       # redirect-handling fragment (verified redirect_url)
+  status.html         # payment status display (hx-post /marzpay/status)
+  subscription.html   # subscription management (hx-post /marzpay/subscription)
+  failure.html        # failure fragment — returned on error/non-success, never a redirect
+src/controllers/marzpay.controller.ts
+\`\`\`
+
+On a verified card initialization the controller returns the redirect fragment
+(and an \`HX-Redirect\` to MarzPay's \`redirect_url\`); on error or a non-success
+result it returns the failure fragment and never a redirect.
 
 ## Layout
 
@@ -4396,6 +4421,264 @@ Docs: https://hassanmubiru.github.io/StreetJS/starters/
 `;
     await writeFile(join(targetDir, 'HTMX.md'), note, 'utf8');
     console.log('[street] Scaffolded HTMX (server-rendered) views in src/views/ + @streetjs/plugin-htmx.');
+    console.log('[street] Scaffolded MarzPay HTMX fragments (src/views/pages/marzpay/) + controller + @streetjs/plugin-marzpay.');
+  }
+
+  /**
+   * Scaffold the MarzPay HTMX overlay into the backend (server-rendered only).
+   *
+   * Writes four DISTINCT `hx-post`-driven fragments — payment initialization,
+   * payment redirect handling, payment status, and subscription management — plus
+   * a failure fragment, and a controller that calls the injected `MarzPayClient`
+   * (`ctx.state['marzpay']`). On a verified success the controller returns the
+   * redirect fragment (with an `HX-Redirect` to the verified `redirect_url`) or
+   * the status fragment; on an error OR a non-success result it returns the
+   * failure fragment and NEVER a redirect fragment (Requirements 7.1–7.6). No SPA
+   * or client build step is involved — everything renders via `ctx.htmx`.
+   */
+  private async scaffoldHtmxMarzPay(targetDir: string): Promise<void> {
+    await mkdir(join(targetDir, 'src', 'views', 'pages', 'marzpay'), { recursive: true });
+
+    // (1) Payment initialization fragment — hx-post form -> POST /marzpay/checkout.
+    const checkout = `<section id="marzpay-checkout" class="marzpay">
+  <h2>Pay with MarzPay</h2>
+  <form hx-post="/marzpay/checkout" hx-target="#marzpay-result" hx-swap="innerHTML">
+    <label>Amount <input name="amount" type="number" min="1" step="1" value="{{ amount }}" required></label>
+    <label>Currency <input name="currency" value="{{ currency }}" required></label>
+    <label>Country <input name="country" value="{{ country }}" required></label>
+    <label>Reference <input name="reference" value="{{ reference }}" placeholder="unique reference (UUID)" required></label>
+    <button type="submit">Pay now</button>
+  </form>
+  <div id="marzpay-result"></div>
+</section>
+`;
+
+    // (2) Payment redirect-handling fragment — returned on a verified card init
+    // that yields a redirect_url. The controller also sets HX-Redirect so HTMX
+    // navigates the browser to MarzPay; this fragment is the no-JS fallback.
+    const redirect = `<div id="marzpay-redirect" class="marzpay-redirect">
+  <h2>Redirecting to MarzPay…</h2>
+  <p>Payment <code>{{ reference }}</code> was initialized. You are being sent to the secure MarzPay payment page.</p>
+  <p>If you are not redirected automatically, <a href="{{ redirectUrl }}">continue to payment</a>.</p>
+</div>
+`;
+
+    // (3) Payment status fragment — displays a verified status and offers an
+    // hx-post refresh -> POST /marzpay/status (verifyPayment by reference).
+    const status = `<section id="marzpay-status" class="marzpay">
+  <h2>Payment status</h2>
+  <p>Reference <code>{{ reference }}</code>: <strong>{{ status }}</strong></p>
+  <form hx-post="/marzpay/status" hx-target="#marzpay-status" hx-swap="outerHTML">
+    <input type="hidden" name="reference" value="{{ reference }}">
+    <button type="submit">Refresh status</button>
+  </form>
+</section>
+`;
+
+    // (4) Subscription management fragment — hx-post form -> POST /marzpay/subscription.
+    // Selecting a plan starts a MarzPay payment for that plan (initializePayment).
+    const subscription = `<section id="marzpay-subscription" class="marzpay">
+  <h2>Subscription</h2>
+  <p>Current plan: <strong>{{ planName }}</strong> ({{ planStatus }})</p>
+  <form hx-post="/marzpay/subscription" hx-target="#marzpay-subscription" hx-swap="outerHTML">
+    <label>Plan
+      <select name="planId" required>
+        <option value="basic">Basic</option>
+        <option value="pro">Pro</option>
+      </select>
+    </label>
+    <button type="submit">Subscribe / change plan</button>
+  </form>
+</section>
+`;
+
+    // Failure fragment — returned on error OR a non-success init/verify result.
+    // It NEVER contains a redirect; no HX-Redirect header is set on this path.
+    const failure = `<div id="marzpay-failure" class="marzpay-failure" role="alert">
+  <h2>{{ title }}</h2>
+  <p>{{ message }}</p>
+  <p>No redirect was performed. Please review the details and try again.</p>
+</div>
+`;
+
+    await writeFile(join(targetDir, 'src/views/pages/marzpay/checkout.html'), checkout, 'utf8');
+    await writeFile(join(targetDir, 'src/views/pages/marzpay/redirect.html'), redirect, 'utf8');
+    await writeFile(join(targetDir, 'src/views/pages/marzpay/status.html'), status, 'utf8');
+    await writeFile(join(targetDir, 'src/views/pages/marzpay/subscription.html'), subscription, 'utf8');
+    await writeFile(join(targetDir, 'src/views/pages/marzpay/failure.html'), failure, 'utf8');
+
+    const controller = `import 'reflect-metadata';
+import { Controller, Get, Post } from 'streetjs';
+import type { StreetContext } from 'streetjs';
+import type { MarzPayClient, PaymentInitResult } from '@streetjs/plugin-marzpay';
+
+// MarzPay HTMX controller (server-rendered fragments — no SPA, no client build).
+//
+// The MarzPayClient is injected by MarzPayPlugin into \`ctx.state['marzpay']\`.
+// Each handler renders via \`ctx.htmx\`, which returns just the page fragment for
+// HTMX (\`hx-post\`) requests and the full layout on direct navigation.
+//
+// Requirement 7.5 is the critical invariant: when \`initializePayment\` throws OR
+// returns a non-success result, the controller returns the FAILURE fragment and
+// never a redirect fragment (and sets no HX-Redirect header).
+
+// Verified MarzPay status vocabulary (Research_Artifact): a terminal failure is
+// \`failed\` or \`cancelled\`. \`successful\`/\`completed\`/\`processing\`/\`pending\`/
+// \`sandbox\` are not failures. A non-empty redirect_url (card flow) is success.
+const FAILED_STATUSES = new Set<string>(['failed', 'cancelled']);
+
+function isSuccessfulInit(result: PaymentInitResult): boolean {
+  if (typeof result.redirectUrl === 'string' && result.redirectUrl.trim() !== '') return true;
+  return !FAILED_STATUSES.has((result.status ?? '').toLowerCase());
+}
+
+function clientOf(ctx: StreetContext): MarzPayClient | undefined {
+  return (ctx.state as Record<string, unknown>)['marzpay'] as MarzPayClient | undefined;
+}
+
+interface CheckoutBody { amount?: string; currency?: string; country?: string; reference?: string }
+interface StatusBody { reference?: string }
+interface SubscriptionBody { planId?: string }
+
+// Illustrative plan catalogue for the HTMX overlay. A real app reads plans from
+// configuration (see the SaaS billing modules); these are scaffold defaults.
+const PLANS: Record<string, { name: string; amount: number; currency: string }> = {
+  basic: { name: 'Basic', amount: 10000, currency: 'UGX' },
+  pro: { name: 'Pro', amount: 30000, currency: 'UGX' },
+};
+
+@Controller('/marzpay')
+export class MarzPayViewsController {
+  /** Render the payment initialization (checkout) fragment. */
+  @Get('/checkout')
+  async checkout(ctx: StreetContext): Promise<void> {
+    ctx.htmx.view('marzpay/checkout', {
+      title: 'Checkout',
+      amount: 10000,
+      currency: 'UGX',
+      country: 'UG',
+      reference: '',
+    });
+  }
+
+  /** hx-post: initialize a MarzPay payment; return the redirect/status fragment. */
+  @Post('/checkout')
+  async initialize(ctx: StreetContext): Promise<void> {
+    const body = (ctx.body ?? {}) as CheckoutBody;
+    await this.startPayment(ctx, {
+      amount: Number(body.amount),
+      currency: (body.currency ?? '').trim(),
+      country: (body.country ?? '').trim(),
+      reference: (body.reference ?? '').trim(),
+    });
+  }
+
+  /** Render the subscription management fragment. */
+  @Get('/subscription')
+  async subscription(ctx: StreetContext): Promise<void> {
+    ctx.htmx.view('marzpay/subscription', {
+      title: 'Subscription',
+      planName: 'None',
+      planStatus: 'inactive',
+    });
+  }
+
+  /** hx-post: start a MarzPay payment for the selected plan (initializePayment). */
+  @Post('/subscription')
+  async subscribe(ctx: StreetContext): Promise<void> {
+    const body = (ctx.body ?? {}) as SubscriptionBody;
+    const planId = (body.planId ?? '').trim();
+    const plan = PLANS[planId];
+    if (plan === undefined) {
+      // Unknown plan: a non-success outcome -> failure fragment, no redirect.
+      ctx.htmx.view('marzpay/failure', {
+        title: 'Subscription failed',
+        message: \`Unknown plan "\${planId}".\`,
+      }, 400);
+      return;
+    }
+    await this.startPayment(ctx, {
+      amount: plan.amount,
+      currency: plan.currency,
+      country: 'UG',
+      reference: \`sub-\${planId}-\${Date.now()}\`,
+    });
+  }
+
+  /** hx-post: verify a payment by reference; return the status fragment. */
+  @Post('/status')
+  async status(ctx: StreetContext): Promise<void> {
+    const body = (ctx.body ?? {}) as StatusBody;
+    const reference = (body.reference ?? '').trim();
+    const client = clientOf(ctx);
+    if (client === undefined) {
+      ctx.htmx.view('marzpay/failure', {
+        title: 'Status unavailable',
+        message: 'MarzPay is not configured on this server.',
+      }, 500);
+      return;
+    }
+    try {
+      const result = await client.verifyPayment(reference);
+      ctx.htmx.view('marzpay/status', { title: 'Payment status', reference: result.reference, status: result.status });
+    } catch (err) {
+      ctx.htmx.view('marzpay/failure', {
+        title: 'Status unavailable',
+        message: err instanceof Error ? err.message : 'Could not verify payment status.',
+      }, 200);
+    }
+  }
+
+  /**
+   * Shared initialization path. On a verified success with a redirect_url it
+   * returns the redirect fragment (and sets HX-Redirect); on a verified success
+   * without a redirect it returns the status fragment; on an error OR a
+   * non-success result it returns the failure fragment and NO redirect (R7.5).
+   */
+  private async startPayment(
+    ctx: StreetContext,
+    req: { amount: number; currency: string; country: string; reference: string },
+  ): Promise<void> {
+    const client = clientOf(ctx);
+    if (client === undefined) {
+      ctx.htmx.view('marzpay/failure', {
+        title: 'Payment failed',
+        message: 'MarzPay is not configured on this server.',
+      }, 500);
+      return;
+    }
+    try {
+      const result = await client.initializePayment({
+        amount: req.amount,
+        currency: req.currency,
+        country: req.country,
+        reference: req.reference,
+        method: 'card',
+      });
+      if (!isSuccessfulInit(result)) {
+        ctx.htmx.view('marzpay/failure', {
+          title: 'Payment failed',
+          message: \`Payment could not be initialized (status: \${result.status}).\`,
+        }, 200);
+        return;
+      }
+      if (typeof result.redirectUrl === 'string' && result.redirectUrl.trim() !== '') {
+        ctx.htmx
+          .hx({ redirect: result.redirectUrl })
+          .view('marzpay/redirect', { title: 'Redirecting', reference: result.reference, redirectUrl: result.redirectUrl });
+        return;
+      }
+      ctx.htmx.view('marzpay/status', { title: 'Payment status', reference: result.reference, status: result.status });
+    } catch (err) {
+      ctx.htmx.view('marzpay/failure', {
+        title: 'Payment failed',
+        message: err instanceof Error ? err.message : 'Payment initialization failed.',
+      }, 200);
+    }
+  }
+}
+`;
+    await writeFile(join(targetDir, 'src/controllers/marzpay.controller.ts'), controller, 'utf8');
   }
 
   /** Write a GitHub Actions workflow that builds (and tests) the backend, and the web app when present. */
