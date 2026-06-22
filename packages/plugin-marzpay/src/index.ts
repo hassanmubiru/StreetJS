@@ -401,3 +401,162 @@ export function buildRefundRequest(
     body: JSON.stringify(payload),
   };
 }
+
+// ---------------------------------------------------------------------------
+// Lookup request builders and argument guards (Task 5.3)
+// ---------------------------------------------------------------------------
+//
+// Mirrors the PayPal builder style: request construction is PURE and
+// offline-verifiable; nothing here touches the network (the transport is
+// authored in Task 7.1). Each builds a verified GET request — GET requests
+// carry an empty-string body. Reference/identifier arguments are trimmed and
+// length-guarded before any request is constructed (Requirements 3.2, 3.3,
+// 3.4, 3.10, 2.8).
+
+/** Maximum accepted length (after trimming) for a reference/transaction id. */
+const MAX_IDENTIFIER_LENGTH = 256;
+
+/**
+ * Trim and validate a reference/identifier argument, returning the trimmed
+ * value. Throws a `PluginError` that NAMES the offending argument — and so no
+ * request is built/sent — when the value is not a string, is empty or
+ * whitespace-only, or exceeds `MAX_IDENTIFIER_LENGTH` characters after trimming
+ * (Requirements 3.2, 3.3, 3.10).
+ */
+function guardIdentifierArgument(value: unknown, argName: string, operation: string): string {
+  if (typeof value !== 'string' || value.trim() === '') {
+    throw new PluginError(
+      `MarzPay ${operation}: "${argName}" is required and must be a non-empty string`,
+    );
+  }
+  const trimmed = value.trim();
+  if (trimmed.length > MAX_IDENTIFIER_LENGTH) {
+    throw new PluginError(
+      `MarzPay ${operation}: "${argName}" must be at most ${MAX_IDENTIFIER_LENGTH} characters`,
+    );
+  }
+  return trimmed;
+}
+
+/**
+ * Build the verified `GET /transactions/{reference}` payment-verification
+ * request (Research_Artifact V3) from `cfg`/`spec`/`reference`.
+ *
+ * The `reference` argument is trimmed and length-guarded first: an empty,
+ * whitespace-only, or `>256`-char reference throws a `PluginError` naming the
+ * `"reference"` argument and NO request is built. On success it builds a
+ * `MarzPayHttpRequest` with the verified method/url
+ * (`spec.baseAddress[environment]` + `spec.paths.verifyPayment(trimmedReference)`),
+ * the verified auth headers (`spec.authHeaders(cfg)`), and an empty-string body
+ * (Requirements 3.2, 3.3, 3.10, 2.8).
+ */
+export function buildVerifyPaymentRequest(
+  cfg: MarzPayPluginConfig,
+  spec: MarzPaySpec,
+  reference: string,
+): MarzPayHttpRequest {
+  const trimmedReference = guardIdentifierArgument(reference, 'reference', 'verifyPayment');
+  return {
+    method: 'GET',
+    url: `${resolveBaseAddress(cfg, spec)}${spec.paths.verifyPayment(trimmedReference)}`,
+    headers: spec.authHeaders(cfg),
+    body: '',
+  };
+}
+
+/**
+ * Build the verified `GET /transactions/{id}` transaction-detail request
+ * (Research_Artifact V3) from `cfg`/`spec`/`id`.
+ *
+ * The `id` argument is trimmed and length-guarded first: an empty,
+ * whitespace-only, or `>256`-char id throws a `PluginError` naming the `"id"`
+ * argument and NO request is built. On success it builds a `MarzPayHttpRequest`
+ * with the verified method/url (`spec.baseAddress[environment]` +
+ * `spec.paths.getTransaction(trimmedId)`), the verified auth headers
+ * (`spec.authHeaders(cfg)`), and an empty-string body (Requirements 3.4, 3.10,
+ * 2.8).
+ */
+export function buildGetTransactionRequest(
+  cfg: MarzPayPluginConfig,
+  spec: MarzPaySpec,
+  id: string,
+): MarzPayHttpRequest {
+  const trimmedId = guardIdentifierArgument(id, 'id', 'getTransaction');
+  return {
+    method: 'GET',
+    url: `${resolveBaseAddress(cfg, spec)}${spec.paths.getTransaction(trimmedId)}`,
+    headers: spec.authHeaders(cfg),
+    body: '',
+  };
+}
+
+/**
+ * Documented query filters for `GET /transactions` (Research_Artifact V3,
+ * Appendix A). All fields are OPTIONAL; only the provided filters are appended
+ * to the query string. `type` is constrained to the documented filter values
+ * (`collection`, `withdrawal`, `charge`, `refund`).
+ */
+export interface ListTransactionsQuery {
+  /** 1-based page number. */
+  page?: number;
+  /** Page size (documented range 1–100). */
+  per_page?: number;
+  /** Transaction type filter. */
+  type?: 'collection' | 'withdrawal' | 'charge' | 'refund';
+  /** Transaction status filter. */
+  status?: string;
+  /** Provider filter (e.g. MTN/Airtel/card). */
+  provider?: string;
+  /** Inclusive start date filter. */
+  start_date?: string;
+  /** Inclusive end date filter. */
+  end_date?: string;
+  /** Client reference filter. */
+  reference?: string;
+}
+
+/**
+ * Build the verified `GET /transactions` list request (Research_Artifact V3)
+ * from `cfg`/`spec` and an optional `query`.
+ *
+ * `listTransactions` has NO required arguments. When `query` is provided, only
+ * the documented filters that are present are appended as a query string:
+ * numeric filters (`page`, `per_page`) when finite, and the string-valued
+ * filters (`type`, `status`, `provider`, `start_date`, `end_date`,
+ * `reference`) when non-empty after trimming. It builds a `MarzPayHttpRequest`
+ * with the verified method/url, the verified auth headers
+ * (`spec.authHeaders(cfg)`), and an empty-string body (Requirements 3.4, 2.8).
+ */
+export function buildListTransactionsRequest(
+  cfg: MarzPayPluginConfig,
+  spec: MarzPaySpec,
+  query?: ListTransactionsQuery,
+): MarzPayHttpRequest {
+  const params = new URLSearchParams();
+  if (query !== undefined && query !== null) {
+    if (typeof query.page === 'number' && Number.isFinite(query.page)) {
+      params.set('page', String(query.page));
+    }
+    if (typeof query.per_page === 'number' && Number.isFinite(query.per_page)) {
+      params.set('per_page', String(query.per_page));
+    }
+    if (isNonEmptyString(query.type)) params.set('type', query.type.trim());
+    if (isNonEmptyString(query.status)) params.set('status', query.status.trim());
+    if (isNonEmptyString(query.provider)) params.set('provider', query.provider.trim());
+    if (isNonEmptyString(query.start_date)) params.set('start_date', query.start_date.trim());
+    if (isNonEmptyString(query.end_date)) params.set('end_date', query.end_date.trim());
+    if (isNonEmptyString(query.reference)) params.set('reference', query.reference.trim());
+  }
+
+  const queryString = params.toString();
+  const url = `${resolveBaseAddress(cfg, spec)}${spec.paths.listTransactions}${
+    queryString === '' ? '' : `?${queryString}`
+  }`;
+
+  return {
+    method: 'GET',
+    url,
+    headers: spec.authHeaders(cfg),
+    body: '',
+  };
+}
