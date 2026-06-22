@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "types": ["node"],
+    "paths": {
+      "streetjs": ["../packages/core/dist/index.d.ts"],
+      "@streetjs/plugin-marzpay": ["../packages/plugin-marzpay/dist/index.d.ts"]
+    }
+  },
+  "files": [
+    "../examples/marzpay-checkout/src/main.ts",
+    "../examples/marzpay-subscriptions/src/main.ts",
+    "../examples/marzpay-saas/src/main.ts"
+  ]
+}

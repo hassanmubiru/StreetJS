@@ -12,7 +12,7 @@
 
 import 'reflect-metadata';
 import { randomUUID } from 'node:crypto';
-import { streetApp, type StreetContext } from 'streetjs';
+import { streetApp, type StreetContext, type SandboxedApp } from 'streetjs';
 import { MarzPayPlugin, type MarzPayClient } from '@streetjs/plugin-marzpay';
 
 // ── Startup env-var guard (Requirement 13.5) ───────────────────────────────────
@@ -52,6 +52,16 @@ const port = parseInt(process.env['PORT'] ?? '3000', 10);
 // ── App + plugin wiring ─────────────────────────────────────────────────────────
 
 const app = streetApp({ port });
+
+// The plugin's `onLoad` expects a SandboxedApp (a restricted view exposing
+// `use` + `on`). StreetApp provides `use`; this example registers no framework
+// lifecycle listeners, so `on` is a no-op here.
+function sandboxFor(application: typeof app): SandboxedApp {
+  return {
+    use: (middleware) => application.use(middleware),
+    on: () => {},
+  };
+}
 
 // Register the MarzPay plugin. Its lifecycle injects exactly one MarzPayClient
 // onto `ctx.state[stateKey]` (default "marzpay"). We drive the documented plugin
@@ -127,7 +137,7 @@ app.use(async (ctx, next) => {
 
 async function bootstrap(): Promise<void> {
   await marzpay.onInstall();
-  await marzpay.onLoad(app);
+  await marzpay.onLoad(sandboxFor(app));
   await app.listen(port, '0.0.0.0');
   console.log(`💳 MarzPay checkout example running on http://localhost:${port} (env: ${environment})`);
   console.log('\nTry:');
