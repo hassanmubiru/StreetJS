@@ -2246,8 +2246,19 @@ SENDGRID_API_KEY=SG....
 // hardcoded) and persists/queries billing records ONLY through
 // orgScopedRepo(repo, ctx) so every record is tenant-scoped by org_id.
 //
-// Placeholder scaffold — the full plan-resolution and tenant-scoped persistence
-// logic is filled in by the MarzPay billing task.
+// startCheckout(ctx, planId):
+//   - resolves the plan from BillingConfig; an UNKNOWN planId throws an
+//     "unknown plan" error and persists NOTHING (Requirement 6.6).
+//   - on a known plan it calls the injected MarzPayClient.initializePayment
+//     (verified POST /collect-money, card channel -> redirect_url) and persists
+//     exactly one BillingRecord through orgScopedRepo(repo, ctx), so the row is
+//     stamped with the active tenant's org_id (Requirements 6.5, 6.7, 6.8).
+//
+// recordPayment(ctx, event): writes a verified-webhook-derived BillingRecord,
+// again ONLY through orgScopedRepo(repo, ctx) so it is tenant-scoped by org_id.
+import { randomUUID } from 'node:crypto';
+import { BadRequestException, type StreetContext } from 'streetjs';
+import { orgScopedRepo, type ScopedRepository } from '../../middleware/tenant.js';
 import type { MarzPayClient } from '@streetjs/plugin-marzpay';
 
 /** A subscription plan definition, read from BillingConfig (never hardcoded). */
