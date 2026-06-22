@@ -114,7 +114,10 @@ describe('street create --starter (alias of --template)', () => {
   it('saas starter scaffolds the dashboard controllers + htmx view templates', async () => {
     await withTempDir(async (dir) => {
       const restore = capture();
-      try { await new CreateCommand().execute(ctx(dir, ['proj'], { starter: 'saas' })); } finally { restore(); }
+      // The auth/RBAC UI controller is opt-in behind --with-admin-ui (it imports
+      // @streetjs/auth-ui + @streetjs/admin-ui). Scaffold with the flag so both
+      // controllers are emitted for this assertion.
+      try { await new CreateCommand().execute(ctx(dir, ['proj'], { starter: 'saas', 'with-admin-ui': true })); } finally { restore(); }
       assert.equal(process.exitCode, 0);
       const proj = join(dir, 'proj');
       // Dashboard controllers (htmx fragments + auth/RBAC composition).
