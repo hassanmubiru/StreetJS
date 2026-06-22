@@ -2736,27 +2736,309 @@ export class WebhookController {
 // Requires \`--with-marzpay\` (composes @streetjs/plugin-marzpay; install-on-demand).
 //
 // Owner/Admin-only, org-scoped dashboard rendering six sections: Current Plan,
-// Billing Status, Transactions, Invoices, Usage, and Subscription Renewal.
-// Access is gated with requireRoles('owner','admin'); each section is populated
-// only with records whose org_id equals the active tenant's.
+// Billing Status, Transactions, Invoices, Usage, and Subscription Renewal
+// (Requirement 10.1).
 //
-// Placeholder scaffold — section rendering, empty-state and unavailable-source
-// indicators are filled in by the MarzPay billing dashboard task.
+// ACCESS GATE (Requirement 10.3): the controller mirrors the audited
+// DashboardController role-gate pattern. The /o/:slug/billing route runs behind
+// tenantResolver (src/middleware/tenant.ts), which sets ctx.org = { id, slug, role }
+// ONLY when the caller holds a membership (otherwise 401/403 and no org). The
+// controller defends again at render time via gate(): an unauthenticated caller
+// (no ctx.org) OR an authenticated caller whose role is not owner/admin gets a 403
+// rendered through the shared dashboard/forbidden view, which carries NO billing
+// data of any tenant. Wire the route with requireRoles('owner', 'admin') for the
+// same effect at the middleware layer.
+//
+// ORG-SCOPED DATA (Requirement 10.2): every section reads ONLY through the
+// org-scoped services / repositories (orgScopedRepo), so each section is populated
+// exclusively with records whose org_id equals the active tenant's org_id.
+//
+// PER-SECTION RESILIENCE (Requirements 10.4, 10.5): each section loads its own
+// tenant-scoped collection independently. If a section's data source is
+// unavailable (the load throws) the controller renders an error indicator for THAT
+// section while the other sections still render — and it NEVER substitutes another
+// tenant's data. A section whose tenant-scoped collection is empty renders an
+// empty-state indicator while the remaining sections render their data.
+//
+// WIRING (src/main.ts):
+//   app.use(HtmxPlugin.middleware({ viewsDir: 'src/views', layout: 'dashboard' }));
+//   // /o/:slug/billing also passes through tenantResolver({ members }) and
+//   // requireRoles('owner', 'admin').
+//   app.registerController(BillingDashboardController);
 import 'reflect-metadata';
-import { Controller } from 'streetjs';
-import type { BillingService } from '../billing/marzpay-billing.service.js';
-import type { SubscriptionService } from '../billing/marzpay-subscription.service.js';
+import { Controller, Get } from 'streetjs';
+import type { StreetContext } from 'streetjs';
+import type { ScopedRepository } from '../../middleware/tenant.js';
+import type { ActiveOrg, Role } from '../members/membership.service.js';
+import type { BillingService, BillingRecord } from '../billing/marzpay-billing.service.js';
+import type {
+  SubscriptionService,
+  SubscriptionRecord,
+  InvoiceRecord,
+  UsageRecord,
+} from '../billing/marzpay-subscription.service.js';
 
-/** Roles permitted to view the billing dashboard. */
-export const BILLING_VIEW_ROLES = ['owner', 'admin'] as const;
+/** Roles permitted to view the billing dashboard (Requirement 10.3). */
+export const BILLING_VIEW_ROLES: Role[] = ['owner', 'admin'];
 
 @Controller('/o/:slug/billing')
 export class BillingDashboardController {
   constructor(
     private readonly billing: BillingService,
     private readonly subscriptions: SubscriptionService,
+    private readonly invoices: ScopedRepository<InvoiceRecord>,
+    private readonly billingRecords: ScopedRepository<BillingRecord>,
+    private readonly usage: ScopedRepository<UsageRecord>,
   ) {}
+
+  /**
+   * GET /o/:slug/billing — the Owner/Admin-only billing dashboard.
+   *
+   * The gate denies unauthenticated/non-owner-admin callers with a 403 that
+   * carries no billing data (Requirement 10.3). Otherwise the six sections are
+   * each loaded independently and assembled into the page; a failing or empty
+   * section degrades on its own without affecting the others (Requirements
+   * 10.4, 10.5).
+   */
+  @Get('/')
+  async dashboard(ctx: StreetContext): Promise<void> {
+    const org = this.gate(ctx);
+    if (!org) return; // 403 already rendered with no billing data.
+
+    const [currentPlan, billingStatus, transactions, invoices, usage, renewal] =
+      await Promise.all([
+        this.currentPlanSection(ctx),
+        this.billingStatusSection(ctx),
+        this.transactionsSection(ctx),
+        this.invoicesSection(ctx),
+        this.usageSection(ctx),
+        this.renewalSection(ctx),
+      ]);
+
+    ctx.htmx.view('dashboard/billing', {
+      title: 'Billing',
+      slug: org.slug,
+      role: org.role,
+      currentPlan,
+      billingStatus,
+      transactions,
+      invoices,
+      usage,
+      renewal,
+    });
+  }
+
+  // ── access gate ───────────────────────────────────────────────────────────
+
+  /**
+   * gate — owner/admin render-time gate. Returns ctx.org IFF a membership exists
+   * AND the role is owner/admin; otherwise it responds 403 through the shared
+   * forbidden view (no billing data of any tenant) and returns null so the caller
+   * stops (Requirement 10.3).
+   */
+  private gate(ctx: StreetContext): ActiveOrg | null {
+    const org = ctx.org as ActiveOrg | undefined;
+    if (!org || !BILLING_VIEW_ROLES.includes(org.role)) {
+      ctx.htmx.view('dashboard/forbidden', { title: 'Forbidden' }, 403);
+      return null;
+    }
+    return org;
+  }
+
+  // ── sections (each tenant-scoped and independently fault-isolated) ──────────
+
+  /** Current Plan — the active tenant's current subscription plan. */
+  private currentPlanSection(ctx: StreetContext): Promise<string> {
+    return this.listSection(
+      'current-plan',
+      'Current Plan',
+      () => this.subscriptions.listSubscriptions(ctx),
+      (subs) => {
+        const active = subs.find((s) => s.status === 'active') ?? subs[0];
+        const plan = this.billing.resolvePlan(active.plan);
+        const name = plan ? plan.name : active.plan;
+        return '<p class="plan-name">' + this.esc(name) + '</p>';
+      },
+    );
+  }
+
+  /** Billing Status — the active tenant's current subscription status. */
+  private billingStatusSection(ctx: StreetContext): Promise<string> {
+    return this.listSection(
+      'billing-status',
+      'Billing Status',
+      () => this.subscriptions.listSubscriptions(ctx),
+      (subs) => {
+        const active = subs.find((s) => s.status === 'active') ?? subs[0];
+        return '<p class="status"><span class="badge">' + this.esc(active.status) + '</span></p>';
+      },
+    );
+  }
+
+  /** Transactions — the active tenant's persisted billing records. */
+  private transactionsSection(ctx: StreetContext): Promise<string> {
+    return this.listSection(
+      'transactions',
+      'Transactions',
+      () => this.subscriptions.paymentHistory(ctx, this.billingRecords),
+      (rows) =>
+        '<ul class="transactions">' +
+        rows
+          .map(
+            (r) =>
+              '<li id="txn-' + this.esc(r.id) + '">' +
+              '<span class="reference">' + this.esc(r.reference) + '</span> ' +
+              '<span class="amount">' + this.esc(r.amount) + ' ' + this.esc(r.currency) + '</span> ' +
+              '<span class="badge">' + this.esc(r.status) + '</span>' +
+              '</li>',
+          )
+          .join('') +
+        '</ul>',
+    );
+  }
+
+  /** Invoices — the active tenant's invoice history. */
+  private invoicesSection(ctx: StreetContext): Promise<string> {
+    return this.listSection(
+      'invoices',
+      'Invoices',
+      () => this.subscriptions.listInvoices(ctx, this.invoices),
+      (rows) =>
+        '<ul class="invoices">' +
+        rows
+          .map(
+            (r) =>
+              '<li id="invoice-' + this.esc(r.id) + '">' +
+              '<span class="amount">' + this.esc(r.amount) + ' ' + this.esc(r.currency) + '</span> ' +
+              '<time>' + this.esc(r.issued_at) + '</time>' +
+              '</li>',
+          )
+          .join('') +
+        '</ul>',
+    );
+  }
+
+  /** Usage — the active tenant's recorded usage measurements. */
+  private usageSection(ctx: StreetContext): Promise<string> {
+    return this.listSection(
+      'usage',
+      'Usage',
+      () => this.subscriptions.listUsage(ctx, this.usage),
+      (rows) =>
+        '<ul class="usage">' +
+        rows
+          .map(
+            (r) =>
+              '<li id="usage-' + this.esc(r.id) + '">' +
+              '<span class="metric">' + this.esc(r.metric) + '</span> ' +
+              '<span class="quantity">' + this.esc(r.quantity) + '</span>' +
+              '</li>',
+          )
+          .join('') +
+        '</ul>',
+    );
+  }
+
+  /** Subscription Renewal — when the active tenant's subscription renews. */
+  private renewalSection(ctx: StreetContext): Promise<string> {
+    return this.listSection(
+      'subscription-renewal',
+      'Subscription Renewal',
+      () => this.subscriptions.listSubscriptions(ctx),
+      (subs) => {
+        const active = subs.find((s) => s.status === 'active') ?? subs[0];
+        const end = active.current_period_end;
+        return (
+          '<p class="renewal">' +
+          (end ? 'Renews on <time>' + this.esc(end) + '</time>' : 'No upcoming renewal') +
+          '</p>'
+        );
+      },
+    );
+  }
+
+  // ── helpers ─────────────────────────────────────────────────────────────
+
+  /**
+   * listSection — load a tenant-scoped collection and render exactly one of:
+   *   • an error indicator, if the data source is unavailable (load throws);
+   *   • an empty-state indicator, if the tenant-scoped collection is empty;
+   *   • the rendered rows, otherwise.
+   * The error is caught here so one failing section never aborts the others and
+   * no other tenant's data is ever substituted (Requirements 10.4, 10.5).
+   */
+  private async listSection<T>(
+    key: string,
+    title: string,
+    load: () => Promise<T[]>,
+    render: (items: T[]) => string,
+  ): Promise<string> {
+    try {
+      const items = await load();
+      const body = items.length === 0 ? this.emptyState(title) : render(items);
+      return this.sectionShell(key, title, body);
+    } catch {
+      return this.sectionShell(key, title, this.errorIndicator(title));
+    }
+  }
+
+  /** Wrap a section body with its heading and a stable id/data-section hook. */
+  private sectionShell(key: string, title: string, body: string): string {
+    return (
+      '<section class="billing-section" id="billing-' + key + '" data-section="' + key + '">' +
+      '<h2>' + this.esc(title) + '</h2>' +
+      body +
+      '</section>'
+    );
+  }
+
+  /** Empty-state indicator for a section whose tenant-scoped collection is empty. */
+  private emptyState(title: string): string {
+    return (
+      '<p class="empty-state" data-state="empty">No ' +
+      this.esc(title.toLowerCase()) +
+      ' to show yet.</p>'
+    );
+  }
+
+  /** Error indicator for a section whose data source is unavailable. */
+  private errorIndicator(title: string): string {
+    return (
+      '<p class="error-indicator" data-state="error" role="alert">' +
+      this.esc(title) +
+      ' is temporarily unavailable.</p>'
+    );
+  }
+
+  /** Escape untrusted values before interpolating them into raw HTML. */
+  private esc(value: unknown): string {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
 }
+`,
+      },
+      {
+        // ── Billing dashboard page template (opt-in: --with-marzpay) ──────────
+        // Server-rendered shell for the Owner/Admin billing dashboard. The six
+        // sections are pre-rendered to HTML by BillingDashboardController and
+        // injected as raw fragments ({{{ }}}), mirroring how the audited
+        // dashboard pages embed controller-built fragments (Requirement 10.1).
+        path: 'src/views/pages/dashboard/billing.html',
+        flag: 'with-marzpay',
+        content: `<h1>{{ title }}</h1>
+<p>Organization <strong>{{ slug }}</strong> · your role: <span class="badge">{{ role }}</span></p>
+<div class="billing-dashboard" id="billing-dashboard">
+  {{{ currentPlan }}}
+  {{{ billingStatus }}}
+  {{{ transactions }}}
+  {{{ invoices }}}
+  {{{ usage }}}
+  {{{ renewal }}}
+</div>
 `,
       },
       {
