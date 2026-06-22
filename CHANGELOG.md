@@ -9,10 +9,23 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-## [1.0.24] - 2026-06-22
+## [1.0.25] - 2026-06-22
 
 ### Added
-- Production-grade **SaaS starter** (`street create --starter saas`): multi-tenant `tenantResolver` middleware (org_id row scoping + membership gate), hashed-at-rest **API keys** (`002_api_keys.sql` + `ApiKeyService` + `apiKeyAuth`), per-org/user **settings** (`003_settings.sql` + `SettingsService`), append-only **audit logs**, tokenized **invitations**, **Stripe** billing webhook (signature-verified + idempotent), opt-in **email notifications** (`@streetjs/plugin-sendgrid`), and a server-rendered **htmx dashboard** (`@streetjs/plugin-htmx` + `@streetjs/auth-ui` + `@streetjs/admin-ui`). Composition-only; `001_saas.sql` and the `--starter`/`--template` alias system are unchanged.
+- Production-grade **SaaS starter** (`street create --starter saas`). The default
+  scaffold is **dependency-minimal** — it ships only `@streetjs/plugin-htmx` for
+  the server-rendered dashboard — with heavier integrations behind opt-in flags:
+  `--with-billing` adds `@streetjs/plugin-stripe`, and `--with-admin-ui` adds
+  `@streetjs/auth-ui` + `@streetjs/admin-ui`.
+- The starter composes a full multi-tenant SaaS surface: a `tenantResolver`
+  middleware (org_id row scoping + membership gate), hashed-at-rest **API keys**
+  (`002_api_keys.sql` + `ApiKeyService` + `apiKeyAuth`), per-org/user **settings**
+  (`003_settings.sql` + `SettingsService`), append-only **audit logs**, tokenized
+  **invitations**, a signature-verified + idempotent **Stripe** billing webhook,
+  opt-in **email notifications**, and a server-rendered **htmx dashboard**.
+- Default **RBAC** is composed from core `requireRoles` (no bespoke permission
+  engine). Composition-only release; `001_saas.sql` and the `--starter`/
+  `--template` alias system are unchanged.
 
 ## [1.0.23] - 2026-06-22
 
