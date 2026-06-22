@@ -1952,22 +1952,59 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
 This project was scaffolded with \`street create --starter saas\`. It overlays a
 multi-tenant SaaS structure on top of the base StreetJS app.
 
+## Dependency-minimal by default
+
+The default \`--starter saas\` scaffold is **dependency-minimal**: on top of the
+\`streetjs\` core it adds only the server-rendered dashboard runtime
+(\`@streetjs/plugin-htmx\`). Every default-scaffolded source file imports only
+from \`streetjs\`, Node builtins, local files, or \`@streetjs/plugin-htmx\`, so the
+project **installs cleanly from npm** and **type-checks with \`tsc\`** out of the
+box.
+
+Optional features are **opt-in** at scaffold time and pull in only the published
+package(s) they need:
+
+| Flag | Adds | Package(s) |
+|------|------|------------|
+| \`--with-billing\`  | Stripe webhook controller (\`src/modules/billing/billing.controller.ts\`) | \`@streetjs/plugin-stripe\` |
+| \`--with-admin-ui\` | Auth + RBAC React screens (\`src/modules/dashboard/auth-ui.controller.ts\`) | \`@streetjs/auth-ui\`, \`@streetjs/admin-ui\` |
+| \`--with-email\`    | Email delivery for notifications (injected \`Mailer\`) | \`@streetjs/plugin-sendgrid\` (install when wiring the transport) |
+
+\`\`\`bash
+# Minimal default (installs + type-checks with zero extra @streetjs packages):
+street create my-saas --starter saas
+
+# Opt into billing and the auth/RBAC management screens:
+street create my-saas --starter saas --with-billing --with-admin-ui
+\`\`\`
+
+> The billing service (\`billing.service.ts\`) and the notification service
+> (\`notification.service.ts\`) ship in the **default** scaffold — they import no
+> third-party package (Stripe events are typed locally; email is delivered
+> through an injected \`Mailer\` interface). Only the billing **webhook
+> controller** and the auth/RBAC **UI controller** are flag-gated, because only
+> they statically import an optional \`@streetjs/*\` package.
+
 ## What's included
 
 - **Auth** — email/password + sessions (core JWT/session primitives).
 - **Organizations, teams & RBAC** — \`organizations\`, \`memberships\` (roles:
-  owner/admin/member) via \`@streetjs/admin\`.
+  owner/admin/member). RBAC is composed from the core \`requireRoles(...)\`
+  middleware (see \`src/features/saas.ts\`); the managed \`@streetjs/admin\`
+  \`AdminService\` is an optional enhancement you can install separately.
 - **Multi-tenancy** — row-level scoping by \`org_id\` + \`tenantResolver\`
   middleware (see below).
 - **Invitations** — tokenized org invites (\`invitations\`).
-- **Billing placeholders** — \`subscriptions\` table + a Stripe webhook handler
-  stub. Add \`@streetjs/plugin-stripe\` and wire your keys to go live.
+- **Billing placeholders** — \`subscriptions\` table + a Stripe webhook handler.
+  Scaffold the webhook controller with \`--with-billing\` (adds
+  \`@streetjs/plugin-stripe\`) and wire your keys to go live.
 - **API keys** — hashed-at-rest programmatic keys (\`api_keys\`) + \`apiKeyAuth\`
   middleware (see below).
 - **Settings** — per-org and per-user key/value settings (\`org_settings\`,
   \`user_settings\`).
 - **Audit logs** — \`audit_logs\` for every privileged action.
-- **Notifications** — \`notifications\` per user.
+- **Notifications** — \`notifications\` per user (in-app always; email via
+  \`--with-email\` + \`@streetjs/plugin-sendgrid\`).
 
 ## Schema
 
