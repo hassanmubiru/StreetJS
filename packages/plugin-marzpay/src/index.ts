@@ -58,6 +58,56 @@ export interface MarzPayPluginConfig {
   timeoutMs?: number;
 }
 
+/** Default request timeout, in milliseconds, when `timeoutMs` is omitted. */
+const DEFAULT_TIMEOUT_MS = 30_000;
+/** Default app-state key under which the client is injected. */
+const DEFAULT_STATE_KEY = 'marzpay';
+
+/**
+ * Validate and normalize raw MarzPay plugin configuration.
+ *
+ * Mirrors `validatePayPalConfig` (@streetjs/plugin-paypal): throws a
+ * `PluginError` naming the offending field when `apiKey`/`secretKey` are
+ * missing/empty/whitespace-only or when `environment` is neither `'sandbox'`
+ * nor `'production'`. On success it returns a normalized config with
+ * `environment` defaulted to `'sandbox'`, `stateKey` to `'marzpay'`, and
+ * `timeoutMs` to `30_000`. A thrown config never yields an injected client
+ * (Requirements 2.3, 2.4, 2.6, 2.7).
+ */
+export function validateMarzPayConfig(input: unknown): MarzPayPluginConfig {
+  if (typeof input !== 'object' || input === null) {
+    throw new PluginError('MarzPay plugin config must be an object');
+  }
+  const o = input as Record<string, unknown>;
+
+  if (typeof o['apiKey'] !== 'string' || (o['apiKey'] as string).trim() === '') {
+    throw new PluginError('MarzPay plugin config: "apiKey" is required and must be a non-empty string');
+  }
+  if (typeof o['secretKey'] !== 'string' || (o['secretKey'] as string).trim() === '') {
+    throw new PluginError('MarzPay plugin config: "secretKey" is required and must be a non-empty string');
+  }
+  if (o['environment'] !== undefined && o['environment'] !== 'sandbox' && o['environment'] !== 'production') {
+    throw new PluginError('MarzPay plugin config: "environment" must be "sandbox" or "production"');
+  }
+  if (o['stateKey'] !== undefined && (typeof o['stateKey'] !== 'string' || (o['stateKey'] as string).trim() === '')) {
+    throw new PluginError('MarzPay plugin config: "stateKey" must be a non-empty string');
+  }
+  if (
+    o['timeoutMs'] !== undefined &&
+    (typeof o['timeoutMs'] !== 'number' || !Number.isFinite(o['timeoutMs']) || (o['timeoutMs'] as number) <= 0)
+  ) {
+    throw new PluginError('MarzPay plugin config: "timeoutMs" must be a positive number');
+  }
+
+  return {
+    apiKey: o['apiKey'] as string,
+    secretKey: o['secretKey'] as string,
+    environment: (o['environment'] as 'sandbox' | 'production' | undefined) ?? 'sandbox',
+    stateKey: (o['stateKey'] as string | undefined) ?? DEFAULT_STATE_KEY,
+    timeoutMs: (o['timeoutMs'] as number | undefined) ?? DEFAULT_TIMEOUT_MS,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Verify-don't-invent spec seam (Task 3.1)
 // ---------------------------------------------------------------------------
