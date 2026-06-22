@@ -189,6 +189,15 @@ describe('Property 8: Stripe webhook idempotency (Requirements 4.1)', () => {
   // Each generated event targets one of a small pool of orgs (so repeated
   // upserts to the same org are common), carries org metadata as the real
   // service reads it, and varies plan/status/customer/period.
+  interface EventSpec {
+    orgId: string;
+    type: (typeof HANDLED_TYPES)[number];
+    plan: string;
+    status: string;
+    customer: string | undefined;
+    periodEnd: number | undefined;
+  }
+
   const eventSpecArb = fc.record({
     orgId: fc.constantFrom('org_a', 'org_b', 'org_c'),
     type: fc.constantFrom(...HANDLED_TYPES),
@@ -199,7 +208,7 @@ describe('Property 8: Stripe webhook idempotency (Requirements 4.1)', () => {
   });
 
   /** Materialise a generated spec into a verified-event shape + a unique id. */
-  function toEvent(spec: fc.infer<typeof eventSpecArb>, index: number): StripeEvent {
+  function toEvent(spec: EventSpec, index: number): StripeEvent {
     const object: Record<string, unknown> = {
       metadata: { org_id: spec.orgId, plan: spec.plan },
       status: spec.status,
