@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }} · Dashboard</title>
+  <script src="https://unpkg.com/htmx.org@2.0.4" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="/public/app.css">
+  <!-- @streetjs/auth-ui / @streetjs/admin-ui stylesheet, injected server-side (empty on plain views). -->
+  <style>{{{ uiCss }}}</style>
+  <!-- No build step: React + the UI packages load from an ESM CDN, mirroring how htmx is loaded above. -->
+  <script type="importmap">
+  {
+    "imports": {
+      "react": "https://esm.sh/react@18",
+      "react-dom/client": "https://esm.sh/react-dom@18/client",
+      "@streetjs/auth-ui": "https://esm.sh/@streetjs/auth-ui",
+      "@streetjs/admin-ui": "https://esm.sh/@streetjs/admin-ui"
+    }
+  }
+  </script>
+  <script type="module" src="/public/islands.js"></script>
+</head>
+<body>
+  {{{ nav }}}
+  <main>{{{ body }}}</main>
+</body>
+</html>
