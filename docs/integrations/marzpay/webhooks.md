@@ -33,7 +33,7 @@ collection request. Delivery and payload shape are recorded as a
 {
   "event_type": "collection.completed",
   "transaction": {
-    "uuid": "…",
+    "uuid": "0a271b1f-7519-4ea7-8d8a-1c2f3b4a5d6e",
     "reference": "c97fae8b-9b7f-4192-9f72-6f0859d33e67",
     "status": "completed",
     "amount": { "formatted": "5,000.00", "raw": 5000, "currency": "UGX" },

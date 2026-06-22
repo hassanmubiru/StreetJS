@@ -4210,6 +4210,9 @@ export class CreateCommand {
       await writeFile(join(webDir, 'src', 'main.tsx'), this.renderWebReactMain(), 'utf8');
       await writeFile(join(webDir, 'src', 'App.tsx'), this.renderWebReactApp(projectName), 'utf8');
       await writeFile(join(webDir, '.env.example'), 'VITE_API_URL=http://localhost:3000\n', 'utf8');
+      // MarzPay React overlay: client lib + four billing pages. Written whenever
+      // the React frontend is selected (Requirements 5.4, 5.5, 8.1–8.5).
+      await this.scaffoldReactMarzPay(webDir);
       console.log('[street] Scaffolded React (Vite) frontend in web/.');
     } else if (frontend === 'next') {
       await mkdir(join(webDir, 'app'), { recursive: true });
