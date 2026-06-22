@@ -172,13 +172,6 @@ const whitespaceArb = fc
   .array(fc.constantFrom(' ', '\t', '\n', '\r\n'), { minLength: 1, maxLength: 6 })
   .map((parts) => parts.join(''));
 
-/** Assemble selected migrations into one script joined by random whitespace. */
-function assemble(paths: MigrationPath[], sep: string): string {
-  return paths.map(readMigration).join(`;${sep}`.replace(/^;/, sep)) /* keep own ; */ === ''
-    ? ''
-    : paths.map(readMigration).join(sep);
-}
-
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
