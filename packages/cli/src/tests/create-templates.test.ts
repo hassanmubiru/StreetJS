@@ -111,6 +111,42 @@ describe('street create --starter (alias of --template)', () => {
     });
   });
 
+  it('saas starter scaffolds the dashboard controllers + htmx view templates', async () => {
+    await withTempDir(async (dir) => {
+      const restore = capture();
+      try { await new CreateCommand().execute(ctx(dir, ['proj'], { starter: 'saas' })); } finally { restore(); }
+      assert.equal(process.exitCode, 0);
+      const proj = join(dir, 'proj');
+      // Dashboard controllers (htmx fragments + auth/RBAC composition).
+      for (const f of [
+        'src/modules/dashboard/dashboard.controller.ts',
+        'src/modules/dashboard/auth-ui.controller.ts',
+      ]) {
+        assert.ok(existsSync(join(proj, f)), `${f} should exist`);
+      }
+      // htmx layout + role-gated 403 + the four required views (orgs, members, api keys, audit).
+      for (const v of [
+        'src/views/layouts/dashboard.html',
+        'src/views/pages/dashboard/orgs.html',
+        'src/views/pages/dashboard/members.html',
+        'src/views/pages/dashboard/api-keys.html',
+        'src/views/pages/dashboard/audit.html',
+        'src/views/pages/dashboard/forbidden.html',
+        'src/views/partials/dashboard/member-row.html',
+      ]) {
+        assert.ok(existsSync(join(proj, v)), `${v} should exist`);
+      }
+      // Composes @streetjs/auth-ui and @streetjs/admin-ui for the auth/RBAC screens.
+      const authCtl = readFileSync(join(proj, 'src/modules/dashboard/auth-ui.controller.ts'), 'utf8');
+      assert.ok(authCtl.includes('@streetjs/auth-ui'), 'auth-ui controller should compose @streetjs/auth-ui');
+      assert.ok(authCtl.includes('@streetjs/admin-ui'), 'auth-ui controller should compose @streetjs/admin-ui');
+      // Role-gating: members view renders the invite/remove actions only for owner/admin.
+      const dashCtl = readFileSync(join(proj, 'src/modules/dashboard/dashboard.controller.ts'), 'utf8');
+      assert.ok(dashCtl.includes("'api-keys': ['owner', 'admin']"), 'api-keys view should be owner/admin only');
+      assert.ok(dashCtl.includes('dashboard/forbidden'), 'controller should render a 403 forbidden view with no data');
+    });
+  });
+
   it('--starter ai scaffolds the AI starter', async () => {
     await withTempDir(async (dir) => {
       const restore = capture();
