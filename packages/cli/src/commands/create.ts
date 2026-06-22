@@ -36,27 +36,66 @@ export const TEMPLATES: Record<string, TemplateSpec> = {
     starter: { path: '', content: '' },
   },
   saas: {
-    // Always-on composition set for the production-grade SaaS starter. RBAC +
-    // audit (@streetjs/admin), the admin/RBAC management screens
-    // (@streetjs/admin-ui), the server-rendered dashboard runtime
-    // (@streetjs/plugin-htmx), and the auth/session UI (@streetjs/auth-ui) ship
-    // by default. Billing (@streetjs/plugin-stripe), email
-    // (@streetjs/plugin-sendgrid), and the Postgres driver
-    // (@streetjs/plugin-postgres) stay install-on-demand (see SAAS.md).
+    // Always-on composition set for the production-grade SaaS starter. The
+    // default scaffold is DEPENDENCY-MINIMAL: on top of the base scaffold's
+    // `streetjs` core it adds ONLY the server-rendered dashboard runtime
+    // (@streetjs/plugin-htmx, published v1.0.0). Every default-scaffolded source
+    // file therefore imports only from `streetjs`, Node builtins, local files,
+    // or @streetjs/plugin-htmx — so `street create --starter saas` installs
+    // cleanly from npm and type-checks with tsc out of the box.
+    //
+    // Everything else is OPT-IN behind a flag (see `flagPackages` + per-file
+    // `flag` tags), composing only published, version-correct packages:
+    //   --with-billing   → @streetjs/plugin-stripe (billing webhook controller)
+    //   --with-admin-ui  → @streetjs/auth-ui + @streetjs/admin-ui (React screens)
+    //   --with-email     → email via @streetjs/plugin-sendgrid (injected Mailer)
+    // Billing/email and the Postgres driver (@streetjs/plugin-postgres) stay
+    // install-on-demand (see SAAS.md).
     packages: {
-      '@streetjs/admin': '^1.0.0',
-      '@streetjs/admin-ui': '^1.0.0',
       '@streetjs/plugin-htmx': '^1.0.0',
-      '@streetjs/auth-ui': '^1.0.0',
     },
-    description: 'SaaS starter: user/role admin + audit log on top of the base app.',
+    // Opt-in dependency sets. A flag's packages are added to the project ONLY
+    // when that flag is passed, and exactly mirror the files the flag enables.
+    // Versions are pinned to the published, satisfiable ranges on npm.
+    flagPackages: {
+      // The billing webhook controller imports @streetjs/plugin-stripe (1.0.2).
+      'with-billing': { '@streetjs/plugin-stripe': '^1.0.2' },
+      // The auth/RBAC management screens import @streetjs/auth-ui (0.1.2) and
+      // @streetjs/admin-ui (0.1.2) — there is NO 1.x of either, so the prior
+      // `^1.0.0` was unsatisfiable. These are the only published versions.
+      'with-admin-ui': {
+        '@streetjs/auth-ui': '^0.1.2',
+        '@streetjs/admin-ui': '^0.1.2',
+      },
+    },
+    description: 'SaaS starter: multi-tenant orgs, RBAC, billing, audit on top of the base app.',
     starter: {
       path: 'src/features/saas.ts',
-      content: `// SaaS feature wiring — admin users, roles (RBAC), and an audit log.
-import { AdminService } from '@streetjs/admin';
+      content: `// SaaS feature wiring — RBAC composed from core StreetJS primitives.
+//
+// The DEFAULT scaffold composes role-based access control from the core
+// framework (\`requireRoles\` and the auth/RBAC middleware primitives exported by
+// \`streetjs\`). This keeps the default project dependency-minimal: it installs
+// and type-checks with ZERO extra @streetjs packages beyond the always-on
+// @streetjs/plugin-htmx dashboard runtime.
+//
+// \`requireRoles(...roles)\` returns middleware that authorizes a request only
+// when \`ctx.user\` holds one of the named roles (otherwise 403). Compose it on
+// your privileged routes — e.g. members management, API keys, audit, settings.
+//
+// OPTIONAL ENHANCEMENT: @streetjs/admin's \`AdminService\` adds a managed RBAC
+// engine (wildcard permissions, \`can()\`, audit primitives) and, with
+// @streetjs/admin-ui, server-rendered management screens. It is an optional
+// upgrade — install it separately once published:
+//   npm install @streetjs/admin
+// and scaffold the auth/RBAC screens with \`street create --starter saas --with-admin-ui\`.
+import { requireRoles } from 'streetjs';
 
-export const admin = new AdminService();
-// await admin.createRole('system', { name: 'owner', permissions: ['*'] });
+/** Guard owner-only routes (billing, ownership transfer). */
+export const requireOwner = requireRoles('owner');
+
+/** Guard owner/admin routes (member management, API keys, audit, settings). */
+export const requireAdmin = requireRoles('owner', 'admin');
 `,
     },
     extraFiles: [
@@ -1566,6 +1605,7 @@ export class BillingService {
       },
       {
         path: 'src/modules/billing/billing.controller.ts',
+        flag: 'with-billing',
         content: `// src/modules/billing/billing.controller.ts
 // Stripe webhook controller for the SaaS starter (overlay code — NOT framework code).
 // Requires \`--with-billing\` (composes @streetjs/plugin-stripe; install-on-demand).
@@ -2323,6 +2363,7 @@ export class DashboardController {
       },
       {
         path: 'src/modules/dashboard/auth-ui.controller.ts',
+        flag: 'with-admin-ui',
         content: `// src/modules/dashboard/auth-ui.controller.ts
 // Auth + RBAC management screens for the SaaS starter (overlay code — NOT framework code).
 //
