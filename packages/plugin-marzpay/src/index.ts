@@ -562,3 +562,82 @@ export function buildListTransactionsRequest(
     body: '',
   };
 }
+
+// ---------------------------------------------------------------------------
+// Webhook signature verification (Task 6.1)
+// ---------------------------------------------------------------------------
+//
+// PURE, scheme-parameterized HMAC primitive built on node:crypto only. This is
+// generic cryptography, NOT a claim about MarzPay's behavior: MarzPay publishes
+// NO webhook signature scheme (Research_Artifact §L4, Risk R1), so
+// `MARZPAY_SPEC.webhook` is intentionally left UNBOUND (undefined). When the
+// scheme is undefined this primitive returns `false` — there is no verified
+// positive path via signature against an undocumented scheme. The live
+// `validateWebhook` (Task 7.1) calls this with `MARZPAY_SPEC.webhook` and, with
+// the unbound scheme, falls back to documented server-side re-verification.
+//
+// When a scheme IS supplied (e.g. Property 7 passing an explicit scheme to
+// exercise the round-trip/tamper cases), it computes the HMAC of the raw
+// payload using `scheme.algorithm`, encodes per `scheme.encoding`, and compares
+// against the provided signature using a constant-time comparison with an
+// equal-length guard. It returns `false` for absent/empty/malformed/mismatched
+// signature material and `true` only on an exact match (Requirements 3.6, 3.7).
+
+/**
+ * Verify a webhook signature against a scheme-parameterized HMAC of the raw
+ * payload (pure; `node:crypto` only).
+ *
+ * @param scheme    The verified webhook signature scheme, or `undefined` when
+ *                  the scheme is unbound (the current `MARZPAY_SPEC.webhook`
+ *                  state). An `undefined` scheme always yields `false` — an
+ *                  undocumented scheme has no verified positive path.
+ * @param secretKey The shared signing secret used as the HMAC key.
+ * @param rawBody   The exact raw request payload bytes (as received).
+ * @param signature The signature material extracted from the request, or
+ *                  `undefined`/empty when absent.
+ * @returns `true` only when `scheme` is bound and the computed HMAC exactly
+ *          matches `signature`; `false` for an unbound scheme or for
+ *          absent/empty/malformed/mismatched signature material.
+ */
+export function verifyWebhookSignature(
+  scheme: MarzPayWebhookScheme | undefined,
+  secretKey: string,
+  rawBody: string,
+  signature: string | undefined,
+): boolean {
+  // Unbound scheme (current MARZPAY_SPEC state): cannot verify against an
+  // undocumented scheme — there is no verified positive path via signature.
+  if (scheme === undefined) {
+    return false;
+  }
+  // Absent/empty signature material → negative result.
+  if (typeof signature !== 'string' || signature.trim() === '') {
+    return false;
+  }
+  // A missing/empty signing secret cannot authenticate anything → negative.
+  if (typeof secretKey !== 'string' || secretKey === '') {
+    return false;
+  }
+  // Raw body must be a string to compute a deterministic HMAC.
+  if (typeof rawBody !== 'string') {
+    return false;
+  }
+
+  // Compute the expected HMAC. A malformed scheme (unsupported algorithm or
+  // encoding) throws inside node:crypto → treat as malformed → negative.
+  let expected: string;
+  try {
+    expected = createHmac(scheme.algorithm, secretKey).update(rawBody, 'utf8').digest(scheme.encoding);
+  } catch {
+    return false;
+  }
+
+  // Constant-time comparison with an equal-length guard (timingSafeEqual throws
+  // on unequal lengths, which also distinguishes malformed signature material).
+  const expectedBuf = Buffer.from(expected, 'utf8');
+  const providedBuf = Buffer.from(signature, 'utf8');
+  if (expectedBuf.length !== providedBuf.length) {
+    return false;
+  }
+  return timingSafeEqual(expectedBuf, providedBuf);
+}
