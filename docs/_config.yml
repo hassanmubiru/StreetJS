@@ -3,7 +3,7 @@ title:       "StreetJS"
 # Current published release. Update this single value on each release; the homepage
 # hero (docs/index.md) and the SoftwareApplication JSON-LD (head_custom.html) both
 # read it via {{ site.version }}, so they can no longer drift out of sync.
-version:     "1.0.24"
+version:     "1.0.25"
 tagline:     "TypeScript Backend Framework — No Express. No pg. No Prisma."
 description: "StreetJS is a production-grade, memory-safe TypeScript backend framework built on Node.js core. Native PostgreSQL driver, JWT, WebSockets, clustering — 2 dependencies."
 url:         "https://hassanmubiru.github.io"
