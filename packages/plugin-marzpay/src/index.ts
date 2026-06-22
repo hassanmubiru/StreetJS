@@ -642,3 +642,357 @@ export function verifyWebhookSignature(
   }
   return timingSafeEqual(expectedBuf, providedBuf);
 }
+
+// ---------------------------------------------------------------------------
+// Result / data-model types (design.md → Data Models)
+// ---------------------------------------------------------------------------
+//
+// Shapes refined from the verified `POST /collect-money` response (V2) and the
+// verified transaction-detail / webhook-callback response (V3, identical). All
+// fields are parsed defensively from untrusted JSON (no `any`).
+
+/** Result of `initializePayment` (parsed from the V2 collection-create response). */
+export interface PaymentInitResult {
+  /** Client `reference` echoed by MarzPay (`data.transaction.reference`). */
+  reference: string;
+  /** Card-flow redirect (`data.redirect_url`); absent for mobile money. */
+  redirectUrl?: string;
+  /** Transaction status (`data.transaction.status`, e.g. `processing`/`pending`). */
+  status: string;
+}
+
+/** Result of `verifyPayment` (parsed from the V3 transaction-detail response). */
+export interface PaymentStatus {
+  /** Transaction reference (`transaction.reference`). */
+  reference: string;
+  /** Verified status (`transaction.status`, e.g. `completed`/`failed`). */
+  status: string;
+}
+
+/** A single transaction record (parsed from the V3 transaction object). */
+export interface Transaction {
+  /** Transaction uuid (`transaction.uuid`). */
+  id: string;
+  /** Client reference (`transaction.reference`). */
+  reference: string;
+  /** Raw numeric amount (`transaction.amount.raw`). */
+  amount: number;
+  /** ISO currency (`transaction.amount.currency`, e.g. `UGX`). */
+  currency: string;
+  /** Transaction status (`transaction.status`). */
+  status: string;
+}
+
+/** Result of `listTransactions` (parsed from `data.transactions` + `data.pagination`). */
+export interface TransactionList {
+  /** Parsed transaction items. */
+  items: Transaction[];
+  /** Opaque pagination cursor (next-page URL) when MarzPay reports one. */
+  cursor?: string;
+}
+
+/**
+ * Result of `refund`. NOTE: MarzPay documents no refund endpoint
+ * (Research_Artifact §L5); `refund` rejects with an unsupported-operation error
+ * and never reaches a parse step while the seam is unbound. The shape is
+ * declared so the operation is typed for the day MarzPay publishes a refund API.
+ */
+export interface RefundResult {
+  /** Refund identifier. */
+  id: string;
+  /** Refund status. */
+  status: string;
+}
+
+// ---------------------------------------------------------------------------
+// Transport seam (Task 7.1)
+// ---------------------------------------------------------------------------
+//
+// All network I/O is funneled through a single injectable transport seam so the
+// client's status/timeout logic is testable without real sockets (Properties
+// 5 & 6 pass a mocked transport). The default transport uses `node:https`
+// `request` ONLY (no third-party HTTP client — Requirement 4.3) and enforces the
+// configurable timeout with `setTimeout` + `req.destroy()`.
+
+/** The minimal response surface the client needs from a transport. */
+export interface MarzPayTransportResponse {
+  /** HTTP status code (0 when none was received). */
+  status: number;
+  /** Raw response body text. */
+  body: string;
+}
+
+/**
+ * A transport seam: given a fully-described request and a timeout budget,
+ * resolve with the status + body, or reject on timeout/socket error. Injectable
+ * for testability; defaults to {@link defaultMarzPayTransport}.
+ */
+export type MarzPayTransport = (
+  req: MarzPayHttpRequest,
+  timeoutMs: number,
+) => Promise<MarzPayTransportResponse>;
+
+/**
+ * Default `node:https`-only transport. Wraps the request in a `timeoutMs` budget
+ * using `setTimeout` + `req.destroy()`; on timeout or socket error it rejects
+ * with a `PluginError` indicating timeout/unavailability and yields no partial
+ * result (Requirement 3.11). Uses no third-party HTTP client (Requirement 4.3).
+ */
+export function defaultMarzPayTransport(
+  req: MarzPayHttpRequest,
+  timeoutMs: number,
+): Promise<MarzPayTransportResponse> {
+  const u = new URL(req.url);
+  return new Promise<MarzPayTransportResponse>((resolve, reject) => {
+    let settled = false;
+    const r = httpsRequest(
+      {
+        method: req.method,
+        hostname: u.hostname,
+        ...(u.port !== '' ? { port: Number(u.port) } : {}),
+        path: u.pathname + u.search,
+        headers: req.headers,
+      },
+      (res) => {
+        let data = '';
+        res.setEncoding('utf8');
+        res.on('data', (c: string) => {
+          data += c;
+        });
+        res.on('end', () => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          resolve({ status: res.statusCode ?? 0, body: data });
+        });
+      },
+    );
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      r.destroy();
+      reject(new PluginError(`MarzPay request timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+    r.on('error', (e: Error) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      reject(new PluginError(`MarzPay request failed (endpoint unreachable): ${e.message}`));
+    });
+    if (req.body !== '') {
+      r.write(req.body);
+    }
+    r.end();
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Defensive JSON parsing helpers (untrusted responses; no `any`)
+// ---------------------------------------------------------------------------
+
+/** Parse a response body as JSON, raising a `PluginError` on malformed JSON. */
+function parseJsonBody(body: string, operation: string): unknown {
+  try {
+    return JSON.parse(body) as unknown;
+  } catch {
+    throw new PluginError(`MarzPay ${operation}: response body was not valid JSON`);
+  }
+}
+
+/** Narrow an unknown value to a plain record (empty record when not an object). */
+function asRecord(value: unknown): Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+/** Narrow an unknown value to a string, or `undefined`. */
+function asOptionalString(value: unknown): string | undefined {
+  return typeof value === 'string' ? value : undefined;
+}
+
+/** Narrow an unknown value to a finite number, or `undefined`. */
+function asOptionalNumber(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
+/**
+ * Parse one transaction object into the {@link Transaction} model. Handles both
+ * the nested `amount{raw,currency}` shape (V2/V3) and a flat numeric `amount`.
+ */
+function parseTransactionRecord(value: unknown): Transaction {
+  const t = asRecord(value);
+  const amountObj = asRecord(t['amount']);
+  return {
+    id: asOptionalString(t['uuid']) ?? asOptionalString(t['id']) ?? '',
+    reference: asOptionalString(t['reference']) ?? '',
+    amount: asOptionalNumber(amountObj['raw']) ?? asOptionalNumber(t['amount']) ?? 0,
+    currency: asOptionalString(amountObj['currency']) ?? asOptionalString(t['currency']) ?? '',
+    status: asOptionalString(t['status']) ?? '',
+  };
+}
+
+// ---------------------------------------------------------------------------
+// MarzPayClient (Task 7.1)
+// ---------------------------------------------------------------------------
+
+/**
+ * Dependency-free MarzPay client over `node:https`.
+ *
+ * Request construction is delegated to the pure builders/guards above; only the
+ * injected transport touches the network. Every operation:
+ *  - raises a `PluginError` INCLUDING the HTTP status on a non-2xx response and
+ *    returns no partial result (Requirement 3.8);
+ *  - raises a timeout/unavailability `PluginError` on timeout or socket error
+ *    and returns no partial result (Requirement 3.11).
+ *
+ * `refund` is unsupported (Research_Artifact §L5): `buildRefundRequest` throws
+ * before any network call while `MARZPAY_SPEC.paths.refund` is unbound, so the
+ * operation rejects without sending. `validateWebhook` delegates to
+ * `verifyWebhookSignature(spec.webhook, …)`; with `spec.webhook` unbound (§L4)
+ * it returns `false` for absent/empty/malformed material — the documented
+ * server-side re-verification path is composed by the scaffolded
+ * `WebhookController` (later task), not here.
+ */
+export class MarzPayClient {
+  private readonly config: MarzPayPluginConfig;
+  private readonly spec: MarzPaySpec;
+  private readonly transport: MarzPayTransport;
+  private readonly timeoutMs: number;
+
+  constructor(
+    config: MarzPayPluginConfig,
+    spec: MarzPaySpec = MARZPAY_SPEC,
+    transport: MarzPayTransport = defaultMarzPayTransport,
+  ) {
+    this.config = config;
+    this.spec = spec;
+    this.transport = transport;
+    this.timeoutMs =
+      typeof config.timeoutMs === 'number' && Number.isFinite(config.timeoutMs) && config.timeoutMs > 0
+        ? config.timeoutMs
+        : DEFAULT_TIMEOUT_MS;
+  }
+
+  /** Send a request through the injected transport with the configured timeout. */
+  private send(req: MarzPayHttpRequest): Promise<MarzPayTransportResponse> {
+    return this.transport(req, this.timeoutMs);
+  }
+
+  /**
+   * Raise a `PluginError` that INCLUDES the returned HTTP status for any
+   * non-2xx response, ensuring no partial result is returned (Requirement 3.8).
+   */
+  private ensureSuccessStatus(status: number, operation: string): void {
+    if (status < 200 || status >= 300) {
+      throw new PluginError(`MarzPay ${operation}: request returned non-success HTTP status ${status}`);
+    }
+  }
+
+  /**
+   * Initialize a payment via the verified `POST /collect-money` endpoint (V2).
+   * Required-field validation happens in `buildInitializePaymentRequest` before
+   * anything is sent (Requirements 3.1, 3.9).
+   */
+  async initializePayment(req: PaymentRequest): Promise<PaymentInitResult> {
+    const built = buildInitializePaymentRequest(this.config, this.spec, req);
+    const { status, body } = await this.send(built);
+    this.ensureSuccessStatus(status, 'initializePayment');
+    const root = asRecord(parseJsonBody(body, 'initializePayment'));
+    const data = asRecord(root['data']);
+    const txn = asRecord(data['transaction']);
+    const reference = asOptionalString(txn['reference']) ?? '';
+    const txnStatus = asOptionalString(txn['status']) ?? asOptionalString(root['status']) ?? '';
+    const redirectUrl = asOptionalString(data['redirect_url']);
+    return {
+      reference,
+      status: txnStatus,
+      ...(redirectUrl !== undefined ? { redirectUrl } : {}),
+    };
+  }
+
+  /**
+   * Verify a payment via the verified `GET /transactions/{reference}` endpoint
+   * (V3). Argument trimming/length validation happens in
+   * `buildVerifyPaymentRequest` before sending (Requirements 3.2, 3.10).
+   */
+  async verifyPayment(reference: string): Promise<PaymentStatus> {
+    const built = buildVerifyPaymentRequest(this.config, this.spec, reference);
+    const { status, body } = await this.send(built);
+    this.ensureSuccessStatus(status, 'verifyPayment');
+    const root = asRecord(parseJsonBody(body, 'verifyPayment'));
+    const txn = asRecord(root['transaction']);
+    return {
+      reference: asOptionalString(txn['reference']) ?? '',
+      status: asOptionalString(txn['status']) ?? '',
+    };
+  }
+
+  /**
+   * Fetch a transaction via the verified `GET /transactions/{id}` endpoint (V3).
+   * Argument validation happens in `buildGetTransactionRequest` before sending
+   * (Requirements 3.3, 3.10).
+   */
+  async getTransaction(id: string): Promise<Transaction> {
+    const built = buildGetTransactionRequest(this.config, this.spec, id);
+    const { status, body } = await this.send(built);
+    this.ensureSuccessStatus(status, 'getTransaction');
+    const root = asRecord(parseJsonBody(body, 'getTransaction'));
+    return parseTransactionRecord(root['transaction']);
+  }
+
+  /**
+   * List transactions via the verified `GET /transactions` endpoint (V3).
+   * Parses `data.transactions` into {@link Transaction} items and surfaces a
+   * pagination cursor when MarzPay reports one (Requirement 3.4).
+   */
+  async listTransactions(query?: ListTransactionsQuery): Promise<TransactionList> {
+    const built = buildListTransactionsRequest(this.config, this.spec, query);
+    const { status, body } = await this.send(built);
+    this.ensureSuccessStatus(status, 'listTransactions');
+    const root = asRecord(parseJsonBody(body, 'listTransactions'));
+    const data = asRecord(root['data']);
+    const rawItems = Array.isArray(data['transactions']) ? data['transactions'] : [];
+    const items = rawItems.map((item) => parseTransactionRecord(item));
+    const pagination = asRecord(data['pagination']);
+    const cursor = asOptionalString(pagination['next_page_url']);
+    return {
+      items,
+      ...(cursor !== undefined ? { cursor } : {}),
+    };
+  }
+
+  /**
+   * Refund a transaction — UNSUPPORTED.
+   *
+   * MarzPay documents no refund endpoint (Research_Artifact §L5), so
+   * `MARZPAY_SPEC.paths.refund` is unbound and `buildRefundRequest` throws a
+   * clear "refunds not supported" `PluginError` BEFORE any network call. The
+   * operation is kept on the client so the interface is complete; it simply
+   * rejects. The send/parse below is retained for the day MarzPay publishes a
+   * refund API and the seam becomes bound (it is unreachable until then).
+   */
+  async refund(req: RefundRequest): Promise<RefundResult> {
+    const built = buildRefundRequest(this.config, this.spec, req);
+    const { status, body } = await this.send(built);
+    this.ensureSuccessStatus(status, 'refund');
+    const root = asRecord(parseJsonBody(body, 'refund'));
+    return {
+      id: asOptionalString(root['id']) ?? '',
+      status: asOptionalString(root['status']) ?? '',
+    };
+  }
+
+  /**
+   * Validate an inbound webhook's signature against the verified scheme.
+   *
+   * Delegates to `verifyWebhookSignature(spec.webhook, secretKey, rawBody,
+   * signature)`. With `spec.webhook` unbound (§L4) it returns `false` for
+   * absent/empty/malformed signature material; the documented server-side
+   * re-verification trust path is composed by the scaffolded `WebhookController`
+   * (later task), not here (Requirements 3.6, 3.7).
+   */
+  validateWebhook(rawBody: string, signature: string | undefined): boolean {
+    return verifyWebhookSignature(this.spec.webhook, this.config.secretKey, rawBody, signature);
+  }
+}
