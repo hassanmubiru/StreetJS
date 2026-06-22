@@ -16,7 +16,7 @@
 //   - orgScopedRepo: cross-tenant read/update of a foreign row -> 403, unchanged
 //   - OrgService.create: duplicate slug -> 409 with nothing written
 
-import { before, describe, it } from 'node:test';
+import { after, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -81,6 +81,10 @@ describe('saas overlay — tenancy edge cases', () => {
     assert.equal(typeof tenantResolver, 'function', 'tenantResolver must be exported by the overlay');
     assert.equal(typeof orgScopedRepo, 'function', 'orgScopedRepo must be exported by the overlay');
     assert.equal(typeof OrgService, 'function', 'OrgService must be exported by the overlay');
+  });
+
+  after(() => {
+    rmSync(dir, { recursive: true, force: true });
   });
 
   // Requirement 1.3 — a tenant-scoped request without exactly one resolvable
