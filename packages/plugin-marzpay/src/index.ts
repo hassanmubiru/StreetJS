@@ -996,3 +996,92 @@ export class MarzPayClient {
     return verifyWebhookSignature(this.spec.webhook, this.config.secretKey, rawBody, signature);
   }
 }
+
+// ---------------------------------------------------------------------------
+// Plugin lifecycle (Task 8.1)
+// ---------------------------------------------------------------------------
+//
+// Mirrors @streetjs/plugin-paypal's `PayPalPlugin` lifecycle EXACTLY: the class
+// stores the raw config; `onInstall()` validates it (throwing a `PluginError`
+// BEFORE any registration, so a bad config never yields an injected client);
+// `onLoad(app)` constructs exactly ONE `MarzPayClient` and registers a single
+// middleware that assigns the client to `ctx.state[stateKey]`. In addition,
+// `onUnload(app)` releases the client reference. The plugin is consumed through
+// the `MarzPayPlugin(config)` factory wrapper (`app.use(MarzPayPlugin({...}))`),
+// matching the documented MarzPay convention (Requirements 2.2, 2.3, 2.4, 2.5,
+// 2.7, 2.8).
+
+/**
+ * The MarzPay plugin module.
+ *
+ * Stores the raw (unvalidated) config until `onInstall()`; on install it runs
+ * `validateMarzPayConfig`, which throws a `PluginError` naming the offending
+ * field on bad input BEFORE any middleware registration — so an invalid config
+ * never injects a `MarzPayClient` (Requirements 2.3, 2.4, 2.7). `onLoad(app)`
+ * constructs exactly one `MarzPayClient` from the validated config and
+ * `MARZPAY_SPEC`, then registers a single middleware assigning that client to
+ * `ctx.state[validatedConfig.stateKey]` (Requirements 2.2, 2.5, 2.8).
+ * `onUnload(app)` releases the client reference.
+ *
+ * Most consumers use the {@link MarzPayPlugin} factory instead of constructing
+ * this class directly.
+ */
+export class MarzPayPluginModule extends PluginModule {
+  readonly name = MARZPAY_PLUGIN_NAME;
+  readonly version = MARZPAY_PLUGIN_VERSION;
+
+  private readonly raw: unknown;
+  private config: MarzPayPluginConfig | null = null;
+  private client: MarzPayClient | null = null;
+
+  constructor(config: unknown) {
+    super();
+    this.raw = config;
+  }
+
+  override async onInstall(): Promise<void> {
+    // Validate BEFORE registration: a thrown PluginError here means the plugin
+    // never reaches onLoad, so no client is ever injected on bad config.
+    this.config = validateMarzPayConfig(this.raw);
+  }
+
+  override async onLoad(app: SandboxedApp): Promise<void> {
+    const cfg = this._config();
+    // Construct exactly ONE MarzPayClient bound to the verified MARZPAY_SPEC.
+    this.client = new MarzPayClient(cfg, MARZPAY_SPEC);
+    const stateKey = cfg.stateKey ?? DEFAULT_STATE_KEY;
+    const client = this.client;
+    app.use(async (ctx, next) => {
+      (ctx.state as Record<string, unknown>)[stateKey] = client;
+      await next();
+    });
+  }
+
+  override async onUnload(_app: SandboxedApp): Promise<void> {
+    // Release the client reference held by the plugin instance.
+    this.client = null;
+  }
+
+  /** The injected MarzPay client. Throws if accessed before the plugin loads. */
+  get payments(): MarzPayClient {
+    if (!this.client) throw new PluginError('MarzPay plugin is not loaded');
+    return this.client;
+  }
+
+  private _config(): MarzPayPluginConfig {
+    if (!this.config) this.config = validateMarzPayConfig(this.raw);
+    return this.config;
+  }
+}
+
+/**
+ * Factory wrapper for the MarzPay plugin, usable as
+ * `app.use(MarzPayPlugin({ apiKey, secretKey }))` per the documented MarzPay
+ * convention. Returns a fresh {@link MarzPayPluginModule}; validation is
+ * deferred to `onInstall()` so a bad config raises during installation (naming
+ * the offending field) without injecting a client (Requirements 2.2, 2.3, 2.4,
+ * 2.7).
+ */
+export function MarzPayPlugin(config: unknown): MarzPayPluginModule {
+  return new MarzPayPluginModule(config);
+}
