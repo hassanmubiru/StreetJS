@@ -12,6 +12,8 @@
 // and the MarzPayPlugin lifecycle are implemented in subsequent tasks
 // (3.1, 4.1, 5.x, 6.x, 7.x, 8.x).
 
+import { createHmac, timingSafeEqual } from 'node:crypto';
+
 import { PluginError, type PluginManifest } from 'streetjs';
 
 /** Manifest name, matching manifest.json so the plugin host verifies on load. */
