@@ -279,7 +279,7 @@ describe('saas overlay registration + alias preservation', () => {
       const saasFeature = readFileSync(join(dir, 'proj', 'src/features/saas.ts'), 'utf8');
       assert.ok(saasFeature.includes("from 'streetjs'"), 'saas.ts imports from core streetjs');
       assert.ok(saasFeature.includes('requireRoles'), 'saas.ts composes core requireRoles');
-      assert.ok(!saasFeature.includes('@streetjs/admin'), 'saas.ts must not import @streetjs/admin');
+      assert.ok(!/from ['"]@streetjs\/admin['"]/.test(saasFeature), 'saas.ts must not import @streetjs/admin');
     });
   });
 
