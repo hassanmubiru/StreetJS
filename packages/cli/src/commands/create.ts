@@ -2225,6 +2225,241 @@ SENDGRID_API_KEY=SG....
 `,
       },
       {
+        // ── MarzPay billing modules (opt-in: --with-marzpay) ────────────────
+        // Flag-gated overlay: these files are written ONLY when `--with-marzpay`
+        // is passed, and the flag adds @streetjs/plugin-marzpay to the project
+        // (see flagPackages['with-marzpay']). A plain `--starter saas` scaffold
+        // emits none of these files and adds no MarzPay dependency.
+        //
+        // NOTE: the file CONTENT below is a minimal, compiling placeholder. The
+        // full org-scoped, config-driven billing logic is implemented by the
+        // MarzPay integration tasks (BillingService/SubscriptionService 12.x,
+        // CheckoutController/WebhookController 12.4, dashboard 13.x, migrations
+        // 12.6). This task (11.1) only wires the flag-gated emission.
+        path: 'src/modules/billing/marzpay-billing.service.ts',
+        flag: 'with-marzpay',
+        content: `// src/modules/billing/marzpay-billing.service.ts
+// MarzPay billing module for the SaaS starter (overlay code — NOT framework code).
+// Requires \`--with-marzpay\` (composes @streetjs/plugin-marzpay; install-on-demand).
+//
+// BillingService resolves subscription plans from configuration (never
+// hardcoded) and persists/queries billing records ONLY through
+// orgScopedRepo(repo, ctx) so every record is tenant-scoped by org_id.
+//
+// Placeholder scaffold — the full plan-resolution and tenant-scoped persistence
+// logic is filled in by the MarzPay billing task.
+import type { MarzPayClient } from '@streetjs/plugin-marzpay';
+
+/** A subscription plan definition, read from BillingConfig (never hardcoded). */
+export interface PlanDefinition {
+  id: string;
+  name: string;
+  amount: number;
+  currency: string;
+  interval: string;
+}
+
+/** Billing configuration: the set of plans a tenant may subscribe to. */
+export interface BillingConfig {
+  plans: Record<string, PlanDefinition>;
+}
+
+/** An org-scoped billing record (tenant discriminator: org_id). */
+export interface BillingRecord {
+  id: string;
+  org_id: string;
+  plan: string;
+  status: string;
+  reference: string;
+  amount: number;
+  currency: string;
+  created_at: string;
+}
+
+/** Result of starting a checkout against MarzPay. */
+export interface CheckoutResult {
+  reference: string;
+  redirectUrl?: string;
+  status: string;
+}
+
+export class BillingService {
+  constructor(
+    private readonly plans: BillingConfig,
+    private readonly client: MarzPayClient,
+  ) {}
+
+  /** Look up a configured plan by id; null when the plan is unknown. */
+  resolvePlan(planId: string): PlanDefinition | null {
+    return this.plans.plans[planId] ?? null;
+  }
+}
+`,
+      },
+      {
+        path: 'src/modules/billing/marzpay-subscription.service.ts',
+        flag: 'with-marzpay',
+        content: `// src/modules/billing/marzpay-subscription.service.ts
+// MarzPay subscription module for the SaaS starter (overlay code — NOT framework code).
+// Requires \`--with-marzpay\` (composes @streetjs/plugin-marzpay; install-on-demand).
+//
+// SubscriptionService manages org-scoped subscription records
+// (create / renew / cancel / expire) through orgScopedRepo, rejects unknown
+// plans consistently with BillingService, and exposes invoice, payment-history,
+// and usage-tracking hooks.
+//
+// Placeholder scaffold — the full subscription lifecycle is filled in by the
+// MarzPay billing task.
+import type { BillingConfig, PlanDefinition } from './marzpay-billing.service.js';
+
+/** An org-scoped subscription record (tenant discriminator: org_id). */
+export interface SubscriptionRecord {
+  id: string;
+  org_id: string;
+  plan: string;
+  status: 'active' | 'canceled' | 'expired';
+  current_period_end: string | null;
+}
+
+export class SubscriptionService {
+  constructor(private readonly plans: BillingConfig) {}
+
+  /** Look up a configured plan by id; null when the plan is unknown. */
+  resolvePlan(planId: string): PlanDefinition | null {
+    return this.plans.plans[planId] ?? null;
+  }
+}
+`,
+      },
+      {
+        path: 'src/modules/billing/marzpay-checkout.controller.ts',
+        flag: 'with-marzpay',
+        content: `// src/modules/billing/marzpay-checkout.controller.ts
+// MarzPay checkout controller for the SaaS starter (overlay code — NOT framework code).
+// Requires \`--with-marzpay\` (composes @streetjs/plugin-marzpay; install-on-demand).
+//
+//   POST /billing/checkout  -> BillingService.startCheckout
+//
+// Placeholder scaffold — the route handler and unknown-plan rejection are filled
+// in by the MarzPay billing task.
+import 'reflect-metadata';
+import { Controller } from 'streetjs';
+import type { BillingService } from './marzpay-billing.service.js';
+
+@Controller('/billing')
+export class CheckoutController {
+  constructor(private readonly billing: BillingService) {}
+}
+`,
+      },
+      {
+        path: 'src/modules/billing/marzpay-webhook.controller.ts',
+        flag: 'with-marzpay',
+        content: `// src/modules/billing/marzpay-webhook.controller.ts
+// MarzPay webhook controller for the SaaS starter (overlay code — NOT framework code).
+// Requires \`--with-marzpay\` (composes @streetjs/plugin-marzpay; install-on-demand).
+//
+//   POST /webhooks/marzpay
+//
+// SECURITY: handle() MUST call the MarzPay client's validateWebhook BEFORE any
+// persistence. A negative validation result rejects the webhook with a
+// "webhook validation failed" error response and writes NOTHING.
+//
+// Placeholder scaffold — validate-before-persist handling is filled in by the
+// MarzPay billing task.
+import 'reflect-metadata';
+import { Controller } from 'streetjs';
+import type { MarzPayClient } from '@streetjs/plugin-marzpay';
+import type { BillingService } from './marzpay-billing.service.js';
+
+@Controller('/webhooks')
+export class WebhookController {
+  constructor(
+    private readonly client: MarzPayClient,
+    private readonly billing: BillingService,
+  ) {}
+}
+`,
+      },
+      {
+        path: 'src/modules/dashboard/billing-dashboard.controller.ts',
+        flag: 'with-marzpay',
+        content: `// src/modules/dashboard/billing-dashboard.controller.ts
+// MarzPay billing dashboard for the SaaS starter (overlay code — NOT framework code).
+// Requires \`--with-marzpay\` (composes @streetjs/plugin-marzpay; install-on-demand).
+//
+// Owner/Admin-only, org-scoped dashboard rendering six sections: Current Plan,
+// Billing Status, Transactions, Invoices, Usage, and Subscription Renewal.
+// Access is gated with requireRoles('owner','admin'); each section is populated
+// only with records whose org_id equals the active tenant's.
+//
+// Placeholder scaffold — section rendering, empty-state and unavailable-source
+// indicators are filled in by the MarzPay billing dashboard task.
+import 'reflect-metadata';
+import { Controller } from 'streetjs';
+import type { BillingService } from '../billing/marzpay-billing.service.js';
+import type { SubscriptionService } from '../billing/marzpay-subscription.service.js';
+
+/** Roles permitted to view the billing dashboard. */
+export const BILLING_VIEW_ROLES = ['owner', 'admin'] as const;
+
+@Controller('/o/:slug/billing')
+export class BillingDashboardController {
+  constructor(
+    private readonly billing: BillingService,
+    private readonly subscriptions: SubscriptionService,
+  ) {}
+}
+`,
+      },
+      {
+        path: 'migrations/004_marzpay_billing.sql',
+        flag: 'with-marzpay',
+        content: `-- MarzPay billing schema (opt-in: --starter saas --with-marzpay).
+-- Org-scoped billing records and invoices for the scaffolded MarzPay modules.
+-- Apply with: street migrate:run  (PostgreSQL syntax; adjust types for SQLite).
+--
+-- Placeholder migration — the subscriptions-table extension and the full
+-- billing_records / invoices schema are filled in by the MarzPay billing
+-- migrations task. Every table carries org_id for tenant scoping.
+
+CREATE TABLE IF NOT EXISTS billing_records (
+  id         BIGSERIAL PRIMARY KEY,
+  org_id     BIGINT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  plan       TEXT NOT NULL,
+  status     TEXT NOT NULL,
+  reference  TEXT NOT NULL,
+  amount     BIGINT NOT NULL,
+  currency   TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS invoices (
+  id         BIGSERIAL PRIMARY KEY,
+  org_id     BIGINT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  amount     BIGINT NOT NULL,
+  currency   TEXT NOT NULL,
+  issued_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_billing_records_org ON billing_records(org_id);
+CREATE INDEX IF NOT EXISTS idx_invoices_org        ON invoices(org_id);
+`,
+      },
+      {
+        path: '.env.marzpay.example',
+        flag: 'with-marzpay',
+        content: `# MarzPay billing — scaffolded with: --starter saas --with-marzpay
+# (adds @streetjs/plugin-marzpay). Copy these keys into your .env.
+#
+# The plugin defaults to the sandbox environment; set MARZPAY_ENVIRONMENT to
+# "production" to direct requests to the verified production base address.
+MARZPAY_API_KEY=
+MARZPAY_SECRET=
+MARZPAY_ENVIRONMENT=sandbox
+`,
+      },
+      {
         path: 'src/modules/dashboard/dashboard.controller.ts',
         content: `// src/modules/dashboard/dashboard.controller.ts
 // Server-rendered dashboard for the SaaS starter (overlay code — NOT framework code).
