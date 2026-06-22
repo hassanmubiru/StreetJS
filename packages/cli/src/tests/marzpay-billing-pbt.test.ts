@@ -208,8 +208,7 @@ describe('MarzPay billing PBT', () => {
         const known = Object.prototype.hasOwnProperty.call(config.plans, requestedPlanId);
 
         let insertCount = 0;
-        let initCallCount = 0;
-        let capturedInit: InitArgs | null = null;
+        const initCalls: InitArgs[] = [];
 
         const repo: Repo = {
           find: async () => [],
@@ -223,8 +222,7 @@ describe('MarzPay billing PBT', () => {
 
         const client: FakeMarzPayClient = {
           initializePayment: async (args) => {
-            initCallCount += 1;
-            capturedInit = args;
+            initCalls.push(args);
             return { reference: args.reference, redirectUrl: 'https://pay.example/r', status: 'pending' };
           },
         };
@@ -240,17 +238,17 @@ describe('MarzPay billing PBT', () => {
             'unknown planId must throw an "unknown plan" error',
           );
           assert.equal(insertCount, 0, 'no billing record may be persisted for an unknown plan');
-          assert.equal(initCallCount, 0, 'MarzPay must not be invoked for an unknown plan');
+          assert.equal(initCalls.length, 0, 'MarzPay must not be invoked for an unknown plan');
         } else {
           // Known plan: succeeds, uses the configured definition, persists exactly one record.
           const plan = config.plans[requestedPlanId]!;
           const result = await svc.startCheckout(ctx, requestedPlanId);
-          assert.equal(initCallCount, 1, 'a known plan must initialize payment exactly once');
+          assert.equal(initCalls.length, 1, 'a known plan must initialize payment exactly once');
           assert.equal(insertCount, 1, 'a known plan must persist exactly one billing record');
-          assert.ok(capturedInit, 'initializePayment must have been called');
-          assert.equal(capturedInit!.amount, plan.amount, 'the amount must equal the configured plan amount');
-          assert.equal(capturedInit!.currency, plan.currency, 'the currency must equal the configured plan currency');
-          assert.equal(capturedInit!.description, plan.name, 'the description must equal the configured plan name');
+          const captured = initCalls[0]!;
+          assert.equal(captured.amount, plan.amount, 'the amount must equal the configured plan amount');
+          assert.equal(captured.currency, plan.currency, 'the currency must equal the configured plan currency');
+          assert.equal(captured.description, plan.name, 'the description must equal the configured plan name');
           assert.equal(result.status, 'pending', 'the checkout result reflects the MarzPay status');
         }
       }),
