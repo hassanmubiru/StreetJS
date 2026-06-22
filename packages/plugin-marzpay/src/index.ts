@@ -15,7 +15,7 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { request as httpsRequest } from 'node:https';
 
-import { PluginError, type PluginManifest } from 'streetjs';
+import { PluginModule, PluginError, type SandboxedApp, type PluginManifest } from 'streetjs';
 
 /** Manifest name, matching manifest.json so the plugin host verifies on load. */
 export const MARZPAY_PLUGIN_NAME = 'street-plugin-marzpay';
