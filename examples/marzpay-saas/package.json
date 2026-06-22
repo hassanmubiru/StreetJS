@@ -1,0 +1,19 @@
+{
+  "name": "street-example-marzpay-saas",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "node --watch dist/main.js",
+    "start": "node dist/main.js"
+  },
+  "dependencies": {
+    "@streetjs/plugin-marzpay": "^1.0.0",
+    "streetjs": "^1.0.25"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0"
+  }
+}
