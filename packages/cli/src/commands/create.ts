@@ -1624,6 +1624,229 @@ export class BillingController {
 `,
       },
       {
+        path: 'src/modules/notifications/notification.service.ts',
+        content: `// src/modules/notifications/notification.service.ts
+// Notifications module for the SaaS starter (overlay code — NOT framework code).
+//
+// IN-APP FIRST: notify() persists a single \`notifications\` row (user_id, type,
+// payload JSONB, created_at, with read_at null) BEFORE attempting any email. If
+// that persist fails, no email is sent and an error is thrown indicating the
+// notification could not be created — there is no partial row to clean up
+// because nothing was written (Requirements 8.1, 8.2).
+//
+// EMAIL (optional): email delivery composes @streetjs/plugin-sendgrid and is
+// gated behind \`--with-email\` (install-on-demand, documented convention — see
+// SAAS.md, mirroring how billing gates @streetjs/plugin-stripe behind
+// \`--with-billing\`). When no Mailer is wired the in-app notification still
+// persists and email is simply skipped. When email IS enabled for a
+// notification, each attempt is bounded by a 30s timeout; on failure delivery
+// is retried up to EMAIL_MAX_RETRIES times. The persisted row is always
+// retained, and after the final failed attempt a delivery-failure indication is
+// recorded (Requirements 8.3, 8.4).
+//
+// READ SEMANTICS: listUnread() returns only the requesting user's rows whose
+// read_at is null, newest first, capped at MAX_UNREAD_NOTIFICATIONS (100).
+// markRead() stamps read_at once and is idempotent if already read; marking a
+// notification that does not exist or is not owned by the user changes nothing
+// and raises NotFoundException (Requirements 8.5, 8.6, 8.7).
+
+import { InternalException, NotFoundException } from 'streetjs';
+
+/** Maximum number of unread notifications returned by a single request. */
+export const MAX_UNREAD_NOTIFICATIONS = 100;
+
+/** Per-attempt email delivery timeout, in milliseconds (Requirement 8.4). */
+export const EMAIL_TIMEOUT_MS = 30_000;
+
+/** Number of additional delivery attempts after the first one (Requirement 8.4). */
+export const EMAIL_MAX_RETRIES = 3;
+
+/** A persisted notifications row. */
+export interface Notification {
+  id: string;
+  user_id: string;
+  type: string;
+  payload: Record<string, unknown> | null;
+  read_at: string | null;
+  created_at: string;
+}
+
+/** Options accepted by notify(). */
+export interface NotifyOptions {
+  /** When true (and a Mailer is wired), also deliver the notification by email. */
+  email?: boolean;
+}
+
+/**
+ * Persistence contract (satisfied by @streetjs/orm repos). The in-app row is
+ * the source of truth; email is best-effort on top of it.
+ */
+export interface NotificationsRepository {
+  /**
+   * Insert exactly one notifications row with read_at null and a created_at
+   * timestamp, returning the persisted row. A failure here means NO row was
+   * written (Requirements 8.1, 8.2).
+   */
+  insert(values: { user_id: string; type: string; payload: Record<string, unknown> | null }): Promise<Notification>;
+  /**
+   * Return the user's unread rows (read_at null), ordered created_at DESC, with
+   * at most \`limit\` rows. MUST filter by user_id and honor the limit
+   * (Requirement 8.5).
+   */
+  listUnread(userId: string, limit: number): Promise<Notification[]>;
+  /** Look up a notification by id scoped to its owner; null if absent/not owned. */
+  findOwned(userId: string, id: string): Promise<Notification | null>;
+  /** Stamp read_at for the user's notification. Only called when not already read. */
+  markRead(userId: string, id: string, readAt: string): Promise<void>;
+  /** Record that email delivery failed for a persisted row (Requirement 8.4). */
+  recordDeliveryFailure(id: string): Promise<void>;
+}
+
+/** Resolves a user's registered email address for delivery (Requirement 8.3). */
+export interface UserEmailLookup {
+  emailForUser(userId: string): Promise<string | null>;
+}
+
+/**
+ * Email transport contract, satisfied by @streetjs/plugin-sendgrid when the
+ * project is scaffolded with \`--with-email\`. Left undefined otherwise, in which
+ * case email is skipped and the in-app notification still persists.
+ */
+export interface Mailer {
+  send(message: { to: string; type: string; payload: Record<string, unknown> | null }): Promise<void>;
+}
+
+export class NotificationService {
+  constructor(
+    private readonly repo: NotificationsRepository,
+    private readonly mailer?: Mailer,
+    private readonly users?: UserEmailLookup,
+  ) {}
+
+  /**
+   * notify — persist an in-app notification, then optionally email it.
+   *
+   * The row is written FIRST (Requirement 8.1). If persistence fails, no email
+   * is attempted and an error indicating notification creation failed is thrown;
+   * because nothing was written there is no partial row (Requirement 8.2). When
+   * email is enabled for this notification and a Mailer is wired, delivery is
+   * attempted with a 30s timeout and bounded retries; the persisted row is
+   * retained regardless of email outcome (Requirements 8.3, 8.4).
+   */
+  async notify(
+    userId: string,
+    type: string,
+    payload: Record<string, unknown>,
+    opts?: NotifyOptions,
+  ): Promise<void> {
+    let row: Notification;
+    try {
+      row = await this.repo.insert({ user_id: userId, type, payload: payload ?? null });
+    } catch {
+      // 8.2 — no email, no partial row, surface a creation-failed error.
+      throw new InternalException('notification creation failed');
+    }
+
+    // 8.3 — email only when explicitly enabled AND the transport is wired
+    // (\`--with-email\` composes @streetjs/plugin-sendgrid). Otherwise skip.
+    if (opts?.email === true && this.mailer && this.users) {
+      await this.deliverEmail(userId, row);
+    }
+  }
+
+  /**
+   * listUnread — the user's unread notifications, newest first, capped at 100.
+   * Scoping/ordering/limit are enforced by the repository (Requirement 8.5).
+   */
+  async listUnread(userId: string): Promise<Notification[]> {
+    return this.repo.listUnread(userId, MAX_UNREAD_NOTIFICATIONS);
+  }
+
+  /**
+   * markRead — stamp read_at for the user's notification.
+   *
+   * If the notification does not exist or is not owned by the user, nothing
+   * changes and NotFoundException is thrown (Requirement 8.7). If it is already
+   * read, the call is a no-op so read_at is left unchanged (idempotent,
+   * Requirement 8.6).
+   */
+  async markRead(userId: string, id: string): Promise<void> {
+    const existing = await this.repo.findOwned(userId, id);
+    if (!existing) {
+      throw new NotFoundException('notification not found');
+    }
+    if (existing.read_at !== null) {
+      return; // 8.6 — already read; leave read_at unchanged.
+    }
+    await this.repo.markRead(userId, id, new Date().toISOString());
+  }
+
+  /**
+   * deliverEmail — best-effort email delivery for an already-persisted row.
+   *
+   * Each attempt is bounded by EMAIL_TIMEOUT_MS (30s); on failure or timeout the
+   * send is retried up to EMAIL_MAX_RETRIES additional times. The persisted row
+   * is never removed. After the final failed attempt a delivery-failure
+   * indication is recorded (Requirement 8.4). Never throws — the in-app
+   * notification has already succeeded.
+   */
+  private async deliverEmail(userId: string, row: Notification): Promise<void> {
+    const to = await this.users!.emailForUser(userId);
+    if (!to) {
+      await this.recordFailureSafely(row.id);
+      return;
+    }
+
+    const maxAttempts = EMAIL_MAX_RETRIES + 1;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        await withTimeout(
+          this.mailer!.send({ to, type: row.type, payload: row.payload }),
+          EMAIL_TIMEOUT_MS,
+        );
+        return; // delivered
+      } catch {
+        if (attempt >= maxAttempts) {
+          await this.recordFailureSafely(row.id);
+          return;
+        }
+        // otherwise retry
+      }
+    }
+  }
+
+  /** Record a delivery failure without masking the (already successful) notify. */
+  private async recordFailureSafely(id: string): Promise<void> {
+    try {
+      await this.repo.recordDeliveryFailure(id);
+    } catch {
+      // Recording the failure indicator must not throw out of notify().
+    }
+  }
+}
+
+/**
+ * Resolve \`p\`, or reject if it does not settle within \`ms\` milliseconds. Used to
+ * bound each email delivery attempt at 30s (Requirement 8.4).
+ */
+function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('email delivery timed out')), ms);
+    p.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (err) => {
+        clearTimeout(timer);
+        reject(err instanceof Error ? err : new Error(String(err)));
+      },
+    );
+  });
+}
+`,
+      },
+      {
         path: 'SAAS.md',
         content: `# SaaS starter
 
@@ -1635,35 +1858,153 @@ multi-tenant SaaS structure on top of the base StreetJS app.
 - **Auth** — email/password + sessions (core JWT/session primitives).
 - **Organizations, teams & RBAC** — \`organizations\`, \`memberships\` (roles:
   owner/admin/member) via \`@streetjs/admin\`.
+- **Multi-tenancy** — row-level scoping by \`org_id\` + \`tenantResolver\`
+  middleware (see below).
 - **Invitations** — tokenized org invites (\`invitations\`).
 - **Billing placeholders** — \`subscriptions\` table + a Stripe webhook handler
   stub. Add \`@streetjs/plugin-stripe\` and wire your keys to go live.
+- **API keys** — hashed-at-rest programmatic keys (\`api_keys\`) + \`apiKeyAuth\`
+  middleware (see below).
+- **Settings** — per-org and per-user key/value settings (\`org_settings\`,
+  \`user_settings\`).
 - **Audit logs** — \`audit_logs\` for every privileged action.
 - **Notifications** — \`notifications\` per user.
 
 ## Schema
 
-See \`migrations/001_saas.sql\`. Apply it with:
+The starter ships an **additive** migration set. Apply it with:
 
 \`\`\`bash
 street migrate:run
 \`\`\`
+
+Migrations are applied in ascending order by the core \`StreetMigrationRunner\`:
+
+- \`migrations/001_saas.sql\` — base SaaS schema (users, organizations,
+  memberships, invitations, subscriptions, audit_logs, notifications).
+  **Preserved unchanged.**
+- \`migrations/002_api_keys.sql\` — \`api_keys\` table (additive).
+- \`migrations/003_settings.sql\` — \`org_settings\` + \`user_settings\` tables
+  (additive).
+
+\`001_saas.sql\` is never modified; API keys and settings are layered on top via
+\`002\`/\`003\` so existing scaffolded projects can adopt them incrementally.
 
 ## Suggested module layout
 
 \`\`\`
 src/
   features/saas.ts        # admin/RBAC wiring (this overlay)
+  middleware/
+    tenant.ts             # tenantResolver — scope requests by active org
+    apiKeyAuth.ts         # X-API-Key authentication
   modules/
     auth/                 # sign-up, login, sessions
     orgs/                 # create org, switch org
     members/              # list/invite/remove members
     invitations/          # accept invite
     billing/              # Stripe webhook + subscription state
+    apikeys/              # create/list/revoke API keys
     audit/                # audit-log writer + viewer
+    settings/             # org + user settings
+    notifications/        # email + in-app notifications
 \`\`\`
 
 Generate modules with \`street generate controller|service|repository <name>\`.
+
+## Multi-tenancy
+
+The starter uses a **shared database, shared schema** model with **row-level
+tenant scoping by \`org_id\`**. Every tenant-scoped table carries an \`org_id\`
+column, and every read/write is constrained to the active organization.
+
+- **\`tenantResolver\` middleware** resolves the active organization for each
+  request (in order: path/subdomain org slug, \`X-Org-Slug\` / \`X-Org-Id\`
+  header, then the active org stored in the session) and populates \`ctx.org\`.
+- **Membership gate**: the authenticated user MUST have a \`memberships\` row for
+  the resolved org. If not, the request is rejected with \`403\` — there is **no
+  cross-tenant access**. A tenant-scoped request that cannot resolve exactly one
+  org for which the requester holds a membership also returns \`403\`.
+- **Repository scoping**: tenant-scoped repositories inject
+  \`WHERE org_id = ctx.org.id\` on every read and stamp \`org_id = ctx.org.id\` on
+  every write, overriding any \`org_id\` supplied in the request payload.
+
+> **Advanced upgrade path.** The shared-schema model is the lowest-friction
+> default. For stronger isolation you can layer on Postgres **row-level security
+> (RLS)** policies or move to a **schema-per-tenant** topology. These are
+> deliberately **not** baked into the starter; adopt them only if your
+> compliance needs require it.
+
+## API keys
+
+Programmatic clients authenticate with API keys instead of a user session.
+
+- **Hashed at rest**: only the key **prefix** (display-only, e.g.
+  \`sk_live_AB12\`) and the **SHA-256 hash** of the secret are stored. The
+  plaintext key is **never** persisted.
+- **Shown once**: the full plaintext key is returned **exactly once** in the
+  creation response. Store it securely — it cannot be recovered afterward.
+- **Scopes**: each key carries a list of scopes (e.g.
+  \`["billing:read","members:write"]\`); a request is limited to its key's
+  scopes, and a request needing a scope the key lacks is denied.
+- **Revocation & expiry**: revoking a key stamps \`revoked_at\`; a key may also
+  carry an \`expires_at\`. Any request presenting a revoked or expired key — or a
+  missing/empty/unknown key — is rejected with \`401\`.
+- **Usage**: send the plaintext key in the \`X-API-Key\` request header. Listing
+  keys returns metadata only (id, name, prefix, scopes, timestamps) and never
+  the hash or plaintext.
+
+## Settings
+
+Flexible per-org and per-user configuration backed by \`org_settings\` and
+\`user_settings\`.
+
+- **Single value per (scope, key)**: a uniqueness constraint enforces at most one
+  row per \`(org_id, key)\` and per \`(user_id, key)\`. Writing an existing key
+  replaces the prior value in place rather than adding a row.
+- **JSONB values**: values are stored as JSONB, so any JSON-serializable value
+  is allowed. Reading a key with no stored row returns "no value" without
+  creating a row.
+
+## SQLite (dev) ↔ Postgres (production)
+
+The starter runs the **same schema** on SQLite in development and Postgres in
+production.
+
+- **Zero-config SQLite default**: when no database configuration is provided, the
+  app defaults to **SQLite** — no setup required to start developing.
+- **Postgres in production**: providing the \`PG_*\` environment variables selects
+  **Postgres** via \`@streetjs/plugin-postgres\` as the production driver:
+
+  \`\`\`bash
+  npm install @streetjs/plugin-postgres
+  # set PG_HOST, PG_PORT, PG_DATABASE, PG_USER, PG_PASSWORD (see .env.saas.example)
+  \`\`\`
+
+- **Invalid configuration fails fast**: if Postgres is selected but the required
+  \`PG_*\` configuration is missing or invalid, the app emits a **startup error
+  indicating the database configuration is invalid** rather than guessing
+  credentials or silently falling back.
+
+The migrations are written as PostgreSQL DDL. When running on SQLite, the core
+runner applies the following type adjustments:
+
+| PostgreSQL          | SQLite                                |
+|---------------------|---------------------------------------|
+| \`BIGSERIAL\`         | \`INTEGER PRIMARY KEY AUTOINCREMENT\`   |
+| \`TIMESTAMPTZ\`       | \`TEXT\` / \`DATETIME\`                   |
+| \`JSONB\`             | \`TEXT\`                                |
+| \`now()\`             | \`CURRENT_TIMESTAMP\`                   |
+
+Apply the full set the same way on either driver:
+
+\`\`\`bash
+street migrate:run
+\`\`\`
+
+\`001_saas.sql\` is preserved unchanged; \`002_api_keys.sql\` and
+\`003_settings.sql\` are additive, so the migration order
+(\`001\` → \`002\` → \`003\`) holds on both SQLite and Postgres.
 
 ## Billing (Stripe)
 
@@ -1677,7 +2018,19 @@ See the [SaaS starter docs](https://hassanmubiru.github.io/StreetJS/starters/).
       },
       {
         path: '.env.saas.example',
-        content: `# SaaS starter — billing (Stripe) placeholders. Copy values into your .env.
+        content: `# SaaS starter — copy values into your .env.
+
+# Database (production) — set these to select Postgres via @streetjs/plugin-postgres.
+# Leave them unset to use the zero-config SQLite development default. If Postgres
+# is selected and any required value below is missing/invalid, the app fails on
+# startup with an invalid database configuration error (it will not guess).
+PG_HOST=localhost
+PG_PORT=5432
+PG_DATABASE=
+PG_USER=
+PG_PASSWORD=
+
+# Billing (Stripe) placeholders.
 STRIPE_SECRET_KEY=sk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 `,
