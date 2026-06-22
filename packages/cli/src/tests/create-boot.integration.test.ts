@@ -190,6 +190,39 @@ describe('generated project boots successfully (integration)', () => {
         );
       }
 
+      // Migration ordering (Requirements 12.7, 12.8, 10.1): assert the full
+      // additive set 001 → 002 → 003 is emitted in strict ascending numeric
+      // order. This is the part of the "full additive surface" that is
+      // verifiable end-to-end without the user's manual wiring step.
+      //
+      // SCOPE NOTE (honest by design, per the Task 6 constraint): a *live*
+      // booted-app HTTP assertion for the signed Stripe webhook → `subscriptions`
+      // upsert and the settings `set` → `get` round-trip is NOT performed here.
+      // The default scaffolded `src/main.ts` registers only Health/Example and
+      // intentionally leaves the saas controllers/middleware (BillingController,
+      // SettingsController, tenantResolver, …) to the user (documented in
+      // SAAS.md). Rather than fabricate a flow against an unwired server, those
+      // behavioural guarantees are fully covered by the dedicated unit + property
+      // suites authored alongside the overlay: webhook idempotency + signature
+      // verification (saas-webhook-idempotency, saas-billing-webhook) and the
+      // settings single-value `set`→`get` round-trip + validation
+      // (saas-settings-single-value, saas-settings-validation). This case asserts
+      // the scaffold → migration-ordering → compile → boot contract.
+      const migrationNumbers = expectedFiles
+        .filter((rel) => rel.startsWith('migrations/'))
+        .map((rel) => Number(/migrations\/(\d+)_/.exec(rel)?.[1] ?? NaN));
+      assert.deepEqual(
+        migrationNumbers,
+        [1, 2, 3],
+        'step=scaffold emits the migration set 001 → 002 → 003 in ascending order',
+      );
+      for (let i = 1; i < migrationNumbers.length; i++) {
+        assert.ok(
+          migrationNumbers[i] > migrationNumbers[i - 1],
+          'migrations are strictly ascending',
+        );
+      }
+
       // ── Step 2: COMPILE the whole project with the workspace TypeScript ─────
       // This type-checks every authored overlay module against the real,
       // published `streetjs` (and @streetjs/*) type surface. A missing/renamed
