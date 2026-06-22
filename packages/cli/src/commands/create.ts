@@ -4233,10 +4233,18 @@ export class CreateCommand {
    * @streetjs/plugin-htmx dependency. The app renders HTML; HTMX swaps fragments.
    */
   private async scaffoldHtmx(targetDir: string): Promise<void> {
-    // Add the plugin dependency.
+    // Add the plugin dependency. HTMX has no separate web/ app, so the MarzPay
+    // overlay (server-rendered fragments + controller, written below) lives in
+    // the backend — its `@streetjs/plugin-marzpay` dependency is added to the
+    // backend package.json alongside @streetjs/plugin-htmx (Requirement 5.4: the
+    // dependency ships because the `htmx` frontend was selected).
     const pkgPath = join(targetDir, 'package.json');
     const pkg = JSON.parse(await readFile(pkgPath, 'utf8')) as { dependencies?: Record<string, string> };
-    pkg.dependencies = { ...(pkg.dependencies ?? {}), '@streetjs/plugin-htmx': '^1.0.0' };
+    pkg.dependencies = {
+      ...(pkg.dependencies ?? {}),
+      '@streetjs/plugin-htmx': '^1.0.0',
+      '@streetjs/plugin-marzpay': '^1.0.0',
+    };
     await writeFile(pkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
 
     await mkdir(join(targetDir, 'src', 'views', 'layouts'), { recursive: true });
@@ -4341,6 +4349,16 @@ export class ViewsController {
 }
 `;
     await writeFile(join(targetDir, 'src/controllers/views.controller.ts'), controller, 'utf8');
+
+    // ── MarzPay HTMX overlay (Requirements 5.4, 5.5, 7.1–7.6) ────────────────
+    // Written because the `htmx` frontend was selected. Server-rendered fragments
+    // (no SPA/client build step) for payment initialization, payment redirect
+    // handling, payment status, and subscription management — each driven by an
+    // `hx-post` form — plus a MarzPay controller that calls the injected
+    // MarzPayClient (`ctx.state['marzpay']`, injected by MarzPayPlugin) and
+    // returns the verified redirect/status fragment, or a FAILURE fragment (never
+    // a redirect fragment) on error or a non-success result.
+    await this.scaffoldHtmxMarzPay(targetDir);
 
     const note = `# HTMX frontend
 
