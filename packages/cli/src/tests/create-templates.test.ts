@@ -213,15 +213,97 @@ describe('saas overlay registration + alias preservation', () => {
   // entries and always-on packages.
   const saas001 = TEMPLATES.saas.extraFiles?.find((f) => f.path === 'migrations/001_saas.sql');
 
-  it('registers the always-on composition packages and keeps the rest install-on-demand', () => {
+  it('registers the always-on composition packages and keeps the rest flag-gated', () => {
     const deps = TEMPLATES.saas.packages;
-    for (const dep of ['@streetjs/admin', '@streetjs/admin-ui', '@streetjs/plugin-htmx', '@streetjs/auth-ui']) {
-      assert.ok(deps[dep], `saas packages should include always-on ${dep}`);
+    // Always-on default: ONLY the server-rendered dashboard runtime. `streetjs`
+    // itself is already the base scaffold dep, so the saas overlay adds just
+    // @streetjs/plugin-htmx (published, installable, version-correct).
+    assert.deepEqual(
+      Object.keys(deps).sort(),
+      ['@streetjs/plugin-htmx'],
+      'saas always-on packages must be exactly @streetjs/plugin-htmx',
+    );
+
+    // The unpublished/unsatisfiable packages must NEVER be in the always-on set:
+    //   @streetjs/admin       → 404 (not published)
+    //   @streetjs/admin-ui    → only 0.1.x exists (no 1.x)
+    //   @streetjs/auth-ui     → only 0.1.x exists (no 1.x)
+    for (const dep of ['@streetjs/admin', '@streetjs/admin-ui', '@streetjs/auth-ui']) {
+      assert.ok(!deps[dep], `${dep} must NOT be an always-on dependency`);
     }
-    // Billing / email / postgres remain install-on-demand (not bundled).
+
+    // Billing / email / postgres remain install-on-demand (not bundled by default).
     for (const dep of ['@streetjs/plugin-stripe', '@streetjs/plugin-sendgrid', '@streetjs/plugin-postgres']) {
       assert.ok(!deps[dep], `${dep} should stay install-on-demand, not bundled`);
     }
+  });
+
+  it('registers opt-in flag dependency sets with published, version-correct ranges', () => {
+    const flagPackages = TEMPLATES.saas.flagPackages ?? {};
+    // --with-billing → @streetjs/plugin-stripe (published 1.0.2).
+    assert.deepEqual(flagPackages['with-billing'], { '@streetjs/plugin-stripe': '^1.0.2' });
+    // --with-admin-ui → @streetjs/auth-ui + @streetjs/admin-ui at the ONLY
+    // published major (0.1.x); the prior ^1.0.0 was unsatisfiable.
+    assert.deepEqual(flagPackages['with-admin-ui'], {
+      '@streetjs/auth-ui': '^0.1.2',
+      '@streetjs/admin-ui': '^0.1.2',
+    });
+  });
+
+  it('default saas scaffold depends ONLY on installable specs (no unpublished/unsatisfiable deps)', async () => {
+    await withTempDir(async (dir) => {
+      const restore = capture();
+      try { await new CreateCommand().execute(ctx(dir, ['proj'], { starter: 'saas' })); } finally { restore(); }
+      assert.equal(process.exitCode, 0);
+      const pkg = JSON.parse(readFileSync(join(dir, 'proj', 'package.json'), 'utf8'));
+      const deps: Record<string, string> = pkg.dependencies ?? {};
+      // @streetjs/admin is not published — it must never appear by default.
+      assert.ok(!deps['@streetjs/admin'], 'default scaffold must not depend on the unpublished @streetjs/admin');
+      // No unsatisfiable ^1.0.0 for the UI packages (only 0.1.x is published).
+      assert.ok(!deps['@streetjs/admin-ui'], 'admin-ui must be flag-gated, not a default dep');
+      assert.ok(!deps['@streetjs/auth-ui'], 'auth-ui must be flag-gated, not a default dep');
+      // Billing stays opt-in too.
+      assert.ok(!deps['@streetjs/plugin-stripe'], 'plugin-stripe must be flag-gated, not a default dep');
+      // The always-on dashboard runtime IS present and published.
+      assert.equal(deps['@streetjs/plugin-htmx'], '^1.0.0', 'default scaffold depends on @streetjs/plugin-htmx');
+      // No flag-gated source files leak into the default scaffold.
+      assert.ok(
+        !existsSync(join(dir, 'proj', 'src/modules/dashboard/auth-ui.controller.ts')),
+        'auth-ui.controller.ts must not be written without --with-admin-ui',
+      );
+      assert.ok(
+        !existsSync(join(dir, 'proj', 'src/modules/billing/billing.controller.ts')),
+        'billing.controller.ts must not be written without --with-billing',
+      );
+      // The default starter module composes core requireRoles, not @streetjs/admin.
+      const saasFeature = readFileSync(join(dir, 'proj', 'src/features/saas.ts'), 'utf8');
+      assert.ok(saasFeature.includes("from 'streetjs'"), 'saas.ts imports from core streetjs');
+      assert.ok(saasFeature.includes('requireRoles'), 'saas.ts composes core requireRoles');
+      assert.ok(!saasFeature.includes('@streetjs/admin'), 'saas.ts must not import @streetjs/admin');
+    });
+  });
+
+  it('--with-billing and --with-admin-ui add their files + correctly-versioned deps', async () => {
+    await withTempDir(async (dir) => {
+      const restore = capture();
+      try {
+        await new CreateCommand().execute(
+          ctx(dir, ['proj'], { starter: 'saas', 'with-billing': true, 'with-admin-ui': true }),
+        );
+      } finally { restore(); }
+      assert.equal(process.exitCode, 0);
+      const proj = join(dir, 'proj');
+      // Flag-gated files are now emitted.
+      assert.ok(existsSync(join(proj, 'src/modules/billing/billing.controller.ts')), 'billing controller emitted with --with-billing');
+      assert.ok(existsSync(join(proj, 'src/modules/dashboard/auth-ui.controller.ts')), 'auth-ui controller emitted with --with-admin-ui');
+      // Correctly-versioned, published deps are added.
+      const deps = JSON.parse(readFileSync(join(proj, 'package.json'), 'utf8')).dependencies;
+      assert.equal(deps['@streetjs/plugin-stripe'], '^1.0.2');
+      assert.equal(deps['@streetjs/auth-ui'], '^0.1.2');
+      assert.equal(deps['@streetjs/admin-ui'], '^0.1.2');
+      assert.equal(deps['@streetjs/plugin-htmx'], '^1.0.0', 'always-on dashboard runtime still present');
+      assert.ok(!deps['@streetjs/admin'], 'still no dependency on the unpublished @streetjs/admin');
+    });
   });
 
   it('still registers the 001_saas.sql overlay entry with its existing tables', () => {
