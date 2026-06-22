@@ -91,7 +91,7 @@ describe('street create --starter (alias of --template)', () => {
       const proj = join(dir, 'proj');
       assert.ok(existsSync(join(proj, TEMPLATES.saas.starter.path)), 'saas starter module should exist');
       const pkg = JSON.parse(readFileSync(join(proj, 'package.json'), 'utf8'));
-      assert.ok(pkg.dependencies['@streetjs/admin'], 'should depend on @streetjs/admin');
+      assert.ok(pkg.dependencies['@streetjs/plugin-htmx'], 'should depend on @streetjs/plugin-htmx');
     });
   });
 
