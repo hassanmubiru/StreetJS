@@ -2384,14 +2384,22 @@ export class BillingService {
 // MarzPay subscription module for the SaaS starter (overlay code — NOT framework code).
 // Requires \`--with-marzpay\` (composes @streetjs/plugin-marzpay; install-on-demand).
 //
-// SubscriptionService manages org-scoped subscription records
-// (create / renew / cancel / expire) through orgScopedRepo, rejects unknown
-// plans consistently with BillingService, and exposes invoice, payment-history,
-// and usage-tracking hooks.
+// SubscriptionService manages org-scoped SubscriptionRecords
+// (create / renew / cancel / expire) ONLY through orgScopedRepo(repo, ctx), so
+// every row is tenant-scoped by org_id and a record created for one tenant is
+// never returned for another (Requirement 6.8).
 //
-// Placeholder scaffold — the full subscription lifecycle is filled in by the
-// MarzPay billing task.
-import type { BillingConfig, PlanDefinition } from './marzpay-billing.service.js';
+// Plans are read from BillingConfig (never hardcoded) and an UNKNOWN plan is
+// rejected consistently with BillingService — a BadRequestException whose
+// message starts with "unknown plan" — persisting NOTHING (Requirements 6.5,
+// 6.6). The PlanDefinition/BillingConfig types are reused from the billing
+// service so the two services share one source of plan truth.
+//
+// Invoice, payment-history, and usage-tracking hooks read/write ONLY through
+// orgScopedRepo on the relevant org-scoped repositories (Requirements 6.7, 6.8).
+import { BadRequestException, type StreetContext } from 'streetjs';
+import { orgScopedRepo, type ScopedRepository } from '../../middleware/tenant.js';
+import type { BillingConfig, PlanDefinition, BillingRecord } from './marzpay-billing.service.js';
 
 /** An org-scoped subscription record (tenant discriminator: org_id). */
 export interface SubscriptionRecord {
@@ -2402,12 +2410,150 @@ export interface SubscriptionRecord {
   current_period_end: string | null;
 }
 
+/** An org-scoped invoice record (tenant discriminator: org_id). */
+export interface InvoiceRecord {
+  id: string;
+  org_id: string;
+  amount: number;
+  currency: string;
+  issued_at: string;
+}
+
+/** An org-scoped usage measurement for a tenant's subscription. */
+export interface UsageRecord {
+  id: string;
+  org_id: string;
+  metric: string;
+  quantity: number;
+  recorded_at: string;
+}
+
 export class SubscriptionService {
-  constructor(private readonly plans: BillingConfig) {}
+  constructor(
+    private readonly repo: ScopedRepository<SubscriptionRecord>,
+    private readonly plans: BillingConfig,
+  ) {}
 
   /** Look up a configured plan by id; null when the plan is unknown. */
   resolvePlan(planId: string): PlanDefinition | null {
     return this.plans.plans[planId] ?? null;
+  }
+
+  /**
+   * Create a subscription for a configured plan.
+   *
+   * An UNKNOWN planId is rejected with a BadRequestException ("unknown plan"),
+   * consistent with BillingService, and NOTHING is persisted (Requirements 6.5,
+   * 6.6). On a known plan, exactly one 'active' SubscriptionRecord is written
+   * through orgScopedRepo(repo, ctx) so it is tenant-scoped by org_id.
+   */
+  async create(ctx: StreetContext, planId: string): Promise<SubscriptionRecord> {
+    const plan = this.resolvePlan(planId);
+    if (!plan) {
+      // Reject before any side effect: nothing is persisted.
+      throw new BadRequestException('unknown plan: ' + planId);
+    }
+    return orgScopedRepo(this.repo, ctx).insert({
+      plan: planId,
+      status: 'active',
+      current_period_end: this.nextPeriodEnd(plan),
+    });
+  }
+
+  /**
+   * Renew an existing subscription: confirm the plan is still configured, then
+   * mark it 'active' and advance current_period_end. The row is looked up and
+   * updated ONLY through orgScopedRepo so cross-tenant access is impossible.
+   */
+  async renew(ctx: StreetContext, subscriptionId: string): Promise<SubscriptionRecord> {
+    const scoped = orgScopedRepo(this.repo, ctx);
+    const existing = await scoped.findOne({ id: subscriptionId });
+    if (!existing) {
+      throw new BadRequestException('unknown subscription: ' + subscriptionId);
+    }
+    const plan = this.resolvePlan(existing.plan);
+    if (!plan) {
+      // Reject consistently with BillingService; persist nothing.
+      throw new BadRequestException('unknown plan: ' + existing.plan);
+    }
+    return scoped.update(
+      { id: subscriptionId },
+      { status: 'active', current_period_end: this.nextPeriodEnd(plan) },
+    );
+  }
+
+  /** Cancel a subscription -> status 'canceled', through orgScopedRepo. */
+  async cancel(ctx: StreetContext, subscriptionId: string): Promise<SubscriptionRecord> {
+    return orgScopedRepo(this.repo, ctx).update({ id: subscriptionId }, { status: 'canceled' });
+  }
+
+  /** Expire a subscription -> status 'expired', through orgScopedRepo. */
+  async expire(ctx: StreetContext, subscriptionId: string): Promise<SubscriptionRecord> {
+    return orgScopedRepo(this.repo, ctx).update({ id: subscriptionId }, { status: 'expired' });
+  }
+
+  /** List the active tenant's subscriptions (tenant-scoped read). */
+  async listSubscriptions(ctx: StreetContext): Promise<SubscriptionRecord[]> {
+    return orgScopedRepo(this.repo, ctx).find({});
+  }
+
+  /**
+   * Invoice hook: list the active tenant's invoices through orgScopedRepo on the
+   * supplied invoice repository (tenant-scoped by org_id).
+   */
+  async listInvoices(
+    ctx: StreetContext,
+    invoices: ScopedRepository<InvoiceRecord>,
+  ): Promise<InvoiceRecord[]> {
+    return orgScopedRepo(invoices, ctx).find({});
+  }
+
+  /**
+   * Payment-history hook: list the active tenant's billing records (the same
+   * BillingRecord shape BillingService persists) through orgScopedRepo.
+   */
+  async paymentHistory(
+    ctx: StreetContext,
+    billing: ScopedRepository<BillingRecord>,
+  ): Promise<BillingRecord[]> {
+    return orgScopedRepo(billing, ctx).find({});
+  }
+
+  /**
+   * Usage-tracking hook: record a usage measurement for the active tenant
+   * through orgScopedRepo so it is stamped with org_id.
+   */
+  async recordUsage(
+    ctx: StreetContext,
+    usageRepo: ScopedRepository<UsageRecord>,
+    metric: string,
+    quantity: number,
+  ): Promise<UsageRecord> {
+    return orgScopedRepo(usageRepo, ctx).insert({
+      metric,
+      quantity,
+      recorded_at: new Date().toISOString(),
+    });
+  }
+
+  /** Usage-tracking hook: read the active tenant's recorded usage. */
+  async listUsage(
+    ctx: StreetContext,
+    usageRepo: ScopedRepository<UsageRecord>,
+  ): Promise<UsageRecord[]> {
+    return orgScopedRepo(usageRepo, ctx).find({});
+  }
+
+  /** Compute the next period end from the plan interval (month/week/year). */
+  private nextPeriodEnd(plan: PlanDefinition): string {
+    const day = 24 * 60 * 60 * 1000;
+    const span =
+      plan.interval === 'year'
+        ? 365 * day
+        : plan.interval === 'week'
+          ? 7 * day
+          : 30 * day;
+    return new Date(Date.now() + span).toISOString();
   }
 }
 `,
