@@ -1,10 +1,15 @@
 // create-boot.integration.test.ts
-// Integration test (Task 9): proves a freshly generated project actually STARTS.
+// Integration test: proves a freshly generated project actually STARTS.
 //
 // It scaffolds the default project (SQLite, zero-config), compiles it with the
 // workspace TypeScript, boots `dist/main.js` exactly as `street dev` / `npm run
 // dev` would, and asserts the HTTP server comes up and serves a request — i.e.
 // no immediate database authentication failure on first run.
+//
+// A second case (Task 6, MVP slice) does the same for `--starter saas`: it
+// scaffolds the SaaS overlay, type-checks the WHOLE project against the published
+// `streetjs` types, and boots it on the zero-config SQLite default. See the long
+// comment on that `it(...)` for the scope rationale (scaffold → compile → boot).
 //
 // The project is scaffolded INSIDE packages/cli (under a gitignored .itest dir)
 // so Node/tsc resolve the workspace-linked `streetjs` the same way a real
