@@ -219,3 +219,185 @@ export const MARZPAY_SPEC: MarzPaySpec = {
   },
   // webhook: ABSENT — no signature scheme documented (§L4). Do not bind.
 };
+
+// ---------------------------------------------------------------------------
+// Pure request builders and argument guards (Task 5.1)
+// ---------------------------------------------------------------------------
+//
+// Mirrors @streetjs/plugin-paypal's `buildCreateOrderRequest` style: request
+// construction is PURE and offline-verifiable; nothing here touches the network
+// (the `MarzPayClient.send` transport is authored in Task 7.1). Every field and
+// endpoint is bound from a Verified_Capability in
+// docs/integrations/marzpay-research.md — unverified topics (refunds, §L5) are
+// guarded so no request is ever sent to an invented endpoint.
+
+/** A fully-described outbound HTTPS request (pure, offline-verifiable). */
+export interface MarzPayHttpRequest {
+  /** HTTP verb (e.g. `'POST'`, `'GET'`). */
+  method: string;
+  /** Absolute request URL (`spec.baseAddress[environment]` + verified path). */
+  url: string;
+  /** Request headers (from `spec.authHeaders(cfg)`). */
+  headers: Record<string, string>;
+  /** Serialized JSON request body (empty string when there is no body). */
+  body: string;
+}
+
+/**
+ * A payment-initialization request for the verified `POST /collect-money`
+ * endpoint (Research_Artifact V2). MarzPay-required fields are `amount`,
+ * `country`, a unique `reference`, and a payment channel — either `phone_number`
+ * (mobile money) OR `method: 'card'`. The remaining fields are optional
+ * pass-throughs documented for the same endpoint.
+ */
+export interface PaymentRequest {
+  /** Required: collection amount (UGX). */
+  amount: number;
+  /** Required: ISO country code (e.g. `'UG'`). */
+  country: string;
+  /** Required: unique client reference (UUID v4 per V2). */
+  reference: string;
+  /** Mobile money channel: customer MSISDN (`+256xxxxxxxxx`). */
+  phone_number?: string;
+  /** Card channel selector; set to `'card'` for a card collection. */
+  method?: 'card';
+  /** Optional collection currency (defaults to UGX per region). */
+  currency?: string;
+  /** Optional human-readable description (max 255). */
+  description?: string;
+  /** Optional callback URL for the asynchronous webhook (max 255). */
+  callback_url?: string;
+}
+
+/**
+ * A refund request. NOTE: MarzPay documents NO refund creation endpoint
+ * (Research_Artifact §L5); the `refund` seam is intentionally left unbound, so
+ * `buildRefundRequest` rejects with an unsupported-operation error and never
+ * builds a request. The shape is declared so the operation has a typed argument
+ * if/when MarzPay publishes a refund API.
+ */
+export interface RefundRequest {
+  /** Identifier of the transaction to refund. */
+  transactionId: string;
+  /** Optional partial-refund amount; full refund when omitted. */
+  amount?: number;
+}
+
+/** Resolve the verified base address for the config's environment (default sandbox). */
+function resolveBaseAddress(cfg: MarzPayPluginConfig, spec: MarzPaySpec): string {
+  return spec.baseAddress[cfg.environment ?? 'sandbox'];
+}
+
+/** True when `value` is a non-empty, non-whitespace-only string. */
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.trim() !== '';
+}
+
+/**
+ * Build the verified `POST /collect-money` payment-initialization request
+ * (Research_Artifact V2) from `cfg`/`spec`/`req`.
+ *
+ * Reject (throwing a `PluginError` that NAMES the offending field, sending
+ * nothing) when any MarzPay-required field is missing/empty:
+ * - `amount` must be a finite, positive number;
+ * - `country` must be a non-empty string;
+ * - `reference` must be a non-empty string;
+ * - a payment channel must be present: either `method: 'card'` OR a non-empty
+ *   `phone_number` (mobile money).
+ *
+ * On success it builds a `MarzPayHttpRequest` with the verified method/url
+ * (`spec.baseAddress[environment]` + `spec.paths.initializePayment`), the
+ * verified auth headers (`spec.authHeaders(cfg)`), and a JSON body carrying the
+ * required fields plus any provided optional pass-throughs (Requirements 3.1,
+ * 3.9, 2.8).
+ */
+export function buildInitializePaymentRequest(
+  cfg: MarzPayPluginConfig,
+  spec: MarzPaySpec,
+  req: PaymentRequest,
+): MarzPayHttpRequest {
+  if (typeof req !== 'object' || req === null) {
+    throw new PluginError('MarzPay initializePayment: request must be an object');
+  }
+  if (typeof req.amount !== 'number' || !Number.isFinite(req.amount) || req.amount <= 0) {
+    throw new PluginError('MarzPay initializePayment: "amount" is required and must be a positive number');
+  }
+  if (!isNonEmptyString(req.country)) {
+    throw new PluginError('MarzPay initializePayment: "country" is required and must be a non-empty string');
+  }
+  if (!isNonEmptyString(req.reference)) {
+    throw new PluginError('MarzPay initializePayment: "reference" is required and must be a non-empty string');
+  }
+  // Verified channel rule (V2): card collection OR mobile money via phone_number.
+  const isCard = req.method === 'card';
+  if (!isCard && !isNonEmptyString(req.phone_number)) {
+    throw new PluginError(
+      'MarzPay initializePayment: a payment channel is required — provide "phone_number" (mobile money) or set "method" to "card"',
+    );
+  }
+
+  const payload: Record<string, unknown> = {
+    amount: req.amount,
+    country: req.country,
+    reference: req.reference,
+  };
+  if (isCard) {
+    payload['method'] = 'card';
+  } else {
+    payload['phone_number'] = req.phone_number;
+  }
+  if (isNonEmptyString(req.currency)) payload['currency'] = req.currency;
+  if (isNonEmptyString(req.description)) payload['description'] = req.description;
+  if (isNonEmptyString(req.callback_url)) payload['callback_url'] = req.callback_url;
+
+  return {
+    method: 'POST',
+    url: `${resolveBaseAddress(cfg, spec)}${spec.paths.initializePayment}`,
+    headers: spec.authHeaders(cfg),
+    body: JSON.stringify(payload),
+  };
+}
+
+/**
+ * Build a refund request — UNSUPPORTED.
+ *
+ * MarzPay documents NO refund creation endpoint (Research_Artifact §L5), so
+ * `spec.paths.refund` is intentionally left ABSENT in `MARZPAY_SPEC`. This
+ * builder guards on that absence: when the refund path is unbound it throws a
+ * clear "refunds not supported by MarzPay" error and sends nothing — it never
+ * calls an invented endpoint (verify-don't-invent, Requirement 3.5).
+ *
+ * The required-field guard below is retained for the day MarzPay publishes a
+ * refund API and the seam becomes bound; until then it is unreachable because
+ * the unsupported-operation guard returns first.
+ */
+export function buildRefundRequest(
+  cfg: MarzPayPluginConfig,
+  spec: MarzPaySpec,
+  req: RefundRequest,
+): MarzPayHttpRequest {
+  const refundPath = spec.paths.refund;
+  if (refundPath === undefined) {
+    throw new PluginError(
+      'MarzPay refund: refunds are not supported by MarzPay (no refund endpoint is documented); operation unavailable',
+    );
+  }
+  if (typeof req !== 'object' || req === null) {
+    throw new PluginError('MarzPay refund: request must be an object');
+  }
+  if (!isNonEmptyString(req.transactionId)) {
+    throw new PluginError('MarzPay refund: "transactionId" is required and must be a non-empty string');
+  }
+
+  const payload: Record<string, unknown> = { transaction_id: req.transactionId };
+  if (typeof req.amount === 'number' && Number.isFinite(req.amount)) {
+    payload['amount'] = req.amount;
+  }
+
+  return {
+    method: 'POST',
+    url: `${resolveBaseAddress(cfg, spec)}${refundPath}`,
+    headers: spec.authHeaders(cfg),
+    body: JSON.stringify(payload),
+  };
+}
