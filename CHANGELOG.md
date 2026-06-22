@@ -9,6 +9,11 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.0.24] - 2026-06-22
+
+### Added
+- Production-grade **SaaS starter** (`street create --starter saas`): multi-tenant `tenantResolver` middleware (org_id row scoping + membership gate), hashed-at-rest **API keys** (`002_api_keys.sql` + `ApiKeyService` + `apiKeyAuth`), per-org/user **settings** (`003_settings.sql` + `SettingsService`), append-only **audit logs**, tokenized **invitations**, **Stripe** billing webhook (signature-verified + idempotent), opt-in **email notifications** (`@streetjs/plugin-sendgrid`), and a server-rendered **htmx dashboard** (`@streetjs/plugin-htmx` + `@streetjs/auth-ui` + `@streetjs/admin-ui`). Composition-only; `001_saas.sql` and the `--starter`/`--template` alias system are unchanged.
+
 ## [1.0.23] - 2026-06-22
 
 ### Added
