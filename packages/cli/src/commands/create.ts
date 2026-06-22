@@ -3151,15 +3151,31 @@ export class CreateCommand {
    * Overlay a template variant on top of the base scaffold: merge extra
    * @streetjs dependencies into package.json, write a starter module, and a
    * TEMPLATE.md note. The 'app' template is a no-op overlay.
+   *
+   * `enabledFlags` are the opt-in flags (e.g. `with-billing`, `with-admin-ui`)
+   * the caller passed. Flag-gated extraFiles are written ONLY when their flag is
+   * enabled, and each enabled flag's `flagPackages` are merged into the deps —
+   * keeping the default scaffold dependency-minimal and installable.
    */
-  private async applyTemplate(targetDir: string, template: string): Promise<void> {
+  private async applyTemplate(
+    targetDir: string,
+    template: string,
+    enabledFlags: Set<string> = new Set<string>(),
+  ): Promise<void> {
     const spec = TEMPLATES[template];
     if (!spec || template === 'app') return;
+
+    // Always-on deps + opt-in deps for each enabled flag.
+    let deps: Record<string, string> = { ...spec.packages };
+    for (const flag of enabledFlags) {
+      const flagDeps = spec.flagPackages?.[flag];
+      if (flagDeps) deps = { ...deps, ...flagDeps };
+    }
 
     // Merge dependencies into package.json.
     const pkgPath = join(targetDir, 'package.json');
     const pkg = JSON.parse(await readFile(pkgPath, 'utf8')) as { dependencies?: Record<string, string> };
-    pkg.dependencies = { ...(pkg.dependencies ?? {}), ...spec.packages };
+    pkg.dependencies = { ...(pkg.dependencies ?? {}), ...deps };
     await writeFile(pkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
 
     // Write the starter module.
@@ -3169,8 +3185,11 @@ export class CreateCommand {
       await writeFile(starterAbs, spec.starter.content, 'utf8');
     }
 
-    // Write any additional overlay files (migrations, docs, env samples).
+    // Write any additional overlay files (migrations, docs, env samples). A
+    // file tagged with `flag` is written ONLY when that opt-in flag is enabled;
+    // untagged files are always written (the dependency-minimal default).
     for (const file of spec.extraFiles ?? []) {
+      if (file.flag && !enabledFlags.has(file.flag)) continue;
       const abs = join(targetDir, file.path);
       await mkdir(join(abs, '..'), { recursive: true });
       await writeFile(abs, file.content, 'utf8');
@@ -3179,7 +3198,7 @@ export class CreateCommand {
     // Write a TEMPLATE.md note.
     await writeFile(
       join(targetDir, 'TEMPLATE.md'),
-      `# Template: ${template}\n\n${spec.description}\n\nAdded packages: ${Object.keys(spec.packages).join(', ') || '(none)'}\nStarter module: ${spec.starter.path || '(none)'}\n`,
+      `# Template: ${template}\n\n${spec.description}\n\nAdded packages: ${Object.keys(deps).join(', ') || '(none)'}\nStarter module: ${spec.starter.path || '(none)'}\n`,
       'utf8',
     );
 
