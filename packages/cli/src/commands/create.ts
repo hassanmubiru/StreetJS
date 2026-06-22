@@ -2567,15 +2567,39 @@ export class SubscriptionService {
 //
 //   POST /billing/checkout  -> BillingService.startCheckout
 //
-// Placeholder scaffold — the route handler and unknown-plan rejection are filled
-// in by the MarzPay billing task.
+// Reads the planId from the JSON request body and delegates to BillingService,
+// which resolves the plan from configuration (never hardcoded) and persists the
+// BillingRecord ONLY through orgScopedRepo, so the row is tenant-scoped by
+// org_id. An UNKNOWN planId makes the service throw a BadRequestException
+// ("unknown plan"); that surfaces as the appropriate error response and NOTHING
+// is persisted (Requirement 6.6).
 import 'reflect-metadata';
-import { Controller } from 'streetjs';
+import { Controller, Post, BadRequestException, type StreetContext } from 'streetjs';
 import type { BillingService } from './marzpay-billing.service.js';
 
 @Controller('/billing')
 export class CheckoutController {
   constructor(private readonly billing: BillingService) {}
+
+  /**
+   * POST /billing/checkout — start a MarzPay checkout for a configured plan.
+   *
+   * The planId is read from the JSON request body. A missing/blank planId is
+   * rejected with a 400 before any service call. On a known plan the service
+   * returns the CheckoutResult (reference + redirectUrl + status), serialized as
+   * JSON. On an unknown plan the service throws and the error surfaces as the
+   * appropriate error response without persisting anything (Requirement 6.6).
+   */
+  @Post('/checkout')
+  async checkout(ctx: StreetContext): Promise<void> {
+    const body = (ctx.body ?? {}) as { planId?: unknown };
+    const planId = typeof body.planId === 'string' ? body.planId.trim() : '';
+    if (!planId) {
+      throw new BadRequestException('planId is required');
+    }
+    const result = await this.billing.startCheckout(ctx, planId);
+    ctx.json(result, 200);
+  }
 }
 `,
       },
@@ -2588,16 +2612,65 @@ export class CheckoutController {
 //
 //   POST /webhooks/marzpay
 //
-// SECURITY: handle() MUST call the MarzPay client's validateWebhook BEFORE any
-// persistence. A negative validation result rejects the webhook with a
-// "webhook validation failed" error response and writes NOTHING.
+// SECURITY (Requirements 6.3, 6.4): handle() calls the injected MarzPayClient's
+// validateWebhook on the UNMODIFIED raw body BEFORE any persistence. A NEGATIVE
+// result rejects the webhook with a "webhook validation failed" error response
+// (400) and writes NOTHING.
 //
-// Placeholder scaffold — validate-before-persist handling is filled in by the
-// MarzPay billing task.
+// Verify-don't-invent: MarzPay documents no webhook signature scheme
+// (Research_Artifact §L4), so MARZPAY_SPEC.webhook is left unbound and
+// validateWebhook returns false for absent/malformed signature material. The
+// documented trust path for a POSITIVE result is server-side re-verification
+// (Research_Artifact §R1, recommendation 7): the controller re-fetches the
+// transaction from MarzPay via getTransaction and persists the verified
+// amount/status/reference rather than trusting the raw payload.
 import 'reflect-metadata';
-import { Controller } from 'streetjs';
+import { Controller, Post, BadRequestException, type StreetContext } from 'streetjs';
 import type { MarzPayClient } from '@streetjs/plugin-marzpay';
-import type { BillingService } from './marzpay-billing.service.js';
+import type { BillingService, VerifiedWebhookEvent } from './marzpay-billing.service.js';
+
+/**
+ * MarzPay documents no signature header (Research_Artifact §L4). We read a
+ * conventional header so its value flows into validateWebhook; with the scheme
+ * unbound, validateWebhook returns false for absent/malformed material, so the
+ * conservative negative path is taken until MarzPay publishes a signing scheme.
+ */
+const MARZPAY_SIGNATURE_HEADER = 'x-marzpay-signature';
+
+/**
+ * rawBodyOf — return the UNMODIFIED request body for webhook validation.
+ *
+ * A raw-body middleware on the webhook route must capture the bytes verbatim
+ * into ctx.state.rawBody before any JSON parsing; re-serialising the parsed
+ * ctx.body would change the bytes and break any future signature check.
+ */
+function rawBodyOf(ctx: StreetContext): string {
+  const captured = ctx.state['rawBody'];
+  if (typeof captured === 'string') return captured;
+  if (captured instanceof Buffer) return captured.toString('utf8');
+  throw new BadRequestException('missing raw body for MarzPay webhook validation');
+}
+
+/**
+ * referenceOf — extract transaction.reference from the verified MarzPay webhook
+ * payload shape ({ event_type, transaction: { reference, ... } }). A payload
+ * that is malformed or missing a usable reference is rejected before any
+ * re-verification or persistence happens.
+ */
+function referenceOf(rawBody: string): string {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(rawBody);
+  } catch {
+    throw new BadRequestException('malformed MarzPay webhook payload');
+  }
+  const root = (parsed ?? {}) as { transaction?: { reference?: unknown } };
+  const reference = root.transaction?.reference;
+  if (typeof reference !== 'string' || reference.trim() === '') {
+    throw new BadRequestException('MarzPay webhook payload missing transaction.reference');
+  }
+  return reference.trim();
+}
 
 @Controller('/webhooks')
 export class WebhookController {
@@ -2605,6 +2678,53 @@ export class WebhookController {
     private readonly client: MarzPayClient,
     private readonly billing: BillingService,
   ) {}
+
+  /**
+   * POST /webhooks/marzpay — validate, then persist.
+   *
+   * 1. Capture the unmodified raw body and the signature header.
+   * 2. Call client.validateWebhook(rawBody, signature) BEFORE any persistence.
+   * 3. NEGATIVE result -> reject with "webhook validation failed" (400) and
+   *    write NOTHING (Requirement 6.4).
+   * 4. POSITIVE result -> re-verify the transaction server-side (documented
+   *    trust path) and record the verified payment via BillingService.
+   *    recordPayment, which persists ONLY through orgScopedRepo so the record is
+   *    tenant-scoped by org_id (Requirement 6.3).
+   */
+  @Post('/marzpay')
+  async handle(ctx: StreetContext): Promise<void> {
+    const rawBody = rawBodyOf(ctx);
+    const signature = ctx.headers[MARZPAY_SIGNATURE_HEADER];
+
+    // ── Validate BEFORE any persistence (Requirements 6.3, 6.4) ─────────────
+    if (!this.client.validateWebhook(rawBody, signature)) {
+      // Negative result: reject and write NOTHING.
+      ctx.json({ error: 'webhook validation failed' }, 400);
+      return;
+    }
+
+    // ── Positive result: re-verify server-side, then persist ────────────────
+    const event = await this.verifiedEvent(rawBody);
+    await this.billing.recordPayment(ctx, event);
+    ctx.json({ received: true }, 200);
+  }
+
+  /**
+   * Derive a VerifiedWebhookEvent from the payload's transaction.reference using
+   * the documented trust path: re-fetch the transaction from MarzPay and trust
+   * the server's amount/status/currency rather than the raw payload
+   * (Research_Artifact §R1).
+   */
+  private async verifiedEvent(rawBody: string): Promise<VerifiedWebhookEvent> {
+    const reference = referenceOf(rawBody);
+    const txn = await this.client.getTransaction(reference);
+    return {
+      reference: txn.reference,
+      status: txn.status,
+      amount: txn.amount,
+      currency: txn.currency,
+    };
+  }
 }
 `,
       },
