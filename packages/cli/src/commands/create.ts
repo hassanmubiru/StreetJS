@@ -67,6 +67,11 @@ export const TEMPLATES: Record<string, TemplateSpec> = {
         '@streetjs/auth-ui': '^0.1.2',
         '@streetjs/admin-ui': '^0.1.2',
       },
+      // The MarzPay billing modules (service, checkout/webhook controllers,
+      // subscription service, dashboard) import @streetjs/plugin-marzpay (1.0.0),
+      // the official MarzPay payments plugin. Install-on-demand, mirroring how
+      // --with-billing gates @streetjs/plugin-stripe.
+      'with-marzpay': { '@streetjs/plugin-marzpay': '^1.0.0' },
     },
     description: 'SaaS starter: multi-tenant orgs, RBAC, billing, audit on top of the base app.',
     starter: {
