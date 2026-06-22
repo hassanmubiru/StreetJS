@@ -17,7 +17,7 @@
 
 import 'reflect-metadata';
 import { randomUUID } from 'node:crypto';
-import { streetApp, type StreetContext } from 'streetjs';
+import { streetApp, type StreetContext, type SandboxedApp } from 'streetjs';
 import { MarzPayPlugin, type MarzPayClient } from '@streetjs/plugin-marzpay';
 
 // ── Startup env-var guard (Requirement 13.5) ───────────────────────────────────
@@ -182,6 +182,14 @@ class SubscriptionService {
 const app = streetApp({ port });
 const marzpay = MarzPayPlugin({ apiKey, secretKey, environment, stateKey: 'marzpay' });
 
+// The plugin's `onLoad` expects a SandboxedApp (exposing `use` + `on`).
+function sandboxFor(application: typeof app): SandboxedApp {
+  return {
+    use: (middleware) => application.use(middleware),
+    on: () => {},
+  };
+}
+
 // One SubscriptionService, lazily bound to the client injected by the plugin.
 let subscriptions: SubscriptionService | null = null;
 function service(ctx: StreetContext): SubscriptionService {
@@ -280,7 +288,7 @@ app.use(async (ctx, next) => {
 
 async function bootstrap(): Promise<void> {
   await marzpay.onInstall();
-  await marzpay.onLoad(app);
+  await marzpay.onLoad(sandboxFor(app));
   await app.listen(port, '0.0.0.0');
   console.log(`🔁 MarzPay subscriptions example running on http://localhost:${port} (env: ${environment})`);
   console.log(`   Configured plans: ${Object.keys(billingConfig.plans).join(', ')}`);

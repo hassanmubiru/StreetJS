@@ -85,6 +85,15 @@ export interface CheckoutResult {
   status: string;
 }
 
+/** A verified webhook event, after re-verification via getTransaction. */
+export interface VerifiedWebhookEvent {
+  reference: string;
+  status: string;
+  amount: number;
+  currency: string;
+  plan?: string;
+}
+
 export class BillingService {
   constructor(
     private readonly repo: ScopedRepository<BillingRecord>,
@@ -126,6 +135,18 @@ export class BillingService {
 
     return { reference: init.reference, redirectUrl: init.redirectUrl, status: init.status };
   }
+
+  /** Record a settled payment from a re-verified webhook event (org-scoped). */
+  async recordPayment(ctx: StreetContext, event: VerifiedWebhookEvent): Promise<BillingRecord> {
+    return orgScopedRepo(this.repo, ctx).insert({
+      plan: event.plan ?? '',
+      status: event.status,
+      reference: event.reference,
+      amount: event.amount,
+      currency: event.currency,
+      created_at: new Date().toISOString(),
+    });
+  }
 }
 ```
 
@@ -165,16 +186,7 @@ persist the verified amount/status/reference.
 import 'reflect-metadata';
 import { Controller, Post, BadRequestException, type StreetContext } from 'streetjs';
 import type { MarzPayClient } from '@streetjs/plugin-marzpay';
-import type { BillingService } from './billing.service.js';
-
-/** A verified webhook event, after re-verification via getTransaction. */
-export interface VerifiedWebhookEvent {
-  reference: string;
-  status: string;
-  amount: number;
-  currency: string;
-  plan?: string;
-}
+import type { BillingService, VerifiedWebhookEvent } from './billing.service.js';
 
 const MARZPAY_SIGNATURE_HEADER = 'x-marzpay-signature';
 
@@ -212,18 +224,18 @@ export class WebhookController {
     const rawBody = rawBodyOf(ctx);
     const signature = ctx.headers[MARZPAY_SIGNATURE_HEADER];
 
-    // Validate BEFORE any persistence. Negative result -> reject, write nothing.
-    if (!this.client.validateWebhook(rawBody, signature)) {
-      // Documented trust path: re-verify the transaction server-side instead.
-      const event = await this.verifiedEvent(rawBody);
-      await this.persist(ctx, event);
-      ctx.json({ received: true }, 200);
-      return;
-    }
+    // First-line signature check. MarzPay documents no signature scheme, so the
+    // scheme is unbound and validateWebhook returns false for absent/malformed
+    // material — it cannot, on its own, authenticate a webhook today.
+    const signatureValid = this.client.validateWebhook(rawBody, signature);
 
+    // Documented trust path (Research_Artifact §R1): re-verify the transaction
+    // server-side and persist the server's verified amount/status/reference,
+    // never the raw payload. This is the authoritative check whether or not a
+    // signature is present.
     const event = await this.verifiedEvent(rawBody);
     await this.persist(ctx, event);
-    ctx.json({ received: true }, 200);
+    ctx.json({ received: true, signatureValid }, 200);
   }
 
   private async verifiedEvent(rawBody: string): Promise<VerifiedWebhookEvent> {

@@ -4834,6 +4834,373 @@ export function App() {
 `;
   }
 
+  /**
+   * MarzPay React overlay. Scaffolds `web/src/lib/marzpay.ts` (the client lib
+   * built on the existing `@streetjs/client` fetch pattern) plus the four billing
+   * pages (`CheckoutPage`, `BillingPage`, `SubscriptionPage`, `InvoicesPage`).
+   *
+   * The client functions call the application's MarzPay endpoints and raise an
+   * error that INCLUDES the returned HTTP status on a non-success response, never
+   * returning a payment result in that case (Requirements 8.2, 8.3, 8.4). All
+   * files compile under the React tsconfig (strict, `jsx: react-jsx`, no `any`)
+   * (Requirement 8.5).
+   */
+  private async scaffoldReactMarzPay(webDir: string): Promise<void> {
+    await mkdir(join(webDir, 'src', 'lib'), { recursive: true });
+    await mkdir(join(webDir, 'src', 'pages'), { recursive: true });
+    await writeFile(join(webDir, 'src', 'lib', 'marzpay.ts'), this.renderReactMarzPayLib(), 'utf8');
+    await writeFile(join(webDir, 'src', 'pages', 'CheckoutPage.tsx'), this.renderReactCheckoutPage(), 'utf8');
+    await writeFile(join(webDir, 'src', 'pages', 'BillingPage.tsx'), this.renderReactBillingPage(), 'utf8');
+    await writeFile(join(webDir, 'src', 'pages', 'SubscriptionPage.tsx'), this.renderReactSubscriptionPage(), 'utf8');
+    await writeFile(join(webDir, 'src', 'pages', 'InvoicesPage.tsx'), this.renderReactInvoicesPage(), 'utf8');
+  }
+
+  private renderReactMarzPayLib(): string {
+    return `// MarzPay client library for the React frontend.
+//
+// Built on the existing @streetjs/client fetch pattern (see src/main.tsx and
+// src/App.tsx, which read import.meta.env.VITE_API_URL and call fetch(API_URL +
+// path)). \`initializePayment\`/\`verifyPayment\` call the application's MarzPay
+// endpoints exposed by the backend MarzPay controller.
+//
+// Requirements 8.2/8.3/8.4: on a non-success response these functions raise an
+// error that INCLUDES the returned HTTP status and never return a payment result.
+import type { PaymentRequest, PaymentInitResult, PaymentStatus } from '@streetjs/plugin-marzpay';
+
+// Base URL for the Street backend (empty string => same-origin via the Vite proxy).
+const API_URL: string = import.meta.env.VITE_API_URL ?? '';
+
+/**
+ * Error raised when a MarzPay endpoint returns a non-success HTTP status. The
+ * offending status is carried both in \`status\` and in the message so callers
+ * (and the property test) can assert it is surfaced (Requirement 8.4).
+ */
+export class MarzPayError extends Error {
+  readonly status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = 'MarzPayError';
+    this.status = status;
+  }
+}
+
+async function readJson<T>(response: Response, path: string): Promise<T> {
+  if (!response.ok) {
+    // Non-success: raise an error INCLUDING the returned status; return nothing.
+    throw new MarzPayError(
+      response.status,
+      'MarzPay request to ' + path + ' failed with status ' + response.status,
+    );
+  }
+  return (await response.json()) as T;
+}
+
+/**
+ * Initialize a MarzPay payment via the application's initialization endpoint.
+ * Returns the initialization result on success; raises {@link MarzPayError}
+ * (including the status) on a non-success response (Requirements 8.2, 8.4).
+ */
+export async function initializePayment(request: PaymentRequest): Promise<PaymentInitResult> {
+  const path = '/api/marzpay/initialize';
+  const response = await fetch(API_URL + path, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify(request),
+  });
+  return readJson<PaymentInitResult>(response, path);
+}
+
+/**
+ * Verify a MarzPay payment by reference via the application's verification
+ * endpoint. Returns the payment status on success; raises {@link MarzPayError}
+ * (including the status) on a non-success response (Requirements 8.3, 8.4).
+ */
+export async function verifyPayment(reference: string): Promise<PaymentStatus> {
+  const path = '/api/marzpay/verify/' + encodeURIComponent(reference);
+  const response = await fetch(API_URL + path, {
+    method: 'GET',
+    credentials: 'include',
+    headers: { Accept: 'application/json' },
+  });
+  return readJson<PaymentStatus>(response, path);
+}
+`;
+  }
+
+  private renderReactCheckoutPage(): string {
+    return `import { useState } from 'react';
+import type { FormEvent } from 'react';
+import type { PaymentInitResult } from '@streetjs/plugin-marzpay';
+import { initializePayment } from '../lib/marzpay';
+
+// Checkout page: collects a payment request and initializes a MarzPay payment.
+// On a verified card init that yields a redirect URL the browser is navigated to
+// the MarzPay payment page; otherwise the returned status is displayed. A failed
+// request surfaces the MarzPayError message (which includes the HTTP status).
+export function CheckoutPage() {
+  const [amount, setAmount] = useState<number>(10000);
+  const [currency, setCurrency] = useState<string>('UGX');
+  const [country, setCountry] = useState<string>('UG');
+  const [reference, setReference] = useState<string>('');
+  const [result, setResult] = useState<PaymentInitResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState<boolean>(false);
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault();
+    setError(null);
+    setResult(null);
+    setPending(true);
+    try {
+      const init = await initializePayment({ amount, currency, country, reference, method: 'card' });
+      setResult(init);
+      if (typeof init.redirectUrl === 'string' && init.redirectUrl.trim() !== '') {
+        window.location.assign(init.redirectUrl);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Payment initialization failed.');
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <section>
+      <h2>Checkout</h2>
+      <form onSubmit={onSubmit}>
+        <label>
+          Amount
+          <input
+            type="number"
+            min={1}
+            step={1}
+            value={amount}
+            onChange={(e) => setAmount(Number(e.target.value))}
+            required
+          />
+        </label>
+        <label>
+          Currency
+          <input value={currency} onChange={(e) => setCurrency(e.target.value)} required />
+        </label>
+        <label>
+          Country
+          <input value={country} onChange={(e) => setCountry(e.target.value)} required />
+        </label>
+        <label>
+          Reference
+          <input
+            value={reference}
+            onChange={(e) => setReference(e.target.value)}
+            placeholder="unique reference (UUID)"
+            required
+          />
+        </label>
+        <button type="submit" disabled={pending}>
+          {pending ? 'Processing…' : 'Pay now'}
+        </button>
+      </form>
+      {error !== null ? <p role="alert">{error}</p> : null}
+      {result !== null ? (
+        <p>
+          Payment <code>{result.reference}</code> initialized (status: {result.status}).
+        </p>
+      ) : null}
+    </section>
+  );
+}
+`;
+  }
+
+  private renderReactBillingPage(): string {
+    return `import { useAuth } from '@streetjs/react';
+import { CheckoutPage } from './CheckoutPage';
+import { SubscriptionPage } from './SubscriptionPage';
+import { InvoicesPage } from './InvoicesPage';
+
+// Billing page: the MarzPay billing hub. It composes the checkout, subscription,
+// and invoices views and shows the current session via the existing @streetjs/react
+// useAuth hook (matching App.tsx conventions).
+export function BillingPage() {
+  const { session, loading } = useAuth();
+
+  return (
+    <main style={{ fontFamily: 'system-ui, sans-serif', maxWidth: 720, margin: '40px auto', padding: 16 }}>
+      <h1>Billing</h1>
+      <section>
+        <h2>Account</h2>
+        {loading ? <p>Loading…</p> : <pre>{JSON.stringify(session ?? null, null, 2)}</pre>}
+      </section>
+      <CheckoutPage />
+      <SubscriptionPage />
+      <InvoicesPage />
+    </main>
+  );
+}
+`;
+  }
+
+  private renderReactSubscriptionPage(): string {
+    return `import { useState } from 'react';
+import type { FormEvent } from 'react';
+import { initializePayment } from '../lib/marzpay';
+
+// Subscription page: selecting a plan starts a MarzPay payment for that plan via
+// the shared initializePayment client function. Plans are illustrative scaffold
+// defaults; a real app reads plan definitions from configuration (see the SaaS
+// billing modules).
+interface Plan {
+  id: string;
+  name: string;
+  amount: number;
+  currency: string;
+}
+
+const PLANS: readonly Plan[] = [
+  { id: 'basic', name: 'Basic', amount: 10000, currency: 'UGX' },
+  { id: 'pro', name: 'Pro', amount: 30000, currency: 'UGX' },
+];
+
+export function SubscriptionPage() {
+  const [planId, setPlanId] = useState<string>(PLANS[0].id);
+  const [status, setStatus] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState<boolean>(false);
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault();
+    setError(null);
+    setStatus(null);
+    setPending(true);
+    const plan = PLANS.find((p) => p.id === planId);
+    if (plan === undefined) {
+      setError('Unknown plan "' + planId + '".');
+      setPending(false);
+      return;
+    }
+    try {
+      const init = await initializePayment({
+        amount: plan.amount,
+        currency: plan.currency,
+        country: 'UG',
+        reference: 'sub-' + plan.id + '-' + Date.now().toString(),
+        method: 'card',
+      });
+      if (typeof init.redirectUrl === 'string' && init.redirectUrl.trim() !== '') {
+        window.location.assign(init.redirectUrl);
+        return;
+      }
+      setStatus('Subscription payment for ' + plan.name + ' initialized (status: ' + init.status + ').');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Subscription payment failed.');
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <section>
+      <h2>Subscription</h2>
+      <form onSubmit={onSubmit}>
+        <label>
+          Plan
+          <select value={planId} onChange={(e) => setPlanId(e.target.value)} required>
+            {PLANS.map((plan) => (
+              <option key={plan.id} value={plan.id}>
+                {plan.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button type="submit" disabled={pending}>
+          {pending ? 'Processing…' : 'Subscribe / change plan'}
+        </button>
+      </form>
+      {error !== null ? <p role="alert">{error}</p> : null}
+      {status !== null ? <p>{status}</p> : null}
+    </section>
+  );
+}
+`;
+  }
+
+  private renderReactInvoicesPage(): string {
+    return `import { useQuery } from '@streetjs/react';
+
+// Invoices page: lists past invoices from the application's MarzPay invoices
+// endpoint using the existing useQuery hook + fetch pattern. An empty collection
+// renders an empty-state; a failed request renders an error indicator.
+interface Invoice {
+  id: string;
+  reference: string;
+  amount: number;
+  currency: string;
+  status: string;
+}
+
+const API_URL: string = import.meta.env.VITE_API_URL ?? '';
+
+export function InvoicesPage() {
+  const invoices = useQuery<Invoice[]>(() =>
+    fetch(API_URL + '/api/marzpay/invoices', { credentials: 'include' }).then((r) => r.json() as Promise<Invoice[]>),
+  );
+
+  if (invoices.loading) {
+    return (
+      <section>
+        <h2>Invoices</h2>
+        <p>Loading…</p>
+      </section>
+    );
+  }
+
+  if (invoices.error !== undefined) {
+    return (
+      <section>
+        <h2>Invoices</h2>
+        <p role="alert">Invoices are currently unavailable.</p>
+      </section>
+    );
+  }
+
+  const rows = invoices.data ?? [];
+  return (
+    <section>
+      <h2>Invoices</h2>
+      {rows.length === 0 ? (
+        <p>No invoices yet.</p>
+      ) : (
+        <table>
+          <thead>
+            <tr>
+              <th>Reference</th>
+              <th>Amount</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((invoice) => (
+              <tr key={invoice.id}>
+                <td>
+                  <code>{invoice.reference}</code>
+                </td>
+                <td>
+                  {invoice.amount} {invoice.currency}
+                </td>
+                <td>{invoice.status}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </section>
+  );
+}
+`;
+  }
+
   private renderWebNextPackageJson(projectName: string): string {
     return JSON.stringify({
       name: `${projectName}-web`,
