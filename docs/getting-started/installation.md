@@ -60,18 +60,20 @@ Then copy `package.json` and `tsconfig.json` from this repo.
 
 ## Step 2: Install dependencies
 
-street has exactly **two runtime dependencies**:
+street has exactly **three runtime dependencies**:
 
 ```bash
-npm install reflect-metadata ws
+npm install reflect-metadata ws zod
 npm install --save-dev typescript @types/node @types/ws
 ```
 
-Why only two? Everything else — HTTP server, TLS, streams, crypto, cluster — ships with Node.js. External abstractions introduce version skew and CVE surfaces. street keeps the dependency tree auditable at a glance.
+Why only three? Everything else — HTTP server, TLS, streams, crypto, cluster — ships with Node.js. External abstractions introduce version skew and CVE surfaces. street keeps the dependency tree auditable at a glance.
 
 **`reflect-metadata`** — Enables TypeScript's `emitDecoratorMetadata` to record constructor parameter types at runtime. This is the only way to perform constructor injection without explicit token registration.
 
 **`ws`** — A battle-tested, low-level WebSocket implementation. Node's built-in `http.Server` supports upgrades but not the WebSocket framing protocol itself.
+
+**`zod`** — Runtime schema validation. Provides type-safe parsing/validation of untrusted input (request bodies, config, env) that TypeScript's compile-time types cannot enforce at runtime.
 
 ---
 
