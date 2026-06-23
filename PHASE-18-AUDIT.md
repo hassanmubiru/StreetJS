@@ -72,7 +72,7 @@ Net: Phase 18 should be executed as a **visibility-and-accuracy pass**, not a bu
 
 ### X4 — RESOLVED: MarzPay is now published & listed
 - **Original tension:** the brief asked the homepage to feature MarzPay, but `packages/plugin-marzpay/package.json` set `streetjs.unlisted: true`, so the generator hid it.
-- **Resolution (applied):** the `unlisted` flag was removed and `plugin-marzpay` added to the `publish-plugins.yml` matrix. The generator now **lists** it (Payments, v1.0.0, signed — `plugins.json` count is **21**), and it is featured on the homepage. Build/sign/test verified (67 tests pass). The npm publish itself runs via the `Publish Plugins` workflow (tag `plugins-v*` or manual dispatch) using the `NPM_TOKEN` + `STREET_PLUGIN_SIGNING_KEY` secrets.
+- **Resolution (applied):** the `unlisted` flag was removed and `plugin-marzpay` added to the `publish-plugins.yml` matrix. The generator now **lists** it (Payments, v1.0.0, signed — `plugins.json` count is **21**), and it is featured on the homepage. Build/sign/test verified (67 tests pass). **It is not yet on npm** — the publish is a credential-gated CI action: run the `Publish Plugins` workflow (tag `plugins-v*` or manual dispatch with `plugin: plugin-marzpay`) which uses the `NPM_TOKEN` + `STREET_PLUGIN_SIGNING_KEY` secrets and publishes with provenance + official Ed25519 signature.
 
 ### X5 — RISK: activity claims that are GitHub runtime state, not source
 - **Evidence:** `COMMUNITY-ROADMAP.md` claims Discussions enabled + seeded (#66–69) and 20 curated good-first-issues; these cannot be confirmed from repository source.
