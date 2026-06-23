@@ -81,17 +81,17 @@ description:  "Built with StreetJS — official reference applications and start
 <span class="sc-links"><a href="https://github.com/hassanmubiru/StreetJS/tree/main/examples/04-realtime-chat">Source</a><a href="{{ '/examples/websocket-chat/' | relative_url }}">Docs</a></span>
 </div>
 
-<div class="sc-card">
+<div class="sc-card" data-level="advanced">
 <img class="sc-cover" src="{{ '/assets/images/showcase/live-dashboard.svg' | relative_url }}" alt="Live Dashboard reference app — illustrative cover" loading="lazy" width="640" height="360">
-<span class="sc-tag">Reference app</span>
+<span class="sc-tag">Reference app<span class="sc-lvl lvl-advanced">Advanced</span></span>
 <h3>Live Dashboard</h3>
 <p>Server-sent events and realtime channels streaming metrics to a live, auto-updating dashboard.</p>
 <span class="sc-links"><a href="https://github.com/hassanmubiru/StreetJS/tree/main/examples/05-live-dashboard">Source</a><a href="{{ '/realtime-channels/' | relative_url }}">Docs</a></span>
 </div>
 
-<div class="sc-card">
+<div class="sc-card" data-level="advanced">
 <img class="sc-cover" src="{{ '/assets/images/showcase/multiplayer.svg' | relative_url }}" alt="Multiplayer reference app — illustrative cover" loading="lazy" width="640" height="360">
-<span class="sc-tag">Reference app</span>
+<span class="sc-tag">Reference app<span class="sc-lvl lvl-advanced">Advanced</span></span>
 <h3>Multiplayer</h3>
 <p>Low-latency multiplayer state sync over WebSockets — rooms, broadcast, and per-connection state.</p>
 <span class="sc-links"><a href="https://github.com/hassanmubiru/StreetJS/tree/main/examples/06-multiplayer">Source</a><a href="{{ '/realtime-channels/' | relative_url }}">Docs</a></span>
