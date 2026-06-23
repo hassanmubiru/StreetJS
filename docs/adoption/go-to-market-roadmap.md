@@ -39,7 +39,7 @@ ownership + supply-chain integrity + cohesion**, not on ecosystem size.
 
 ## SWOT Analysis (evidence-based)
 
-**Strengths** — dependency-light core (2 runtime deps); **measured** low footprint
+**Strengths** — dependency-light core (3 runtime deps); **measured** low footprint
 (~64 MB idle, ~94 MB +SQLite, ~5.7k req/s, ~30 KB/WS); supply-chain integrity
 (provenance + SBOM + Ed25519 signing, 18/18 verify, 0 open ReDoS); cohesion
 (auth/realtime/jobs/cache/ORM in one); reproducible build + runtime cert in CI;
