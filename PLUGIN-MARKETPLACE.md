@@ -75,8 +75,8 @@ plugin lands, to avoid empty pages (thin-content SEO risk).
 
 | Badge | Rule | Today |
 |---|---|---|
-| **Official** | Maintained by the core team in the monorepo, CI-tested, signed | all 19 |
-| **Signed** | Ships a verified Ed25519 manifest the host checks on load | all 19 |
+| **Official** | Maintained by the core team in the monorepo, CI-tested | all 20 |
+| **Signed** | Ships a verified Ed25519 manifest the host checks on load (derived from a committed `manifest.signed.json`) | 19/20 (`plugin-htmx` signing pending) |
 | **Certified** | Passes the [certification checklist](/ecosystem/plugin-certification/) | program defined |
 | **Verified** | Third-party, signed, passed security+compat+structure review | none yet (no community plugins) |
 | **Community** | Third-party, well-formed signed manifest, unreviewed | none yet |
