@@ -43,6 +43,7 @@ street create my-saas --starter saas --with-billing --with-admin-ui  # SaaS opt-
 | `--frontend` | `none`, `react`, `next`, `htmx` | `none` | Scaffolds a `web/` app (or server-rendered `htmx` views) + CI building both tiers. |
 | `--database` | `sqlite`, `postgres` | `sqlite` | `sqlite` boots with zero config; `postgres` degrades gracefully if unreachable. |
 | `--install` / `-i` | — | off | Auto-install dependencies after scaffolding. |
+| `--with-billing` / `--with-marzpay` / `--with-admin-ui` / `--with-email` | — | off | SaaS-starter opt-in modules. Each adds its package only when passed: `--with-billing`→`@streetjs/plugin-stripe`, `--with-marzpay`→`@streetjs/plugin-marzpay`, `--with-admin-ui`→`@streetjs/auth-ui`+`@streetjs/admin-ui`, `--with-email`→`@streetjs/plugin-sendgrid`. |
 
 
 ### Database Migrations
