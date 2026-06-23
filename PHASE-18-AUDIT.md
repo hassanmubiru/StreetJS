@@ -181,7 +181,7 @@ These cannot be completed from repository source without violating the "no fabri
 
 - **Site footer attribution removed.** `docs/_includes/components/footer.html` overrides the just-the-docs theme footer to render only the back-to-top link and the project's own `footer_content`, deliberately omitting the theme's "This site uses Just the Docs…" line.
 - **Publish pipeline fixed for MarzPay.** `plugin-marzpay` added to the `.github/workflows/publish-plugins.yml` matrix; build + sign + test paths verified locally (tsc clean, 67 tests pass, committed official signed manifest present). The actual npm publish runs in CI (tag `plugins-v*` / manual dispatch) with `NPM_TOKEN` + `STREET_PLUGIN_SIGNING_KEY` — it cannot be run from a workstation without those secrets.
-- **MarzPay published & listed (X4 resolved).** `streetjs.unlisted` removed; the generator now lists it (Payments, v1.0.0, signed) — `plugins.json` count is **21 / 9 categories** — and it is featured on the homepage.
+- **MarzPay listed & publish-ready (X4 resolved); npm publish pending CI.** `streetjs.unlisted` removed; the generator now lists it (Payments, v1.0.0, signed) — `plugins.json` count is **21 / 9 categories** — and it is featured on the homepage. It is **not yet on npm** (`npm view @streetjs/plugin-marzpay` → 404): the actual publish is a credential-gated CI action (see below).
 
 ---
 
