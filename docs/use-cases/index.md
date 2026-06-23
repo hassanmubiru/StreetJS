@@ -171,7 +171,7 @@ StreetJS HTTP Server
 ### StreetJS features used
 
 - `@Controller`, `@Get`, `@Post`, `@Put`, `@Delete`, `@Patch` — declarative routing
-- `@Validate` — request body/query/params validation without Zod or Joi
+- `@Validate` — Zod-backed request body/query/params validation
 - `@ApiOperation` — OpenAPI 3.1 spec generation
 - `JwtService` + `authMiddleware` — Bearer token auth
 - `PgPool` + `StreetPostgresRepository` — typed data access
