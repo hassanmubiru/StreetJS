@@ -19,7 +19,7 @@ The blog is just getting started. In the meantime:
 
 ## Latest
 
-- [**Why StreetJS has two runtime dependencies**](/blog/why-2-dependencies/) — how a full backend ships on Node core with two deps, and why that matters for security and cost.
+- [**Why StreetJS has three runtime dependencies**](/blog/why-2-dependencies/) — how a full backend ships on Node core with three deps, and why that matters for security and cost.
 - [**Talking to PostgreSQL without the `pg` package**](/blog/native-postgres-driver/) — the wire-protocol v3 + SCRAM-SHA-256 native driver, and why it exists.
 - [**Self-hosting a full backend on one small VPS**](/blog/self-hosting-cost/) — the cost case for in-process auth/realtime/jobs, with measured numbers.
 
