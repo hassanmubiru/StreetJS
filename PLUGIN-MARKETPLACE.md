@@ -16,7 +16,7 @@
 - **Build-time generator** `scripts/gen-plugins-data.mjs` → `docs/_data/plugins.json`,
   **wired into `pages.yml`** (regenerates on every deploy; trigger includes
   `packages/plugin-*/package.json`). Source of truth = the real packages.
-- **8 category pages** `/plugins/category/<slug>/` and **19 detail pages**
+- **9 category pages** `/plugins/category/<slug>/` and **20 detail pages**
   `/plugins/<slug>/`, all in the sitemap.
 - **SEO**: `ItemList` JSON-LD on the hub, `SoftwareSourceCode` JSON-LD per plugin,
   internal linking, canonical URLs.
