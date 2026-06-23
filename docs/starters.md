@@ -18,13 +18,13 @@ Use the `--starter` flag (alias of `--template`) with [`street create`](/StreetJ
 npx @streetjs/cli create my-app --starter saas
 ```
 
-Combine with `--frontend next|react` and `--database postgres|sqlite` as needed.
+Combine with `--frontend next|react|htmx` and `--database postgres|sqlite` as needed.
 
 ## Available starters
 
 | Starter | Command | What you get |
 |---------|---------|--------------|
-| **SaaS** | `--starter saas` | Admin users, roles (RBAC) and an audit log (`@streetjs/admin`) |
+| **SaaS** | `--starter saas` | Multi-tenant orgs & teams, RBAC (core `requireRoles`), invitations, API keys, audit logs, notifications, and billing placeholders — all on the base app, no extra runtime deps by default |
 | **AI** | `--starter ai` | Provider-agnostic chat, embeddings and RAG scaffolding (`@streetjs/ai`) |
 | **Realtime** | `--starter realtime` | WebSocket channels, presence and typing |
 | **Marketplace** | `--starter marketplace` | Products, inventory, carts, orders, payments (`@streetjs/commerce`) |
@@ -33,6 +33,29 @@ Combine with `--frontend next|react` and `--database postgres|sqlite` as needed.
 
 Friendly aliases resolve automatically: `realtime` → `realtime-chat`,
 `marketplace` → `ecommerce`, `dating` → `dating-app`.
+
+## SaaS opt-in modules (`--with-*`)
+
+The SaaS starter keeps the default scaffold dependency-minimal: orgs, RBAC,
+multi-tenancy, audit and notifications are built on the core framework with **no
+third-party runtime dependencies**. Richer integrations are opt-in flags that add
+their package only when requested:
+
+| Flag | Adds | Package(s) |
+|------|------|------------|
+| `--with-billing` | Signature-verified Stripe webhook controller + billing module | `@streetjs/plugin-stripe` |
+| `--with-marzpay` | MarzPay billing, subscription, checkout/webhook modules + dashboard | `@streetjs/plugin-marzpay` |
+| `--with-admin-ui` | Server-rendered auth + RBAC management screens | `@streetjs/auth-ui`, `@streetjs/admin-ui` |
+| `--with-email` | Email delivery for notifications (injected `Mailer`) | `@streetjs/plugin-sendgrid` |
+
+```bash
+# SaaS with Stripe billing and the auth/RBAC management screens:
+npx @streetjs/cli create my-saas --starter saas --with-billing --with-admin-ui
+```
+
+> The managed `@streetjs/admin` `AdminService` (wildcard permissions, `can()`,
+> audit primitives) is an **optional enhancement** you install separately — the
+> base SaaS starter does not depend on it.
 
 ## Next steps after scaffolding
 
