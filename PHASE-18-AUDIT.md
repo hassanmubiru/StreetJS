@@ -33,7 +33,7 @@ Consequently, the next bottleneck is **not** "build the marketplace/starters/tru
 Net: Phase 18 should be executed as a **visibility-and-accuracy pass**, not a build-out. Almost every recommendation across all seven workstreams is **docs/generator/metadata-only** — no core framework changes — consistent with the brief.
 
 **Verified ecosystem scale (anchors for the whole audit):**
-- **~30 `plugin-*` packages**; the marketplace lists **20** and hides **1** (`plugin-marzpay`, `streetjs.unlisted: true`). 9 categories. (`docs/_data/plugins.json`, `scripts/gen-plugins-data.mjs`.)
+- **~30 `plugin-*` packages**; the marketplace lists **21** and hides **0** (`plugin-marzpay` was `streetjs.unlisted` during the audit and has since been published & listed — see *Post-audit follow-ups*). 9 categories. (`docs/_data/plugins.json`, `scripts/gen-plugins-data.mjs`.)
 - **6 real `--starter` templates** (`app`, `saas`, `ecommerce`, `realtime-chat`, `dating-app`, `ai`) + 4 aliases + 4 frontends (`none/react/next/htmx`) + 4 `--with-*` flags. (`packages/cli/src/commands/create.ts`.)
 - **6 runnable showcase apps** (`examples/01-rest-api` … `06-multiplayer`) all backed by real code, plus a hidden, CI-tested `examples/reference-apps/*` tier.
 - **Full enterprise control set is real**: npm provenance (enforced by a CI gate), CycloneDX SBOM + generator, cosign signed releases, OpenSSF Scorecard, CodeQL, secret scanning, dependency review, DAST, Ed25519-signed plugin manifests verified on load.
