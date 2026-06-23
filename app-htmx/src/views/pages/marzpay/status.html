@@ -1,0 +1,8 @@
+<section id="marzpay-status" class="marzpay">
+  <h2>Payment status</h2>
+  <p>Reference <code>{{ reference }}</code>: <strong>{{ status }}</strong></p>
+  <form hx-post="/marzpay/status" hx-target="#marzpay-status" hx-swap="outerHTML">
+    <input type="hidden" name="reference" value="{{ reference }}">
+    <button type="submit">Refresh status</button>
+  </form>
+</section>

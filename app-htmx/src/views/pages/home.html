@@ -1,0 +1,7 @@
+<h1>{{ title }}</h1>
+<p>A server-rendered StreetJS + HTMX app. No SPA, no build step.</p>
+<form hx-post="/todos" hx-target="#todos" hx-swap="beforeend" hx-on::after-request="this.reset()">
+  <input name="text" placeholder="Add a todo" required>
+  <button type="submit">Add</button>
+</form>
+<ul id="todos">{{{ todos }}}</ul>

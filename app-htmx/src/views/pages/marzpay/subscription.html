@@ -1,0 +1,13 @@
+<section id="marzpay-subscription" class="marzpay">
+  <h2>Subscription</h2>
+  <p>Current plan: <strong>{{ planName }}</strong> ({{ planStatus }})</p>
+  <form hx-post="/marzpay/subscription" hx-target="#marzpay-subscription" hx-swap="outerHTML">
+    <label>Plan
+      <select name="planId" required>
+        <option value="basic">Basic</option>
+        <option value="pro">Pro</option>
+      </select>
+    </label>
+    <button type="submit">Subscribe / change plan</button>
+  </form>
+</section>

@@ -1,0 +1,11 @@
+<section id="marzpay-checkout" class="marzpay">
+  <h2>Pay with MarzPay</h2>
+  <form hx-post="/marzpay/checkout" hx-target="#marzpay-result" hx-swap="innerHTML">
+    <label>Amount <input name="amount" type="number" min="1" step="1" value="{{ amount }}" required></label>
+    <label>Currency <input name="currency" value="{{ currency }}" required></label>
+    <label>Country <input name="country" value="{{ country }}" required></label>
+    <label>Reference <input name="reference" value="{{ reference }}" placeholder="unique reference (UUID)" required></label>
+    <button type="submit">Pay now</button>
+  </form>
+  <div id="marzpay-result"></div>
+</section>

@@ -1,0 +1,29 @@
+{
+  "name": "app-next-web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 3001",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@streetjs/client": "^0.1.0",
+    "@streetjs/react": "^0.1.0",
+    "@streetjs/next": "^0.1.0",
+    "@streetjs/plugin-marzpay": "^1.0.0",
+    "next": "^16.2.9",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "typescript": "^5.4.5"
+  },
+  "overrides": {
+    "postcss": "^8.5.10"
+  }
+}
