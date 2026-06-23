@@ -165,14 +165,14 @@ These are runnable starting points, not npm packages — clone and adapt.
 <span class="sc-tag">Reference app<span class="sc-lvl lvl-advanced">Advanced</span></span>
 <h3>Realtime Chat (full)</h3>
 <p>Auth-on-upgrade, rooms, presence, typing and history on the core <code>ChannelHub</code> + WebSocket server.</p>
-<span class="sc-links"><a href="https://github.com/hassanmubiru/StreetJS/tree/main/examples/reference-apps/realtime-chat">Source</a><a href="{{ '/realtime-channels/' | relative_url }}">Docs</a></span>
+<span class="sc-links"><a href="{{ '/showcase/realtime-chat/' | relative_url }}">Showcase</a><a href="https://github.com/hassanmubiru/StreetJS/tree/main/examples/reference-apps/realtime-chat">Source</a></span>
 </div>
 
 <div class="sc-card" data-level="advanced">
 <span class="sc-tag">Reference app<span class="sc-lvl lvl-advanced">Advanced</span></span>
 <h3>AI Assistant</h3>
 <p>Retrieval-augmented generation (ingest/ask) and a tool-calling loop on <code>@streetjs/ai</code>.</p>
-<span class="sc-links"><a href="https://github.com/hassanmubiru/StreetJS/tree/main/examples/reference-apps/ai-assistant">Source</a><a href="{{ '/ai/' | relative_url }}">Docs</a></span>
+<span class="sc-links"><a href="{{ '/showcase/ai-assistant/' | relative_url }}">Showcase</a><a href="https://github.com/hassanmubiru/StreetJS/tree/main/examples/reference-apps/ai-assistant">Source</a></span>
 </div>
 
 <div class="sc-card" data-level="advanced">
