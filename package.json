@@ -16,6 +16,7 @@
     "test:cli": "npm run test -w packages/cli",
     "coverage:core": "npm run coverage -w packages/core",
     "coverage:cli": "npm run coverage -w packages/cli",
+    "coverage:marzpay": "npm run coverage -w packages/plugin-marzpay",
     "lint": "npm run lint -w packages/core",
     "clean": "npm run clean -w packages/core && npm run clean -w packages/cli",
     "lint:workflows": "bash scripts/validate-workflows.sh",
