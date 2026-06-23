@@ -20,7 +20,7 @@ noindex:     true
 
 ## What is StreetJS?
 
-StreetJS is a full-stack TypeScript backend framework that gives you everything needed to build production APIs — without reaching for a single third-party abstraction library. It is built entirely from Node.js core modules (`node:http`, `node:net`, `node:crypto`, `node:stream`, `node:cluster`) plus two carefully chosen dependencies: `reflect-metadata` for decorator metadata and `ws` for WebSocket support.
+StreetJS is a full-stack TypeScript backend framework that gives you everything needed to build production APIs — without reaching for a single third-party abstraction library. It is built entirely from Node.js core modules (`node:http`, `node:net`, `node:crypto`, `node:stream`, `node:cluster`) plus three carefully chosen dependencies: `reflect-metadata` for decorator metadata, `ws` for WebSocket support, and `zod` for runtime input validation.
 
 Every system in StreetJS is engineered with one overriding principle: **bounded memory at all times**. Buffers are capped. Caches are evicted. Streams apply backpressure. Connections are pooled. Secrets are never persisted. This makes StreetJS suitable for long-running production servers without memory leak anxiety.
 

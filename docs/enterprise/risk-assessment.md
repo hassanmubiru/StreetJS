@@ -16,7 +16,7 @@ operator still owns). This is an honest engineering assessment, not a guarantee.
 
 | Risk | Mitigation | Residual (operator) |
 |------|-----------|---------------------|
-| Malicious/compromised dependency | 2 runtime deps; native drivers; dependency-review + high-sev audit in CI | pin/lockfile review; monitor advisories |
+| Malicious/compromised dependency | 3 runtime deps (`reflect-metadata`, `ws`, `zod`); native drivers; dependency-review + high-sev audit in CI | pin/lockfile review; monitor advisories |
 | Tampered published artifact | npm **provenance** (Sigstore) + per-release SBOM | verify provenance on install (`npm audit signatures`) |
 | Typosquatting a plugin | official key signing + certification levels | install only Official/Verified plugins, or review Community ones |
 | Leaked secret in repo | Gitleaks + TruffleHog scanning in CI | rotate any exposed secret; pre-commit hooks |
