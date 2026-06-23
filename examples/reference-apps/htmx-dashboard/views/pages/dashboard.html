@@ -1,0 +1,8 @@
+<!-- Full-page load wraps in the layout; HTMX poll target swaps just #tiles. -->
+<div id="tiles"
+     hx-get="/tiles"
+     hx-trigger="every 2s"
+     hx-swap="outerHTML"
+     sse-connect="/events">
+  {{> tiles }}
+</div>
