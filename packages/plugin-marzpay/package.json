@@ -70,6 +70,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.9.2",
+    "c8": "^11.0.0",
     "typescript": "^6.0.3"
   },
   "peerDependencies": {
