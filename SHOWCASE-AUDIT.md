@@ -107,6 +107,23 @@ Docker (builds + boots, verified) · Helm/`k8s` (probes + HPA) · Cloud Run (`se
 
 ---
 
+## 5b. Source-safe execution status (APPLIED)
+
+Implemented this pass — docs/examples/generator/CI only, no fabrication, no hosting:
+
+- **Reference-app READMEs (X19-2) — DONE.** Wrote `examples/reference-apps/{saas, ecommerce, dating}/README.md` (mirrors the realtime-chat/ai-assistant format; accurate to each `server.mjs`). All five reference apps are now documented.
+- **Demo registry — DONE.** `docs/_data/demos.json` (6 capabilities; `source-only`/`roadmap`, empty URLs — no false "live" claims).
+- **Per-app showcase pages — DONE.** `docs/showcase/{saas, marzpay-billing, htmx-dashboard, realtime-chat, ai-assistant, crm-roadmap}.md`, each with Live·Source·Deploy·Docs quadrant + a VERIFIED ASCII architecture diagram + learning path. CRM is an honest roadmap page, not a stub demo.
+- **Data-driven badges — DONE.** `docs/showcase.md` renders a "Capability demos" grid and the homepage (`docs/index.md`) a "See it in action" grid, both from `site.data.demos` (Liquid). A green **Live demo** badge renders only for `status: live` + URL — so flipping a demo live is a one-line `demos.json` edit.
+- **Uptime automation — DONE.** `scripts/check-demos.mjs` (dependency-free `/health/ready` probe; `--write` updates statuses) + `.github/workflows/demos-uptime.yml` (scheduled, report-only, pinned). Not wired into the Pages build (a network probe there could break deploys).
+- **Doc-drift fix (X19-5) — DONE.** `docs/examples/websocket-chat.md` now clearly distinguishes the from-scratch tutorial from the canonical `ChannelHub` reference app, with links.
+
+**Still external (cannot be done from the repo without fabrication/credentials):**
+- **Live hosting** (the success metric) — provision host/DNS/secrets per `DEMO-INFRA-PLAN.md`, then `demos.json` status → `live`.
+- **Real screenshots** — capture from the live demos (never fabricated).
+- **Sign `plugin-htmx`** — `sign.mjs` refuses without `STREET_PLUGIN_SIGNING_KEY` (CI-only).
+- **HTMX-dashboard extension** and **CRM build** — real, scoped build work (`SHOWCASE-ROADMAP.md` items 8–9).
+
 ## 6. Success-criteria mapping
 
 | Phase-19 metric | Current state | Gap to close |
