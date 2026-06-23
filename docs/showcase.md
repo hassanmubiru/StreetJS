@@ -49,9 +49,9 @@ description:  "Built with StreetJS — official reference applications and start
 
 <div class="sc-grid">
 
-<div class="sc-card">
+<div class="sc-card" data-level="beginner">
 <img class="sc-cover" src="{{ '/assets/images/showcase/rest-api.svg' | relative_url }}" alt="REST API reference app — illustrative cover" loading="lazy" width="640" height="360">
-<span class="sc-tag">Reference app</span>
+<span class="sc-tag">Reference app<span class="sc-lvl lvl-beginner">Beginner</span></span>
 <h3>REST API</h3>
 <p>A typed CRUD API with controllers, services, repositories, validation, and OpenAPI generation.</p>
 <span class="sc-links"><a href="https://github.com/hassanmubiru/StreetJS/tree/main/examples/01-rest-api">Source</a><a href="{{ '/examples/rest-api/' | relative_url }}">Docs</a></span>
