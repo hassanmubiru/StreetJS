@@ -65,17 +65,17 @@ description:  "Built with StreetJS — official reference applications and start
 <span class="sc-links"><a href="https://github.com/hassanmubiru/StreetJS/tree/main/examples/02-jwt-auth">Source</a><a href="{{ '/security/' | relative_url }}">Docs</a></span>
 </div>
 
-<div class="sc-card">
+<div class="sc-card" data-level="intermediate">
 <img class="sc-cover" src="{{ '/assets/images/showcase/background-jobs.svg' | relative_url }}" alt="Background Jobs reference app — illustrative cover" loading="lazy" width="640" height="360">
-<span class="sc-tag">Reference app</span>
+<span class="sc-tag">Reference app<span class="sc-lvl lvl-intermediate">Intermediate</span></span>
 <h3>Background Jobs</h3>
 <p>Queued and scheduled work with retries and a job runner — process tasks off the request path.</p>
 <span class="sc-links"><a href="https://github.com/hassanmubiru/StreetJS/tree/main/examples/03-background-jobs">Source</a><a href="{{ '/examples/' | relative_url }}">Docs</a></span>
 </div>
 
-<div class="sc-card">
+<div class="sc-card" data-level="intermediate">
 <img class="sc-cover" src="{{ '/assets/images/showcase/realtime-chat.svg' | relative_url }}" alt="Realtime Chat reference app — illustrative cover" loading="lazy" width="640" height="360">
-<span class="sc-tag">Reference app</span>
+<span class="sc-tag">Reference app<span class="sc-lvl lvl-intermediate">Intermediate</span></span>
 <h3>Realtime Chat</h3>
 <p>WebSocket channels, presence, and live message delivery with bounded connections and heartbeats.</p>
 <span class="sc-links"><a href="https://github.com/hassanmubiru/StreetJS/tree/main/examples/04-realtime-chat">Source</a><a href="{{ '/examples/websocket-chat/' | relative_url }}">Docs</a></span>
