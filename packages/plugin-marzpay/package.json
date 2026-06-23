@@ -25,8 +25,24 @@
     "sign": "node scripts/sign.mjs",
     "lint": "tsc --noEmit",
     "test": "node --test test/*.test.mjs",
+    "coverage": "npm run build && c8 node --test test/*.test.mjs",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
     "prepublishOnly": "npm run clean && npm run build && npm run sign"
+  },
+  "c8": {
+    "include": [
+      "dist/**/*.js"
+    ],
+    "exclude": [
+      "dist/**/*.test.js"
+    ],
+    "reporter": [
+      "text",
+      "lcov"
+    ],
+    "all": false,
+    "check-coverage": true,
+    "branches": 90
   },
   "keywords": [
     "street",
