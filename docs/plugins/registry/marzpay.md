@@ -1,24 +1,24 @@
 ---
 layout:      default
-title:       "@streetjs/plugin-paypal"
-permalink:   /plugins/paypal/
+title:       "@streetjs/plugin-marzpay"
+permalink:   /plugins/marzpay/
 nav_exclude: true
-description:  "Official StreetJS plugin: PayPal Orders v2 (dependency-free HTTPS client). Official, signed, dependency-free StreetJS plugin — install from npm."
+description:  "Official StreetJS plugin: MarzPay payments (dependency-free HTTPS client). Official, signed, dependency-free StreetJS plugin — install from npm."
 ---
 
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"SoftwareSourceCode","name":"@streetjs/plugin-paypal","description":"Official StreetJS plugin: PayPal Orders v2 (dependency-free HTTPS client).","codeRepository":"https://github.com/hassanmubiru/StreetJS","programmingLanguage":"TypeScript","runtimePlatform":"Node.js >= 20","softwareVersion":"1.0.2","license":"https://opensource.org/licenses/MIT","isPartOf":{"@type":"SoftwareApplication","name":"StreetJS","applicationCategory":"DeveloperApplication"}}
+{"@context":"https://schema.org","@type":"SoftwareSourceCode","name":"@streetjs/plugin-marzpay","description":"Official StreetJS plugin: MarzPay payments (dependency-free HTTPS client).","codeRepository":"https://github.com/hassanmubiru/StreetJS","programmingLanguage":"TypeScript","runtimePlatform":"Node.js >= 20","softwareVersion":"1.0.0","license":"https://opensource.org/licenses/MIT","isPartOf":{"@type":"SoftwareApplication","name":"StreetJS","applicationCategory":"DeveloperApplication"}}
 </script>
-# @streetjs/plugin-paypal
+# @streetjs/plugin-marzpay
 
-**Official StreetJS plugin: PayPal Orders v2 (dependency-free HTTPS client).**
+**Official StreetJS plugin: MarzPay payments (dependency-free HTTPS client).**
 
 - **Category:** [Payments](/StreetJS/plugins/category/payments/)
 - **Tier:** Official · **Signed** · **Dependency-free**
-- **Version:** `v1.0.2`
+- **Version:** `v1.0.0`
 - **Runtime dependencies:** none (third-party) — only `streetjs`
-- **npm:** [@streetjs/plugin-paypal](https://www.npmjs.com/package/@streetjs/plugin-paypal)
-- **Source:** [packages/plugin-paypal](https://github.com/hassanmubiru/StreetJS/tree/main/packages/plugin-paypal)
+- **npm:** [@streetjs/plugin-marzpay](https://www.npmjs.com/package/@streetjs/plugin-marzpay)
+- **Source:** [packages/plugin-marzpay](https://github.com/hassanmubiru/StreetJS/tree/main/packages/plugin-marzpay)
 - **Maintainer:** street contributors (StreetJS core team)
 
 ## Trust signals
@@ -31,7 +31,7 @@ description:  "Official StreetJS plugin: PayPal Orders v2 (dependency-free HTTPS
 ## Install
 
 ```bash
-npm install @streetjs/plugin-paypal
+npm install @streetjs/plugin-marzpay
 ```
 
 ## Quick start
@@ -60,7 +60,7 @@ CI-tested, and published with a signed manifest. See the
 
 ## Related plugins
 
-- [@streetjs/plugin-marzpay](/StreetJS/plugins/marzpay/) — Official StreetJS plugin: MarzPay payments (dependency-free HTTPS client).
+- [@streetjs/plugin-paypal](/StreetJS/plugins/paypal/) — Official StreetJS plugin: PayPal Orders v2 (dependency-free HTTPS client).
 - [@streetjs/plugin-stripe](/StreetJS/plugins/stripe/) — Official Street Framework plugin: Stripe payments.
 
 Browse the full [Plugin Marketplace](/StreetJS/plugins/marketplace/) or all [Payments](/StreetJS/plugins/category/payments/) plugins.

@@ -1,6 +1,6 @@
 {
   "generated": "2026-06-23",
-  "count": 20,
+  "count": 21,
   "categories": [
     {
       "name": "AI",
@@ -516,6 +516,34 @@
         "sms",
         "messaging",
         "notifications"
+      ]
+    },
+    {
+      "name": "@streetjs/plugin-marzpay",
+      "slug": "marzpay",
+      "title": "Marzpay",
+      "description": "Official StreetJS plugin: MarzPay payments (dependency-free HTTPS client).",
+      "version": "1.0.0",
+      "category": "Payments",
+      "catSlug": "payments",
+      "tier": "Official",
+      "npm": "https://www.npmjs.com/package/@streetjs/plugin-marzpay",
+      "repo": "https://github.com/hassanmubiru/StreetJS/tree/main/packages/plugin-marzpay",
+      "author": "street contributors",
+      "streetjsRange": "^1.0.6",
+      "nodeRange": ">=20.0.0",
+      "tsRange": ">=5.0.0",
+      "signed": true,
+      "thirdPartyDepCount": 0,
+      "thirdPartyDeps": [],
+      "dependencyFree": true,
+      "keywords": [
+        "street",
+        "streetjs",
+        "street-framework",
+        "plugin",
+        "marzpay",
+        "payments"
       ]
     },
     {

@@ -60,6 +60,7 @@ CI-tested, and published with a signed manifest. See the
 
 ## Related plugins
 
+- [@streetjs/plugin-marzpay](/StreetJS/plugins/marzpay/) — Official StreetJS plugin: MarzPay payments (dependency-free HTTPS client).
 - [@streetjs/plugin-paypal](/StreetJS/plugins/paypal/) — Official StreetJS plugin: PayPal Orders v2 (dependency-free HTTPS client).
 
 Browse the full [Plugin Marketplace](/StreetJS/plugins/marketplace/) or all [Payments](/StreetJS/plugins/category/payments/) plugins.

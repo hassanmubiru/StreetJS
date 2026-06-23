@@ -337,7 +337,7 @@ export class UsersController {
   <h2 class="s-title">Extend the stack with signed plugins.</h2>
   <p class="s-sub">{{ site.data.plugins.count }} official, dependency-free plugins — payments, databases, cache, messaging, storage, auth and AI. Versions and signing status below are read live from each package; no hand-maintained list.</p>
   <div class="dgrid">
-    {%- assign featured = "stripe,openai,redis,kafka,postgres,htmx" | split: "," -%}
+    {%- assign featured = "stripe,marzpay,openai,redis,kafka,htmx" | split: "," -%}
     {%- for slug in featured -%}
     {%- assign p = site.data.plugins.plugins | where: "slug", slug | first -%}
     {%- if p -%}
