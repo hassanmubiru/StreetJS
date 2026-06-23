@@ -1,8 +1,16 @@
 # Production Starters Roadmap — StreetJS Phase 17 (Workstream B)
 
+> **⚠️ SUPERSEDED (Phase 18).** This Phase 17 roadmap is retained for history. The
+> `--starter` system it proposed has since **shipped**: `street create` now supports
+> `--starter saas|ai|realtime|marketplace|dating` (+ aliases), `--frontend
+> none|react|next|htmx`, `--database sqlite|postgres`, and the SaaS `--with-billing
+> / --with-marzpay / --with-admin-ui / --with-email` opt-in flags. See the live
+> [Starters catalog](/StreetJS/starters/) and `STARTER-CATALOG-PLAN.md` for the
+> current source-verified state. The "Current state" section below is historical.
+
 > Tags: **VERIFIED** · **GAP** · **RECOMMENDATION**.
 
-## Current state — VERIFIED
+## Current state — VERIFIED (Phase 17 — now historical)
 
 `street create` (`packages/cli/src/commands/create.ts`) generates a backend
 project and supports:
@@ -11,7 +19,10 @@ project and supports:
 - `--database postgres | sqlite` (sqlite default, zero-config boot) — VERIFIED
 - CI workflow, lockfile, secure ephemeral dev keys — VERIFIED
 
-There is **no `--starter` flag** and no domain-specific starter templates. — GAP
+~~There is **no `--starter` flag** and no domain-specific starter templates.~~ —
+**RESOLVED in Phase 18**: a working `--starter`/`--template` system now ships with
+six templates, friendly aliases, four frontends (incl. `htmx`), and SaaS `--with-*`
+flags. See [Starters](/StreetJS/starters/).
 
 The CLI also already exposes `generate` (controller/service/repository/middleware),
 `add`, `plugin`, `seed`, `migrate`, so starters can compose existing generators
