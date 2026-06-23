@@ -1,8 +1,12 @@
 # StreetJS Phase 18 — Ecosystem Expansion & Adoption Execution Plan
 
 > ## Execution log (shipped, not just planned)
-> - **Plugin marketplace** — `/plugins/marketplace/` + 8 category pages + 19
->   per-plugin detail pages (with trust signals), generated from real packages by
+> **⚠️ Counts below were accurate at time of writing; the marketplace is
+> generator-driven — the current authoritative counts are in `docs/_data/plugins.json`
+> (today: 20 plugins / 9 categories). See `PHASE-18-AUDIT.md` for the current state.**
+> - **Plugin marketplace** — `/plugins/marketplace/` + 9 category pages + 20
+>   per-plugin detail pages (with trust signals derived from real artifacts),
+>   generated from real packages by
 >   `scripts/gen-plugins-data.mjs`, wired into the Pages build. **LIVE.**
 > - **`street create --starter`** flag + friendly aliases + new `ai` starter,
 >   tested (coverage 92.59% branches), **published in `streetjs`/`@streetjs/cli`
