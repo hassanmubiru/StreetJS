@@ -56,9 +56,10 @@ provenance attestations and a software bill of materials.
 
 - [x] OSI-approved license (MIT)
 - [x] SBOM available per release (CycloneDX)
-- [x] Build provenance / attestations (npm)
-- [x] Automated security scanning (CodeQL, OpenSSF)
-- [x] Documented security disclosure policy
+- [x] Build provenance / attestations (npm) + cosign release signing (Sigstore)
+- [x] Automated security scanning (CodeQL, OpenSSF, secret scanning, dependency review, DAST)
+- [x] Documented security disclosure policy + threat model
+- [x] Compliance control mappings (SOC 2, HIPAA, GDPR, PCI-DSS)
 - [x] Self-hostable — no mandatory managed services or external calls
 - [x] Audit-log primitives (see the SaaS starter)
 - [x] Defined support windows ([LTS policy](/StreetJS/lts-policy/))
