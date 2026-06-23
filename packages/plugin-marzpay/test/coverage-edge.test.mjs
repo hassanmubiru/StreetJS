@@ -100,15 +100,15 @@ describe('buildListTransactionsRequest: query branches', () => {
       end_date: '2024-12-31',
       reference: '  ref-9  ', // trimmed
     });
-    const qs = req.url.split('?')[1] ?? '';
-    assert.ok(qs.includes('per_page=50'));
-    assert.ok(qs.includes('type=collection'));
-    assert.ok(qs.includes('provider=MTN'));
-    assert.ok(qs.includes('end_date=2024-12-31'));
-    assert.ok(qs.includes('reference=ref-9'));
-    assert.ok(!qs.includes('page='), 'non-finite page is dropped');
-    assert.ok(!qs.includes('status='), 'whitespace status is dropped');
-    assert.ok(!qs.includes('start_date='), 'empty start_date is dropped');
+    const params = new URLSearchParams(req.url.split('?')[1] ?? '');
+    assert.equal(params.get('per_page'), '50');
+    assert.equal(params.get('type'), 'collection');
+    assert.equal(params.get('provider'), 'MTN');
+    assert.equal(params.get('end_date'), '2024-12-31');
+    assert.equal(params.get('reference'), 'ref-9');
+    assert.equal(params.has('page'), false, 'non-finite page is dropped');
+    assert.equal(params.has('status'), false, 'whitespace status is dropped');
+    assert.equal(params.has('start_date'), false, 'empty start_date is dropped');
   });
 });
 
