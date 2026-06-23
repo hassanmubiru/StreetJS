@@ -1,0 +1,6 @@
+<div id="tiles" hx-get="/tiles" hx-trigger="every 2s" hx-swap="outerHTML" class="grid">
+  <div class="tile"><div class="label">Requests</div><div class="value">{{ metrics.requests }}</div></div>
+  <div class="tile"><div class="label">Active users</div><div class="value">{{ metrics.activeUsers }}</div></div>
+  <div class="tile"><div class="label">p99 latency</div><div class="value">{{ metrics.p99 }} ms</div></div>
+  <div class="tile"><div class="label">Error rate</div><div class="value">{{ metrics.errorRate }}%</div></div>
+</div>
