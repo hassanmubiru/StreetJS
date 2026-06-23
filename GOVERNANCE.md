@@ -3,7 +3,7 @@
 ## Roles
 
 - **Maintainers** — review/merge PRs, cut releases, own roadmap. Listed in
-  `MAINTAINERS` (to be populated as the project grows).
+  [`MAINTAINERS.md`](MAINTAINERS.md) (currently one — see the honest bus-factor note there).
 - **Contributors** — anyone submitting issues/PRs under `CONTRIBUTING.md`.
 - **Security responders** — handle private vulnerability reports.
 
