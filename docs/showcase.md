@@ -99,6 +99,59 @@ description:  "Built with StreetJS — official reference applications and start
 
 </div>
 
+<script>
+(function(){
+  var filter=document.getElementById('sc-filter');
+  var cards=Array.prototype.slice.call(document.querySelectorAll('.sc-grid .sc-card'));
+  filter.addEventListener('click',function(e){
+    var chip=e.target.closest('.sc-chip'); if(!chip) return;
+    var lvl=chip.getAttribute('data-level');
+    Array.prototype.forEach.call(filter.querySelectorAll('.sc-chip'),function(c){c.classList.toggle('on',c===chip);});
+    cards.forEach(function(card){
+      card.style.display=(lvl==='all'||card.getAttribute('data-level')===lvl)?'':'none';
+    });
+  });
+})();
+</script>
+
+## Learning path
+
+New to StreetJS? Work through the reference apps in order — each builds on the
+concepts of the previous one.
+
+<div class="sc-path">
+  <div class="sc-step">
+    <span class="n">START · Beginner</span>
+    <h4>1 · REST API</h4>
+    <p>Controllers, services, repositories, validation and OpenAPI — the core request/response model.</p>
+  </div>
+  <div class="sc-step">
+    <span class="n">Beginner</span>
+    <h4>2 · JWT Authentication</h4>
+    <p>Layer registration, login, sessions and protected routes on top of the REST API.</p>
+  </div>
+  <div class="sc-step">
+    <span class="n">Intermediate</span>
+    <h4>3 · Background Jobs</h4>
+    <p>Move work off the request path with a queue, scheduler and retries.</p>
+  </div>
+  <div class="sc-step">
+    <span class="n">Intermediate</span>
+    <h4>4 · Realtime Chat</h4>
+    <p>Add WebSocket channels, presence and live delivery with auth on upgrade.</p>
+  </div>
+  <div class="sc-step">
+    <span class="n">Advanced</span>
+    <h4>5 · Live Dashboard</h4>
+    <p>Stream metrics with Server-Sent Events and realtime channels.</p>
+  </div>
+  <div class="sc-step">
+    <span class="n">Advanced</span>
+    <h4>6 · Multiplayer</h4>
+    <p>Low-latency state sync — rooms, broadcast and per-connection state.</p>
+  </div>
+</div>
+
 ## Starters
 
 Scaffold a new project with either backend or a full-stack frontend in one command:
@@ -107,12 +160,19 @@ Scaffold a new project with either backend or a full-stack frontend in one comma
 # Backend only (SQLite by default — zero config)
 npx @streetjs/cli create my-app
 
-# With a Next.js or React frontend
+# With a Next.js, React, or server-rendered HTMX frontend
 npx @streetjs/cli create my-app --frontend next
 npx @streetjs/cli create my-app --frontend react
+npx @streetjs/cli create my-app --frontend htmx
+
+# Or a domain starter (SaaS, AI, realtime, marketplace, dating)
+npx @streetjs/cli create my-app --starter saas
 ```
 
-See the [Getting Started guide]({{ '/getting-started/' | relative_url }}) for the full walkthrough, and [Examples]({{ '/examples/' | relative_url }}) for runnable code.
+Browse the full [Starters catalog]({{ '/starters/' | relative_url }}) for every
+template and the SaaS `--with-*` opt-in modules. See the
+[Getting Started guide]({{ '/getting-started/' | relative_url }}) for the full
+walkthrough, and [Examples]({{ '/examples/' | relative_url }}) for runnable code.
 
 ## Add your project
 
