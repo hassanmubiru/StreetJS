@@ -15,8 +15,8 @@ to a verifiable feature.
 
 ## Dependency philosophy
 
-StreetJS core (`streetjs`) is built on Node.js core modules with **two runtime
-dependencies** (`reflect-metadata`, `ws`). Database drivers (PostgreSQL wire v3,
+StreetJS core (`streetjs`) is built on Node.js core modules with **three runtime
+dependencies** (`reflect-metadata`, `ws`, `zod`). Database drivers (PostgreSQL wire v3,
 MySQL, SQLite), HTTP, TLS, crypto, and clustering are implemented on `node:*` —
 **no `express`, `pg`, or `prisma`**. This minimizes the third-party attack
 surface and supply-chain exposure.
