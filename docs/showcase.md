@@ -16,13 +16,32 @@ description:  "Built with StreetJS — official reference applications and start
 
 <p style="color:var(--text-muted);font-size:13px;margin:-12px 0 4px">Cover graphics are illustrative — run any app to see the real thing.</p>
 
-> **Capability demos** (each a real, runnable, CI-tested app — live hosting in progress):
-> [SaaS](/StreetJS/showcase/saas/) ·
-> [MarzPay Billing](/StreetJS/showcase/marzpay-billing/) ·
-> [HTMX Dashboard](/StreetJS/showcase/htmx-dashboard/) ·
-> [Realtime Chat](/StreetJS/showcase/realtime-chat/) ·
-> [AI Assistant](/StreetJS/showcase/ai-assistant/) ·
-> [Multi-tenant CRM](/StreetJS/showcase/crm-roadmap/) (roadmap)
+## Capability demos
+
+<p style="color:var(--text-muted);font-size:14px;margin:0 0 4px">Each is a real, runnable, CI-tested app. A green <strong>Live demo</strong> badge appears automatically once an instance is hosted (status flips in <code>_data/demos.json</code>).</p>
+
+<div class="dz-grid">
+  {%- for d in site.data.demos.demos -%}
+  <div class="dz-card">
+    <div class="dz-top">
+      <span class="dz-cap">{{ d.capability }}</span>
+      {%- if d.status == "live" and d.url != "" -%}
+        <a class="dz-badge dz-live" href="{{ d.url }}" target="_blank" rel="noopener">● Live demo</a>
+      {%- elsif d.status == "roadmap" -%}
+        <span class="dz-badge dz-roadmap">Roadmap</span>
+      {%- else -%}
+        <span class="dz-badge dz-soon">Live demo soon</span>
+      {%- endif -%}
+    </div>
+    <h3 class="dz-title"><a href="{{ d.docs | relative_url }}">{{ d.title }}</a></h3>
+    <div class="dz-links">
+      <a href="{{ d.docs | relative_url }}">Details</a>
+      {%- if d.source != "" %} · <a href="{{ d.source }}" target="_blank" rel="noopener">Source</a>{%- endif -%}
+      {%- if d.package %} · <a href="{{ d.package }}" target="_blank" rel="noopener">npm</a>{%- endif -%}
+    </div>
+  </div>
+  {%- endfor -%}
+</div>
 
 <style>
 .sc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;margin:24px 0}
