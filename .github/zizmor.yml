@@ -1,0 +1,25 @@
+# zizmor configuration for the StreetJS repository.
+#
+# The committed `app-*/` directories are GENERATED sample scaffolds produced by
+# `street create` (referenced in STARTER-CATALOG-PLAN.md). Their CI workflows use
+# readable, conventional `@vN` action references on purpose — pinning a user-facing
+# starter template to commit SHAs is poor scaffold UX and goes stale immediately.
+# zizmor must lint StreetJS's OWN workflows (`.github/workflows/*`, `.github/actions/*`),
+# not these generated example outputs. We therefore ignore the framework's blanket
+# hash-pinning + credential-persistence rules for the four generated scaffold CIs.
+#
+# (No framework workflow is named `ci.yml`; the framework uses `ci-cd.yml`,
+#  `client-ci.yml`, `frontend-ci.yml`, etc. — so these paths are unambiguous.)
+rules:
+  unpinned-uses:
+    ignore:
+      - app-htmx/.github/workflows/ci.yml
+      - app-next/.github/workflows/ci.yml
+      - app-none/.github/workflows/ci.yml
+      - app-react/.github/workflows/ci.yml
+  artipacked:
+    ignore:
+      - app-htmx/.github/workflows/ci.yml
+      - app-next/.github/workflows/ci.yml
+      - app-none/.github/workflows/ci.yml
+      - app-react/.github/workflows/ci.yml
