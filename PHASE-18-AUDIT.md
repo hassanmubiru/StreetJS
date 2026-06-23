@@ -145,6 +145,16 @@ Ordered by **trust-impact first, then high-ROI visibility, then enrichment** —
 15. **G-R2…R7** Batched mentorship, CI-gated verified-author program, contributor-ladder triggers, contributors wall, `MAINTAINERS` file.
 16. **F** Execute the content roadmap (amplify the 3 live posts → SaaS/HTMX/realtime tutorials → native-driver depth → comparisons), MEASURED-only.
 
+### Phase 1 — Execution status (APPLIED)
+
+All Phase-1 (accuracy/trust) items are now implemented — docs/generator/metadata only, no core changes:
+
+- **X1 — DONE.** Corrected the runtime-dependency count to **3 (`reflect-metadata`, `ws`, `zod`)** across every live doc surface: `docs/trust.md`, `docs/faq.md`, `docs/about.md`, `docs/README.md`, `docs/getting-started/installation.md`, `docs/use-cases/index.md` (incl. the now-accurate "Zod-backed `@Validate`" line), `docs/enterprise/{procurement-faq,architecture-overview,risk-assessment}.md`, `docs/deployment/budget.md`, `docs/adoption/go-to-market-roadmap.md`, `docs/STREETJS-READINESS-ASSESSMENT.md`, and the blog index/posts. `sbom.json` linked as proof. (Marketing drafts under `docs/_marketing/` and internal planning docs left as optional follow-up.)
+- **X2 — DONE.** `scripts/gen-plugins-data.mjs` now **derives** `signed`/`dependencyFree`/`thirdPartyDepCount` from on-disk artifacts (`manifest.signed.json` existence + `dependencies` minus `streetjs`); detail pages render trust signals conditionally and add a Source/GitHub link + runtime-dependency line. Regenerated: **19/20 signed**; `plugin-htmx` now honestly shows "manifest signing pending" instead of a false signed badge.
+- **B-R1 — DONE.** `docs/starters.md` SaaS row no longer mis-attributes `@streetjs/admin`; added the `htmx` frontend, the `--with-billing/--with-marzpay/--with-admin-ui/--with-email` table, and an "optional enhancement" note for `@streetjs/admin`.
+- **D-REC-2/3 — DONE.** `docs/trust.md` SBOM row now links the real `sbom.json` + generator; threat-model links `docs/THREAT-MODEL.md`; added rows for cosign release signing, secret scanning, dependency review, DAST, and compliance control mappings (all to verifiable in-repo artifacts); enterprise checklist updated.
+- **X3/X5 — DONE.** `STARTERS-ROADMAP.md` carries a SUPERSEDED banner (the "no `--starter` flag" claim is struck/resolved); `PHASE-18-EXECUTION-PLAN.md` and `PLUGIN-MARKETPLACE.md` counts reconciled to **20 plugins / 9 categories** with generator-driven caveats; `docs/cli-reference.md` and `docs/roadmap.md` updated for the real `htmx` frontend, `ai` starter, and `--with-*` flags.
+
 ---
 
 ## 7. ROI / Adoption Impact / Maintenance Cost — top moves
