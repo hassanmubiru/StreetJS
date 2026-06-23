@@ -94,9 +94,10 @@ description:  "Browse official StreetJS plugins — databases, cache, messaging,
     <p class="pkg">{{ p.name }}</p>
     <p class="desc">{{ p.description }}</p>
     <div class="row">
-      <a class="ver" href="{{ site.baseurl }}/plugins/{{ p.slug }}/" style="text-decoration:none">Details →</a>
+      <span class="ver">v{{ p.version }}{% if p.signed %} · ✓ signed{% endif %}</span>
       <a class="npm" href="{{ p.npm }}" target="_blank" rel="noopener">npm →</a>
     </div>
+    <a href="{{ site.baseurl }}/plugins/{{ p.slug }}/" class="ver" style="text-decoration:none;margin-top:.4rem;display:inline-block">Details →</a>
   </div>
   {%- endfor -%}
 </div>
