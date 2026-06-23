@@ -45,8 +45,8 @@ parameterized queries are injection-safe by construction.
 
 - **No transitive dependencies.** `pg` is well-maintained, but it and its
   helpers pull packages into every app that uses the framework. A native client
-  keeps the core at two runtime dependencies — see
-  [Why StreetJS has two dependencies](/StreetJS/blog/why-2-dependencies/).
+  keeps the core dependency-light — see
+  [Why StreetJS has so few dependencies](/StreetJS/blog/why-2-dependencies/).
 - **No native bindings.** Nothing to compile per platform; install is just
   JavaScript.
 - **Control over memory and backpressure.** Because StreetJS owns the socket

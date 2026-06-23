@@ -30,10 +30,11 @@ Most Node.js frameworks layer abstractions on top of abstractions. StreetJS take
 
 Yes. StreetJS is designed for production from the ground up — bounded memory, parameterized queries, SCRAM-SHA-256 PostgreSQL auth, AES-256-GCM sessions, and a comprehensive test suite including memory leak, wire protocol, load, fuzz, chaos, and security tests.
 
-### What are the two dependencies?
+### What are the three dependencies?
 
 - **`reflect-metadata`** — enables TypeScript's `emitDecoratorMetadata` for constructor injection
 - **`ws`** — WebSocket framing protocol (Node.js `http.Server` handles upgrades but not framing)
+- **`zod`** — runtime input validation and schema parsing
 
 Everything else — HTTP, TLS, streams, crypto, cluster — ships with Node.js.
 
