@@ -1,17 +1,17 @@
 ---
 layout:      default
-title:       "Why StreetJS has two runtime dependencies"
+title:       "Why StreetJS has so few runtime dependencies"
 permalink:   /blog/why-2-dependencies/
 nav_exclude: true
-description:  "How StreetJS ships a full TypeScript backend — HTTP, routing, DI, native PostgreSQL, WebSockets, auth, jobs — with only two runtime dependencies, and why that matters for security and cost."
+description:  "How StreetJS ships a full TypeScript backend — HTTP, routing, DI, native PostgreSQL, WebSockets, auth, jobs — with just three runtime dependencies, and why that matters for security and cost."
 ---
 
 {% include doc-styles.html %}
 
 <div class="doc-header" markdown="0">
 <span class="dh-label">Engineering</span>
-<h1>Why StreetJS has two runtime dependencies</h1>
-<p>A full backend framework with HTTP, routing, DI, a native PostgreSQL driver, WebSockets, auth, and jobs — shipped with two runtime dependencies. Here's how, and why it matters.</p>
+<h1>Why StreetJS has so few runtime dependencies</h1>
+<p>A full backend framework with HTTP, routing, DI, a native PostgreSQL driver, WebSockets, auth, and jobs — shipped with just three runtime dependencies. Here's how, and why it matters.</p>
 </div>
 
 Most Node backends pull in hundreds of transitive packages before you write a
@@ -19,12 +19,13 @@ line of business logic. Each one is attack surface, a supply-chain risk, and a
 potential breaking change. StreetJS takes the opposite position: implement the
 hard parts directly on Node core, and depend on almost nothing.
 
-## The two dependencies
+## The three dependencies
 
-StreetJS (`streetjs`) ships with exactly two runtime dependencies:
+StreetJS (`streetjs`) ships with exactly three runtime dependencies:
 
 - **`reflect-metadata`** — decorator metadata for constructor injection.
 - **`ws`** — WebSocket framing.
+- **`zod`** — runtime input validation and schema parsing.
 
 Everything else — the HTTP server, router, dependency-injection container, the
 PostgreSQL wire-protocol driver, security primitives, the job queue, clustering,
