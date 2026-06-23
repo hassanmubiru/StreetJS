@@ -31,7 +31,7 @@
 | 2 Marketplace IA | hub + categories | **VERIFIED** hub at `/plugins/marketplace/`; 9 data-driven categories |
 | 3 Detail pages | Overview→Related | **IMPLEMENTED** — added Quick Start, Compatibility, Certification, Related Plugins |
 | 4 Search | build-time, no infra | **VERIFIED** — client-side over generated data |
-| 5 Badges | taxonomy + rules | **IMPLEMENTED** (taxonomy below); all official = Official+Signed |
+| 5 Badges | taxonomy + rules | **IMPLEMENTED** (taxonomy below); badges derived from real artifacts — Official = all 20; Signed = 19/20 (`plugin-htmx` pending) |
 | 6 Metadata standard | schema | **IMPLEMENTED** (schema below) |
 | 7 SEO | JSON-LD/category/sitemap | **VERIFIED** + per-plugin JSON-LD |
 | 8 Automation | build-time gen | **VERIFIED** (`gen-plugins-data.mjs` in CI) |
