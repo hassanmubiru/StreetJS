@@ -1,0 +1,31 @@
+name: Demos uptime
+
+# Probes each hosted showcase demo's GET /health/ready (from docs/_data/demos.json)
+# and reports status. Report-only by design: it never commits or hides a demo on a
+# transient blip — a human decides whether a "down" demo needs action. Badge
+# rendering itself is pure Liquid over site.data.demos (see docs/showcase.md), so
+# flipping a demo to "live" is a one-line edit to docs/_data/demos.json.
+
+on:
+  schedule:
+    - cron: '17 */6 * * *'   # every 6 hours
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: demos-uptime
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Probe demo health
+        run: node scripts/check-demos.mjs
