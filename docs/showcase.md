@@ -57,9 +57,9 @@ description:  "Built with StreetJS — official reference applications and start
 <span class="sc-links"><a href="https://github.com/hassanmubiru/StreetJS/tree/main/examples/01-rest-api">Source</a><a href="{{ '/examples/rest-api/' | relative_url }}">Docs</a></span>
 </div>
 
-<div class="sc-card">
+<div class="sc-card" data-level="beginner">
 <img class="sc-cover" src="{{ '/assets/images/showcase/jwt-auth.svg' | relative_url }}" alt="JWT Authentication reference app — illustrative cover" loading="lazy" width="640" height="360">
-<span class="sc-tag">Reference app</span>
+<span class="sc-tag">Reference app<span class="sc-lvl lvl-beginner">Beginner</span></span>
 <h3>JWT Authentication</h3>
 <p>Registration, login, sessions, and protected routes using the built-in auth primitives — no third-party auth library.</p>
 <span class="sc-links"><a href="https://github.com/hassanmubiru/StreetJS/tree/main/examples/02-jwt-auth">Source</a><a href="{{ '/security/' | relative_url }}">Docs</a></span>
