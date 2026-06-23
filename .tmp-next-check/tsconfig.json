@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noEmit": true,
+    "allowJs": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "types": ["react", "node"],
+    "paths": {
+      "@streetjs/plugin-marzpay": ["../packages/plugin-marzpay/dist/index.d.ts"]
+    }
+  },
+  "include": ["app/**/*.ts", "app/**/*.tsx", "shims/**/*.d.ts"],
+  "exclude": ["node_modules"]
+}
