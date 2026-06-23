@@ -23,9 +23,29 @@ description:  "Built with StreetJS — official reference applications and start
 .sc-card h3{margin:0;font-size:17px}
 .sc-tag{align-self:flex-start;font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:999px;padding:2px 10px}
 .sc-card p{margin:0;color:var(--text-secondary);font-size:14px}
+.sc-lvl{align-self:flex-start;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;border-radius:999px;padding:2px 9px;margin-left:6px}
+.lvl-beginner{color:#15803d;background:rgba(22,163,74,.12);border:1px solid rgba(22,163,74,.3)}
+.lvl-intermediate{color:#b45309;background:rgba(217,119,6,.12);border:1px solid rgba(217,119,6,.3)}
+.lvl-advanced{color:#b91c1c;background:rgba(220,38,38,.12);border:1px solid rgba(220,38,38,.3)}
+.sc-filter{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:18px 0 4px}
+.sc-chip{font-size:13px;font-weight:600;color:var(--text-muted);background:var(--elevated);border:1px solid var(--border);border-radius:999px;padding:5px 14px;cursor:pointer}
+.sc-chip.on{background:var(--accent-soft);border-color:var(--accent-line);color:var(--accent)}
 .sc-links{margin-top:auto;display:flex;gap:14px;font-size:14px;font-weight:600}
 .sc-note{border:1px solid var(--border);background:var(--elevated);border-radius:12px;padding:16px 18px;color:var(--text-secondary)}
+.sc-path{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:18px 0}
+.sc-step{border:1px solid var(--border);background:var(--elevated);border-radius:12px;padding:14px 16px}
+.sc-step .n{font-size:12px;font-weight:700;color:var(--accent)}
+.sc-step h4{margin:.3rem 0 .35rem;font-size:15px}
+.sc-step p{margin:0;color:var(--text-secondary);font-size:13px}
 </style>
+
+<div class="sc-filter" id="sc-filter">
+  <span style="font-size:13px;color:var(--text-muted);font-weight:600">Difficulty:</span>
+  <span class="sc-chip on" data-level="all">All</span>
+  <span class="sc-chip" data-level="beginner">Beginner</span>
+  <span class="sc-chip" data-level="intermediate">Intermediate</span>
+  <span class="sc-chip" data-level="advanced">Advanced</span>
+</div>
 
 <div class="sc-grid">
 
