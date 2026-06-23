@@ -168,16 +168,23 @@ for (const p of plugins) {
     `**${p.description}**`,
     '',
     `- **Category:** [${p.category}](/StreetJS/plugins/category/${cslug}/)`,
-    `- **Tier:** ${p.tier} · **Signed** · **Dependency-free**`,
+    `- **Tier:** ${p.tier}${p.signed ? ' · **Signed**' : ''}${p.dependencyFree ? ' · **Dependency-free**' : ''}`,
     `- **Version:** \`v${p.version}\``,
+    `- **Runtime dependencies:** ${p.thirdPartyDepCount === 0 ? 'none (third-party) — only `streetjs`' : '`' + p.thirdPartyDeps.join('`, `') + '`'}`,
     `- **npm:** [${p.name}](${p.npm})`,
+    `- **Source:** [packages/plugin-${p.slug}](${p.repo})`,
     '',
     '## Trust signals',
     '',
-    '- ✅ **Signed manifest** (Ed25519) — verified by the plugin host on load',
-    '- ✅ **Dependency-free** — no third-party runtime dependencies',
+    // Derived from real on-disk artifacts — never hardcoded.
+    p.signed
+      ? '- ✅ **Signed manifest** (Ed25519) — `manifest.signed.json` is committed and verified by the plugin host on load'
+      : '- ⏳ **Manifest signing pending** — no signed manifest is committed yet; install from a trusted source and verify before production use',
+    p.dependencyFree
+      ? '- ✅ **Dependency-free** — no third-party runtime dependencies (only the `streetjs` framework)'
+      : `- 📦 **${p.thirdPartyDepCount} third-party runtime ${p.thirdPartyDepCount === 1 ? 'dependency' : 'dependencies'}**: \`${p.thirdPartyDeps.join('`, `')}\``,
     '- ✅ **MIT licensed** · **Node.js ≥ 20** · **TypeScript-native**',
-    '- ✅ **npm provenance** — published with build attestations',
+    '- ✅ **npm provenance** — official plugins are published with build attestations (enforced in CI)',
     '',
     '## Install',
     '',
