@@ -13,7 +13,7 @@ description:  "StreetJS Security & Trust Center — supply-chain evidence: SBOM,
 </div>
 
 StreetJS is built for teams that have to answer security questionnaires. The
-framework ships with a native-driver, dependency-light core (2 runtime
+framework ships with a native-driver, dependency-light core (3 runtime
 dependencies) and a signed plugin model, and every release is produced with
 provenance attestations and a software bill of materials.
 
@@ -26,7 +26,7 @@ provenance attestations and a software bill of materials.
 | **OpenSSF Scorecard** | Automated supply-chain best-practice scoring | [Scorecard](https://securityscorecards.dev/viewer/?uri=github.com/hassanmubiru/StreetJS) |
 | **CodeQL** | Static analysis on every push | [Code scanning](https://github.com/hassanmubiru/StreetJS/security/code-scanning) |
 | **Signed plugins** | Ed25519-signed manifests verified by the plugin host before load | [Plugin system](/StreetJS/plugins/) |
-| **2 runtime dependencies** | Minimal third-party attack surface (`reflect-metadata`, `ws`) | [package.json](https://github.com/hassanmubiru/StreetJS) |
+| **3 runtime dependencies** | Minimal third-party attack surface (`reflect-metadata`, `ws`, `zod`) | [package.json](https://github.com/hassanmubiru/StreetJS/blob/main/packages/core/package.json) · [sbom.json](https://github.com/hassanmubiru/StreetJS/blob/main/sbom.json) |
 
 ## Security posture
 
