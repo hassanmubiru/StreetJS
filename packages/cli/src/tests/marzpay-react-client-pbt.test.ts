@@ -196,8 +196,9 @@ void describe('React MarzPay client PBT', () => {
             } else {
               // Non-success: the client raises an error that INCLUDES the status
               // and returns no payment result.
+              const NO_RESULT = Symbol('no-result');
               let raised = false;
-              let returned: unknown = Symbol('no-result');
+              let returned: unknown = NO_RESULT;
               try {
                 returned = await call();
               } catch (err) {
@@ -212,11 +213,7 @@ void describe('React MarzPay client PBT', () => {
                 assert.ok(e instanceof lib.MarzPayError, 'the error must be a MarzPayError');
               }
               assert.ok(raised, `a non-success status (${status}) must raise an error, not return a result`);
-              assert.equal(
-                returned,
-                returned === undefined ? returned : (returned as symbol),
-                'no payment result may be produced on a non-success response',
-              );
+              assert.equal(returned, NO_RESULT, 'no payment result may be produced on a non-success response');
             }
           } finally {
             restore();
