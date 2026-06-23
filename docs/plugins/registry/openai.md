@@ -16,14 +16,16 @@ description:  "Official StreetJS plugin: OpenAI chat + embeddings (dependency-fr
 - **Category:** [AI](/StreetJS/plugins/category/ai/)
 - **Tier:** Official · **Signed** · **Dependency-free**
 - **Version:** `v1.0.2`
+- **Runtime dependencies:** none (third-party) — only `streetjs`
 - **npm:** [@streetjs/plugin-openai](https://www.npmjs.com/package/@streetjs/plugin-openai)
+- **Source:** [packages/plugin-openai](https://github.com/hassanmubiru/StreetJS/tree/main/packages/plugin-openai)
 
 ## Trust signals
 
-- ✅ **Signed manifest** (Ed25519) — verified by the plugin host on load
-- ✅ **Dependency-free** — no third-party runtime dependencies
+- ✅ **Signed manifest** (Ed25519) — `manifest.signed.json` is committed and verified by the plugin host on load
+- ✅ **Dependency-free** — no third-party runtime dependencies (only the `streetjs` framework)
 - ✅ **MIT licensed** · **Node.js ≥ 20** · **TypeScript-native**
-- ✅ **npm provenance** — published with build attestations
+- ✅ **npm provenance** — official plugins are published with build attestations (enforced in CI)
 
 ## Install
 

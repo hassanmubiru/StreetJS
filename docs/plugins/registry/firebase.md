@@ -16,14 +16,16 @@ description:  "Official StreetJS plugin: Firebase Auth (Identity Toolkit) REST (
 - **Category:** [Auth & Identity](/StreetJS/plugins/category/auth-and-identity/)
 - **Tier:** Official · **Signed** · **Dependency-free**
 - **Version:** `v1.0.2`
+- **Runtime dependencies:** none (third-party) — only `streetjs`
 - **npm:** [@streetjs/plugin-firebase](https://www.npmjs.com/package/@streetjs/plugin-firebase)
+- **Source:** [packages/plugin-firebase](https://github.com/hassanmubiru/StreetJS/tree/main/packages/plugin-firebase)
 
 ## Trust signals
 
-- ✅ **Signed manifest** (Ed25519) — verified by the plugin host on load
-- ✅ **Dependency-free** — no third-party runtime dependencies
+- ✅ **Signed manifest** (Ed25519) — `manifest.signed.json` is committed and verified by the plugin host on load
+- ✅ **Dependency-free** — no third-party runtime dependencies (only the `streetjs` framework)
 - ✅ **MIT licensed** · **Node.js ≥ 20** · **TypeScript-native**
-- ✅ **npm provenance** — published with build attestations
+- ✅ **npm provenance** — official plugins are published with build attestations (enforced in CI)
 
 ## Install
 

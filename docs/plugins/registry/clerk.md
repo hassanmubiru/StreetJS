@@ -16,14 +16,16 @@ description:  "Official StreetJS plugin: Clerk identity backend API (dependency-
 - **Category:** [Auth & Identity](/StreetJS/plugins/category/auth-and-identity/)
 - **Tier:** Official · **Signed** · **Dependency-free**
 - **Version:** `v1.0.2`
+- **Runtime dependencies:** none (third-party) — only `streetjs`
 - **npm:** [@streetjs/plugin-clerk](https://www.npmjs.com/package/@streetjs/plugin-clerk)
+- **Source:** [packages/plugin-clerk](https://github.com/hassanmubiru/StreetJS/tree/main/packages/plugin-clerk)
 
 ## Trust signals
 
-- ✅ **Signed manifest** (Ed25519) — verified by the plugin host on load
-- ✅ **Dependency-free** — no third-party runtime dependencies
+- ✅ **Signed manifest** (Ed25519) — `manifest.signed.json` is committed and verified by the plugin host on load
+- ✅ **Dependency-free** — no third-party runtime dependencies (only the `streetjs` framework)
 - ✅ **MIT licensed** · **Node.js ≥ 20** · **TypeScript-native**
-- ✅ **npm provenance** — published with build attestations
+- ✅ **npm provenance** — official plugins are published with build attestations (enforced in CI)
 
 ## Install
 

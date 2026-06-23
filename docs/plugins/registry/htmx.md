@@ -3,7 +3,7 @@ layout:      default
 title:       "@streetjs/plugin-htmx"
 permalink:   /plugins/htmx/
 nav_exclude: true
-description:  "Official StreetJS plugin: HTMX support — a dependency-free view engine (layouts, partials), HX-request detection, response-header helpers and CSRF form fields for server-rendered apps. Official, signed, dependency-free StreetJS plugin — install from npm."
+description:  "Official StreetJS plugin: HTMX support — a dependency-free view engine (layouts, partials), HX-request detection, response-header helpers and CSRF form fields for server-rendered apps. Official, dependency-free StreetJS plugin — install from npm."
 ---
 
 <script type="application/ld+json">
@@ -14,16 +14,18 @@ description:  "Official StreetJS plugin: HTMX support — a dependency-free view
 **Official StreetJS plugin: HTMX support — a dependency-free view engine (layouts, partials), HX-request detection, response-header helpers and CSRF form fields for server-rendered apps.**
 
 - **Category:** [Frontend & Views](/StreetJS/plugins/category/frontend-and-views/)
-- **Tier:** Official · **Signed** · **Dependency-free**
+- **Tier:** Official · **Dependency-free**
 - **Version:** `v1.0.0`
+- **Runtime dependencies:** none (third-party) — only `streetjs`
 - **npm:** [@streetjs/plugin-htmx](https://www.npmjs.com/package/@streetjs/plugin-htmx)
+- **Source:** [packages/plugin-htmx](https://github.com/hassanmubiru/StreetJS/tree/main/packages/plugin-htmx)
 
 ## Trust signals
 
-- ✅ **Signed manifest** (Ed25519) — verified by the plugin host on load
-- ✅ **Dependency-free** — no third-party runtime dependencies
+- ⏳ **Manifest signing pending** — no signed manifest is committed yet; install from a trusted source and verify before production use
+- ✅ **Dependency-free** — no third-party runtime dependencies (only the `streetjs` framework)
 - ✅ **MIT licensed** · **Node.js ≥ 20** · **TypeScript-native**
-- ✅ **npm provenance** — published with build attestations
+- ✅ **npm provenance** — official plugins are published with build attestations (enforced in CI)
 
 ## Install
 
@@ -51,7 +53,7 @@ See the [compatibility matrix](/StreetJS/compatibility/) for the full support gr
 ## Certification
 
 This is an **Official** plugin — maintained by the StreetJS team in the monorepo,
-CI-tested, and published with a signed manifest. See the
+CI-tested. A signed manifest is not yet committed for this plugin. See the
 [plugin certification levels](/StreetJS/ecosystem/plugin-certification/).
 
 
