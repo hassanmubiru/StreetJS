@@ -16,6 +16,14 @@ description:  "Built with StreetJS — official reference applications and start
 
 <p style="color:var(--text-muted);font-size:13px;margin:-12px 0 4px">Cover graphics are illustrative — run any app to see the real thing.</p>
 
+> **Capability demos** (each a real, runnable, CI-tested app — live hosting in progress):
+> [SaaS](/StreetJS/showcase/saas/) ·
+> [MarzPay Billing](/StreetJS/showcase/marzpay-billing/) ·
+> [HTMX Dashboard](/StreetJS/showcase/htmx-dashboard/) ·
+> [Realtime Chat](/StreetJS/showcase/realtime-chat/) ·
+> [AI Assistant](/StreetJS/showcase/ai-assistant/) ·
+> [Multi-tenant CRM](/StreetJS/showcase/crm-roadmap/) (roadmap)
+
 <style>
 .sc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;margin:24px 0}
 .sc-card{display:flex;flex-direction:column;gap:8px;border:1px solid var(--border);background:var(--elevated);border-radius:14px;padding:14px}
