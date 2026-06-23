@@ -38,8 +38,8 @@ Shipped in this commit (not just specified):
 
 - **Data model / build-time generation** — `scripts/gen-plugins-data.mjs` reads
   every `packages/plugin-*/package.json` (name, description, version, keywords),
-  infers a category, and writes `docs/_data/plugins.json` (19 plugins, 8
-  categories). Dependency-free; re-runnable; safe in CI before `jekyll build`.
+  infers a category, and writes `docs/_data/plugins.json` (currently 20 plugins, 9
+  categories — count is generator-driven and self-correcting).
 - **Marketplace page** — `docs/plugins/marketplace.md` at `/plugins/marketplace/`.
   Server-rendered cards from `site.data.plugins` (so content is in the HTML and
   **indexable**), plus client-side search + category filter (vanilla JS, no
