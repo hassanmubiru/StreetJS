@@ -23,7 +23,7 @@ back (out of scope for content until the backing exists).
 | 4 | **Multi-tenant architecture** | ✅ **VERIFIED** | `create.ts` `src/middleware/tenant.ts`: `tenantResolver` (membership gate → 401/403) and `orgScopedRepo` (org_id-stamped reads/writes, cross-tenant 403); `MembershipService.resolveActiveOrg` membership gate |
 | 5 | **MarzPay integration** (`--with-marzpay`) | ✅ **VERIFIED** | `packages/plugin-marzpay/`; `docs/integrations/marzpay/` (getting-started, payments, subscriptions, webhooks, saas-billing, security, htmx/next/react examples); `create.ts` `flagPackages['with-marzpay']` + `migrations/004_marzpay_billing.sql` + `.env.marzpay.example` + React/Next overlays |
 | 6 | **Realtime applications** (`--starter realtime`) | ✅ **VERIFIED** | `create.ts` `TEMPLATES['realtime-chat']` (channels, presence, typing; `migrations/001_realtime.sql`, `REALTIME.md`); core `StreetWebSocketServer` (`packages/core/src/websocket/server.ts`, `maxConnections: 10_000`, heartbeats); `ChannelHub` (`packages/core/src/websocket/channels.ts`); SSE (`websocket/sse.js`); `docs/realtime/` |
-| 7 | **Dependency-light architecture** | ✅ **VERIFIED** | `docs/blog/why-2-dependencies.md` (2 runtime deps: `reflect-metadata`, `ws`); dependency-free plugins (redis/kafka/mongodb/mysql comments); `docs/sustainability/README.md` |
+| 7 | **Dependency-light architecture** | ✅ **VERIFIED** | `packages/core/package.json` (3 runtime deps: `reflect-metadata`, `ws`, `zod`); `docs/blog/why-2-dependencies.md`; dependency-free plugins (redis/kafka/mongodb/mysql comments); `docs/sustainability/README.md` |
 | — | **Named customer case studies** | ⚠️ **GAP** | `docs/case-studies/` contains only **templates** (`README.md`, `template-benchmark.md`, `template-deployment.md`, `template-migration.md`) — no real adopters. **NOT scheduled as real case studies.** See §5. |
 | — | **Performance benchmark posts** | ✅ **VERIFIED (conditional)** | `~5,700 req/s` and `~30 KB/WebSocket` are **MEASURED** per `docs/blog/self-hosting-cost.md` + budget guide. **RISK:** only publish figures reproducible from the repo's benchmark harness; never estimate. |
 
@@ -51,7 +51,7 @@ backing. These convert evaluators and need no engineering.
 
 | # | Title | Format | Verified strength (evidence) | Audience | Dependencies |
 |---|---|---|---|---|---|
-| A1 | Why StreetJS has two runtime dependencies | blog (live → amplify) | Dependency-light (`docs/blog/why-2-dependencies.md`) | Node/TS backend devs, security-minded leads | None (published) |
+| A1 | Why StreetJS has so few runtime dependencies | blog (live → amplify) | Dependency-light, 3 runtime deps (`docs/blog/why-2-dependencies.md`, `packages/core/package.json`) | Node/TS backend devs, security-minded leads | None (published) |
 | A2 | Talking to PostgreSQL without the `pg` package | blog (live → amplify) | Native PG driver (`docs/blog/native-postgres-driver.md`) | Backend devs, DBAs | None (published) |
 | A3 | Self-hosting a full backend on one small VPS | blog (live → amplify) | Cost case, MEASURED (`docs/blog/self-hosting-cost.md`) | Founders, cost-conscious teams | RISK: keep figures MEASURED-only |
 | A4 | Build a SaaS backend in one command (`--starter saas`) | tutorial | SaaS starter (`create.ts` `TEMPLATES.saas`, `docs/starters.md`) | SaaS founders, full-stack devs | A1–A2 published first |
@@ -103,7 +103,7 @@ often the piece must be updated to stay accurate.
 
 | Piece(s) | ROI rank | Adoption impact | Maintenance cost | Why |
 |---|---|---|---|---|
-| A1 Two dependencies | ★★★★★ (1) | High | Low | Most differentiated/defensible; already published; evergreen |
+| A1 Dependency-light (3 deps) | ★★★★★ (1) | High | Low | Most differentiated/defensible; already published; evergreen |
 | A2 Native PG driver | ★★★★★ (2) | High | Low | Unique technical angle, high search intent; stable |
 | A4 SaaS in one command | ★★★★★ (3) | Very High | Medium | Direct path to `--starter saas`; tracks CLI changes |
 | A3 Self-hosting cost | ★★★★☆ (4) | High | Medium | Strong founder hook; **RISK**: re-verify MEASURED numbers each release |
