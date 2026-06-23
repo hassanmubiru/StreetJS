@@ -122,7 +122,7 @@ async function loadSubscriptionModule(): Promise<{
 // --- In-memory org-scoped backing repository --------------------------------
 
 function rowMatches(row: SubscriptionRecord, filter: Record<string, unknown>): boolean {
-  return Object.entries(filter).every(([k, v]) => (row as Record<string, unknown>)[k] === v);
+  return Object.entries(filter).every(([k, v]) => (row as unknown as Record<string, unknown>)[k] === v);
 }
 
 /** A faithful in-memory store honoring find/findOne/insert/update by filter. */
@@ -138,7 +138,7 @@ function makeRepo(): Repo & { rows: SubscriptionRecord[] } {
       return rows.find((r) => rowMatches(r, filter)) ?? null;
     },
     async insert(values) {
-      const row = { id: values.id ?? `sub_${++seq}`, ...(values as SubscriptionRecord) };
+      const row = { ...(values as SubscriptionRecord), id: (values as { id?: string }).id ?? `sub_${++seq}` };
       rows.push(row);
       return row;
     },
