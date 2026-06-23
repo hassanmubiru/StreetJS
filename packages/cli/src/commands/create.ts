@@ -4224,6 +4224,10 @@ export class CreateCommand {
       await writeFile(join(webDir, 'app', 'providers.tsx'), this.renderNextProviders(), 'utf8');
       await writeFile(join(webDir, 'app', 'globals.css'), this.renderNextGlobalsCss(), 'utf8');
       await writeFile(join(webDir, '.env.example'), 'NEXT_PUBLIC_API_URL=http://localhost:3000\n', 'utf8');
+      // MarzPay Next.js App Router overlay: client helpers, billing/success/cancel
+      // routes, and a server-side webhook example. Written whenever the Next
+      // frontend is selected (Requirements 5.4, 5.5, 9.1–9.5).
+      await this.scaffoldNextMarzPay(webDir);
       console.log('[street] Scaffolded Next.js (App Router) frontend in web/.');
     } else if (frontend === 'htmx') {
       await this.scaffoldHtmx(targetDir);
@@ -5216,6 +5220,7 @@ export function InvoicesPage() {
         '@streetjs/client': '^0.1.0',
         '@streetjs/react': '^0.1.0',
         '@streetjs/next': '^0.1.0',
+        '@streetjs/plugin-marzpay': '^1.0.0',
         next: '^16.2.9',
         react: '^19.2.0',
         'react-dom': '^19.2.0',
