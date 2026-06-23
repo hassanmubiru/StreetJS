@@ -1,0 +1,3 @@
+{
+  "/api/webhooks/marzpay/route": "app/api/webhooks/marzpay/route.js"
+}
