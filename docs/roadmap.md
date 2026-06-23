@@ -66,7 +66,7 @@ feedback — open an issue or discussion to influence it.
 ### Developer experience
 - [x] CLI: `create`, `dev`, `build`, `start`, `test`, `generate`, `migrate`, `seed`
 - [x] CLI: `info`, `doctor`, `diagnostics`, `audit`, `certify`, `deploy`, `plugin`, `registry`, `upgrade`, `add`
-- [x] Project templates (`app`, `saas`, `ecommerce`, `realtime-chat`, `dating-app`) + `--frontend react|next`
+- [x] Project templates (`app`, `saas`, `ai`, `ecommerce`, `realtime-chat`, `dating-app`) + `--frontend react|next|htmx`
 - [x] **SDK generators** — TypeScript and Python clients from the OpenAPI spec
 - [x] Docker multi-stage build; GitHub Actions CI/CD with npm provenance + signed plugins
 
