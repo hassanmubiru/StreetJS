@@ -12,7 +12,7 @@
     "@streetjs/client": "^0.1.0",
     "@streetjs/react": "^0.1.0",
     "@streetjs/next": "^0.1.0",
-    "@streetjs/plugin-marzpay": "^1.0.0",
+    "@streetjs/plugin-marzpay": "file:/home/error51/Downloads/street-framework/streetJS/packages/plugin-marzpay",
     "next": "^16.2.9",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
