@@ -70,10 +70,9 @@ Net: Phase 18 should be executed as a **visibility-and-accuracy pass**, not a bu
 - **Evidence:** `PHASE-18-EXECUTION-PLAN.md` execution log says "8 category pages + 19 detail pages" / "19 plugins, 8 categories"; current generated state is **20 plugins / 9 categories**. `PLUGIN-MARKETPLACE.md` carries the same stale counts. `STARTERS-ROADMAP.md` still asserts "there is **no `--starter` flag**" (now false). `docs/cli-reference.md`/`docs/roadmap.md` omit the real `htmx` frontend and `ai` starter.
 - **RECOMMENDATION:** mark the prior execution plan / roadmaps as **superseded**, regenerate counts from `plugins.json`, and unify CLI flag docs to a single source of truth.
 
-### X4 — RISK: "unlisted MarzPay" vs "feature MarzPay" tension (affects A + E)
-- **Evidence:** the brief asks the homepage to feature MarzPay as a flagship plugin, but `packages/plugin-marzpay/package.json` sets `streetjs.unlisted: true`, so the generator deliberately **hides** it from the marketplace (verified: absent from `plugins.json`).
-- **Impact:** featuring an intentionally-unlisted plugin on the homepage would contradict the marketplace's own exclusion and confuse users who can't find it in `/plugins/`.
-- **RECOMMENDATION:** either (a) keep MarzPay out of homepage "featured plugins" until it is published/listed, or (b) if it is ready to publish, flip `unlisted` and let the generator list it — then feature it. Do **not** feature a plugin the marketplace hides.
+### X4 — RESOLVED: MarzPay is now published & listed
+- **Original tension:** the brief asked the homepage to feature MarzPay, but `packages/plugin-marzpay/package.json` set `streetjs.unlisted: true`, so the generator hid it.
+- **Resolution (applied):** the `unlisted` flag was removed and `plugin-marzpay` added to the `publish-plugins.yml` matrix. The generator now **lists** it (Payments, v1.0.0, signed — `plugins.json` count is **21**), and it is featured on the homepage. Build/sign/test verified (67 tests pass). The npm publish itself runs via the `Publish Plugins` workflow (tag `plugins-v*` or manual dispatch) using the `NPM_TOKEN` + `STREET_PLUGIN_SIGNING_KEY` secrets.
 
 ### X5 — RISK: activity claims that are GitHub runtime state, not source
 - **Evidence:** `COMMUNITY-ROADMAP.md` claims Discussions enabled + seeded (#66–69) and 20 curated good-first-issues; these cannot be confirmed from repository source.
