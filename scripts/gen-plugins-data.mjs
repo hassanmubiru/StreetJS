@@ -212,7 +212,9 @@ for (const p of plugins) {
     '## Certification',
     '',
     `This is an **Official** plugin — maintained by the StreetJS team in the monorepo,`,
-    'CI-tested, and published with a signed manifest. See the',
+    p.signed
+      ? 'CI-tested, and published with a signed manifest. See the'
+      : 'CI-tested. A signed manifest is not yet committed for this plugin. See the',
     '[plugin certification levels](/StreetJS/ecosystem/plugin-certification/).',
     '',
     related.length ? '## Related plugins' : '',
