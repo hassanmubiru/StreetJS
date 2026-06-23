@@ -1,0 +1,83 @@
+{
+  "note": "Phase-19 showcase demo registry. `status` is 'source-only' until a live instance is hosted and its /health/ready probe passes (see DEMO-INFRA-PLAN.md). A 'Live demo' badge must only render for status: 'live' with a non-empty url. Keep this file the single source of truth for showcase per-app pages.",
+  "generated": "2026-06-23",
+  "demos": [
+    {
+      "slug": "saas",
+      "title": "SaaS Platform",
+      "capability": "Auth · RBAC · Multi-tenant · Audit",
+      "priority": 1,
+      "url": "",
+      "status": "source-only",
+      "source": "https://github.com/hassanmubiru/StreetJS/tree/main/examples/reference-apps/saas",
+      "scaffold": "street create my-saas --starter saas --with-admin-ui",
+      "deploy": "deploy/cloud-run/service.yaml",
+      "docs": "/StreetJS/showcase/saas/",
+      "sandbox": true
+    },
+    {
+      "slug": "marzpay-billing",
+      "title": "MarzPay Billing",
+      "capability": "Payments · Subscriptions · Webhooks",
+      "priority": 2,
+      "url": "",
+      "status": "source-only",
+      "source": "https://github.com/hassanmubiru/StreetJS/tree/main/examples/marzpay-saas",
+      "package": "https://www.npmjs.com/package/@streetjs/plugin-marzpay",
+      "deploy": "deploy/cloud-run/service.yaml",
+      "docs": "/StreetJS/showcase/marzpay-billing/",
+      "sandbox": true
+    },
+    {
+      "slug": "htmx-dashboard",
+      "title": "HTMX Dashboard",
+      "capability": "Server-rendered HTML · HTMX · SSE",
+      "priority": 3,
+      "url": "",
+      "status": "source-only",
+      "source": "https://github.com/hassanmubiru/StreetJS/tree/main/examples/marzpay-htmx",
+      "scaffold": "street create my-app --frontend htmx",
+      "deploy": "deploy/cloud-run/service.yaml",
+      "docs": "/StreetJS/showcase/htmx-dashboard/",
+      "sandbox": true
+    },
+    {
+      "slug": "realtime-chat",
+      "title": "Realtime Chat",
+      "capability": "WebSockets · Presence · Channels",
+      "priority": 4,
+      "url": "",
+      "status": "source-only",
+      "source": "https://github.com/hassanmubiru/StreetJS/tree/main/examples/reference-apps/realtime-chat",
+      "deploy": "deploy/helm/street",
+      "docs": "/StreetJS/showcase/realtime-chat/",
+      "sandbox": true,
+      "requiresWebSocket": true
+    },
+    {
+      "slug": "ai-assistant",
+      "title": "AI Assistant",
+      "capability": "RAG · Embeddings · Tool-calling",
+      "priority": 5,
+      "url": "",
+      "status": "source-only",
+      "source": "https://github.com/hassanmubiru/StreetJS/tree/main/examples/reference-apps/ai-assistant",
+      "deploy": "deploy/cloud-run/service.yaml",
+      "docs": "/StreetJS/showcase/ai-assistant/",
+      "sandbox": true,
+      "demoSafeMode": true
+    },
+    {
+      "slug": "crm",
+      "title": "Multi-tenant CRM",
+      "capability": "Contacts · Deals · Pipeline (planned)",
+      "priority": 6,
+      "url": "",
+      "status": "roadmap",
+      "source": "",
+      "deploy": "",
+      "docs": "/StreetJS/showcase/crm-roadmap/",
+      "sandbox": true
+    }
+  ]
+}
