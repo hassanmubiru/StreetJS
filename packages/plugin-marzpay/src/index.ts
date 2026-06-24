@@ -886,6 +886,75 @@ export function createUtilsNamespace(): UtilsNamespace {
 }
 
 // ---------------------------------------------------------------------------
+// Transactions namespace (Task 2.2)
+// ---------------------------------------------------------------------------
+//
+// The `marzpay.transactions` namespace exposes a single verified read operation
+// over the `GET /transactions/{id}` endpoint (Research_Artifact V3). It reuses
+// the existing verified path WITHOUT duplicating any builder/parser: the trimmed
+// reference guard mirrors collections (named `reference` error, no send — Req
+// 4.3), and the fetch delegates to the flat `MarzPayClient.getTransaction`,
+// which already composes `buildGetTransactionRequest` → transport →
+// `ensureSuccessStatus` (non-2xx → error INCLUDING the HTTP status, no partial
+// result — Req 4.4) → `parseTransactionRecord` (returns `id`, `reference`,
+// `amount`, `currency`, `status` — Req 4.1, 4.2). The namespace is attached to
+// the client in Task 5.1.
+
+/**
+ * The `marzpay.transactions` namespace surface (Requirement 4).
+ *
+ * Exposes only `get(reference)`, returning a {@link Transaction} record with
+ * `id`, `reference`, `amount`, `currency`, and `status` (Req 4.1, 4.2).
+ */
+export interface TransactionsNamespace {
+  /**
+   * Fetch a single transaction by `reference` via the verified
+   * `GET /transactions/{id}` endpoint. The `reference` is trimmed and
+   * length-guarded first: empty, whitespace-only, or `>256`-char values throw a
+   * `PluginError` naming the `"reference"` argument and issue NO network request
+   * (Req 4.3). A non-2xx response throws an error INCLUDING the HTTP status and
+   * returns no partial result (Req 4.4).
+   */
+  get(reference: string): Promise<Transaction>;
+}
+
+/**
+ * Dependencies for {@link createTransactionsNamespace}.
+ *
+ * Mirrors how the flat `getTransaction` is wired: the namespace delegates the
+ * verified fetch (build → send → status check → parse) to the existing client
+ * method rather than re-implementing it, so there is a single verified path
+ * (verify-don't-invent; no duplicated builder/parser).
+ */
+export interface TransactionsNamespaceDeps {
+  /** The verified transaction fetch — the flat `MarzPayClient.getTransaction`. */
+  getTransaction(reference: string): Promise<Transaction>;
+}
+
+/**
+ * Create the `marzpay.transactions` namespace object.
+ *
+ * `get(reference)` applies the same reference guard as collections — trimming
+ * and rejecting empty/whitespace-only/`>256`-char values with a `PluginError`
+ * naming `"reference"` BEFORE any send (Req 4.3) — by reusing the shared
+ * `guardIdentifierArgument` helper. On a valid reference it delegates to the
+ * injected verified `getTransaction`, which returns the parsed record (`id`,
+ * `reference`, `amount`, `currency`, `status`) and maps non-2xx responses to an
+ * error including the HTTP status with no partial result (Req 4.1, 4.2, 4.4).
+ * It is attached to the client as `marzpay.transactions` in Task 5.1.
+ */
+export function createTransactionsNamespace(
+  deps: TransactionsNamespaceDeps,
+): TransactionsNamespace {
+  return {
+    get: async (reference: string): Promise<Transaction> => {
+      const trimmedReference = guardIdentifierArgument(reference, 'reference', 'transactions.get');
+      return deps.getTransaction(trimmedReference);
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Transport seam (Task 7.1)
 // ---------------------------------------------------------------------------
 //
