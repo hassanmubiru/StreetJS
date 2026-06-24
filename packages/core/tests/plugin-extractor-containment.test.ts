@@ -201,10 +201,8 @@ describe('Property 1 — extractor path containment (PS-1, fixed _extractTarball
             await fs.mkdir(destDir, { recursive: true });
             const destRoot = path.resolve(destDir);
 
-            // Re-evaluate the predicate against the REAL destDir.
+            // Evaluate the predicate against the REAL destDir.
             const isBug = isBugConditionExtract(entries, destDir);
-            // Sanity: adversaries are constructed to always trigger the bug.
-            void bug;
 
             const before = await walkAll(root);
 
