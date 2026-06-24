@@ -35,7 +35,7 @@
       "priority": 3,
       "url": "",
       "status": "source-only",
-      "source": "https://github.com/hassanmubiru/StreetJS/tree/main/examples/marzpay-htmx",
+      "source": "https://github.com/hassanmubiru/StreetJS/tree/main/examples/reference-apps/htmx-dashboard",
       "scaffold": "street create my-app --frontend htmx",
       "deploy": "deploy/cloud-run/service.yaml",
       "docs": "/StreetJS/showcase/htmx-dashboard/",
