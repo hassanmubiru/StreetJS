@@ -1,0 +1,69 @@
+# StreetJS showcase demos — one image, one container per capability, behind Caddy
+# (auto-TLS + per-subdomain routing). See DEMO-INFRA-PLAN.md. Bring it up with:
+#
+#   docker compose -f demos/docker-compose.yml up -d --build
+#
+# Then point DNS (saas/crm/htmx/chat/ai).demo.<your-domain> at the host, set
+# DEMO_DOMAIN, and run `node scripts/check-demos.mjs --write` once the URLs are in
+# docs/_data/demos.json — the showcase "Live demo" badges flip on automatically.
+#
+# Safety: synthetic/seed data only; reset on a schedule (a cron running
+# `docker compose restart` is enough since every store is in-memory); rate-limit at
+# the edge; MarzPay/AI demos must use SANDBOX keys / demo-safe mode (not included
+# here by default — add them as env when you host those).
+
+x-demo-image: &demo-image
+  build:
+    context: ..
+    dockerfile: demos/Dockerfile
+  image: streetjs-demos:latest
+  restart: unless-stopped
+  # A leak can't take the host down: cap memory per demo (StreetJS idles ~64 MB).
+  mem_limit: 256m
+  environment:
+    NODE_ENV: production
+    PORT: "3000"
+
+services:
+  saas:
+    <<: *demo-image
+    environment: { NODE_ENV: production, PORT: "3000", DEMO_APP: saas }
+
+  crm:
+    <<: *demo-image
+    environment: { NODE_ENV: production, PORT: "3000", DEMO_APP: crm }
+
+  htmx-dashboard:
+    <<: *demo-image
+    environment: { NODE_ENV: production, PORT: "3000", DEMO_APP: htmx-dashboard }
+
+  realtime-chat:
+    <<: *demo-image
+    environment: { NODE_ENV: production, PORT: "3000", DEMO_APP: realtime-chat }
+
+  ai-assistant:
+    <<: *demo-image
+    environment: { NODE_ENV: production, PORT: "3000", DEMO_APP: ai-assistant }
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DEMO_DOMAIN: ${DEMO_DOMAIN:-demo.localhost}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - saas
+      - crm
+      - htmx-dashboard
+      - realtime-chat
+      - ai-assistant
+
+volumes:
+  caddy_data:
+  caddy_config:
