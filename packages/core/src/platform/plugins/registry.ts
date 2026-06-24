@@ -164,12 +164,23 @@ export class PluginInstaller {
   /**
    * Minimal tar.gz extraction using Node.js built-ins.
    * Supports uncompressed and gzip-compressed archives.
+   *
+   * Restructured into three passes (PS-1 hardening):
+   *   1. Parse pass      — gunzip-or-raw decompress, then parse the tar into an
+   *                        in-memory entry list. No writes (Req 3.3 preserved).
+   *   2. Validation pass — reject link type-flags ('1'/'2') and any entry that
+   *                        escapes containment, BEFORE any byte is written
+   *                        (Req 2.1–2.4). Aborts the whole archive on the first
+   *                        offending entry, guaranteeing zero out-of-containment
+   *                        (and zero in-containment partial) artifacts.
+   *   3. Write pass      — only reached if every entry validated; writes files
+   *                        ('0'/'\0') and creates dirs ('5') at the precomputed
+   *                        contained safe path.
    */
   private async _extractTarball(buffer: Buffer, destDir: string): Promise<void> {
     const zlib = await import('node:zlib');
-    const path = await import('node:path');
 
-    // Try to decompress as gzip
+    // --- Decompress: try gzip, fall back to raw (unchanged, Req 3.3) ---
     let tarBuffer: Buffer;
     try {
       tarBuffer = await new Promise<Buffer>((resolve, reject) => {
@@ -192,7 +203,15 @@ export class PluginInstaller {
       tarBuffer = buffer;
     }
 
-    // Parse tar format
+    // --- Pass 1: parse tar into an in-memory entry list (no writes) ---
+    interface TarEntry {
+      name: string;
+      typeFlag: string;
+      size: number;
+      dataOffset: number;
+    }
+    const entries: TarEntry[] = [];
+
     let offset = 0;
     while (offset + 512 <= tarBuffer.length) {
       const header = tarBuffer.slice(offset, offset + 512);
@@ -202,7 +221,6 @@ export class PluginInstaller {
 
       const nameBytes = header.slice(0, 100);
       const name = nameBytes.toString('utf8').replace(/\0/g, '');
-      if (!name) { offset += 512; continue; }
 
       const sizeStr = header.slice(124, 136).toString('utf8').replace(/\0/g, '').trim();
       const size = parseInt(sizeStr, 8) || 0;
@@ -210,21 +228,47 @@ export class PluginInstaller {
 
       offset += 512;
 
-      if (typeFlag === '0' || typeFlag === '\0') {
-        // Regular file
-        const fileData = tarBuffer.slice(offset, offset + size);
-        const filePath = path.join(destDir, name.replace(/^\.\//, '').replace(/^\//, ''));
-
-        await fs.mkdir(path.dirname(filePath), { recursive: true });
-        await fs.writeFile(filePath, fileData);
-      } else if (typeFlag === '5') {
-        // Directory
-        const dirPath = path.join(destDir, name.replace(/^\.\//, '').replace(/^\//, ''));
-        await fs.mkdir(dirPath, { recursive: true });
+      if (name) {
+        entries.push({ name, typeFlag, size, dataOffset: offset });
       }
 
       // Advance past file data (round up to 512-byte boundary)
       offset += Math.ceil(size / 512) * 512;
+    }
+
+    // --- Pass 2: validation pre-pass (runs before ANY byte is written) ---
+    const safePaths: string[] = [];
+    for (const entry of entries) {
+      // Reject symlink ('2') and hardlink ('1') type-flags (Req 2.3).
+      if (entry.typeFlag === '1' || entry.typeFlag === '2') {
+        throw new Error(
+          `Refusing link entry "${entry.name}" (type ${entry.typeFlag}) in plugin archive`
+        );
+      }
+      // Reject any entry that escapes containment (Req 2.1, 2.2, 2.4).
+      const safe = resolveContained(destDir, entry.name);
+      if (safe === null) {
+        throw new Error(
+          `Refusing path-traversal entry "${entry.name}" outside plugin directory`
+        );
+      }
+      safePaths.push(safe);
+    }
+
+    // --- Pass 3: write pass (only reached once every entry validated) ---
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i]!;
+      const safePath = safePaths[i]!;
+
+      if (entry.typeFlag === '0' || entry.typeFlag === '\0') {
+        // Regular file
+        const fileData = tarBuffer.slice(entry.dataOffset, entry.dataOffset + entry.size);
+        await fs.mkdir(path.dirname(safePath), { recursive: true });
+        await fs.writeFile(safePath, fileData);
+      } else if (entry.typeFlag === '5') {
+        // Directory
+        await fs.mkdir(safePath, { recursive: true });
+      }
     }
   }
 }
