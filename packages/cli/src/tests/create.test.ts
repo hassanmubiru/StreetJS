@@ -322,3 +322,99 @@ function countFilesRecursive(dir: string): number {
   }
   return count;
 }
+
+// ---------------------------------------------------------------------------
+// F-PAY4 — Stripe idempotency migration scaffolding (Req 7.1, 7.2, 7.3, 7.4, 7.6)
+//
+// The `saas` starter ships the Stripe processed-event store migration
+// (`migrations/005_stripe_events.sql`) ONLY when `--with-billing` is passed,
+// so webhook idempotency works out of the box. These example/integration tests
+// scaffold into an isolated temp dir and assert the file's presence/absence,
+// its contents, and that the filename follows the ascending NNN_name.sql
+// convention used by the existing starter migrations.
+// ---------------------------------------------------------------------------
+void describe('CreateCommand — Stripe idempotency migration (F-PAY4)', () => {
+  const STRIPE_MIGRATION = join('migrations', '005_stripe_events.sql');
+
+  void it('emits migrations/005_stripe_events.sql with --with-billing (Req 7.1, 7.2, 7.3)', async () => {
+    await withTempDir(async (tmpDir) => {
+      process.exitCode = 0;
+      const ctx = makeContext(tmpDir, ['billing-app'], { starter: 'saas', 'with-billing': true });
+      const { restore } = captureCallbacks();
+      const cmd = new CreateCommand();
+      await cmd.execute(ctx);
+      restore();
+
+      const projectDir = join(tmpDir, 'billing-app');
+      const migrationPath = join(projectDir, STRIPE_MIGRATION);
+
+      // Req 7.1 — the migration is emitted when --with-billing is set.
+      assert.ok(existsSync(migrationPath), 'expected 005_stripe_events.sql to exist');
+
+      const sql = readFileSync(migrationPath, 'utf8');
+      // Req 7.1 — creates the stripe_events table.
+      assert.ok(/stripe_events/i.test(sql), 'migration should create the stripe_events table');
+      // Req 7.2 — event_id is the PRIMARY KEY.
+      assert.ok(/event_id/i.test(sql), 'migration should define an event_id column');
+      assert.ok(/event_id[\s\S]*primary key/i.test(sql), 'event_id should be the PRIMARY KEY');
+      // Req 7.3 — a processed_at column is defined.
+      assert.ok(/processed_at/i.test(sql), 'migration should define a processed_at column');
+    });
+  });
+
+  void it('omits the stripe migration without --with-billing (Req 7.4)', async () => {
+    await withTempDir(async (tmpDir) => {
+      process.exitCode = 0;
+      const ctx = makeContext(tmpDir, ['plain-saas'], { starter: 'saas' });
+      const { restore } = captureCallbacks();
+      const cmd = new CreateCommand();
+      await cmd.execute(ctx);
+      restore();
+
+      const projectDir = join(tmpDir, 'plain-saas');
+      // Req 7.4 — without the flag, the migration is NOT emitted.
+      assert.ok(
+        !existsSync(join(projectDir, STRIPE_MIGRATION)),
+        'expected 005_stripe_events.sql to be absent without --with-billing',
+      );
+      // The always-present saas migrations are still scaffolded.
+      assert.ok(existsSync(join(projectDir, 'migrations', '001_saas.sql')));
+    });
+  });
+
+  void it('follows the ascending NNN_name.sql migration convention (Req 7.6)', async () => {
+    await withTempDir(async (tmpDir) => {
+      process.exitCode = 0;
+      const ctx = makeContext(tmpDir, ['convention-app'], { starter: 'saas', 'with-billing': true });
+      const { restore } = captureCallbacks();
+      const cmd = new CreateCommand();
+      await cmd.execute(ctx);
+      restore();
+
+      const migrationsDir = join(tmpDir, 'convention-app', 'migrations');
+      const sqlFiles = readdirSync(migrationsDir).filter((f) => f.endsWith('.sql'));
+
+      // Every migration filename follows the ascending NNN_name.sql convention.
+      const namePattern = /^\d{3}_.*\.sql$/;
+      for (const file of sqlFiles) {
+        assert.ok(namePattern.test(file), `migration "${file}" should match NNN_name.sql`);
+      }
+
+      // The stripe migration is present and numbered 005.
+      assert.ok(sqlFiles.includes('005_stripe_events.sql'), 'expected 005_stripe_events.sql');
+
+      // 005 sorts after the always-present 001/002/003 migrations (ascending order).
+      const numberOf = (f: string): number => Number(f.slice(0, 3));
+      const sorted = [...sqlFiles].sort();
+      const stripeIdx = sorted.indexOf('005_stripe_events.sql');
+      for (const base of ['001_saas.sql', '002_api_keys.sql', '003_settings.sql']) {
+        assert.ok(sqlFiles.includes(base), `expected always-present ${base}`);
+        assert.ok(
+          numberOf('005_stripe_events.sql') > numberOf(base),
+          `005 should be numbered after ${base}`,
+        );
+        assert.ok(sorted.indexOf(base) < stripeIdx, `${base} should sort before the stripe migration`);
+      }
+    });
+  });
+});
