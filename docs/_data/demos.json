@@ -70,13 +70,13 @@
     {
       "slug": "crm",
       "title": "Multi-tenant CRM",
-      "capability": "Contacts · Deals · Pipeline (planned)",
+      "capability": "Contacts · Deals · Pipeline · RBAC",
       "priority": 6,
       "url": "",
-      "status": "roadmap",
-      "source": "",
-      "deploy": "",
-      "docs": "/StreetJS/showcase/crm-roadmap/",
+      "status": "source-only",
+      "source": "https://github.com/hassanmubiru/StreetJS/tree/main/examples/reference-apps/crm",
+      "deploy": "deploy/cloud-run/service.yaml",
+      "docs": "/StreetJS/showcase/crm/",
       "sandbox": true
     }
   ]
