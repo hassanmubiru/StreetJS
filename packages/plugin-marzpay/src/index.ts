@@ -1815,3 +1815,226 @@ export function createDisbursementsNamespace(deps: DisbursementsNamespaceDeps): 
     },
   };
 }
+
+// ---------------------------------------------------------------------------
+// Phone verification namespace (Task 3.3)
+// ---------------------------------------------------------------------------
+//
+// The `marzpay.phoneVerification` surface (Requirement 10) over an UNVERIFIED
+// object seam: `paths.phoneVerification` (ABSENT in MARZPAY_SPEC — see
+// MarzPayPaths). No phone-verification endpoints are recorded as a
+// Verified_Capability (Research_Artifact), so the whole `phoneVerification` seam
+// is left unbound.
+//
+// Every operation validates its required `phone_number` field FIRST (named-field
+// `PluginError`, NO send — Req 10.4) and THEN guards the seam:
+//  - `verify(req)` calls `requireBoundSeam(spec.paths.phoneVerification?.verify,
+//    'phoneVerification.verify')` (the `verify` member is a plain string path).
+//  - `isVerified(req)` / `getUserInfo(req)` guard on `spec.paths.phoneVerification`
+//    being `undefined` (their members are path-builder functions, not the
+//    `string | undefined` that `requireBoundSeam` accepts) and throw
+//    `UnsupportedOperationError` naming the capability.
+// While the seam is unbound each throws `UnsupportedOperationError` and issues NO
+// network request (Req 10.1, 10.5). The build/send/parse below each seam guard is
+// authored for the day the seam is bound (Req 10.2, 10.3, 10.6) but is
+// UNREACHABLE until then — mirroring `accounts.getBalance` /
+// `disbursements.sendMoney`.
+//
+// The factory `createPhoneVerificationNamespace(deps)` mirrors the wiring of
+// `createCollectionsNamespace` (config + spec + transport + timeout) and reuses
+// the existing guards (`isNonEmptyString`, `requireBoundSeam`,
+// `UnsupportedOperationError`) and defensive parse helpers
+// (`asRecord`/`parseJsonBody`/`asOptionalString`); the namespace is attached to
+// the client in Task 5.1.
+
+/**
+ * Request for every `phoneVerification.*` operation: the customer MSISDN to
+ * verify. `phone_number` is REQUIRED and must be a non-empty string (Req 10.4).
+ */
+export interface PhoneVerificationRequest {
+  /** Required: customer MSISDN to verify (`+256xxxxxxxxx`). */
+  phone_number: string;
+}
+
+/**
+ * Result of `phoneVerification.verify` (parsed defensively from the MarzPay
+ * response — Req 10.1): the echoed `phone_number` and its `verified` boolean
+ * state. Only produced once the seam is bound; until then `verify` throws
+ * `UnsupportedOperationError` (Req 10.5).
+ */
+export interface PhoneVerificationResult {
+  /** The verified phone number (echoed by MarzPay). */
+  phone_number: string;
+  /** Whether the phone number is verified. */
+  verified: boolean;
+}
+
+/**
+ * Verified user information for a phone number (parsed defensively from the
+ * MarzPay response — Req 10.3): the `phone_number` plus any additional scalar
+ * fields MarzPay returns. Only produced once the seam is bound; until then
+ * `getUserInfo` throws `UnsupportedOperationError` (Req 10.5).
+ */
+export interface PhoneUserInfo {
+  /** The phone number the information pertains to. */
+  phone_number: string;
+  /** Additional scalar user-info fields returned by MarzPay. */
+  [k: string]: string | boolean | number | undefined;
+}
+
+/**
+ * The `marzpay.phoneVerification` namespace surface (Requirement 10). Every
+ * member validates `phone_number` FIRST, then surfaces
+ * `UnsupportedOperationError` while the seam is unbound — no network request is
+ * reachable until the phone-verification endpoints are recorded as a
+ * Verified_Capability.
+ */
+export interface PhoneVerificationNamespace {
+  /** Verify a phone number and return its `verified` state (Req 10.1). */
+  verify(req: PhoneVerificationRequest): Promise<PhoneVerificationResult>;
+  /** Return whether a phone number is verified (Req 10.2). */
+  isVerified(req: PhoneVerificationRequest): Promise<boolean>;
+  /** Return verified user information for a phone number (Req 10.3). */
+  getUserInfo(req: PhoneVerificationRequest): Promise<PhoneUserInfo>;
+}
+
+/**
+ * Dependencies for {@link createPhoneVerificationNamespace}, mirroring
+ * {@link CollectionsNamespaceDeps}: the validated `config`, the verified `spec`,
+ * the injectable `transport`, and the resolved `timeoutMs`.
+ */
+export interface PhoneVerificationNamespaceDeps {
+  /** Validated, normalized plugin configuration. */
+  readonly config: MarzPayPluginConfig;
+  /** The verified API spec (defaults to `MARZPAY_SPEC` at the call site). */
+  readonly spec: MarzPaySpec;
+  /** Injectable transport seam (defaults to `defaultMarzPayTransport`). */
+  readonly transport: MarzPayTransport;
+  /** Resolved request timeout budget in milliseconds. */
+  readonly timeoutMs: number;
+}
+
+/**
+ * Create the `marzpay.phoneVerification` namespace.
+ *
+ * Each operation validates the required `phone_number` field FIRST (named-field
+ * `PluginError`, no send — Req 10.4), then guards the unbound seam so it throws
+ * `UnsupportedOperationError` with NO network request while the
+ * phone-verification endpoints are unverified (Req 10.1, 10.5). The
+ * build/send/parse after each seam guard is authored (so the operations are
+ * complete when the seam is later bound — Req 10.2, 10.3, 10.6) but remains
+ * UNREACHABLE until then. A non-2xx response throws a `PluginError` INCLUDING the
+ * HTTP status with no partial result (Req 10.6), and responses are parsed with
+ * the shared defensive helpers. The namespace is attached to the client as
+ * `marzpay.phoneVerification` in Task 5.1.
+ */
+export function createPhoneVerificationNamespace(
+  deps: PhoneVerificationNamespaceDeps,
+): PhoneVerificationNamespace {
+  const { config, spec, transport, timeoutMs } = deps;
+
+  const send = (req: MarzPayHttpRequest): Promise<MarzPayTransportResponse> => transport(req, timeoutMs);
+
+  // Mirrors MarzPayClient.ensureSuccessStatus: a non-2xx status throws a
+  // PluginError INCLUDING the returned HTTP status and yields no partial result.
+  const ensureSuccess = (status: number, operation: string): void => {
+    if (status < 200 || status >= 300) {
+      throw new PluginError(`MarzPay ${operation}: request returned non-success HTTP status ${status}`);
+    }
+  };
+
+  // Validate the required `phone_number` field, returning its trimmed value.
+  // Throws a named-field PluginError (NO send) on a missing/empty value (Req 10.4).
+  const guardPhoneNumber = (req: PhoneVerificationRequest, operation: string): string => {
+    if (typeof req !== 'object' || req === null || !isNonEmptyString(req.phone_number)) {
+      throw new PluginError(
+        `MarzPay ${operation}: "phone_number" is required and must be a non-empty string`,
+      );
+    }
+    return req.phone_number.trim();
+  };
+
+  return {
+    async verify(req: PhoneVerificationRequest): Promise<PhoneVerificationResult> {
+      // Required-field validation runs FIRST (named-field error, no send — Req 10.4).
+      const phoneNumber = guardPhoneNumber(req, 'phoneVerification.verify');
+      // Verify-don't-invent: the verify member is a plain string path, so guard it
+      // via requireBoundSeam — throws UnsupportedOperationError (no send) while
+      // unbound (Req 10.5). Everything below is unreachable until bound.
+      const verifyPath = requireBoundSeam(spec.paths.phoneVerification?.verify, 'phoneVerification.verify');
+
+      const built: MarzPayHttpRequest = {
+        method: 'POST',
+        url: `${resolveBaseAddress(config, spec)}${verifyPath}`,
+        headers: spec.authHeaders(config),
+        body: JSON.stringify({ phone_number: phoneNumber }),
+      };
+      const { status, body } = await send(built);
+      ensureSuccess(status, 'phoneVerification.verify');
+      const root = asRecord(parseJsonBody(body, 'phoneVerification.verify'));
+      const data = asRecord(root['data']);
+      return {
+        phone_number: asOptionalString(data['phone_number']) ?? phoneNumber,
+        verified: data['verified'] === true,
+      };
+    },
+
+    async isVerified(req: PhoneVerificationRequest): Promise<boolean> {
+      // Required-field validation runs FIRST (named-field error, no send — Req 10.4).
+      const phoneNumber = guardPhoneNumber(req, 'phoneVerification.isVerified');
+      // Verify-don't-invent: the isVerified member is a path-builder function (not
+      // the string | undefined requireBoundSeam accepts), so guard on the whole
+      // phoneVerification seam being undefined and throw UnsupportedOperationError
+      // (no send) while unbound (Req 10.5). Everything below is unreachable until bound.
+      if (spec.paths.phoneVerification === undefined) {
+        throw new UnsupportedOperationError('phoneVerification.isVerified');
+      }
+
+      const built: MarzPayHttpRequest = {
+        method: 'GET',
+        url: `${resolveBaseAddress(config, spec)}${spec.paths.phoneVerification.isVerified(phoneNumber)}`,
+        headers: spec.authHeaders(config),
+        body: '',
+      };
+      const { status, body } = await send(built);
+      ensureSuccess(status, 'phoneVerification.isVerified');
+      const root = asRecord(parseJsonBody(body, 'phoneVerification.isVerified'));
+      const data = asRecord(root['data']);
+      return data['verified'] === true;
+    },
+
+    async getUserInfo(req: PhoneVerificationRequest): Promise<PhoneUserInfo> {
+      // Required-field validation runs FIRST (named-field error, no send — Req 10.4).
+      const phoneNumber = guardPhoneNumber(req, 'phoneVerification.getUserInfo');
+      // Verify-don't-invent: the getUserInfo member is a path-builder function (not
+      // the string | undefined requireBoundSeam accepts), so guard on the whole
+      // phoneVerification seam being undefined and throw UnsupportedOperationError
+      // (no send) while unbound (Req 10.5). Everything below is unreachable until bound.
+      if (spec.paths.phoneVerification === undefined) {
+        throw new UnsupportedOperationError('phoneVerification.getUserInfo');
+      }
+
+      const built: MarzPayHttpRequest = {
+        method: 'GET',
+        url: `${resolveBaseAddress(config, spec)}${spec.paths.phoneVerification.getUserInfo(phoneNumber)}`,
+        headers: spec.authHeaders(config),
+        body: '',
+      };
+      const { status, body } = await send(built);
+      ensureSuccess(status, 'phoneVerification.getUserInfo');
+      const root = asRecord(parseJsonBody(body, 'phoneVerification.getUserInfo'));
+      const data = asRecord(root['data']);
+      // Defensively narrow each returned field to a scalar (string | boolean | number).
+      const info: PhoneUserInfo = {
+        phone_number: asOptionalString(data['phone_number']) ?? phoneNumber,
+      };
+      for (const [key, value] of Object.entries(data)) {
+        if (key === 'phone_number') continue;
+        if (typeof value === 'string' || typeof value === 'boolean' || typeof value === 'number') {
+          info[key] = value;
+        }
+      }
+      return info;
+    },
+  };
+}
