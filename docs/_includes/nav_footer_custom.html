@@ -1,0 +1,10 @@
+{%- comment -%}
+  Overrides the just-the-docs `nav_footer_custom` extension point (used by BOTH
+  components/sidebar.html on desktop AND components/footer.html on mobile). Because
+  this renders non-empty content, it replaces the theme's default
+  "This site uses Just the Docs…" attribution in both views. Content is sourced
+  from `site.footer_content` (docs/_config.yml) so there is a single source of truth.
+{%- endcomment -%}
+{%- if site.footer_content and site.footer_content != "" -%}
+<p class="text-small text-grey-dk-100 mb-0">{{ site.footer_content }}</p>
+{%- endif -%}
