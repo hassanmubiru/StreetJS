@@ -144,6 +144,33 @@ export interface MarzPayPaths {
    * `MARZPAY_SPEC`; optional so the refund seam stays unbound and unimplemented.
    */
   readonly refund?: string;
+  /**
+   * UNVERIFIED — no disbursement (send-money) endpoint is recorded as a
+   * Verified_Capability. Left absent in `MARZPAY_SPEC`; optional so the disburse
+   * seam stays unbound and `disbursements.sendMoney` surfaces an
+   * `UnsupportedOperationError` (Requirements 1.1, 1.2, 3.1).
+   */
+  readonly disburse?: string;
+  /**
+   * UNVERIFIED — no account-balance endpoint is recorded as a Verified_Capability
+   * (Appendix A mentions a Balance API only incidentally). Left absent in
+   * `MARZPAY_SPEC`; optional so the balance seam stays unbound and
+   * `accounts.getBalance` surfaces an `UnsupportedOperationError`
+   * (Requirements 1.1, 1.2, 5.1).
+   */
+  readonly balance?: string;
+  /**
+   * UNVERIFIED — no phone-verification endpoints are recorded as a
+   * Verified_Capability. Left absent in `MARZPAY_SPEC`; optional so the
+   * phone-verification seams stay unbound and every `phoneVerification.*`
+   * operation surfaces an `UnsupportedOperationError` (Requirements 1.1, 1.2,
+   * 10.1).
+   */
+  readonly phoneVerification?: {
+    readonly verify: string;
+    readonly isVerified: (id: string) => string;
+    readonly getUserInfo: (id: string) => string;
+  };
 }
 
 /**
