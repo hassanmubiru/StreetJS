@@ -240,9 +240,11 @@ export const MARZPAY_SPEC: MarzPaySpec = {
   paths: {
     // V2: Collect Money endpoint (mobile money or card).
     initializePayment: '/collect-money',
-    // V3: transaction lookup accepts reference or uuid.
-    verifyPayment: (reference: string): string => `/transactions/${reference}`,
-    getTransaction: (id: string): string => `/transactions/${id}`,
+    // V3: transaction lookup accepts reference or uuid. The interpolated segment
+    // is percent-encoded so a reference/id containing `/`, `?`, `#`, `&`, spaces,
+    // or unicode cannot inject path/query structure (Req 6.6, 13.7).
+    verifyPayment: (reference: string): string => `/transactions/${encodeURIComponent(reference)}`,
+    getTransaction: (id: string): string => `/transactions/${encodeURIComponent(id)}`,
     // V3: list with documented filters.
     listTransactions: '/transactions',
     // refund: ABSENT — undocumented (§L5). Do not bind.
