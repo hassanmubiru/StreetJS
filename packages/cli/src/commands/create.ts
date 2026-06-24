@@ -2321,6 +2321,75 @@ export interface VerifiedWebhookEvent {
   plan?: string;
 }
 
+/**
+ * Opaque transaction handle supplied by the data layer (@streetjs/orm). The
+ * billing overlay only forwards it so the processed-event record and the
+ * billing insert share ONE transaction and roll back together on failure.
+ */
+export type Tx = unknown;
+
+/** Unit-of-work contract that runs work in one transaction, rolling back on throw. */
+export interface UnitOfWork {
+  transaction<T>(work: (tx: Tx) => Promise<T>): Promise<T>;
+}
+
+/** A processed-event row (tenant discriminator: org_id), keyed on the reference. */
+export interface ProcessedEvent {
+  reference: string;
+  org_id: string;
+  processed_at: string;
+}
+
+/**
+ * Org-scoped idempotency store backed by the marzpay_events table
+ * (migration 005). Both methods run INSIDE the caller's transaction so the
+ * processed-event record rolls back with the billing insert on failure
+ * (Requirement 7.4). A duplicate reference is detected by hasProcessed and the
+ * billing write is skipped (Requirement 7.3); a concurrent second insert loses
+ * the UNIQUE(reference) race in marzpay_events and is therefore treated as
+ * already-processed (Requirement 7.2).
+ */
+export interface ProcessedEventStore {
+  hasProcessed(tx: Tx, reference: string): Promise<boolean>;
+  recordProcessed(tx: Tx, reference: string): Promise<void>;
+}
+
+/**
+ * Minimal row gateway over the marzpay_events table, bound to a transaction
+ * handle. The app supplies a concrete implementation (e.g. an @streetjs/orm
+ * repository); reads and writes MUST run inside the caller's tx so they commit
+ * or roll back atomically with the billing-state write.
+ */
+export interface EventRowGateway {
+  /** True if a marzpay_events row already exists for (org_id, reference). */
+  exists(tx: Tx, filter: { org_id: string; reference: string }): Promise<boolean>;
+  /** Insert one marzpay_events row; throws on the UNIQUE(reference) race. */
+  insert(tx: Tx, row: ProcessedEvent): Promise<void>;
+}
+
+/**
+ * orgScopedEventStore — an org-scoped ProcessedEventStore over marzpay_events.
+ * org_id is stamped SERVER-SIDE from the active org (never the Raw_Body),
+ * mirroring orgScopedRepo, so a processed-event row can only ever be recorded
+ * or looked up for the active tenant. recordProcessed relies on the
+ * UNIQUE(reference) primary key to reject a concurrent duplicate.
+ */
+export function orgScopedEventStore(gateway: EventRowGateway, orgId: string): ProcessedEventStore {
+  if (!orgId) throw new BadRequestException('orgScopedEventStore requires an active org id');
+  return {
+    async hasProcessed(tx, reference) {
+      return gateway.exists(tx, { org_id: orgId, reference });
+    },
+    async recordProcessed(tx, reference) {
+      await gateway.insert(tx, {
+        reference,
+        org_id: orgId,
+        processed_at: new Date().toISOString(),
+      });
+    },
+  };
+}
+
 export class BillingService {
   constructor(
     private readonly repo: ScopedRepository<BillingRecord>,
@@ -2640,7 +2709,12 @@ export class CheckoutController {
 import 'reflect-metadata';
 import { Controller, Post, BadRequestException, type StreetContext } from 'streetjs';
 import type { MarzPayClient } from '@streetjs/plugin-marzpay';
-import type { BillingService, VerifiedWebhookEvent } from './marzpay-billing.service.js';
+import type {
+  BillingService,
+  VerifiedWebhookEvent,
+  ProcessedEventStore,
+  UnitOfWork,
+} from './marzpay-billing.service.js';
 
 /**
  * MarzPay documents no signature header (Research_Artifact §L4). We read a
@@ -2690,6 +2764,13 @@ export class WebhookController {
   constructor(
     private readonly client: MarzPayClient,
     private readonly billing: BillingService,
+    // Optional idempotency collaborators (Requirement 7). When BOTH are wired,
+    // the controller checks-and-records the processed reference in the SAME DB
+    // transaction as the billing-state write. When absent (e.g. a minimal
+    // composition), it falls back to a single direct write with no behavioural
+    // change.
+    private readonly events?: ProcessedEventStore,
+    private readonly uow?: UnitOfWork,
   ) {}
 
   /**
@@ -2706,6 +2787,10 @@ export class WebhookController {
    *    payment via BillingService.recordPayment, which persists ONLY through
    *    orgScopedRepo so the record is tenant-scoped by org_id, using monetary
    *    values taken ONLY from the re-verified transaction (Requirement 6.3).
+   * 5. Persist idempotently: check-and-record the processed reference in the
+   *    SAME DB transaction as the billing-state write when an idempotency store
+   *    and unit-of-work are wired. A duplicate reference skips the billing write
+   *    (Requirement 7.3); any failure rolls back BOTH rows (Requirement 7.4).
    */
   @Post('/marzpay')
   async handle(ctx: StreetContext): Promise<void> {
@@ -2731,8 +2816,32 @@ export class WebhookController {
       return;
     }
 
-    // ── Positive trust: persist using verified monetary values only ─────────
-    await this.billing.recordPayment(ctx, event);
+    // ── Positive trust: persist verified monetary values, idempotently ──────
+    // Check-and-record the processed reference in the SAME DB transaction as the
+    // billing-state write (Requirement 7.2): a reference already in the
+    // Processed_Event_Store skips the billing write and applies no further state
+    // (Requirement 7.3); any failure rolls back BOTH the processed-event record
+    // and the billing record (Requirement 7.4); a concurrent second delivery
+    // loses the UNIQUE(reference) race in marzpay_events and is therefore
+    // treated as already-processed. When no idempotency store is wired, fall
+    // back to a single direct write (unchanged behaviour).
+    const events = this.events;
+    const uow = this.uow;
+    if (events && uow) {
+      await uow.transaction(async (tx) => {
+        if (await events.hasProcessed(tx, event.reference)) {
+          // Already processed (Requirement 7.3): skip the billing write.
+          return;
+        }
+        // Record the dedup key first so the UNIQUE(reference) constraint resolves
+        // concurrent deliveries; the billing insert joins the same transaction so
+        // a failure in either rolls BOTH back (Requirement 7.4).
+        await events.recordProcessed(tx, event.reference);
+        await this.billing.recordPayment(ctx, event);
+      });
+    } else {
+      await this.billing.recordPayment(ctx, event);
+    }
     ctx.json({ received: true }, 200);
   }
 
