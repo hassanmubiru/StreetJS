@@ -193,8 +193,6 @@ describe('Property 1 — extractor path containment (PS-1, fixed _extractTarball
           const rawTar = makeTar(entries);
           const tar = useGzip ? gzip(rawTar) : rawTar;
 
-          const bug = isBugConditionExtract(entries, '__placeholder__') || adversaries.length > 0;
-
           const { dir: root, cleanup } = await withTempDir();
           try {
             // Nest destDir several levels deep so even depth-3 traversal stays
