@@ -192,6 +192,19 @@ export class StreetWebSocketServer {
     this.MAX_CLIENTS = options.maxConnections ?? 10_000;
     this.authFn = options.authFn;
     this.allowedOrigins = options.allowedOrigins;
+
+    // F-R1: in production, a WebSocket server with no auth hook accepts every
+    // upgrade unauthenticated. Emit a one-time, non-throwing warning that names
+    // the finding and the remediation (Req 4.1-4.3, 4.6). This never blocks
+    // startup (Req 4.4) so unrelated startup failures still propagate (Req 4.5).
+    if (process.env.NODE_ENV === 'production' && options.authFn === undefined) {
+      console.warn(
+        "[StreetJS][SECURITY] WebSocket server started without an 'authFn' in production: " +
+        'every upgrade is accepted unauthenticated (finding F-R1). ' +
+        "Remediation: supply an 'authFn' option to authenticate the upgrade."
+      );
+    }
+
     this.wss = new WebSocketServer({
       noServer: true,
       path: options.path,
