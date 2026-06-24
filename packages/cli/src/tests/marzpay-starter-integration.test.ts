@@ -249,7 +249,7 @@ function makeReshapedClient(verified: Record<string, VerifiedTxn>) {
       return transactionsGet(reference);
     },
     listTransactions: () => Promise.resolve([]),
-    validateWebhook: (rawBody: string, signature?: string) => {
+    validateWebhook: (_rawBody: string, signature?: string) => {
       calls.validateWebhook++;
       // Mirror the unbound-scheme contract: trust is established by server-side
       // re-verification, so accept a present signature for the flow under test
