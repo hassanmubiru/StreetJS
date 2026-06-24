@@ -2390,6 +2390,48 @@ export function orgScopedEventStore(gateway: EventRowGateway, orgId: string): Pr
   };
 }
 
+/**
+ * Server-side reference -> organization mapping (Requirement 8.1).
+ *
+ * Resolves which tenant owns a verified transaction reference using ONLY the
+ * persisted billing/subscription records created at checkout time — NEVER the
+ * Raw_Body. The webhook controller calls this to DERIVE the org_id it then
+ * scopes every write to, so a forged Raw_Body org cannot redirect a settlement
+ * to another tenant.
+ */
+export interface OrgResolver {
+  /** The org_id that owns \`reference\`, or null when the mapping is unknown. */
+  resolveOrgByReference(reference: string): Promise<string | null>;
+}
+
+/**
+ * Minimal UNSCOPED gateway that looks up the owning org of a globally-unique
+ * billing reference. The lookup is intentionally NOT org-scoped because a
+ * webhook arrives with no active tenant; the org_id it returns IS the
+ * server-derived tenant the caller then scopes every write to. \`reference\` is
+ * unique (UNIQUE(reference), migration 005), so at most one row matches.
+ */
+export interface ReferenceLookupGateway {
+  findByReference(reference: string): Promise<{ org_id: string } | null>;
+}
+
+/**
+ * billingReferenceOrgResolver — an OrgResolver backed by the BillingRecords the
+ * checkout flow persists (each row carries org_id + reference). The reference
+ * uniqueness constraint guarantees a single owning org per reference, so a
+ * verified webhook reference maps to exactly one tenant.
+ */
+export function billingReferenceOrgResolver(gateway: ReferenceLookupGateway): OrgResolver {
+  return {
+    async resolveOrgByReference(reference) {
+      const trimmed = reference.trim();
+      if (trimmed === '') return null;
+      const row = await gateway.findByReference(trimmed);
+      return row ? row.org_id : null;
+    },
+  };
+}
+
 export class BillingService {
   constructor(
     private readonly repo: ScopedRepository<BillingRecord>,
@@ -2706,6 +2748,13 @@ export class CheckoutController {
 // (Research_Artifact §R1, recommendation 7): the controller re-fetches the
 // transaction from MarzPay via getTransaction and persists the verified
 // amount/status/reference rather than trusting the raw payload.
+//
+// MULTI-TENANT (Requirement 8): a webhook is a server-to-server call with no
+// session, so the target org is DERIVED server-side from the verified
+// reference->org mapping via an injected OrgResolver (never from the Raw_Body).
+// An unresolved mapping or a Raw_Body org that disagrees with the mapped org is
+// rejected and persists NOTHING; the resolved org is stamped onto ctx so every
+// write flows through orgScopedRepo with the server-derived org id.
 import 'reflect-metadata';
 import { Controller, Post, BadRequestException, type StreetContext } from 'streetjs';
 import type { MarzPayClient } from '@streetjs/plugin-marzpay';
@@ -2714,6 +2763,7 @@ import type {
   VerifiedWebhookEvent,
   ProcessedEventStore,
   UnitOfWork,
+  OrgResolver,
 } from './marzpay-billing.service.js';
 
 /**
@@ -2759,6 +2809,34 @@ function referenceOf(rawBody: string): string {
   return reference.trim();
 }
 
+/**
+ * payloadOrgIdOf — extract an organization identifier SUPPLIED in the Raw_Body,
+ * if any (\`transaction.org_id\`, top-level \`org_id\`, or \`metadata.org_id\`).
+ *
+ * This value is NEVER trusted to scope a write (Requirement 8.1); it is read
+ * solely so the controller can REJECT an event whose payload org disagrees with
+ * the server-derived org (Requirement 8.4). Returns \`undefined\` when the
+ * Raw_Body carries no usable org identifier, in which case there is nothing to
+ * disagree with and the server-derived org stands.
+ */
+function payloadOrgIdOf(rawBody: string): string | undefined {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(rawBody);
+  } catch {
+    return undefined;
+  }
+  const root = (parsed ?? {}) as {
+    org_id?: unknown;
+    transaction?: { org_id?: unknown };
+    metadata?: { org_id?: unknown };
+  };
+  const candidate = root.transaction?.org_id ?? root.org_id ?? root.metadata?.org_id;
+  if (typeof candidate !== 'string') return undefined;
+  const trimmed = candidate.trim();
+  return trimmed === '' ? undefined : trimmed;
+}
+
 @Controller('/webhooks')
 export class WebhookController {
   constructor(
@@ -2771,6 +2849,12 @@ export class WebhookController {
     // change.
     private readonly events?: ProcessedEventStore,
     private readonly uow?: UnitOfWork,
+    // Optional server-side org resolver (Requirement 8). When wired, the
+    // controller DERIVES the target org from the verified reference->org mapping
+    // (billing/subscription records), rejects a Raw_Body org that disagrees, and
+    // stamps every write with the server-derived org. When absent, the prior
+    // behaviour is preserved and persistence relies on the ambient ctx.org.
+    private readonly orgResolver?: OrgResolver,
   ) {}
 
   /**
@@ -2787,7 +2871,14 @@ export class WebhookController {
    *    payment via BillingService.recordPayment, which persists ONLY through
    *    orgScopedRepo so the record is tenant-scoped by org_id, using monetary
    *    values taken ONLY from the re-verified transaction (Requirement 6.3).
-   * 5. Persist idempotently: check-and-record the processed reference in the
+   * 5. DERIVE the target org SERVER-SIDE from the verified reference->org
+   *    mapping when an OrgResolver is wired (Requirement 8.1). An unresolved
+   *    mapping persists NOTHING and responds with an error (Requirement 8.2); a
+   *    Raw_Body org that disagrees with the mapped org is rejected, persisting
+   *    NOTHING (Requirement 8.4); the resolved org is stamped onto ctx so every
+   *    write flows through orgScopedRepo with the server-derived org id
+   *    (Requirement 8.3).
+   * 6. Persist idempotently: check-and-record the processed reference in the
    *    SAME DB transaction as the billing-state write when an idempotency store
    *    and unit-of-work are wired. A duplicate reference skips the billing write
    *    (Requirement 7.3); any failure rolls back BOTH rows (Requirement 7.4).
@@ -2814,6 +2905,35 @@ export class WebhookController {
       // Persist NOTHING (Requirement 6.2).
       ctx.json({ error: 'webhook validation failed' }, 400);
       return;
+    }
+
+    // ── Derive the target org SERVER-SIDE (Requirement 8) ───────────────────
+    // A webhook is a server-to-server call with no session/tenant, so the target
+    // organization is DERIVED from the verified reference->org mapping (the
+    // billing/subscription records created at checkout time), NEVER from the
+    // Raw_Body (Requirement 8.1). When no resolver is wired the controller
+    // preserves its prior behaviour and relies on the ambient ctx.org.
+    const resolver = this.orgResolver;
+    if (resolver) {
+      const resolvedOrgId = await resolver.resolveOrgByReference(event.reference);
+      if (!resolvedOrgId) {
+        // The reference->org mapping is unresolved: persist NOTHING and respond
+        // with an error status (Requirement 8.2).
+        ctx.json({ error: 'unresolved organization for webhook' }, 400);
+        return;
+      }
+      // A Raw_Body org identifier that DISAGREES with the server-derived org is
+      // rejected outright; persist NOTHING (Requirement 8.4). A payload without
+      // an org identifier has nothing to disagree with, so the derived org stands.
+      const payloadOrgId = payloadOrgIdOf(rawBody);
+      if (payloadOrgId !== undefined && payloadOrgId !== resolvedOrgId) {
+        ctx.json({ error: 'organization mismatch' }, 400);
+        return;
+      }
+      // Stamp every subsequent write with the SERVER-DERIVED org (Requirement
+      // 8.3): orgScopedRepo reads ctx.org.id, so setting it here scopes
+      // recordPayment to the resolved tenant regardless of any caller-supplied org.
+      ctx.org = { id: resolvedOrgId };
     }
 
     // ── Positive trust: persist verified monetary values, idempotently ──────
