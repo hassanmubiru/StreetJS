@@ -1,5 +1,5 @@
 {
-  "generated": "2026-06-23",
+  "generated": "2026-06-24",
   "count": 21,
   "categories": [
     {
@@ -354,7 +354,7 @@
       "streetjsRange": "^1.0.6",
       "nodeRange": ">=20.0.0",
       "tsRange": ">=5.0.0",
-      "signed": false,
+      "signed": true,
       "thirdPartyDepCount": 0,
       "thirdPartyDeps": [],
       "dependencyFree": true,

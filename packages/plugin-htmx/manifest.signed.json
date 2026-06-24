@@ -1,0 +1,14 @@
+{
+  "name": "street-plugin-htmx",
+  "version": "1.0.0",
+  "capabilities": [
+    "views",
+    "htmx",
+    "html-rendering"
+  ],
+  "permissions": [
+    "middleware"
+  ],
+  "checksum": "25497da2c586cd3f36ce6d8b49720d0d1dc9049146f3ed217808047137810307",
+  "signature": "QGIN2HEgkceHxqWMvM9hKoFs/vKtOKWLscvNjIczXFgZzZd4r5Y5zIMAfojMbqyP5Fo3zESDASOlb2XE+F7JCA=="
+}

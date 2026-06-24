@@ -3,7 +3,7 @@ layout:      default
 title:       "@streetjs/plugin-htmx"
 permalink:   /plugins/htmx/
 nav_exclude: true
-description:  "Official StreetJS plugin: HTMX support — a dependency-free view engine (layouts, partials), HX-request detection, response-header helpers and CSRF form fields for server-rendered apps. Official, dependency-free StreetJS plugin — install from npm."
+description:  "Official StreetJS plugin: HTMX support — a dependency-free view engine (layouts, partials), HX-request detection, response-header helpers and CSRF form fields for server-rendered apps. Official, signed, dependency-free StreetJS plugin — install from npm."
 ---
 
 <script type="application/ld+json">
@@ -14,7 +14,7 @@ description:  "Official StreetJS plugin: HTMX support — a dependency-free view
 **Official StreetJS plugin: HTMX support — a dependency-free view engine (layouts, partials), HX-request detection, response-header helpers and CSRF form fields for server-rendered apps.**
 
 - **Category:** [Frontend & Views](/StreetJS/plugins/category/frontend-and-views/)
-- **Tier:** Official · **Dependency-free**
+- **Tier:** Official · **Signed** · **Dependency-free**
 - **Version:** `v1.0.0`
 - **Runtime dependencies:** none (third-party) — only `streetjs`
 - **npm:** [@streetjs/plugin-htmx](https://www.npmjs.com/package/@streetjs/plugin-htmx)
@@ -23,7 +23,7 @@ description:  "Official StreetJS plugin: HTMX support — a dependency-free view
 
 ## Trust signals
 
-- ⏳ **Manifest signing pending** — no signed manifest is committed yet; install from a trusted source and verify before production use
+- ✅ **Signed manifest** (Ed25519) — `manifest.signed.json` is committed and verified by the plugin host on load
 - ✅ **Dependency-free** — no third-party runtime dependencies (only the `streetjs` framework)
 - ✅ **MIT licensed** · **Node.js ≥ 20** · **TypeScript-native**
 - ✅ **npm provenance** — official plugins are published with build attestations (enforced in CI)
@@ -55,7 +55,7 @@ Derived from this package's `dependencies.streetjs`, `engines.node`, and
 ## Certification
 
 This is an **Official** plugin — maintained by the StreetJS team in the monorepo,
-CI-tested. A signed manifest is not yet committed for this plugin. See the
+CI-tested, and published with a signed manifest. See the
 [plugin certification levels](/StreetJS/ecosystem/plugin-certification/).
 
 
