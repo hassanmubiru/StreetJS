@@ -4,6 +4,7 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import type { IncomingMessage, Server } from 'node:http';
 import { randomUUID } from 'node:crypto';
+import { URL } from 'node:url';
 
 export type WsHandler = (socket: StreetSocket, req: IncomingMessage) => void;
 
