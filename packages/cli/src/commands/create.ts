@@ -2693,16 +2693,19 @@ export class WebhookController {
   ) {}
 
   /**
-   * POST /webhooks/marzpay — validate, then persist.
+   * POST /webhooks/marzpay — validate, re-verify, then persist.
    *
    * 1. Capture the unmodified raw body and the signature header.
    * 2. Call client.validateWebhook(rawBody, signature) BEFORE any persistence.
    * 3. NEGATIVE result -> reject with "webhook validation failed" (400) and
    *    write NOTHING (Requirement 6.4).
-   * 4. POSITIVE result -> re-verify the transaction server-side (documented
-   *    trust path) and record the verified payment via BillingService.
-   *    recordPayment, which persists ONLY through orgScopedRepo so the record is
-   *    tenant-scoped by org_id (Requirement 6.3).
+   * 4. POSITIVE result -> re-verify the referenced transaction server-side
+   *    (Requirement 6.1) BEFORE persisting any billing state. On negative trust
+   *    (re-verification fails / not found / reference mismatch) respond HTTP 400
+   *    and persist NOTHING (Requirement 6.2). On success, record the verified
+   *    payment via BillingService.recordPayment, which persists ONLY through
+   *    orgScopedRepo so the record is tenant-scoped by org_id, using monetary
+   *    values taken ONLY from the re-verified transaction (Requirement 6.3).
    */
   @Post('/marzpay')
   async handle(ctx: StreetContext): Promise<void> {
@@ -2716,21 +2719,60 @@ export class WebhookController {
       return;
     }
 
-    // ── Positive result: re-verify server-side, then persist ────────────────
+    // ── Re-verify server-side BEFORE persisting (Requirements 6.1, 6.2) ─────
+    // The ONLY value taken from the Raw_Body is transaction.reference, used to
+    // select which transaction to re-verify against MarzPay. Trust is
+    // established by the server-verified transaction, never by the raw payload.
     const event = await this.verifiedEvent(rawBody);
+    if (event === null) {
+      // Negative trust: re-verification failed / not found / reference mismatch.
+      // Persist NOTHING (Requirement 6.2).
+      ctx.json({ error: 'webhook validation failed' }, 400);
+      return;
+    }
+
+    // ── Positive trust: persist using verified monetary values only ─────────
     await this.billing.recordPayment(ctx, event);
     ctx.json({ received: true }, 200);
   }
 
   /**
-   * Derive a VerifiedWebhookEvent from the payload's transaction.reference using
-   * the documented trust path: re-fetch the transaction from MarzPay and trust
-   * the server's amount/status/currency rather than the raw payload
-   * (Research_Artifact §R1).
+   * Re-verify the payload's transaction.reference using the documented trust
+   * path (Research_Artifact §R1, Requirement 6.1): re-fetch the transaction
+   * from MarzPay server-side and trust the server's amount/currency/status
+   * rather than the raw payload (Requirement 6.3).
+   *
+   * Prefers the capability-oriented \`transactions.get(reference)\` namespace and
+   * falls back to the flat \`getTransaction(reference)\` compatibility shim.
+   *
+   * Returns a VerifiedWebhookEvent built ONLY from the re-verified transaction,
+   * or \`null\` on negative trust (re-verification throws / not found / the
+   * returned transaction's reference does not match the requested reference), in
+   * which case the caller persists nothing and responds HTTP 400
+   * (Requirement 6.2).
    */
-  private async verifiedEvent(rawBody: string): Promise<VerifiedWebhookEvent> {
+  private async verifiedEvent(rawBody: string): Promise<VerifiedWebhookEvent | null> {
     const reference = referenceOf(rawBody);
-    const txn = await this.client.getTransaction(reference);
+
+    let txn: Awaited<ReturnType<MarzPayClient['getTransaction']>>;
+    try {
+      txn =
+        typeof this.client.transactions?.get === 'function'
+          ? await this.client.transactions.get(reference)
+          : await this.client.getTransaction(reference);
+    } catch {
+      // Re-verification failed (network / not found / non-2xx) -> negative trust.
+      return null;
+    }
+
+    // Reject a mismatch: the re-verified transaction must echo the reference we
+    // asked for. Anything else is not trustworthy (Requirement 6.2).
+    if (txn === null || typeof txn.reference !== 'string' || txn.reference !== reference) {
+      return null;
+    }
+
+    // Monetary values come ONLY from the re-verified transaction, never the
+    // Raw_Body (Requirement 6.3).
     return {
       reference: txn.reference,
       status: txn.status,
