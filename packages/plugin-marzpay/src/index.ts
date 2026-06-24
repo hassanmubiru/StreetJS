@@ -1594,3 +1594,224 @@ export function createAccountsNamespace(deps: AccountsNamespaceDeps): AccountsNa
     },
   };
 }
+
+// ---------------------------------------------------------------------------
+// Disbursements namespace (Task 3.1)
+// ---------------------------------------------------------------------------
+//
+// The `marzpay.disbursements` surface (Requirement 3) spans one UNVERIFIED seam
+// and one VERIFIED seam:
+//  - `sendMoney(req)` → UNVERIFIED `paths.disburse`. No disbursement (send-money)
+//    endpoint is recorded as a Verified_Capability (Research_Artifact), so the
+//    `disburse` seam is left unbound in `MARZPAY_SPEC`. `sendMoney` validates its
+//    required fields FIRST (named-field error, no send — Req 3.3) and THEN calls
+//    `requireBoundSeam(spec.paths.disburse, 'disbursements.sendMoney')`, which
+//    throws `UnsupportedOperationError` while the seam is unbound (Req 3.1, 3.6).
+//    No network request is reachable while unbound; the build/send/parse below
+//    `requireBoundSeam` is authored for the day the seam is bound and is
+//    unreachable until then (mirrors `buildRefundRequest`/`accounts.getBalance`).
+//  - `getStatus(reference)` → VERIFIED `GET /transactions/{reference}`
+//    (`paths.verifyPayment`). Fully functional, like `collections.getStatus`: it
+//    delegates to the pure `buildVerifyPaymentRequest` so the trimmed reference
+//    guard (empty/whitespace-only/>256 chars → named-`reference` error, no send —
+//    Req 3.5) runs before any send, and a non-2xx response throws a `PluginError`
+//    INCLUDING the HTTP status with no partial result (Req 3.7).
+//
+// The factory `createDisbursementsNamespace(deps)` mirrors the wiring of
+// `createCollectionsNamespace` (config + spec + transport + timeout) and reuses
+// the existing builders, guards, and defensive parse helpers; the namespace is
+// attached to the client in Task 5.1.
+
+/**
+ * Request for `disbursements.sendMoney` — a send-money (payout) request.
+ *
+ * MarzPay-required fields are `amount`, `country`, a unique `reference`, and the
+ * recipient `phone_number`; the remaining fields are optional pass-throughs.
+ * NOTE: the disbursement endpoint is UNVERIFIED (no Verified_Capability), so this
+ * shape is declared for argument validation and for the day the seam is bound —
+ * `sendMoney` surfaces `UnsupportedOperationError` until then (Req 3.1, 3.6).
+ */
+export interface SendMoneyRequest {
+  /** Required: payout amount (UGX). */
+  amount: number;
+  /** Required: ISO country code (e.g. `'UG'`). */
+  country: string;
+  /** Required: unique client reference. */
+  reference: string;
+  /** Required: recipient MSISDN (`+256xxxxxxxxx`). */
+  phone_number: string;
+  /** Optional payout currency (defaults to UGX per region). */
+  currency?: string;
+  /** Optional human-readable description. */
+  description?: string;
+  /** Optional callback URL for the asynchronous webhook. */
+  callback_url?: string;
+}
+
+/**
+ * Result of `disbursements.sendMoney`: the echoed `reference` and `status`. Only
+ * produced once the `disburse` seam is bound; until then `sendMoney` throws
+ * `UnsupportedOperationError` and this value is never returned (Req 3.2, 3.6).
+ */
+export interface DisbursementResult {
+  /** Client `reference` echoed by MarzPay. */
+  reference: string;
+  /** Disbursement status. */
+  status: string;
+}
+
+/**
+ * Result of `disbursements.getStatus` (parsed from the verified V3
+ * transaction-detail response): the transaction `reference` and `status`
+ * (Requirement 3.4).
+ */
+export interface DisbursementStatus {
+  /** Transaction reference. */
+  reference: string;
+  /** Verified status (e.g. `completed`/`failed`). */
+  status: string;
+}
+
+/**
+ * The `marzpay.disbursements` namespace surface (Requirement 3).
+ *  - `sendMoney(req)`: UNVERIFIED — validates required fields then surfaces an
+ *    unsupported-operation error while the `disburse` seam is unbound.
+ *  - `getStatus(reference)`: VERIFIED — reads a disbursement's status via
+ *    `GET /transactions/{reference}`.
+ */
+export interface DisbursementsNamespace {
+  /**
+   * Initiate a payout. Validates `amount`/`country`/`reference`/`phone_number`
+   * FIRST (named-field `PluginError`, NO send — Req 3.3), then throws
+   * `UnsupportedOperationError` while the `disburse` seam is unbound (Req 3.6).
+   */
+  sendMoney(req: SendMoneyRequest): Promise<DisbursementResult>;
+  /**
+   * Read a disbursement's `reference` and `status` by reference via the verified
+   * `GET /transactions/{reference}` endpoint. The `reference` is trimmed and
+   * length-guarded first: empty/whitespace-only/`>256`-char values throw a
+   * `PluginError` naming the `"reference"` argument and issue NO network request
+   * (Req 3.5). A non-2xx response throws an error INCLUDING the HTTP status with
+   * no partial result (Req 3.7).
+   */
+  getStatus(reference: string): Promise<DisbursementStatus>;
+}
+
+/**
+ * Dependencies for {@link createDisbursementsNamespace}, mirroring
+ * {@link CollectionsNamespaceDeps}: the validated `config`, the verified `spec`,
+ * the injectable `transport`, and the resolved `timeoutMs`.
+ */
+export interface DisbursementsNamespaceDeps {
+  /** Validated, normalized plugin configuration. */
+  readonly config: MarzPayPluginConfig;
+  /** The verified API spec (defaults to `MARZPAY_SPEC` at the call site). */
+  readonly spec: MarzPaySpec;
+  /** Injectable transport seam (defaults to `defaultMarzPayTransport`). */
+  readonly transport: MarzPayTransport;
+  /** Resolved request timeout budget in milliseconds. */
+  readonly timeoutMs: number;
+}
+
+/**
+ * Create the `marzpay.disbursements` namespace.
+ *
+ * `sendMoney` validates its required fields BEFORE anything else (named-field
+ * `PluginError`, no send — Req 3.3), then calls `requireBoundSeam` so it throws
+ * `UnsupportedOperationError` while `disburse` is unbound (Req 3.1, 3.6); the
+ * build/send/parse after the guard is unreachable until the seam is bound.
+ * `getStatus` delegates to the pure `buildVerifyPaymentRequest` so the reference
+ * guard runs before any send (Req 3.5), then funnels the request through the
+ * injected transport and maps a non-2xx response to a `PluginError` INCLUDING the
+ * HTTP status with no partial result (Req 3.7), mirroring
+ * `createCollectionsNamespace`. The namespace is attached to the client in
+ * Task 5.1.
+ */
+export function createDisbursementsNamespace(deps: DisbursementsNamespaceDeps): DisbursementsNamespace {
+  const { config, spec, transport, timeoutMs } = deps;
+
+  const send = (req: MarzPayHttpRequest): Promise<MarzPayTransportResponse> => transport(req, timeoutMs);
+
+  // Mirrors MarzPayClient.ensureSuccessStatus: a non-2xx status throws a
+  // PluginError INCLUDING the returned HTTP status and yields no partial result.
+  const ensureSuccess = (status: number, operation: string): void => {
+    if (status < 200 || status >= 300) {
+      throw new PluginError(`MarzPay ${operation}: request returned non-success HTTP status ${status}`);
+    }
+  };
+
+  return {
+    async sendMoney(req: SendMoneyRequest): Promise<DisbursementResult> {
+      // Required-field validation runs FIRST: a named-field PluginError is thrown
+      // before any seam check or send (Req 3.3).
+      if (typeof req !== 'object' || req === null) {
+        throw new PluginError('MarzPay disbursements.sendMoney: request must be an object');
+      }
+      if (typeof req.amount !== 'number' || !Number.isFinite(req.amount) || req.amount <= 0) {
+        throw new PluginError(
+          'MarzPay disbursements.sendMoney: "amount" is required and must be a positive number',
+        );
+      }
+      if (!isNonEmptyString(req.country)) {
+        throw new PluginError(
+          'MarzPay disbursements.sendMoney: "country" is required and must be a non-empty string',
+        );
+      }
+      if (!isNonEmptyString(req.reference)) {
+        throw new PluginError(
+          'MarzPay disbursements.sendMoney: "reference" is required and must be a non-empty string',
+        );
+      }
+      if (!isNonEmptyString(req.phone_number)) {
+        throw new PluginError(
+          'MarzPay disbursements.sendMoney: "phone_number" is required and must be a non-empty string',
+        );
+      }
+
+      // Verify-don't-invent: the disburse seam is unbound (no Verified_Capability),
+      // so this throws UnsupportedOperationError with NO network request (Req 3.6).
+      const disbursePath = requireBoundSeam(spec.paths.disburse, 'disbursements.sendMoney');
+
+      // UNREACHABLE while the seam is unbound — authored for the day MarzPay
+      // publishes a verified disbursement endpoint and `disburse` becomes bound.
+      const payload: Record<string, unknown> = {
+        amount: req.amount,
+        country: req.country,
+        reference: req.reference,
+        phone_number: req.phone_number,
+      };
+      if (isNonEmptyString(req.currency)) payload['currency'] = req.currency;
+      if (isNonEmptyString(req.description)) payload['description'] = req.description;
+      if (isNonEmptyString(req.callback_url)) payload['callback_url'] = req.callback_url;
+
+      const built: MarzPayHttpRequest = {
+        method: 'POST',
+        url: `${resolveBaseAddress(config, spec)}${disbursePath}`,
+        headers: spec.authHeaders(config),
+        body: JSON.stringify(payload),
+      };
+      const { status, body } = await send(built);
+      ensureSuccess(status, 'disbursements.sendMoney');
+      const root = asRecord(parseJsonBody(body, 'disbursements.sendMoney'));
+      const data = asRecord(root['data']);
+      const txn = asRecord(data['transaction']);
+      return {
+        reference: asOptionalString(txn['reference']) ?? '',
+        status: asOptionalString(txn['status']) ?? asOptionalString(root['status']) ?? '',
+      };
+    },
+
+    async getStatus(reference: string): Promise<DisbursementStatus> {
+      // Trimmed-reference guard (empty/whitespace/>256) runs here, before any send.
+      const built = buildVerifyPaymentRequest(config, spec, reference);
+      const { status, body } = await send(built);
+      ensureSuccess(status, 'disbursements.getStatus');
+      const root = asRecord(parseJsonBody(body, 'disbursements.getStatus'));
+      const txn = asRecord(root['transaction']);
+      return {
+        reference: asOptionalString(txn['reference']) ?? '',
+        status: asOptionalString(txn['status']) ?? '',
+      };
+    },
+  };
+}
