@@ -1110,6 +1110,23 @@ export class MarzPayClient {
   private readonly transport: MarzPayTransport;
   private readonly timeoutMs: number;
 
+  /**
+   * Capability-oriented namespaces (Requirements 9.5, 9.6, 13.5, 15.1).
+   *
+   * Each is wired from the existing pure builders/factories. The flat methods
+   * (`initializePayment`/`verifyPayment`/`getTransaction`/`listTransactions`/
+   * `refund`/`validateWebhook`) are retained unchanged as a thin compatibility
+   * shim over the SAME code paths (no behavioral change): `collections` and the
+   * flat collection operations both delegate to the verified builders, and
+   * `transactions.get` delegates back to the flat `getTransaction`.
+   */
+  readonly collections: CollectionsNamespace;
+  readonly disbursements: DisbursementsNamespace;
+  readonly transactions: TransactionsNamespace;
+  readonly accounts: AccountsNamespace;
+  readonly phoneVerification: PhoneVerificationNamespace;
+  readonly utils: UtilsNamespace;
+
   constructor(
     config: MarzPayPluginConfig,
     spec: MarzPaySpec = MARZPAY_SPEC,
@@ -1122,6 +1139,24 @@ export class MarzPayClient {
       typeof config.timeoutMs === 'number' && Number.isFinite(config.timeoutMs) && config.timeoutMs > 0
         ? config.timeoutMs
         : DEFAULT_TIMEOUT_MS;
+
+    // Wire the six namespaces from the existing factories using the client's own
+    // config/spec/transport/timeoutMs. `transactions` delegates to the flat
+    // `getTransaction` so it shares the canonical code path with the shim.
+    const deps = {
+      config: this.config,
+      spec: this.spec,
+      transport: this.transport,
+      timeoutMs: this.timeoutMs,
+    };
+    this.collections = createCollectionsNamespace(deps);
+    this.disbursements = createDisbursementsNamespace(deps);
+    this.transactions = createTransactionsNamespace({
+      getTransaction: (reference: string): Promise<Transaction> => this.getTransaction(reference),
+    });
+    this.accounts = createAccountsNamespace(deps);
+    this.phoneVerification = createPhoneVerificationNamespace(deps);
+    this.utils = createUtilsNamespace();
   }
 
   /** Send a request through the injected transport with the configured timeout. */
