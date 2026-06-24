@@ -5,10 +5,12 @@ This is the executable form of `DEMO-INFRA-PLAN.md`: one Docker image runs any
 reference app (selected by `$DEMO_APP`), and Caddy fronts them with auto-TLS and
 per-subdomain routing.
 
-> **Status: authored + compose-validated.** The compose file passes
-> `docker compose config`. Stand it up on a host (the image builds the workspace
-> packages with network access for the SQLite WASM download) and smoke-test before
-> advertising any URL — never flip a demo to `live` until `/health/ready` passes.
+> **Status: built + boot-verified.** The image builds successfully
+> (`docker build -f demos/Dockerfile .`), the compose file passes
+> `docker compose config`, and all five demos boot in containers and return
+> **HTTP 200 on `/health/ready`**. Stand it up on a host, point DNS, and
+> smoke-test before advertising any URL — never flip a demo to `live` until
+> `/health/ready` passes publicly.
 
 ## Demos included
 

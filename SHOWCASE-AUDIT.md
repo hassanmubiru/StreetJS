@@ -124,7 +124,7 @@ Implemented this pass — docs/examples/generator/CI only, no fabrication, no ho
 - **Multi-tenant CRM built — DONE.** `examples/reference-apps/crm` on `@streetjs/admin` RBAC + org-scoped `CrmStore` (companies→contacts→deals→pipeline→activity); `smoke-test.mjs` 16/16 proving **tenant isolation** + **RBAC** + pipeline + activity; registered everywhere; the roadmap page now points to the built app.
 
 **Still external (cannot be done from the repo without fabrication/credentials):**
-- **Live hosting** (the success metric) — provision host/DNS/secrets per `DEMO-INFRA-PLAN.md`, then `demos.json` status → `live`.
+- **Live hosting** (the success metric) — the demo stack is now **built + boot-verified** (`demos/` — Docker Compose + Caddy; all five demos return 200 on `/health/ready` in containers). Remaining step is host + DNS + (sandbox/demo-safe) secrets, then `demos.json` status → `live` (or `check-demos.mjs --write`). This is the one infra/credential action only the maintainer can take.
 - **Real screenshots** — capture from the live demos (never fabricated).
 
 ## 6. Success-criteria mapping
