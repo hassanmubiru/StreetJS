@@ -51,6 +51,61 @@ wss.attach(http, (socket, req) => {
 http.listen(3000);
 ```
 
+## Securing the WebSocket server
+
+`StreetWebSocketServer` accepts a `WsServerOptions` object. Two of its options harden
+realtime connections against cross-site hijacking (CSWSH) and unauthenticated access.
+
+### Origin validation (`allowedOrigins`)
+
+The `allowedOrigins` option lists the origins permitted to complete a WebSocket
+upgrade. Origin matching is exact on the normalized origin (scheme, host, and port).
+
+```ts
+const wss = new StreetWebSocketServer({
+  allowedOrigins: ['https://app.example.com', 'https://admin.example.com'],
+});
+```
+
+**Same-origin default.** When `allowedOrigins` is omitted, the server defaults to
+**same-origin**: the request's `Origin` must match the server's own scheme, host, and
+port. This is the secure default — a cross-site page cannot open a connection unless
+you explicitly allow its origin.
+
+Origin handling rules:
+
+| `Origin` header | Behavior |
+|-----------------|----------|
+| Absent | **Allowed.** Non-browser clients (native apps, server-to-server) legitimately omit `Origin`, and CSWSH is a browser-only attack. To reject originless upgrades, layer your own `authFn`. |
+| Present and allowed | Permitted to proceed to any configured `authFn`. |
+| Present but disallowed | **Rejected** with `403 Forbidden`; the socket is destroyed and no `connection` event is emitted. |
+| Malformed (unparseable) | **Rejected** — treated as disallowed. |
+
+A disallowed origin is rejected **before** the handshake completes, so the connection
+never reaches your handler.
+
+### Production warning for unauthenticated servers (F-R1)
+
+A WebSocket server constructed in production (`NODE_ENV === 'production'`) **without** an
+`authFn` accepts every upgrade unauthenticated. To make this visible, the constructor
+emits a one-time `console.warn` identifying finding **F-R1** and pointing to the
+remediation — supply an `authFn`:
+
+```ts
+// In production without authFn, this logs a SECURITY warning referencing F-R1
+const wss = new StreetWebSocketServer();
+
+// Supplying an authFn authenticates the upgrade and suppresses the warning
+const wss = new StreetWebSocketServer({
+  authFn: (req) => verifySession(req),   // return false (or throw) to reject with 401
+});
+```
+
+The warning never throws and never blocks startup — the server still starts and accepts
+connections according to its other configured controls. It only fires in production and
+only when no `authFn` is supplied; in development, or with an `authFn` present, no
+warning is emitted.
+
 ## API: `ChannelHub`
 
 | Method | Description |

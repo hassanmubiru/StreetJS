@@ -212,6 +212,60 @@ app.use(xssMiddleware); // Sanitizes all string body fields
 const safe = sanitizeString(userInput);
 ```
 
+## Secure-by-default Cookies
+
+`ctx.setCookie(name, value, options?)` follows the framework's
+**secure-by-default, escape-hatch-explicit** principle: cookies are written with the
+secure option unless you explicitly opt out, and every opt-out is an explicit,
+visible choice.
+
+### Defaults
+
+When an option is **not specified**, `setCookie` resolves it to the secure default:
+
+| Flag | Default when unspecified | Emitted attribute |
+|------|--------------------------|-------------------|
+| `httpOnly` | `true` | `HttpOnly` — cookie is not readable by JavaScript |
+| `secure` | `true` in production (`NODE_ENV === 'production'`), otherwise omitted | `Secure` — cookie only sent over HTTPS |
+| `sameSite` | `'Lax'` | `SameSite=Lax` — cookie not attached on cross-site sub-requests |
+
+```typescript
+// In production this emits: session=abc; HttpOnly; Secure; SameSite=Lax
+ctx.setCookie('session', 'abc');
+```
+
+### Explicit per-flag opt-out
+
+Each secure default can be overridden by passing the flag explicitly. Opting out is
+always deliberate:
+
+| Override | Effect |
+|----------|--------|
+| `httpOnly: false` | Omits `HttpOnly` (cookie becomes readable by JavaScript) |
+| `secure: false` | Omits `Secure` regardless of runtime mode — even in production |
+| `secure: true` | Forces `Secure` even outside production (e.g. behind a TLS-terminating proxy in development) |
+| `sameSite: 'Strict' \| 'Lax' \| 'None'` | Emits the exact value you provide instead of the `'Lax'` default |
+
+```typescript
+// Readable by JS, no Secure in dev, cross-site allowed — every relaxation is explicit
+ctx.setCookie('theme', 'dark', { httpOnly: false, sameSite: 'None', secure: true });
+```
+
+Leaving a flag `undefined` always falls back to the secure default; an opt-out must be
+expressed explicitly to take effect.
+
+### Multiple cookies on one response
+
+`setCookie` appends to the response's `Set-Cookie` list rather than overwriting it.
+Calling it N times produces N `Set-Cookie` values, preserved in the order they were
+written, so pairing cookies (for example a session cookie and a CSRF cookie) are both
+delivered to the client.
+
+```typescript
+ctx.setCookie('session', sessionId);   // first Set-Cookie
+ctx.setCookie('csrf', csrfToken);      // second Set-Cookie — the first is not dropped
+```
+
 ## Security Checklist
 
 - [ ] Set `JWT_SECRET` to a cryptographically random 256-bit value

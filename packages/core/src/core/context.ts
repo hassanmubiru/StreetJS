@@ -182,6 +182,25 @@ export function createContext(
       return undefined;
     },
 
+    /**
+     * Set a response cookie using secure-by-default flags (F-A1).
+     *
+     * Defaults applied when an option is not specified:
+     * - `httpOnly` defaults to `true` (HttpOnly emitted).
+     * - `secure` defaults to `true` in production (`NODE_ENV === 'production'`)
+     *   and is omitted otherwise.
+     * - `sameSite` defaults to `'Lax'`.
+     *
+     * Explicit per-flag opt-out (escape-hatch-explicit):
+     * - Pass `httpOnly: false` to drop the `HttpOnly` attribute.
+     * - Pass `secure: false` to drop `Secure` regardless of runtime mode; pass an
+     *   explicit `secure: true` to force `Secure` even outside production.
+     * - Pass an explicit `sameSite` value to override the `'Lax'` default.
+     *
+     * Multiple cookies are supported (F-A2): each call appends a new `Set-Cookie`
+     * value rather than overwriting prior ones, so N calls produce N cookies in the
+     * order they were written.
+     */
     setCookie(name: string, value: string, options: CookieOptions = {}): void {
       const cookie = serializeCookie(name, value, options);
       const existing = res.getHeader('Set-Cookie');

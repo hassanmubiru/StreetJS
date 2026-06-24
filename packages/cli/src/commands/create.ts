@@ -228,6 +228,19 @@ CREATE INDEX IF NOT EXISTS idx_user_settings ON user_settings(user_id);
 `,
       },
       {
+        path: 'migrations/005_stripe_events.sql',
+        flag: 'with-billing',
+        content: `-- Stripe webhook idempotency store (opt-in: --starter saas --with-billing).
+-- Backs the ProcessedEventStore so a replayed or duplicated Stripe event is
+-- recorded once and skipped on redelivery (see src/modules/billing/billing.service.ts).
+-- PostgreSQL DDL; for SQLite see adjustments in SAAS.md.
+CREATE TABLE IF NOT EXISTS stripe_events (
+  event_id     TEXT PRIMARY KEY,            -- Stripe event id; idempotency key (Req 7.2)
+  processed_at TIMESTAMPTZ NOT NULL DEFAULT now()  -- when the event was applied (Req 7.3)
+);
+`,
+      },
+      {
         path: 'src/middleware/tenant.ts',
         content: `// src/middleware/tenant.ts
 // Multi-tenant request scoping for the SaaS starter (overlay code — NOT framework code).

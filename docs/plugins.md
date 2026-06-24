@@ -3,7 +3,7 @@ layout: default
 title: "Plugin System"
 nav_exclude: true
 permalink: /plugins/
-description: "The StreetJS plugin system — signed manifests, capability permissions, lifecycle hooks and a sandboxed host for extending your TypeScript backend."
+description: "The StreetJS plugin system — signed manifests, capability permissions, lifecycle hooks and a permission-gated host for extending your TypeScript backend."
 ---
 
 # Plugin System
@@ -54,6 +54,57 @@ const signed = signManifest({ name: 'pay', version: '1.0.0', capabilities: ['pay
 verifyManifest(signed, publicKey); // true
 verifyManifest({ ...signed, capabilities: ['payments', 'evil'] }, publicKey); // false (tampered)
 ```
+
+## Plugin trust model
+
+> **Read this before loading third-party plugins.** Signature verification
+> establishes *who* authored a plugin — not *what* it is allowed to do at
+> runtime. StreetJS plugins run in-process with full Node.js privileges.
+
+StreetJS plugins are loaded **in-process**, in the same V8 isolate and with the
+same OS-level privileges as your application. The plugin system is built for
+**trusted, signed code** — it is not a runtime sandbox for hostile code.
+
+- **A signed plugin is a `Trusted_Plugin`, and a trusted plugin is *not*
+  sandboxed.** A manifest that carries a valid Ed25519 signature verified
+  against the host's configured `publicKey` is trusted: it is a statement about
+  *authorship and integrity*, established by `signManifest` / `verifyManifest`.
+  It does **not** place the plugin inside a runtime sandbox. Once enabled, a
+  trusted plugin executes with the same access to memory, the filesystem, the
+  network, and the process as the host application itself.
+
+- **Declared `net`, `fs`, `db`, and `secrets` permissions are honor-system
+  grants, not enforced runtime confinement.** The host checks that every
+  permission a manifest requests is in `grantedPermissions` before `enable`, and
+  the `SandboxedApp` handed to `onLoad` gates the `app.use(...)` (`middleware`)
+  and `app.on(...)` (`events`) entry points. But `net`, `fs`, `db`, and
+  `secrets` are **declarative metadata only** — nothing in the runtime prevents
+  a loaded plugin from opening a socket, reading a file, querying a database, or
+  reading environment secrets regardless of whether those permissions were
+  granted. Treat the permission list as a manifest of *intent* you audit before
+  trusting, not as a cage enforced around the plugin.
+
+- **Verify a plugin's signature before loading it.** Construct the host with a
+  trusted `publicKey` so registration rejects any unsigned or tampered manifest
+  — when a public key is configured, `register()` throws
+  `PluginSignatureError` unless `verifyManifest` succeeds. Use
+  `host.verifiesSignatures()` to confirm enforcement is active. Only load
+  plugins whose signatures verify against a key you control or trust; an
+  unverified plugin should be treated as untrusted code and not loaded into the
+  process at all.
+
+  ```ts
+  const host = new PluginHost({ grantedPermissions: ['middleware', 'net'], publicKey });
+  host.verifiesSignatures();           // true — registration enforces signatures
+  host.register(new StripePlugin(), signedManifest); // throws if signature is invalid
+  ```
+
+- **True isolation of untrusted plugins is a separate, future initiative.**
+  Running *untrusted* plugins behind an enforced boundary (for example a
+  `worker_threads`- or `vm`-based runner with real capability confinement) is
+  tracked as a future security initiative (**F-P2**) and is **not** provided
+  today. Until it ships, do not load code you are not prepared to trust with
+  full process privileges.
 
 ## Hosting plugins
 
