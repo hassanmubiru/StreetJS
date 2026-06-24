@@ -11,7 +11,7 @@ description:  "A server-rendered, interactive dashboard built with StreetJS and 
 **Server-rendered HTML · HTMX swaps · SSE live tiles — no SPA build step.**
 
 - **Live demo:** _coming soon_ (see the [demo plan](https://github.com/hassanmubiru/StreetJS/blob/main/DEMO-INFRA-PLAN.md))
-- **Source:** [`examples/marzpay-htmx`](https://github.com/hassanmubiru/StreetJS/tree/main/examples/marzpay-htmx) (dashboard extension planned — see [roadmap](https://github.com/hassanmubiru/StreetJS/blob/main/SHOWCASE-ROADMAP.md))
+- **Source:** [`examples/reference-apps/htmx-dashboard`](https://github.com/hassanmubiru/StreetJS/tree/main/examples/reference-apps/htmx-dashboard)
 - **Scaffold your own:** `street create my-app --frontend htmx`
 - **Deploy:** [`deploy/`](https://github.com/hassanmubiru/StreetJS/tree/main/deploy) · **Docs:** [Plugins](/StreetJS/plugins/htmx/)
 
