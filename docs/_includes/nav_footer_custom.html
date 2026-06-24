@@ -1,10 +1,9 @@
 {%- comment -%}
-  Overrides the just-the-docs `nav_footer_custom` extension point (used by BOTH
-  components/sidebar.html on desktop AND components/footer.html on mobile). Because
-  this renders non-empty content, it replaces the theme's default
-  "This site uses Just the Docs…" attribution in both views. Content is sourced
-  from `site.footer_content` (docs/_config.yml) so there is a single source of truth.
+  just-the-docs renders `nav_footer_custom` in TWO places (the desktop sidebar and
+  the mobile footer) and falls back to its "This site uses Just the Docs…"
+  attribution when this is empty. We render a single hidden element: it is
+  non-empty (so the attribution is suppressed in BOTH places) but invisible, so the
+  one real footer is `footer_custom.html` in the main <footer>. The leftover empty
+  sidebar footer bar is hidden via CSS (`.side-bar .site-footer { display:none }`).
 {%- endcomment -%}
-{%- if site.footer_content and site.footer_content != "" -%}
-<p class="text-small text-grey-dk-100 mb-0">{{ site.footer_content }}</p>
-{%- endif -%}
+<span class="d-none" aria-hidden="true"></span>
