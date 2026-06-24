@@ -185,11 +185,13 @@ export class StreetWebSocketServer {
   private readonly clients = new Set<WebSocket>();
   private readonly MAX_CLIENTS: number;
   private readonly authFn: ((req: IncomingMessage) => boolean | Promise<boolean>) | undefined;
+  private readonly allowedOrigins: string[] | undefined;
   private heartbeatTimer: NodeJS.Timeout | null = null;
 
   constructor(options: WsServerOptions = {}) {
     this.MAX_CLIENTS = options.maxConnections ?? 10_000;
     this.authFn = options.authFn;
+    this.allowedOrigins = options.allowedOrigins;
     this.wss = new WebSocketServer({
       noServer: true,
       path: options.path,
