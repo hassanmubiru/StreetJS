@@ -15,12 +15,16 @@
 //     link type-flags) have been FLIPPED (task 4.4) to assert the closed-bug
 //     REJECTION behavior: the extractor now throws and writes nothing on every
 //     adversarial archive. These now CONFIRM PS-1 is CLOSED.
-//   • PS-2 IS NOT YET FIXED (task 5). The PS-2 default-open case below still
-//     CHARACTERIZES the unfixed install-gate behavior and still PASSES on the
-//     current code. It will be flipped to assert rejection in task 5.4.
+//   • PS-2 IS NOW FIXED (task 5: fail-closed, front-loaded install gate). The
+//     PS-2 default-open case below has been FLIPPED (task 5.4) to assert the
+//     closed-bug REJECTION behavior: with no `publicKey` and no `allowUnsigned`,
+//     the trust anchor defaults to the official key, `verifyManifest` rejects the
+//     self-signed malicious manifest, and `install()` THROWS at the signature
+//     gate BEFORE any download or extraction (Req 2.5, 2.6, 2.9). These now
+//     CONFIRM PS-2 is CLOSED.
 //
 // Documented counterexamples (the original proof the bugs existed) and how the
-// fix closes each PS-1 case:
+// fix closes each case:
 //   • PS-1 / Bug 1.1 — a tar entry named `../../evil.txt` used to be written to
 //     `path.resolve(destDir, '../../evil.txt')`, OUTSIDE `path.resolve(destDir)`.
 //     FIXED: the validation pre-pass rejects the `..` segment → throws, nothing
@@ -31,10 +35,15 @@
 //   • PS-1 / Bug 1.3 — symlink (`'2'`) and hardlink (`'1'`) type-flags used to be
 //     silently ignored (no throw), leaving link-based traversal unguarded. FIXED:
 //     the pre-pass rejects link type-flags → throws, nothing written.
-//   • PS-2 / Bug 1.5-1.6 (STILL UNFIXED) — `new PluginInstaller({ pluginsDir })`
-//     with no `publicKey` installs a self-consistent malicious manifest+tarball
-//     (tarball SHA-256 == manifest.checksum) and proceeds to download AND extract
+//   • PS-2 / Bug 1.5-1.6 — `new PluginInstaller({ pluginsDir })` with no
+//     `publicKey` used to install a self-consistent malicious manifest+tarball
+//     (tarball SHA-256 == manifest.checksum) and proceed to download AND extract
 //     with NO signature verification (default-open + self-referential checksum).
+//     FIXED: the trust anchor now defaults to `officialPluginPublicKey()`, so the
+//     bogus self-signed signature fails `verifyManifest` and `install()` aborts
+//     at the signature gate BEFORE download/extract — no filesystem side effects,
+//     even though the payload is self-consistent (no trust-anchor waiver and the
+//     signature does not verify against the default official key).
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
@@ -70,7 +79,7 @@ function makeInstaller(pluginsDir: string): PluginInstaller {
   return new PluginInstaller({ pluginsDir });
 }
 
-describe('PS-1 bug closed / PS-2 bug condition exploration (PS-1 assertions now confirm rejection; PS-2 still characterizes unfixed code)', () => {
+describe('PS-1 + PS-2 bugs closed (exploration assertions flipped to confirm rejection)', () => {
   // ── PS-1 / Bug 1.1 — `..` traversal now REJECTED (bug CLOSED) ──────────────
   it('PS-1 Bug 1.1 (CLOSED): a `../../evil.txt` entry now THROWS and writes nothing outside path.resolve(destDir)', async () => {
     const { dir: root, cleanup } = await withTempDir();
