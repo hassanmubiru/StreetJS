@@ -179,6 +179,15 @@ export function verifyManifest(m: PluginManifest, publicKey?: KeyLike): boolean 
 
 // ── Plugin host ────────────────────────────────────────────────────────────
 
+/** Recursively freeze an object graph in place, returning the same reference. */
+function deepFreeze<T>(obj: T): T {
+  if (obj !== null && typeof obj === 'object' && !Object.isFrozen(obj)) {
+    for (const value of Object.values(obj)) deepFreeze(value);
+    Object.freeze(obj);
+  }
+  return obj;
+}
+
 export type PluginState = 'registered' | 'enabled' | 'disabled';
 
 interface PluginEntry {
@@ -242,16 +251,19 @@ export class PluginHost {
         `Plugin "${plugin.name}" has an invalid manifest: ${parsed.error.message}`,
       );
     }
-    if (manifest.name !== plugin.name || manifest.version !== plugin.version) {
-      throw new PluginError(`Manifest (${manifest.name}@${manifest.version}) does not match plugin (${plugin.name}@${plugin.version})`);
+    // Detach from the caller's reference and capture an immutable copy so that
+    // post-registration mutation of the original is inert (Req 6.1, 6.3).
+    const frozen = deepFreeze(structuredClone(manifest));
+    if (frozen.name !== plugin.name || frozen.version !== plugin.version) {
+      throw new PluginError(`Manifest (${frozen.name}@${frozen.version}) does not match plugin (${plugin.name}@${plugin.version})`);
     }
     if (this.entries.has(plugin.name)) {
       throw new PluginStateError(`Plugin "${plugin.name}" is already registered`);
     }
-    if (this.publicKey && !verifyManifest(manifest, this.publicKey)) {
+    if (this.publicKey && !verifyManifest(frozen, this.publicKey)) {
       throw new PluginSignatureError(`Plugin "${plugin.name}" failed manifest signature verification`);
     }
-    this.entries.set(plugin.name, { plugin, manifest, state: 'registered', installed: false });
+    this.entries.set(plugin.name, { plugin, manifest: frozen, state: 'registered', installed: false });
   }
 
   /**
