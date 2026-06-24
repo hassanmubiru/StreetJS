@@ -9,6 +9,7 @@
 // in-process host that everything else (CLI, registry installer) drives.
 
 import { createHash, verify as cryptoVerify, sign as cryptoSign, type KeyLike } from 'node:crypto';
+import { z } from 'zod';
 import type { MiddlewareFn } from '../../core/types.js';
 import { PluginModule, type SandboxedApp } from './sdk.js';
 
@@ -39,6 +40,37 @@ export class PluginSignatureError extends PluginError {}
 export class PluginStateError extends PluginError {}
 /** Thrown when a plugin manifest is missing or malformed during installation. */
 export class PluginManifestError extends PluginError {}
+
+/**
+ * Canonical list of permission values, kept in lock-step with the
+ * `PluginPermission` union. The `satisfies` check below is a compile-time guard
+ * so this tuple and the union cannot drift apart, and `ALL_PERMS` is derived
+ * from it so there is a single source of truth.
+ */
+const PLUGIN_PERMISSION_VALUES = ['middleware', 'events', 'net', 'fs', 'db', 'secrets'] as const;
+// Compile-time guard: every entry must be a valid PluginPermission, and the
+// union must be fully covered (the reverse assignment is checked via ALL_PERMS).
+type _PermValuesArePermissions = (typeof PLUGIN_PERMISSION_VALUES)[number] extends PluginPermission ? true : never;
+type _PermissionsAreCovered = PluginPermission extends (typeof PLUGIN_PERMISSION_VALUES)[number] ? true : never;
+const _permValuesGuard: _PermValuesArePermissions = true;
+const _permCoverageGuard: _PermissionsAreCovered = true;
+void _permValuesGuard;
+void _permCoverageGuard;
+
+/**
+ * Zod schema mirroring {@link PluginManifest}. Used purely as a registration
+ * gate via `safeParse`. The schema is intentionally non-strict (unknown keys are
+ * tolerated, not stripped) so forward-compatible manifests are not rejected.
+ */
+export const pluginManifestSchema = z.object({
+  name: z.string().min(1),
+  version: z.string().min(1),
+  capabilities: z.array(z.string()).optional(),
+  permissions: z.array(z.enum(PLUGIN_PERMISSION_VALUES)).optional(),
+  dependencies: z.record(z.string(), z.string()).optional(),
+  checksum: z.string().optional(),
+  signature: z.string().optional(),
+});
 
 // ── Minimal semver ──────────────────────────────────────────────────────────
 
@@ -183,7 +215,7 @@ export interface PluginHostOptions {
   publicKey?: KeyLike;
 }
 
-const ALL_PERMS: PluginPermission[] = ['middleware', 'events', 'net', 'fs', 'db', 'secrets'];
+const ALL_PERMS: PluginPermission[] = [...PLUGIN_PERMISSION_VALUES];
 
 /**
  * In-process plugin host. Register plugins with manifests, then enable them —
@@ -204,6 +236,12 @@ export class PluginHost {
 
   /** Register a plugin + manifest. Validates name/version match and signature (if a public key is set). */
   register(plugin: PluginModule, manifest: PluginManifest): void {
+    const parsed = pluginManifestSchema.safeParse(manifest);
+    if (!parsed.success) {
+      throw new PluginManifestError(
+        `Plugin "${plugin.name}" has an invalid manifest: ${parsed.error.message}`,
+      );
+    }
     if (manifest.name !== plugin.name || manifest.version !== plugin.version) {
       throw new PluginError(`Manifest (${manifest.name}@${manifest.version}) does not match plugin (${plugin.name}@${plugin.version})`);
     }
