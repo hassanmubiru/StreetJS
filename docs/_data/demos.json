@@ -25,7 +25,7 @@
       "source": "https://github.com/hassanmubiru/StreetJS/tree/main/examples/marzpay-saas",
       "package": "https://www.npmjs.com/package/@streetjs/plugin-marzpay",
       "deploy": "deploy/cloud-run/service.yaml",
-      "docs": "/StreetJS/showcase/marzpay-billing/",
+      "docs": "/showcase/marzpay-billing/",
       "sandbox": true
     },
     {
@@ -38,7 +38,7 @@
       "source": "https://github.com/hassanmubiru/StreetJS/tree/main/examples/reference-apps/htmx-dashboard",
       "scaffold": "street create my-app --frontend htmx",
       "deploy": "deploy/cloud-run/service.yaml",
-      "docs": "/StreetJS/showcase/htmx-dashboard/",
+      "docs": "/showcase/htmx-dashboard/",
       "sandbox": true
     },
     {
@@ -50,7 +50,7 @@
       "status": "source-only",
       "source": "https://github.com/hassanmubiru/StreetJS/tree/main/examples/reference-apps/realtime-chat",
       "deploy": "deploy/helm/street",
-      "docs": "/StreetJS/showcase/realtime-chat/",
+      "docs": "/showcase/realtime-chat/",
       "sandbox": true,
       "requiresWebSocket": true
     },
@@ -63,7 +63,7 @@
       "status": "source-only",
       "source": "https://github.com/hassanmubiru/StreetJS/tree/main/examples/reference-apps/ai-assistant",
       "deploy": "deploy/cloud-run/service.yaml",
-      "docs": "/StreetJS/showcase/ai-assistant/",
+      "docs": "/showcase/ai-assistant/",
       "sandbox": true,
       "demoSafeMode": true
     },
@@ -76,7 +76,7 @@
       "status": "source-only",
       "source": "https://github.com/hassanmubiru/StreetJS/tree/main/examples/reference-apps/crm",
       "deploy": "deploy/cloud-run/service.yaml",
-      "docs": "/StreetJS/showcase/crm/",
+      "docs": "/showcase/crm/",
       "sandbox": true
     }
   ]
