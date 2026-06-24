@@ -1,18 +1,43 @@
 // src/platform/plugins/registry.ts
 // Plugin installer: fetches, verifies (Ed25519 + SHA-256), and extracts plugins.
 
-import { createHash, verify as cryptoVerify } from 'node:crypto';
+import { createHash, createPublicKey, type KeyObject } from 'node:crypto';
 import { request as httpsRequest } from 'node:https';
 import { promises as fs } from 'node:fs';
 import { join } from 'node:path';
 import path from 'node:path';
 import { Writable } from 'node:stream';
+import { z } from 'zod';
+
+import { officialPluginPublicKey } from './official-key.js';
+import { pluginManifestSchema, manifestChecksum, verifyManifest } from './host.js';
 
 export interface PluginInstallerOptions {
   registryUrl?: string;
   pluginsDir: string;
+  /** Trusted Ed25519 public key (PEM/SPKI) for manifest verification. */
   publicKey?: string;
+  /**
+   * Explicit, logged escape hatch. When true, signature verification is skipped
+   * (dev/unsigned mode). https pinning, schema validation, and PS-1 containment
+   * are STILL enforced. Default false.
+   */
+  allowUnsigned?: boolean;
 }
+
+/**
+ * Installer manifest schema. Reuses the host `pluginManifestSchema` for the
+ * signed body (name/version/capabilities/permissions/dependencies +
+ * checksum/signature) and extends it with the registry-transport `tarballUrl`.
+ *
+ * `tarballUrl`, `checksum`, and `signature` are outside the signed canonical
+ * body (see host.ts `canonicalManifest`), so `manifestChecksum`/`verifyManifest`
+ * ignore `tarballUrl` and signature semantics are unchanged (strengths S1, S2).
+ */
+const installerManifestSchema = pluginManifestSchema.extend({
+  tarballUrl: z.string().min(1),
+});
+type InstallerManifest = z.infer<typeof installerManifestSchema>;
 
 /**
  * Returns the safe absolute destination for `entryName` under `destDir`, or
@@ -42,101 +67,157 @@ export function resolveContained(destDir: string, entryName: string): string | n
   return null;
 }
 
-interface PluginManifest {
-  name: string;
-  version: string;
-  checksum: string;
-  signature: string;
-  tarballUrl: string;
-}
-
 export class PluginInstaller {
   private readonly registryUrl: string;
   private readonly pluginsDir: string;
-  private readonly publicKey: string | undefined;
+  private readonly allowUnsigned: boolean;
+  /**
+   * The resolved trust anchor. Defaults to the pinned official key unless the
+   * caller supplies their own `publicKey` or explicitly opts into `allowUnsigned`
+   * (in which case it is left undefined and signature verification is skipped).
+   */
+  private readonly trustedKey: KeyObject | undefined;
 
   constructor(opts: PluginInstallerOptions) {
     this.registryUrl = opts.registryUrl ?? 'https://registry.streetjs.dev';
     this.pluginsDir = opts.pluginsDir;
-    this.publicKey = opts.publicKey;
+    // Default the trusted key to the pinned official key unless the caller
+    // explicitly opted into unsigned mode (Req 2.5 / 3.6).
+    this.allowUnsigned = opts.allowUnsigned === true;
+    this.trustedKey = opts.publicKey
+      ? createPublicKey(opts.publicKey)
+      : (this.allowUnsigned ? undefined : officialPluginPublicKey());
+    if (this.allowUnsigned) {
+      // Visible, logged escape hatch (Req 2.5 / 3.6).
+      console.warn(
+        '[PluginInstaller] allowUnsigned=true: signature verification is DISABLED. ' +
+        'https pinning, manifest schema validation, and path containment remain enforced.'
+      );
+    }
   }
 
   /**
-   * Installs a plugin by name and version.
-   * Steps:
-   *   1. Fetch manifest from registry
-   *   2. Verify Ed25519 signature (if public key is configured)
-   *   3. Download tarball
-   *   4. Verify SHA-256 checksum
-   *   5. Extract to pluginsDir/<name>@<version>/
+   * Installs a plugin by name and version. Secure-by-default and front-loaded:
+   * every authenticity/integrity/transport precondition is checked and the
+   * install aborts (throws) BEFORE any tarball is downloaded or extracted
+   * (Property 2 / Req 2.5–2.9). Ordering follows the design pseudocode (a)–(h):
+   *
+   *   (a) pin https on the registry transport            (Req 2.8)
+   *   (b) fetch the manifest
+   *   (c) schema-validate the manifest + require a signature (Req 2.7)
+   *   (d) pin https on the tarball transport             (Req 2.8)
+   *   (e) verify the Ed25519 signature over the *recomputed* canonical checksum
+   *       against the trusted key (unless allowUnsigned); the signed checksum is
+   *       the integrity root for the tarball (Req 2.5, 2.6 — strength S2)
+   *   (f) download the tarball (only after all gates pass)
+   *   (g) bind the tarball SHA-256 to the signed checksum (Req 2.6)
+   *   (h) mkdir + extract under PS-1 containment          (Req 2.1–2.4)
    */
   async install(name: string, version: string): Promise<void> {
-    // 1. Fetch manifest
+    // (a) Reject non-https registry transport before any network fetch.
+    this.assertHttps(this.registryUrl);
+
+    // (b)+(c) Fetch + schema-validate the manifest (also requires a signature).
     const manifest = await this._fetchManifest(name, version);
 
-    // 2. Verify Ed25519 signature
-    if (this.publicKey) {
-      const isValid = this._verifySignature(
-        manifest.checksum,
-        manifest.signature,
-        this.publicKey
-      );
-      if (!isValid) {
+    // (d) Reject non-https tarball transport before any download.
+    this.assertHttps(manifest.tarballUrl);
+
+    // (e) Verify the signature over the recomputed canonical checksum (S2).
+    //     In allowUnsigned mode there is no trust anchor and this is skipped.
+    let signedChecksum: string | undefined;
+    if (!this.allowUnsigned) {
+      if (!this.trustedKey) {
+        throw new Error(
+          `No trusted public key configured for ${name}@${version}; ` +
+          `refusing to install. Set allowUnsigned to override.`
+        );
+      }
+      if (!verifyManifest(manifest, this.trustedKey)) {
         throw new Error(
           `Invalid marketplace signature for ${name}@${version}. ` +
           `Plugin installation aborted.`
         );
       }
+      // The signed integrity root is the RECOMPUTED canonical checksum, never
+      // the attacker-supplied `manifest.checksum`.
+      signedChecksum = manifestChecksum(manifest);
     }
 
-    // 3. Download tarball
+    // (f) Only now do we touch the network for tarball bytes.
     const tarballBuffer = await this._downloadBuffer(manifest.tarballUrl);
 
-    // 4. Verify SHA-256 checksum
+    // (g) Bind the tarball to the signed checksum. In allowUnsigned mode we fall
+    //     back to the supplied `manifest.checksum` (documented as integrity-only,
+    //     NOT authenticity — no trust anchor was established).
     const actualChecksum = createHash('sha256').update(tarballBuffer).digest('hex');
-    if (actualChecksum !== manifest.checksum) {
+    const compareTarget = this.allowUnsigned ? manifest.checksum : signedChecksum;
+    if (actualChecksum !== compareTarget) {
       throw new Error(
         `Checksum mismatch for ${name}@${version}.\n` +
-        `Expected: ${manifest.checksum}\n` +
+        `Expected: ${compareTarget ?? '(none)'}\n` +
         `Actual:   ${actualChecksum}\n` +
         `Plugin installation aborted.`
       );
     }
 
-    // 5. Extract to pluginsDir
+    // (h) Extract to pluginsDir under PS-1 containment.
     const destDir = join(this.pluginsDir, `${name}@${version}`);
     await fs.mkdir(destDir, { recursive: true });
     await this._extractTarball(tarballBuffer, destDir);
   }
 
-  private async _fetchManifest(name: string, version: string): Promise<PluginManifest> {
+  /**
+   * Parse, validate, and return the manifest. Replaces the unchecked
+   * `JSON.parse(body) as PluginManifest` with a zod `safeParse` against
+   * `installerManifestSchema` and rejects responses that fail validation or
+   * that lack a signature (Req 2.7).
+   */
+  private async _fetchManifest(name: string, version: string): Promise<InstallerManifest> {
     const url = `${this.registryUrl}/plugins/${encodeURIComponent(name)}/${encodeURIComponent(version)}/manifest.json`;
     const body = await this._fetchText(url);
-    return JSON.parse(body) as PluginManifest;
+
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(body);
+    } catch {
+      throw new Error(`Malformed manifest JSON for ${name}@${version}.`);
+    }
+
+    const result = installerManifestSchema.safeParse(parsed);
+    if (!result.success) {
+      throw new Error(
+        `Manifest for ${name}@${version} failed schema validation: ${result.error.message}`
+      );
+    }
+    const manifest = result.data;
+    if (!manifest.signature) {
+      throw new Error(
+        `Manifest for ${name}@${version} is missing a signature. ` +
+        `Plugin installation aborted.`
+      );
+    }
+    return manifest;
   }
 
-  private _verifySignature(
-    message: string,
-    signature: string,
-    publicKeyPem: string
-  ): boolean {
+  /**
+   * Reject non-`https:` transport. Parses `rawUrl` with `new URL` (throwing on a
+   * parse failure) and throws unless the protocol is exactly `https:` (Req 2.8).
+   * Returns the parsed URL for convenience.
+   */
+  private assertHttps(rawUrl: string): URL {
+    let u: URL;
     try {
-      const sigBuffer = Buffer.from(signature, 'base64');
-      const msgBuffer = Buffer.from(message, 'utf8');
-      return cryptoVerify(
-        null, // use algorithm from key (Ed25519 doesn't need a hash algorithm here)
-        msgBuffer,
-        {
-          key: publicKeyPem,
-          format: 'pem',
-          type: 'spki',
-          dsaEncoding: 'ieee-p1363',
-        },
-        sigBuffer
-      );
+      u = new URL(rawUrl);
     } catch {
-      return false;
+      throw new Error(`Invalid URL: ${rawUrl}`);
     }
+    if (u.protocol !== 'https:') {
+      throw new Error(
+        `Refusing non-https plugin transport: ${u.protocol}// (https required)`
+      );
+    }
+    return u;
   }
 
   private _fetchText(url: string): Promise<string> {
