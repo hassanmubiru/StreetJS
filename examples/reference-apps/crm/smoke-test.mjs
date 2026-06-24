@@ -56,7 +56,6 @@ check('globex sees exactly its own deal', () => {
   assert.equal(globexDeals.body.deals.length, 1);
   assert.equal(globexDeals.body.deals[0].title, 'Globex pilot');
 });
-check('acme cannot move globex\'s deal (scoped 404)', async () => {});
 const crossMove = await req('POST', `/deals/${otherDeal.body.id}/move`, { org: 'acme', body: { stage: 'won' } });
 check('cross-tenant deal move is rejected (404)', () => assert.equal(crossMove.status, 404));
 
