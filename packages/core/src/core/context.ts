@@ -75,8 +75,11 @@ export interface CookieOptions {
  *
  * Attributes are emitted in a fixed, stable order so the output is deterministic:
  * `name=encodeURIComponent(value); HttpOnly?; Secure?; SameSite=<v>?; Max-Age?; Path?; Domain?`
+ *
+ * Exported as a named export for direct unit/property testing. It is intentionally
+ * not re-exported from the package's public `index`.
  */
-function serializeCookie(name: string, value: string, options: CookieOptions = {}): string {
+export function serializeCookie(name: string, value: string, options: CookieOptions = {}): string {
   const httpOnly = options.httpOnly ?? true;
   const secure = options.secure ?? (process.env.NODE_ENV === 'production');
   const sameSite = options.sameSite ?? 'Lax';
