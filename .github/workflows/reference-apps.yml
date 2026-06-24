@@ -38,6 +38,7 @@ jobs:
           npm run build -w packages/commerce
           npm run build -w packages/admin
           npm run build -w packages/dating-profiles
+          npm run build -w packages/plugin-htmx
 
       - name: Run reference-app smoke tests
         run: bash scripts/verify-reference-apps.sh
