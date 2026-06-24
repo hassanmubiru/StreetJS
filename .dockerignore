@@ -1,0 +1,12 @@
+# Build-context hygiene for all Dockerfiles (root + demos/). Keeps images small
+# and reproducible — dependencies are restored with `npm ci` inside the build.
+node_modules
+**/node_modules
+.git
+.github
+.hypothesis
+coverage
+**/coverage
+*.log
+*.tgz
+.DS_Store
