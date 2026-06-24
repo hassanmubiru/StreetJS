@@ -224,6 +224,48 @@ export const MARZPAY_SPEC: MarzPaySpec = {
 };
 
 // ---------------------------------------------------------------------------
+// Verify-don't-invent unsupported-operation seam (Task 1.1)
+// ---------------------------------------------------------------------------
+//
+// A single error type and guard centralize the verify-don't-invent error path so
+// every operation backed by an UNBOUND MarzPaySpec seam behaves identically and
+// never touches the network. An operation whose endpoint is not recorded as a
+// Verified_Capability in the Research_Artifact MUST surface this error and issue
+// no request (Requirements 1.3, 3.6, 5.3, 10.5, 12.7).
+
+/**
+ * Thrown when an operation requires an endpoint that is not (yet) recorded as a
+ * Verified_Capability in the Research_Artifact (docs/integrations/marzpay-research.md).
+ *
+ * The message NAMES the offending capability and references the Research_Artifact
+ * so the verify-don't-invent boundary is explicit at the call site. Extends
+ * `PluginError` so existing `instanceof PluginError` handling continues to apply.
+ */
+export class UnsupportedOperationError extends PluginError {
+  constructor(capability: string) {
+    super(
+      `MarzPay ${capability}: unsupported — no endpoint is recorded as a ` +
+        `Verified_Capability in the Research_Artifact; operation unavailable`,
+    );
+    this.name = 'UnsupportedOperationError';
+  }
+}
+
+/**
+ * Guard a capability behind a possibly-unbound MarzPaySpec seam.
+ *
+ * Throws `UnsupportedOperationError` (no network I/O) when `seam` is `undefined`,
+ * naming `capability`; otherwise returns the bound seam value unchanged. This
+ * keeps verify-don't-invent enforced at every unverified call site (Req 1.3).
+ */
+function requireBoundSeam(seam: string | undefined, capability: string): string {
+  if (seam === undefined) {
+    throw new UnsupportedOperationError(capability);
+  }
+  return seam;
+}
+
+// ---------------------------------------------------------------------------
 // Pure request builders and argument guards (Task 5.1)
 // ---------------------------------------------------------------------------
 //
@@ -702,6 +744,77 @@ export interface RefundResult {
   id: string;
   /** Refund status. */
   status: string;
+}
+
+// ---------------------------------------------------------------------------
+// Phone validation / normalization (Task 4.1)
+// ---------------------------------------------------------------------------
+//
+// SINGLE source of truth for phone validation/normalization (Requirement 11.3).
+// The `utils` namespace (Task 4.2) exposes `isValidPhoneNumber`/`formatPhoneNumber`
+// by delegating to these helpers; no other phone-validation implementation may be
+// introduced. Scope is Uganda/UGX MSISDNs (Research_Artifact V2 examples, R3).
+
+/**
+ * Normalize a value to the canonical Uganda MSISDN form `+2567XXXXXXXX`.
+ *
+ * Whitespace, dashes, and parentheses are stripped first, then the following
+ * input shapes are accepted (all carrying the 9-digit national significant
+ * number `7XXXXXXXX`):
+ *  - `+2567XXXXXXXX` (E.164 with country code)
+ *  - `2567XXXXXXXX`  (country code without `+`)
+ *  - `07XXXXXXXX`    (national trunk prefix `0`)
+ *  - `7XXXXXXXX`     (bare national significant number)
+ *
+ * @param value Untrusted input of unknown type.
+ * @returns The canonical `+2567XXXXXXXX` string, or `null` when `value` is not a
+ *          valid Uganda MSISDN (wrong type, wrong length, non-digit characters,
+ *          or a national number not starting with `7`).
+ */
+function normalizeUgandaMsisdn(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const cleaned = value.replace(/[\s\-()]/g, '');
+  if (cleaned === '') return null;
+
+  // Reduce each accepted shape to the 9-digit national significant number.
+  let national: string;
+  if (cleaned.startsWith('+256')) {
+    national = cleaned.slice(4);
+  } else if (cleaned.startsWith('256')) {
+    national = cleaned.slice(3);
+  } else if (cleaned.startsWith('0')) {
+    national = cleaned.slice(1);
+  } else {
+    national = cleaned;
+  }
+
+  // The national significant number must be exactly 9 digits starting with `7`.
+  if (!/^7\d{8}$/.test(national)) return null;
+
+  return `+256${national}`;
+}
+
+/**
+ * Return `true` when `value` is a valid Uganda MSISDN (i.e. it normalizes to the
+ * canonical form), `false` otherwise. Delegates to {@link normalizeUgandaMsisdn}
+ * so there is a single validation implementation (Requirement 11.3).
+ */
+export function isValidUgandaMsisdn(value: unknown): boolean {
+  return normalizeUgandaMsisdn(value) !== null;
+}
+
+/**
+ * Return the canonical Uganda MSISDN form (`+2567XXXXXXXX`) for `value`, or throw
+ * a `PluginError` when `value` is not a valid phone number. Delegates to
+ * {@link normalizeUgandaMsisdn} so validation is never duplicated (Requirement
+ * 11.3); round-trip consistent with {@link isValidUgandaMsisdn} (Requirement 11.4).
+ */
+export function formatUgandaMsisdn(value: string): string {
+  const normalized = normalizeUgandaMsisdn(value);
+  if (normalized === null) {
+    throw new PluginError('MarzPay utils.formatPhoneNumber: value is not a valid phone number');
+  }
+  return normalized;
 }
 
 // ---------------------------------------------------------------------------
