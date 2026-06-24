@@ -55,12 +55,40 @@ export interface AuthenticatedUser {
 }
 
 export interface CookieOptions {
+  /** Defaults to `true` (HttpOnly emitted) unless explicitly set to `false`. */
   httpOnly?: boolean;
+  /** Defaults to `true` in production (`NODE_ENV === 'production'`) unless explicitly set. */
   secure?: boolean;
+  /** Defaults to `'Lax'` unless explicitly provided. */
   sameSite?: 'Strict' | 'Lax' | 'None';
   maxAge?: number;
   path?: string;
   domain?: string;
+}
+
+/**
+ * Pure helper that serializes a single cookie into a `Set-Cookie` value applying
+ * the secure-by-default flag resolution (F-A1):
+ * - `httpOnly`: `options.httpOnly ?? true`
+ * - `secure`: `options.secure ?? (process.env.NODE_ENV === 'production')`
+ * - `sameSite`: `options.sameSite ?? 'Lax'`
+ *
+ * Attributes are emitted in a fixed, stable order so the output is deterministic:
+ * `name=encodeURIComponent(value); HttpOnly?; Secure?; SameSite=<v>?; Max-Age?; Path?; Domain?`
+ */
+function serializeCookie(name: string, value: string, options: CookieOptions = {}): string {
+  const httpOnly = options.httpOnly ?? true;
+  const secure = options.secure ?? (process.env.NODE_ENV === 'production');
+  const sameSite = options.sameSite ?? 'Lax';
+
+  const parts: string[] = [`${name}=${encodeURIComponent(value)}`];
+  if (httpOnly) parts.push('HttpOnly');
+  if (secure) parts.push('Secure');
+  parts.push(`SameSite=${sameSite}`);
+  if (options.maxAge !== undefined) parts.push(`Max-Age=${options.maxAge}`);
+  if (options.path) parts.push(`Path=${options.path}`);
+  if (options.domain) parts.push(`Domain=${options.domain}`);
+  return parts.join('; ');
 }
 
 export function createContext(
@@ -152,14 +180,7 @@ export function createContext(
     },
 
     setCookie(name: string, value: string, options: CookieOptions = {}): void {
-      const parts: string[] = [`${name}=${encodeURIComponent(value)}`];
-      if (options.httpOnly) parts.push('HttpOnly');
-      if (options.secure) parts.push('Secure');
-      if (options.sameSite) parts.push(`SameSite=${options.sameSite}`);
-      if (options.maxAge !== undefined) parts.push(`Max-Age=${options.maxAge}`);
-      if (options.path) parts.push(`Path=${options.path}`);
-      if (options.domain) parts.push(`Domain=${options.domain}`);
-      res.setHeader('Set-Cookie', parts.join('; '));
+      res.setHeader('Set-Cookie', serializeCookie(name, value, options));
     },
   };
 
