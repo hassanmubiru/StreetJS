@@ -296,6 +296,14 @@ export class StreetWebSocketServer {
         return;
       }
 
+      // F-R2: reject disallowed origins before the auth hook / handshake so a
+      // cross-origin upgrade never produces a `connection` event (Req 3.4/3.5).
+      if (!isOriginAllowed(req, this.allowedOrigins)) {
+        socket.write('HTTP/1.1 403 Forbidden\r\nContent-Length: 0\r\nConnection: close\r\n\r\n');
+        socket.destroy();
+        return;
+      }
+
       if (this.authFn) {
         try {
           const allowed = await this.authFn(req);
