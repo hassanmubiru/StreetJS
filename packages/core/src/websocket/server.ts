@@ -355,13 +355,6 @@ export class StreetWebSocketServer {
   }
 
   get connectionCount(): number { return this.clients.size; }
-
-  /**
-   * The origins permitted to complete a WebSocket upgrade (F-R2), or `undefined`
-   * when same-origin is the effective policy. Read-only view of the configured
-   * `allowedOrigins` option; the upgrade-path gate (and tests) consume this.
-   */
-  get originPolicy(): readonly string[] | undefined { return this.allowedOrigins; }
 }
 
 // Extend WebSocket type with isAlive property
