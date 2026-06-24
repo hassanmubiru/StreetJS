@@ -1475,3 +1475,122 @@ export function createCollectionsNamespace(deps: CollectionsNamespaceDeps): Coll
     },
   };
 }
+
+// ---------------------------------------------------------------------------
+// Accounts namespace (Task 3.2)
+// ---------------------------------------------------------------------------
+//
+// The `marzpay.accounts` surface (Requirement 5) over an UNVERIFIED seam:
+//  - `getBalance()` → `paths.balance` (ABSENT in MARZPAY_SPEC — see MarzPayPaths)
+//
+// Verify-don't-invent: no account-balance endpoint is recorded as a
+// Verified_Capability (Appendix A mentions a Balance API only incidentally), so
+// `getBalance()` calls `requireBoundSeam(spec.paths.balance, 'accounts.getBalance')`
+// FIRST. While `balance` is unbound this throws `UnsupportedOperationError` and
+// issues NO network request (Req 5.1, 5.3). The send/parse/non-2xx-mapping that
+// follows is authored for the day the seam is bound (Req 5.2, 5.4) but is
+// UNREACHABLE until then. It reuses the existing defensive parse helpers
+// (`asRecord`/`asOptionalString`/`asOptionalNumber`) and the same non-2xx status
+// check pattern as `MarzPayClient.ensureSuccessStatus` / the collections
+// namespace. The factory `createAccountsNamespace(deps)` mirrors the wiring of
+// `createCollectionsNamespace` (config + spec + transport + timeout); the
+// namespace is attached to the client in Task 5.1.
+
+/**
+ * Result of `accounts.getBalance` (parsed defensively from the MarzPay balance
+ * response — Req 5.2): the account `currency`, the `available` amount, and an
+ * optional raw/minor-unit `raw` value when present.
+ */
+export interface AccountBalance {
+  /** Account currency (e.g. `UGX`). */
+  currency: string;
+  /** Available balance amount. */
+  available: number;
+  /** Optional raw/minor-unit balance value when the response provides one. */
+  raw?: number;
+}
+
+/**
+ * The `marzpay.accounts` namespace surface (Requirement 5).
+ *  - `getBalance()`: read the account balance via the (currently unbound)
+ *    `paths.balance` seam; surfaces `UnsupportedOperationError` with no network
+ *    request until the seam is bound.
+ */
+export interface AccountsNamespace {
+  /** Read the account balance, or throw `UnsupportedOperationError` while unbound. */
+  getBalance(): Promise<AccountBalance>;
+}
+
+/**
+ * Dependencies for {@link createAccountsNamespace}, mirroring the wiring of
+ * {@link createCollectionsNamespace}: the validated `config`, the verified
+ * `spec`, the injectable `transport`, and the resolved `timeoutMs`.
+ */
+export interface AccountsNamespaceDeps {
+  /** Validated, normalized plugin configuration. */
+  readonly config: MarzPayPluginConfig;
+  /** The verified API spec (defaults to `MARZPAY_SPEC` at the call site). */
+  readonly spec: MarzPaySpec;
+  /** Injectable transport seam (defaults to `defaultMarzPayTransport`). */
+  readonly transport: MarzPayTransport;
+  /** Resolved request timeout budget in milliseconds. */
+  readonly timeoutMs: number;
+}
+
+/**
+ * Create the `marzpay.accounts` namespace.
+ *
+ * `getBalance()` calls `requireBoundSeam(spec.paths.balance, 'accounts.getBalance')`
+ * FIRST: while the balance seam is unbound this throws `UnsupportedOperationError`
+ * and issues NO network request (verify-don't-invent — Req 5.1, 5.3). The
+ * send/parse/non-2xx-mapping code that follows is authored (so the operation is
+ * complete when the seam is later bound) but remains UNREACHABLE until then. It
+ * funnels the GET through the injected transport, throws a `PluginError` that
+ * INCLUDES the HTTP status on a non-2xx response with no partial result
+ * (Req 5.4), and parses the balance defensively with the shared helpers
+ * (Req 5.2). The namespace is attached to the client as `marzpay.accounts` in
+ * Task 5.1.
+ */
+export function createAccountsNamespace(deps: AccountsNamespaceDeps): AccountsNamespace {
+  const { config, spec, transport, timeoutMs } = deps;
+
+  const send = (req: MarzPayHttpRequest): Promise<MarzPayTransportResponse> => transport(req, timeoutMs);
+
+  // Mirrors MarzPayClient.ensureSuccessStatus: a non-2xx status throws a
+  // PluginError INCLUDING the returned HTTP status and yields no partial result.
+  const ensureSuccess = (status: number, operation: string): void => {
+    if (status < 200 || status >= 300) {
+      throw new PluginError(`MarzPay ${operation}: request returned non-success HTTP status ${status}`);
+    }
+  };
+
+  return {
+    async getBalance(): Promise<AccountBalance> {
+      // Verify-don't-invent: throws UnsupportedOperationError (no send) while the
+      // balance seam is unbound. Everything below is unreachable until bound.
+      const balancePath = requireBoundSeam(spec.paths.balance, 'accounts.getBalance');
+
+      const built: MarzPayHttpRequest = {
+        method: 'GET',
+        url: `${resolveBaseAddress(config, spec)}${balancePath}`,
+        headers: spec.authHeaders(config),
+        body: '',
+      };
+      const { status, body } = await send(built);
+      ensureSuccess(status, 'accounts.getBalance');
+      const root = asRecord(parseJsonBody(body, 'accounts.getBalance'));
+      const data = asRecord(root['data']);
+      const balanceObj = asRecord(data['balance']);
+      const available =
+        asOptionalNumber(balanceObj['available']) ?? asOptionalNumber(data['available']) ?? 0;
+      const currency =
+        asOptionalString(balanceObj['currency']) ?? asOptionalString(data['currency']) ?? '';
+      const raw = asOptionalNumber(balanceObj['raw']);
+      return {
+        currency,
+        available,
+        ...(raw !== undefined ? { raw } : {}),
+      };
+    },
+  };
+}
