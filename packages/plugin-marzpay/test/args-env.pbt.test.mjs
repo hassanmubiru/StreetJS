@@ -70,15 +70,21 @@ describe('Property 3: Reference/identifier argument validation', () => {
         ({ raw, trimmed }, environment) => {
           const cfg = cfgWith(environment);
 
+          // The interpolated path segment is percent-encoded so a reference/id
+          // containing `/`, `?`, `#`, `&`, spaces, or unicode cannot inject
+          // path/query structure (Req 6.6, 13.7). The URL therefore carries the
+          // ENCODED trimmed argument.
+          const encodedTrimmed = encodeURIComponent(trimmed);
+
           const verifyReq = buildVerifyPaymentRequest(cfg, MARZPAY_SPEC, raw);
           assert.equal(verifyReq.method, 'GET');
-          assert.ok(verifyReq.url.includes(trimmed), 'verify URL should contain the trimmed reference');
-          assert.ok(verifyReq.url.endsWith(`/transactions/${trimmed}`));
+          assert.ok(verifyReq.url.includes(encodedTrimmed), 'verify URL should contain the encoded trimmed reference');
+          assert.ok(verifyReq.url.endsWith(`/transactions/${encodedTrimmed}`));
 
           const getReq = buildGetTransactionRequest(cfg, MARZPAY_SPEC, raw);
           assert.equal(getReq.method, 'GET');
-          assert.ok(getReq.url.includes(trimmed), 'getTransaction URL should contain the trimmed id');
-          assert.ok(getReq.url.endsWith(`/transactions/${trimmed}`));
+          assert.ok(getReq.url.includes(encodedTrimmed), 'getTransaction URL should contain the encoded trimmed id');
+          assert.ok(getReq.url.endsWith(`/transactions/${encodedTrimmed}`));
         },
       ),
       { numRuns: RUNS },
