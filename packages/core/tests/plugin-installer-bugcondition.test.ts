@@ -183,14 +183,19 @@ describe('PS-1 + PS-2 bugs closed (exploration assertions flipped to confirm rej
     }
   });
 
-  // ── PS-2 / Bug 1.5-1.6 — default-open install with self-referential checksum ─
-  it('PS-2 Bug 1.5-1.6: install with no publicKey downloads AND extracts a self-consistent malicious plugin', async () => {
+  // ── PS-2 / Bug 1.5-1.6 — default-open install now REJECTED (bug CLOSED) ─────
+  it('PS-2 Bug 1.5-1.6 (CLOSED): install with no publicKey now FAILS CLOSED — aborts BEFORE download/extract, no filesystem side effects', async () => {
     const { dir: pluginsDir, cleanup } = await withTempDir();
     try {
-      // A perfectly self-consistent attacker payload: the tarball's SHA-256 equals
-      // the manifest's self-declared checksum, so the unfixed self-referential
-      // checksum gate passes trivially. The signature is bogus and is never checked
-      // because no publicKey is configured (default-open).
+      // The same self-consistent attacker payload as the original exploration:
+      // the tarball's SHA-256 equals the manifest's self-declared checksum, so the
+      // OLD self-referential checksum gate would have passed trivially. The
+      // signature is bogus. With the PS-2 fix, no `publicKey` and no
+      // `allowUnsigned` means the trust anchor DEFAULTS to the official key, so
+      // `verifyManifest` rejects this self-signed manifest and `install()` aborts
+      // at the signature gate — even though the payload is internally consistent,
+      // because there is no trust-anchor waiver and the signature does not verify
+      // against the default official key.
       const tarball = makeTar([fileEntry('index.js', 'module.exports = { pwned: true };')]);
       const checksum = createHash('sha256').update(tarball).digest('hex');
       const maliciousManifest = {
@@ -208,22 +213,46 @@ describe('PS-1 + PS-2 bugs closed (exploration assertions flipped to confirm rej
         tarball,
       });
 
-      const installer = makeInstaller(pluginsDir); // no publicKey → default-open
+      const installer = makeInstaller(pluginsDir); // no publicKey → defaults to official key (fail-closed)
       stub.attachTo(installer);
 
-      await assert.doesNotReject(
+      // FIXED: the install must now REJECT (signature does not verify against the
+      // default official trust anchor) — Req 2.5, 2.6.
+      await assert.rejects(
         () => installer.install('evil-plugin', '1.0.0'),
-        'EXPECTED (unfixed): install proceeds with no signature verification',
+        /signature/i,
+        'FIXED: default-open install must now fail closed by throwing at the signature gate',
       );
 
-      // Counterexamples: the install reached BOTH the download and extract stages
-      // despite there being no trust anchor and only a self-referential checksum.
-      assert.equal(stub.downloadReached, true, 'EXPECTED (unfixed): tarball was downloaded');
-      assert.equal(stub.extractReached, true, 'EXPECTED (unfixed): tarball was extracted');
+      // Abort precedes any download/extract (Req 2.9): the spies must show neither
+      // stage was reached.
       assert.equal(
-        existsSync(path.join(pluginsDir, 'evil-plugin@1.0.0', 'index.js')),
-        true,
-        'EXPECTED (unfixed): malicious plugin extracted to pluginsDir/<name>@<version>/',
+        stub.downloadReached,
+        false,
+        'FIXED: tarball must NOT be downloaded (abort precedes download — Req 2.9)',
+      );
+      assert.equal(
+        stub.extractReached,
+        false,
+        'FIXED: tarball must NOT be extracted (abort precedes extract — Req 2.9)',
+      );
+
+      // No filesystem side effects: no plugin directory / file created.
+      const escapedDest = path.join(pluginsDir, 'evil-plugin@1.0.0');
+      assert.equal(
+        existsSync(escapedDest),
+        false,
+        'FIXED: no plugin directory must be created on abort (no filesystem side effects)',
+      );
+      assert.equal(
+        existsSync(path.join(escapedDest, 'index.js')),
+        false,
+        'FIXED: malicious plugin file must NOT be written on abort',
+      );
+      assert.deepEqual(
+        await fs.readdir(pluginsDir),
+        [],
+        'FIXED: pluginsDir must be left empty on abort (no partial install)',
       );
     } finally {
       await cleanup();
