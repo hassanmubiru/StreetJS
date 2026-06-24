@@ -3,26 +3,36 @@
 // Feature: plugin-installer-hardening, Property 1: Bug Condition
 //   PS-1 (zip-slip in `_extractTarball`) + PS-2 (default-open install gate).
 //
-// EXPLORATION TESTS — written BEFORE any fix, against the UNFIXED
-// `registry.ts`. Per the design "Exploratory Bug Condition Checking" section and
-// task 2, these assertions CHARACTERIZE the buggy behavior and therefore PASS on
-// the current unfixed code (confirming PS-1 and PS-2 exist with concrete
-// counterexamples). They are EXPECTED TO FLIP — i.e. these exact assertions will
-// FAIL — once the fix lands (tasks 4.4 / 5.4 update them to assert rejection).
-// DO NOT fix the code or the tests here.
+// EXPLORATION TESTS — originally written BEFORE any fix, against the UNFIXED
+// `registry.ts` (task 2). Per the design "Exploratory Bug Condition Checking"
+// section, these assertions originally CHARACTERIZED the buggy behavior and
+// PASSED on the unfixed code (confirming PS-1 and PS-2 exist with concrete
+// counterexamples). They were EXPECTED TO FLIP once each fix lands.
 //
-// Documented counterexamples (proof the bugs exist on unfixed code):
-//   • PS-1 / Bug 1.1 — a tar entry named `../../evil.txt` is written to
-//     `path.resolve(destDir, '../../evil.txt')`, OUTSIDE `path.resolve(destDir)`
-//     (arbitrary file write → RCE/persistence).
-//   • PS-1 / Bug 1.2 — an absolute-path entry (`//abs/evil.txt`) is NOT rejected:
-//     the single-leading-slash strip silently re-contains and writes it; there is
-//     no absolute-path guard.
-//   • PS-1 / Bug 1.3 — symlink (`'2'`) and hardlink (`'1'`) type-flags are NOT
-//     rejected: the extractor silently ignores them (no throw), leaving
-//     link-based traversal unguarded.
-//   • PS-2 / Bug 1.5-1.6 — `new PluginInstaller({ pluginsDir })` with no
-//     `publicKey` installs a self-consistent malicious manifest+tarball
+// CURRENT STATE:
+//   • PS-1 IS FIXED (task 4: `resolveContained` + two-pass `_extractTarball`).
+//     The PS-1 assertions below (Bug 1.1 traversal, Bug 1.2 absolute, Bug 1.3
+//     link type-flags) have been FLIPPED (task 4.4) to assert the closed-bug
+//     REJECTION behavior: the extractor now throws and writes nothing on every
+//     adversarial archive. These now CONFIRM PS-1 is CLOSED.
+//   • PS-2 IS NOT YET FIXED (task 5). The PS-2 default-open case below still
+//     CHARACTERIZES the unfixed install-gate behavior and still PASSES on the
+//     current code. It will be flipped to assert rejection in task 5.4.
+//
+// Documented counterexamples (the original proof the bugs existed) and how the
+// fix closes each PS-1 case:
+//   • PS-1 / Bug 1.1 — a tar entry named `../../evil.txt` used to be written to
+//     `path.resolve(destDir, '../../evil.txt')`, OUTSIDE `path.resolve(destDir)`.
+//     FIXED: the validation pre-pass rejects the `..` segment → throws, nothing
+//     written outside the extraction root.
+//   • PS-1 / Bug 1.2 — an absolute-path entry (`//abs/evil.txt`) used to be
+//     silently re-contained and written with no absolute-path guard. FIXED:
+//     `resolveContained` rejects the absolute path → throws, nothing written.
+//   • PS-1 / Bug 1.3 — symlink (`'2'`) and hardlink (`'1'`) type-flags used to be
+//     silently ignored (no throw), leaving link-based traversal unguarded. FIXED:
+//     the pre-pass rejects link type-flags → throws, nothing written.
+//   • PS-2 / Bug 1.5-1.6 (STILL UNFIXED) — `new PluginInstaller({ pluginsDir })`
+//     with no `publicKey` installs a self-consistent malicious manifest+tarball
 //     (tarball SHA-256 == manifest.checksum) and proceeds to download AND extract
 //     with NO signature verification (default-open + self-referential checksum).
 
@@ -60,40 +70,41 @@ function makeInstaller(pluginsDir: string): PluginInstaller {
   return new PluginInstaller({ pluginsDir });
 }
 
-describe('PS-1 / PS-2 bug condition exploration (UNFIXED code — assertions characterize the bug)', () => {
-  // ── PS-1 / Bug 1.1 — `..` traversal escapes destDir ───────────────────────
-  it('PS-1 Bug 1.1: a `../../evil.txt` entry is written OUTSIDE path.resolve(destDir)', async () => {
+describe('PS-1 bug closed / PS-2 bug condition exploration (PS-1 assertions now confirm rejection; PS-2 still characterizes unfixed code)', () => {
+  // ── PS-1 / Bug 1.1 — `..` traversal now REJECTED (bug CLOSED) ──────────────
+  it('PS-1 Bug 1.1 (CLOSED): a `../../evil.txt` entry now THROWS and writes nothing outside path.resolve(destDir)', async () => {
     const { dir: root, cleanup } = await withTempDir();
     try {
       const pluginsDir = path.join(root, 'pluginsDir');
       const destDir = path.join(pluginsDir, 'evil@1.0.0');
       await fs.mkdir(destDir, { recursive: true });
 
-      // Counterexample archive: one entry `../../evil.txt`.
+      // Original counterexample archive: one entry `../../evil.txt`.
       const tar = makeTar([traversalEntry('../../evil.txt', 'pwned')]);
 
       const installer = makeInstaller(pluginsDir);
-      await internalsOf(installer)._extractTarball(tar, destDir);
+      // FIXED: the validation pre-pass rejects the `..` segment before any write.
+      await assert.rejects(
+        () => internalsOf(installer)._extractTarball(tar, destDir),
+        /path-traversal/i,
+        'FIXED: traversal entry must now be rejected by throwing',
+      );
 
-      // path.join(destDir, '../../evil.txt') === <root>/evil.txt — escapes destDir.
+      // No out-of-containment artifact: path.resolve(destDir, '../../evil.txt')
+      // === <root>/evil.txt must NOT exist.
       const escaped = path.resolve(destDir, '../../evil.txt');
       assert.equal(
         await pathExistsOutside(destDir, escaped),
-        true,
-        `EXPECTED (unfixed): traversal artifact written outside destDir at ${escaped}`,
-      );
-      assert.equal(
-        await fs.readFile(escaped, 'utf8'),
-        'pwned',
-        'EXPECTED (unfixed): attacker-controlled bytes landed outside the extraction root',
+        false,
+        `FIXED: no traversal artifact must exist outside destDir at ${escaped}`,
       );
     } finally {
       await cleanup();
     }
   });
 
-  // ── PS-1 / Bug 1.2 — absolute path is silently re-contained, never rejected ─
-  it('PS-1 Bug 1.2: an absolute-path entry is NOT rejected (silently accepted)', async () => {
+  // ── PS-1 / Bug 1.2 — absolute path now REJECTED (bug CLOSED) ───────────────
+  it('PS-1 Bug 1.2 (CLOSED): an absolute-path entry is now REJECTED (throws, nothing written)', async () => {
     const { dir: root, cleanup } = await withTempDir();
     try {
       const pluginsDir = path.join(root, 'pluginsDir');
@@ -101,52 +112,63 @@ describe('PS-1 / PS-2 bug condition exploration (UNFIXED code — assertions cha
       await fs.mkdir(destDir, { recursive: true });
 
       // `//abs/evil.txt` survives the single leading-slash strip as `/abs/evil.txt`,
-      // which path.join re-contains. The unfixed extractor neither rejects the
-      // absolute path nor throws — it silently writes it.
+      // an absolute path. FIXED: `resolveContained` rejects absolute paths.
       const tar = makeTar([fileEntry('//abs/evil.txt', 'pwned-abs')]);
 
       const installer = makeInstaller(pluginsDir);
-      await assert.doesNotReject(
+      await assert.rejects(
         () => internalsOf(installer)._extractTarball(tar, destDir),
-        'EXPECTED (unfixed): absolute-path entry is silently accepted, not rejected',
+        /path-traversal/i,
+        'FIXED: absolute-path entry must now be rejected by throwing',
       );
 
-      // Counterexample: the absolute entry was silently re-contained and written.
+      // Nothing was written: neither the re-contained location nor anywhere else.
       const recontained = path.join(destDir, 'abs', 'evil.txt');
       assert.equal(
         existsSync(recontained),
-        true,
-        `EXPECTED (unfixed): absolute entry silently written to ${recontained} with no rejection`,
+        false,
+        `FIXED: absolute entry must NOT be written to ${recontained}`,
+      );
+      assert.deepEqual(
+        await fs.readdir(destDir),
+        [],
+        'FIXED: extraction root must be left empty on rejection (no partial writes)',
       );
     } finally {
       await cleanup();
     }
   });
 
-  // ── PS-1 / Bug 1.3 — link type-flags ('1'/'2') silently ignored ────────────
-  it('PS-1 Bug 1.3: symlink (\'2\') and hardlink (\'1\') type-flags are NOT rejected', async () => {
+  // ── PS-1 / Bug 1.3 — link type-flags ('1'/'2') now REJECTED (bug CLOSED) ────
+  it('PS-1 Bug 1.3 (CLOSED): symlink (\'2\') and hardlink (\'1\') archives now THROW (rejected, nothing written)', async () => {
     const { dir: root, cleanup } = await withTempDir();
     try {
       const pluginsDir = path.join(root, 'pluginsDir');
-      const destDir = path.join(pluginsDir, 'links@1.0.0');
-      await fs.mkdir(destDir, { recursive: true });
-
-      const tar = makeTar([
-        symlinkEntry('link', '/etc/passwd'),
-        hardlinkEntry('hard', 'target'),
-      ]);
-
       const installer = makeInstaller(pluginsDir);
-      // The unfixed extractor only handles '0'/'\0' and '5'; '1'/'2' fall through
-      // with neither a write nor a rejection — link-based traversal is unguarded.
-      await assert.doesNotReject(
-        () => internalsOf(installer)._extractTarball(tar, destDir),
-        'EXPECTED (unfixed): link type-flags are silently ignored, not rejected',
-      );
 
-      // Counterexample: the link entries were silently dropped (no throw, no file).
-      assert.equal(existsSync(path.join(destDir, 'link')), false);
-      assert.equal(existsSync(path.join(destDir, 'hard')), false);
+      // FIXED: the validation pre-pass rejects link type-flags. Each link archive
+      // must throw and write nothing.
+      const symDest = path.join(pluginsDir, 'sym@1.0.0');
+      await fs.mkdir(symDest, { recursive: true });
+      const symTar = makeTar([symlinkEntry('link', '/etc/passwd')]);
+      await assert.rejects(
+        () => internalsOf(installer)._extractTarball(symTar, symDest),
+        /link entry/i,
+        'FIXED: symlink type-flag must now be rejected by throwing',
+      );
+      assert.equal(existsSync(path.join(symDest, 'link')), false);
+      assert.deepEqual(await fs.readdir(symDest), [], 'FIXED: nothing written on symlink rejection');
+
+      const hardDest = path.join(pluginsDir, 'hard@1.0.0');
+      await fs.mkdir(hardDest, { recursive: true });
+      const hardTar = makeTar([hardlinkEntry('hard', 'target')]);
+      await assert.rejects(
+        () => internalsOf(installer)._extractTarball(hardTar, hardDest),
+        /link entry/i,
+        'FIXED: hardlink type-flag must now be rejected by throwing',
+      );
+      assert.equal(existsSync(path.join(hardDest, 'hard')), false);
+      assert.deepEqual(await fs.readdir(hardDest), [], 'FIXED: nothing written on hardlink rejection');
     } finally {
       await cleanup();
     }
