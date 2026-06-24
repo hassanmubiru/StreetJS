@@ -1266,3 +1266,143 @@ export class MarzPayPluginModule extends PluginModule {
 export function MarzPayPlugin(config: unknown): MarzPayPluginModule {
   return new MarzPayPluginModule(config);
 }
+
+// ---------------------------------------------------------------------------
+// Collections namespace (Task 2.1)
+// ---------------------------------------------------------------------------
+//
+// The `marzpay.collections` surface (Requirement 2) over the VERIFIED seams:
+//  - `collectMoney(req)` → verified `POST /collect-money` (paths.initializePayment)
+//  - `getStatus(reference)` → verified `GET /transactions/{reference}` (paths.verifyPayment)
+//
+// Both operations delegate to the existing PURE request builders
+// (`buildInitializePaymentRequest` / `buildVerifyPaymentRequest`), so every
+// argument guard (amount/country/reference/channel; trimmed reference ≤256)
+// runs BEFORE the transport is touched: an invalid argument throws a
+// `PluginError` naming the offending field and issues NO network request
+// (Req 2.3, 2.5). Non-2xx responses throw a `PluginError` that INCLUDES the
+// returned HTTP status with no partial result, mirroring the existing
+// `MarzPayClient.ensureSuccessStatus` semantics (Req 2.6). The factory
+// `createCollectionsNamespace(deps)` mirrors how the flat
+// `initializePayment`/`verifyPayment` are wired (config + spec + transport +
+// timeout); the namespace is attached to the client in Task 5.1.
+
+/**
+ * Request for `collections.collectMoney` — the verified `POST /collect-money`
+ * payment-initialization request. Identical shape to {@link PaymentRequest}
+ * (`amount`, `country`, `reference`, plus a payment channel: `phone_number` for
+ * mobile money OR `method: 'card'`).
+ */
+export type CollectMoneyRequest = PaymentRequest;
+
+/**
+ * Result of `collections.collectMoney` (parsed from the V2 collection-create
+ * response): the echoed client `reference`, the transaction `status`, and — for
+ * card flows only — the `redirectUrl` (Requirement 2.2).
+ */
+export interface CollectionResult {
+  /** Client `reference` echoed by MarzPay. */
+  reference: string;
+  /** Transaction status (e.g. `processing`/`pending`). */
+  status: string;
+  /** Card-flow redirect URL; absent for mobile money. */
+  redirectUrl?: string;
+}
+
+/**
+ * Result of `collections.getStatus` (parsed from the V3 transaction-detail
+ * response): the transaction `reference` and `status` (Requirement 2.4).
+ */
+export interface CollectionStatus {
+  /** Transaction reference. */
+  reference: string;
+  /** Verified status (e.g. `completed`/`failed`). */
+  status: string;
+}
+
+/**
+ * The `marzpay.collections` namespace surface (Requirement 2).
+ *  - `collectMoney(req)`: initiate a collection via verified `POST /collect-money`.
+ *  - `getStatus(reference)`: read a collection's status via verified
+ *    `GET /transactions/{reference}`.
+ */
+export interface CollectionsNamespace {
+  /** Initiate a collection (mobile money or card) and return its result. */
+  collectMoney(req: CollectMoneyRequest): Promise<CollectionResult>;
+  /** Read a collection's `reference` and `status` by reference. */
+  getStatus(reference: string): Promise<CollectionStatus>;
+}
+
+/**
+ * Dependencies for {@link createCollectionsNamespace}, mirroring the wiring of
+ * the flat `MarzPayClient` operations: the validated `config`, the verified
+ * `spec`, the injectable `transport`, and the resolved `timeoutMs`.
+ */
+export interface CollectionsNamespaceDeps {
+  /** Validated, normalized plugin configuration. */
+  readonly config: MarzPayPluginConfig;
+  /** The verified API spec (defaults to `MARZPAY_SPEC` at the call site). */
+  readonly spec: MarzPaySpec;
+  /** Injectable transport seam (defaults to `defaultMarzPayTransport`). */
+  readonly transport: MarzPayTransport;
+  /** Resolved request timeout budget in milliseconds. */
+  readonly timeoutMs: number;
+}
+
+/**
+ * Create the `marzpay.collections` namespace over the verified builders.
+ *
+ * Both members delegate to the existing pure builders so argument guards run
+ * BEFORE any send (no network on invalid input — Req 2.3, 2.5), then funnel the
+ * request through the injected transport. A non-2xx response throws a
+ * `PluginError` that INCLUDES the HTTP status with no partial result (Req 2.6),
+ * matching `MarzPayClient.ensureSuccessStatus`. Responses are parsed with the
+ * same defensive helpers as the flat `initializePayment`/`verifyPayment`. The
+ * namespace is attached to the client as `marzpay.collections` in Task 5.1.
+ */
+export function createCollectionsNamespace(deps: CollectionsNamespaceDeps): CollectionsNamespace {
+  const { config, spec, transport, timeoutMs } = deps;
+
+  const send = (req: MarzPayHttpRequest): Promise<MarzPayTransportResponse> => transport(req, timeoutMs);
+
+  // Mirrors MarzPayClient.ensureSuccessStatus: a non-2xx status throws a
+  // PluginError INCLUDING the returned HTTP status and yields no partial result.
+  const ensureSuccess = (status: number, operation: string): void => {
+    if (status < 200 || status >= 300) {
+      throw new PluginError(`MarzPay ${operation}: request returned non-success HTTP status ${status}`);
+    }
+  };
+
+  return {
+    async collectMoney(req: CollectMoneyRequest): Promise<CollectionResult> {
+      // Guards (amount/country/reference/channel) run here, before any send.
+      const built = buildInitializePaymentRequest(config, spec, req);
+      const { status, body } = await send(built);
+      ensureSuccess(status, 'collections.collectMoney');
+      const root = asRecord(parseJsonBody(body, 'collections.collectMoney'));
+      const data = asRecord(root['data']);
+      const txn = asRecord(data['transaction']);
+      const reference = asOptionalString(txn['reference']) ?? '';
+      const txnStatus = asOptionalString(txn['status']) ?? asOptionalString(root['status']) ?? '';
+      const redirectUrl = asOptionalString(data['redirect_url']);
+      return {
+        reference,
+        status: txnStatus,
+        ...(redirectUrl !== undefined ? { redirectUrl } : {}),
+      };
+    },
+
+    async getStatus(reference: string): Promise<CollectionStatus> {
+      // Trimmed-reference guard (empty/whitespace/>256) runs here, before any send.
+      const built = buildVerifyPaymentRequest(config, spec, reference);
+      const { status, body } = await send(built);
+      ensureSuccess(status, 'collections.getStatus');
+      const root = asRecord(parseJsonBody(body, 'collections.getStatus'));
+      const txn = asRecord(root['transaction']);
+      return {
+        reference: asOptionalString(txn['reference']) ?? '',
+        status: asOptionalString(txn['status']) ?? '',
+      };
+    },
+  };
+}
