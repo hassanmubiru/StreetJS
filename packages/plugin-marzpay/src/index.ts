@@ -257,8 +257,12 @@ export class UnsupportedOperationError extends PluginError {
  * Throws `UnsupportedOperationError` (no network I/O) when `seam` is `undefined`,
  * naming `capability`; otherwise returns the bound seam value unchanged. This
  * keeps verify-don't-invent enforced at every unverified call site (Req 1.3).
+ *
+ * Exported (like the pure request builders) so it is unit-testable in isolation;
+ * it remains an internal verify-don't-invent guard, not part of the namespaced
+ * client surface.
  */
-function requireBoundSeam(seam: string | undefined, capability: string): string {
+export function requireBoundSeam(seam: string | undefined, capability: string): string {
   if (seam === undefined) {
     throw new UnsupportedOperationError(capability);
   }
