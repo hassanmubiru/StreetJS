@@ -4,6 +4,8 @@
 
 # @streetjs/plugin-marzpay
 
+> MarzPay for StreetJS applications — payments, billing, webhooks, and verification, without the complexity of a full payment SDK.
+
 Official StreetJS plugin: **MarzPay** payments.
 
 Dependency-free — request construction is pure and offline-verifiable; the
