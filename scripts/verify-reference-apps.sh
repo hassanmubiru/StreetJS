@@ -5,7 +5,7 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
-APPS=(realtime-chat ai-assistant ecommerce saas dating)
+APPS=(realtime-chat ai-assistant ecommerce saas dating htmx-dashboard crm)
 fail=0
 for app in "${APPS[@]}"; do
   echo "── reference-app: ${app} ─────────────────────────────"
