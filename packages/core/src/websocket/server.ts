@@ -123,6 +123,61 @@ export interface WsServerOptions {
    *   }
    */
   authFn?: (req: IncomingMessage) => boolean | Promise<boolean>;
+  /**
+   * F-R2: origins permitted to complete a WebSocket upgrade. When omitted,
+   * the server defaults to same-origin (the request's Origin must match the
+   * server's own scheme/host/port). Matching is exact on the normalized origin.
+   */
+  allowedOrigins?: string[];
+}
+
+/**
+ * Normalize an origin string to `scheme://host[:port]` using `node:url`.
+ * Returns `null` when the value cannot be parsed as a URL.
+ *
+ * Module-internal helper exported for property testing (Property 3); not part
+ * of the public package surface.
+ */
+export function normalizeOrigin(value: string): string | null {
+  try { return new URL(value).origin; } catch { return null; }
+}
+
+/**
+ * Derive the server's own origin from the upgrade request: the scheme is taken
+ * from whether the socket is TLS-encrypted, and the host from the `Host` header.
+ * Returns `null` when no `Host` header is present or the derived URL is invalid.
+ *
+ * Module-internal helper exported for property testing (Property 3); not part
+ * of the public package surface.
+ */
+export function deriveSelfOrigin(req: IncomingMessage): string | null {
+  const host = req.headers.host;
+  if (!host) return null;
+  const scheme = (req.socket as { encrypted?: boolean }).encrypted ? 'https' : 'http';
+  return normalizeOrigin(`${scheme}://${host}`);
+}
+
+/**
+ * Decide whether an upgrade may proceed past the Origin gate (F-R2).
+ * - No `Origin` header  => allowed (non-browser clients are not subject to CSWSH).
+ * - Malformed `Origin`  => rejected.
+ * - `allowedOrigins` set => the normalized Origin must be a member.
+ * - `allowedOrigins` unset => the normalized Origin must equal the derived self-origin.
+ *
+ * Module-internal helper exported for property testing (Property 3); not part
+ * of the public package surface.
+ */
+export function isOriginAllowed(req: IncomingMessage, allowedOrigins: string[] | undefined): boolean {
+  const raw = req.headers.origin;
+  if (raw === undefined) return true;                 // documented escape hatch
+  const origin = normalizeOrigin(raw);
+  if (origin === null) return false;                  // malformed Origin => reject
+  if (allowedOrigins && allowedOrigins.length > 0) {
+    const set = new Set(allowedOrigins.map(normalizeOrigin).filter((o): o is string => o !== null));
+    return set.has(origin);
+  }
+  const self = deriveSelfOrigin(req);
+  return self !== null && origin === self;
 }
 
 export class StreetWebSocketServer {
