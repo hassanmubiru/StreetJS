@@ -317,7 +317,9 @@ describe('Property 3 — Preservation: installThroughRegistry fail-closed [UNFIX
   //   installs a valid signed record when the host enforces signatures (Req 3.7 / S7).
   it('installs a valid signed record when the host enforces signature verification', async () => {
     const { registry, publicKey, plugin } = publishedRegistry();
-    const host = new PluginHost({ publicKey }); // enforces signature verification
+    // Enforce signature verification (publicKey) and grant the manifest's
+    // permissions so the default post-register enable() succeeds.
+    const host = new PluginHost({ publicKey, grantedPermissions: '*' });
     assert.equal(host.verifiesSignatures(), true);
 
     const result = await installThroughRegistry(registry, host, plugin);
