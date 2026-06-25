@@ -23,7 +23,7 @@ on:
       - 'packages/core/src/verification/**'
       - 'scripts/observability/**'
       - 'scripts/verification/**'
-      - 'observability/**'
+      - 'infra/monitoring/**'
       - '.github/workflows/observability.yml'
 
 permissions:

@@ -19,7 +19,7 @@ on:
       - 'packages/core/src/cloud/**'
       - 'scripts/cloud/**'
       - 'scripts/verification/**'
-      - 'deploy/**'
+      - 'infra/**'
       - '.github/workflows/deploy-verify.yml'
 
 permissions:
