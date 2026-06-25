@@ -63,8 +63,9 @@ Risk is rated **High (72/100)** rather than Critical-maximum because the exposur
 | F-4 | Medium | A second **untracked** private key exists in the working tree: `packages/plugin-marzpay/signing-key.pkcs8.pem` (gitignored, on disk). Increases manual-signing surface and risk of a repeat leak. | Open | `git status --ignored` → `!! packages/plugin-marzpay/signing-key.pkcs8.pem`. |
 | F-5 | Medium | The working-tree `street-signing.key.pem` still sits inside the repo directory (untracked/gitignored). One `git add -f` or tooling misstep away from re-exposure. | Open | `git status --ignored` → `!! street-signing.key.pem`. |
 | F-6 | Low | No CI gate explicitly fails a build when a `BEGIN PRIVATE KEY` blob or `*.pem`/`*.key` file is added; reliance is on gitleaks defaults + ignore rules (which currently allowlist the sensitive filename — see F-2). | Open | No dedicated private-key-block job in `.github/workflows/`. |
+| F-7 | High | **Inconsistent / half-finished signing-key rotation.** The embedded official trust anchor (`official-key.ts`) still embeds the **old leaked** key (`df5e2726…`), yet newer releases were signed with a **new** key (e.g. marzpay = `7de6474b…`, never committed). Each of the 21 plugins ships a different `manifest.pub`; only htmx matches the embedded official key. So (a) any plugin signed with a non-official key (incl. marzpay 1.1.0) would **fail** verification against `officialPluginPublicKey()` — a correctness/trust break; and (b) the compromised key remains the embedded anchor, so the rotation that appears to have begun was never completed in core. | Open | `official-key.ts` DER-SHA256 `df5e2726…`; `registry.ts:89` defaults trust to `officialPluginPublicKey()`; 21 distinct `manifest.pub` files (marzpay `7de6474b…`, htmx `df5e2726…`, 19 others all distinct). |
 
-**Only F-1 is Critical.** F-2/F-3 are High because they materially weaken the response to and recurrence-prevention of F-1.
+**Only F-1 is Critical.** F-2/F-3/F-7 are High because they materially weaken the response to and recurrence-prevention of F-1.
 
 ---
 
@@ -96,8 +97,9 @@ Risk is rated **High (72/100)** rather than Critical-maximum because the exposur
 
 **Trust model (compromised by F-1):**
 
-- The committed private key `street-signing.key.pem` is the trust anchor for the official public key that consumers verify against. Because it is in pushed history, the signatures on **both** currently-signed official plugins (`plugin-htmx`, `plugin-marzpay@1.1.0`) can no longer be assumed to be exclusively maintainer-produced. Anyone with the leaked key can mint valid signatures.
-- **Process gap (F-3):** only htmx signs in CI. `plugin-marzpay@1.1.0` was signed via a **manual local publish** using the on-disk key. Any signing path that touches a workstation re-exposes the trust root and is how leaks like F-1 happen.
+- The committed private key `street-signing.key.pem` (in pushed history at `d7bbfc40`) has public half `df5e2726…`, an **exact match** for the embedded official trust anchor (`official-key.ts`) that `officialPluginPublicKey()` returns and consumers verify official plugins against (`registry.ts:89`). Because that private key is in pushed history, **any** signature that verifies against the official key — including `@streetjs/plugin-htmx`, whose `manifest.pub` is the official key — can no longer be assumed to be exclusively maintainer-produced. Anyone with the leaked key can mint valid "official" signatures.
+- **Note (corrected):** `@streetjs/plugin-marzpay@1.1.0` was **not** signed with the leaked key. Its `manifest.pub` is a distinct key (`7de6474b…`) whose private half was not found anywhere in history. The marzpay signature itself is therefore not forgeable from the leaked material — but see F-7: marzpay's key is not the official anchor, so it would not verify as official either.
+- **Process gap (F-3):** only htmx signs in CI. `plugin-marzpay@1.1.0` was signed via a **manual local publish** using an on-disk per-plugin key. Any signing path that touches a workstation re-exposes long-lived key material and is how leaks like F-1 happen.
 
 **Required outcome:** the official public key currently distributed to plugin hosts/consumers must be **revoked and replaced**, and **all** official plugins re-signed under a new key whose private half lives **only** in CI secrets.
 
