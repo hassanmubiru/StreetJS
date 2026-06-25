@@ -37,7 +37,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const EMIT_SCRIPT = resolve(HERE, 'emit-assets.mjs');
 
 // Emitted asset locations (relative to the repo root / process cwd).
-const RULES_DIR = 'observability/prometheus';
+const RULES_DIR = 'infra/monitoring/prometheus';
 const RULES_FILE = `${RULES_DIR}/street-rules.yml`;
 const RULES_TEST_FILE = 'street-rules.test.yml';
 
