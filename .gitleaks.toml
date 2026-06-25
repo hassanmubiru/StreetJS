@@ -55,3 +55,37 @@ id = "pem-private-key-block"
 description = "PEM private key material must never be committed"
 regex = '''-----BEGIN (?:RSA |EC |OPENSSH |DSA |PGP |ENCRYPTED )?PRIVATE KEY-----'''
 keywords = ["PRIVATE KEY"]
+
+# ── Cloud / CI credential rules (added with SECURITY-CLASSIFICATION.md) ──
+# These complement the upstream default ruleset with explicit, high-signal
+# blocks for credentials most relevant to StreetJS's publish/deploy pipelines.
+
+[[rules]]
+id = "aws-access-key-id"
+description = "AWS Access Key ID"
+regex = '''\b(AKIA|ASIA)[A-Z0-9]{16}\b'''
+keywords = ["AKIA", "ASIA"]
+
+[[rules]]
+id = "gh-pat"
+description = "GitHub Personal Access Token"
+regex = '''\bghp_[A-Za-z0-9]{36}\b'''
+keywords = ["ghp_"]
+
+[[rules]]
+id = "npm-authtoken"
+description = "npm _authToken in .npmrc"
+regex = '''//.+/:_authToken=[A-Za-z0-9._~+/-]{8,}'''
+keywords = ["_authToken"]
+
+[[rules]]
+id = "gcp-service-account-key"
+description = "GCP service-account private_key block"
+regex = '''"private_key"\s*:\s*"-----BEGIN PRIVATE KEY-----'''
+keywords = ["private_key"]
+
+[[rules]]
+id = "kubeconfig-token"
+description = "kubeconfig client/bearer token"
+regex = '''(client-key-data|token):\s*[A-Za-z0-9+/=._-]{40,}'''
+keywords = ["client-key-data"]
