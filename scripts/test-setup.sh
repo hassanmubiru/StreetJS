@@ -11,9 +11,9 @@ echo "Starting Postgres test DB with docker compose..."
 # Helper to run either docker-compose or docker compose depending on host
 run_compose() {
   if command -v docker-compose >/dev/null 2>&1; then
-    docker-compose "$@"
+    docker-compose -f infra/docker/compose/docker-compose.yml "$@"
   else
-    docker compose "$@"
+    docker compose -f infra/docker/compose/docker-compose.yml "$@"
   fi
 }
 
