@@ -54,3 +54,20 @@ Vulnerabilities in the `streetjs` core, the `@streetjs/cli`, the
 `@streetjs/registry-server`, and the build/release tooling in this repository
 are in scope. Issues in third-party dependencies should be reported upstream;
 if a dependency issue affects this project, let us know so we can pin or patch.
+
+## Security documentation
+
+Supporting security analyses, process runbooks, and governance live in-repo:
+
+- [`security/`](./security/) — security audits, reviews, threat models, the
+  signing **key-rotation runbook**, and the latest **master audit**
+  (`security/PHASE-19-MASTER-AUDIT.md`) + remediation plan
+  (`security/SECURITY-HARDENING-SPRINT.md`).
+- [`governance/CHARTER.md`](./governance/CHARTER.md) — repository governance,
+  signing, secret-management, and workflow policies.
+- [`audits/`](./audits/) — point-in-time audit and readiness reports.
+
+Plugin signing integrity is enforced in CI: every official plugin manifest is
+verified against the official key in
+`packages/core/src/platform/plugins/official-key.ts`, and a `secrets-guard` gate
+blocks private-key material from the release pipeline.
