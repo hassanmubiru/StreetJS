@@ -3,10 +3,10 @@
 # follow-ups); S3/R2 already ship as @streetjs/plugin-s3 and -r2.
 #
 # Usage:
-#   docker compose -f docker-compose.storage.yml up -d
+#   docker compose -f infra/docker/compose/docker-compose.storage.yml up -d
 #   AZURITE_URL=http://127.0.0.1:10000 GCS_URL=http://127.0.0.1:4443 \
 #     npm run test -w packages/storage
-#   docker compose -f docker-compose.storage.yml down -v
+#   docker compose -f infra/docker/compose/docker-compose.storage.yml down -v
 services:
   # Azure Blob Storage emulator.
   azurite:

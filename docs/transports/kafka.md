@@ -281,7 +281,7 @@ await transport.close();
 
 ## Deployment
 
-A reproducible single-broker cluster (KRaft mode, no ZooKeeper) is provided at the repository root in `docker-compose.kafka.yml`:
+A reproducible single-broker cluster (KRaft mode, no ZooKeeper) is provided at the repository root in `infra/docker/compose/docker-compose.kafka.yml`:
 
 ```yaml
 services:
@@ -303,9 +303,9 @@ services:
 - Topics are auto-created with `KAFKA_NUM_PARTITIONS: 3`.
 
 ```bash
-docker compose -f docker-compose.kafka.yml up -d
+docker compose -f infra/docker/compose/docker-compose.kafka.yml up -d
 # ... run tests / app ...
-docker compose -f docker-compose.kafka.yml down
+docker compose -f infra/docker/compose/docker-compose.kafka.yml down
 ```
 
 ---
@@ -314,7 +314,7 @@ docker compose -f docker-compose.kafka.yml down
 
 ```bash
 # 1. Start the broker (wait for it to report healthy)
-docker compose -f docker-compose.kafka.yml up -d
+docker compose -f infra/docker/compose/docker-compose.kafka.yml up -d
 
 # 2. Build the core package
 npm run build -w packages/core

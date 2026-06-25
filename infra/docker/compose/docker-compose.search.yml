@@ -1,10 +1,10 @@
 # Local search backends for the @streetjs/search provider integration tests.
 #
 # Usage:
-#   docker compose -f docker-compose.search.yml up -d
+#   docker compose -f infra/docker/compose/docker-compose.search.yml up -d
 #   MEILI_HOST=http://127.0.0.1:7700 MEILI_KEY=street_test_key \
 #     npm run test -w packages/search
-#   docker compose -f docker-compose.search.yml down -v
+#   docker compose -f infra/docker/compose/docker-compose.search.yml down -v
 #
 # Meilisearch backs MeilisearchProvider (implemented + tested). Elasticsearch is
 # provided for the ElasticsearchProvider (interface-ready follow-up).

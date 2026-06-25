@@ -122,7 +122,7 @@ Priority backlog (each plugin = API design + tests + docs + example + signed man
 | P0 | **PostgreSQL** first-class plugin | most-requested DB; core has wire driver — wrap as plugin | reuse `database/wire.ts` |
 | P0 | **MongoDB** | only major DB with zero support today | new driver; document-store repository |
 | P0 | **Meilisearch / OpenSearch / Elasticsearch** | `packages/search` needs real backends | adapter interface in search pkg |
-| P0 | **Kafka / RabbitMQ / NATS** | core already has subsystem metrics for Kafka/RabbitMQ → finish adapters | `docker-compose.kafka.yml` exists |
+| P0 | **Kafka / RabbitMQ / NATS** | core already has subsystem metrics for Kafka/RabbitMQ → finish adapters | `infra/docker/compose/docker-compose.kafka.yml` exists |
 | P1 | **Clerk, Supabase, Firebase** | modern auth/BaaS adoption | build on `plugin-auth0` pattern |
 | P1 | **PayPal** | commerce parity with Stripe | mirror `plugin-stripe` |
 | P1 | **OpenAI plugin** | `packages/ai` exists in-core → extract signed plugin | |

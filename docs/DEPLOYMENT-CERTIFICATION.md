@@ -26,8 +26,8 @@ output parses as three valid YAML documents.
 
 ## Container / CI assets
 
-- Multi-stage `Dockerfile`, `docker-compose.yml`, `docker-compose.kafka.yml`,
-  `docker-compose.rabbitmq.yml`.
+- Multi-stage `Dockerfile`, `docker-compose.yml`, `infra/docker/compose/docker-compose.kafka.yml`,
+  `infra/docker/compose/docker-compose.rabbitmq.yml`.
 - CI workflows: `ci-cd.yml` (incl. `policy-checks`), `kafka-integration.yml`,
   `rabbitmq-integration.yml`, `browser-compat.yml`, `codeql.yml`.
 

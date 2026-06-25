@@ -78,7 +78,7 @@ const search = new SearchService({
 });
 ```
 
-Start a local Meilisearch with `docker compose -f docker-compose.search.yml up -d`.
+Start a local Meilisearch with `docker compose -f infra/docker/compose/docker-compose.search.yml up -d`.
 
 > Note: ranking *scores* are provider-specific; treat them as relative, not
 > portable. Result membership and ordering semantics are consistent.
@@ -86,7 +86,7 @@ Start a local Meilisearch with `docker compose -f docker-compose.search.yml up -
 ## Roadmap
 
 All three external providers are implemented and verified against live services
-via the Provider Integration CI workflow + `docker-compose.search.yml`:
+via the Provider Integration CI workflow + `infra/docker/compose/docker-compose.search.yml`:
 in-memory, Postgres FTS, **Meilisearch**, and **Elasticsearch** (the latter two
 verified against `getmeili/meilisearch` and `docker.elastic.co/.../elasticsearch`).
 Application code is identical across providers.

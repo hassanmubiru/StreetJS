@@ -1,9 +1,9 @@
 # Local live databases for running the real-DB test suites (Postgres + MySQL).
 #
 # Usage:
-#   docker compose -f docker-compose.test-db.yml up -d        # start
-#   docker compose -f docker-compose.test-db.yml ps           # status/health
-#   docker compose -f docker-compose.test-db.yml down -v      # stop + wipe
+#   docker compose -f infra/docker/compose/docker-compose.test-db.yml up -d        # start
+#   docker compose -f infra/docker/compose/docker-compose.test-db.yml ps           # status/health
+#   docker compose -f infra/docker/compose/docker-compose.test-db.yml down -v      # stop + wipe
 #
 # Credentials match the test defaults / CI service config:
 #   Postgres: street / street_secret / street_test           (host port 5433)

@@ -267,7 +267,7 @@ await transport.close();
 
 ## Deployment
 
-A reproducible broker is provided at the repository root in `docker-compose.rabbitmq.yml`:
+A reproducible broker is provided at the repository root in `infra/docker/compose/docker-compose.rabbitmq.yml`:
 
 ```yaml
 services:
@@ -291,9 +291,9 @@ services:
 - The management UI is on `15672` (http://localhost:15672, login `guest` / `guest`).
 
 ```bash
-docker compose -f docker-compose.rabbitmq.yml up -d
+docker compose -f infra/docker/compose/docker-compose.rabbitmq.yml up -d
 # ... run tests / app ...
-docker compose -f docker-compose.rabbitmq.yml down
+docker compose -f infra/docker/compose/docker-compose.rabbitmq.yml down
 ```
 
 ---
@@ -302,7 +302,7 @@ docker compose -f docker-compose.rabbitmq.yml down
 
 ```bash
 # 1. Start the broker
-docker compose -f docker-compose.rabbitmq.yml up -d
+docker compose -f infra/docker/compose/docker-compose.rabbitmq.yml up -d
 
 # 2. Build the core package
 npm run build -w packages/core
