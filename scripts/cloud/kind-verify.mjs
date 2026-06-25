@@ -141,8 +141,8 @@ export async function deployAndVerify(opts) {
     if (!create.ok) return blockedOnStep('kind-create-cluster', create.output);
 
     // 2. Build the application image and load it into the cluster.
-    note(`$ docker build -t ${image} -f ${repoRoot}/infra/docker/Dockerfile ${repoRoot}`);
-    const build = run('docker', ['build', '-t', image, '-f', `${repoRoot}/infra/docker/Dockerfile`, repoRoot]);
+    note(`$ docker build -t ${image} ${repoRoot}`);
+    const build = run('docker', ['build', '-t', image, repoRoot]);
     note(build.output);
     if (!build.ok) return blockedOnStep('docker-build', build.output);
 
