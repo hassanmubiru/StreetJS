@@ -146,7 +146,13 @@ done, or keep it only in the locked `~/keys` dir — **never** in the project tr
 
 ---
 
-## 3. Update the embedded trust anchor (core code — maintainer edits)
+## 3. Update the embedded trust anchor (core code — maintainer edits)  ✅ DONE
+
+> **Completed.** `OFFICIAL_PLUGIN_PUBLIC_KEY_PEM` now embeds the new key
+> (`3ae9add0…`), verified to equal the public half of the signing key, and core
+> was rebuilt. A mismatched key (`125d1c32…`, matching neither the private key
+> nor `keys/*.pub.pem`) was caught and corrected during this step — always
+> confirm the fingerprint check below matches `<NEW_FINGERPRINT>`.
 
 Replace the public key in `packages/core/src/platform/plugins/official-key.ts`
 with the **new SPKI PEM** from step 1b. Only the PEM literal changes:
