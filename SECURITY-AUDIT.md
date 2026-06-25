@@ -191,6 +191,8 @@ done
 
 ## 9. Phased Action Plan
 
+> **Step-by-step execution guide:** see [`KEY-ROTATION-RUNBOOK.md`](./KEY-ROTATION-RUNBOOK.md) for the exact commands to generate the new keypair, update the anchor, re-sign all 21 plugins, correct `.gitleaks.toml`, and purge history.
+
 ### Immediate — within 7 days (P0)
 
 1. **Rotate to a single new official key.** Generate **one** fresh Ed25519 keypair; store the private half **only** in GitHub Secrets (`STREET_PLUGIN_SIGNING_KEY`). Treat the embedded `df5e2726…` anchor (and the ad-hoc per-plugin keys such as marzpay's `7de6474b…`) as **compromised/distrusted**, and distribute the **new public key** to plugin hosts/consumers.
