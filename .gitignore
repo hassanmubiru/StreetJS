@@ -99,3 +99,7 @@ packages/cli/.itest-*/
 
 # Local-only website enterprise audit (not source-controlled)
 STREET_WEBSITE_ENTERPRISE_AUDIT.md
+
+# Generated build/release artifacts (produced in CI, attached to releases)
+sbom.json
+release-inputs.json
