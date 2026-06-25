@@ -44,9 +44,27 @@ dotfiles, `.env.example`. **Should move (remaining):** `BingSiteAuth.xml`,
 
 ## 5. CI hardening — DONE
 - `scorecard.yml` already present (verified). Added `security-baseline.yml`
-  (gitleaks + plugin standard + forbidden files). No `pull_request_target`;
-  least-privilege perms; new workflows' checkout SHA-pinned.
-- **Follow-up:** SHA-pin `gitleaks/gitleaks-action@v2` and `trufflesecurity/trufflehog@main`.
+  (plugin-standard + forbidden-files jobs). Secret scanning stays centralized in
+  `secret-scan.yml` (free gitleaks CLI + SHA-pinned trufflehog `--only-verified`) —
+  `security-baseline` intentionally does **not** duplicate gitleaks (the
+  `gitleaks-action` wrapper now needs a paid license).
+- New workflows' `actions/checkout` SHA-pinned. No `pull_request_target`;
+  least-privilege perms; no `@main`/`@master` action refs remain.
+
+### Pipeline failure check (resolved)
+- **Found:** removing the false signing-key path-allowlist would make
+  `secret-scan.yml`'s full-history gitleaks scan **fail** on the leaked key in
+  commit `d7bbfc40`. **Fixed (interim):** a truthful *commit-scoped* allowlist
+  (`commits = ["d7bbfc40…"]`) accepts that one already-handled historical commit
+  while still flagging any new key in any other commit/path. Remove it after the
+  history purge (KEY-ROTATION-RUNBOOK §7) — the permanent fix.
+- **Found & fixed:** `security-baseline.yml` used the paid `gitleaks-action`
+  wrapper → removed that job. A redundant `trufflehog.yml` (unpinned `@main`,
+  looser `--results=verified,unknown`) → deleted (covered by `secret-scan.yml`).
+- **Verified clean:** `scan-infra-identifiers` does not false-trip (ECS template
+  uses literal `REGION`/`ACCOUNT`); no stale `deploy/`/`observability/`/root-compose/
+  root-Dockerfile references in any workflow; all `docker build` use
+  `-f infra/docker/Dockerfile`.
 
 ## 6–8. Branch / npm / infra reviews
 - `security/BRANCH-PROTECTION-REVIEW.md`, `security/NPM-PUBLISH-SECURITY-REVIEW.md`,
