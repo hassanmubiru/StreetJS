@@ -1,0 +1,85 @@
+name: Security baseline
+
+# Aggregate security gate validating the StreetJS baseline:
+#   • gitleaks secret scan (config-driven)
+#   • plugin security standard (required files per plugin, manifest.pub == anchor)
+#   • forbidden-file check (RESTRICTED tier)
+# Complements (does not replace): secret-scan.yml, block-private-keys.yml,
+# repository-policy.yml, scorecard.yml, codeql.yml.
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gitleaks:
+    name: Gitleaks secret scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITLEAKS_CONFIG: .gitleaks.toml
+
+  plugin-security-standard:
+    name: Plugin security standard
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Every plugin must ship the required files + matching signature
+        run: |
+          node -e "
+            const fs = require('node:fs');
+            const path = require('node:path');
+            const { createPublicKey, createHash } = require('node:crypto');
+            const fp = (pem) => createHash('sha256')
+              .update(createPublicKey(pem).export({ type:'spki', format:'der' })).digest('hex');
+            const anchorPem = fs.readFileSync('packages/core/src/platform/plugins/official-key.ts','utf8')
+              .match(/-----BEGIN PUBLIC KEY-----[\s\S]*?-----END PUBLIC KEY-----/)[0];
+            const anchor = fp(anchorPem);
+            const required = ['README.md','package.json','manifest.json','manifest.signed.json','manifest.pub','LICENSE','SECURITY.md'];
+            let bad = 0;
+            for (const dir of fs.readdirSync('packages')) {
+              if (!dir.startsWith('plugin-')) continue;
+              const base = path.join('packages', dir);
+              for (const f of required) {
+                if (!fs.existsSync(path.join(base, f))) { console.error('::error::'+dir+' missing '+f); bad++; }
+              }
+              const pub = path.join(base, 'manifest.pub');
+              if (fs.existsSync(pub)) {
+                const f = fp(fs.readFileSync(pub,'utf8'));
+                if (f !== anchor) { console.error('::error::'+dir+' manifest.pub != official anchor'); bad++; }
+              }
+            }
+            if (bad) process.exit(1);
+            console.log('All plugins meet the security standard \u2714');
+          "
+
+  forbidden-files:
+    name: Forbidden files (RESTRICTED tier)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: No RESTRICTED-tier files may be tracked
+        run: |
+          if git ls-files | grep -EI '\.(pem|key|p12|pfx|crt|jks|keystore|tfstate|tfvars)$|(^|/)kubeconfig$|service-account.*\.json$|credentials.*\.json$|(^|/)\.env$'; then
+            echo "::error::A forbidden RESTRICTED file is tracked (see security/SECURITY-CLASSIFICATION.md)."
+            exit 1
+          fi
+          echo "No forbidden files tracked \u2714"
