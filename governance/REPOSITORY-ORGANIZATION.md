@@ -46,10 +46,13 @@ Root tracked `.md` files reduced **45 → 7** (front-door set only).
 **Conclusion:** StreetJS now matches the reference-repo convention. The notable
 StreetJS-specific addition is the dedicated `security/`, `audits/`, `governance/`
 split — heavier than most frameworks because StreetJS ships a signed-plugin trust
-model that warrants explicit security governance. Keeping `Dockerfile` +
-`docker-compose*.yml` at root is **deliberate** and matches Next.js/Laravel
-convention plus ~12 documented `docker compose -f docker-compose.*.yml` user
-instructions (moving them would degrade discoverability and break docs).
+model that warrants explicit security governance. In Phase 2, `Dockerfile` +
+`docker-compose*.yml` were moved into `infra/docker/` (+ `compose/`) per explicit
+request: the compose files now reference repo-root paths via `../../../`
+(build `context: ../../..`, `dockerfile: infra/docker/Dockerfile`, init volumes),
+validated with `docker compose config`; all script/CI callers and the ~5 named-file
+doc references were updated. (Note: this is a deliberate departure from the
+Next.js/Laravel root-compose convention, chosen for a single consolidated `infra/`.)
 
 ## Item 5 — package-level infra assets
 
@@ -76,7 +79,7 @@ instructions (moving them would degrade discoverability and break docs).
 | feature docs → `docs/`, smoke script → `scripts/` | ✅ done |
 | `sbom.json`/`release-inputs.json` untracked | ✅ done |
 | SEO files → website repo | ⏳ operator (`git rm` after they exist there) |
-| `Dockerfile`/`docker-compose*.yml` | ✅ kept at root (convention) |
+| `Dockerfile`/`docker-compose*.yml` | ✅ moved to `infra/docker/` (+ `compose/`); refs updated; `docker compose config` validated |
 
 ## Breaking-change analysis
 
