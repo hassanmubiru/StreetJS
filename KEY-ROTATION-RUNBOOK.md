@@ -340,27 +340,29 @@ Treat both as compromised/retired; do not reuse either as the new secret.
 
 ---
 
-## 9. Add a CI gate so this can't recur (F-6)
+## 9. Add a CI gate so this can't recur (F-6)  ✅ DONE
 
-Add the `block-private-keys` job from `SECURITY-AUDIT.md` §8.2 (fails the build on
-any tracked `*.pem/*.key/*.p12/*.pfx` or `BEGIN PRIVATE KEY` blob), and optionally
-the pre-commit hook in §8.3. Also add a check that every committed `manifest.pub`
-matches the embedded anchor (the loop in step 4) so a future key drift fails CI.
+> **Completed.** `.github/workflows/block-private-keys.yml` was added with two
+> jobs: `block-private-keys` (fails on any tracked `*.pem/*.key/*.p12/*.pfx` or
+> `BEGIN PRIVATE KEY` blob) and `verify-signing-anchor` (fails unless every
+> committed `packages/plugin-*/manifest.pub` matches the embedded anchor). The
+> anchor job will stay RED until step 4 (re-sign all 21 plugins) is complete —
+> that is intended, it enforces rotation completion.
 
 ---
 
 ## 10. Final verification checklist
 
-- [ ] New keypair generated; `<NEW_FINGERPRINT>` ≠ `df5e2726…` and ≠ `7de6474b…`.
+- [x] New keypair generated; `<NEW_FINGERPRINT>` ≠ `df5e2726…` and ≠ `7de6474b…`.
 - [ ] `STREET_PLUGIN_SIGNING_KEY` secret updated to the new private key; backed up offline.
-- [ ] `official-key.ts` embeds the new SPKI PEM; core rebuilds; fingerprint check matches.
+- [x] `official-key.ts` embeds the new SPKI PEM; core rebuilds; fingerprint check matches (`3ae9add0…`).
 - [ ] All 21 `manifest.pub` files match `<NEW_FINGERPRINT>` (step 4 loop all `OK`).
 - [ ] `publish-plugins.yml` green, including every "Verify packed manifest is officially signed".
-- [ ] `.gitleaks.toml` false comment + path allowlist removed; private-key rule added.
+- [x] `.gitleaks.toml` false comment + path allowlist removed; private-key rule added.
 - [ ] Security Advisory + changelog published; old key fingerprint marked distrusted.
 - [ ] History purged and force-pushed **with team coordination**; everyone re-cloned.
 - [ ] On-disk keys quarantined out of the tree.
-- [ ] CI `block-private-keys` gate + manifest/anchor consistency check added.
+- [x] CI `block-private-keys` gate + manifest/anchor consistency check added.
 
 When all boxes are checked, re-run the audit to confirm the projected **~88/100**
 posture (`SECURITY-AUDIT.md` §2).
