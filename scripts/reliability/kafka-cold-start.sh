@@ -133,7 +133,7 @@ account_messages() {
 [ -f "$ACCOUNT" ] || { echo "missing accounting probe: $ACCOUNT" >&2; exit 1; }
 
 echo "==> Bringing up broker"
-docker compose -f infra/docker/compose/docker-compose.kafka.yml up -d >/dev/null
+docker compose -f docker-compose.kafka.yml up -d >/dev/null
 wait_healthy
 
 FAILURES=0
