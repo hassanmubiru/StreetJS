@@ -22,7 +22,7 @@
 - Root metadata: `README.md`, `LICENSE`, `CHANGELOG.md`, `CITATION.cff`, `package.json`, `package-lock.json`, `.npmrc` (no `_authToken` — VERIFIED), tooling dotfiles, `.env.example`.
 - Governance: `SECURITY.md`, `GOVERNANCE.md`, `MAINTAINERS.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `governance/**`.
 - Security evidence (sanitised, no secret values): `security/**`, `audits/**`.
-- Infra **templates**: `infra/**` (Helm chart, k8s example, provider examples, monitoring rules), root `Dockerfile` + `docker-compose*.yml`, `packages/registry-server/Dockerfile` — all must contain placeholders only.
+- Infra **templates**: `infra/**` (Helm chart, k8s example, provider examples, monitoring rules, `infra/docker/Dockerfile` + `infra/docker/compose/docker-compose*.yml`), `packages/registry-server/Dockerfile` — all must contain placeholders only.
 
 ### INTERNAL (relocate out of public history)
 - `plans/**` — strategy/roadmap/marketing/content/expansion docs.
