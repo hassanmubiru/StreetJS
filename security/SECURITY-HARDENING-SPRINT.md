@@ -7,12 +7,29 @@
 >
 > Status legend: ✅ already done this session · ⏳ operator action · 🤖 agent-applicable.
 
-## Already landed this session (VERIFIED)
+## Already landed (VERIFIED)
 
+**Rotation / signing (earlier this session):**
 - ✅ Rotated trust anchor → `official-key.ts` = `3ae9add0`; all 21 manifests re-signed & matching.
 - ✅ `secrets-guard` job added as rule #1 in `ci-cd.yml`; `build-and-test` `needs` it.
 - ✅ `.github/workflows/block-private-keys.yml` (standalone gate).
 - ✅ `.gitleaks.toml` corrected (allowlist removed + PEM private-key rule).
+
+**This sprint (applied):**
+- ✅ P1-1 — `.github/CODEOWNERS` activated with expanded path coverage (single verified owner `@hassanmubiru`); team-based `CODEOWNERS.proposed` staged for when teams exist.
+- ✅ P1-2 — `governance/CHARTER.md` created.
+- ✅ P1-3 — root reorganized: `plans/` (18), `audits/` (8), `security/` (12), feature docs → `docs/`, smoke script → `scripts/`; cross-folder links fixed.
+- ✅ P1-5 (partial) — `sbom.json` + `release-inputs.json` untracked + gitignored. (SEO file removal left to operator — `git rm` deletes; move to website repo first.)
+- ✅ P1-6 — `scan-infra-identifiers` job added to `block-private-keys.yml`.
+- ✅ P2-1 — per-plugin `SECURITY.md` added to all 21 plugins.
+- ✅ P2-2 — `README.md` for `security/`, `audits/`, `plans/`, `governance/`.
+- ✅ P2-3 — root `SECURITY.md` now links `security/`, `governance/`, `audits/`.
+- ✅ P2-4 — `.github/workflows/trufflehog.yml` (full-history scan) added.
+- ✅ Pre-push hook — key-block guard appended to `.githooks/pre-push`.
+
+**Deferred to operator (risk/verifiability):** P0-1 (history purge), P0-2 (relocate
+on-disk keys), P0-3 (push protection), P0-4 (branch protection), **P1-4 (infra moves
+— CI path coupling, see checklist below)**.
 
 ---
 
