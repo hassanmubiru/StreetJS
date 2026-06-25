@@ -136,6 +136,10 @@ jobs:
     name: Core (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
 
+    # RULE #1: nothing in the release chain (build → docker → publish) runs
+    # until the private-key guard passes.
+    needs: [secrets-guard]
+
     strategy:
       fail-fast: false
       matrix:
