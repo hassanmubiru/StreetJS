@@ -108,7 +108,9 @@ jobs:
 
       - name: Fail on BEGIN PRIVATE KEY blobs in tracked content
         run: |
-          if git grep -nI -e '-----BEGIN .*PRIVATE KEY-----' -- . ':(exclude)**/*.test.*'; then
+          # Match a PEM private-key header on its OWN line (real key material),
+          # not inline prose/regex mentions in docs or this workflow itself.
+          if git grep -nI -E '^[[:space:]]*-----BEGIN ([A-Z]+ )*PRIVATE KEY-----[[:space:]]*$' -- . ':(exclude)**/*.test.*'; then
             echo "::error::Private key material detected in tracked content."
             exit 1
           fi
