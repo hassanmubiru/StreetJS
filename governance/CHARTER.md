@@ -1,7 +1,7 @@
 # StreetJS Repository Governance Charter
 
 > Normative governance rules for the StreetJS ecosystem repository.
-> Adopted from `security/PHASE-19-MASTER-AUDIT.md` §7. Referenced by
+> Adopted from `../security/PHASE-19-MASTER-AUDIT.md` §7. Referenced by
 > `CONTRIBUTING.md` and `SECURITY.md`. Enforced by CI where noted.
 
 ## 1. Root folder policy
