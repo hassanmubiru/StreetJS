@@ -42,7 +42,7 @@
 ## Secret scanning
 - `.gitleaks.toml` (6 explicit rules incl. PEM private-key + cloud creds) via
   `secret-scan.yml` on every push/PR.
-- `trufflehog.yml` weekly full-history verified-secret scan.
+- `trufflesecurity/trufflehog` (SHA-pinned, `--only-verified`) full-history scan in `secret-scan.yml`.
 - GitHub Secret Scanning + Push Protection: **enable at platform level** (operator).
 - `.gitignore` + `secrets-guard` + `block-private-keys.yml` +
   `security-baseline.yml` forbidden-files prevent committing RESTRICTED material.
