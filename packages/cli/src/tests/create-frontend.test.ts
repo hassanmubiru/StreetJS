@@ -53,7 +53,7 @@ describe('street create --frontend', () => {
       assert.ok(!/working-directory: web/.test(ci), 'htmx CI should not include a web job');
       const layout = readFileSync(join(proj, 'src/views/layouts/main.html'), 'utf8');
       assert.ok(layout.includes('{{{ body }}}'), 'layout has a body placeholder');
-      assert.ok(layout.includes('htmx.org'), 'layout loads htmx');
+      assert.ok(layout.includes('https://unpkg.com/htmx.org@'), 'layout loads htmx from the unpkg CDN');
     });
   });
 
