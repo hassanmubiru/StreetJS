@@ -24,13 +24,6 @@ paths = [
   '''.*/tests/.*\.test\.(ts|js)$''',
   '''.*/examples/.*''',
   '''packages/.*/example/.*''',
-  # Retired local/dev signing keypair accidentally committed once (commit
-  # d7bbfc40, 2026-06-14), then removed and gitignored. This is NOT the
-  # production signing key — the publish pipeline signs from the
-  # STREET_PLUGIN_SIGNING_KEY GitHub secret, and this file is referenced by no
-  # workflow or signing script. The blob is also purged from history; this path
-  # allowlist is defense-in-depth so the historical commit can't fail the scan.
-  '''(^|/)street-signing\.(key|pub)\.pem$''',
 ]
 
 # Specific well-known/public or obviously-fake values used in tests, docs, and
