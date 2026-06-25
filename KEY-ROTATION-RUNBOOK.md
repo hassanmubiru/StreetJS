@@ -236,7 +236,13 @@ done
 
 ---
 
-## 5. Correct `.gitleaks.toml` (F-2)
+## 5. Correct `.gitleaks.toml` (F-2)  ✅ DONE
+
+> **Completed.** The false "not the production key / purged from history" comment
+> and the `street-signing\.(key|pub)\.pem$` path allowlist were removed, and a
+> hard `pem-private-key-block` rule was added. Expect gitleaks to now flag the
+> historical `d7bbfc40` blob until step 7 purges it — run `gitleaks detect
+> --no-git` for working-tree-only scans in the meantime.
 
 The current allowlist comment claims the leaked key is "NOT the production key"
 and "purged from history" — both false. Remove the false comment **and** the path
