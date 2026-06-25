@@ -1,11 +1,13 @@
 name: Security baseline
 
 # Aggregate security gate validating the StreetJS baseline:
-#   • gitleaks secret scan (config-driven)
 #   • plugin security standard (required files per plugin, manifest.pub == anchor)
 #   • forbidden-file check (RESTRICTED tier)
-# Complements (does not replace): secret-scan.yml, block-private-keys.yml,
-# repository-policy.yml, scorecard.yml, codeql.yml.
+# Secret scanning (gitleaks full-history + trufflehog) lives in secret-scan.yml;
+# private-key/anchor gates live in block-private-keys.yml; structure in
+# repository-policy.yml. This workflow intentionally does NOT duplicate gitleaks
+# (the gitleaks-action wrapper now needs a paid license; secret-scan.yml uses the
+# free CLI).
 
 on:
   push:
@@ -16,20 +18,6 @@ permissions:
   contents: read
 
 jobs:
-  gitleaks:
-    name: Gitleaks secret scan
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - name: Run gitleaks
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITLEAKS_CONFIG: .gitleaks.toml
-
   plugin-security-standard:
     name: Plugin security standard
     runs-on: ubuntu-latest
