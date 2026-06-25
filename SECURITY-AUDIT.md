@@ -194,8 +194,8 @@ done
 
 ### Immediate — within 7 days (P0)
 
-1. **Rotate the signing key.** Generate a fresh Ed25519 keypair; store the private half **only** in GitHub Secrets (`STREET_PLUGIN_SIGNING_KEY`). Distribute the **new public key** to the plugin host/consumers; **revoke trust** in the old public key.
-2. **Re-sign and re-release all official plugins** (`plugin-htmx`, `plugin-marzpay`, any others) under the new key; publish the new signed manifests.
+1. **Rotate to a single new official key.** Generate **one** fresh Ed25519 keypair; store the private half **only** in GitHub Secrets (`STREET_PLUGIN_SIGNING_KEY`). Treat the embedded `df5e2726…` anchor (and the ad-hoc per-plugin keys such as marzpay's `7de6474b…`) as **compromised/distrusted**, and distribute the **new public key** to plugin hosts/consumers.
+2. **Update the embedded anchor and re-sign consistently.** Replace `OFFICIAL_PLUGIN_PUBLIC_KEY_PEM` in `packages/core/src/platform/plugins/official-key.ts` with the new public key, then **re-sign all 21 plugins** (htmx, marzpay, and the 19 others currently shipping distinct `manifest.pub` keys) with the single new official key in CI, and publish the new signed manifests. This completes the half-finished rotation in F-7 and ensures every plugin verifies against `officialPluginPublicKey()`.
 3. **Move ALL plugin signing into CI.** Generalize the `sign-htmx.yml` pattern so every official plugin signs from the CI secret. The private key must never again touch a developer machine (closes F-3).
 4. **Purge history** of `street-signing.key.pem` and `street-signing.pub.pem`: `git filter-repo --invert-paths --path street-signing.key.pem --path street-signing.pub.pem` (or BFG), then **coordinate a force-push** with all contributors and have everyone re-clone. ⚠️ Purging does **not** undo exposure (existing clones/forks/CI caches retain the blob) — this is why rotation in step 1 is mandatory regardless.
 5. **Remove on-disk keys from the repo directory.** Move `street-signing.key.pem` (F-5) and `packages/plugin-marzpay/signing-key.pkcs8.pem` (F-4) into a secrets manager / outside the working tree.
@@ -225,5 +225,20 @@ done
 - `git ls-files | grep -E '\.(pem|key|crt|p12|pfx)$'` → empty (nothing sensitive currently tracked).
 - `git status --ignored` shows `.env`, `street-signing.key.pem`, and `packages/plugin-marzpay/signing-key.pkcs8.pem` as ignored/untracked on disk.
 - Commit `d7bbfc40` introduced both `.pem` files (2026-06-14); `6088fa22` deleted `street-signing.key.pem`.
+
+### Verified key-comparison evidence
+
+All public keys compared by DER (SubjectPublicKeyInfo) SHA-256:
+
+| Key | DER-SHA256 | Match? |
+| --- | --- | --- |
+| Embedded official trust anchor (`packages/core/src/platform/plugins/official-key.ts`, `OFFICIAL_PLUGIN_PUBLIC_KEY_PEM`) | `df5e2726ecad5ffd992c1a182adff5999fdadca00366c02c092098c83cf0f540` | — (reference) |
+| Public half of **leaked private key** in pushed history (`d7bbfc40:street-signing.key.pem`) | `df5e2726ecad5ffd992c1a182adff5999fdadca00366c02c092098c83cf0f540` | ✅ **MATCH** → official signing private key is in pushed history (F-1) |
+| Current **on-disk** `street-signing.key.pem` public half (private searched across all history blobs — **not present**) | `7de6474b332d48ff65a0202ef8b138c51db262e89af5ff8c2f93e8deab624919` | ❌ differs from official anchor |
+| `packages/plugin-marzpay/manifest.pub` | `7de6474b332d48ff65a0202ef8b138c51db262e89af5ff8c2f93e8deab624919` | ❌ differs from official anchor (marzpay 1.1.0 not signed by leaked key) |
+| `packages/plugin-htmx/manifest.pub` | `df5e2726ecad5ffd992c1a182adff5999fdadca00366c02c092098c83cf0f540` | ✅ matches official anchor (only plugin of 21 that does) |
+
+- **Trust-key fact:** `packages/core/src/platform/plugins/registry.ts:89` defaults `this.trustedKey` to `officialPluginPublicKey()` (the embedded `official-key.ts` anchor) unless the caller supplies an explicit `publicKey` or opts into `allowUnsigned`. This is the key official plugins are verified against.
+- Of the 21 plugins, only `plugin-htmx` ships the embedded official key (`df5e2726…`); the other 20 each ship a distinct `manifest.pub` (marzpay `7de6474b…`, and 19 others all different from each other and from the official key) — see F-7.
 
 *This document is a read-only assessment. It did not modify code, move or delete files, alter CI configuration, or rewrite git history.*
