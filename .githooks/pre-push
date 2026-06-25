@@ -8,6 +8,19 @@
 set -uo pipefail
 
 status=0
+
+# Defense-in-depth: refuse to push private-key material (see KEY-ROTATION-RUNBOOK).
+# Catches *.pem/*.key/*.p12/*.pfx files and PEM private-key headers on their own
+# line anywhere in tracked content. Bypass intentionally with `git push --no-verify`.
+if git ls-files | grep -qE '\.(pem|key|p12|pfx)$'; then
+  echo "[pre-push] BLOCKED: a private key / keystore file is tracked. Remove it and rotate the credential." >&2
+  status=1
+fi
+if git grep -nI -E '^[[:space:]]*-----BEGIN ([A-Z]+ )*PRIVATE KEY-----[[:space:]]*$' -- . ':(exclude)**/*.test.*' >/dev/null 2>&1; then
+  echo "[pre-push] BLOCKED: private key material detected in tracked content." >&2
+  status=1
+fi
+
 # stdin: <local ref> <local sha> <remote ref> <remote sha>
 while read -r local_ref local_sha remote_ref remote_sha; do
   case "$local_ref" in
