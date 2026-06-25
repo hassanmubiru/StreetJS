@@ -1,0 +1,103 @@
+name: Repository policy
+
+# Enforces the StreetJS repository organization & classification policy
+# (governance/CHARTER.md, governance/REPOSITORY-ORGANIZATION.md,
+# security/SECURITY-CLASSIFICATION.md). Private-key/secret blocking lives in
+# block-private-keys.yml + secret-scan.yml; this workflow enforces *structure*:
+# the root-folder allowlist, no RESTRICTED files tracked, and policy-doc presence.
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  root-folder-allowlist:
+    name: Root folder allowlist
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Only approved files may live at the repo root
+        run: |
+          # Approved root files (CHARTER §1). Directories are not checked here.
+          allow=$(cat <<'EOF'
+          README.md
+          LICENSE
+          CHANGELOG.md
+          CITATION.cff
+          CODE_OF_CONDUCT.md
+          CONTRIBUTING.md
+          GOVERNANCE.md
+          MAINTAINERS.md
+          SECURITY.md
+          package.json
+          package-lock.json
+          .npmrc
+          .gitignore
+          .gitattributes
+          .gitleaks.toml
+          .dockerignore
+          .env.example
+          Dockerfile
+          docker-compose.yml
+          docker-compose.kafka.yml
+          docker-compose.rabbitmq.yml
+          docker-compose.search.yml
+          docker-compose.storage.yml
+          docker-compose.test-db.yml
+          BingSiteAuth.xml
+          googledf528d4f2b039b20.html
+          EOF
+          )
+          fail=0
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            if ! grep -qxF "$f" <<<"$allow"; then
+              echo "::error file=$f::Unapproved file at repo root. Move it to a subfolder (security/ audits/ plans/ governance/ docs/ infra/ scripts/) or add it to the allowlist in repository-policy.yml with justification."
+              fail=1
+            fi
+          done < <(git ls-files --full-name | grep -E '^[^/]+$')
+          [ "$fail" -eq 0 ] && echo "Root folder allowlist clean ✔"
+          exit $fail
+
+  no-restricted-tracked:
+    name: No RESTRICTED files tracked
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Block tracked credentials / IaC state / keystores
+        run: |
+          if git ls-files | grep -EI '\.(pem|key|p12|pfx|crt|jks|keystore|tfstate|tfvars)$|(^|/)kubeconfig$|service-account.*\.json$|credentials.*\.json$|(^|/)\.env$'; then
+            echo "::error::A RESTRICTED-tier file is tracked (see security/SECURITY-CLASSIFICATION.md). Remove it and rotate the credential."
+            exit 1
+          fi
+          echo "No RESTRICTED files tracked ✔"
+
+  policy-docs-present:
+    name: Governance docs present
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Required governance/security docs must exist
+        run: |
+          req="governance/CHARTER.md governance/REPOSITORY-ORGANIZATION.md security/SECURITY-CLASSIFICATION.md SECURITY.md .github/CODEOWNERS"
+          fail=0
+          for f in $req; do
+            [ -f "$f" ] || { echo "::error::missing required policy doc: $f"; fail=1; }
+          done
+          [ "$fail" -eq 0 ] && echo "All governance/security policy docs present ✔"
+          exit $fail
