@@ -154,7 +154,7 @@ export async function deployAndVerify(opts) {
     // 3. Install the Helm chart, pinning the locally loaded image (never pull),
     //    a single replica with autoscaling disabled, and lazy DB init so the
     //    no-DB deployment serves health (Req 2.12).
-    const chartDir = resolve(repoRoot, 'deploy/helm/street');
+    const chartDir = resolve(repoRoot, 'infra/helm/street');
     const [repo, tag] = image.includes(':') ? image.split(':') : [image, 'latest'];
     note(`$ helm install street ${chartDir} (image ${repo}:${tag}, pullPolicy=Never)`);
     const install = run('helm', [

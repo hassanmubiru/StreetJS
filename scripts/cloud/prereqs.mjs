@@ -94,7 +94,7 @@ export function runBinaryOfflineArtifacts(target, opts = {}) {
   const checks = [];
   switch (target) {
     case 'kubernetes': {
-      const chartDir = `${repoRoot}/deploy/helm/street`;
+      const chartDir = `${repoRoot}/infra/helm/street`;
       if (existsSync(chartDir)) {
         checks.push(runBinaryCheck('helm-lint', 'helm', ['lint', chartDir]));
         checks.push(runBinaryCheck('helm-template', 'helm', ['template', 'street', chartDir]));
