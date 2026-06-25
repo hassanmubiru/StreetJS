@@ -10,7 +10,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./packages/core/docker-init:/docker-entrypoint-initdb.d:ro
+      - ../../../packages/core/docker-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U street"]
       interval: 5s
