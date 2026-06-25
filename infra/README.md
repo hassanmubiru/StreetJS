@@ -32,7 +32,7 @@ without `ALLOWED_ORIGINS` set (no accidental wildcard CORS). Always provide
 
 | Target | Artifact | Verification level |
 | --- | --- | --- |
-| Docker | `Dockerfile` (repo root) | ✅ image builds; container boots (prod, clustered); `/health/live` + `/health/ready` → 200 |
+| Docker | `infra/docker/Dockerfile` | ✅ image builds; container boots (prod, clustered); `/health/live` + `/health/ready` → 200 |
 | Kubernetes / Helm | `infra/helm/street/`, `infra/kubernetes/` | manifests complete (startup/liveness/readiness probes on verified paths, Service, HPA) |
 | AWS Lambda | `@streetjs/edge` lambda adapter | ✅ adapter unit-tested |
 | Azure Functions | `@streetjs/edge` azure adapter | ✅ adapter unit-tested |

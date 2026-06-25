@@ -13,6 +13,7 @@ streetJS/
 ├── benchmarks/  rfcs/    # perf harness, design proposals
 ├── scripts/             # build/release/codegen/cloud/observability scripts
 ├── infra/               # NEW — consolidated infrastructure
+│   ├── docker/          #   Dockerfile + compose/ (six docker-compose*.yml)
 │   ├── kubernetes/      #   k8s manifests (HPA example, probes)
 │   ├── helm/street/     #   Helm chart
 │   ├── examples/        #   aws-ecs, cloud-run, cloudflare, vercel
@@ -22,7 +23,6 @@ streetJS/
 ├── governance/          # NEW — CHARTER + this doc
 ├── plans/               # NEW — internal strategy/roadmap (INTERNAL tier)
 ├── .github/  .githooks/ # CI, CODEOWNERS, templates, hooks
-├── Dockerfile  docker-compose*.yml   # kept at root (convention — see below)
 └── README LICENSE SECURITY GOVERNANCE MAINTAINERS CONTRIBUTING CODE_OF_CONDUCT CHANGELOG CITATION
 ```
 
