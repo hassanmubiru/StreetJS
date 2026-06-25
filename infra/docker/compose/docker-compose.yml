@@ -19,7 +19,8 @@ services:
 
   street-app:
     build:
-      context: .
+      context: ../../..
+      dockerfile: infra/docker/Dockerfile
     container_name: street_app
     restart: unless-stopped
     ports:
