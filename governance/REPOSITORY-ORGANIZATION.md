@@ -36,8 +36,8 @@ Root tracked `.md` files reduced **45 → 7** (front-door set only).
 | `packages/` workspace | ✅ | partial | ✅ | n/a (`src/`) | n/a | ✅ |
 | `docs/` | ✅ | ✅ | ✅ | (separate repo) | ✅ | ✅ |
 | `examples/` | ✅ (`sample/`) | ✅ | ✅ | n/a | ✅ | ✅ |
-| Dockerfile at root | ✅ | n/a | ✅ | ✅ | n/a | ✅ (kept — matches convention) |
-| docker-compose at root | common | n/a | n/a | ✅ (`docker-compose.yml`) | n/a | ✅ (kept) |
+| Dockerfile at root | ✅ | n/a | ✅ | ✅ | n/a | moved to `infra/docker/` (Phase 2) |
+| docker-compose at root | common | n/a | n/a | ✅ (`docker-compose.yml`) | n/a | moved to `infra/docker/compose/` (Phase 2) |
 | `.github/` CI + CODEOWNERS | ✅ | ✅ | ✅ | ✅ | ✅ (`OWNERS`) | ✅ |
 | Dedicated security/ + governance/ | partial (`SECURITY.md`) | `SECURITY.md` | `SECURITY.md` | `SECURITY.md` | ✅ (`SECURITY*.md`, `sig-*`) | ✅ (`security/`, `governance/`) |
 | Infra under one dir | varies | n/a | n/a | n/a | ✅ (`cluster/`, `build/`) | ✅ (`infra/`) |
