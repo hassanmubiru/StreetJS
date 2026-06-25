@@ -44,3 +44,14 @@ regexes = [
   '''sk-ant-\.\.\.''',
   '''sk_test_\.\.\.''',
 ]
+
+# Hard rule: PEM private key material must never be committed. Added during the
+# 2026 signing-key rotation (see KEY-ROTATION-RUNBOOK.md / SECURITY-AUDIT.md F-1,
+# F-2). The street-signing path allowlist that previously masked the leaked key
+# was removed; gitleaks will now flag the historical d7bbfc40 blob until history
+# is purged, which is the intended behaviour.
+[[rules]]
+id = "pem-private-key-block"
+description = "PEM private key material must never be committed"
+regex = '''-----BEGIN (?:RSA |EC |OPENSSH |DSA |PGP |ENCRYPTED )?PRIVATE KEY-----'''
+keywords = ["PRIVATE KEY"]
