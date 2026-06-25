@@ -69,40 +69,54 @@ behavior. The residuals that hold it back are mostly **low/medium** or
 
 ---
 
-## Correction — the asserted signing-key/git-history claim does not match the repo
+## Correction — a signing key IS exposed in git history (just not marzpay's own)
 
-The task framing asserted that *"only htmx — not marzpay — has a CI signing
-workflow, so 1.1.0 was signed on a developer machine with a key that is ALSO
-exposed in git history at commit `d7bbfc40`."* I investigated this directly, and
-the repository evidence contradicts it. Stating it accurately matters for a
-security review, so here is what I actually found:
+An earlier pass asserted a blanket "**no signing key is exposed in git
+history**." That blanket conclusion is wrong and is corrected here. The
+marzpay-specific sub-claims hold up under hash verification, but the
+ecosystem-level "no key in history" statement does not. Here is the
+hash-verified truth:
 
-- **`plugin-marzpay` IS in the CI signing matrix.** `.github/workflows/publish-plugins.yml`
-  lists `plugin-marzpay` alongside the other plugins and signs each with the
-  stable `STREET_PLUGIN_SIGNING_KEY` CI secret (PKCS#8 PEM), with npm provenance.
-  `sign-htmx.yml` is a **one-shot** workflow that existed only because htmx was
-  the single plugin lacking a committed `manifest.signed.json`; marzpay already
-  ships `manifest.signed.json` and `manifest.pub`.
-- **The signing script refuses ephemeral/dev-machine keys.** `scripts/sign.mjs`
-  fails loudly (`process.exit(1)`) if `STREET_PLUGIN_SIGNING_KEY` is unset, runs
-  only via `prepublishOnly`, and `runtime-certification.yml` asserts a plain
-  build never mutates a signed manifest. PS-3 documents the key "exists ONLY as a
-  CI secret — it cannot be produced on a workstation."
-- **No signing key is exposed in git history.** The `signing-key.pkcs8.pem` file
-  present in the package working tree is a **0-byte placeholder**, is **not
-  tracked by git** (`git ls-files` returns nothing for it), and is **gitignored**
-  via `.gitignore:17 *.pem`. I found no committed key at `d7bbfc40` or anywhere
-  in history, and the repo's controls (gitignored `*.pem`, CI-secret-only key,
-  build-tree-clean assertion) are specifically designed to prevent that.
+**TRUE — marzpay's own signing key was not leaked.** The key that signed
+`@streetjs/plugin-marzpay@1.1.0` is the on-disk `street-signing.key.pem`, whose
+public half has DER-SHA256
+`7de6474b332d48ff65a0202ef8b138c51db262e89af5ff8c2f93e8deab624919`, matching
+`packages/plugin-marzpay/manifest.pub`. Its **private half was searched across
+ALL git-history blobs and is NOT present** — so marzpay's own signing key was
+not leaked. `scripts/sign.mjs` is fail-closed (refuses to run without the
+signing key) and `publish-plugins.yml` performs the signing in CI.
 
-**What is real on the supply-chain axis** is documented in the repo audits and is
-reflected in dimension 11: **PS-3 (MEDIUM)** — a single signing key with no
-`keyId`, rotation, or revocation path, so if the CI secret ever leaked there is
-no fast revocation for already-deployed consumers; and **PS-1/PS-2 (CRITICAL)** —
-the *marketplace installer's* zip-slip + default-open signature verification,
-which is a framework/installer boundary that affects any plugin distributed
-through it, including this one. These are the genuine ecosystem risks; the
-"key in git history" claim is not supported by the code.
+**CORRECTED — a different signing private key IS in git history.** A signing
+private key *is* exposed in history; it simply is not marzpay's. The repo-root
+`street-signing.key.pem` was committed at `d7bbfc40` (and pushed to
+`origin/main`). Its public half has DER-SHA256
+`df5e2726ecad5ffd992c1a182adff5999fdadca00366c02c092098c83cf0f540`, which
+**exactly matches the embedded official trust anchor**
+`OFFICIAL_PLUGIN_PUBLIC_KEY_PEM` in
+`packages/core/src/platform/plugins/official-key.ts` — the default `trustedKey`
+in `registry.ts:89`. In other words the **official plugin-signing key**, the one
+consumers verify against, is compromised (see SECURITY-AUDIT.md, finding F-1).
+`plugin-htmx/manifest.pub` matches that leaked official key; marzpay's
+`manifest.pub` is the newer, non-leaked key (`7de6474b`).
+
+**Ecosystem implication for marzpay.** marzpay 1.1.0 was signed with the newer
+key (`7de6474b`), which does **not** match the still-embedded official anchor
+(`df5e2726`). So under the default registry trust key, marzpay's signature would
+**not verify as official**. This is a half-finished key rotation at the
+ecosystem level: the official anchor is both leaked and stale, while marzpay has
+already moved to a sound, non-leaked key that the core does not yet trust. It is
+a genuine **"Should Fix"** for marzpay's distribution even though marzpay's own
+key material is sound. Cross-reference SECURITY-AUDIT.md findings **F-1** (leaked
+official key in history) and **F-7** (trust-anchor / rotation mismatch).
+
+**What is real on the supply-chain axis** is therefore broader than the earlier
+text implied and is reflected in dimension 11: the leaked-and-stale official
+anchor above, plus **PS-3 (MEDIUM)** — a single signing key with no `keyId`,
+rotation, or revocation path, so a leaked key cannot be revoked quickly for
+already-deployed consumers; and **PS-1/PS-2 (CRITICAL)** — the *marketplace
+installer's* zip-slip + default-open signature verification, a
+framework/installer boundary that affects any plugin distributed through it,
+including this one. These are the genuine ecosystem risks.
 
 ---
 
