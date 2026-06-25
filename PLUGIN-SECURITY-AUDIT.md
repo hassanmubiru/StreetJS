@@ -318,14 +318,29 @@ Recommendations: add a request timeout to the Elastic provider; validate/allow-l
    with no TLS option in plugin config; credentials (AUTH/SCRAM/CONNECT) cross the
    wire without transport encryption unless the network is otherwise secured.
 
-6. **Signing is centralized, not htmx-only.** Contrary to the "only htmx has a CI
-   signing workflow" framing: `publish-plugins.yml` Ed25519-signs **every** plugin
-   with the official `STREET_PLUGIN_SIGNING_KEY` at publish, and all 21 plugins
-   already carry a committed `manifest.signed.json`. htmx additionally has a
-   **dedicated one-shot** workflow (`sign-htmx.yml`) because it was historically the
-   last plugin without a committed signed manifest. The repo also signs release
-   tarballs with cosign/Sigstore (`ci-cd.yml`). (`search` and `storage` are modules,
-   not signed plugins — no manifest.)
+6. **Signing topology — and a CRITICAL trust-anchor exposure.** All 21 plugins carry
+   a committed `manifest.signed.json`, and htmx has a dedicated CI signing workflow
+   (`sign-htmx.yml`) that signs from the official `STREET_PLUGIN_SIGNING_KEY` secret.
+   However, two repository-level defects (verified in `SECURITY-AUDIT.md`, F-1/F-3/F-7)
+   dominate the plugin trust model and supersede any "signing is healthy" framing:
+   - **The official signing private key is in pushed git history (Critical, F-1).**
+     `d7bbfc40:street-signing.key.pem` is a real Ed25519 private key whose public half
+     (DER-SHA256 `df5e2726…`) is an **exact match** for the embedded official trust
+     anchor `OFFICIAL_PLUGIN_PUBLIC_KEY_PEM` (`packages/core/src/platform/plugins/official-key.ts`),
+     which `registry.ts:89` uses by default to verify official plugins. Of the 21
+     plugins, **only `plugin-htmx`** ships a `manifest.pub` matching that anchor —
+     so an attacker holding the leaked key can mint plugins that verify as official.
+   - **Rotation is half-finished (High, F-7).** Newer releases were signed with a
+     *different*, never-committed key — e.g. `plugin-marzpay@1.1.0`'s `manifest.pub`
+     is `7de6474b…`, not the official anchor. Every plugin ships a distinct
+     `manifest.pub` and 20 of 21 do **not** match the embedded anchor, so they would
+     **fail** verification against `officialPluginPublicKey()`. The embedded anchor
+     still points at the leaked key.
+   - **Per-plugin findings above are unaffected** by this (they assess in-plugin
+     controls), but the *distribution-integrity* guarantee for the whole plugin set is
+     broken until the key is rotated, `official-key.ts` is updated, and all 21 plugins
+     are re-signed under one new CI-only key. See `SECURITY-AUDIT.md` §9 for the plan.
+     (`search` and `storage` are modules, not signed plugins — no manifest.)
 
 7. **Consistently good practices** worth preserving: no plugin logs secrets (grep
    for `console`/`logger` in `packages/plugin-*/src` returned nothing); all store
