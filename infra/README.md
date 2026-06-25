@@ -61,9 +61,9 @@ otherwise, so it can gate a deploy or trigger a rollback.
 ## Monitoring
 
 The app emits Prometheus metrics and OpenTelemetry spans (see
-`docs/` observability guides and `observability/`). Wire `/health/ready` to your
+`docs/` observability guides and `infra/monitoring/`). Wire `/health/ready` to your
 platform's readiness gate and scrape the metrics endpoint; Grafana dashboards
-and Prometheus rules ship under `observability/`.
+and Prometheus rules ship under `infra/monitoring/`.
 
 ## CI
 
