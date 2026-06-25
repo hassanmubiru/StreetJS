@@ -14,6 +14,18 @@ useDefault = true
 [allowlist]
 description = "Known public/test fixtures that are not real secrets."
 
+# ACCEPTED KNOWN FINDING (not a denial): commit d7bbfc40 committed the real
+# official signing private key. It is genuinely leaked and is treated as
+# COMPROMISED — the trust anchor was rotated to 3ae9add0 and the old key is
+# DISTRUSTED (see security/KEY-ROTATION-RUNBOOK.md). This commit is allowlisted
+# ONLY so full-history secret scans don't fail on this single already-handled
+# historical commit; it does NOT exempt the file path, so any NEW private key in
+# any other commit is still flagged. REMOVE this entry once history is purged
+# (KEY-ROTATION-RUNBOOK §7), after which the blob no longer exists to detect.
+commits = [
+  "d7bbfc4050b6310da1fc8c73f769626084bb988d",
+]
+
 # Paths that only ever contain fixtures, fakes, sample env templates, docs, or
 # gitignored build artifacts / local env (never committed source secrets).
 paths = [
