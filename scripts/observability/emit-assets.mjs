@@ -10,8 +10,8 @@ import {
   streetDashboards, validateGrafanaDashboard,
 } from 'streetjs';
 
-const promDir = 'observability/prometheus';
-const grafDir = 'observability/grafana/dashboards';
+const promDir = 'infra/monitoring/prometheus';
+const grafDir = 'infra/monitoring/grafana/dashboards';
 mkdirSync(promDir, { recursive: true });
 mkdirSync(grafDir, { recursive: true });
 
