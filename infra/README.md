@@ -4,19 +4,19 @@ Production deployment + monitoring assets for StreetJS, consolidated under `infr
 
 ```
 infra/
-├── docker/        # (Dockerfile + docker-compose*.yml remain at the repo root —
-│                  #  they have build-context/volume paths relative to root)
+├── docker/        # Dockerfile + compose/ (the six docker-compose*.yml)
+│   └── compose/   #   docker-compose*.yml — paths inside use ../../../ to reach repo root
 ├── kubernetes/    # k8s manifests (HPA example, probes)
 ├── helm/street/   # Helm chart
 ├── examples/      # aws-ecs, cloud-run, cloudflare, vercel
 └── monitoring/    # prometheus rules + grafana dashboards
 ```
 
-> **Note:** the root `Dockerfile` and `docker-compose*.yml` are intentionally kept
-> at the repo root — their `build: context: .` and `./packages/...` volume paths
-> resolve relative to the root. Moving them requires `--project-directory .` +
-> `dockerfile:` overrides and Docker-tested verification (tracked in
-> `security/SECURITY-HARDENING-SPRINT.md` §P1-4).
+> **Compose/Dockerfile note:** these now live under `infra/docker/`. The compose
+> files reference repo-root paths via `../../../` (e.g. build `context: ../../..`,
+> `dockerfile: infra/docker/Dockerfile`, init-script volumes), so they resolve
+> correctly from their new location — validated with `docker compose config`.
+> Callers pass `-f infra/docker/compose/<file>` and `docker build -f infra/docker/Dockerfile .`.
 
 Every target boots the same container/app, which exposes:
 
