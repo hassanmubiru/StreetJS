@@ -468,3 +468,34 @@ Detailed, sequenced execution with diffs, effort, and rollback is in
 *Read-only assessment. No code, CI, files, or git history were modified in producing
 this report; the only changes made elsewhere in this session (anchor rotation, CI
 gate, gitleaks fix) are documented in `SECURITY-AUDIT.md` and `KEY-ROTATION-RUNBOOK.md`.*
+
+---
+
+## Appendix A — Post-sprint remediation status (VERIFIED)
+
+Applied after this audit (see `SECURITY-HARDENING-SPRINT.md` for detail):
+
+| Item | Audit reference | Status |
+|---|---|---|
+| Trust-anchor rotation + 21 manifests re-signed | Material state change | ✅ done |
+| `secrets-guard` rule #1 + `block-private-keys.yml` | Phase 3 | ✅ done |
+| `.gitleaks.toml` corrected | Phase 3 | ✅ done |
+| Per-plugin `SECURITY.md` (21/21) | Phase 4 GAP | ✅ **resolved** |
+| CODEOWNERS expanded (paths) | Phase 8 GAP | ✅ done (single owner; team version staged) |
+| Governance Charter adopted | Phase 7 | ✅ `governance/CHARTER.md` |
+| Root reorganization (`plans/ audits/ security/`) | Phase 5 | ✅ done (root `.md` 45→7) |
+| Untrack `sbom.json`/`release-inputs.json` | Phase 2 RISK | ✅ done |
+| Infra-identifier CI gate + TruffleHog + pre-push key-block | Phase 9 | ✅ done |
+| Infra consolidation under `infra/` | Phase 6 / P1-4 | ⏳ deferred (CI path coupling) |
+| Purge history, relocate keys, push/branch protection | Phase 9 P0 | ⏳ operator |
+
+## Appendix B — New finding (VERIFIED during sprint)
+
+**B-1 (LOW)** — `scripts/cloud/prereqs.mjs` (`case 'cloudflare-workers'`) checks
+`${repoRoot}/deploy/cloudflare-workers/wrangler.toml`, but the actual file is
+`deploy/cloudflare/wrangler.toml` (VERIFIED: `deploy/cloudflare-workers/` does not
+exist). The `existsSync(cfg)` guard therefore **silently skips** the wrangler
+dry-run in `deploy-verify`, so that target gets no offline verification.
+**RECOMMENDATION:** align the path (`deploy/cloudflare/wrangler.toml`) or the
+target name, and verify on a branch (making the check run is a CI-behavior change).
+This is independent of the P1-4 move.
