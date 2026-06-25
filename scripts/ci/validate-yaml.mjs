@@ -53,7 +53,7 @@ for (const path of files) {
   const norm = path.split(sep).join('/');
 
   // Helm chart templates are Go-templated, not valid YAML — skip them.
-  if (norm.includes('deploy/helm/') && norm.includes('/templates/')) continue;
+  if (norm.includes('infra/helm/') && norm.includes('/templates/')) continue;
 
   let docs;
   try {
