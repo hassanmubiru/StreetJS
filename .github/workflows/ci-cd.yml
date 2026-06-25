@@ -79,6 +79,51 @@ env:
   SUITE: ${{ inputs.suite || 'all' }}
 
 jobs:
+  # ── secrets-guard: RULE #1 — block private keys before anything else ───
+  # Purpose:   Hard pre-gate for the whole pipeline. Fails immediately if any
+  #            private key / keystore is tracked, if a BEGIN PRIVATE KEY blob
+  #            appears in tracked content, or if the embedded official signing
+  #            anchor (official-key.ts) ever contains a PRIVATE key block.
+  #            The release gatekeeper (build-and-test) `needs` this job, so the
+  #            build → docker → publish chain cannot proceed past a key leak.
+  # Depends:   Nothing — it runs first, by design.
+  # See:       KEY-ROTATION-RUNBOOK.md, SECURITY-AUDIT.md F-1/F-6.
+  secrets-guard:
+    name: Secrets Guard (block private keys)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Fail on tracked key / keystore files
+        run: |
+          if git ls-files | grep -E '\.(pem|key|p12|pfx)$'; then
+            echo "::error::A private key / keystore file is tracked. Remove it and rotate the credential."
+            exit 1
+          fi
+
+      - name: Fail on BEGIN PRIVATE KEY blobs in tracked content
+        run: |
+          if git grep -nI -e '-----BEGIN .*PRIVATE KEY-----' -- . ':(exclude)**/*.test.*'; then
+            echo "::error::Private key material detected in tracked content."
+            exit 1
+          fi
+
+      - name: Assert official-key.ts embeds a PUBLIC key only (never a private key)
+        run: |
+          F=packages/core/src/platform/plugins/official-key.ts
+          if grep -q -- '-----BEGIN .*PRIVATE KEY-----' "$F"; then
+            echo "::error::$F contains PRIVATE key material — it must embed only the public signing key."
+            exit 1
+          fi
+          grep -q -- '-----BEGIN PUBLIC KEY-----' "$F" || {
+            echo "::error::$F is missing the expected public signing key."; exit 1; }
+          echo "official-key.ts embeds a public key only ✔"
+
   # ── build-and-test: Core integration tests (gatekeeper) ────────────────
   # Purpose:   Compile and test the @streetjs/core package against a live
   #            PostgreSQL instance. Runs integration tests with coverage.
