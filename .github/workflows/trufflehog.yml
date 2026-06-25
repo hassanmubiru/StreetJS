@@ -1,0 +1,33 @@
+name: TruffleHog secret scan (full history)
+
+# Complements gitleaks (secret-scan.yml) with TruffleHog's verified-secret
+# detection across the FULL git history. See security/SECURITY-HARDENING-SPRINT.md
+# (P2-4). NOTE: until the leaked key blob is purged from history
+# (KEY-ROTATION-RUNBOOK §7), this scan may flag the historical d7bbfc40 commit —
+# that is expected and is itself a reminder to complete the purge.
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'   # weekly, Monday 06:00 UTC
+  workflow_dispatch:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  trufflehog:
+    name: TruffleHog
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Run TruffleHog
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          extra_args: --results=verified,unknown
