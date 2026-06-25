@@ -103,3 +103,22 @@ STREET_WEBSITE_ENTERPRISE_AUDIT.md
 # Generated build/release artifacts (produced in CI, attached to releases)
 sbom.json
 release-inputs.json
+
+# ── Repository classification: RESTRICTED patterns (SECURITY-CLASSIFICATION.md) ──
+# IaC state & secrets
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform/
+# Cluster / cloud credentials
+kubeconfig
+*.kubeconfig
+*service-account*.json
+*credentials*.json
+aws-credentials.json
+gcp-*.json
+# Java keystores
+*.jks
+*.keystore
+# npm auth (only the redacted .npmrc without _authToken should be tracked)
+.npmrc.local
