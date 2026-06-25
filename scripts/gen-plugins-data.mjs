@@ -32,7 +32,7 @@ const CATEGORIES = [
   ['Frontend & Views', /htmx|view|template|ssr|server-rendered|html|frontend/i],
 ];
 const slugify = (s) => s.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-const yamlEsc = (s) => String(s).replace(/"/g, '\\"');
+const yamlEsc = (s) => String(s).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 
 function categorize(name, keywords) {
   const hay = name + ' ' + (keywords || []).join(' ');
