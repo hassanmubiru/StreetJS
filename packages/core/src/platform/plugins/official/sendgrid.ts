@@ -59,10 +59,14 @@ export function validateSendGridConfig(input: unknown): SendGridPluginConfig {
   for (const k of ['defaultFrom', 'stateKey']) {
     if (o[k] !== undefined && typeof o[k] !== 'string') throw new PluginError(`SendGrid plugin config: "${k}" must be a string`);
   }
+  if (o['timeoutMs'] !== undefined && (typeof o['timeoutMs'] !== 'number' || !Number.isInteger(o['timeoutMs']) || o['timeoutMs'] <= 0)) {
+    throw new PluginError('SendGrid plugin config: "timeoutMs" must be a positive integer (milliseconds)');
+  }
   return {
     apiKey: o['apiKey'],
     ...(o['defaultFrom'] !== undefined ? { defaultFrom: o['defaultFrom'] as string } : {}),
     ...(o['stateKey'] !== undefined ? { stateKey: o['stateKey'] as string } : {}),
+    ...(o['timeoutMs'] !== undefined ? { timeoutMs: o['timeoutMs'] as number } : {}),
   };
 }
 
