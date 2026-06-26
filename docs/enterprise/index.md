@@ -23,6 +23,7 @@ description:   "StreetJS for enterprise — architecture overview, risk assessme
 | [Risk Assessment](/enterprise/risk-assessment/) | Technical + operational risks and mitigations |
 | [Security Whitepaper](/enterprise/security-whitepaper/) | Security model, controls, supply-chain integrity |
 | [Procurement FAQ](/enterprise/procurement-faq/) | Licensing, support, continuity, vendor-risk answers |
+| [Support & Platform Matrix](/enterprise/support-matrix/) | Version support, backport policy, runtime/platform/cloud matrix |
 
 ## Built-in enterprise capabilities
 
