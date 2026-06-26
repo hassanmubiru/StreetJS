@@ -19,6 +19,11 @@ on:
 permissions:
   contents: read
 
+# ── Concurrency ────────────────────────────────────────────────
+concurrency:
+  group: block-private-keys-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   block-private-keys:
     runs-on: ubuntu-latest

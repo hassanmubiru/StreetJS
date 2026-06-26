@@ -14,6 +14,11 @@ on:
 permissions:
   contents: read
 
+# ── Concurrency ────────────────────────────────────────────────
+concurrency:
+  group: browser-compat-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   browser-compat:
     runs-on: ubuntu-latest

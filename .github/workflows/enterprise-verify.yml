@@ -25,6 +25,11 @@ on:
 permissions:
   contents: read
 
+# ── Concurrency ────────────────────────────────────────────────
+concurrency:
+  group: enterprise-verify-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   enterprise-e2e:
     runs-on: ubuntu-latest

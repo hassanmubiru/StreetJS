@@ -26,6 +26,11 @@ on:
 permissions:
   contents: read
 
+# ── Concurrency ────────────────────────────────────────────────
+concurrency:
+  group: devtools-verify-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   devtools-verify:
     runs-on: ubuntu-latest

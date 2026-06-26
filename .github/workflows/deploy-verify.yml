@@ -25,6 +25,11 @@ on:
 permissions:
   contents: read
 
+# ── Concurrency ────────────────────────────────────────────────
+concurrency:
+  group: deploy-verify-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   cloud-verify:
     runs-on: ubuntu-latest

@@ -29,6 +29,11 @@ on:
 permissions:
   contents: read
 
+# ── Concurrency ────────────────────────────────────────────────
+concurrency:
+  group: observability-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   promtool:
     runs-on: ubuntu-latest

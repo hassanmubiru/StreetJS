@@ -18,6 +18,11 @@ on:
 permissions:
   contents: read
 
+# ── Concurrency ────────────────────────────────────────────────
+concurrency:
+  group: docs-seo-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   docs-seo:
     runs-on: ubuntu-latest
