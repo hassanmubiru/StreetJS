@@ -7,7 +7,7 @@
 > **[RUNTIME]** plugin/core code change (out of governance scope — separate PR).
 >
 > Everything below is what remains; all governance/organization/CI/docs hardening
-> already applied is recorded in `audits/STREETJS-MASTER-REPORT.md` (canonical) and the
+> already applied is recorded in `audits/ENTERPRISE-AUDIT.md` (canonical) and the
 > `CHANGELOG.md` `[Unreleased]` section.
 
 ## ✅ Completed since this register was created (verified)
