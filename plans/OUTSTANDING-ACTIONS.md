@@ -51,7 +51,7 @@
 | 16 | Bind local compose DB ports to `127.0.0.1` | [MAINTAINER] | `INFRASTRUCTURE-SECURITY-REVIEW.md` |
 | 17 | ◑ **Partial** — docs are **already searchable** (just-the-docs Lunr, `search_enabled`); enhanced the `search:` config (h3 indexing, content previews, `s` focus shortcut). Added a documented **versioning** policy + surface: `docs/versions.md` (+ "Versions" aux link) tying current `site.version` → support-matrix/changelog/tagged source; gave `docs/enterprise/support-matrix.md` the front matter it was missing so it now renders + is searchable. *Remaining: browsable multi-version doc trees (roadmap) — Algolia/Pagefind unnecessary at this size* | [MAINTAINER] | `ENTERPRISE-READINESS-2026.md` |
 | 18 | Fuzzing depth / OSS-Fuzz onboarding; expand chaos testing | [MAINTAINER] | `OPENSSF-REVIEW.md`, `SECURITY-ROADMAP.md` |
-| 19 | Security **dashboard** (surface Scorecard/alerts) | [MAINTAINER] | `SECURITY-ROADMAP.md` |
+| 19 | ✅ **Done** — `docs/security/dashboard.md` surfaces live badges (CI, CodeQL, OpenSSF Scorecard, provenance) + a control-posture table linking each gate to its workflow, the live GitHub Security tabs, and canonical docs; live/operator-setting values are marked **UNVERIFIED** rather than fabricated | [MAINTAINER] | `SECURITY-ROADMAP.md` |
 | 20 | Add a real **PGP key** to `SECURITY.md` (replace placeholder; never commit the private key) | [OPERATOR] | `SECURITY.md` |
 | 21 | Per-plugin **example apps** + raise coverage gates (promote ◑→✅ in maturity matrix) | [RUNTIME]+[MAINTAINER] | `PLUGIN-MATURITY-MATRIX.md` |
 | 22 | ✅ **Done** — Standardize CI `retention-days` + `concurrency` across workflows (see Completed section) | [MAINTAINER] | `STREETJS-FULL-AUDIT-REPORT.md` Phase 12 |
