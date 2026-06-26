@@ -213,6 +213,7 @@ jobs:
         with:
           name: core-coverage-${{ matrix.node }}-${{ github.sha }}
           path: packages/core/coverage/
+          retention-days: 14
 
   # ── migration-integration: CLI unit + migration tests (merged) ─────────
   # Purpose:   Run @streetjs/cli package unit tests and migration integration
