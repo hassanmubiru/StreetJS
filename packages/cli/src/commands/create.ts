@@ -5039,7 +5039,7 @@ export class MarzPayViewsController {
         '@types/react-dom': '^18.3.0',
         '@vitejs/plugin-react': '^4.3.1',
         typescript: '^5.4.5',
-        vite: '^5.4.0',
+        vite: '^5.4.21',
       },
       // Force a patched transitive postcss (build tooling pins an older one):
       // GHSA-qx2v-qp2m-jg93 (XSS in CSS stringify) is fixed in 8.5.10.
