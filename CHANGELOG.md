@@ -35,6 +35,12 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   (`docker/`, `compose/`, `kubernetes/`, `helm/`, `examples/`, `monitoring/`),
   `security/`, `audits/`, `governance/`, `plans/`. Root `.md` files reduced 45 → 7.
   All script/CI/doc references updated and validated.
+- Standardized CI workflow hygiene across all 38 workflows: every workflow now
+  declares a top-level `concurrency` group (`<workflow>-${{ github.ref }}`;
+  `cancel-in-progress: true` for PR/push verification + security gates, `false`
+  for release/deploy/admin/soak runs), and every `upload-artifact` step sets an
+  explicit `retention-days` (coverage 14, evidence/verification 30,
+  release/SBOM/signed/certificate 90, SARIF 5).
 - Stopped tracking generated artifacts (`sbom.json`, `release-inputs.json`).
 
 ### Added (governance docs)
