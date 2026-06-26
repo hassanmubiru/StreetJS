@@ -62,10 +62,14 @@ export function validateSupabaseConfig(input: unknown): SupabasePluginConfig {
   if (o['stateKey'] !== undefined && typeof o['stateKey'] !== 'string') {
     throw new PluginError('Supabase plugin config: "stateKey" must be a string');
   }
+  if (o['timeoutMs'] !== undefined && (typeof o['timeoutMs'] !== 'number' || !Number.isInteger(o['timeoutMs']) || o['timeoutMs'] <= 0)) {
+    throw new PluginError('Supabase plugin config: "timeoutMs" must be a positive integer (milliseconds)');
+  }
   return {
     url: stripTrailingSlashes(o['url'] as string),
     apiKey: o['apiKey'] as string,
     ...(o['stateKey'] !== undefined ? { stateKey: o['stateKey'] as string } : {}),
+    ...(o['timeoutMs'] !== undefined ? { timeoutMs: o['timeoutMs'] as number } : {}),
   };
 }
 
@@ -126,9 +130,10 @@ export class SupabaseClient {
 
   private send(req: SupabaseHttpRequest): Promise<{ status: number; body: string }> {
     const u = new URL(req.url);
+    const timeoutMs = this.config.timeoutMs ?? SUPABASE_DEFAULT_TIMEOUT_MS;
     return new Promise((resolve, reject) => {
       const r = httpsRequest(
-        { method: req.method, hostname: u.hostname, path: u.pathname + u.search, headers: req.headers },
+        { method: req.method, hostname: u.hostname, path: u.pathname + u.search, timeout: timeoutMs, headers: req.headers },
         (res) => {
           let data = '';
           res.on('data', (c) => (data += c));
@@ -136,6 +141,7 @@ export class SupabaseClient {
         },
       );
       r.on('error', (e) => reject(new PluginError(`Supabase request failed: ${e.message}`)));
+      r.once('timeout', () => r.destroy(new PluginError(`Supabase request timed out after ${timeoutMs}ms`)));
       r.end(req.body);
     });
   }
