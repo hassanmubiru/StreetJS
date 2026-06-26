@@ -43,10 +43,8 @@
 /packages/plugin-supabase/          @hassanmubiru
 
 # ── Infra & release evidence ───────────────────────────────────────────
-/deploy/                            @hassanmubiru
 /infra/                             @hassanmubiru
-/observability/                     @hassanmubiru
-/verification-artifacts/            @hassanmubiru
+/infra/monitoring/                  @hassanmubiru
 
 # ── Governance & security docs ─────────────────────────────────────────
 /SECURITY.md                        @hassanmubiru
