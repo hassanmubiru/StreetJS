@@ -7,8 +7,17 @@
 > **[RUNTIME]** plugin/core code change (out of governance scope — separate PR).
 >
 > Everything below is what remains; all governance/organization/CI/docs hardening
-> already applied is recorded in `audits/STREETJS-FULL-AUDIT-REPORT.md` and the
+> already applied is recorded in `audits/STREETJS-MASTER-REPORT.md` (canonical) and the
 > `CHANGELOG.md` `[Unreleased]` section.
+
+## ✅ Completed since this register was created (verified)
+- **#10 app-\* → `examples/scaffold-*`** — moved; `zizmor.yml` + `dependabot.yml` updated; no functional refs left.
+- **#11 SEO files** — `BingSiteAuth.xml` / `googledf*.html` **removed** from the repo + dropped from the root allowlist. *(Operator: re-add them in the website repo.)*
+- **#16 Compose ports** — all 11 host ports bound to `127.0.0.1`; `docker compose config` validates all 6.
+- **#23 `prereqs.mjs` cloudflare path** — fixed to `infra/examples/cloudflare/wrangler.toml`.
+- **Operator tooling generated:** `.github/repository-settings.json`, `security/KEY-ROTATION-CHECKLIST.md`, `security/KEY-EMERGENCY-RUNBOOK.md`, `security/SECRET-SCANNING-GUIDE.md`.
+- **Supply chain:** `scripts/security/verify-release.mjs` + `npm run verify:signatures` (21/21 verified).
+- **Report consolidation:** `audits/REPORT-INDEX.md` (canonical map); `PHASE-20-COMPLETION-REPORT.md` archived.
 
 ## P0 — Critical
 | # | Action | Owner | Source | Done when |
