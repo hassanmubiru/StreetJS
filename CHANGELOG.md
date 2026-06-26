@@ -33,6 +33,11 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Bumped scaffold/example **vite** `^5.4.0` → `^6.4.3` (+ `@vitejs/plugin-react`
   `^4.7.0`) to clear the `server.fs.deny` Windows-ADS advisory; digest-pinned all
   Docker base images.
+- Generated committed `package-lock.json` for all 4 example `web/` apps
+  (`scaffold-react`, `scaffold-next`, `marzpay-react`, `marzpay-next`) via
+  `npm install --package-lock-only` — vite resolves to 6.4.3 and `npm audit`
+  reports 0 vulnerabilities in each, activating the Dependabot npm entries that
+  track those directories.
 - Added per-plugin `SECURITY.md` (21) and `LICENSE` (21).
 
 ### Changed
