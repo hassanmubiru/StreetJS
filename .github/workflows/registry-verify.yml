@@ -52,3 +52,4 @@ jobs:
         with:
           name: registry-publish-install-verification
           path: verification-artifacts/registry/
+          retention-days: 30

@@ -107,3 +107,4 @@ jobs:
         with:
           name: cloud-deployment-verification
           path: verification-artifacts/cloud/
+          retention-days: 30

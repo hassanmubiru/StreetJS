@@ -56,3 +56,4 @@ jobs:
         with:
           name: devtools-verification
           path: verification-artifacts/devx/
+          retention-days: 30
