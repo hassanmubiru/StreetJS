@@ -90,10 +90,10 @@ updates:
   - package-ecosystem: "docker"
     directories:
       - "/infra/docker"
-      - "/app-htmx"
-      - "/app-next"
-      - "/app-none"
-      - "/app-react"
+      - "/examples/scaffold-htmx"
+      - "/examples/scaffold-next"
+      - "/examples/scaffold-none"
+      - "/examples/scaffold-react"
       - "/demos"
     schedule:
       interval: "weekly"
