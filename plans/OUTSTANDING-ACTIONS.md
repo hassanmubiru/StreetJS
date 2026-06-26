@@ -54,7 +54,7 @@
 | 19 | Security **dashboard** (surface Scorecard/alerts) | [MAINTAINER] | `SECURITY-ROADMAP.md` |
 | 20 | Add a real **PGP key** to `SECURITY.md` (replace placeholder; never commit the private key) | [OPERATOR] | `SECURITY.md` |
 | 21 | Per-plugin **example apps** + raise coverage gates (promote ◑→✅ in maturity matrix) | [RUNTIME]+[MAINTAINER] | `PLUGIN-MATURITY-MATRIX.md` |
-| 22 | Standardize CI `retention-days` + `concurrency` across workflows | [MAINTAINER] | `STREETJS-FULL-AUDIT-REPORT.md` Phase 12 |
+| 22 | ✅ **Done** — Standardize CI `retention-days` + `concurrency` across workflows (see Completed section) | [MAINTAINER] | `STREETJS-FULL-AUDIT-REPORT.md` Phase 12 |
 | 23 | Fix latent bug: `scripts/cloud/prereqs.mjs` cloudflare path (`deploy/cloudflare-workers` → `infra/examples/cloudflare`) | [MAINTAINER] | `PHASE-19-MASTER-AUDIT.md` B-1 |
 
 ## P3 — Long-term
