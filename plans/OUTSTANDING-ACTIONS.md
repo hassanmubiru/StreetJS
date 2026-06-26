@@ -34,7 +34,7 @@
 ## P1 — High
 | # | Action | Owner | Source | Done when |
 |---|---|---|---|---|
-| 6 | Fill `@org/*-team` handles in `.github/CODEOWNERS.proposed`, then `git mv` over `.github/CODEOWNERS` | [MAINTAINER] | `CONTRIBUTOR-GOVERNANCE.md` | Live CODEOWNERS uses teams |
+| 6 | Fill `@org/*-team` handles in `.github/CODEOWNERS.proposed`, then `git mv` over `.github/CODEOWNERS` | [MAINTAINER]+[OPERATOR] | `CONTRIBUTOR-GOVERNANCE.md` | Live CODEOWNERS uses teams. *(Maintainer prep done: stale post-reorg paths `/deploy/`,`/observability/`,`/verification-artifacts/` corrected to `/infra/`+`/infra/monitoring/` in both live + proposed files. **Blocked on operator** to supply real GitHub team slugs — placeholders can't be guessed without breaking the Code-Review gate.)* |
 | 7 | `npm install` in the 4 `web/` apps; commit `package-lock.json` (activates Dependabot, finalizes vite fix) | [MAINTAINER] | cleanup plan, Dependabot | Lockfiles committed; Dependabot tracks them |
 | 8 | Add **outbound HTTP timeouts** to the 9 `node:https` plugins (stripe, paypal, twilio, sendgrid, openai, auth0, clerk, firebase, supabase) | [RUNTIME] | `PLUGIN-SECURITY-REPORT.md`, `PLUGIN-MATURITY-MATRIX.md` | Each client enforces a timeout; tests added |
 | 9 | Ship **webhook verifiers** for stripe (`Stripe-Signature`) + twilio (`X-Twilio-Signature`), then paypal + sendgrid | [RUNTIME] | `PLUGIN-SECURITY-AUDIT.md`, `OWASP-ASVS-MAPPING.md` V13 | Constant-time verifier + tests per plugin |
