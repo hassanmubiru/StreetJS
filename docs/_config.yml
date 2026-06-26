@@ -72,6 +72,8 @@ aux_links:
     - "/StreetJS/showcase/"
   "Compare":
     - "/StreetJS/compare/"
+  "Versions":
+    - "/StreetJS/versions/"
   "GitHub":
     - "https://github.com/hassanmubiru/StreetJS"
   "npm":
