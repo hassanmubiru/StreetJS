@@ -1,0 +1,48 @@
+{
+  "_comment": "Settings-as-code for the StreetJS repository. These REQUIRED GitHub settings cannot be enforced from within the tree (Phase 20 Priority 0). Apply via the Settings UI, the `gh` CLI, or the repository-settings GitHub App. See security/BRANCH-PROTECTION-REVIEW.md and plans/OUTSTANDING-ACTIONS.md (P0). Status-check context names must match the job names in .github/workflows/*.",
+  "repository": {
+    "default_branch": "main",
+    "allow_squash_merge": true,
+    "allow_merge_commit": false,
+    "allow_rebase_merge": true,
+    "delete_branch_on_merge": true,
+    "has_issues": true,
+    "has_wiki": false,
+    "security_and_analysis": {
+      "secret_scanning": { "status": "enabled" },
+      "secret_scanning_push_protection": { "status": "enabled" },
+      "dependabot_security_updates": { "status": "enabled" }
+    }
+  },
+  "branches": [
+    {
+      "name": "main",
+      "protection": {
+        "required_pull_request_reviews": {
+          "required_approving_review_count": 1,
+          "require_code_owner_reviews": true,
+          "dismiss_stale_reviews": true
+        },
+        "required_status_checks": {
+          "strict": true,
+          "contexts": [
+            "Secrets Guard (block private keys)",
+            "Core (Node 20)",
+            "Core (Node 22)",
+            "verify-signing-anchor",
+            "gitleaks",
+            "CodeQL",
+            "Root folder allowlist",
+            "Plugin security standard"
+          ]
+        },
+        "required_signatures": true,
+        "required_linear_history": true,
+        "enforce_admins": true,
+        "allow_force_pushes": false,
+        "allow_deletions": false,
+        "restrictions": null
+      }
+    }
+  ]
+}
