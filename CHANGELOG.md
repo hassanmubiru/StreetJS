@@ -42,6 +42,10 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   explicit `retention-days` (coverage 14, evidence/verification 30,
   release/SBOM/signed/certificate 90, SARIF 5).
 - Stopped tracking generated artifacts (`sbom.json`, `release-inputs.json`).
+- Untracked the 4 stale `verification-artifacts/` files committed before the
+  ignore rule (`git rm --cached`); the directory is gitignored and regenerated
+  in CI (`deploy-verify` writes `cloud/`, the `upgrade-codemods` job writes
+  `upgrade/`). The SBOM remains a CI-uploaded release asset.
 
 ### Added (governance docs)
 - `governance/CHARTER.md`, `governance/REPOSITORY-ORGANIZATION.md`,
