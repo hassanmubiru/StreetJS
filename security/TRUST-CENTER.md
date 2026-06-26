@@ -68,3 +68,50 @@
   verifiers (`PLUGIN-SECURITY-AUDIT.md`).
 - Branch protection + Push Protection are platform settings pending enablement
   (`BRANCH-PROTECTION-REVIEW.md`).
+
+
+---
+
+## Canonical security reference (Phase 3)
+
+This is the authoritative security page for StreetJS. Sections below complete the
+Trust Center.
+
+### Supported versions
+Security fixes target the supported `1.0.x` line (`SECURITY.md`, `docs/lts-policy.md`).
+
+### Security contact & responsible disclosure
+- Report privately via GitHub [private vulnerability reporting](https://github.com/hassanmubiru/StreetJS/security/advisories/new) (preferred, encrypted in transit).
+- Acknowledgement ≤ 3 business days; triage ≤ 7. Coordinated disclosure with credit.
+- Plugin issues: see `SECURITY.md` → "Reporting a plugin vulnerability".
+
+### Security advisories & CVE process
+Medium+ issues get a GitHub Security Advisory + CVE ID (GitHub CNA), stating
+affected/patched versions, CVSS v3.1, and remediation. See `SECURITY.md`.
+
+### Release verification (how consumers verify a release)
+```bash
+# npm provenance attestation
+npm audit signatures
+# (planned) verify plugin manifest against the official key — see KEY-ROTATION-RUNBOOK
+```
+Release artifacts are cosign/Sigstore-signed; packages publish with npm provenance.
+
+### Manifest verification
+Every `@streetjs/plugin-*` ships `manifest.signed.json` + `manifest.pub`, verified
+in CI against `officialPluginPublicKey()` (`packages/core/src/platform/plugins/official-key.ts`,
+anchor `3ae9add0`). CI fails if any manifest does not verify (`verify-signing-anchor`).
+
+### Branch protection
+Required configuration documented in `security/BRANCH-PROTECTION-REVIEW.md`
+(required Code-Owner review + status checks incl. `secrets-guard`; linear history;
+no force-push). Platform-side; enablement is tracked P0 in `SECURITY-ROADMAP.md`.
+
+### Compliance & assurance
+- OpenSSF Scorecard review: `audits/OPENSSF-REVIEW.md`
+- SLSA assessment (Build L2, L3 targeted): `security/SLSA-ASSESSMENT.md`
+- NIST SSDF mapping: `security/NIST-SSDF-MAPPING.md`
+- OWASP ASVS mapping: `security/OWASP-ASVS-MAPPING.md`
+- Scoring methodology (reproducible): `audits/SCORING-METHODOLOGY.md`
+- Threat model: `security/THREAT-MODEL-2026.md`
+- Security roadmap: `security/SECURITY-ROADMAP.md`
