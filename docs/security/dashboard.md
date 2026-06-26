@@ -56,7 +56,7 @@ here because a static page cannot assert a runtime value without fabricating it.
 | Signed GitHub releases (cosign keyless) | release job in [`ci-cd.yml`](https://github.com/hassanmubiru/StreetJS/blob/main/.github/workflows/ci-cd.yml) | [NPM-PUBLISH-SECURITY-REVIEW.md](https://github.com/hassanmubiru/StreetJS/blob/main/security/NPM-PUBLISH-SECURITY-REVIEW.md) | Per-release |
 | Dependency review / Dependabot | [`dependency-review.yml`](https://github.com/hassanmubiru/StreetJS/blob/main/.github/workflows/dependency-review.yml), [`dependabot.yml`](https://github.com/hassanmubiru/StreetJS/blob/main/.github/dependabot.yml) | [Dependabot alerts](https://github.com/hassanmubiru/StreetJS/security/dependabot) | UNVERIFIED (live count) |
 | OpenSSF Scorecard | [`scorecard.yml`](https://github.com/hassanmubiru/StreetJS/blob/main/.github/workflows/scorecard.yml) | [audits/OPENSSF-REVIEW.md](https://github.com/hassanmubiru/StreetJS/blob/main/audits/OPENSSF-REVIEW.md) | Badge above (live score) |
-| DAST | [`dast.yml`](https://github.com/hassanmubiru/StreetJS/blob/main/.github/workflows/dast.yml) | [docs/dast]({{ '/dast/' | relative_url }}) | Scheduled |
+| DAST | [`dast.yml`](https://github.com/hassanmubiru/StreetJS/blob/main/.github/workflows/dast.yml) | [docs/dast.md](https://github.com/hassanmubiru/StreetJS/blob/main/docs/dast.md) | Scheduled |
 | Branch protection / required reviews | [`repository-settings.json`](https://github.com/hassanmubiru/StreetJS/blob/main/.github/repository-settings.json) (settings-as-code) | [BRANCH-PROTECTION-REVIEW.md](https://github.com/hassanmubiru/StreetJS/blob/main/security/BRANCH-PROTECTION-REVIEW.md) | UNVERIFIED (operator setting) |
 
 ---
