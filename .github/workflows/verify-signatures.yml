@@ -1,0 +1,71 @@
+# .github/workflows/verify-signatures.yml
+# Plugin signature + supply-chain provenance gate (Outstanding Action #13).
+#
+# Complements the fast, build-free `verify-signing-anchor` job in
+# block-private-keys.yml (which only checks that each manifest.pub FINGERPRINT
+# matches the embedded official anchor). This workflow runs the framework's own
+# verifier through `npm run verify:signatures`, which additionally proves that
+# every committed manifest.signed.json SIGNATURE cryptographically verifies
+# against that anchor (verifyManifest) — catching a tampered or stale signature
+# whose public key still matches. It then runs `npm audit signatures` as an
+# informational provenance check over the installed dependency tree.
+#
+# Path-filtered so the core build only runs when signing-relevant files change.
+name: verify-signatures
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'packages/plugin-*/manifest.signed.json'
+      - 'packages/plugin-*/manifest.pub'
+      - 'packages/core/src/platform/plugins/**'
+      - 'scripts/security/verify-release.mjs'
+      - '.github/workflows/verify-signatures.yml'
+  pull_request:
+    paths:
+      - 'packages/plugin-*/manifest.signed.json'
+      - 'packages/plugin-*/manifest.pub'
+      - 'packages/core/src/platform/plugins/**'
+      - 'scripts/security/verify-release.mjs'
+      - '.github/workflows/verify-signatures.yml'
+
+permissions:
+  contents: read
+
+# ── Concurrency ────────────────────────────────────────────────
+concurrency:
+  group: verify-signatures-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify-signatures:
+    name: Verify plugin signatures + provenance
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+        with:
+          node-version: '20'
+
+      # The verifier imports `verifyManifest` from the built `streetjs`, so core
+      # must be built before it runs.
+      - name: Build core (provides the manifest verifier)
+        run: npm run build -w packages/core
+
+      # FATAL gate: every plugin manifest.pub must match the embedded official
+      # anchor AND its manifest.signed.json signature must verify against it.
+      - name: Verify every plugin manifest signature against the official anchor
+        run: npm run verify:signatures
+
+      # Informational: cryptographically verify registry signatures / provenance
+      # of the installed dependency tree. Non-fatal because third-party packages
+      # without npm registry signatures are expected and must not fail StreetJS's
+      # own release gate (the FATAL gate above is what protects the trust anchor).
+      - name: npm audit signatures (dependency-tree provenance, informational)
+        continue-on-error: true
+        run: npm audit signatures
