@@ -75,7 +75,7 @@ front-door set; historical reports under `*/archive/`. Detail: `governance/REPOS
 | Incident response / security SLA | [VERIFIED] `SECURITY.md` + `security/KEY-EMERGENCY-RUNBOOK.md` |
 | Plugin certification | [VERIFIED] `docs/ecosystem/plugin-certification.md` |
 | Contribution policy | [VERIFIED] `CONTRIBUTING.md`, `governance/CONTRIBUTOR-GOVERNANCE.md` |
-| Support matrix / backport policy | [GAP/REC] add `docs/enterprise/support-matrix.md` (version × support window × backport rule) |
+| Support matrix / backport policy | [VERIFIED] `docs/enterprise/support-matrix.md` (version support + backport + platform matrix) |
 | Commercial support policy | [GAP/REC] add if a commercial offering exists (else mark community-only) |
 | Change/risk management | [PARTIAL] RFC + CODEOWNERS + `risk-assessment.md`; **[REC]** formalize a CHANGE-MANAGEMENT note |
 

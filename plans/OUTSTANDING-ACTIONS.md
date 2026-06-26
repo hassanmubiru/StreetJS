@@ -18,6 +18,7 @@
 - **Operator tooling generated:** `.github/repository-settings.json`, `security/KEY-ROTATION-CHECKLIST.md`, `security/KEY-EMERGENCY-RUNBOOK.md`, `security/SECRET-SCANNING-GUIDE.md`.
 - **Supply chain:** `scripts/security/verify-release.mjs` + `npm run verify:signatures` (21/21 verified).
 - **Report consolidation:** `audits/REPORT-INDEX.md` (canonical map); `PHASE-20-COMPLETION-REPORT.md` archived.
+- **#6 (partial) Support matrix** — `docs/enterprise/support-matrix.md` created (version support + backport + platform/runtime matrix). *Remaining: commercial-support SLA tiers (operator, only if a commercial offering exists).*
 
 ## P0 — Critical
 | # | Action | Owner | Source | Done when |
