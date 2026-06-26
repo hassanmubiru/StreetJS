@@ -34,8 +34,22 @@ theme: just-the-docs
 
 # ── just-the-docs configuration ───────────────────────────────────────────────
 color_scheme:    light
+
+# ── Search (just-the-docs built-in, client-side Lunr index) ───────────────────
+# Docs are fully searchable out of the box — no Algolia/Pagefind needed for a
+# site of this size. The map below tunes result quality (content previews,
+# heading-level granularity, keyboard focus shortcut).
 search_enabled:  true
 search_tokenizer_separator: /[\s\-/]+/
+search:
+  heading_level: 3          # index up to h3 so deep sections are findable
+  previews: 3               # show up to 3 content previews per result
+  preview_words_before: 5
+  preview_words_after: 12
+  tokenizer_separator: /[\s\-/]+/
+  rel_url: true
+  button: false
+  focus_shortcut_key: 's'   # press "s" to focus the search box
 
 heading_anchors: true
 back_to_top:     true
