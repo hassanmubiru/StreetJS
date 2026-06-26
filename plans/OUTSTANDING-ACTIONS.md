@@ -19,6 +19,7 @@
 - **Supply chain:** `scripts/security/verify-release.mjs` + `npm run verify:signatures` (21/21 verified).
 - **Report consolidation:** `audits/REPORT-INDEX.md` (canonical map); `PHASE-20-COMPLETION-REPORT.md` archived.
 - **#6 (partial) Support matrix** — `docs/enterprise/support-matrix.md` created (version support + backport + platform/runtime matrix). *Remaining: commercial-support SLA tiers (operator, only if a commercial offering exists).*
+- **Foundation readiness** — `governance/DECISION-PROCESS.md` created (roles, lazy consensus, RFC workflow, voting/escalation, neutrality). *Remaining gating items: multi-org neutral maintainership + trademark policy (operator/community).*
 
 ## P0 — Critical
 | # | Action | Owner | Source | Done when |
