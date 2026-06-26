@@ -46,10 +46,8 @@
 /packages/plugin-supabase/          @hassanmubiru @org/identity-team
 
 # ── Infra & release evidence ───────────────────────────────────────────
-/deploy/                            @hassanmubiru @org/platform-team
 /infra/                             @hassanmubiru @org/platform-team
-/observability/                     @hassanmubiru @org/platform-team
-/verification-artifacts/            @hassanmubiru @org/release-team
+/infra/monitoring/                  @hassanmubiru @org/platform-team
 
 # ── Governance & security docs ─────────────────────────────────────────
 /SECURITY.md                        @hassanmubiru @org/security-team
