@@ -46,6 +46,10 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   ignore rule (`git rm --cached`); the directory is gitignored and regenerated
   in CI (`deploy-verify` writes `cloud/`, the `upgrade-codemods` job writes
   `upgrade/`). The SBOM remains a CI-uploaded release asset.
+- Corrected stale `.github/CODEOWNERS` (and `CODEOWNERS.proposed`) paths left by
+  the reorg: dropped the no-longer-existent `/deploy/`, `/observability/`, and
+  the now-untracked `/verification-artifacts/` rules; added `/infra/` +
+  `/infra/monitoring/`. (Team-slug fill-in remains an operator task.)
 
 ### Added (governance docs)
 - `governance/CHARTER.md`, `governance/REPOSITORY-ORGANIZATION.md`,
