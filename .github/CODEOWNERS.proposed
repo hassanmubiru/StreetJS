@@ -1,8 +1,17 @@
-# PROPOSED CODEOWNERS — review, replace @org/*-team placeholders with real
-# teams/handles, then move over .github/CODEOWNERS. Last matching pattern wins,
-# so specific rules are placed AFTER the catch-all.
+# PROPOSED CODEOWNERS — team-based ownership template.
 #
-# Requires branch protection with "Require review from Code Owners" to take effect.
+# HOW TO CUSTOMIZE (maintainers):
+#   1. Replace each `@org/<name>-team` placeholder with a real GitHub team
+#      (e.g. `@streetjs/security`) or individual handle (e.g. `@alice`).
+#      Teams must exist in the org and have write access to be valid code owners.
+#   2. Keep at least one owner per security-sensitive path (signing anchor, CI,
+#      payment/identity plugins) — these are the highest-risk review gates.
+#   3. Move this file over the live one:  git mv .github/CODEOWNERS.proposed .github/CODEOWNERS
+#   4. Enable "Require review from Code Owners" in branch protection
+#      (.github/repository-settings.json) so the rules are enforced.
+#
+# Last matching pattern wins, so specific rules are placed AFTER the catch-all.
+# Until teams exist, the live .github/CODEOWNERS uses the single verified owner.
 
 *                                   @hassanmubiru
 
