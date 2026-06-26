@@ -1,6 +1,7 @@
-# StreetJS — Master Security, Governance, Organization & Release Report
+# StreetJS — Official Enterprise Audit & Repository Modernization Report
 
-> **Single authoritative report** consolidating every audit/hardening phase to date.
+> **Canonical, publishable enterprise audit** (formerly `STREETJS-MASTER-REPORT.md`).
+> Single authoritative report consolidating every audit/hardening phase to date.
 > Self-contained for executive + technical review; companion docs are cross-referenced
 > for depth. Evidence-based (`git`, `openssl`/`node` fingerprinting, `docker compose
 > config`, `npm run verify:signatures`, direct file reads).
