@@ -20,7 +20,8 @@
 | `security/{SLSA-ASSESSMENT,NIST-SSDF-MAPPING,OWASP-ASVS-MAPPING}.md` | Compliance mappings |
 | `audits/{OPENSSF-REVIEW,SCORING-METHODOLOGY,REPOSITORY-METRICS}.md` | Reproducible scoring inputs |
 | `audits/{DOCKER-REVIEW,PLUGIN-SECURITY-REPORT,PLUGIN-MATURITY-MATRIX}.md` | Domain reviews |
-| `audits/ENTERPRISE-READINESS-2026.md` | Current readiness + framework benchmark |
+| `audits/ENTERPRISE-READINESS-PHASE-18.md` | **Current** enterprise-readiness assessment (A–M, evidence-tagged) |
+| `audits/ENTERPRISE-READINESS-2026.md` | Prior readiness + framework benchmark (companion) |
 | `audits/PHASE-20-FINAL-REPORT.md` | Latest phase deliverable record |
 | `security/{KEY-ROTATION-RUNBOOK,KEY-ROTATION-CHECKLIST,KEY-EMERGENCY-RUNBOOK,SECRET-SCANNING-GUIDE}.md` | Operator runbooks |
 | `security/{SECURITY-AUDIT,PLUGIN-SECURITY-AUDIT,PLUGIN-SECURITY-STANDARD,MARZPAY-SECURITY-REVIEW,SECRET-EXPOSURE-REPORT,BRANCH-PROTECTION-REVIEW,NPM-PUBLISH-SECURITY-REVIEW,INFRASTRUCTURE-SECURITY-REVIEW,THREAT-MODEL-2026,SECURITY-ROADMAP}.md` | Security detail |
