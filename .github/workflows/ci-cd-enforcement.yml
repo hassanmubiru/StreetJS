@@ -22,6 +22,11 @@ name: CI/CD Enforcement
 permissions:
   contents: read
 
+# ── Concurrency ────────────────────────────────────────────────
+concurrency:
+  group: ci-cd-enforcement-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   # ── code-hygiene: Scan for TODOs, FIXMEs, HACKs, @ts-ignore ─────────────
   # Fails the build if any of these markers are found in packages/core/src/

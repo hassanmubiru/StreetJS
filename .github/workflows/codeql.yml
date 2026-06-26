@@ -24,6 +24,11 @@ on:
 permissions:
   contents: read
 
+# ── Concurrency ────────────────────────────────────────────────
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   analyze:
     name: Analyze (${{ matrix.language }})

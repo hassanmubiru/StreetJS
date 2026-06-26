@@ -20,6 +20,11 @@ on:
 permissions:
   contents: read
 
+# ── Concurrency ────────────────────────────────────────────────
+concurrency:
+  group: dast-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   dast:
     runs-on: ubuntu-latest

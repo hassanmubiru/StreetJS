@@ -18,6 +18,11 @@ on:
 permissions:
   contents: read
 
+# ── Concurrency ────────────────────────────────────────────────
+concurrency:
+  group: mongodb-integration-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   mongodb-integration:
     runs-on: ubuntu-latest

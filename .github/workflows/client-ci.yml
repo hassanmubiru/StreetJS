@@ -16,6 +16,11 @@ on:
 permissions:
   contents: read
 
+# ── Concurrency ────────────────────────────────────────────────
+concurrency:
+  group: client-ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   client-ci:
     runs-on: ubuntu-latest

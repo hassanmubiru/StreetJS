@@ -24,6 +24,11 @@ on:
 permissions:
   contents: read
 
+# ── Concurrency ────────────────────────────────────────────────
+concurrency:
+  group: kafka-integration-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   kafka-integration:
     runs-on: ubuntu-latest
