@@ -16,6 +16,46 @@
 
 ---
 
+## 0. Executive Snapshot — Phase 19 (2026-06)
+
+> CTO/architecture-board view. Evidence-based; tags VERIFIED/PARTIAL/GAP. Detail in
+> §1–15 below and `audits/ENTERPRISE-READINESS-PHASE-18.md`.
+
+**Verdict: GO WITH CONDITIONS · Overall ~83/100 (A-) · Maturity Level 3–4 (Enterprise Ready, gated by operator + bus-factor items).**
+
+| Area | Score | Grade |
+|---|---|---|
+| Repository Organization | 90 | A |
+| Security | 70 → 86* | B+ → A |
+| Supply Chain (SLSA L2) | 82 | A- |
+| Governance | 72 | B+ |
+| Documentation | 88 | A |
+| Developer Experience | 84 | A- |
+| Architecture | 88 | A |
+| Enterprise Readiness | 85 | A- |
+| Ecosystem | 78 | B+ |
+| Operations | 84 | A- |
+| **Overall** | **83** | **A-** |
+
+`*` Security projects to ~86/A once branch/push protection are enabled and the
+(already-distrusted) leaked-key blob is purged from history.
+
+**Top conditions to clear (P0/P1):** (1) branch + push protection + signed commits
+[OPERATOR]; (2) purge leaked-key history + relocate on-disk keys [OPERATOR];
+(3) CODEOWNERS teams + grow maintainers — neutrality/bus-factor [MAINTAINER];
+(4) plugin HTTP timeouts + webhook verifiers [RUNTIME]; (5) starter breadth
+(CRM/admin/microservices/auth/payments) [MAINTAINER].
+
+**Foundation (OpenJS/CNCF) readiness:** licensing/security/release/docs bars met;
+gating items are **multi-org neutral maintainership**, trademark policy, and a
+documented decision process. **Differentiator vs peers:** signed + CI-verified plugin
+trust model with provenance + SBOM — exceeds Express/Fastify/Vite and matches
+Next/Nest/Nuxt on structure and release engineering. Full risk register + roadmap:
+`plans/OUTSTANDING-ACTIONS.md`; compliance: `audits/OPENSSF-REVIEW.md`,
+`security/{SLSA-ASSESSMENT,NIST-SSDF-MAPPING,OWASP-ASVS-MAPPING}.md`.
+
+---
+
 ## 1. Executive Summary
 
 StreetJS is a security-forward TypeScript monorepo framework (49 packages, 21 signed
