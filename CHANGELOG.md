@@ -7,6 +7,41 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [Unreleased]
+
+> Repository-level governance, security, and organization hardening. **No
+> `@streetjs/core` runtime, public API, or published-package path changed** — these
+> are repo structure, CI, and security-control changes only (backward compatible).
+
+### Security
+- **Rotated the official plugin-signing key** (embedded anchor in
+  `packages/core/src/platform/plugins/official-key.ts`); re-signed all 21 plugins
+  so every `manifest.pub` matches the new anchor. The previously-leaked key is
+  distrusted. See `security/KEY-ROTATION-RUNBOOK.md`.
+- Added CI security gates: `secrets-guard` (rule #1 in `ci-cd.yml`, gates the
+  release chain), `block-private-keys.yml`, `repository-policy.yml`,
+  `security-baseline.yml`.
+- Hardened `.gitleaks.toml` (PEM private-key + cloud-credential rules; removed the
+  false signing-key allowlist; commit-scoped accept for the known historical blob),
+  `.gitignore` (RESTRICTED + local-artifact patterns), and `dependabot.yml`
+  (npm web apps + Docker dirs).
+- Bumped scaffold/example **vite** `^5.4.0` → `^6.4.3` (+ `@vitejs/plugin-react`
+  `^4.7.0`) to clear the `server.fs.deny` Windows-ADS advisory; digest-pinned all
+  Docker base images.
+- Added per-plugin `SECURITY.md` (21) and `LICENSE` (21).
+
+### Changed
+- Reorganized the repository to mature-framework layout: `infra/`
+  (`docker/`, `compose/`, `kubernetes/`, `helm/`, `examples/`, `monitoring/`),
+  `security/`, `audits/`, `governance/`, `plans/`. Root `.md` files reduced 45 → 7.
+  All script/CI/doc references updated and validated.
+- Stopped tracking generated artifacts (`sbom.json`, `release-inputs.json`).
+
+### Added (governance docs)
+- `governance/CHARTER.md`, `governance/REPOSITORY-ORGANIZATION.md`,
+  `security/SECURITY-CLASSIFICATION.md`, `security/PLUGIN-SECURITY-STANDARD.md`,
+  and audit deliverables under `audits/` and `security/`.
+
 ---
 
 ## [1.0.25] - 2026-06-22
