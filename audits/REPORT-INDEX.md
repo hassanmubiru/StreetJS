@@ -27,13 +27,11 @@
 | `governance/{CHARTER,REPOSITORY-ORGANIZATION,RELEASE-POLICY,CONTRIBUTOR-GOVERNANCE}.md` | Governance |
 | `plans/{OUTSTANDING-ACTIONS,REPOSITORY-CLEANUP-PLAN}.md` | Action registers |
 
-## Historical (point-in-time records — keep, do not edit)
-`audits/PHASE-19-MASTER-AUDIT.md`*, `audits/SECURITY-AUDIT-2026.md`,
-`audits/{ECOSYSTEM-PLUGINS-AUDIT,LANGUAGE-STATS-AUDIT,MARZPAY-INTEGRATION-REPORT,SHOWCASE-AUDIT,PHASE-18-AUDIT,REPO-ORGANIZATION-PLAN,REPOSITORY-HARDENING-REPORT}.md`,
-`audits/ENTERPRISE-READINESS.md` (Phase 17), `audits/ENTERPRISE-READINESS-COMPARISON.md`,
-`audits/STREETJS-FULL-AUDIT-REPORT.md` (14-phase detail behind the master report),
-`security/{PHASE-19-MASTER-AUDIT,THREAT-MODEL-UPDATE,SECURITY-HARDENING-SPRINT,SECURITY-SCORECARD,PLUGIN-SIGNING-REVIEW,PAYMENTS-SECURITY-REVIEW,PRIVACY-POLICY-FOR-REPO}.md`.
-<br>(*`PHASE-19-MASTER-AUDIT.md` lives under `security/`.)
+## Historical (point-in-time records — kept IN PLACE, do not edit)
+`audits/ENTERPRISE-READINESS.md` (Phase 17 — retained in place, heavily referenced),
+`security/{PLUGIN-SIGNING-REVIEW,PAYMENTS-SECURITY-REVIEW,PRIVACY-POLICY-FOR-REPO}.md`,
+`security/SECURITY-AUDIT.md` (evidence). Everything else point-in-time has been moved
+to `*/archive/` (see "Superseded → archived" below).
 
 ## Superseded → archived
 Historical/superseded reports now live under `*/archive/` (git history preserved):
