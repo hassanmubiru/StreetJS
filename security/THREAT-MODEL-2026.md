@@ -93,3 +93,26 @@
 7. **PAY-3 (HIGH)** MarzPay idempotency store + tenant derivation — Medium.
 8. **GEN-1, AUTH-4/5/6/7, PAY-4, PS-3/PS-4, CI-1/CI-2 (MEDIUM)** — mostly Low–Medium.
 9. **LOW tier** (AUTH-8…11, HTMX-6, PAY-5, GEN-2/3, CI-3…5) — hardening.
+
+
+---
+
+## Addendum (Phase 12) — Supply-chain & ecosystem threats
+
+| Threat | Vector | Mitigation (in place) | Residual / action |
+|---|---|---|---|
+| **Dependency confusion** | Internal name resolves to public malicious pkg | Scoped `@streetjs/*` names; dependency-free plugin design; `dependency-review.yml` | Reserve scopes; keep deps minimal |
+| **Typosquatting (consumed)** | Look-alike dep names | Minimal deps; Dependency Review; lockfile pinning | Commit `web/` lockfiles |
+| **Typosquatting (of us)** | Fake `@streetjs/*` look-alikes | Official scope + signed manifests verified against anchor | Publish trust docs (Trust Center) |
+| **Plugin compromise** | Malicious/hijacked plugin | Ed25519 signing + CI verify against `officialPluginPublicKey()`; `no-plugin-dockerfiles`; code-safety (0 eval/exec) | Keyless signing (P2) |
+| **Webhook forgery** | Spoofed provider callback | Constant-time HMAC + fail-closed; server-side re-verify (marzpay) | Verifiers for stripe/twilio/paypal/sendgrid (P1) |
+| **CI compromise** | Malicious workflow / token abuse | Least-privilege `permissions:`, SHA-pinned actions, no `pull_request_target`, zizmor, `secrets-guard` rule #1 | Branch protection (P0) |
+| **Credential leakage** | Secret committed | gitleaks + trufflehog + `secrets-guard` + RESTRICTED `.gitignore` + push protection | Enable push protection (P0); purge history (P0) |
+| **Malicious pull requests** | Hostile contributor PR | CODEOWNERS review, required checks, no fork secret exposure | Branch protection + CODEOWNERS teams |
+| **Registry attacks / package hijacking** | npm account/token compromise | npm provenance, automation token in CI only, 2FA-bypassing token scoped | npm org 2FA + publish-from-CI-only enforcement |
+| **Release-pipeline compromise** | Tampered build/sign step | Version-lockstep gate, signed manifests verified, provenance, cosign | SLSA L3 (keyless + isolation) |
+| **Social engineering** | Maintainer impersonation | Private disclosure channel, advisory process | Grow MAINTAINERS; security-team verification |
+| **Insider threats** | Trusted-actor abuse | CODEOWNERS, audit logs, signed commits (recommended), dual-control releases | Enforce signed commits + dual-control (P2) |
+
+Cross-reference: `audits/OPENSSF-REVIEW.md`, `security/SLSA-ASSESSMENT.md`,
+`security/SECURITY-ROADMAP.md`.
