@@ -50,7 +50,7 @@
 | Responsible disclosure | [VERIFIED] | `SECURITY.md` |
 | Procurement/security questionnaire / risk assessment | [VERIFIED] | `docs/enterprise/procurement-faq.md`, `risk-assessment.md` |
 | Reference architectures / deployment guide | [VERIFIED] | `infra/examples/*`, `docs/deployment/` |
-| Platform support matrix | [PARTIAL] | covered partly by `docs/compatibility.md` + `lts-policy.md`; **[REC]** add an explicit `docs/enterprise/support-matrix.md` |
+| Platform support matrix | [VERIFIED] | `docs/enterprise/support-matrix.md` (version support + backport + platform/runtime matrix, grounded in `engines`) |
 | Data-flow diagrams | [PARTIAL] | architecture-overview present; **[REC]** add explicit DFDs |
 
 ## C — Documentation audit
