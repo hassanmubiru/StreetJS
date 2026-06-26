@@ -108,12 +108,14 @@ export class SendGridClient {
   async send(msg: MailMessage): Promise<number> {
     const r = this.buildMailSendRequest(msg);
     const u = new URL(r.url);
+    const timeoutMs = this.config.timeoutMs ?? SENDGRID_DEFAULT_TIMEOUT_MS;
     return new Promise<number>((resolve, reject) => {
       const req = httpsRequest(
-        { method: r.method, hostname: u.hostname, path: u.pathname, headers: { ...r.headers, 'content-length': Buffer.byteLength(r.body).toString() } },
+        { method: r.method, hostname: u.hostname, path: u.pathname, timeout: timeoutMs, headers: { ...r.headers, 'content-length': Buffer.byteLength(r.body).toString() } },
         (res) => { res.resume(); res.once('end', () => resolve(res.statusCode ?? 0)); },
       );
       req.once('error', reject);
+      req.once('timeout', () => req.destroy(new PluginError(`SendGrid: request timed out after ${timeoutMs}ms`)));
       req.end(r.body);
     });
   }

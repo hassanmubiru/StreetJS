@@ -10,7 +10,10 @@ import type { MiddlewareFn } from '../../../core/types.js';
 export const AUTH0_PLUGIN_NAME = 'street-plugin-auth0';
 export const AUTH0_PLUGIN_VERSION = '1.0.0';
 
-export interface Auth0PluginConfig { domain: string; clientId: string; clientSecret: string; audience?: string; stateKey?: string; }
+/** Default outbound-request timeout (ms) when config omits `timeoutMs`. */
+export const AUTH0_DEFAULT_TIMEOUT_MS = 30_000;
+
+export interface Auth0PluginConfig { domain: string; clientId: string; clientSecret: string; audience?: string; stateKey?: string; timeoutMs?: number; }
 export interface Auth0HttpRequest { method: 'POST'; url: string; headers: Record<string, string>; body: string; }
 
 export function auth0PluginManifest(): PluginManifest {
