@@ -44,8 +44,6 @@ jobs:
           .gitleaks.toml
           .dockerignore
           .env.example
-          BingSiteAuth.xml
-          googledf528d4f2b039b20.html
           EOF
           )
           fail=0
