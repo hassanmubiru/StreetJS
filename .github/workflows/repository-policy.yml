@@ -94,3 +94,22 @@ jobs:
           done
           [ "$fail" -eq 0 ] && echo "All governance/security policy docs present ✔"
           exit $fail
+
+  no-plugin-dockerfiles:
+    name: Plugins must not ship Dockerfiles
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - name: No Dockerfile / compose / deploy assets inside packages/plugin-*
+        run: |
+          # Plugins are libraries — they must not carry container/deploy assets
+          # (see audits/DOCKER-REVIEW.md, PLUGIN-SECURITY-STANDARD.md). Deployable
+          # services (e.g. packages/registry-server) are intentionally exempt.
+          if git ls-files 'packages/plugin-*' | grep -EI '(^|/)(Dockerfile|docker-compose.*\.ya?ml|.*\.tf|.*\.tfvars)$'; then
+            echo "::error::A plugin package ships a Dockerfile/compose/IaC asset. Move it to examples/ or infra/docker/."
+            exit 1
+          fi
+          echo "No deploy assets inside plugin packages ✔"
