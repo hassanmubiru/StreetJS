@@ -294,6 +294,7 @@ jobs:
         with:
           name: cli-migration-coverage-${{ matrix.node }}-${{ github.sha }}
           path: packages/cli/coverage/
+          retention-days: 14
 
   # ── memory-leak: Memory safety & wire protocol ─────────────────────────
   # Purpose:   Run memory leak detection tests and wire protocol compliance
