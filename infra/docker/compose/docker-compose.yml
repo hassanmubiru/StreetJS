@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: street_secret
       POSTGRES_DB: street_test
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - ../../../packages/core/docker-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
@@ -24,7 +24,7 @@ services:
     container_name: street_app
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     environment:
       NODE_ENV: production
       PORT: "3000"

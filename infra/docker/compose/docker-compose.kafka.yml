@@ -11,7 +11,7 @@ services:
     image: apache/kafka:3.7.1
     container_name: street-kafka
     ports:
-      - "9092:9092"     # external (host) listener
+      - "127.0.0.1:9092:9092"     # external (host) listener
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller

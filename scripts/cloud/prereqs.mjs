@@ -102,7 +102,7 @@ export function runBinaryOfflineArtifacts(target, opts = {}) {
       break;
     }
     case 'cloudflare-workers': {
-      const cfg = `${repoRoot}/deploy/cloudflare-workers/wrangler.toml`;
+      const cfg = `${repoRoot}/infra/examples/cloudflare/wrangler.toml`;
       if (existsSync(cfg)) {
         checks.push(runBinaryCheck('wrangler-dry-run', 'npx', ['wrangler', 'deploy', '--dry-run', '--config', cfg]));
       }
