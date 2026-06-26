@@ -71,3 +71,36 @@ Plugin signing integrity is enforced in CI: every official plugin manifest is
 verified against the official key in
 `packages/core/src/platform/plugins/official-key.ts`, and a `secrets-guard` gate
 blocks private-key material from the release pipeline.
+
+## Reporting a plugin vulnerability
+
+Official plugins (`@streetjs/plugin-*`) are in scope and use the **same private
+reporting channel** above. When reporting a plugin issue, include the plugin name
+and version, and whether it affects the plugin's published `manifest.signed.json`
+(signature/trust) or its runtime behavior (e.g. webhook verification, credential
+handling). Each plugin ships a `SECURITY.md` pointing here. Plugin signing/trust
+issues (a signature that verifies against the official key but should not, or a
+key-rotation concern) are treated as **Critical** and follow the rotation
+procedure in [`security/KEY-ROTATION-RUNBOOK.md`](./security/KEY-ROTATION-RUNBOOK.md).
+
+## CVE / advisory policy
+
+For any Medium+ vulnerability with downstream impact we publish a
+**GitHub Security Advisory (GHSA)** and request a **CVE ID** through GitHub's CVE
+Numbering Authority. The advisory states affected version ranges, the patched
+version, severity (CVSS v3.1), and remediation/workaround. Critical/High fixes are
+released on the supported `1.0.x` line and noted in the changelog and the advisory.
+Coordinated disclosure: we agree a timeline with the reporter and credit them
+(unless they prefer anonymity).
+
+## Encrypted reporting
+
+GitHub's [private vulnerability reporting](https://github.com/hassanmubiru/StreetJS/security/advisories/new)
+encrypts the report in transit and is the **preferred** channel — no separate key
+exchange is required. If you must share an encrypted attachment out of band,
+request the maintainers' current PGP public key in your initial (non-sensitive)
+report and we will provide it.
+
+<!-- MAINTAINERS: to publish a standing PGP key, replace this comment with the
+     ASCII-armored public key block and its fingerprint. Do NOT commit a private
+     key. Leaving this as GitHub-native encrypted reporting is acceptable. -->
