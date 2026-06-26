@@ -7,9 +7,10 @@
 > identify obsolete, recommend consolidation* — without deleting evidence.
 
 ## Canonical
-- **`audits/STREETJS-MASTER-REPORT.md`** — the single authoritative enterprise audit
-  (exec summary, metrics, organization, security, compliance, plugin/docker/supply-chain/
-  docs/governance, scores, risk, outstanding actions, validation). **Start here.**
+- **`audits/ENTERPRISE-AUDIT.md`** — the single authoritative, publishable enterprise
+  audit (formerly `STREETJS-MASTER-REPORT.md`; exec summary, metrics, organization,
+  security, compliance, plugin/docker/supply-chain/docs/governance, scores, risk,
+  outstanding actions, validation). **Start here.**
 
 ## Active companions (current — keep, referenced for depth)
 | Doc | Role |
