@@ -1,3 +1,12 @@
+---
+layout: default
+title: Support Matrix
+parent: Enterprise
+nav_order: 5
+permalink: /enterprise/support-matrix/
+description: "StreetJS version-support, platform, runtime, and backport matrix for enterprise adopters, procurement, and security reviewers."
+---
+
 # StreetJS Support & Platform Matrix
 
 > **Purpose:** the authoritative version-support, platform, and backport matrix for
