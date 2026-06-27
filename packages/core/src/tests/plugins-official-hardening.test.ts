@@ -7,14 +7,14 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { createHmac } from 'node:crypto';
+import { createHmac, generateKeyPairSync, sign as cryptoSign } from 'node:crypto';
 import {
   validateStripeConfig, verifyStripeWebhook, STRIPE_DEFAULT_TIMEOUT_MS,
 } from '../platform/plugins/official/stripe.js';
 import {
   validateTwilioConfig, verifyTwilioSignature, TWILIO_DEFAULT_TIMEOUT_MS,
 } from '../platform/plugins/official/twilio.js';
-import { validateSendGridConfig } from '../platform/plugins/official/sendgrid.js';
+import { validateSendGridConfig, verifySendGridWebhook } from '../platform/plugins/official/sendgrid.js';
 import { validateAuth0Config } from '../platform/plugins/official/auth0.js';
 
 describe('plugin outbound timeout config', () => {
