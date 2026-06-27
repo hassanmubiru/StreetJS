@@ -14,17 +14,10 @@ useDefault = true
 [allowlist]
 description = "Known public/test fixtures that are not real secrets."
 
-# ACCEPTED KNOWN FINDING (not a denial): commit d7bbfc40 committed the real
-# official signing private key. It is genuinely leaked and is treated as
-# COMPROMISED — the trust anchor was rotated to 3ae9add0 and the old key is
-# DISTRUSTED (see security/KEY-ROTATION-RUNBOOK.md). This commit is allowlisted
-# ONLY so full-history secret scans don't fail on this single already-handled
-# historical commit; it does NOT exempt the file path, so any NEW private key in
-# any other commit is still flagged. REMOVE this entry once history is purged
-# (KEY-ROTATION-RUNBOOK §7), after which the blob no longer exists to detect.
-commits = [
-  "d7bbfc4050b6310da1fc8c73f769626084bb988d",
-]
+# NOTE: the historical leaked-key commit allowlist (d7bbfc40…) was REMOVED after
+# the 2026 history purge (KEY-ROTATION-RUNBOOK §7). A full-history gitleaks scan
+# no longer finds `street-signing.key.pem`, confirming the blob is gone from
+# branches/tags; the rotated key (anchor 3ae9add0) remains the trust root.
 
 # Paths that only ever contain fixtures, fakes, sample env templates, docs, or
 # gitignored build artifacts / local env (never committed source secrets).
@@ -33,9 +26,18 @@ paths = [
   '''\.env\.example$''',
   '''(^|/)dist/''',
   '''(^|/)docs/''',
+  '''(^|/)\.next/''',
   '''.*/tests/.*\.test\.(ts|js)$''',
   '''.*/examples/.*''',
   '''packages/.*/example/.*''',
+  # Security/audit documentation that quotes example secrets, PEM headers, or
+  # provider tokens as illustrative EVIDENCE (not real material). Real own-line
+  # PEM key material is still blocked everywhere by the `secrets-guard` and
+  # `block-private-keys` CI jobs (anchored own-line regex), so exempting these
+  # prose docs from gitleaks does not weaken protection against actual keys.
+  '''(^|/)SECURITY-AUDIT\.md$''',
+  '''(^|/)security/SECRET-SCANNING-GUIDE\.md$''',
+  '''(^|/)security/THREAT-MODEL-2026\.md$''',
 ]
 
 # Specific well-known/public or obviously-fake values used in tests, docs, and
