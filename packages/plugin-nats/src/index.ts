@@ -78,17 +78,6 @@ export function validateNatsConfig(input: unknown): NatsPluginConfig {
   if (o['timeoutMs'] !== undefined && (typeof o['timeoutMs'] !== 'number' || o['timeoutMs'] <= 0)) {
     throw new PluginError('NATS plugin config: "timeoutMs" must be a positive number');
   }
-  if (o['tls'] !== undefined && typeof o['tls'] !== 'boolean') {
-    throw new PluginError('NATS plugin config: "tls" must be a boolean');
-  }
-  if (o['tlsRejectUnauthorized'] !== undefined && typeof o['tlsRejectUnauthorized'] !== 'boolean') {
-    throw new PluginError('NATS plugin config: "tlsRejectUnauthorized" must be a boolean');
-  }
-  for (const k of ['tlsServerName', 'tlsCa'] as const) {
-    if (o[k] !== undefined && typeof o[k] !== 'string') {
-      throw new PluginError(`NATS plugin config: "${k}" must be a string`);
-    }
-  }
 
   return {
     host,
