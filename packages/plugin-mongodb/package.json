@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/plugin-mongodb",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Official StreetJS plugin: MongoDB (dependency-free BSON + OP_MSG + SCRAM-SHA-256 client).",
   "type": "module",
   "main": "./dist/index.js",
