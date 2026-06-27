@@ -117,3 +117,30 @@ describe('verifyTwilioSignature', () => {
     assert.equal(verifyTwilioSignature(authToken, url, params, ''), false);
   });
 });
+
+describe('verifySendGridWebhook', () => {
+  // SendGrid Event Webhook uses ECDSA P-256 over `${timestamp}${payload}`.
+  const { publicKey, privateKey } = generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
+  const pubPem = publicKey.export({ type: 'spki', format: 'pem' }).toString();
+  const pubB64 = publicKey.export({ type: 'spki', format: 'der' }).toString('base64');
+  const ts = '1600000000';
+  const payload = '[{"event":"delivered"}]';
+
+  function sigFor(body, timestamp) {
+    return cryptoSign('sha256', Buffer.concat([Buffer.from(timestamp), Buffer.from(body)]), privateKey).toString('base64');
+  }
+
+  it('accepts a valid signature (PEM key)', () => {
+    assert.equal(verifySendGridWebhook(pubPem, payload, sigFor(payload, ts), ts), true);
+  });
+  it('accepts a valid signature (base64 DER key, as the dashboard provides)', () => {
+    assert.equal(verifySendGridWebhook(pubB64, payload, sigFor(payload, ts), ts), true);
+  });
+  it('rejects a tampered payload / timestamp / empty inputs', () => {
+    const sig = sigFor(payload, ts);
+    assert.equal(verifySendGridWebhook(pubPem, payload + 'x', sig, ts), false);
+    assert.equal(verifySendGridWebhook(pubPem, payload, sig, '1600000001'), false);
+    assert.equal(verifySendGridWebhook(pubPem, payload, '', ts), false);
+    assert.equal(verifySendGridWebhook('', payload, sig, ts), false);
+  });
+});
