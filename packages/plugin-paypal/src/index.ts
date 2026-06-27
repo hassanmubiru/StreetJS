@@ -7,6 +7,7 @@
 
 import { PluginModule, PluginError, type SandboxedApp, type PluginManifest } from 'streetjs';
 import { request as httpsRequest } from 'node:https';
+import { createVerify, createPublicKey, X509Certificate } from 'node:crypto';
 
 export const PAYPAL_PLUGIN_NAME = 'street-plugin-paypal';
 export const PAYPAL_PLUGIN_VERSION = '1.0.0';
