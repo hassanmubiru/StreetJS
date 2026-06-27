@@ -39,6 +39,14 @@ export interface MongoPluginConfig {
   timeoutMs?: number;
   /** State key under which the client is injected. Default 'mongo'. */
   stateKey?: string;
+  /** Connect over TLS. Default false (plain TCP — unchanged). */
+  tls?: boolean;
+  /** When TLS is on, verify the server certificate chain. Default true. */
+  tlsRejectUnauthorized?: boolean;
+  /** When TLS is on, the SNI server name to present (defaults to `host`). */
+  tlsServerName?: string;
+  /** When TLS is on, a PEM CA bundle to trust (for private/self-signed CAs). */
+  tlsCa?: string;
 }
 
 export function mongoPluginManifest(): PluginManifest {
