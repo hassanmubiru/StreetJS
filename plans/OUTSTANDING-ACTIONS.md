@@ -21,6 +21,7 @@
 - **#6 (partial) Support matrix** — `docs/enterprise/support-matrix.md` created (version support + backport + platform/runtime matrix). *Remaining: commercial-support SLA tiers (operator, only if a commercial offering exists).*
 - **Foundation readiness** — `governance/DECISION-PROCESS.md` created (roles, lazy consensus, RFC workflow, voting/escalation, neutrality). *Remaining gating items: multi-org neutral maintainership + trademark policy (operator/community).*
 - **#22 CI `retention-days` + `concurrency` standardized** — all 38 workflows now declare a top-level `concurrency` group (`<workflow>-${{ github.ref }}`; `cancel-in-progress: true` for PR/push verification + security gates, `false` for release/deploy/admin/soak); all 21 `upload-artifact` steps now set `retention-days` (coverage 14, evidence/verification 30, release/SBOM/signed/cert 90, SARIF 5). Validated: 38/38 YAML parse clean.
+- **Operator P0 runbook** — `security/OPERATOR-EXECUTION-CHECKLIST.md` created: sequenced, copy-paste `gh` commands for branch/push protection, secret-scanning, history purge, key relocation, signed commits, PGP key (references the per-topic reviews, no duplication).
 
 ## P0 — Critical
 | # | Action | Owner | Source | Done when |
