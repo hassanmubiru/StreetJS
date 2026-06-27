@@ -34,6 +34,14 @@ export interface RabbitMqPluginConfig {
   heartbeatSeconds?: number;
   /** State key under which the client is injected. Default 'rabbitmq'. */
   stateKey?: string;
+  /** Connect over TLS (AMQPS, typically port 5671). Default false (plain TCP). */
+  tls?: boolean;
+  /** When TLS is on, verify the server certificate chain. Default true. */
+  tlsRejectUnauthorized?: boolean;
+  /** When TLS is on, the SNI server name to present (defaults to `host`). */
+  tlsServerName?: string;
+  /** When TLS is on, a PEM CA bundle to trust (for private/self-signed CAs). */
+  tlsCa?: string;
 }
 
 /** The unsigned manifest for the RabbitMQ plugin (sign it via the build step). */
