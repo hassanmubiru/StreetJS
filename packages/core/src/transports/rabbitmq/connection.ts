@@ -4,6 +4,7 @@
 // delivery + ack/nack, heartbeats, and graceful close.
 
 import { createConnection, type Socket } from 'node:net';
+import { connect as tlsConnect } from 'node:tls';
 import { EventEmitter } from 'node:events';
 import {
   PROTOCOL_HEADER, FRAME_METHOD, FRAME_HEADER, FRAME_BODY, FRAME_HEARTBEAT,
@@ -19,6 +20,14 @@ export interface AmqpConnectionOptions {
   vhost?: string;
   heartbeatSeconds?: number;
   connectTimeoutMs?: number;
+  /** Connect over TLS (AMQPS, typically port 5671). Default false. */
+  tls?: boolean;
+  /** When TLS is on, verify the server certificate chain. Default true. */
+  tlsRejectUnauthorized?: boolean;
+  /** When TLS is on, the SNI server name (defaults to `host`). */
+  tlsServerName?: string;
+  /** When TLS is on, a PEM CA bundle to trust. */
+  tlsCa?: string;
 }
 
 export interface DeliveredMessage {
@@ -34,7 +43,8 @@ const CH = 1; // single working channel
 export class AmqpConnection extends EventEmitter {
   private socket: Socket | null = null;
   private readonly decoder = new FrameDecoder();
-  private readonly opts: Required<AmqpConnectionOptions>;
+  private readonly opts: Required<Pick<AmqpConnectionOptions, 'host' | 'port' | 'username' | 'password' | 'vhost' | 'heartbeatSeconds' | 'connectTimeoutMs'>>;
+  private readonly tls: { enabled: boolean; rejectUnauthorized: boolean; servername?: string; ca?: string };
   private heartbeatTimer: NodeJS.Timeout | null = null;
   private closing = false;
 
@@ -60,6 +70,12 @@ export class AmqpConnection extends EventEmitter {
       heartbeatSeconds: opts.heartbeatSeconds ?? 60,
       connectTimeoutMs: opts.connectTimeoutMs ?? 10_000,
     };
+    this.tls = {
+      enabled: opts.tls === true,
+      rejectUnauthorized: opts.tlsRejectUnauthorized ?? true,
+      ...(opts.tlsServerName !== undefined ? { servername: opts.tlsServerName } : {}),
+      ...(opts.tlsCa !== undefined ? { ca: opts.tlsCa } : {}),
+    };
   }
 
   private _key(classId: number, methodId: number): string { return `${classId}.${methodId}`; }
@@ -80,9 +96,16 @@ export class AmqpConnection extends EventEmitter {
   async connect(): Promise<void> {
     this.closing = false;
     await new Promise<void>((resolve, reject) => {
-      const sock = createConnection({ host: this.opts.host, port: this.opts.port }, () => {
-        sock.write(PROTOCOL_HEADER);
-      });
+      const onSocketReady = (): void => { sock.write(PROTOCOL_HEADER); };
+      const sock: Socket = this.tls.enabled
+        ? tlsConnect({
+            host: this.opts.host,
+            port: this.opts.port,
+            rejectUnauthorized: this.tls.rejectUnauthorized,
+            servername: this.tls.servername ?? this.opts.host,
+            ...(this.tls.ca !== undefined ? { ca: this.tls.ca } : {}),
+          }, onSocketReady)
+        : createConnection({ host: this.opts.host, port: this.opts.port }, onSocketReady);
       const to = setTimeout(() => { sock.destroy(); reject(new Error('AMQP connect timeout')); }, this.opts.connectTimeoutMs);
       to.unref();
 
