@@ -108,6 +108,50 @@ async function twilioWebhook(ctx: StreetContext): Promise<void> {
 
 ---
 
+## SendGrid Event Webhook (ECDSA)
+
+`verifySendGridWebhook(publicKey, rawBody, signature, timestamp)` verifies the
+ECDSA-P256 signature over `${timestamp}${rawBody}`. `publicKey` is the Base64
+verification key from SendGrid Mail Settings (or a full PEM); the signature and
+timestamp come from the `X-Twilio-Email-Event-Webhook-Signature` /
+`-Timestamp` headers. Exported from `streetjs`.
+
+```typescript
+import { verifySendGridWebhook } from 'streetjs';
+
+const ok = verifySendGridWebhook(
+  process.env['SENDGRID_WEBHOOK_PUBLIC_KEY']!,
+  rawBody,                                              // exact bytes (see above)
+  ctx.headers['x-twilio-email-event-webhook-signature'] ?? '',
+  ctx.headers['x-twilio-email-event-webhook-timestamp'] ?? '',
+);
+if (!ok) { ctx.send(403); return; }
+```
+
+---
+
+## PayPal (local cert verification)
+
+`verifyPayPalWebhook(certPem, headers, rawBody)` checks the RSA-SHA256 signature
+over `transmissionId|transmissionTime|webhookId|crc32(rawBody)`. Exported from
+`@streetjs/plugin-paypal`. You fetch + chain-validate the cert at
+`Paypal-Cert-Url` (an `https://*.paypal.com` URL — cache it); the verifier does
+the offline signature check.
+
+```typescript
+import { verifyPayPalWebhook } from '@streetjs/plugin-paypal';
+
+const ok = verifyPayPalWebhook(certPem, {
+  transmissionId:   ctx.headers['paypal-transmission-id'] ?? '',
+  transmissionTime: ctx.headers['paypal-transmission-time'] ?? '',
+  webhookId:        process.env['PAYPAL_WEBHOOK_ID']!,     // from the PayPal dashboard
+  signature:        ctx.headers['paypal-transmission-sig'] ?? '',
+}, rawBody);
+if (!ok) { ctx.send(403); return; }
+```
+
+---
+
 ## Outbound timeouts
 
 Every official `node:https` plugin (stripe, twilio, sendgrid, auth0, paypal,
