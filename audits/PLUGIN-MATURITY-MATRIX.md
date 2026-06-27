@@ -46,5 +46,5 @@
 
 ## Top cross-plugin actions (runtime change, tracked separately)
 1. ✅ **Done** — outbound timeout on all 9 HTTP plugins (`timeoutMs`, default 30s).
-2. ◑ **Substantial** — webhook verifiers: stripe + twilio shipped; paypal + sendgrid pending.
+2. ✅ **Done** — webhook verifiers: stripe + twilio + sendgrid (ECDSA) + paypal (local cert).
 3. ◑ **In progress** — per-plugin example apps + raised coverage gates to promote ◑ → ✅.
