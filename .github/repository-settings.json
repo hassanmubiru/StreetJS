@@ -29,11 +29,14 @@
             "Secrets Guard (block private keys)",
             "Core (Node 20)",
             "Core (Node 22)",
-            "verify-signing-anchor",
-            "gitleaks",
-            "CodeQL",
-            "Root folder allowlist",
-            "Plugin security standard"
+            "CLI Unit + Migration (Node 20)",
+            "CLI Unit + Migration (Node 22)",
+            "Package Integrity (pack + clean-install import)",
+            "Policy Checks (no-placeholders + audit)",
+            "Security Lint (zizmor)",
+            "Analyze (actions)",
+            "Analyze (javascript-typescript)",
+            "Certification Suites + DB E2E"
           ]
         },
         "required_signatures": true,
