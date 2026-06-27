@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/plugin-redis",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Official Street Framework plugin: Redis cache / key-value store (dependency-free RESP2 client).",
   "type": "module",
   "main": "./dist/index.js",

@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/plugin-r2",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Official Street Framework plugin: Cloudflare R2 object storage. Signed manifest, PluginModule SDK.",
   "type": "module",
   "main": "./dist/index.js",

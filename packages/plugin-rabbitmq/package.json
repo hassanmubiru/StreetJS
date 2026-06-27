@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/plugin-rabbitmq",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Official StreetJS plugin: RabbitMQ messaging (wraps the dependency-free core AMQP 0-9-1 transport).",
   "type": "module",
   "main": "./dist/index.js",

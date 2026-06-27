@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/plugin-postgres",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Official StreetJS plugin: PostgreSQL connection pool (wraps the native, dependency-free core driver).",
   "type": "module",
   "main": "./dist/index.js",

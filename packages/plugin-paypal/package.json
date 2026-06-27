@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/plugin-paypal",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Official StreetJS plugin: PayPal Orders v2 (dependency-free HTTPS client).",
   "type": "module",
   "main": "./dist/index.js",
