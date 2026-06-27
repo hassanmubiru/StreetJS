@@ -11,8 +11,8 @@
 | africastalking | ✅ | ✅ | ◑ | ◑ shared-secret | ✅ | ✅ | ✅ | ◑ | ◑ | ◑ |
 | htmx | ✅ | ✅ | ◑ | N-A | N-A | N-A | ✅ escape | N-A | ✅ app-htmx | ✅ |
 | stripe | ✅ | ✅ | ◑ | ✅ HMAC-SHA256 (`verifyStripeWebhook`) | ✅ `timeoutMs` | ⬜ | ✅ | N-A | ◑ | ◑ |
-| paypal | ✅ | ✅ | ◑ | ⬜ (cert-chain) | ✅ `timeoutMs` | ⬜ | ✅ | N-A | ◑ | ◑ |
-| sendgrid | ✅ | ✅ | ◑ | ⬜ event (ECDSA) | ✅ `timeoutMs` | ⬜ | ✅ | N-A | ◑ | ◑ |
+| paypal | ✅ | ✅ | ◑ | ✅ RSA-SHA256 (`verifyPayPalWebhook`, local cert) | ✅ `timeoutMs` | ⬜ | ✅ | N-A | ◑ | ◑ |
+| sendgrid | ✅ | ✅ | ◑ | ✅ ECDSA event (`verifySendGridWebhook`) | ✅ `timeoutMs` | ⬜ | ✅ | N-A | ◑ | ◑ |
 | twilio | ✅ | ✅ | ◑ | ✅ HMAC-SHA1 (`verifyTwilioSignature`) | ✅ `timeoutMs` | ⬜ | ✅ | N-A | ◑ | ◑ |
 | openai | ✅ | ✅ | ◑ | N-A | ✅ `timeoutMs` | ⬜ | ✅ | N-A | ◑ | ◑ |
 | auth0 | ✅ | ✅ | ◑ | N-A | ✅ `timeoutMs` | ⬜ | ✅ | N-A | ◑ | ◑ |
