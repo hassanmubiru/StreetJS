@@ -57,6 +57,11 @@ regexes = [
   '''sk-\.\.\.''',
   '''sk-ant-\.\.\.''',
   '''sk_test_\.\.\.''',
+  # AWS's published documentation example key ID (a public non-secret used in
+  # AWS docs and in our SECRET-SCANNING-GUIDE.md as an illustration).
+  '''AKIAIOSFODNN7EXAMPLE''',
+  # Obvious placeholder JWT secret in a README docker-run example.
+  '''my-jwt-secret-at-least-32-chars''',
 ]
 
 # Hard rule: PEM private key material must never be committed. Added during the
