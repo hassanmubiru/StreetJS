@@ -55,4 +55,4 @@
 ## Top cross-plugin actions (runtime change, tracked separately)
 1. ✅ **Done** — outbound timeout on all 9 HTTP plugins (`timeoutMs`, default 30s).
 2. ✅ **Done** — webhook verifiers: stripe + twilio + sendgrid (ECDSA) + paypal (local cert).
-3. ◑ **In progress** — per-plugin example apps + raised coverage gates to promote ◑ → ✅.
+3. ◑ **In progress** — runnable `example/index.mjs` ships for 20/21 plugin packages (marzpay uses full react/next apps) and is syntax-checked in CI via `npm run test:plugins-offline`; the offline `node:test` suites also run in CI (`plugin-tests.yml`). Remaining to flip ◑→✅: standalone example **apps** per plugin + raised coverage gates.
