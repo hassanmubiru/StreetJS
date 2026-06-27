@@ -75,6 +75,7 @@ export function validateRedisConfig(input: unknown): RedisPluginConfig {
   if (o['stateKey'] !== undefined && typeof o['stateKey'] !== 'string') {
     throw new PluginError('Redis plugin config: "stateKey" must be a string');
   }
+  validateTlsFields('Redis', o);
 
   return {
     host,
@@ -83,6 +84,32 @@ export function validateRedisConfig(input: unknown): RedisPluginConfig {
     ...(o['db'] !== undefined ? { db: o['db'] as number } : {}),
     ...(o['timeoutMs'] !== undefined ? { timeoutMs: o['timeoutMs'] as number } : {}),
     ...(o['stateKey'] !== undefined ? { stateKey: o['stateKey'] as string } : {}),
+    ...tlsConfigFrom(o),
+  };
+}
+
+/** Validate the shared optional TLS fields (throws on the first violation). */
+function validateTlsFields(plugin: string, o: Record<string, unknown>): void {
+  if (o['tls'] !== undefined && typeof o['tls'] !== 'boolean') {
+    throw new PluginError(`${plugin} plugin config: "tls" must be a boolean`);
+  }
+  if (o['tlsRejectUnauthorized'] !== undefined && typeof o['tlsRejectUnauthorized'] !== 'boolean') {
+    throw new PluginError(`${plugin} plugin config: "tlsRejectUnauthorized" must be a boolean`);
+  }
+  for (const k of ['tlsServerName', 'tlsCa']) {
+    if (o[k] !== undefined && typeof o[k] !== 'string') {
+      throw new PluginError(`${plugin} plugin config: "${k}" must be a string`);
+    }
+  }
+}
+
+/** Project the optional TLS fields into a partial config (omitting undefined). */
+function tlsConfigFrom(o: Record<string, unknown>): Partial<RedisPluginConfig> {
+  return {
+    ...(o['tls'] !== undefined ? { tls: o['tls'] as boolean } : {}),
+    ...(o['tlsRejectUnauthorized'] !== undefined ? { tlsRejectUnauthorized: o['tlsRejectUnauthorized'] as boolean } : {}),
+    ...(o['tlsServerName'] !== undefined ? { tlsServerName: o['tlsServerName'] as string } : {}),
+    ...(o['tlsCa'] !== undefined ? { tlsCa: o['tlsCa'] as string } : {}),
   };
 }
 
