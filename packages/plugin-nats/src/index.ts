@@ -15,6 +15,7 @@
 
 import { PluginModule, PluginError, type SandboxedApp, type PluginManifest } from 'streetjs';
 import { Socket } from 'node:net';
+import { connect as tlsConnect } from 'node:tls';
 
 export const NATS_PLUGIN_NAME = 'street-plugin-nats';
 export const NATS_PLUGIN_VERSION = '1.0.0';
@@ -37,6 +38,14 @@ export interface NatsPluginConfig {
   timeoutMs?: number;
   /** State key under which the client is injected by the middleware. Default 'nats'. */
   stateKey?: string;
+  /** Upgrade the connection to TLS after the server INFO (NATS STARTTLS). Default false. */
+  tls?: boolean;
+  /** When TLS is on, verify the server certificate chain. Default true. */
+  tlsRejectUnauthorized?: boolean;
+  /** When TLS is on, the SNI server name to present (defaults to `host`). */
+  tlsServerName?: string;
+  /** When TLS is on, a PEM CA bundle to trust (for private/self-signed CAs). */
+  tlsCa?: string;
 }
 
 /** The unsigned manifest for the NATS plugin (sign it via the build step). */
