@@ -9,6 +9,7 @@
 
 import { PluginModule, PluginError, type SandboxedApp, type PluginManifest } from 'streetjs';
 import { Socket } from 'node:net';
+import { connect as tlsConnect } from 'node:tls';
 import { type BsonDocument, BsonBinary, encodeDocument } from './bson.js';
 import { encodeOpMsg, parseOpMsg, type OpMsgReply } from './opmsg.js';
 import {
@@ -86,6 +87,17 @@ export function validateMongoConfig(input: unknown): MongoPluginConfig {
   if (o['timeoutMs'] !== undefined && (typeof o['timeoutMs'] !== 'number' || (o['timeoutMs'] as number) <= 0)) {
     throw new PluginError('MongoDB plugin config: "timeoutMs" must be a positive number');
   }
+  if (o['tls'] !== undefined && typeof o['tls'] !== 'boolean') {
+    throw new PluginError('MongoDB plugin config: "tls" must be a boolean');
+  }
+  if (o['tlsRejectUnauthorized'] !== undefined && typeof o['tlsRejectUnauthorized'] !== 'boolean') {
+    throw new PluginError('MongoDB plugin config: "tlsRejectUnauthorized" must be a boolean');
+  }
+  for (const k of ['tlsServerName', 'tlsCa'] as const) {
+    if (o[k] !== undefined && typeof o[k] !== 'string') {
+      throw new PluginError(`MongoDB plugin config: "${k}" must be a string`);
+    }
+  }
   return {
     host: o['host'] as string,
     database: o['database'] as string,
@@ -95,6 +107,10 @@ export function validateMongoConfig(input: unknown): MongoPluginConfig {
     ...(o['authSource'] !== undefined ? { authSource: o['authSource'] as string } : {}),
     ...(o['timeoutMs'] !== undefined ? { timeoutMs: o['timeoutMs'] as number } : {}),
     ...(o['stateKey'] !== undefined ? { stateKey: o['stateKey'] as string } : {}),
+    ...(o['tls'] !== undefined ? { tls: o['tls'] as boolean } : {}),
+    ...(o['tlsRejectUnauthorized'] !== undefined ? { tlsRejectUnauthorized: o['tlsRejectUnauthorized'] as boolean } : {}),
+    ...(o['tlsServerName'] !== undefined ? { tlsServerName: o['tlsServerName'] as string } : {}),
+    ...(o['tlsCa'] !== undefined ? { tlsCa: o['tlsCa'] as string } : {}),
   };
 }
 
@@ -118,11 +134,8 @@ export class MongoClient {
   async connect(): Promise<void> {
     if (this.socket) return;
     await new Promise<void>((resolve, reject) => {
-      const sock = new Socket();
       const onError = (err: Error): void => { sock.destroy(); reject(new PluginError(`Mongo connect failed: ${err.message}`)); };
-      sock.setTimeout(this.timeout, () => onError(new Error('connect timeout')));
-      sock.once('error', onError);
-      sock.connect(this.config.port ?? 27017, this.config.host, () => {
+      const onConnected = (): void => {
         sock.setTimeout(0);
         sock.removeListener('error', onError);
         sock.on('data', (c: Buffer | string) => this.onData(Buffer.isBuffer(c) ? c : Buffer.from(c)));
@@ -130,7 +143,24 @@ export class MongoClient {
         sock.on('close', () => this.failPending(new Error('connection closed')));
         this.socket = sock;
         resolve();
-      });
+      };
+      let sock: Socket;
+      if (this.config.tls) {
+        sock = tlsConnect({
+          host: this.config.host,
+          port: this.config.port ?? 27017,
+          rejectUnauthorized: this.config.tlsRejectUnauthorized ?? true,
+          servername: this.config.tlsServerName ?? this.config.host,
+          ...(this.config.tlsCa !== undefined ? { ca: this.config.tlsCa } : {}),
+        }, onConnected);
+        sock.setTimeout(this.timeout, () => onError(new Error('connect timeout')));
+        sock.once('error', onError);
+      } else {
+        sock = new Socket();
+        sock.setTimeout(this.timeout, () => onError(new Error('connect timeout')));
+        sock.once('error', onError);
+        sock.connect(this.config.port ?? 27017, this.config.host, onConnected);
+      }
     });
 
     // Handshake (hello). Required before commands on modern servers.
