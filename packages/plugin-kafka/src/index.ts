@@ -103,6 +103,17 @@ export function validateKafkaConfig(input: unknown): KafkaPluginConfig {
   if (o['stateKey'] !== undefined && typeof o['stateKey'] !== 'string') {
     throw new PluginError('Kafka plugin config: "stateKey" must be a string');
   }
+  if (o['tls'] !== undefined && typeof o['tls'] !== 'boolean') {
+    throw new PluginError('Kafka plugin config: "tls" must be a boolean');
+  }
+  if (o['tlsRejectUnauthorized'] !== undefined && typeof o['tlsRejectUnauthorized'] !== 'boolean') {
+    throw new PluginError('Kafka plugin config: "tlsRejectUnauthorized" must be a boolean');
+  }
+  for (const k of ['tlsServerName', 'tlsCa'] as const) {
+    if (o[k] !== undefined && typeof o[k] !== 'string') {
+      throw new PluginError(`Kafka plugin config: "${k}" must be a string`);
+    }
+  }
 
   return {
     ...(o['brokers'] !== undefined ? { brokers: o['brokers'] as string[] } : {}),
@@ -111,6 +122,10 @@ export function validateKafkaConfig(input: unknown): KafkaPluginConfig {
     ...(o['clientId'] !== undefined ? { clientId: o['clientId'] as string } : {}),
     ...(o['connectTimeoutMs'] !== undefined ? { connectTimeoutMs: o['connectTimeoutMs'] as number } : {}),
     ...(o['stateKey'] !== undefined ? { stateKey: o['stateKey'] as string } : {}),
+    ...(o['tls'] !== undefined ? { tls: o['tls'] as boolean } : {}),
+    ...(o['tlsRejectUnauthorized'] !== undefined ? { tlsRejectUnauthorized: o['tlsRejectUnauthorized'] as boolean } : {}),
+    ...(o['tlsServerName'] !== undefined ? { tlsServerName: o['tlsServerName'] as string } : {}),
+    ...(o['tlsCa'] !== undefined ? { tlsCa: o['tlsCa'] as string } : {}),
   };
 }
 
@@ -122,6 +137,10 @@ export function toClientOptions(cfg: KafkaPluginConfig): KafkaClientOptions {
     ...(cfg.port !== undefined ? { port: cfg.port } : {}),
     ...(cfg.clientId !== undefined ? { clientId: cfg.clientId } : {}),
     ...(cfg.connectTimeoutMs !== undefined ? { connectTimeoutMs: cfg.connectTimeoutMs } : {}),
+    ...(cfg.tls !== undefined ? { tls: cfg.tls } : {}),
+    ...(cfg.tlsRejectUnauthorized !== undefined ? { tlsRejectUnauthorized: cfg.tlsRejectUnauthorized } : {}),
+    ...(cfg.tlsServerName !== undefined ? { tlsServerName: cfg.tlsServerName } : {}),
+    ...(cfg.tlsCa !== undefined ? { tlsCa: cfg.tlsCa } : {}),
   };
 }
 
