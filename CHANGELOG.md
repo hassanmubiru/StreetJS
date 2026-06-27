@@ -102,6 +102,11 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   shortcut) — docs were already client-side searchable; this tunes result
   quality. Gave `docs/enterprise/support-matrix.md` the front matter it was
   missing so it now renders as a styled, searchable page under Enterprise.
+- Added a **Webhook Verification** guide (`docs/plugins/webhook-verification.md`)
+  documenting the new `verifyStripeWebhook` / `verifyTwilioSignature` APIs with
+  accurate `StreetContext` route handlers and raw-body guidance; refreshed
+  `audits/PLUGIN-MATURITY-MATRIX.md` to reflect the shipped timeouts, verifiers,
+  and redis/mongodb TLS.
 
 ---
 
