@@ -85,6 +85,17 @@ export function validateRabbitMqConfig(input: unknown): RabbitMqPluginConfig {
       throw new PluginError(`RabbitMQ plugin config: "${k}" must be a positive number`);
     }
   }
+  if (o['tls'] !== undefined && typeof o['tls'] !== 'boolean') {
+    throw new PluginError('RabbitMQ plugin config: "tls" must be a boolean');
+  }
+  if (o['tlsRejectUnauthorized'] !== undefined && typeof o['tlsRejectUnauthorized'] !== 'boolean') {
+    throw new PluginError('RabbitMQ plugin config: "tlsRejectUnauthorized" must be a boolean');
+  }
+  for (const k of ['tlsServerName', 'tlsCa'] as const) {
+    if (o[k] !== undefined && typeof o[k] !== 'string') {
+      throw new PluginError(`RabbitMQ plugin config: "${k}" must be a string`);
+    }
+  }
 
   return {
     host,
@@ -97,6 +108,10 @@ export function validateRabbitMqConfig(input: unknown): RabbitMqPluginConfig {
     ...(o['connectTimeoutMs'] !== undefined ? { connectTimeoutMs: o['connectTimeoutMs'] as number } : {}),
     ...(o['heartbeatSeconds'] !== undefined ? { heartbeatSeconds: o['heartbeatSeconds'] as number } : {}),
     ...(o['stateKey'] !== undefined ? { stateKey: o['stateKey'] as string } : {}),
+    ...(o['tls'] !== undefined ? { tls: o['tls'] as boolean } : {}),
+    ...(o['tlsRejectUnauthorized'] !== undefined ? { tlsRejectUnauthorized: o['tlsRejectUnauthorized'] as boolean } : {}),
+    ...(o['tlsServerName'] !== undefined ? { tlsServerName: o['tlsServerName'] as string } : {}),
+    ...(o['tlsCa'] !== undefined ? { tlsCa: o['tlsCa'] as string } : {}),
   };
 }
 
@@ -112,6 +127,10 @@ export function toRabbitMqOptions(cfg: RabbitMqPluginConfig): RabbitMqOptions {
     ...(cfg.prefetch !== undefined ? { prefetch: cfg.prefetch } : {}),
     ...(cfg.connectTimeoutMs !== undefined ? { connectTimeoutMs: cfg.connectTimeoutMs } : {}),
     ...(cfg.heartbeatSeconds !== undefined ? { heartbeatSeconds: cfg.heartbeatSeconds } : {}),
+    ...(cfg.tls !== undefined ? { tls: cfg.tls } : {}),
+    ...(cfg.tlsRejectUnauthorized !== undefined ? { tlsRejectUnauthorized: cfg.tlsRejectUnauthorized } : {}),
+    ...(cfg.tlsServerName !== undefined ? { tlsServerName: cfg.tlsServerName } : {}),
+    ...(cfg.tlsCa !== undefined ? { tlsCa: cfg.tlsCa } : {}),
   };
 }
 
