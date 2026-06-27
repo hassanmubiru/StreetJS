@@ -23,12 +23,14 @@
 | mongodb | ✅ | ✅ | ◑ | N-A | ✅ | N-A | ✅ + ✅ TLS | N-A | ◑ | ◑ |
 | postgres / mysql | ✅ | ✅ | ◑ | N-A | ✅ pool | N-A | ✅ | N-A | ◑ | ◑ |
 | redis | ✅ | ✅ | ◑ | N-A | ✅ | N-A | ✅ + ✅ TLS | N-A | ◑ | ◑ |
-| kafka / rabbitmq / nats | ✅ | ✅ | ◑ | N-A | ✅ connect | N-A | ✅ | N-A | ◑ | ◑ |
+| kafka / rabbitmq / nats | ✅ | ✅ | ◑ | N-A | ✅ connect | N-A | ✅ + ✅ TLS | N-A | ◑ | ◑ |
 
-> **TLS (opt-in connection encryption):** redis + mongodb expose `tls` /
-> `tlsRejectUnauthorized` / `tlsServerName` / `tlsCa` (default plain TCP). nats
-> (STARTTLS) and kafka/rabbitmq (SASL_SSL/AMQPS, via core transports) are pending
-> a live-TLS test environment. See `plans/OUTSTANDING-ACTIONS.md` #15.
+> **TLS (opt-in connection encryption):** redis + mongodb + **kafka** (SSL/SASL_SSL)
+> + **rabbitmq** (AMQPS) + **nats** (STARTTLS) all expose `tls` /
+> `tlsRejectUnauthorized` / `tlsServerName` / `tlsCa` (default plain TCP). redis,
+> mongodb, kafka, rabbitmq use connect-from-start TLS; nats performs the protocol
+> STARTTLS upgrade after the plaintext `INFO`. Config validation is unit-tested;
+> the TLS handshakes are exercised in integration when a TLS endpoint is available.
 
 ## Documentation & security review
 - **Documentation:** ✅ all 21 ship `README.md` + `SECURITY.md`.
