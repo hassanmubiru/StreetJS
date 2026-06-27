@@ -87,6 +87,17 @@ export function validateNatsConfig(input: unknown): NatsPluginConfig {
   if (o['timeoutMs'] !== undefined && (typeof o['timeoutMs'] !== 'number' || o['timeoutMs'] <= 0)) {
     throw new PluginError('NATS plugin config: "timeoutMs" must be a positive number');
   }
+  if (o['tls'] !== undefined && typeof o['tls'] !== 'boolean') {
+    throw new PluginError('NATS plugin config: "tls" must be a boolean');
+  }
+  if (o['tlsRejectUnauthorized'] !== undefined && typeof o['tlsRejectUnauthorized'] !== 'boolean') {
+    throw new PluginError('NATS plugin config: "tlsRejectUnauthorized" must be a boolean');
+  }
+  for (const k of ['tlsServerName', 'tlsCa'] as const) {
+    if (o[k] !== undefined && typeof o[k] !== 'string') {
+      throw new PluginError(`NATS plugin config: "${k}" must be a string`);
+    }
+  }
 
   return {
     host,
@@ -97,6 +108,10 @@ export function validateNatsConfig(input: unknown): NatsPluginConfig {
     ...(o['name'] !== undefined ? { name: o['name'] as string } : {}),
     ...(o['timeoutMs'] !== undefined ? { timeoutMs: o['timeoutMs'] as number } : {}),
     ...(o['stateKey'] !== undefined ? { stateKey: o['stateKey'] as string } : {}),
+    ...(o['tls'] !== undefined ? { tls: o['tls'] as boolean } : {}),
+    ...(o['tlsRejectUnauthorized'] !== undefined ? { tlsRejectUnauthorized: o['tlsRejectUnauthorized'] as boolean } : {}),
+    ...(o['tlsServerName'] !== undefined ? { tlsServerName: o['tlsServerName'] as string } : {}),
+    ...(o['tlsCa'] !== undefined ? { tlsCa: o['tlsCa'] as string } : {}),
   };
 }
 
@@ -258,14 +273,11 @@ export class NatsClient {
   async connect(): Promise<void> {
     if (this.socket) return;
     await new Promise<void>((resolve, reject) => {
-      const sock = new Socket();
       const onError = (err: Error): void => {
         sock.destroy();
         reject(new PluginError(`NATS connect failed: ${err.message}`));
       };
-      sock.setTimeout(this.timeout, () => onError(new Error('connect timeout')));
-      sock.once('error', onError);
-      sock.connect(this.config.port, this.config.host, () => {
+      const onConnected = (): void => {
         sock.setTimeout(0);
         sock.removeListener('error', onError);
         sock.on('data', (chunk: Buffer | string) =>
@@ -274,7 +286,24 @@ export class NatsClient {
         sock.on('close', () => this.failAll(new Error('connection closed')));
         this.socket = sock;
         resolve();
-      });
+      };
+      let sock: Socket;
+      if (this.config.tls) {
+        sock = tlsConnect({
+          host: this.config.host,
+          port: this.config.port,
+          rejectUnauthorized: this.config.tlsRejectUnauthorized ?? true,
+          servername: this.config.tlsServerName ?? this.config.host,
+          ...(this.config.tlsCa !== undefined ? { ca: this.config.tlsCa } : {}),
+        }, onConnected);
+        sock.setTimeout(this.timeout, () => onError(new Error('connect timeout')));
+        sock.once('error', onError);
+      } else {
+        sock = new Socket();
+        sock.setTimeout(this.timeout, () => onError(new Error('connect timeout')));
+        sock.once('error', onError);
+        sock.connect(this.config.port, this.config.host, onConnected);
+      }
     });
 
     // Greet: advertise CONNECT options, then round-trip a PING to confirm.
