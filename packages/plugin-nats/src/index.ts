@@ -87,6 +87,17 @@ export function validateNatsConfig(input: unknown): NatsPluginConfig {
   if (o['timeoutMs'] !== undefined && (typeof o['timeoutMs'] !== 'number' || o['timeoutMs'] <= 0)) {
     throw new PluginError('NATS plugin config: "timeoutMs" must be a positive number');
   }
+  if (o['tls'] !== undefined && typeof o['tls'] !== 'boolean') {
+    throw new PluginError('NATS plugin config: "tls" must be a boolean');
+  }
+  if (o['tlsRejectUnauthorized'] !== undefined && typeof o['tlsRejectUnauthorized'] !== 'boolean') {
+    throw new PluginError('NATS plugin config: "tlsRejectUnauthorized" must be a boolean');
+  }
+  for (const k of ['tlsServerName', 'tlsCa'] as const) {
+    if (o[k] !== undefined && typeof o[k] !== 'string') {
+      throw new PluginError(`NATS plugin config: "${k}" must be a string`);
+    }
+  }
 
   return {
     host,
@@ -97,6 +108,10 @@ export function validateNatsConfig(input: unknown): NatsPluginConfig {
     ...(o['name'] !== undefined ? { name: o['name'] as string } : {}),
     ...(o['timeoutMs'] !== undefined ? { timeoutMs: o['timeoutMs'] as number } : {}),
     ...(o['stateKey'] !== undefined ? { stateKey: o['stateKey'] as string } : {}),
+    ...(o['tls'] !== undefined ? { tls: o['tls'] as boolean } : {}),
+    ...(o['tlsRejectUnauthorized'] !== undefined ? { tlsRejectUnauthorized: o['tlsRejectUnauthorized'] as boolean } : {}),
+    ...(o['tlsServerName'] !== undefined ? { tlsServerName: o['tlsServerName'] as string } : {}),
+    ...(o['tlsCa'] !== undefined ? { tlsCa: o['tlsCa'] as string } : {}),
     ...(o['tls'] !== undefined ? { tls: o['tls'] as boolean } : {}),
     ...(o['tlsRejectUnauthorized'] !== undefined ? { tlsRejectUnauthorized: o['tlsRejectUnauthorized'] as boolean } : {}),
     ...(o['tlsServerName'] !== undefined ? { tlsServerName: o['tlsServerName'] as string } : {}),
@@ -271,17 +286,48 @@ export class NatsClient {
         sock.destroy();
         reject(new PluginError(`NATS connect failed: ${err.message}`));
       };
+      // Wire the steady-state handlers and adopt `s` as the live socket.
+      const adopt = (s: Socket): void => {
+        s.setTimeout(0);
+        s.on('data', (chunk: Buffer | string) =>
+          this.onData(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)));
+        s.on('error', (err) => this.failAll(err));
+        s.on('close', () => this.failAll(new Error('connection closed')));
+        this.socket = s;
+        resolve();
+      };
       sock.setTimeout(this.timeout, () => onError(new Error('connect timeout')));
       sock.once('error', onError);
       sock.connect(this.config.port, this.config.host, () => {
-        sock.setTimeout(0);
-        sock.removeListener('error', onError);
-        sock.on('data', (chunk: Buffer | string) =>
-          this.onData(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)));
-        sock.on('error', (err) => this.failAll(err));
-        sock.on('close', () => this.failAll(new Error('connection closed')));
-        this.socket = sock;
-        resolve();
+        if (!this.config.tls) {
+          // Plaintext path — unchanged.
+          sock.removeListener('error', onError);
+          adopt(sock);
+          return;
+        }
+        // NATS STARTTLS: the server sends a plaintext INFO first; once the
+        // first INFO line is buffered, upgrade the SAME socket to TLS, then
+        // proceed with CONNECT over the encrypted channel.
+        let pre = Buffer.alloc(0);
+        const onPreData = (chunk: Buffer | string): void => {
+          pre = Buffer.concat([pre, Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)]);
+          const eol = pre.indexOf('\r\n', 0, 'utf8');
+          if (eol === -1) return;                 // wait for the full INFO line
+          if (!pre.toString('utf8', 0, 4).startsWith('INFO')) {
+            onError(new Error('expected INFO before TLS upgrade'));
+            return;
+          }
+          sock.removeListener('data', onPreData);
+          sock.removeListener('error', onError);
+          const tlsSock = tlsConnect({
+            socket: sock,
+            rejectUnauthorized: this.config.tlsRejectUnauthorized ?? true,
+            servername: this.config.tlsServerName ?? this.config.host,
+            ...(this.config.tlsCa !== undefined ? { ca: this.config.tlsCa } : {}),
+          }, () => adopt(tlsSock));
+          tlsSock.once('error', onError);
+        };
+        sock.on('data', onPreData);
       });
     });
 
