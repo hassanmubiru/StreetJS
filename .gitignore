@@ -132,3 +132,8 @@ logs/
 *.sqlite
 *.sqlite3
 *.db
+
+# Next.js build output / cache (never commit — contains ephemeral per-build
+# preview/encryption keys that trip secret scanners; regenerated each build).
+.next/
+**/.next/
