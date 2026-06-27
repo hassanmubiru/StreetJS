@@ -31,6 +31,12 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - New per-plugin tests cover timeout-config validation and the verifiers; all
   builds + suites pass and all 21 plugin manifest signatures still verify against
   the embedded official anchor (plugin source is not part of the signed manifest).
+- Added a reproducible offline plugin-test baseline: `npm run test:plugins-offline`
+  (`scripts/test-plugins-offline.mjs`) builds core + each plugin and runs its
+  node:test suite, and `.github/workflows/plugin-tests.yml` runs it in CI on
+  changes to `packages/plugin-*` / `packages/core` — so the timeout, TLS-config,
+  and webhook-verifier suites become reproducible CI evidence rather than
+  local-only runs.
 - **TLS connection options** (`tls`, `tlsRejectUnauthorized`, `tlsServerName`,
   `tlsCa`; default plain TCP) added to **redis**, **mongodb**, **kafka**
   (SSL/SASL_SSL), **rabbitmq** (AMQPS), and **nats**. redis/mongodb/kafka/rabbitmq
