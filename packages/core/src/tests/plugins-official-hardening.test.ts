@@ -126,7 +126,7 @@ describe('verifySendGridWebhook', () => {
   const ts = '1600000000';
   const payload = '[{"event":"delivered"}]';
 
-  function sigFor(body, timestamp) {
+  function sigFor(body: string, timestamp: string): string {
     return cryptoSign('sha256', Buffer.concat([Buffer.from(timestamp), Buffer.from(body)]), privateKey).toString('base64');
   }
 
