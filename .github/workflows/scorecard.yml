@@ -16,9 +16,11 @@ on:
 permissions: read-all
 
 # ── Concurrency ────────────────────────────────────────────────
+# Group per-commit and never cancel: each push/scheduled run must complete so the
+# security posture is recorded per commit (rapid merges must not cancel each other).
 concurrency:
-  group: scorecard-${{ github.ref }}
-  cancel-in-progress: true
+  group: scorecard-${{ github.sha }}
+  cancel-in-progress: false
 
 jobs:
   analysis:
