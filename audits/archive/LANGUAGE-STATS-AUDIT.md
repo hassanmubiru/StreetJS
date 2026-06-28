@@ -1,9 +1,21 @@
 # StreetJS Language Statistics Audit (GitHub Linguist)
 
-> Evidence-based. All byte figures are measured from **tracked** files
-> (`git ls-files` + on-disk sizes), which is what Linguist counts. `dist/` and the
-> SQLite `.wasm` are already `.gitignore`d, so they are not in scope. The goal is
-> **accuracy, not inflation** — no genuine source is reclassified.
+> **⚠️ SUPERSEDED (2026-06-28): policy changed from "accuracy-first" to
+> "presentation-first."** The maintainer subsequently chose to ALSO exclude
+> hand-written test harnesses (`**/*.test.{mjs,js}`, `**/test/**`, `**/tests/**`)
+> and build/automation tooling (`scripts/**`) from GitHub's displayed language
+> bar, so the statistic reflects the **shipped product** (the TypeScript library
+> in `packages/*/src`) rather than supporting tooling and tests. These files are
+> genuine JavaScript the project authors and maintains — they are **not** vendored
+> or generated; they are tagged `linguist-vendored` purely as the mechanism
+> Linguist provides to drop files from the bar. The code remains tracked,
+> reviewed, and maintained. The sections below that describe keeping `scripts/**`
+> and tests counted ("integrity violation / do not apply") reflect the EARLIER
+> policy and are retained for history; the active rules live in `.gitattributes`.
+>
+> Original note: Evidence-based. All byte figures are measured from **tracked**
+> files (`git ls-files` + on-disk sizes), which is what Linguist counts. `dist/`
+> and the SQLite `.wasm` are already `.gitignore`d, so they are not in scope.
 
 ## TL;DR
 
