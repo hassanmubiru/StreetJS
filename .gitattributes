@@ -25,3 +25,24 @@ packages/core/src/database/sqlite/sqlite3-node.mjs linguist-vendored=true
 # GENERATED — npm lockfiles. These are `data` (already excluded from the language
 # bar); marked for correctness and to match Linguist's own defaults.
 **/package-lock.json linguist-generated=true
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Presentation overrides (added deliberately by the maintainer)
+#
+# The files below are genuine, hand-written JavaScript (test harnesses and
+# build/release automation), NOT vendored or generated. They are excluded from
+# GitHub's displayed language bar so the statistic reflects the SHIPPED product
+# (the TypeScript library in packages/*/src) rather than supporting tooling and
+# tests. This is a presentation choice, documented in
+# audits/archive/LANGUAGE-STATS-AUDIT.md — it is not a claim that this code is
+# third-party. The code remains fully tracked, reviewed, and maintained.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Test harnesses (node:test suites authored as plain JS).
+**/*.test.mjs   linguist-vendored=true
+**/*.test.js    linguist-vendored=true
+**/test/**      linguist-vendored=true
+**/tests/**     linguist-vendored=true
+
+# Build / CI / release / verification automation.
+scripts/**      linguist-vendored=true
