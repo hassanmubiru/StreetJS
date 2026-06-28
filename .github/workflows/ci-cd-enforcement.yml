@@ -180,6 +180,9 @@ jobs:
           npm run clean -w packages/core
           npm run build -w packages/core
           npm run build -w packages/cli
+          # CLI tests import the built @streetjs/plugin-marzpay (dist/index.js);
+          # build it so marzpay integration/PBT suites can resolve the module.
+          npm run build -w packages/plugin-marzpay
           npm test -w packages/cli
           echo "Backward compatibility regression passed ✔"
 
