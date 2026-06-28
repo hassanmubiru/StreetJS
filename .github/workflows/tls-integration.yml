@@ -1,0 +1,68 @@
+# .github/workflows/tls-integration.yml
+# Real TLS-handshake integration tests for the connection transports
+# (redis, mongodb, nats STARTTLS, and the core Kafka + AMQP transports).
+#
+# Each suite stands up an in-process TLS (or STARTTLS) server with a runtime
+# self-signed certificate generated via the system `openssl` (present on
+# ubuntu runners; never committed) and drives the built client through an
+# actual TLS handshake, asserting both success and untrusted-cert rejection.
+# Offline + deterministic: no external services or credentials.
+#
+# This makes the opt-in `*.it.test.mjs` handshake suites CI-observed. It also
+# runs the skip-by-default webhook live-verification harness (which skips
+# unless STREET_IT_* capture env vars are supplied).
+name: tls-integration
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'packages/plugin-redis/**'
+      - 'packages/plugin-mongodb/**'
+      - 'packages/plugin-nats/**'
+      - 'packages/core/**'
+      - '.github/workflows/tls-integration.yml'
+  pull_request:
+    paths:
+      - 'packages/plugin-redis/**'
+      - 'packages/plugin-mongodb/**'
+      - 'packages/plugin-nats/**'
+      - 'packages/core/**'
+      - '.github/workflows/tls-integration.yml'
+
+permissions:
+  contents: read
+
+# Cancel superseded PR runs; never cancel a push-to-main run.
+concurrency:
+  group: tls-integration-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  tls-handshake:
+    name: TLS handshake integration (build + node:test)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+        with:
+          node-version: '20'
+      - name: Confirm openssl is available (suites self-skip otherwise)
+        run: openssl version
+      - name: Build core + connection plugins
+        run: |
+          npm run build -w streetjs
+          npm run build -w packages/plugin-redis
+          npm run build -w packages/plugin-mongodb
+          npm run build -w packages/plugin-nats
+      - name: Run TLS-handshake integration suites
+        run: |
+          node --test \
+            packages/plugin-redis/test/tls-handshake.it.test.mjs \
+            packages/plugin-mongodb/test/tls-handshake.it.test.mjs \
+            packages/plugin-nats/test/tls-handshake.it.test.mjs \
+            packages/core/test/transport-tls-handshake.it.test.mjs \
+            packages/core/test/webhook-live-verification.it.test.mjs
