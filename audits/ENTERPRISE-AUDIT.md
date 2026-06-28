@@ -340,3 +340,65 @@ medium for items dependent on live runtime/integration evidence not exercised he
 Immediate next actions: (1) merge #97/#95 once Dependabot recreates them green;
 (2) file the GitHub Support PR-ref purge; (3) add a 2nd maintainer and set
 enforce_admins=true.
+
+
+---
+
+# Independent Enterprise Software Audit (Formal, evidence-tagged) — 2026-06-28
+
+> Evidence model: [R] Repository · [T] Runtime (local single-run) · [C] CI ·
+> [P] Platform (GitHub API) · [E] External (npm). No category is inferred from
+> another. Status ∈ {VERIFIED, IMPLEMENTED, PARTIALLY IMPLEMENTED, OPERATOR
+> REQUIRED, EXTERNAL, ROADMAP, NOT VERIFIED}.
+
+## Metadata
+- Audit Version: 1.0 · Methodology: evidence-tagged, status-classified
+- Repository: `street-monorepo` (npm workspaces; 49 package dirs) · URL: https://github.com/hassanmubiru/StreetJS
+- Commit: `406a3081` (origin/main; working tree clean) · Latest tag: `plugins-v1.0.3` · Branch: `main`
+- Audit Date / Evidence Cutoff: 2026-06-28, main @ `406a3081`
+- Evidence reviewed: repo files & git; local builds/tests; GitHub Actions check-runs; GitHub API (branch protection, security_and_analysis); npm registry.
+
+## Assumptions
+GitHub API reflects current config; npm reflects published artifacts; repo inspection reflects `406a3081`; runtime obs are local single-run; CI conclusions are only from reviewed check-runs.
+
+## Scope
+In: repo structure/source; supply-chain signing (local+published); runtime hardening (#8/#9/#15); CI conclusions on main; platform security config; secret-scanning config; language policy.
+Out: production/cloud; live provider/TLS behavior; performance; legal/license adequacy; secret contents; third-party org/registration status.
+
+## Findings (summary table)
+| ID | Category | Status | Sev | Evidence | Conf |
+|----|----------|--------|-----|----------|------|
+| F-01 | Plugin outbound timeouts (#8) | IMPLEMENTED | Medium | [R][T] | High |
+| F-02 | Webhook verifiers (#9) | IMPLEMENTED | Medium | [R][T] | High |
+| F-03 | Opt-in TLS (#15) | IMPLEMENTED | Medium | [R] | Medium |
+| F-04 | Published plugin signatures | VERIFIED | High | [T][E] | High |
+| F-05 | Local manifest signatures | VERIFIED | Medium | [T] | High |
+| F-06 | CI status on main | VERIFIED | Informational | [C] | High |
+| F-07 | Branch protection | VERIFIED | High | [P] | High |
+| F-08 | Secret scanning & Dependabot | VERIFIED | High | [P] | High |
+| F-09 | Secret-scan (gitleaks) gate | VERIFIED | Medium | [C][T] | High |
+| F-10 | Leaked-key history purge | PARTIALLY IMPLEMENTED / OPERATOR REQUIRED | High | [T][P] | Medium |
+| F-11 | Signing-key custody | OPERATOR REQUIRED | High | [T][P] | Medium |
+| F-12 | CODEOWNERS review gate | IMPLEMENTED | Low | [R] | Medium |
+| F-13 | SAST commit coverage (Scorecard) | PARTIALLY IMPLEMENTED | Medium | [R][C] | Medium |
+| F-14 | Language-statistics policy | IMPLEMENTED | Informational | [R] | High |
+
+Key measured facts: CI on `406a3081` = 30 checks (29 success, 1 skipped `Release Engineering Enforcement`, 0 failing) [C]; published plugins 18/18 verify against anchor `3ae9add0…`, latest `1.0.3` [T][E]; local `verify:signatures` 21/21 [T]; core build exit 0 + hardening suite 16/16 [T]; branch protection = 11 checks / code-owner review / 1 approval / linear / no force-push / `enforce_admins:false` / `required_signatures:true` [P]; secret_scanning + push_protection + dependabot_security_updates enabled, non_provider_patterns + validity_checks disabled [P].
+
+## Remaining work
+- Operator: GitHub Support purge of leaked-key PR-refs/cache (High, F-10); set `enforce_admins:true` after 2nd maintainer (High, F-07/F-11); confirm independent signing-key copy (Medium, F-11); optional secret-scanning toggles + real PGP key (Low).
+- External: Dependabot recreate+merge #97/#95 (Medium); OSS-Fuzz #18 / OpenSSF badge #26 (Low).
+- Organizational: org migration → team CODEOWNERS #6; SOC 2 #24; ISO 27001 #25; Security Champions #27; grow maintainers #28.
+- Roadmap: keyless/Sigstore signing (SLSA L3) #12; versioned docs #17; per-plugin example apps + coverage gates #21; TLS handshake integration tests (F-03).
+
+## Risk assessment
+Critical: none at cutoff. High: leaked-key PR-ref/cache purge unconfirmed (F-10); solo-maintainer bus factor + `enforce_admins:false` (F-07/F-11). Medium: SAST per-commit coverage recovering, post-change Scorecard score unverified (F-13); two Dependabot PRs not yet landed. Low: optional secret-scanning detections off; placeholder PGP key. Residual: High items are platform/operator actions outside the repo; cannot be closed by source.
+
+## Limitations (not verified at cutoff)
+CI internals beyond conclusions; post-change Scorecard SAST score; live TLS handshakes; webhook verification against real traffic; runtime timeout behavior vs live endpoints; PR-ref/cache state (F-10); secret value / independent key copy (F-11); existence of a `streetjs` org (F-12); production/deploy, coverage %, compliance; server-recomputed GitHub language bar (F-14).
+
+## Facts vs Conclusions
+Facts: see "Key measured facts" above. Conclusion (no new evidence): at `406a3081` the default branch is release-ready with an evidenced, verifiable plugin supply chain; principal open risks are operator/platform actions, not repository defects.
+
+## Final assessment
+Repository maturity High; Security maturity High (residual operator items); Governance Medium–High (bus factor/org pending); Operational Medium–High (CI green; SAST coverage recovering; 1.0.3 re-publish demonstrated). Residual risk Low–Medium (F-10, F-07/F-11). Overall confidence High for repository/platform/external findings, Medium for live-runtime/server-recomputed items. Immediate next actions: (1) Support PR-ref/cache purge; (2) land Dependabot #97/#95 when green; (3) add 2nd maintainer + `enforce_admins:true`. Long-term: keyless signing, org migration, SOC2/ISO27001 readiness, OSS-Fuzz + OpenSSF badge, versioned docs, expanded examples.
