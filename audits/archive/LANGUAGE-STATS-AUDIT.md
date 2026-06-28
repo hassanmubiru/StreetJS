@@ -189,3 +189,33 @@ Committed to the repo root (see Phase 4 block / the live `.gitattributes`).
 
 The fix makes the stats reflect authored code (vendored/generated excluded),
 remains fully transparent and Linguist-compliant, and hides no source.
+
+---
+
+## Phase 7 — Active policy (2026-06-28): presentation-first
+
+The maintainer elected to make GitHub's language bar represent the **shipped
+product** rather than the entire repository. In addition to the vendored/generated
+exclusions above, the following hand-written files are now excluded from the bar
+via `.gitattributes`:
+
+| Path pattern | Tag used | Nature (honest) | Why excluded |
+|--------------|----------|-----------------|--------------|
+| `**/*.test.mjs`, `**/*.test.js`, `**/test/**`, `**/tests/**` | `linguist-vendored` | Genuine authored test harnesses | Tests are not part of the shipped library |
+| `scripts/**` | `linguist-vendored` | Genuine authored automation/CI/release tooling | Tooling is not part of the shipped library |
+
+**Honesty note:** these files are NOT third-party and NOT generated. `linguist-vendored`
+is used only because it is the mechanism Linguist offers to drop files from the
+statistic; there is no "test" or "tooling" category. This is a deliberate
+presentation choice, not a correctness claim. All such code remains tracked,
+reviewed, tested, and maintained, and continues to appear in normal diffs, blame,
+and search.
+
+**Effect:** the displayed bar now approximates the `packages/*/src` composition
+(~92% TypeScript). The actual repository composition is unchanged and still
+measurable with `git ls-files` as documented in Phases 1–2.
+
+**Reversal:** to return to the accuracy-first policy, remove the "Presentation
+overrides" block from `.gitattributes`; the vendored SQLite shim and generated
+`dist-test` exclusions (Phase 4) should remain regardless, as those are
+genuinely vendored/generated.
