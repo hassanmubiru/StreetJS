@@ -25,9 +25,14 @@ permissions:
   contents: read
 
 # ── Concurrency ────────────────────────────────────────────────
+# Cancel superseded PR runs, but NEVER cancel push-to-main analyses: each commit
+# on the default branch must complete its own SAST run, or OpenSSF Scorecard's
+# SAST check reports gaps ("N of M commits checked") when several merges land in
+# quick succession. PR runs are grouped per-ref (cancellable); main pushes are
+# grouped per-SHA so they always run to completion.
 concurrency:
-  group: codeql-${{ github.ref }}
-  cancel-in-progress: true
+  group: codeql-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   analyze:
