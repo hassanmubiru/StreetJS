@@ -262,3 +262,81 @@ a branch CI run is the gate. `web/` lockfiles need an operator `npm install`.
 
 *Read-only consolidated assessment. No `packages/core` runtime code was modified in
 any phase; all changes were organization, CI, documentation, and security controls.*
+
+
+---
+
+# Addendum — Full Status Report (2026-06-28)
+
+> Appended to the canonical audit. `main` HEAD at time of writing: `ca6104c3`.
+> Evidence tags: Repository / Runtime (local single-run) / CI (GitHub Actions) /
+> Platform (GitHub API) / External (npm). No category is inferred from another.
+> NOTE: this addendum supersedes the closing line above for the runtime items —
+> `packages/core` and plugin runtime code WERE subsequently modified (additively,
+> with tests) for Outstanding-Actions #8/#9/#15 after that constraint was lifted.
+
+## Executive summary
+Releasable, healthy state. CI on `main` effectively green (29/30 `success`, 1
+`skipped`). Platform controls enforced. The supply-chain signing regression is
+resolved (18/18 published plugins verify against the rotated anchor). PR/branch
+queue clean (only `main`). Remaining items are external/operator/roadmap.
+
+## CI status — main (CI)
+`commits/main/check-runs`: total=30, success=29, skipped=1 (`Release Engineering
+Enforcement` — conditional, not a failure). `certify`, `Backward Compatibility
+Regression`, and `secret-scan` all green after this session's fixes.
+
+## Platform posture (Platform / GitHub API)
+Branch protection: checks=11, require_code_owner_reviews=true, approvals=1,
+linear_history=true, allow_force_pushes=false, enforce_admins=false (solo-maintainer
+intentional), required_signatures=true. Security: secret_scanning + push_protection
++ dependabot_security_updates = enabled; non_provider_patterns + validity_checks =
+disabled (optional).
+
+## Supply chain / signing (External + Runtime)
+18/18 published `@streetjs/plugin-*` verify against official anchor `3ae9add0…`
+(`scripts/verify-official-signatures.mjs` exit 0). Root cause (pre-rotation key on
+registry + malformed/empty CI secret) resolved: secret re-set from validated key,
+plugins bumped to 1.0.3, re-published. No private key material in working tree;
+on-disk key shredded after loading into the write-only CI secret.
+
+## Runtime hardening (Repository + Runtime) — implemented, tested
+- #8 outbound `timeoutMs` (default 30s) on all 9 node:https plugins.
+- #9 constant-time webhook verifiers (Stripe/Twilio/SendGrid in core + exported;
+  PayPal in plugin).
+- #15 opt-in TLS on all 5 connection plugins (redis/mongodb/kafka/rabbitmq +
+  nats STARTTLS); default plaintext preserved. Core build exit 0; hardening
+  suite 16/16 locally.
+
+## This session's merged changes (Repository, on main)
+ci-cd-enforcement.yml (build plugin-marzpay before CLI tests); codeql/secret-scan/
+scorecard concurrency (per-SHA, no-cancel on push-to-main → fixes Scorecard SAST
+commit coverage); upload-artifact→v7.0.1 (Node 24) in runtime-certification +
+soak-scale-chaos; .gitleaks.toml + .gitignore false-positive fixes; .gitattributes
+presentation-first Linguist policy + LANGUAGE-STATS-AUDIT.md; OUTSTANDING-ACTIONS.md
+(#29, #4). Merged clean Dependabot bumps (#92/#82/#81/#71/#91); closed stale/empty/
+duplicate PRs (#99/#93/#101); deleted redundant branches.
+
+## Remaining work (no repo defects)
+- Operator: GitHub Support purge of leaked-key PR-refs/cache (#3); re-enable
+  enforce_admins when 2nd maintainer exists (#28); optional secret-scanning toggles;
+  real PGP key in SECURITY.md (#20).
+- External: Dependabot will recreate closed PRs #97 (actions group) + #95 (npm
+  dev-deps) — merge when green; OSS-Fuzz (#18); OpenSSF badge submission (#26).
+- Org/roadmap: CODEOWNERS teams via org migration (#6); SOC 2 (#24); ISO 27001
+  (#25); Security Champions (#27); keyless signing/SLSA L3 (#12); versioned docs
+  (#17); standalone per-plugin example apps (#21).
+
+## Limitations (not verified this report)
+Live TLS handshakes against real endpoints; webhook verifiers against real provider
+traffic; full per-job CI internals beyond conclusions; production/deploy state; the
+`gh secret` value (write-only); current existence of a `streetjs` org. No scores,
+coverage %, or compliance states asserted beyond what was measured.
+
+## Final assessment
+Maturity high; residual risk low and concentrated (solo-maintainer bus factor +
+outstanding Support cache purge); confidence high for repository/platform findings,
+medium for items dependent on live runtime/integration evidence not exercised here.
+Immediate next actions: (1) merge #97/#95 once Dependabot recreates them green;
+(2) file the GitHub Support PR-ref purge; (3) add a 2nd maintainer and set
+enforce_admins=true.
