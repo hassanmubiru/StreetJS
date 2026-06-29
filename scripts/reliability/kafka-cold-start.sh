@@ -53,6 +53,13 @@ BROKERS="${KAFKA_BROKERS:-127.0.0.1:9092}"
 # writes a JSON document the CommandRunner driver (verify.mjs) folds into the
 # kafka.coldstart / kafka.chaos.* Verification Artifacts (Req 9.8, task 15.5).
 CHAOS_SUMMARY_PATH="${CHAOS_SUMMARY_PATH:-}"
+# Optional cold-start failure log. When set, the harness records the diagnostic
+# lines (not ok / # fail / errors) for every cold-start iteration that fails its
+# first attempt — both the ones recovered on retry and the ones that fail both
+# attempts. CommandRunner drains and discards the child's stdout/stderr, so this
+# file is the ONLY place a failing cold-start's cause is preserved; verify.mjs
+# points it inside the uploaded artifact directory so it survives as CI evidence.
+COLD_START_LOG="${COLD_START_LOG:-}"
 TEST="packages/core/dist/src/integration/kafka/kafka.integration.test.js"
 ACCOUNT="scripts/reliability/kafka-account.mjs"
 CONTAINER="street-kafka"
