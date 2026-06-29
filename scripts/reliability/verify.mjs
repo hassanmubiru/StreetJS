@@ -31,7 +31,7 @@
 // _Design: Testing Strategy → Layer B + Honest BLOCKED. Requirements: 9.4, 9.5,
 //  9.6, 9.7, 9.8, 1.5_
 
-import { readFileSync, existsSync, rmSync } from 'node:fs';
+import { readFileSync, existsSync, rmSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve, join } from 'node:path';
@@ -99,6 +99,7 @@ export function buildChaosArtifacts({ summary, command, outcome, params, blocked
     const scenarioOk = !!scen?.ok;
     const passCount = Number(scen?.pass ?? 0);
     const total = Number(scen?.total ?? 0);
+    const retried = Number(scen?.retried ?? 0);
     const lostMessages = Number(scen?.lost ?? 0);
     const produced = Number(scen?.produced ?? 0);
     const deliveredToCommitted = Number(scen?.deliveredToCommitted ?? 0);
@@ -140,6 +141,7 @@ export function buildChaosArtifacts({ summary, command, outcome, params, blocked
         ran,
         passCount,
         total,
+        retried,
         lostMessages,
         produced,
         deliveredToCommitted,
