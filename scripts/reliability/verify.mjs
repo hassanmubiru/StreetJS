@@ -273,11 +273,19 @@ async function main() {
     if (artifact.blockedReason) {
       line += ` (blocked: ${artifact.blockedReason.kind}/${artifact.blockedReason.missingPrerequisite})`;
     } else if (d.ran) {
-      line += ` (pass ${d.passCount}/${d.total}, lost ${d.lostMessages})`;
+      line += ` (pass ${d.passCount}/${d.total}, lost ${d.lostMessages}`;
+      if (d.retried) line += `, recovered-on-retry ${d.retried}`;
+      line += ')';
     }
     console.log(line);
   }
   console.log(`[kafka-chaos-verify]   artifacts: ${resolve('verification-artifacts', 'kafka')}/`);
+  {
+    const failuresLog = resolve('verification-artifacts', 'kafka', 'kafka.coldstart.failures.log');
+    if (existsSync(failuresLog) && readFileSync(failuresLog, 'utf8').trim().length > 0) {
+      console.log(`[kafka-chaos-verify]   cold-start failure diagnostics: ${failuresLog}`);
+    }
+  }
   if (blockedReason) {
     console.log(`[kafka-chaos-verify]   BLOCKED — missing prerequisite '${blockedReason.missingPrerequisite}' (honest skip, exit 0)`);
   }
