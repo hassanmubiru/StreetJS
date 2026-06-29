@@ -6,7 +6,8 @@
 //
 // Usage: node scripts/dast/export-openapi.mjs --routes routes.json --out openapi.json
 
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { generateOpenApi, validateOpenApiDocument, openApiOperations } from 'streetjs';
 
 function arg(name, def) {
