@@ -17,7 +17,7 @@
 //
 // Usage: PORT=8080 node dast/start-target.mjs
 
-import { streetApp } from '@streetjs/core';
+import { streetApp } from 'streetjs';
 
 const port = Number(process.env.PORT ?? 8080);
 const app = streetApp({});

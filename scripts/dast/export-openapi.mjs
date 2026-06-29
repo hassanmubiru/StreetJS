@@ -6,8 +6,9 @@
 //
 // Usage: node scripts/dast/export-openapi.mjs --routes routes.json --out openapi.json
 
-import { readFileSync, writeFileSync } from 'node:fs';
-import { generateOpenApi, validateOpenApiDocument, openApiOperations } from '@streetjs/core';
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
+import { generateOpenApi, validateOpenApiDocument, openApiOperations } from 'streetjs';
 
 function arg(name, def) {
   const i = process.argv.indexOf(`--${name}`);
@@ -25,6 +26,7 @@ const v = validateOpenApiDocument(doc);
 if (!v.valid) { console.error('generated OpenAPI is invalid:\n  ' + v.errors.join('\n  ')); process.exit(1); }
 
 // Stable, deterministic serialization (sorted keys) for reproducible artifacts.
+mkdirSync(dirname(outPath), { recursive: true });
 writeFileSync(outPath, JSON.stringify(doc, Object.keys(doc).sort().length ? undefined : undefined, 2) + '\n');
 const targets = openApiOperations(doc);
 console.log(`OpenAPI exported to ${outPath} (${targets.length} operations):`);

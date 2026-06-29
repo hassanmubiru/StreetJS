@@ -40,7 +40,7 @@ import {
   buildDastArtifact,
   parseZapReport,
   openApiOperations,
-} from '@streetjs/core';
+} from 'streetjs';
 
 // ── argument parsing ─────────────────────────────────────────────────────────
 
