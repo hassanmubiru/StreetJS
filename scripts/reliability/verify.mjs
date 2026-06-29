@@ -195,6 +195,12 @@ export async function verifyKafkaChaos({
   // canonical kafka.coldstart artifact it writes is replaced below with the
   // per-scenario breakdown folded from the harness summary.
   const summaryPath = join(tmpdir(), `kafka-chaos-summary-${process.pid}-${randomBytes(4).toString('hex')}.json`);
+  // CommandRunner drains and discards the child's stdout/stderr, so a failing
+  // cold-start iteration's cause would otherwise be lost. Point the harness's
+  // failure log inside the artifact directory (created up front) so it is
+  // uploaded as durable CI evidence alongside the per-capability artifacts.
+  mkdirSync(outDir, { recursive: true });
+  const coldStartLog = join(outDir, 'kafka.coldstart.failures.log');
   const runner = new CommandRunner();
   const { artifact: runArtifact } = await runner.run({
     capabilityId: 'kafka.coldstart',
@@ -207,6 +213,7 @@ export async function verifyKafkaChaos({
       SLOW_BROKER_MS: String(slowBrokerMs),
       KAFKA_BROKERS: brokers,
       CHAOS_SUMMARY_PATH: summaryPath,
+      COLD_START_LOG: coldStartLog,
     },
     timeoutMs,
     evidenceHints: { documentation: true },
