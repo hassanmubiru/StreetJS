@@ -14,6 +14,8 @@
 //     is never ignored (passes `ignored_auth`), and because the scanner holds no
 //     token every secured operation deterministically returns its declared 401,
 //     which is also a valid 4xx for `negative_data_rejection`.
+//   - an undeclared method on a known path returns 405 Method Not Allowed with
+//     an Allow header rather than 404 (passes `unsupported_method`, RFC 9110).
 //
 // Usage: PORT=8080 node dast/start-target.mjs
 

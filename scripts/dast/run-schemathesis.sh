@@ -57,6 +57,17 @@ if grep -q -- '--experimental' <<<"$HELP"; then
   COMPAT_ARGS+=(--experimental=openapi-3.1)                        # 3.x only
 fi
 
+# Suppress the `filter_too_much` *generation* health check (4.x). The OpenAPI
+# `{id}` path parameters carry constraining patterns/formats, so Hypothesis
+# filters out many generated values and would otherwise abort those operations
+# with a health-check ERROR — a test-data-generation concern, not an API
+# finding. Suppressing it lets the scan proceed with the examples it does
+# generate; it never masks server errors or schema/conformance violations.
+HEALTHCHECK_ARGS=()
+if grep -q -- '--suppress-health-check' <<<"$HELP"; then
+  HEALTHCHECK_ARGS+=(--suppress-health-check=filter_too_much)      # 4.x
+fi
+
 # --checks all enables status-code conformance, schema conformance, and
 # server-error detection; non-zero exit on any failure (deterministic gate).
 schemathesis run "$SPEC" \
@@ -64,5 +75,6 @@ schemathesis run "$SPEC" \
   --checks all \
   "${EXAMPLES_ARGS[@]}" \
   "${REPORT_ARGS[@]}" \
+  "${HEALTHCHECK_ARGS[@]}" \
   "${COMPAT_ARGS[@]}" \
   "${AUTH_ARGS[@]}"
