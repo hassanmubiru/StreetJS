@@ -7,7 +7,7 @@
 // Usage: node scripts/dast/export-openapi.mjs --routes routes.json --out openapi.json
 
 import { readFileSync, writeFileSync } from 'node:fs';
-import { generateOpenApi, validateOpenApiDocument, openApiOperations } from '@streetjs/core';
+import { generateOpenApi, validateOpenApiDocument, openApiOperations } from 'streetjs';
 
 function arg(name, def) {
   const i = process.argv.indexOf(`--${name}`);
