@@ -9,7 +9,7 @@
 //   node scripts/dast/evaluate-gate.mjs --findings <findings.json> [--fail-on high]
 
 import { readFileSync, writeFileSync } from 'node:fs';
-import { parseZapReport, evaluateDastGate } from '@streetjs/core';
+import { parseZapReport, evaluateDastGate } from 'streetjs';
 
 function arg(name, def) {
   const i = process.argv.indexOf(`--${name}`);
