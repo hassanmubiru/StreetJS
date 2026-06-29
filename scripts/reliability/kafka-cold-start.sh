@@ -84,12 +84,12 @@ LAST_OK=0
 SCEN_JSON=""
 
 # Append one scenario object to the JSON summary accumulator.
-#   emit_scenario <name> <ran> <ok> <pass> <total>
+#   emit_scenario <name> <ran> <ok> <pass> <total> [retried]
 # Uses the most recent LAST_* accounting values for the message tallies.
 emit_scenario() {
-  local name="$1" ran="$2" ok="$3" pass="$4" total="$5"
+  local name="$1" ran="$2" ok="$3" pass="$4" total="$5" retried="${6:-0}"
   local obj
-  obj="\"$name\":{\"ran\":$ran,\"ok\":$ok,\"pass\":$pass,\"total\":$total,\"produced\":$LAST_PRODUCED,\"deliveredToCommitted\":$LAST_DELIVERED,\"lost\":$LAST_LOST}"
+  obj="\"$name\":{\"ran\":$ran,\"ok\":$ok,\"pass\":$pass,\"total\":$total,\"retried\":$retried,\"produced\":$LAST_PRODUCED,\"deliveredToCommitted\":$LAST_DELIVERED,\"lost\":$LAST_LOST}"
   if [ -z "$SCEN_JSON" ]; then SCEN_JSON="$obj"; else SCEN_JSON="$SCEN_JSON,$obj"; fi
 }
 
