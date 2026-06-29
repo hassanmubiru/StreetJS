@@ -70,7 +70,18 @@ app.use(async (ctx, next) => {
 
   const route = ROUTES.find((r) => r.method === method && r.pattern.test(path));
   if (!route) {
-    await next(); // fall through to the framework's 404
+    // If the PATH matches a declared route under one or more OTHER methods, the
+    // correct response is 405 Method Not Allowed (with an Allow header listing
+    // the supported methods) — not 404. This is the RFC 9110 §15.5.6 behaviour
+    // and satisfies the scanner's `unsupported_method` conformance check; a
+    // bare 404 here would be graded as a (false-positive) High finding.
+    const allowed = [...new Set(ROUTES.filter((r) => r.pattern.test(path)).map((r) => r.method))];
+    if (allowed.length > 0) {
+      ctx.setHeader('Allow', allowed.join(', '));
+      ctx.json({ error: 'method not allowed' }, 405);
+      return;
+    }
+    await next(); // genuinely unknown path → framework 404
     return;
   }
 
