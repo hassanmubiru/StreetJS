@@ -1,5 +1,5 @@
 # ---- Build stage ----
-FROM node:26-alpine@sha256:725aeba2364a9b16beae49e180d83bd597dbd0b15c47f1f28875c290bfd255b9 AS builder
+FROM node:24-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS builder
 WORKDIR /build
 
 # Copy root package files for workspace resolution
@@ -24,7 +24,7 @@ RUN node src/database/sqlite/download-wasm.mjs \
 WORKDIR /build
 
 # ---- Production stage ----
-FROM gcr.io/distroless/nodejs20-debian12@sha256:6fe218dbad37e979c7542e670d28d6e23d3f53d2929693bc9cdded8b622f339f AS runtime
+FROM gcr.io/distroless/nodejs22-debian12@sha256:8a3e96fe3345b5d83ecec2066e7c498139a02a6d1214e4f6c39f9ce359f3f5bc AS runtime
 WORKDIR /app
 
 # Copy compiled output
