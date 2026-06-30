@@ -20,7 +20,7 @@ Plus `packages/registry-server/Dockerfile` (service image — KEEP).
 | **LOW** | same | **Default dev passwords** (`street_secret`, `testpass`) + placeholder `JWT_SECRET`/`KEK` (`change-me-in-production-…`) | Acceptable for local dev (clearly labelled). Document "never use in prod"; require real values via secret store in prod compose/Helm |
 | **LOW** | `docker-compose.test-db.yml` mysql | `--default-authentication-plugin=caching_sha2_password` over non-TLS | Test-only; fine. Note plaintext auth on the wire for local |
 | **LOW** | all DB/cache compose | No TLS between app and DB/broker | Dev convenience; production guidance should mandate TLS (see plugin TLS gap) |
-| **INFO** | `infra/Dockerfile` | Multi-stage, distroless runtime (`gcr.io/distroless/nodejs20`), pinned base by digest | ✅ good posture — non-root distroless, pinned digests |
+| **INFO** | `infra/Dockerfile` | Multi-stage, distroless runtime (`gcr.io/distroless/nodejs22`), pinned base by digest | ✅ good posture — non-root distroless, pinned digests |
 | **INFO** | `infra/helm/street`, `infra/kubernetes` | Liveness/readiness/startup probes, HPA example | ✅ present |
 | **VERIFIED** | all infra | No real cloud account IDs / ARNs / internal DNS / cluster names | ✅ templated only (enforced by `scan-infra-identifiers` job) |
 

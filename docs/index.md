@@ -183,7 +183,7 @@ description: "StreetJS — the TypeScript framework for modern backend applicati
 <!-- ════════════════════════ 1 · HERO ════════════════════════ -->
 <section class="hero">
   <div class="hero-in">
-    <span class="tag"><span class="dot"></span>v{{ site.version }} · MIT · TypeScript 5 · Node 20+</span>
+    <span class="tag"><span class="dot"></span>v{{ site.version }} · MIT · TypeScript 5 · Node 22+</span>
     <h1><span class="grad">The TypeScript Framework for Modern Backend Applications</span></h1>
     <p class="hero-sub">Build APIs, authentication, realtime features, background jobs and AI integrations in one type-safe framework — built directly on Node.js core.</p>
     <div class="btns">
