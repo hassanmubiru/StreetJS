@@ -211,10 +211,10 @@ void describe('DoctorCommand', () => {
     process.exitCode = undefined;
   });
 
-  void it('detects Node.js >= 20 as a pass (no exit code set by Node check)', async () => {
+  void it('detects Node.js >= 22 as a pass (no exit code set by Node check)', async () => {
     const tmpDir = mkdtempSync(join(tmpdir(), 'street-doctor-new-'));
     const origVersion = process.version;
-    Object.defineProperty(process, 'version', { value: 'v20.0.0', writable: true, configurable: true });
+    Object.defineProperty(process, 'version', { value: 'v22.0.0', writable: true, configurable: true });
     process.exitCode = 0;
 
     const { output, restore } = captureConsole();
@@ -227,11 +227,11 @@ void describe('DoctorCommand', () => {
       rmSync(tmpDir, { recursive: true, force: true });
     }
 
-    // The Node.js check line should contain a checkmark for v20
+    // The Node.js check line should contain a checkmark for v22
     const allOutput = output.logs.join('\n');
     assert.ok(
-      allOutput.includes('v20.0.0') && allOutput.includes('✓'),
-      `Expected v20.0.0 ✓ in doctor output:\n${allOutput}`,
+      allOutput.includes('v22.0.0') && allOutput.includes('✓'),
+      `Expected v22.0.0 ✓ in doctor output:\n${allOutput}`,
     );
   });
 
