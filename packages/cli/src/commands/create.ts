@@ -6557,7 +6557,7 @@ code, .codeblock { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monosp
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
       - run: npm install
       - run: npm run lint
       - run: npm run build
@@ -6580,7 +6580,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
       - run: npm install
       - run: npm run build
 ${webJob}`;
@@ -7401,7 +7401,7 @@ function broadcast(message: ChatMessage): void {
     return `# Dockerfile — Multi-stage build for Street applications
 
 # ── Build stage ──────────────────────────────────────────────────────────────
-FROM node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293 AS builder
+FROM node:24-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS builder
 
 WORKDIR /app
 
@@ -7413,7 +7413,7 @@ COPY src ./src
 RUN npm run build
 
 # ── Production stage ─────────────────────────────────────────────────────────
-FROM node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293 AS runner
+FROM node:24-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS runner
 
 WORKDIR /app
 
@@ -7668,7 +7668,7 @@ A [Street](https://hassanmubiru.github.io/StreetJS) framework application.
 
 ## Prerequisites
 
-- Node.js >= 20.0.0
+- Node.js >= 22.0.0
 - PostgreSQL >= 14 (optional, for database features)
 
 ## Getting Started
