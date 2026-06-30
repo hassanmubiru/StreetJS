@@ -190,11 +190,11 @@ void describe('InfoCommand', () => {
 // ── DoctorCommand ─────────────────────────────────────────────────────────────
 
 void describe('DoctorCommand', () => {
-  void it('detects old Node.js version (< 20) as a failure', async () => {
+  void it('detects old Node.js version (< 22) as a failure', async () => {
     const tmpDir = mkdtempSync(join(tmpdir(), 'street-doctor-old-'));
-    // Temporarily override process.version to simulate v18
+    // Temporarily override process.version to simulate Node 20 (now EOL, below the ≥22 baseline)
     const origVersion = process.version;
-    Object.defineProperty(process, 'version', { value: 'v18.0.0', writable: true, configurable: true });
+    Object.defineProperty(process, 'version', { value: 'v20.0.0', writable: true, configurable: true });
     process.exitCode = 0;
 
     const { restore } = captureConsole();
@@ -207,7 +207,7 @@ void describe('DoctorCommand', () => {
       rmSync(tmpDir, { recursive: true, force: true });
     }
 
-    assert.equal(process.exitCode, 1, 'Should set process.exitCode = 1 when Node.js < 20');
+    assert.equal(process.exitCode, 1, 'Should set process.exitCode = 1 when Node.js < 22');
     process.exitCode = undefined;
   });
 
