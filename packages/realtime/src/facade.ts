@@ -393,10 +393,17 @@ class RealtimeFacade implements Realtime {
    * in {@link bind} and torn down in {@link handleClose}.
    */
   private readonly membersByConnId = new Map<string, Member>();
+  /**
+   * Live connection objects keyed by connection id, so a broadcast can resolve
+   * the offending connection to emit a rate-limit error event to it (Req 11.4).
+   * Populated when a connection joins a room (or is bound via {@link bind}) and
+   * torn down in {@link handleClose}.
+   */
+  private readonly connById = new Map<string, RealtimeConnection>();
   /** Connection ids already bound to the hub lifecycle, to avoid double-binding. */
   private readonly bound = new Set<string>();
 
-  constructor(hub: ChannelHub, adapter: ClusterAdapter) {
+  constructor(hub: ChannelHub, adapter: ClusterAdapter, rateLimiter: RateLimiter) {
     this.adapter = adapter;
     const authorizers = new Map<string, ChannelAuthorizer>();
 
@@ -436,6 +443,15 @@ class RealtimeFacade implements Realtime {
       // `connId → Member` mirror maintained by `bind`/`handleClose`; returns
       // `null` for an unbound/unauthenticated connection. Not public surface.
       memberByConnId: (connId: string) => this.membersByConnId.get(connId) ?? null,
+      // Resolve the live connection object by id so a rate-limit rejection can
+      // emit an error event to the offending connection (Req 11.4). Not public.
+      connById: (connId: string) => this.connById.get(connId) ?? null,
+      // Register a connection so it can later be resolved by id. Not public.
+      registerConn: (conn: RealtimeConnection) => {
+        this.connById.set(conn.id, conn);
+      },
+      // Shared per-connection / per-channel rate limiter for every broadcast (Req 11).
+      rateLimiter,
     };
   }
 
@@ -459,6 +475,9 @@ class RealtimeFacade implements Realtime {
   }
 
   bind(conn: RealtimeConnection, member: Member | null): void {
+    // Register the connection so a rate-limit rejection can resolve it by id
+    // to emit an error event to it (Req 11.4).
+    this.connById.set(conn.id, conn);
     if (member) {
       this.members.set(conn, member);
       // Maintain the connId → Member mirror so a secured-channel broadcast can
