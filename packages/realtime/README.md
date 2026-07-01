@@ -10,6 +10,10 @@ pluggable cluster adapters — all layered additively over the existing
 them. Existing `StreetWebSocketServer` / `ChannelHub` code keeps working
 unchanged (see [Migration & backward compatibility](#migration--backward-compatibility)).
 
+> **New to realtime?** Start with the [**Realtime Guide**](./docs/realtime-guide.md)
+> — a practical, example-driven walkthrough covering chat, notifications, live
+> dashboards, multiplayer, and collaborative editing.
+
 ## Contents
 
 - [Install](#install)
