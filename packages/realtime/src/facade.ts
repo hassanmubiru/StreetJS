@@ -597,6 +597,7 @@ class RealtimeFacade implements Realtime {
     await this.adapter.close();
     this.bound.clear();
     this.connById.clear();
+    this.peerPresenceMirror.clear();
   }
 }
 
