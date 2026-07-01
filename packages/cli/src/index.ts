@@ -218,6 +218,7 @@ Commands:
   generate <type> <name>          Generate a controller, service, or repository
   generate sdk --lang <ts|python> --spec <openapi.json> --output <dir>
   generate grpc --proto <file.proto> [--output <dir>]
+  make:channel <Name>             Scaffold a typed @streetjs/realtime channel in src/channels/
   migrate:create <name>           Create a new empty migration file
   migrate:run                     Run all pending migrations
   migrate:diff [--confirm-destructive]  Diff live schema vs entity metadata
