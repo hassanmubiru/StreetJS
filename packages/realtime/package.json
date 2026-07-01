@@ -1,0 +1,74 @@
+{
+  "name": "@streetjs/realtime",
+  "version": "1.0.0",
+  "description": "StreetJS Realtime Framework: strongly-typed, plugin-first rooms, presence, typing, broadcast, auth, rate limiting, and pluggable cluster adapters layered over streetjs.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./redis": {
+      "import": "./dist/cluster/redis.js",
+      "types": "./dist/cluster/redis.d.ts"
+    }
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.js.map",
+    "dist/**/*.d.ts",
+    "dist/**/*.d.ts.map",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test dist/tests/*.test.js",
+    "lint": "tsc --noEmit",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\""
+  },
+  "keywords": [
+    "streetjs",
+    "street-framework",
+    "realtime",
+    "websocket",
+    "rooms",
+    "presence",
+    "typing",
+    "broadcast",
+    "pubsub",
+    "cluster",
+    "redis",
+    "typescript",
+    "esm"
+  ],
+  "author": "street contributors",
+  "license": "MIT",
+  "homepage": "https://hassanmubiru.github.io/StreetJS/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hassanmubiru/StreetJS.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hassanmubiru/StreetJS/issues"
+  },
+  "dependencies": {
+    "streetjs": "^1.0.25"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.2",
+    "fast-check": "^4.8.0",
+    "typescript": "^6.0.3"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
