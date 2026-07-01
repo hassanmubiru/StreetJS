@@ -415,7 +415,7 @@ class RealtimeFacade implements Realtime {
   /** Connection ids already bound to the hub lifecycle, to avoid double-binding. */
   private readonly bound = new Set<string>();
 
-  constructor(hub: ChannelHub, adapter: ClusterAdapter, rateLimiter: RateLimiter) {
+  constructor(hub: ChannelHub, adapter: ClusterAdapter, rateLimiter: RateLimiter, onRateLimitRejected: () => void) {
     this.adapter = adapter;
     const authorizers = new Map<string, ChannelAuthorizer>();
 
@@ -464,6 +464,9 @@ class RealtimeFacade implements Realtime {
       },
       // Shared per-connection / per-channel rate limiter for every broadcast (Req 11).
       rateLimiter,
+      // Record each rate-limit rejection on the metrics registry (Req 17.3);
+      // a no-op when no registry was configured. Not public.
+      onRateLimitRejected,
     };
   }
 
