@@ -255,6 +255,31 @@ class RoomHandle implements Room {
    */
   async broadcast<T>(message: RealtimeMessage<T>, options?: BroadcastOptions): Promise<void> {
     await this.ctx.ready;
+    // Secured-channel gate (Req 10.3): if this channel is a Secured_Channel, the
+    // broadcast must originate from an authenticated, authorized member.
+    //
+    // Broadcast-sender resolution rule: `Room.broadcast` carries no explicit
+    // sender argument, so the sender is identified by `BroadcastOptions.exceptConnId`
+    // — by convention a sender excludes its own connection from delivery. The
+    // facade resolves that connId to a `Member` via `ctx.memberByConnId`. If no
+    // `exceptConnId` is supplied, or it does not resolve to an authenticated
+    // Member, the broadcast is treated as unauthenticated and denied. On denial
+    // (unauthenticated or unauthorized) NOTHING is delivered: neither the local
+    // hub publish nor the cross-instance adapter publish runs (Req 10.3). A
+    // non-secured channel skips this check entirely (Req 10.4).
+    const authorizer = this.ctx.authorizers.get(this.name);
+    if (authorizer) {
+      const senderConnId = options?.exceptConnId;
+      const sender = senderConnId ? this.ctx.memberByConnId(senderConnId) : null;
+      // No resolvable authenticated member ⇒ deny without evaluating the rule.
+      const allowed = sender
+        ? await authorizer({ channel: this.name, member: sender, action: 'broadcast' })
+        : false;
+      if (!allowed) {
+        // Deliver nothing: skip both hub.publish and adapter.publish (Req 10.3).
+        return;
+      }
+    }
     const publishOptions = toPublishOptions(options);
     // Local delivery always flows through the hub (a no-op for an empty room).
     this.ctx.hub.publish(this.name, message.type, message.payload, publishOptions);
@@ -466,6 +491,11 @@ function describeError(cause: unknown): string {
 function describeValue(value: unknown): string {
   if (typeof value === 'string') return `empty string`;
   return `${typeof value}`;
+}
+
+/** Human-readable member id for an authorization-denial message. */
+function describeMemberId(member: Member | null): string {
+  return member ? member.id : '<anonymous>';
 }
 
 /** The subset of the WebSocket server the facade reads/writes to install upgrade auth. */
