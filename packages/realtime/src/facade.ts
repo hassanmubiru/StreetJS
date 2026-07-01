@@ -7,7 +7,7 @@
 // implemented in later tasks (3.1, 3.2); this scaffold establishes the
 // strongly-typed surface required by Requirements 1.2 and 1.5.
 
-import type { IncomingMessage } from 'node:http';
+import type { IncomingMessage, Server } from 'node:http';
 import { ChannelHub } from 'streetjs';
 import type {
   RealtimeConnection,
@@ -15,9 +15,11 @@ import type {
   HealthCheckRegistry,
   MetricsRegistry,
   PublishOptions,
+  WsHandler,
 } from 'streetjs';
 import type { ClusterAdapter, ClusterSink } from './cluster/adapter.js';
 import { MemoryAdapter } from './cluster/memory.js';
+import { createRealtimeUpgradeAuth } from './auth.js';
 import type { ChannelAuthorizer } from './auth.js';
 import type { RateLimitConfig } from './ratelimit.js';
 
