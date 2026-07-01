@@ -20,6 +20,7 @@ import type { ClusterAdapter, ClusterSink } from './cluster/adapter.js';
 import { MemoryAdapter } from './cluster/memory.js';
 import { createRealtimeUpgradeAuth } from './auth.js';
 import type { ChannelAuthorizer, RealtimeUpgradeAuth } from './auth.js';
+import { RateLimiter } from './ratelimit.js';
 import type { RateLimitConfig } from './ratelimit.js';
 
 /**
@@ -138,6 +139,28 @@ interface FacadeContext {
    * connection is unbound/unauthenticated. NOT part of the public surface.
    */
   readonly memberByConnId: (connId: string) => Member | null;
+  /**
+   * Internal, non-public connection resolution by connection id. Used to
+   * resolve the offending connection object so a rate-limit error event can be
+   * emitted to it (Req 11.4). Returns the connection registered when it joined
+   * a room (or was bound via {@link Realtime.bind}), or `null` when unknown.
+   * NOT part of the public surface.
+   */
+  readonly connById: (connId: string) => RealtimeConnection | null;
+  /**
+   * Record a connection against its id so it can later be resolved by
+   * {@link FacadeContext.connById}. Called by {@link RoomHandle.join} (the
+   * broadcaster is always a room member) and by {@link Realtime.bind}. NOT part
+   * of the public surface.
+   */
+  readonly registerConn: (conn: RealtimeConnection) => void;
+  /**
+   * The per-connection / per-channel rate limiter applied to every broadcast
+   * (Req 11). Enabled by default with documented defaults; shared across all
+   * {@link RoomHandle}s so quotas are enforced consistently per connection and
+   * per channel.
+   */
+  readonly rateLimiter: RateLimiter;
 }
 
 /** Map the facade's {@link BroadcastOptions} onto the hub's `PublishOptions`. */
@@ -200,6 +223,9 @@ class RoomHandle implements Room {
    */
   async join(member: Member, conn: RealtimeConnection): Promise<void> {
     await this.ctx.ready;
+    // Register the connection so it can be resolved by id later (e.g. to emit a
+    // rate-limit error event to it, Req 11.4). A broadcaster is always a room member.
+    this.ctx.registerConn(conn);
     // Secured-channel gate (Req 10.1): if this channel is a Secured_Channel,
     // evaluate its authorizer for `action: 'join'` *before* touching the hub.
     // On denial do not add the member, return an authorization error to the
