@@ -161,6 +161,15 @@ interface FacadeContext {
    * per channel.
    */
   readonly rateLimiter: RateLimiter;
+  /**
+   * Records a single rate-limit rejection on the observability
+   * {@link MetricsRegistry} (Req 17.3). Called by {@link RoomHandle.broadcast}
+   * each time the rate limiter rejects a broadcast, alongside the rate-limit
+   * error event emitted to the offending connection (Req 11.4). A no-op when no
+   * `metrics` registry was configured on the facade, so metrics stay entirely
+   * opt-in. NOT part of the public surface.
+   */
+  readonly onRateLimitRejected: () => void;
 }
 
 /** Map the facade's {@link BroadcastOptions} onto the hub's `PublishOptions`. */
