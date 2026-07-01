@@ -124,8 +124,20 @@ interface FacadeContext {
    * operations surface the failure and never silently fall back (Req 12.5).
    */
   readonly ready: Promise<void>;
-  /** Registered per-channel authorization rules (enforcement wired in task 7.1). */
+  /**
+   * Registered per-channel authorization rules. A channel present in this map is
+   * a Secured_Channel: {@link RoomHandle.join} and {@link RoomHandle.broadcast}
+   * evaluate its {@link ChannelAuthorizer} before admitting the action (Req 10).
+   */
   readonly authorizers: Map<string, ChannelAuthorizer>;
+  /**
+   * Internal, non-public member resolution by connection id. Used to identify
+   * the sender of a secured-channel broadcast (which carries no explicit sender
+   * argument) from `BroadcastOptions.exceptConnId`. Returns the {@link Member}
+   * bound to that connection via {@link Realtime.bind}, or `null` when the
+   * connection is unbound/unauthenticated. NOT part of the public surface.
+   */
+  readonly memberByConnId: (connId: string) => Member | null;
 }
 
 /** Map the facade's {@link BroadcastOptions} onto the hub's `PublishOptions`. */
