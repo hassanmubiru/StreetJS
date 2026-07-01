@@ -144,3 +144,57 @@ void describe('MakeCommand.executeChannel', () => {
     });
   });
 });
+
+void describe('MakeCommand.executeGateway', () => {
+  void it('generates src/gateways/<Name>Gateway.ts wired to the Realtime facade', async () => {
+    await withTempDir(async (dir) => {
+      process.exitCode = 0;
+      const { logs, restore } = captureConsole();
+      await new MakeCommand().executeGateway(makeContext(dir, ['chat']));
+      restore();
+
+      assert.equal(process.exitCode, 0);
+      const filePath = join(dir, 'src', 'gateways', 'ChatGateway.ts');
+      assert.ok(existsSync(filePath), 'ChatGateway.ts should be created');
+
+      const content = readFileSync(filePath, 'utf8');
+      assert.ok(content.includes("from '@streetjs/realtime'"), 'imports public realtime symbols');
+      assert.ok(content.includes('export class ChatGateway'), 'exports PascalCase gateway class');
+      assert.ok(content.includes('private readonly realtime: Realtime'), 'wired to the Realtime facade');
+      assert.ok(content.includes("room = 'chat' as const"), 'binds camelCase room name');
+      assert.ok(logs.some((l) => l.includes('Generated gateway')), 'prints success message');
+    });
+  });
+
+  void it('exits non-zero with usage guidance when no name is given', async () => {
+    await withTempDir(async (dir) => {
+      process.exitCode = 0;
+      const { errors, restore } = captureConsole();
+      await new MakeCommand().executeGateway(makeContext(dir, []));
+      restore();
+
+      assert.notEqual(process.exitCode, 0);
+      assert.ok(errors.some((e) => e.includes('Usage: street make:gateway <Name>')));
+      assert.ok(!existsSync(join(dir, 'src', 'gateways')), 'no gateway dir created on missing name');
+    });
+  });
+
+  void it('does not overwrite an existing file and exits non-zero', async () => {
+    await withTempDir(async (dir) => {
+      const gatewaysDir = join(dir, 'src', 'gateways');
+      mkdirSync(gatewaysDir, { recursive: true });
+      const filePath = join(gatewaysDir, 'ChatGateway.ts');
+      const sentinel = '// pre-existing content — must not be overwritten\n';
+      writeFileSync(filePath, sentinel, 'utf8');
+
+      process.exitCode = 0;
+      const { errors, restore } = captureConsole();
+      await new MakeCommand().executeGateway(makeContext(dir, ['chat']));
+      restore();
+
+      assert.notEqual(process.exitCode, 0);
+      assert.ok(errors.some((e) => e.includes('already exists')));
+      assert.equal(readFileSync(filePath, 'utf8'), sentinel, 'existing content left byte-for-byte intact');
+    });
+  });
+});
