@@ -171,10 +171,13 @@ function union(a: readonly string[], b: readonly string[]): string[] {
  * here (task 3.2), and presence deltas are propagated to the cluster adapter
  * (task 4.1): `join`/`leave` observe the hub's `newlyPresent`/`nowAbsent`
  * results and call `adapter.publishPresence` accordingly (inert for the default
- * `MemoryAdapter`). Two behaviors remain intentionally deferred and are wired in
- * later tasks so as to keep this handle's hooks coherent without pre-empting
- * their specs:
- *   - Secured-channel authorization on join/broadcast (task 7.1, Req 10).
+ * `MemoryAdapter`). Secured-channel authorization is now enforced (task 7.1,
+ * Req 10): when this channel was registered via `Realtime.secure`, `join`
+ * evaluates the `ChannelAuthorizer` for `action: 'join'` before admitting the
+ * member (Req 10.1, 10.2) and `broadcast` evaluates it for `action: 'broadcast'`,
+ * denying delivery to every connection when the sender is unauthenticated or
+ * unauthorized (Req 10.3). One behavior remains intentionally deferred so as to
+ * keep this handle's hooks coherent without pre-empting its spec:
  *   - Consumption of remote presence into a distributed mirror
  *     (`applyRemotePresence` + `remotePresence` union recording, task 10.2,
  *     Req 5.4/5.6). Today `presence()` already unions in `adapter.remotePresence`,
