@@ -446,6 +446,14 @@ class RealtimeFacade implements Realtime {
    */
   private readonly peerPresenceMirror = new Map<string, Set<string>>();
 
+  /**
+   * Observability handle registered by {@link createRealtime} when a
+   * health/metrics registry is configured (Req 17). Held so {@link close} can
+   * stop the background metric-refresh timer on teardown. `undefined` when no
+   * observability was wired.
+   */
+  private observability?: RealtimeObservabilityHandle;
+
   constructor(hub: ChannelHub, adapter: ClusterAdapter, rateLimiter: RateLimiter, onRateLimitRejected: () => void) {
     this.adapter = adapter;
     const authorizers = new Map<string, ChannelAuthorizer>();
