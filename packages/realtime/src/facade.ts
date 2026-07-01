@@ -635,7 +635,11 @@ export function createRealtime(options: RealtimeOptions): Realtime {
   }
   const hub = new ChannelHub({ typingTtlMs: options.typingTtlMs ?? 0 });
   const adapter = options.adapter ?? new MemoryAdapter();
-  const facade = new RealtimeFacade(hub, adapter);
+  // Build the rate limiter from `options.rateLimit` (or defaults). Enabled by
+  // default with documented defaults (per-connection 20/1s, per-channel 200/1s,
+  // Req 11.5); it reuses the core RateLimitStore sliding-window semantics.
+  const rateLimiter = new RateLimiter(options.rateLimit ?? {});
+  const facade = new RealtimeFacade(hub, adapter, rateLimiter);
 
   // When an authentication hook is configured, wire connection authentication
   // onto the existing server: verify the credential at upgrade (Req 9.1, 9.2)
