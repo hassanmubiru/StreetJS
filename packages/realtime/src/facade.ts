@@ -431,6 +431,18 @@ class RealtimeFacade implements Realtime {
   private readonly connById = new Map<string, RealtimeConnection>();
   /** Connection ids already bound to the hub lifecycle, to avoid double-binding. */
   private readonly bound = new Set<string>();
+  /**
+   * Facade-owned distributed presence mirror: `channel → Set<memberId>` of the
+   * members reported present on peer instances. Fed exclusively by the cluster
+   * sink's {@link ClusterSink.applyRemotePresence} — a `join` adds a member and
+   * a `leave` removes it; an emptied channel entry is pruned so
+   * {@link FacadeContext.peerPresence} treats it as absent (Req 5.4, 5.6). This
+   * is the authoritative peer-presence source that `Room.presence()` unions
+   * with local hub presence. Because the sink signature carries no instanceId,
+   * the mirror is keyed by channel → member set (a member is present remotely
+   * while any peer's `join` has not been followed by a `leave`).
+   */
+  private readonly peerPresenceMirror = new Map<string, Set<string>>();
 
   constructor(hub: ChannelHub, adapter: ClusterAdapter, rateLimiter: RateLimiter, onRateLimitRejected: () => void) {
     this.adapter = adapter;
