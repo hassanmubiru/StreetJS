@@ -341,13 +341,47 @@ class RealtimeFacade implements Realtime {
     } else {
       this.members.delete(conn);
     }
-    // Bind the connection's lifecycle to the hub so a close removes it from every
-    // room (Req 3.3). Only connections that expose `onClose` (StreetSocket /
-    // FakeConnection) can be bound; do it once per connection.
+    // Bind the connection's lifecycle so a close (including a heartbeat reap)
+    // removes it from every room (Req 3.3, 8.3) and propagates the resulting
+    // presence-leave deltas to the cluster adapter (Req 8.4). Only connections
+    // that expose `onClose` (StreetSocket / FakeConnection) can be bound; do it
+    // once per connection.
     if (!this.bound.has(conn.id) && hasOnClose(conn)) {
       this.bound.add(conn.id);
-      this.ctx.hub.bind(conn);
+      conn.onClose(() => this.handleClose(conn));
     }
+  }
+
+  /**
+   * Close-path continuity for a bound connection (Req 8.3, 8.4). Snapshots the
+   * channels in which the connection's member is present, removes the
+   * connection from every room via `ChannelHub.disconnect` (the same path a
+   * live `StreetSocket` close and a heartbeat reap take — the hub fires
+   * `presence:leave` to the remaining connections and clears typing when the
+   * member's last connection goes, Req 6.4), then propagates a `leave` delta to
+   * the cluster adapter for every channel the member became absent from. A
+   * member still holding another connection stays present, so no spurious leave
+   * is propagated (Req 8.2). Inert for the default `MemoryAdapter`.
+   */
+  private handleClose(conn: RealtimeConnection): void {
+    const member = this.members.get(conn);
+    const hub = this.ctx.hub;
+    // Snapshot the channels where the member is present before disconnecting.
+    const presentBefore = member
+      ? hub.channelNames().filter((channel) => hub.isPresent(channel, member.id))
+      : [];
+    // Remove the connection from every room exactly as a live close would.
+    hub.disconnect(conn);
+    // Propagate a leave delta for each channel the member became absent from.
+    if (member) {
+      for (const channel of presentBefore) {
+        if (!hub.isPresent(channel, member.id)) {
+          void this.ctx.adapter.publishPresence(channel, member.id, 'leave');
+        }
+      }
+    }
+    this.members.delete(conn);
+    this.bound.delete(conn.id);
   }
 
   async close(): Promise<void> {
