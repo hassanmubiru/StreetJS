@@ -495,6 +495,13 @@ class RealtimeFacade implements Realtime {
       registerConn: (conn: RealtimeConnection) => {
         this.connById.set(conn.id, conn);
       },
+      // Snapshot the members present on peer instances for a channel, from the
+      // facade-owned distributed mirror fed by `applyRemotePresence`. Authoritative
+      // peer-presence source unioned into `Room.presence()` (Req 5.4, 5.6). Not public.
+      peerPresence: (channel: string) => {
+        const present = this.peerPresenceMirror.get(channel);
+        return present ? [...present] : [];
+      },
       // Shared per-connection / per-channel rate limiter for every broadcast (Req 11).
       rateLimiter,
       // Record each rate-limit rejection on the metrics registry (Req 17.3);
