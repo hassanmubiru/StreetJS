@@ -272,7 +272,8 @@ import { createRealtime } from '@streetjs/realtime';
 import { RedisAdapter } from '@streetjs/realtime/redis';
 import { RedisClient } from 'streetjs';
 
-const client = new RedisClient({ url: process.env.REDIS_URL });
+const client = new RedisClient({ host: '127.0.0.1', port: 6379 });
+await client.connect();
 const realtime = createRealtime({
   server,
   adapter: new RedisAdapter({ client, keyPrefix: 'streetjs:rt:', presenceTtlMs: 30_000 }),
