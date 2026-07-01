@@ -362,17 +362,23 @@ class RoomHandle implements Room {
   }
 
   /**
-   * Ids of the members currently present in this room (Req 5.3), as the union
-   * of local hub presence and the members present on peer instances
-   * (`adapter.remotePresence`, Req 5.4). For an empty room the union is empty
-   * (Req 5.5). Under the default `MemoryAdapter`, `remotePresence` is `[]`, so
-   * the result is exactly local hub presence.
+   * Ids of the members currently present in this room (Req 5.3), as the
+   * distributed union of local hub presence and the members present on peer
+   * instances (Req 5.4). Peer presence comes from the facade-owned distributed
+   * mirror (`ctx.peerPresence`, the authoritative peer source fed by
+   * `applyRemotePresence`) unioned with `adapter.remotePresence` (kept usable as
+   * a redundant source; `union` dedupes so a member reported by both counts
+   * once). For an empty room the union is empty (Req 5.5), and the room is
+   * treated as empty only when this distributed union is empty (Req 5.6). Under
+   * the default `MemoryAdapter` both peer sources are empty, so the result is
+   * exactly local hub presence.
    */
   async presence(): Promise<string[]> {
     await this.ctx.ready;
     const local = this.ctx.hub.presence(this.name);
+    const peers = this.ctx.peerPresence(this.name);
     const remote = await this.ctx.adapter.remotePresence(this.name);
-    return union(local, remote);
+    return union(union(local, peers), remote);
   }
 
   /**
