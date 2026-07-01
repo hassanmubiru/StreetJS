@@ -294,6 +294,14 @@ class RealtimeFacade implements Realtime {
   private readonly ctx: FacadeContext;
   /** Member identity associated with each bound connection (Req 9.3). */
   private readonly members = new WeakMap<RealtimeConnection, Member>();
+  /**
+   * Member identity keyed by connection id. Mirrors {@link members} but is
+   * keyed by the string `connId` (not the connection object), so a
+   * secured-channel broadcast can resolve its sender's {@link Member} from
+   * `BroadcastOptions.exceptConnId` (Req 10.3). Maintained alongside `members`
+   * in {@link bind} and torn down in {@link handleClose}.
+   */
+  private readonly membersByConnId = new Map<string, Member>();
   /** Connection ids already bound to the hub lifecycle, to avoid double-binding. */
   private readonly bound = new Set<string>();
 
