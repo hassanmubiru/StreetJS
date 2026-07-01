@@ -84,7 +84,8 @@ import { RedisClient, StreetWebSocketServer } from 'streetjs';
 
 const server = new StreetWebSocketServer();
 
-const client = new RedisClient({ url: process.env.REDIS_URL }); // e.g. redis://localhost:6379
+const client = new RedisClient({ host: '127.0.0.1', port: 6379 }); // { host, port, password? }
+await client.connect();
 const adapter = new RedisAdapter({
   client,
   keyPrefix: 'streetjs:rt:',
