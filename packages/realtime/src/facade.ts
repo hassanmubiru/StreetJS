@@ -148,12 +148,22 @@ function union(a: readonly string[], b: readonly string[]): string[] {
 /**
  * A stateless {@link Room} handle bound to a channel `name`. All membership,
  * presence, typing, and broadcast behavior delegates to the shared
- * `ChannelHub`; cross-instance fan-out flows through the `ClusterAdapter`.
+ * `ChannelHub`; cross-instance fan-out flows through the `ClusterAdapter`. Two
+ * handles created for the same `name` operate over the *same* underlying hub
+ * channel (Req 2.2), because the handle carries only its `name` plus the shared
+ * facade context.
  *
- * The detailed broadcast/presence-union and secured-channel semantics are
- * finalized in tasks 3.2, 7.1, and 10.2; this handle provides coherent wiring
- * over the hub + adapter so the facade builds and behaves correctly on a single
- * instance today.
+ * Membership (`join`/`leave`), broadcast delivery scope (`broadcast`), presence
+ * queries (`presence`/`memberCount`), and typing (`setTyping`) are finalized
+ * here (task 3.2). Two behaviors remain intentionally deferred and are wired in
+ * later tasks so as to keep this handle's hooks coherent without pre-empting
+ * their specs:
+ *   - Secured-channel authorization on join/broadcast (task 7.1, Req 10).
+ *   - Cross-instance presence propagation + the distributed presence mirror
+ *     that observes the hub's `newlyPresent`/`nowAbsent` deltas (task 10.2,
+ *     Req 5.4/5.6). Today `presence()` already unions in `adapter.remotePresence`,
+ *     which is `[]` for the default `MemoryAdapter`, so single-instance results
+ *     are correct.
  */
 class RoomHandle implements Room {
   constructor(
@@ -161,25 +171,62 @@ class RoomHandle implements Room {
     private readonly ctx: FacadeContext,
   ) {}
 
+  /**
+   * Add `member`'s `conn` to this channel and resolve strictly *after*
+   * membership has been recorded (Req 2.3, 4.1). Delegation to `ChannelHub.join`
+   * is synchronous — it records the connection, ref-counts the member, and
+   * fires `presence:join` to the other connections when the member becomes newly
+   * present — so awaiting this promise guarantees the membership is durable
+   * before the caller proceeds. Joins are idempotent per connection (Req 4.6).
+   */
   async join(member: Member, conn: RealtimeConnection): Promise<void> {
     await this.ctx.ready;
     this.ctx.hub.join(this.name, member.id, conn);
+    // NOTE (task 10.2): the hub returns `{ newlyPresent }` here — that delta is
+    // the hook point for `adapter.publishPresence`; intentionally not wired yet.
   }
 
+  /**
+   * Remove `member`'s `conn` from this channel (Req 2.6, 4.2, 4.3). The member
+   * stays present while any other connection remains and becomes absent only
+   * when the last one leaves, at which point the hub fires `presence:leave`.
+   * Resolves after the removal has been recorded.
+   */
   async leave(member: Member, conn: RealtimeConnection): Promise<void> {
     await this.ctx.ready;
     this.ctx.hub.leave(this.name, member.id, conn);
+    // NOTE (task 10.2): the hub returns `{ nowAbsent }` here — the hook point
+    // for `adapter.publishPresence` on the leave path; not wired yet.
   }
 
+  /**
+   * Deliver a typed `message` to the eligible connections of this room (Req 2.4,
+   * 7.1). Local delivery always flows through `ChannelHub.publish`, then the
+   * cross-instance fan-out flows through the adapter (inert for the default
+   * `MemoryAdapter`). {@link BroadcastOptions} map directly onto the hub's
+   * `PublishOptions`, and the *same* options are handed to `adapter.publish`, so
+   * `exceptConnId` (Req 7.2) and `exceptMemberId` (Req 7.3) are honored
+   * identically on the local and remote paths. Publishing to a room with no
+   * connections completes without delivering anything and without raising
+   * (Req 7.5): the hub short-circuits an unknown channel and the default adapter
+   * is a no-op.
+   */
   async broadcast<T>(message: RealtimeMessage<T>, options?: BroadcastOptions): Promise<void> {
     await this.ctx.ready;
     const publishOptions = toPublishOptions(options);
     // Local delivery always flows through the hub (a no-op for an empty room).
     this.ctx.hub.publish(this.name, message.type, message.payload, publishOptions);
-    // Cross-instance fan-out (inert for the MemoryAdapter default).
-    await this.ctx.adapter.publish(this.name, message, options ?? {});
+    // Cross-instance fan-out honoring the same exclusions (inert for MemoryAdapter).
+    await this.ctx.adapter.publish(this.name, message, publishOptions);
   }
 
+  /**
+   * Ids of the members currently present in this room (Req 5.3), as the union
+   * of local hub presence and the members present on peer instances
+   * (`adapter.remotePresence`, Req 5.4). For an empty room the union is empty
+   * (Req 5.5). Under the default `MemoryAdapter`, `remotePresence` is `[]`, so
+   * the result is exactly local hub presence.
+   */
   async presence(): Promise<string[]> {
     await this.ctx.ready;
     const local = this.ctx.hub.presence(this.name);
@@ -187,10 +234,23 @@ class RoomHandle implements Room {
     return union(local, remote);
   }
 
+  /**
+   * Count of distinct members present in this room (Req 4.4) — the size of the
+   * distributed presence union, so a member present both locally and on a peer
+   * is counted once.
+   */
   async memberCount(): Promise<number> {
     return (await this.presence()).length;
   }
 
+  /**
+   * Set `member`'s typing state in this room (Req 6.1, 6.2), delegating to
+   * `ChannelHub.setTyping`. Typing is purely local hub state — it needs no
+   * adapter round-trip — so this stays synchronous. When a positive typing TTL
+   * was configured on the facade it is applied by the hub and auto-clears the
+   * indicator (Req 6.3); `conn` excludes the setter's own connection from the
+   * emitted `typing` event.
+   */
   setTyping(member: Member, typing: boolean, conn?: RealtimeConnection): void {
     this.ctx.hub.setTyping(this.name, member.id, typing, conn);
   }
