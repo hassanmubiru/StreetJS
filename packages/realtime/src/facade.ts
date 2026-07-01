@@ -156,6 +156,16 @@ interface FacadeContext {
    */
   readonly registerConn: (conn: RealtimeConnection) => void;
   /**
+   * Members present on peer instances for `channel`, as recorded by the
+   * facade-owned distributed presence mirror fed by
+   * {@link ClusterSink.applyRemotePresence}. This mirror is the *authoritative*
+   * peer-presence source: a member is present remotely once any peer reports a
+   * `join` not yet followed by a `leave`. Returns `[]` when no peer presence is
+   * mirrored for the channel (e.g. single-instance under `MemoryAdapter`). NOT
+   * part of the public surface.
+   */
+  readonly peerPresence: (channel: string) => string[];
+  /**
    * The per-connection / per-channel rate limiter applied to every broadcast
    * (Req 11). Enabled by default with documented defaults; shared across all
    * {@link RoomHandle}s so quotas are enforced consistently per connection and
