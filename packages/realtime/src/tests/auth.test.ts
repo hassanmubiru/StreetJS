@@ -159,9 +159,16 @@ function withNodeEnv(value: string) {
   };
 }
 
-/** True when at least one warn call names the `unauthenticated-upgrade` finding. */
-function namesUnauthenticatedUpgrade(calls: unknown[][]): boolean {
-  return calls.some((args) => args.some((a) => typeof a === 'string' && a.includes('unauthenticated-upgrade')));
+/**
+ * Count the `console.warn` calls that name the facade's `unauthenticated-upgrade`
+ * finding. This isolates the facade's own security warning (Req 9.5) from the
+ * core `StreetWebSocketServer`'s separate production warning, which uses a
+ * distinct message and is emitted independently at server construction.
+ */
+function countUnauthenticatedUpgrade(calls: unknown[][]): number {
+  return calls.filter((args) =>
+    args.some((a) => typeof a === 'string' && a.includes('unauthenticated-upgrade')),
+  ).length;
 }
 
 test('createRealtime warns exactly once naming unauthenticated-upgrade in production with no auth hook (Req 9.5)', async () => {
@@ -170,10 +177,10 @@ test('createRealtime warns exactly once naming unauthenticated-upgrade in produc
   try {
     const realtime = createRealtime({ server: new StreetWebSocketServer() });
     try {
-      assert.equal(spy.calls.length, 1, 'expected exactly one console.warn call');
-      assert.ok(
-        namesUnauthenticatedUpgrade(spy.calls),
-        'the warning must name the "unauthenticated-upgrade" finding',
+      assert.equal(
+        countUnauthenticatedUpgrade(spy.calls),
+        1,
+        'the facade must emit exactly one warning naming the "unauthenticated-upgrade" finding',
       );
     } finally {
       await realtime.close();
@@ -193,7 +200,11 @@ test('createRealtime warns at most once per WebSocket_Server (Req 9.5)', async (
     const a = createRealtime({ server });
     const b = createRealtime({ server });
     try {
-      assert.equal(spy.calls.length, 1, 'the one-time warning must fire at most once per server');
+      assert.equal(
+        countUnauthenticatedUpgrade(spy.calls),
+        1,
+        'the one-time warning must fire at most once per server',
+      );
     } finally {
       await a.close();
       await b.close();
@@ -213,7 +224,11 @@ test('createRealtime does NOT warn in production when an authenticate hook is co
       authenticate: async () => member('alice'),
     });
     try {
-      assert.equal(spy.calls.length, 0, 'a configured auth hook must suppress the warning');
+      assert.equal(
+        countUnauthenticatedUpgrade(spy.calls),
+        0,
+        'a configured auth hook must suppress the facade warning',
+      );
     } finally {
       await realtime.close();
     }
@@ -229,7 +244,11 @@ test('createRealtime does NOT warn outside production even with no auth hook (Re
   try {
     const realtime = createRealtime({ server: new StreetWebSocketServer() });
     try {
-      assert.equal(spy.calls.length, 0, 'no warning outside production');
+      assert.equal(
+        countUnauthenticatedUpgrade(spy.calls),
+        0,
+        'no facade warning outside production',
+      );
     } finally {
       await realtime.close();
     }
