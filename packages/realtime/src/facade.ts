@@ -7,7 +7,7 @@
 // implemented in later tasks (3.1, 3.2); this scaffold establishes the
 // strongly-typed surface required by Requirements 1.2 and 1.5.
 
-import type { IncomingMessage, Server } from 'node:http';
+import type { IncomingMessage } from 'node:http';
 import { ChannelHub } from 'streetjs';
 import type {
   RealtimeConnection,
@@ -15,12 +15,11 @@ import type {
   HealthCheckRegistry,
   MetricsRegistry,
   PublishOptions,
-  WsHandler,
 } from 'streetjs';
 import type { ClusterAdapter, ClusterSink } from './cluster/adapter.js';
 import { MemoryAdapter } from './cluster/memory.js';
 import { createRealtimeUpgradeAuth } from './auth.js';
-import type { ChannelAuthorizer } from './auth.js';
+import type { ChannelAuthorizer, RealtimeUpgradeAuth } from './auth.js';
 import type { RateLimitConfig } from './ratelimit.js';
 
 /**
@@ -418,6 +417,55 @@ function describeValue(value: unknown): string {
   return `${typeof value}`;
 }
 
+/** The subset of the WebSocket server the facade reads/writes to install upgrade auth. */
+type UpgradeAuthHost = {
+  /** The upgrade auth hook the core server reads before accepting a connection. */
+  authFn?: (req: IncomingMessage) => boolean | Promise<boolean>;
+};
+
+/**
+ * Install realtime upgrade authentication onto an existing
+ * {@link StreetWebSocketServer} (Req 3.1, 3.2, 3.3, 9.1–9.4). Two pieces from
+ * {@link createRealtimeUpgradeAuth} are wired onto the *same* server instance,
+ * both keyed on the upgrade `req` the core server hands to each stage:
+ *
+ *   1. **The upgrade `authFn`** — the core server evaluates its auth hook at
+ *      upgrade time, *after* its own origin gate (`isOriginAllowed`) and
+ *      *before* the connection is accepted, rejecting a failed credential with
+ *      HTTP 401 and establishing no connection (Req 9.1, 9.2). We rely entirely
+ *      on that existing origin gate and add no origin restriction (Req 3.5,
+ *      3.6). The core exposes no public setter for the hook, so we assign the
+ *      field it reads; when the server already carries a hook we compose them so
+ *      both must pass, never weakening pre-existing authentication.
+ *   2. **The connection `handler`** — composed onto the server's public
+ *      `attach` so that for every accepted connection (which the core has
+ *      already wrapped as a `StreetSocket`, Req 3.2) the resolved Member is
+ *      associated via `Realtime.bind`, which also binds the hub-cleanup
+ *      lifecycle so a close removes the connection from every room (Req 3.3,
+ *      9.3). An identity that cannot be associated leaves the connection open
+ *      without a Member (Req 9.4). The application's own `attach` handler still
+ *      runs, so this is purely additive.
+ */
+function installUpgradeAuth(server: StreetWebSocketServer, auth: RealtimeUpgradeAuth): void {
+  // 1) Install the upgrade auth hook the core server reads (composing with any
+  //    hook already configured so both credentials must pass).
+  const host = server as unknown as UpgradeAuthHost;
+  const existing = host.authFn;
+  host.authFn = existing
+    ? async (req: IncomingMessage) => (await existing(req)) && (await auth.authFn(req))
+    : auth.authFn;
+
+  // 2) Compose the identity-binding handler onto the server's public `attach`.
+  const attach = server.attach.bind(server);
+  server.attach = (httpServer, handler) => {
+    attach(httpServer, (socket, req) => {
+      // Associate identity first (Req 9.3), then run the app's handler.
+      auth.handler(socket, req);
+      handler(socket, req);
+    });
+  };
+}
+
 /**
  * Construct a {@link Realtime} facade over an existing WebSocket server.
  *
@@ -434,5 +482,21 @@ export function createRealtime(options: RealtimeOptions): Realtime {
   }
   const hub = new ChannelHub({ typingTtlMs: options.typingTtlMs ?? 0 });
   const adapter = options.adapter ?? new MemoryAdapter();
-  return new RealtimeFacade(hub, adapter);
+  const facade = new RealtimeFacade(hub, adapter);
+
+  // When an authentication hook is configured, wire connection authentication
+  // onto the existing server: verify the credential at upgrade (Req 9.1, 9.2)
+  // and associate the resolved Member with the established connection (Req 3.2,
+  // 3.3, 9.3, 9.4). Relies entirely on the server's existing origin gate
+  // (Req 3.5, 3.6). Without an `authenticate` hook the facade adds no auth and
+  // the server keeps its current upgrade behavior.
+  if (options.authenticate) {
+    const auth = createRealtimeUpgradeAuth(
+      options.authenticate,
+      (conn, member) => facade.bind(conn, member),
+    );
+    installUpgradeAuth(options.server, auth);
+  }
+
+  return facade;
 }
