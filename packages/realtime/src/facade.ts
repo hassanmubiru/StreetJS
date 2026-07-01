@@ -330,6 +330,9 @@ class RoomHandle implements Room {
     const senderConnId = options?.exceptConnId;
     const decision = await this.ctx.rateLimiter.consume(senderConnId, this.name);
     if (!decision.allowed) {
+      // Record the rejection on the metrics registry (Req 17.3); a no-op when
+      // no registry was configured.
+      this.ctx.onRateLimitRejected();
       if (senderConnId !== undefined) {
         const offender = this.ctx.connById(senderConnId);
         offender?.emit('error', {
