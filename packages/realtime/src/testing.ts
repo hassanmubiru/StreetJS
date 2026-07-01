@@ -2,8 +2,10 @@
 // Realtime testing utilities (Req 16): a `FakeConnection` that records emitted
 // events, a `createHarness()` in-memory driver, and `simulateClose(conn)`.
 //
-// Task 2.1 implements `FakeConnection`. `createHarness()` and
-// `simulateClose(conn)` land in task 2.2; this file reserves those exports.
+// Task 2.1 implements `FakeConnection`. Task 2.2 adds `ManualClock`,
+// `createHarness()` (an in-memory `ChannelHub` driver with no network socket),
+// and `simulateClose(conn)` (which invokes the same close path a live
+// `StreetSocket` uses so the connection is removed from every room).
 
 import { randomUUID } from 'node:crypto';
 import { ChannelHub } from 'streetjs';
