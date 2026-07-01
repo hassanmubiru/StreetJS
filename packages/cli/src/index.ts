@@ -102,6 +102,10 @@ export async function runCli(argv: string[]): Promise<void> {
         await new GenerateCommand().execute(ctx);
         break;
 
+      case 'make:channel':
+        await new MakeCommand().executeChannel(ctx);
+        break;
+
       case 'migrate:create':
         await new MigrateCommand().executeCreate(ctx);
         break;
