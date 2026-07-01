@@ -30,6 +30,18 @@ export type { RateLimitConfig, RateLimitQuota } from './ratelimit.js';
 // ── Plugin registration ───────────────────────────────────────────────────────
 export { RealtimePlugin } from './plugin.js';
 
+// ── Health + metrics observability (Req 17) ───────────────────────────────────
+export {
+  registerRealtimeObservability,
+  REALTIME_HEALTH_CHECK_NAME,
+  REALTIME_CONNECTIONS_METRIC,
+  REALTIME_ROOM_MEMBERS_METRIC,
+} from './health.js';
+export type {
+  RealtimeObservabilityDeps,
+  RealtimeObservabilityHandle,
+} from './health.js';
+
 // ── Testing utilities (Req 16) ────────────────────────────────────────────────
 export { FakeConnection, ManualClock, createHarness, simulateClose } from './testing.js';
 export type {
