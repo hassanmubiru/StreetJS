@@ -6,7 +6,14 @@
 // `simulateClose(conn)` land in task 2.2; this file reserves those exports.
 
 import { randomUUID } from 'node:crypto';
-import type { RealtimeConnection, WsEvent } from 'streetjs';
+import { ChannelHub } from 'streetjs';
+import type {
+  RealtimeConnection,
+  WsEvent,
+  ChannelHubOptions,
+  PublishOptions,
+  Clock,
+} from 'streetjs';
 
 /** Construction options for {@link FakeConnection}. */
 export interface FakeConnectionOptions {
