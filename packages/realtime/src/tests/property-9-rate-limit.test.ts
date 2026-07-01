@@ -112,6 +112,19 @@ function activeCount(timestamps: readonly number[], now: number, windowMs: numbe
   return active;
 }
 
+/**
+ * Count allowed timestamps that fall inside the closed window `[end - windowMs, end]`.
+ * Unlike {@link activeCount}, this bounds the window on both ends so it never
+ * counts hits recorded *after* the window end — the correct notion for auditing
+ * "how many allowed calls sit in the window ending at this allowed call".
+ */
+function windowedCount(timestamps: readonly number[], end: number, windowMs: number): number {
+  const lower = end - windowMs;
+  let count = 0;
+  for (const t of timestamps) if (t >= lower && t <= end) count++;
+  return count;
+}
+
 test('Property 9: rate limiting never processes more than the configured quota', async () => {
   await fc.assert(
     fc.asyncProperty(scenarioArb, async (scenario) => {
@@ -197,7 +210,7 @@ test('Property 9: rate limiting never processes more than the configured quota',
       // bucket (Req 11.1, 11.2, 11.3).
       for (const [key, timestamps] of connHits) {
         for (const end of timestamps) {
-          const inWindow = activeCount(timestamps, end, perConnWindowMs);
+          const inWindow = windowedCount(timestamps, end, perConnWindowMs);
           assert.ok(
             inWindow <= perConnRequests,
             `per-connection quota exceeded for ${key}: ${inWindow} allowed in a ${perConnWindowMs}ms window (quota ${perConnRequests})`,
@@ -206,7 +219,7 @@ test('Property 9: rate limiting never processes more than the configured quota',
       }
       for (const [key, timestamps] of chanHits) {
         for (const end of timestamps) {
-          const inWindow = activeCount(timestamps, end, perChanWindowMs);
+          const inWindow = windowedCount(timestamps, end, perChanWindowMs);
           assert.ok(
             inWindow <= perChanRequests,
             `per-channel quota exceeded for ${key}: ${inWindow} allowed in a ${perChanWindowMs}ms window (quota ${perChanRequests})`,
