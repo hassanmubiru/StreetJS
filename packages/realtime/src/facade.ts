@@ -816,6 +816,26 @@ export function createRealtime(options: RealtimeOptions): Realtime {
   const rateLimiter = new RateLimiter(options.rateLimit ?? {});
   const facade = new RealtimeFacade(hub, adapter, rateLimiter, createRateLimitRejectionRecorder(options.metrics));
 
+  // Register realtime observability whenever a health and/or metrics registry is
+  // configured (Req 17.1, 17.2, 17.4): a realtime health check surfacing the
+  // cluster adapter's connectivity (including a RedisAdapter, Req 17.4) through
+  // `/health/*`, plus connection-count and per-Room member-count gauges. The
+  // handle is attached to the facade so `close()` stops its refresh timer. When
+  // neither registry is configured this registers nothing and the handle is
+  // inert. This is how `RealtimePlugin.onLoad` registers observability, since
+  // the plugin's `SandboxedApp` exposes neither the server nor the registries.
+  if (options.health || options.metrics) {
+    facade.attachObservability(
+      registerRealtimeObservability({
+        hub,
+        adapter,
+        server: options.server,
+        health: options.health,
+        metrics: options.metrics,
+      }),
+    );
+  }
+
   // When an authentication hook is configured, wire connection authentication
   // onto the existing server: verify the credential at upgrade (Req 9.1, 9.2)
   // and associate the resolved Member with the established connection (Req 3.2,
