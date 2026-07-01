@@ -493,7 +493,7 @@ export function createRealtime(options: RealtimeOptions): Realtime {
   if (options.authenticate) {
     const auth = createRealtimeUpgradeAuth(
       options.authenticate,
-      (conn, member) => facade.bind(conn, member),
+      (conn: RealtimeConnection, member: Member | null) => facade.bind(conn, member),
     );
     installUpgradeAuth(options.server, auth);
   }
