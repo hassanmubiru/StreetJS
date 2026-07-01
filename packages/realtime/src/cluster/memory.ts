@@ -4,11 +4,13 @@
 // All cross-instance methods are inert: local delivery already happened through
 // `ChannelHub`, so `publish`/`publishPresence` are no-ops, `remotePresence`
 // returns `[]`, and `health()` is always `up`. It contacts no external service
-// (Req 12.2, 12.3).
+// (Req 12.2, 12.3), so single-instance apps run with zero third-party runtime
+// deps.
 //
-// This is a minimal working implementation sufficient for the facade to default
-// to it and call `init` (task 3.1). Its full behavior/tests are finalized in
-// task 9.1.
+// This is the finalized default adapter (task 9.1): the facade defaults to it
+// when no adapter is configured, and calling its inert methods keeps the
+// single-instance path fully correct (the distributed union equals local
+// presence).
 
 import type { ClusterAdapter, ClusterSink } from './adapter.js';
 import type { RealtimeMessage, BroadcastOptions } from '../facade.js';
