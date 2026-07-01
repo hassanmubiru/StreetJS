@@ -181,9 +181,14 @@ class RoomHandle implements Room {
    */
   async join(member: Member, conn: RealtimeConnection): Promise<void> {
     await this.ctx.ready;
-    this.ctx.hub.join(this.name, member.id, conn);
-    // NOTE (task 10.2): the hub returns `{ newlyPresent }` here — that delta is
-    // the hook point for `adapter.publishPresence`; intentionally not wired yet.
+    const { newlyPresent } = this.ctx.hub.join(this.name, member.id, conn);
+    // Observe the hub's presence delta: when this connection makes the member
+    // newly present, propagate a `join` to peer instances (Req 5.4). The hub
+    // has already emitted `presence:join` to the other local connections
+    // unchanged (Req 5.1). For the default `MemoryAdapter` this is inert.
+    if (newlyPresent) {
+      await this.ctx.adapter.publishPresence(this.name, member.id, 'join');
+    }
   }
 
   /**
