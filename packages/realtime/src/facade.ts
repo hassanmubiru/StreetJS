@@ -554,6 +554,36 @@ class RealtimeFacade implements Realtime {
   }
 
   /**
+   * Record a foreign presence delta into the facade-owned distributed presence
+   * mirror (Req 5.4, 5.6). Invoked by the cluster sink when a peer instance
+   * reports a presence change: a `join` marks `memberId` present on peers for
+   * `channel`, a `leave` clears it. An emptied channel entry is pruned so
+   * {@link FacadeContext.peerPresence} reports the channel as having no peer
+   * members, keeping the distributed union empty when neither local nor peer
+   * presence remains (Req 5.6). Idempotent per (channel, memberId): repeated
+   * joins collapse to one set membership and a leave with no prior join is a
+   * no-op. Inert for the default `MemoryAdapter`, which never calls the sink.
+   */
+  private applyRemotePresence(channel: string, memberId: string, state: 'join' | 'leave'): void {
+    if (state === 'join') {
+      let present = this.peerPresenceMirror.get(channel);
+      if (!present) {
+        present = new Set<string>();
+        this.peerPresenceMirror.set(channel, present);
+      }
+      present.add(memberId);
+      return;
+    }
+    // state === 'leave': remove the member and prune an emptied channel entry.
+    const present = this.peerPresenceMirror.get(channel);
+    if (!present) return;
+    present.delete(memberId);
+    if (present.size === 0) {
+      this.peerPresenceMirror.delete(channel);
+    }
+  }
+
+  /**
    * Close-path continuity for a bound connection (Req 8.3, 8.4). Snapshots the
    * channels in which the connection's member is present, removes the
    * connection from every room via `ChannelHub.disconnect` (the same path a

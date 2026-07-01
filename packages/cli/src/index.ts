@@ -9,6 +9,7 @@ import { BuildCommand } from './commands/build.js';
 import { StartCommand } from './commands/start.js';
 import { TestCommand } from './commands/test.js';
 import { GenerateCommand } from './commands/generate.js';
+import { MakeCommand } from './commands/make.js';
 import { MigrateCommand } from './commands/migrate.js';
 import { InfoCommand } from './commands/info.js';
 import { DoctorCommand, EnvValidateCommand } from './commands/doctor.js';
