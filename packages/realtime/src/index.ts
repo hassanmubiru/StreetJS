@@ -29,3 +29,7 @@ export type { RateLimitConfig, RateLimitQuota } from './ratelimit.js';
 
 // ── Plugin registration ───────────────────────────────────────────────────────
 export { RealtimePlugin } from './plugin.js';
+
+// ── Testing utilities (Req 16) ────────────────────────────────────────────────
+export { FakeConnection } from './testing.js';
+export type { FakeConnectionOptions } from './testing.js';
