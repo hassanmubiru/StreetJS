@@ -7,7 +7,6 @@
     "skipLibCheck": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "baseUrl": ".",
     "types": [],
     "paths": {
       "@streetjs/realtime": ["../../realtime/dist/index.d.ts"]
