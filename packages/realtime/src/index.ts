@@ -31,5 +31,11 @@ export type { RateLimitConfig, RateLimitQuota } from './ratelimit.js';
 export { RealtimePlugin } from './plugin.js';
 
 // ── Testing utilities (Req 16) ────────────────────────────────────────────────
-export { FakeConnection } from './testing.js';
-export type { FakeConnectionOptions } from './testing.js';
+export { FakeConnection, ManualClock, createHarness, simulateClose } from './testing.js';
+export type {
+  FakeConnectionOptions,
+  HarnessOptions,
+  HarnessConnectOptions,
+  Harness,
+  ClosableConnection,
+} from './testing.js';
