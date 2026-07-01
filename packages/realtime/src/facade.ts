@@ -309,6 +309,28 @@ class RoomHandle implements Room {
         return;
       }
     }
+    // Rate limiting (Req 11.1–11.4). The sending connection is identified by
+    // `BroadcastOptions.exceptConnId` (a sender excludes its own connection from
+    // delivery) — the same convention used for secured-channel sender
+    // resolution above. Apply the per-connection quota keyed by that connId when
+    // present, and the per-channel quota keyed by this channel name. If either
+    // quota is exceeded, deliver NOTHING (skip both hub.publish and
+    // adapter.publish) and emit a rate-limit error event naming the exceeded
+    // quota to the offending connection (Req 11.2, 11.3, 11.4). At/below quota
+    // the message is delivered normally (Req 11.1).
+    const senderConnId = options?.exceptConnId;
+    const decision = await this.ctx.rateLimiter.consume(senderConnId, this.name);
+    if (!decision.allowed) {
+      if (senderConnId !== undefined) {
+        const offender = this.ctx.connById(senderConnId);
+        offender?.emit('error', {
+          channel: this.name,
+          reason: 'rate_limited',
+          quota: decision.exceeded,
+        });
+      }
+      return;
+    }
     const publishOptions = toPublishOptions(options);
     // Local delivery always flows through the hub (a no-op for an empty room).
     this.ctx.hub.publish(this.name, message.type, message.payload, publishOptions);
