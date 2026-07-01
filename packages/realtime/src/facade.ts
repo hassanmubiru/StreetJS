@@ -448,15 +448,19 @@ class RealtimeFacade implements Realtime {
     this.adapter = adapter;
     const authorizers = new Map<string, ChannelAuthorizer>();
 
-    // Sink the adapter uses to re-inject remote events into the local hub. The
-    // full presence-mirror wiring lands in task 10.2; for a single instance the
-    // MemoryAdapter never invokes these callbacks.
+    // Sink the adapter uses to re-inject remote events into the local hub.
+    // `deliverLocal` re-injects a foreign broadcast through `ChannelHub.publish`
+    // exactly once per eligible local connection (Req 7.6); `applyRemotePresence`
+    // records a foreign presence delta into the facade-owned distributed mirror
+    // so `Room.presence()`/`memberCount()` reflect the cross-instance union
+    // (Req 5.4, 5.6). For a single instance the MemoryAdapter never invokes
+    // these callbacks.
     const sink: ClusterSink = {
       deliverLocal: (channel, message, options) => {
         hub.publish(channel, message.type, message.payload, toPublishOptions(options));
       },
-      applyRemotePresence: () => {
-        // Remote presence mirror is wired in task 10.2.
+      applyRemotePresence: (channel, memberId, state) => {
+        this.applyRemotePresence(channel, memberId, state);
       },
     };
 
