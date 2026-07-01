@@ -77,6 +77,17 @@ export class MakeCommand {
     });
   }
 
+  /** `street make:gateway <Name>` (Req 15.1–15.4). */
+  async executeGateway(ctx: CliContext): Promise<void> {
+    await this.scaffold(ctx, {
+      kind: 'gateway',
+      subdir: 'gateways',
+      suffix: 'Gateway',
+      templateFile: 'gateway.ts.tpl',
+      usage: 'street make:gateway <Name>',
+    });
+  }
+
   /**
    * Shared scaffolder for every `make:*` generator. Handles name validation,
    * PascalCase normalization, no-overwrite protection, directory creation, and
