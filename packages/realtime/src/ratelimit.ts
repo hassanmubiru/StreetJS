@@ -1,6 +1,6 @@
 // src/ratelimit.ts
 // Per-connection and per-channel rate limiting (Req 11).
-// Exports: RateLimiter, RateLimitConfig, RateLimitQuota.
+// Public exports: RateLimiter, RateLimitConfig, RateLimitQuota.
 //
 // Reuses the core `RateLimitStore` sliding-window abstraction (`hit`/`count`
 // with explicit `nowMs`/`windowMs` and an injectable clock) and `parseWindow`

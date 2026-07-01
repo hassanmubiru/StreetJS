@@ -1,6 +1,6 @@
 // src/auth.ts
 // Connection authentication (upgrade authFn) and channel authorization types.
-// Exports: ChannelAuthorizer, createRealtimeUpgradeAuth, RealtimeUpgradeAuth.
+// Public exports: ChannelAuthorizer, createRealtimeUpgradeAuth, RealtimeUpgradeAuth.
 //
 // This module declares the `ChannelAuthorizer` used to gate Secured_Channels
 // (Req 10) and the upgrade-authentication wiring (Req 3, 9): a factory that
