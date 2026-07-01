@@ -66,7 +66,7 @@ import { FakeConnection } from '../testing.js';
 /** Compile-time pin of the public `ChannelHub` method signatures (Req 18.1). */
 export function __pinChannelHubSignatures(hub: ChannelHub): void {
   type HubPins = {
-    join: (channel: number, memberId: string, conn: RealtimeConnection) => { newlyPresent: boolean };
+    join: (channel: string, memberId: string, conn: RealtimeConnection) => { newlyPresent: boolean };
     leave: (channel: string, memberId: string, conn: RealtimeConnection) => { nowAbsent: boolean };
     disconnect: (conn: RealtimeConnection) => void;
     bind: (conn: RealtimeConnection & { onClose(cb: () => void): unknown }) => void;
