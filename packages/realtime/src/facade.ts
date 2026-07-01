@@ -570,6 +570,43 @@ function describeMemberId(member: Member | null): string {
   return member ? member.id : '<anonymous>';
 }
 
+/**
+ * Servers for which the production unauthenticated-upgrade security warning has
+ * already been emitted, so it fires **exactly once per WebSocket_Server**
+ * (Req 9.5 — "THE WebSocket_Server SHALL emit a one-time security warning").
+ * A `WeakSet` keyed by the server lets the entry be collected with the server
+ * and avoids re-warning when several facades are constructed over the same
+ * server, while a fresh server (as each test uses) warns exactly once.
+ */
+const unauthenticatedUpgradeWarned = new WeakSet<StreetWebSocketServer>();
+
+/** The security-finding message emitted for an unauthenticated production upgrade path. */
+const UNAUTHENTICATED_UPGRADE_WARNING =
+  '[@streetjs/realtime] SECURITY: unauthenticated-upgrade — NODE_ENV is "production" but no ' +
+  'authentication hook (RealtimeOptions.authenticate) is configured, so WebSocket upgrades are ' +
+  'accepted without authenticating the connection. Configure `authenticate` to identify realtime ' +
+  'connections in production.';
+
+/**
+ * Emit the one-time production unauthenticated-upgrade security warning
+ * (Req 9.5). Fires only WHILE `NODE_ENV === 'production'` AND no authentication
+ * hook is configured, and — guarded by {@link unauthenticatedUpgradeWarned} —
+ * at most once per WebSocket_Server. Uses `console.warn` (a clearly spy-able
+ * sink) and names the `unauthenticated-upgrade` finding. This is purely a
+ * diagnostic: it does not change the server's runtime behavior — upgrades are
+ * still accepted exactly as before.
+ */
+function warnUnauthenticatedUpgradeInProduction(
+  server: StreetWebSocketServer,
+  authenticateConfigured: boolean,
+): void {
+  if (authenticateConfigured) return;
+  if (process.env.NODE_ENV !== 'production') return;
+  if (unauthenticatedUpgradeWarned.has(server)) return;
+  unauthenticatedUpgradeWarned.add(server);
+  console.warn(UNAUTHENTICATED_UPGRADE_WARNING);
+}
+
 /** The subset of the WebSocket server the facade reads/writes to install upgrade auth. */
 type UpgradeAuthHost = {
   /** The upgrade auth hook the core server reads before accepting a connection. */
@@ -653,6 +690,12 @@ export function createRealtime(options: RealtimeOptions): Realtime {
       (conn: RealtimeConnection, member: Member | null) => facade.bind(conn, member),
     );
     installUpgradeAuth(options.server, auth);
+  } else {
+    // No authentication hook configured: in production this is a security
+    // finding (unauthenticated upgrades). Emit a one-time warning naming the
+    // finding WITHOUT changing runtime behavior — the server still accepts
+    // connections exactly as before (Req 9.5).
+    warnUnauthenticatedUpgradeInProduction(options.server, false);
   }
 
   return facade;
