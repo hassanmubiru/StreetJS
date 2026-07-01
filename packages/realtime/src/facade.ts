@@ -336,7 +336,16 @@ class RealtimeFacade implements Realtime {
     // awaiters of `ready` still observe the original rejection.
     ready.catch(() => {});
 
-    this.ctx = { hub, adapter, ready, authorizers };
+    this.ctx = {
+      hub,
+      adapter,
+      ready,
+      authorizers,
+      // Resolve the Member bound to a connection id (Req 10.3). Reads the
+      // `connId → Member` mirror maintained by `bind`/`handleClose`; returns
+      // `null` for an unbound/unauthenticated connection. Not public surface.
+      memberByConnId: (connId: string) => this.membersByConnId.get(connId) ?? null,
+    };
   }
 
   room(name: string): Room {
@@ -359,8 +368,12 @@ class RealtimeFacade implements Realtime {
   bind(conn: RealtimeConnection, member: Member | null): void {
     if (member) {
       this.members.set(conn, member);
+      // Maintain the connId → Member mirror so a secured-channel broadcast can
+      // resolve its sender from `BroadcastOptions.exceptConnId` (Req 10.3).
+      this.membersByConnId.set(conn.id, member);
     } else {
       this.members.delete(conn);
+      this.membersByConnId.delete(conn.id);
     }
     // Bind the connection's lifecycle so a close (including a heartbeat reap)
     // removes it from every room (Req 3.3, 8.3) and propagates the resulting
@@ -402,6 +415,7 @@ class RealtimeFacade implements Realtime {
       }
     }
     this.members.delete(conn);
+    this.membersByConnId.delete(conn.id);
     this.bound.delete(conn.id);
   }
 
