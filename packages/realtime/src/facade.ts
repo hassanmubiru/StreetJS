@@ -528,6 +528,7 @@ class RealtimeFacade implements Realtime {
     }
     this.members.delete(conn);
     this.membersByConnId.delete(conn.id);
+    this.connById.delete(conn.id);
     this.bound.delete(conn.id);
   }
 
@@ -540,6 +541,7 @@ class RealtimeFacade implements Realtime {
     }
     await this.adapter.close();
     this.bound.clear();
+    this.connById.clear();
   }
 }
 
