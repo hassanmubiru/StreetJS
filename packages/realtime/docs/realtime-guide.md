@@ -176,7 +176,7 @@ lobby and `exceptConnId` so the acting player doesn't get their own echo.
 ```ts
 const match = realtime.room(`match:${matchId}`);
 
-await match.join(player, socket);        // lobby присоединение
+await match.join(player, socket);        // join the lobby
 await match.presence();                  // → current players
 
 // A player acts; broadcast the delta to opponents only:
