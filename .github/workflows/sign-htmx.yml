@@ -28,7 +28,7 @@ jobs:
 
       - uses: ./.github/actions/setup
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Build core (plugin compiles against streetjs)
         run: npm run build -w packages/core

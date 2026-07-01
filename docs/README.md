@@ -204,7 +204,7 @@ docker run -d \
   my-app:latest
 ```
 
-The Dockerfile uses a **distroless Node 20** runtime image. The process runs as `nonroot` (UID 65532). No shell, no package manager, minimal attack surface.
+The Dockerfile uses a **distroless Node 22** runtime image. The process runs as `nonroot` (UID 65532). No shell, no package manager, minimal attack surface.
 
 ---
 

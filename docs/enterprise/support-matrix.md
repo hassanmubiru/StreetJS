@@ -51,10 +51,10 @@ description: "StreetJS version-support, platform, runtime, and backport matrix f
 | npm | **≥ 9.0.0** |
 | OS | Linux (primary, CI-tested), macOS, Windows |
 | Databases | PostgreSQL, MySQL (CI-tested wire drivers); MongoDB via plugin |
-| Containers | distroless Node 20 image (`infra/docker/Dockerfile`, digest-pinned) |
+| Containers | distroless Node 22 image (`infra/docker/Dockerfile`, digest-pinned) |
 | Cloud targets | AWS ECS, Google Cloud Run, Cloudflare Workers, Vercel (`infra/examples/*`), Kubernetes + Helm (`infra/{kubernetes,helm}`) |
 
-> Node/DB version testing is exercised in CI (`ci-cd.yml` Node 20/22 matrix; PG/MySQL
+> Node/DB version testing is exercised in CI (`ci-cd.yml` Node 22/24 matrix; PG/MySQL
 > service containers). Specific tested patch versions: see CI configuration.
 
 ## Compatibility & upgrades

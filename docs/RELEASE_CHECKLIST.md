@@ -7,7 +7,7 @@ Use this checklist for every release of `@streetjs/core` and `@streetjs/cli`.
 ## Pre-release (local)
 
 ### Environment
-- [ ] Node.js >= 20 installed (`node --version`)
+- [ ] Node.js >= 22 installed (`node --version`)
 - [ ] npm >= 9 installed (`npm --version`)
 - [ ] Logged in to npm (`npm whoami`)
 - [ ] Git working tree is clean (`git status`)

@@ -17,7 +17,7 @@ street's `Dockerfile` uses a multi-stage build to produce a minimal, secure prod
 
 ```dockerfile
 # ---- Build stage ----
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 WORKDIR /build
 COPY package*.json ./
 RUN npm ci                        # Reproducible install
@@ -27,7 +27,7 @@ COPY tests ./tests
 RUN npx tsc                       # Strict TypeScript compilation
 
 # ---- Production stage ----
-FROM gcr.io/distroless/nodejs20-debian12 AS runtime
+FROM gcr.io/distroless/nodejs22-debian12 AS runtime
 WORKDIR /app
 
 # Only compiled output and dependencies
@@ -46,13 +46,13 @@ ENTRYPOINT ["nodejs", "dist/main.js"]
 
 ### Why distroless?
 
-The `gcr.io/distroless/nodejs20-debian12` image contains:
+The `gcr.io/distroless/nodejs22-debian12` image contains:
 - Node.js 20 runtime
 - Required system libraries
 - **Nothing else** — no shell, no package manager, no `curl`, no `ls`
 
 Benefits:
-- ~60% smaller than `node:20-alpine` for the runtime image
+- ~60% smaller than `node:24-alpine` for the runtime image
 - No shell means no interactive exploit surface (cannot `docker exec bash`)
 - No OS package manager means fewer CVEs
 - Minimal signal surface for container escape attacks
@@ -261,7 +261,7 @@ server {
 
 # CI/CD Pipeline
 
-The single consolidated GitHub Actions workflow (`ci-cd.yml`) runs build, test, lint, and deploy jobs in parallel across Node 20 and 22:
+The single consolidated GitHub Actions workflow (`ci-cd.yml`) runs build, test, lint, and deploy jobs in parallel across Node 22 and 24:
 
 ```yaml
 # .github/workflows/ci-cd.yml (abridged — Docker-relevant jobs)
@@ -282,7 +282,7 @@ env:
   PG_PASSWORD: street_secret
 
 jobs:
-  # Core tests — Node 20 & 22 matrix, YAML validation first
+  # Core tests — Node 22 & 24 matrix, YAML validation first
   build-and-test:
     strategy:
       matrix:

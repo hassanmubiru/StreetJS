@@ -44,7 +44,7 @@ Everything else — HTTP, TLS, streams, crypto, cluster — ships with Node.js.
 
 ### What Node.js version is required?
 
-Node.js **20 or higher**. StreetJS uses `node:test`, top-level `await`, `crypto.randomUUID()`, and other Node 20 APIs.
+Node.js **22 or higher**. StreetJS uses `node:test`, top-level `await`, `crypto.randomUUID()`, and other Node 22 APIs.
 
 ### What TypeScript version is required?
 

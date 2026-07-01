@@ -16,11 +16,12 @@ description:  "StreetJS compatibility matrix — supported Node.js versions, dat
 
 | Node.js | Status | Notes |
 |---------|--------|-------|
-| 20 LTS | ✅ Supported (CI-tested) | Minimum supported version |
-| 22 LTS | ✅ Supported (CI-tested) | Recommended |
-| < 20 | ❌ Unsupported | Requires Node 20+ (NodeNext ESM, modern crypto) |
+| 22 LTS | ✅ Supported (CI-tested) | Minimum supported version |
+| 24 LTS | ✅ Supported (CI-tested) | Recommended |
+| 20 | ❌ End-of-life | EOL April 2026 — no longer supported |
+| < 22 | ❌ Unsupported | Requires Node 22+ (NodeNext ESM, modern crypto) |
 
-The core test suite runs against **Node 20 and Node 22** in CI (memory-safety,
+The core test suite runs against **Node 22 and Node 24** in CI (memory-safety,
 wire-protocol, load, fuzz, chaos and security suites on both).
 
 ## Databases

@@ -7,7 +7,7 @@ description:  "Official StreetJS plugin: Apache Kafka streaming (wraps the depen
 ---
 
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"SoftwareSourceCode","name":"@streetjs/plugin-kafka","description":"Official StreetJS plugin: Apache Kafka streaming (wraps the dependency-free core Kafka client).","codeRepository":"https://github.com/hassanmubiru/StreetJS","programmingLanguage":"TypeScript","runtimePlatform":"Node.js >= 20","softwareVersion":"1.0.2","license":"https://opensource.org/licenses/MIT","isPartOf":{"@type":"SoftwareApplication","name":"StreetJS","applicationCategory":"DeveloperApplication"}}
+{"@context":"https://schema.org","@type":"SoftwareSourceCode","name":"@streetjs/plugin-kafka","description":"Official StreetJS plugin: Apache Kafka streaming (wraps the dependency-free core Kafka client).","codeRepository":"https://github.com/hassanmubiru/StreetJS","programmingLanguage":"TypeScript","runtimePlatform":"Node.js >= 22","softwareVersion":"1.0.2","license":"https://opensource.org/licenses/MIT","isPartOf":{"@type":"SoftwareApplication","name":"StreetJS","applicationCategory":"DeveloperApplication"}}
 </script>
 # @streetjs/plugin-kafka
 

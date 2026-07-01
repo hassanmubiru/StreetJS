@@ -7,7 +7,7 @@ description:  "Official Street Framework plugin: Africa's Talking (SMS, Bulk SMS
 ---
 
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"SoftwareSourceCode","name":"@streetjs/plugin-africastalking","description":"Official Street Framework plugin: Africa's Talking (SMS, Bulk SMS, Voice, USSD, Airtime, Mobile Money).","codeRepository":"https://github.com/hassanmubiru/StreetJS","programmingLanguage":"TypeScript","runtimePlatform":"Node.js >= 20","softwareVersion":"1.0.1","license":"https://opensource.org/licenses/MIT","isPartOf":{"@type":"SoftwareApplication","name":"StreetJS","applicationCategory":"DeveloperApplication"}}
+{"@context":"https://schema.org","@type":"SoftwareSourceCode","name":"@streetjs/plugin-africastalking","description":"Official Street Framework plugin: Africa's Talking (SMS, Bulk SMS, Voice, USSD, Airtime, Mobile Money).","codeRepository":"https://github.com/hassanmubiru/StreetJS","programmingLanguage":"TypeScript","runtimePlatform":"Node.js >= 22","softwareVersion":"1.0.1","license":"https://opensource.org/licenses/MIT","isPartOf":{"@type":"SoftwareApplication","name":"StreetJS","applicationCategory":"DeveloperApplication"}}
 </script>
 # @streetjs/plugin-africastalking
 

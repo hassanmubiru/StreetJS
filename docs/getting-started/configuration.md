@@ -143,7 +143,7 @@ UPLOADS_DIR=./uploads
 MIGRATIONS_DIR=./migrations
 ```
 
-Load with Node 20's built-in `--env-file`:
+Load with Node 22's built-in `--env-file`:
 
 ```bash
 node --env-file=.env dist/main.js

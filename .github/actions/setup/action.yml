@@ -6,9 +6,9 @@ description: Setup Node.js with caching and install dependencies
 
 inputs:
   node-version:
-    description: Node.js version to install (e.g. '20', '22')
+    description: Node.js version to install (e.g. '22', '24')
     required: false
-    default: '20'
+    default: '22'
   registry-url:
     description: npm registry URL (for publish job)
     required: false

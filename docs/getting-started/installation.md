@@ -214,7 +214,7 @@ During development, rebuild on every save:
 # Terminal 1: Watch TypeScript
 npx tsc --watch
 
-# Terminal 2: Run server (auto-restarts with Node 20 --watch)
+# Terminal 2: Run server (auto-restarts with Node 22 --watch)
 node --watch dist/src/main.js
 ```
 
@@ -248,7 +248,7 @@ The `tsconfig.json` uses strict settings that enforce production-quality code:
 
 | Option | Why it matters |
 |---|---|
-| `"module": "NodeNext"` | Enables ESM with explicit `.js` extensions — matches Node 20 native ESM |
+| `"module": "NodeNext"` | Enables ESM with explicit `.js` extensions — matches Node 22 native ESM |
 | `"moduleResolution": "NodeNext"` | Required companion to `NodeNext` module |
 | `"strict": true` | Enables all strict checks as a group |
 | `"noUnusedLocals": true` | Prevents dead code accumulation |

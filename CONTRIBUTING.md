@@ -247,7 +247,7 @@ It wraps three steps that every job needs into a single `uses:` reference:
 
 ### How to use it in a new job
 
-**Simplest form** (defaults to Node 20, no registry):
+**Simplest form** (defaults to Node 22, no registry):
 
 ```yaml
 steps:

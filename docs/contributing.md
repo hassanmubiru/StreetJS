@@ -22,7 +22,7 @@ Contributions are welcome — bug fixes, documentation improvements, new feature
 
 ### Prerequisites
 
-- Node.js >= 20
+- Node.js >= 22
 - npm >= 9
 - PostgreSQL >= 14 (for integration tests)
 - Git

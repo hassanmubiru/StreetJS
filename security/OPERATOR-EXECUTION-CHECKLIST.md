@@ -112,8 +112,8 @@ gh api -X PUT "repos/$OWNER/$REPO/branches/main/protection" \
     "strict": true,
     "contexts": [
       "Secrets Guard (block private keys)",
-      "Core (Node 20)",
       "Core (Node 22)",
+      "Core (Node 24)",
       "verify-signing-anchor",
       "gitleaks",
       "CodeQL",

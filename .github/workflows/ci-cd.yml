@@ -130,7 +130,7 @@ jobs:
   # Purpose:   Compile and test the @streetjs/core package against a live
   #            PostgreSQL instance. Runs integration tests with coverage.
   # Depends:   Nothing (independent parallel job)
-  # Matrix:    Node 20 and 22 (fail-fast disabled — both must report)
+  # Matrix:    Node 22 and 24 (fail-fast disabled — both must report)
   # Services:  postgres:16-alpine with health check
   # Outputs:   Coverage report artifact uploaded per matrix entry
   # Critical path: Other jobs (docker-build, test-and-publish) depend on this.
@@ -145,7 +145,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['20', '22']
+        node: ['22', '24']
 
     env:
       KEK: ${{ secrets.KEK }}
@@ -227,7 +227,7 @@ jobs:
   #            former separate test-cli-unit + migration-integration jobs
   #            to eliminate duplicate checkout/build overhead.
   # Depends:   Nothing (independent parallel job)
-  # Matrix:    Node 20 and 22 (fail-fast disabled)
+  # Matrix:    Node 22 and 24 (fail-fast disabled)
   # Services:  postgres:16-alpine with health check
   # Outputs:   Coverage report artifacts per matrix entry (unit + migration)
   migration-integration:
@@ -238,7 +238,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['20', '22']
+        node: ['22', '24']
 
     services:
       postgres:
@@ -308,7 +308,7 @@ jobs:
   #            tests. No PostgreSQL needed — the wire driver is tested using
   #            a mock TCP server. Isolates memory-sensitive tests.
   # Depends:   Nothing (independent parallel job)
-  # Matrix:    Node 20 and 22 (fail-fast disabled)
+  # Matrix:    Node 22 and 24 (fail-fast disabled)
   # Timeout:   15 minutes (leak tests can be slow under GC pressure)
   memory-leak:
     name: Memory Leak (Node ${{ matrix.node }})
@@ -318,7 +318,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['20', '22']
+        node: ['22', '24']
 
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -375,7 +375,7 @@ jobs:
   #            safety, load-testing, fuzz-testing, chaos-testing,
   #            infrastructure) runs on its own runner for maximum isolation.
   # Depends:   Nothing (independent parallel job)
-  # Matrix:    Node 20/22 × 6 suites = 12 runners (fail-fast disabled)
+  # Matrix:    Node 22/24 × 6 suites = 12 runners (fail-fast disabled)
   # Timeout:   20 minutes (build + test; infrastructure includes openssl cert gen)
   # Dispatch:  Single suite selection via workflow_dispatch input filters
   #            which suites run (the if: condition skips unmatched suites).
@@ -388,7 +388,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['20', '22']
+        node: ['22', '24']
         suite: [security, memory-safety, load-testing, fuzz-testing, chaos-testing, infrastructure]
 
     steps:
@@ -741,7 +741,7 @@ jobs:
           echo "- **Trigger:** \`$EVENT_NAME\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Suite:** $SUITE_SELECTED" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "System tests ran across 6 parallel suites (security, memory-safety, load-testing, fuzz-testing, chaos-testing, infrastructure), each on Node 20 and 22." >> $GITHUB_STEP_SUMMARY
+          echo "System tests ran across 6 parallel suites (security, memory-safety, load-testing, fuzz-testing, chaos-testing, infrastructure), each on Node 22 and 24." >> $GITHUB_STEP_SUMMARY
 
   # ── docker-build: Container image build & push ─────────────────────────
   # Purpose:   Build a distroless Docker image and push to GitHub Container
@@ -827,7 +827,7 @@ jobs:
 
       - uses: ./.github/actions/setup
         with:
-          node-version: '20'
+          node-version: '22'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Debug Context

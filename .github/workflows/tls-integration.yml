@@ -49,7 +49,7 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/setup
         with:
-          node-version: '20'
+          node-version: '22'
       - name: Confirm openssl is available (suites self-skip otherwise)
         run: openssl version
       - name: Build core + connection plugins

@@ -81,7 +81,7 @@ describe("composite action schema — inputs", () => {
     assert.ok(inputs["node-version"]);
     const nv = inputs["node-version"] as Record<string, unknown>;
     assert.equal(nv.required, false);
-    assert.equal(nv.default, "20");
+    assert.equal(nv.default, "22");
     assert.equal(typeof nv.description, "string");
   });
 

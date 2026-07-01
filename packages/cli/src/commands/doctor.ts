@@ -16,14 +16,14 @@ export class DoctorCommand {
   async execute(ctx: CliContext): Promise<void> {
     const checks: Check[] = [];
 
-    // ── Node.js version ≥ 20 ─────────────────────────────────────────────
+    // ── Node.js version ≥ 22 ─────────────────────────────────────────────
     const nodeMajor = parseInt(process.version.slice(1).split('.')[0] ?? '0', 10);
     checks.push({
-      name: 'Node.js version ≥ 20',
-      pass: nodeMajor >= 20,
-      detail: nodeMajor >= 20
+      name: 'Node.js version ≥ 22',
+      pass: nodeMajor >= 22,
+      detail: nodeMajor >= 22
         ? `${process.version} ✓`
-        : `${process.version} — upgrade to Node.js ≥ 20 (https://nodejs.org)`,
+        : `${process.version} — upgrade to Node.js ≥ 22 (https://nodejs.org)`,
     });
 
     // ── TypeScript version ≥ 5.0 ─────────────────────────────────────────

@@ -248,8 +248,8 @@ void describe('CreateCommand', () => {
       restore();
 
       const dockerfile = readFileSync(join(tmpDir, 'test-app', 'Dockerfile'), 'utf8');
-      assert.ok(dockerfile.includes('FROM node:20-alpine@sha256:') && dockerfile.includes('AS builder'));
-      assert.ok(dockerfile.includes('FROM node:20-alpine@sha256:') && dockerfile.includes('AS runner'));
+      assert.ok(dockerfile.includes('FROM node:24-alpine@sha256:') && dockerfile.includes('AS builder'));
+      assert.ok(dockerfile.includes('FROM node:24-alpine@sha256:') && dockerfile.includes('AS runner'));
       assert.ok(dockerfile.includes('CMD ["node", "dist/main.js"]'));
     });
   });

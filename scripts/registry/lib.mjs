@@ -25,7 +25,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
 /** The container image the registry server runs in. Pinned major for reproducibility. */
-export const REGISTRY_IMAGE = 'node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293';
+export const REGISTRY_IMAGE = 'node:24-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd';
 
 /** The repo root, derived from this file's location (scripts/registry/ → ../../). */
 export const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');

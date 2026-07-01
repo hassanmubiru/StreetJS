@@ -190,11 +190,11 @@ void describe('InfoCommand', () => {
 // ── DoctorCommand ─────────────────────────────────────────────────────────────
 
 void describe('DoctorCommand', () => {
-  void it('detects old Node.js version (< 20) as a failure', async () => {
+  void it('detects old Node.js version (< 22) as a failure', async () => {
     const tmpDir = mkdtempSync(join(tmpdir(), 'street-doctor-old-'));
-    // Temporarily override process.version to simulate v18
+    // Temporarily override process.version to simulate Node 20 (now EOL, below the ≥22 baseline)
     const origVersion = process.version;
-    Object.defineProperty(process, 'version', { value: 'v18.0.0', writable: true, configurable: true });
+    Object.defineProperty(process, 'version', { value: 'v20.0.0', writable: true, configurable: true });
     process.exitCode = 0;
 
     const { restore } = captureConsole();
@@ -207,14 +207,14 @@ void describe('DoctorCommand', () => {
       rmSync(tmpDir, { recursive: true, force: true });
     }
 
-    assert.equal(process.exitCode, 1, 'Should set process.exitCode = 1 when Node.js < 20');
+    assert.equal(process.exitCode, 1, 'Should set process.exitCode = 1 when Node.js < 22');
     process.exitCode = undefined;
   });
 
-  void it('detects Node.js >= 20 as a pass (no exit code set by Node check)', async () => {
+  void it('detects Node.js >= 22 as a pass (no exit code set by Node check)', async () => {
     const tmpDir = mkdtempSync(join(tmpdir(), 'street-doctor-new-'));
     const origVersion = process.version;
-    Object.defineProperty(process, 'version', { value: 'v20.0.0', writable: true, configurable: true });
+    Object.defineProperty(process, 'version', { value: 'v22.0.0', writable: true, configurable: true });
     process.exitCode = 0;
 
     const { output, restore } = captureConsole();
@@ -227,11 +227,11 @@ void describe('DoctorCommand', () => {
       rmSync(tmpDir, { recursive: true, force: true });
     }
 
-    // The Node.js check line should contain a checkmark for v20
+    // The Node.js check line should contain a checkmark for v22
     const allOutput = output.logs.join('\n');
     assert.ok(
-      allOutput.includes('v20.0.0') && allOutput.includes('✓'),
-      `Expected v20.0.0 ✓ in doctor output:\n${allOutput}`,
+      allOutput.includes('v22.0.0') && allOutput.includes('✓'),
+      `Expected v22.0.0 ✓ in doctor output:\n${allOutput}`,
     );
   });
 

@@ -61,7 +61,7 @@ const pkg = {
   homepage: 'https://hassanmubiru.github.io/StreetJS/',
   repository: { type: 'git', url: 'git+https://github.com/hassanmubiru/StreetJS.git' },
   bugs: { url: 'https://github.com/hassanmubiru/StreetJS/issues' },
-  engines: { node: '>=20.0.0' },
+  engines: { node: '>=22.0.0' },
   publishConfig: { access: 'public', registry: 'https://registry.npmjs.org/' },
 };
 writeFileSync(join(outDir, 'package.json'), JSON.stringify(pkg, null, 2) + '\n');

@@ -24,9 +24,10 @@ description: "StreetJS support and LTS policy — release cadence and supported 
 
 ## Node.js support
 
-- Supported on active and maintenance Node LTS lines (currently Node 20 and 22,
-  exercised in the CI matrix). Dropping a Node line is a MINOR-with-notice or
-  MAJOR change depending on impact.
+- Supported on active and maintenance Node LTS lines (currently Node 22 and 24,
+  exercised in the CI matrix). The baseline/minimum supported runtime is **Node 22**
+  — Node 20 is now end-of-life (EOL) and is no longer supported. Dropping a Node
+  line is a MINOR-with-notice or MAJOR change depending on impact.
 
 ## Deprecation policy
 

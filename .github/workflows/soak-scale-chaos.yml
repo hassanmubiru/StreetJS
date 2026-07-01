@@ -34,7 +34,7 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/setup
         with:
-          node-version: '20'
+          node-version: '22'
       - name: Build core + client
         run: |
           npm run build -w packages/core
@@ -63,7 +63,7 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/setup
         with:
-          node-version: '20'
+          node-version: '22'
       - name: Raise file-descriptor limit
         run: ulimit -n 65535 || true
       - name: Build core + client
@@ -90,7 +90,7 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/setup
         with:
-          node-version: '20'
+          node-version: '22'
       - name: Build core
         run: npm run build -w packages/core
       - name: Start a dedicated Postgres for chaos

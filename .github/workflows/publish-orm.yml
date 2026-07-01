@@ -34,7 +34,7 @@ jobs:
 
       - uses: ./.github/actions/setup
         with:
-          node-version: '20'
+          node-version: '22'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Build core (orm compiles against streetjs)

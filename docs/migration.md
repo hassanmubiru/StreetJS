@@ -38,6 +38,55 @@ export and subpath is preserved (verified by the export-parity test suite).
 > `@streetjs/core` is deprecated and will only receive the re-export shim going
 > forward. Please migrate to `streetjs`.
 
+## Runtime: Migrating from Node 20 → Node 22
+
+StreetJS now targets the supported Node.js LTS lines. **Node 20 reached
+end-of-life in April 2026** and is no longer supported.
+
+| Item | Before | After |
+|------|--------|-------|
+| Minimum runtime | Node.js ≥ 20 | **Node.js ≥ 22** |
+| CI-tested lines | Node 20, 22 | **Node 22, 24** |
+| Recommended npm | npm ≥ 9 | **npm ≥ 10** (bundled with Node 22) |
+| Package manager | npm (workspaces) | npm (workspaces) — unchanged |
+| Container base image | `node:20-alpine` | `node:24-alpine` (latest LTS) |
+| Distroless runtime | `distroless/nodejs20` | `distroless/nodejs22` |
+
+### What you need to do
+
+1. **Install Node 22 or 24.** Use [nodejs.org](https://nodejs.org) or a version
+   manager (`nvm install 22 && nvm use 22`). Verify with `node --version` (or run
+   `npx street doctor`, which now requires Node ≥ 22).
+2. **Update your `engines` field** if you pin it:
+   ```diff
+   - "engines": { "node": ">=20.0.0", "npm": ">=9.0.0" }
+   + "engines": { "node": ">=22.0.0", "npm": ">=10.0.0" }
+   ```
+3. **Update Dockerfiles** to a supported LTS base image (digest-pin for
+   reproducibility):
+   ```diff
+   - FROM node:20-alpine
+   + FROM node:24-alpine
+   ```
+4. **Update CI matrices** from `['20', '22']` to `['22', '24']`.
+
+### Breaking changes
+
+- **Node 20 is rejected at the engine boundary.** With `engines.node >=22.0.0`,
+  installs on Node 20 will warn (or fail under `engine-strict`/CI), and
+  `street doctor` reports Node < 22 as a failure.
+- **No source API changes.** StreetJS already used modern, stable Node APIs
+  (native `fetch`, `node:test`, top-level `await`, `crypto.randomUUID()`,
+  Web Streams, `AbortSignal`); no application code changes are required to run
+  on Node 22/24. There are **no removed StreetJS exports** in this migration.
+- There are **no known runtime breaking changes** between Node 20 and Node 22/24
+  that affect StreetJS's public surface. If you depend on third-party native
+  modules, rebuild them against your new Node version.
+
+> Validation note: the Node 22/24 runtime behavior of this repository is
+> exercised by the CI matrix (Node 22 + 24). Local Node 22/24 execution was not
+> performed as part of authoring this guide.
+
 ## v1.x → v2.0
 
 ### Breaking Changes

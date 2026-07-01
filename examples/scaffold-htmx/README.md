@@ -4,7 +4,7 @@ A [Street](https://hassanmubiru.github.io/StreetJS) framework application.
 
 ## Prerequisites
 
-- Node.js >= 20.0.0
+- Node.js >= 22.0.0
 - PostgreSQL >= 14 (optional, for database features)
 
 ## Getting Started

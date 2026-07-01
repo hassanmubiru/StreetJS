@@ -22,7 +22,7 @@ flowchart LR
 
 ## 1. First contribution (target: < 30 minutes to first PR)
 
-1. Read `CONTRIBUTING.md` and install Node 20+.
+1. Read `CONTRIBUTING.md` and install Node 22+.
 2. `git clone` → `npm ci` → `npm run build -w packages/core`.
 3. Pick a [`good-first-issue`](https://github.com/hassanmubiru/StreetJS/labels/good-first-issue)
    (each is scoped, has acceptance criteria, and a mentor where labeled

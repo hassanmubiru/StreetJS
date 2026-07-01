@@ -62,7 +62,7 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/setup
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Build all workspaces (ordered + strict final pass)
         run: |
