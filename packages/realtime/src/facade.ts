@@ -197,6 +197,21 @@ class RoomHandle implements Room {
    */
   async join(member: Member, conn: RealtimeConnection): Promise<void> {
     await this.ctx.ready;
+    // Secured-channel gate (Req 10.1): if this channel is a Secured_Channel,
+    // evaluate its authorizer for `action: 'join'` *before* touching the hub.
+    // On denial do not add the member, return an authorization error to the
+    // requesting connection, and reject the promise (Req 10.2). A non-secured
+    // channel skips this check entirely (Req 10.4).
+    const authorizer = this.ctx.authorizers.get(this.name);
+    if (authorizer) {
+      const allowed = await authorizer({ channel: this.name, member, action: 'join' });
+      if (!allowed) {
+        conn.emit('error', { channel: this.name, reason: 'unauthorized', action: 'join' });
+        throw new Error(
+          `Authorization denied: member ${describeMemberId(member)} may not join secured channel "${this.name}"`,
+        );
+      }
+    }
     const { newlyPresent } = this.ctx.hub.join(this.name, member.id, conn);
     // Observe the hub's presence delta: when this connection makes the member
     // newly present, propagate a `join` to peer instances (Req 5.4). The hub
@@ -360,7 +375,9 @@ class RealtimeFacade implements Realtime {
 
   secure(name: string, rule: ChannelAuthorizer): Room {
     const room = this.room(name);
-    // Register the rule; join/broadcast enforcement is wired in task 7.1.
+    // Register the rule as a Secured_Channel. From now on RoomHandle.join and
+    // RoomHandle.broadcast evaluate this authorizer before admitting the action
+    // (Req 10.1-10.3, 10.5).
     this.ctx.authorizers.set(name, rule);
     return room;
   }
