@@ -4,8 +4,9 @@
 // This module declares the `ClusterAdapter` and `ClusterSink` interfaces that
 // separate local delivery (always via `ChannelHub`) from cross-instance
 // propagation. Concrete adapters implement these contracts: `MemoryAdapter`
-// (default, inert) and `RedisAdapter` (opt-in, `@streetjs/realtime/redis`).
-// Implemented in tasks 9.1 and 10.1; this scaffold establishes the typed surface.
+// (default, inert — this module + `memory.ts`, task 9.1) and `RedisAdapter`
+// (opt-in, `@streetjs/realtime/redis`, task 10.1). These contracts are the
+// authoritative, finalized typed surface both adapters conform to.
 
 import type { RealtimeMessage, BroadcastOptions } from '../facade.js';
 
