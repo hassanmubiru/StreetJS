@@ -62,14 +62,14 @@ jobs:
       # ── Live Kubernetes verification on an ephemeral kind cluster ────────────
       - name: Generate + validate manifest
         run: |
-          node -e "
-            const { generateManifest, validateDeploymentManifest } = require('streetjs');
-            const fs = require('fs');
+          node --input-type=module -e "
+            import { generateManifest, validateDeploymentManifest } from 'streetjs';
+            import { writeFileSync } from 'node:fs';
             const cfg = { name: 'street-app', image: 'street-app:ci', port: 8080, replicas: 1 };
             const m = generateManifest('kubernetes', cfg);
             const v = validateDeploymentManifest('kubernetes', m);
             if (!v.valid) { console.error(v.errors.join('\n')); process.exit(1); }
-            fs.writeFileSync('k8s.yaml', m);
+            writeFileSync('k8s.yaml', m);
             console.log('manifest validated');
           "
 
@@ -78,11 +78,41 @@ jobs:
 
       - name: Create kind cluster
         uses: helm/kind-action@ef37e7f390d99f746eb8b610417061a60e82a6cc # v1.14.0
+        with:
+          # Pin the cluster name so `kind load` / kubectl (which default to the
+          # cluster named "kind") target this cluster. Without this, the action
+          # defaults to "chart-testing" and the load step fails with
+          # "no nodes found for cluster kind".
+          cluster_name: kind
 
       - name: Load image + apply manifest
         run: |
+          set -euo pipefail
           kind load docker-image street-app:ci
+
+          # The Street app requires a reachable database for readiness
+          # (/health/ready runs SELECT 1) and mandatory runtime config
+          # (JWT_SECRET, SESSION_KEY, PG_*). Provision an ephemeral in-cluster
+          # Postgres, then inject the app's runtime env so the deployment can
+          # actually become Ready. Secrets are generated at runtime (never
+          # committed) and live only in this disposable kind cluster.
+          kubectl apply -f infra/kubernetes/ci-postgres.yaml
+          kubectl rollout status deployment/ci-postgres --timeout=120s
+
           kubectl apply -f k8s.yaml
+          kubectl set env deployment/street-app \
+            PORT=8080 \
+            HOST=0.0.0.0 \
+            NODE_ENV=production \
+            ALLOWED_ORIGINS='*' \
+            WORKERS=1 \
+            PG_HOST=ci-postgres \
+            PG_PORT=5432 \
+            PG_USER=street \
+            PG_PASSWORD=street_secret \
+            PG_DATABASE=street_test \
+            JWT_SECRET="$(openssl rand -hex 32)" \
+            SESSION_KEY="$(openssl rand -hex 32)"
           kubectl rollout status deployment/street-app --timeout=120s
 
       # Live verify through CommandRunner: probes /health/live + /health/ready and
