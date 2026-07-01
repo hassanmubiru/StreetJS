@@ -87,8 +87,32 @@ jobs:
 
       - name: Load image + apply manifest
         run: |
+          set -euo pipefail
           kind load docker-image street-app:ci
+
+          # The Street app requires a reachable database for readiness
+          # (/health/ready runs SELECT 1) and mandatory runtime config
+          # (JWT_SECRET, SESSION_KEY, PG_*). Provision an ephemeral in-cluster
+          # Postgres, then inject the app's runtime env so the deployment can
+          # actually become Ready. Secrets are generated at runtime (never
+          # committed) and live only in this disposable kind cluster.
+          kubectl apply -f infra/kubernetes/ci-postgres.yaml
+          kubectl rollout status deployment/ci-postgres --timeout=120s
+
           kubectl apply -f k8s.yaml
+          kubectl set env deployment/street-app \
+            PORT=8080 \
+            HOST=0.0.0.0 \
+            NODE_ENV=production \
+            ALLOWED_ORIGINS='*' \
+            WORKERS=1 \
+            PG_HOST=ci-postgres \
+            PG_PORT=5432 \
+            PG_USER=street \
+            PG_PASSWORD=street_secret \
+            PG_DATABASE=street_test \
+            JWT_SECRET="$(openssl rand -hex 32)" \
+            SESSION_KEY="$(openssl rand -hex 32)"
           kubectl rollout status deployment/street-app --timeout=120s
 
       # Live verify through CommandRunner: probes /health/live + /health/ready and
