@@ -673,6 +673,35 @@ function installUpgradeAuth(server: StreetWebSocketServer, auth: RealtimeUpgrade
 }
 
 /**
+ * The canonical name of the rate-limit rejection counter exported through the
+ * observability {@link MetricsRegistry} (Req 17.3). Incremented once each time
+ * the rate limiter rejects a broadcast.
+ */
+const RATE_LIMIT_REJECTIONS_METRIC = 'realtime_rate_limit_rejections_total';
+
+/** Help text for the {@link RATE_LIMIT_REJECTIONS_METRIC} counter. */
+const RATE_LIMIT_REJECTIONS_HELP =
+  'Total number of realtime broadcasts rejected by the rate limiter (Req 17.3).';
+
+/**
+ * Build the callback {@link RoomHandle.broadcast} invokes to record a rate-limit
+ * rejection on the observability {@link MetricsRegistry} (Req 17.3).
+ *
+ * When no `metrics` registry is configured, returns a no-op so metrics stay
+ * entirely opt-in and the broadcast hot path pays nothing. When a registry is
+ * configured, registers (or, if already present — e.g. a second facade over the
+ * same registry — reuses) the {@link RATE_LIMIT_REJECTIONS_METRIC} counter and
+ * returns a closure that increments it by one per rejection.
+ */
+function createRateLimitRejectionRecorder(metrics: MetricsRegistry | undefined): () => void {
+  if (!metrics) return () => {};
+  const counter: Counter = metrics.has(RATE_LIMIT_REJECTIONS_METRIC)
+    ? (metrics.get(RATE_LIMIT_REJECTIONS_METRIC) as Counter)
+    : metrics.counter(RATE_LIMIT_REJECTIONS_METRIC, RATE_LIMIT_REJECTIONS_HELP);
+  return () => counter.inc();
+}
+
+/**
  * Construct a {@link Realtime} facade over an existing WebSocket server.
  *
  * The facade owns a single `ChannelHub` (constructed with the configured
@@ -692,7 +721,7 @@ export function createRealtime(options: RealtimeOptions): Realtime {
   // default with documented defaults (per-connection 20/1s, per-channel 200/1s,
   // Req 11.5); it reuses the core RateLimitStore sliding-window semantics.
   const rateLimiter = new RateLimiter(options.rateLimit ?? {});
-  const facade = new RealtimeFacade(hub, adapter, rateLimiter);
+  const facade = new RealtimeFacade(hub, adapter, rateLimiter, createRateLimitRejectionRecorder(options.metrics));
 
   // When an authentication hook is configured, wire connection authentication
   // onto the existing server: verify the credential at upgrade (Req 9.1, 9.2)
