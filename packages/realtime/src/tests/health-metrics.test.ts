@@ -276,7 +276,7 @@ test('a healthy MemoryAdapter surfaces as an up realtime health check (Req 17.4)
  */
 class FakeRedisClient implements RedisPubSubClient {
   failing = false;
-  async command(_args: unknown[]): Promise<unknown> {
+  async command(_args: (string | number)[]): Promise<unknown> {
     if (this.failing) throw new Error('redis connection lost');
     return [];
   }
