@@ -14,6 +14,7 @@ import type {
   StreetWebSocketServer,
   HealthCheckRegistry,
   MetricsRegistry,
+  Counter,
   PublishOptions,
 } from 'streetjs';
 import type { ClusterAdapter, ClusterSink } from './cluster/adapter.js';
