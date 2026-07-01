@@ -627,7 +627,20 @@ class RealtimeFacade implements Realtime {
     this.bound.delete(conn.id);
   }
 
+  /**
+   * Attach the observability handle registered by {@link createRealtime} so
+   * {@link close} can stop its background metric-refresh timer (Req 17.2). Not
+   * part of the public {@link Realtime} surface — invoked once at construction
+   * time by the factory, which holds the concrete facade instance.
+   */
+  attachObservability(handle: RealtimeObservabilityHandle): void {
+    this.observability = handle;
+  }
+
   async close(): Promise<void> {
+    // Stop the observability refresh timer first so no gauge refresh races with
+    // adapter teardown (Req 17.2). A no-op when no observability was wired.
+    this.observability?.close();
     // Swallow an init failure during teardown; we still release adapter resources.
     try {
       await this.ctx.ready;
