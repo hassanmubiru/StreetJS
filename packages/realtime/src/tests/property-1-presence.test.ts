@@ -133,10 +133,11 @@ test('Property 1: presence is ref-counted and idempotent', () => {
             'duplicate joins must not record duplicate connections',
           );
 
-          // Typing state only ever exists for members still present (Req 8.4).
-          const expectedTyping = new Set(
-            [...typing].filter((m) => [...joined.values()].includes(m)).map(memberId),
-          );
+          // Typing state only ever exists for members still present; it is
+          // released when a member becomes absent and is NOT restored on a
+          // later rejoin (Req 8.4). The model mirrors this by dropping a
+          // member's typing flag the moment its last connection leaves.
+          const expectedTyping = new Set([...typing].map(memberId));
           assert.deepEqual(
             new Set(harness.hub.typingMembers(room)),
             expectedTyping,
@@ -175,6 +176,9 @@ test('Property 1: presence is ref-counted and idempotent', () => {
                 wasJoined && !stillPresent,
                 'leave reports nowAbsent iff the last connection of the member left',
               );
+              // When the member becomes absent the hub releases its typing
+              // state, so the model must drop it too (Req 8.4).
+              if (nowAbsent) typing.delete(owner);
               break;
             }
             case 'typing': {

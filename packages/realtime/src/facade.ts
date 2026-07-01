@@ -155,12 +155,15 @@ function union(a: readonly string[], b: readonly string[]): string[] {
  *
  * Membership (`join`/`leave`), broadcast delivery scope (`broadcast`), presence
  * queries (`presence`/`memberCount`), and typing (`setTyping`) are finalized
- * here (task 3.2). Two behaviors remain intentionally deferred and are wired in
+ * here (task 3.2), and presence deltas are propagated to the cluster adapter
+ * (task 4.1): `join`/`leave` observe the hub's `newlyPresent`/`nowAbsent`
+ * results and call `adapter.publishPresence` accordingly (inert for the default
+ * `MemoryAdapter`). Two behaviors remain intentionally deferred and are wired in
  * later tasks so as to keep this handle's hooks coherent without pre-empting
  * their specs:
  *   - Secured-channel authorization on join/broadcast (task 7.1, Req 10).
- *   - Cross-instance presence propagation + the distributed presence mirror
- *     that observes the hub's `newlyPresent`/`nowAbsent` deltas (task 10.2,
+ *   - Consumption of remote presence into a distributed mirror
+ *     (`applyRemotePresence` + `remotePresence` union recording, task 10.2,
  *     Req 5.4/5.6). Today `presence()` already unions in `adapter.remotePresence`,
  *     which is `[]` for the default `MemoryAdapter`, so single-instance results
  *     are correct.
@@ -199,9 +202,15 @@ class RoomHandle implements Room {
    */
   async leave(member: Member, conn: RealtimeConnection): Promise<void> {
     await this.ctx.ready;
-    this.ctx.hub.leave(this.name, member.id, conn);
-    // NOTE (task 10.2): the hub returns `{ nowAbsent }` here — the hook point
-    // for `adapter.publishPresence` on the leave path; not wired yet.
+    const { nowAbsent } = this.ctx.hub.leave(this.name, member.id, conn);
+    // Observe the hub's presence delta: when this was the member's last
+    // connection they become absent, the hub fires `presence:leave` to the
+    // remaining local connections (Req 5.2) and clears any typing state
+    // (Req 6.4); propagate the `leave` to peer instances (Req 5.4). Inert for
+    // the default `MemoryAdapter`.
+    if (nowAbsent) {
+      await this.ctx.adapter.publishPresence(this.name, member.id, 'leave');
+    }
   }
 
   /**
