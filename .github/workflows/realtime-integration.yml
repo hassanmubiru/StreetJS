@@ -1,0 +1,81 @@
+name: Realtime Framework CI
+
+# ── @streetjs/realtime build + test (with a real Redis broker) ─────────────
+# Builds the realtime package over the workspace-linked `streetjs` core and runs
+# its full suite — unit, property-based (fast-check), health/metrics, backward-
+# compat pinning, and the Redis integration tests. A `redis` service container is
+# provided and surfaced via REDIS_URL so the RedisAdapter integration tests
+# (Req 13.1-13.4, 7.6, 17.4) RUN against a real broker instead of reporting their
+# honest BLOCKED/skip. Without this job those 4 tests skip locally; here they are
+# gated for real.
+on:
+  push:
+    branches: [main, develop, 'feature/**', 'fix/**', 'chore/**']
+    paths:
+      - 'packages/realtime/**'
+      - 'packages/core/**'
+      - '.github/workflows/realtime-integration.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'packages/realtime/**'
+      - 'packages/core/**'
+      - '.github/workflows/realtime-integration.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: realtime-ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  realtime:
+    name: Realtime (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['22', '24']
+
+    # A real Redis broker so the RedisAdapter integration tests execute (rather
+    # than skipping with their BLOCKED-when-unavailable message). The suite reads
+    # REDIS_URL; the container is reachable on 127.0.0.1:6379.
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+        with:
+          node-version: ${{ matrix.node }}
+
+      # The realtime package imports `streetjs` at runtime via the workspace
+      # symlink (→ packages/core), so core must be built first.
+      - name: Build core (realtime dependency)
+        run: npm run build -w packages/core
+
+      - name: Build @streetjs/realtime
+        run: npm run build -w packages/realtime
+
+      # Runs `node --test dist/tests/*.test.js`. With REDIS_URL pointing at the
+      # service container, the Redis integration tests run for real; the rest
+      # (unit, property, health/metrics, backward-compat) always run.
+      - name: Run @streetjs/realtime tests (with real Redis)
+        env:
+          REDIS_URL: redis://127.0.0.1:6379
+        run: npm test -w packages/realtime
