@@ -19,10 +19,8 @@ import type {
 } from 'streetjs';
 import type { ClusterAdapter, ClusterSink } from './cluster/adapter.js';
 import { MemoryAdapter } from './cluster/memory.js';
-import { createRealtimeUpgradeAuth } from './auth.js';
-import type { ChannelAuthorizer, RealtimeUpgradeAuth } from './auth.js';
-import { RateLimiter } from './ratelimit.js';
-import type { RateLimitConfig } from './ratelimit.js';
+import { createRealtimeUpgradeAuth, type ChannelAuthorizer, type RealtimeUpgradeAuth } from './auth.js';
+import { RateLimiter, type RateLimitConfig } from './ratelimit.js';
 import { registerRealtimeObservability } from './health.js';
 import type { RealtimeObservabilityHandle } from './health.js';
 
