@@ -23,6 +23,8 @@ import { createRealtimeUpgradeAuth } from './auth.js';
 import type { ChannelAuthorizer, RealtimeUpgradeAuth } from './auth.js';
 import { RateLimiter } from './ratelimit.js';
 import type { RateLimitConfig } from './ratelimit.js';
+import { registerRealtimeObservability } from './health.js';
+import type { RealtimeObservabilityHandle } from './health.js';
 
 /**
  * A logical authenticated user. Presence is reference-counted by connection,
