@@ -195,6 +195,9 @@ void describe('MakeCommand.executeGateway', () => {
       assert.notEqual(process.exitCode, 0);
       assert.ok(errors.some((e) => e.includes('already exists')));
       assert.equal(readFileSync(filePath, 'utf8'), sentinel, 'existing content left byte-for-byte intact');
+      // Reset so the exit code set by the command-under-test does not leak into
+      // the test runner's own process exit status.
+      process.exitCode = 0;
     });
   });
 });
