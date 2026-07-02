@@ -25,6 +25,7 @@ import { HealthCheckRegistry, MetricsRegistry } from 'streetjs';
 import type { SandboxedApp } from 'streetjs';
 
 import { QueuePlugin } from '../plugin.js';
+import type { Queue } from '../facade.js';
 import {
   QUEUE_HEALTH_CHECK_NAME,
   QUEUE_LENGTH_METRIC,
