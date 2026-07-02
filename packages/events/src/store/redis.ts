@@ -76,6 +76,12 @@ export class RedisEventStore implements EventStore {
 
   async read(filter?: ReplayFilter): Promise<EventEnvelope[]> {
     await this.ensureConnected();
+    // FUTURE (deferred, tracked): for very high volumes, narrow the fetch
+    // server-side — `fromSeq`/`since`/`until` map to a ZRANGEBYSCORE window and
+    // `limit` to its LIMIT clause — keeping only the `*`/`**` `pattern` (and
+    // exact `name`) match in-process. `limit` may only be pushed down when no
+    // `pattern` is present. Kept as a full ZRANGE here for exact parity with
+    // MemoryEventStore; add live-broker parity tests when implementing.
     const raw = asStringArray(await this.command(['ZRANGE', this.logKey(), 0, -1]));
     const parsed: EventEnvelope[] = [];
     for (const s of raw) {

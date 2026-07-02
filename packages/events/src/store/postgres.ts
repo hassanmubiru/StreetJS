@@ -107,6 +107,13 @@ export class PostgresEventStore implements EventStore {
   }
 
   async read(filter?: ReplayFilter): Promise<EventEnvelope[]> {
+    // FUTURE (deferred, tracked): for very high volumes, push the non-wildcard
+    // predicates down to SQL — `name` (equality), `since`/`until` (ts range),
+    // `fromSeq` (seq >=), and `limit` (LIMIT) — keeping only the `*`/`**`
+    // `pattern` match in-process. `limit` may only be pushed down when no
+    // `pattern` is present, otherwise SQL would truncate before the in-process
+    // wildcard filter and change results. Kept in-process here for exact parity
+    // with MemoryEventStore; add live-DB parity tests when implementing.
     const { rows } = await this.run(
       `SELECT id, name, payload, ts, seq, metadata
        FROM ${this.table}
