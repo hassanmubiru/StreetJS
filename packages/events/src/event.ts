@@ -54,7 +54,7 @@ type SingleSegment<S extends string> = S extends `${string}.${string}` ? false :
  * Mirrors the runtime matcher so wildcard listeners receive a correctly-typed
  * payload union.
  */
-export type MatchingEventNames<T extends EventMap, P extends string> =
+export type MatchingEventNames<T extends AnyEventMap, P extends string> =
   P extends `${infer Head}.**`
     ? Extract<EventName<T>, `${Head}.${string}`>
     : P extends `${infer Head}.*`
