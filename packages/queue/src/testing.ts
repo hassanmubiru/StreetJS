@@ -8,9 +8,10 @@
 // events. `FakeQueue` is implemented in task 2.1; `MemoryQueue`/`TestHarness`
 // land in task 2.2.
 
-import type { Clock } from 'streetjs';
+import type { Clock, RateLimitStore } from 'streetjs';
 import {
   buildEnvelope,
+  type BackoffPolicy,
   type Job,
   type JobEnvelope,
   type JobHandler,
@@ -19,12 +20,15 @@ import {
   type DeadLetterRecord,
   type SerializedError,
 } from './job.js';
-import type { Queue, DeadLetterApi } from './facade.js';
+import type { Queue, DeadLetterApi, QueueOptions } from './facade.js';
+import { createQueue } from './facade.js';
 import type { QueueMiddleware } from './middleware.js';
 import type { QueueEventMap } from './events.js';
 import { QueueEventEmitter } from './events.js';
 import type { Worker, WorkerOptions } from './worker.js';
-import type { QueueDriver } from './drivers/driver.js';
+import type { QueueDriver, Reservation } from './drivers/driver.js';
+import { MemoryDriver } from './drivers/memory.js';
+import { DEFAULT_BACKOFF, onFailure, type RetryDecision } from './retry.js';
 
 /** A recorded `dispatch(job, options)` call, with the assigned job id. */
 export interface DispatchRecord<TPayload = unknown> {
