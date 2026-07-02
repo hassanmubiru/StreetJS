@@ -100,9 +100,18 @@ export function createEventsTracing(
   // when the per-dispatch context object is GC'd, so nothing leaks even if the
   // telemetry sink is not wired.
   const spans = new WeakMap<EventContext, SpanLike>();
+  // Ambient current-trace propagation: a publish issued from inside a listener
+  // (during `next()`) reads the enclosing span's traceparent from here and
+  // becomes a child span — true automatic context propagation across awaits.
+  const activeTraceparent = new AsyncLocalStorage<string>();
 
   const middleware: EventMiddleware = async (ctx, _payload, next) => {
-    const parent = parseTraceparent(ctx.metadata[tpKey]) ?? undefined;
+    // Parent precedence: an explicit inbound traceparent on the event beats the
+    // ambient one (e.g. an event re-published from a distributed bus message).
+    const inbound = ctx.metadata[tpKey];
+    const parentTraceparent = typeof inbound === 'string' ? inbound : activeTraceparent.getStore();
+    const parent = parseTraceparent(parentTraceparent) ?? undefined;
+
     const span = tracer.startSpan(`${spanPrefix} ${ctx.event}`, parent, parent ? parent.spanId : undefined);
 
     span.attributes['event.name'] = ctx.event;
@@ -111,13 +120,14 @@ export function createEventsTracing(
       span.attributes['event.tenant_id'] = ctx.tenantId;
     }
 
-    // Propagate the child context so nested publishes (from inside a listener)
-    // chain as child spans; record the span so telemetry can annotate counts.
-    ctx.metadata[tpKey] = formatTraceparent(span.context);
+    // Expose the child context on metadata (for forwarding/inspection) and make
+    // it the ambient parent for the duration of delivery.
+    const childTraceparent = formatTraceparent(span.context);
+    ctx.metadata[tpKey] = childTraceparent;
     spans.set(ctx, span);
 
     try {
-      await next();
+      await activeTraceparent.run(childTraceparent, () => next());
       span.end(); // dispatch succeeded (listener failures are isolated, not errors)
     } catch (err) {
       // A middleware veto (or a middleware bug) is a real dispatch failure.
