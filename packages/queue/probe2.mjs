@@ -1,0 +1,11 @@
+import { RedisClient } from 'streetjs';
+const c = new RedisClient({ host: '127.0.0.1', port: 6399 });
+await c.connect(); console.log('1 connected sub-owner');
+const unsub = await c.subscribe('chan', (m) => console.log('msg', m)); console.log('2 subscribed');
+const pub = new RedisClient({ host: '127.0.0.1', port: 6399 });
+await pub.connect(); console.log('3 pub connected');
+await pub.publish('chan', 'hello'); console.log('4 published');
+await new Promise(r => setTimeout(r, 200));
+unsub(); console.log('5 unsub');
+c.close(); pub.close(); console.log('6 closed');
+console.log('done; active handles:', process._getActiveHandles?.().length);
