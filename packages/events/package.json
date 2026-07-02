@@ -1,0 +1,79 @@
+{
+  "name": "@streetjs/events",
+  "version": "1.0.0",
+  "description": "StreetJS application event layer: a strongly-typed, plugin-first, in-process event system with local/async/ordered dispatch, wildcard subscriptions, once listeners, a composable middleware pipeline, optional event replay over a pluggable event store, health/metrics, a CLI, and a testing harness. Not a message broker.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./queue": {
+      "import": "./dist/integrations/queue.js",
+      "types": "./dist/integrations/queue.d.ts"
+    },
+    "./realtime": {
+      "import": "./dist/integrations/realtime.js",
+      "types": "./dist/integrations/realtime.d.ts"
+    }
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.js.map",
+    "dist/**/*.d.ts",
+    "dist/**/*.d.ts.map",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test dist/tests/*.test.js",
+    "example": "node dist/examples/basic.js",
+    "lint": "tsc --noEmit",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\""
+  },
+  "keywords": [
+    "streetjs",
+    "street-framework",
+    "events",
+    "event-emitter",
+    "event-bus",
+    "pubsub",
+    "application-events",
+    "domain-events",
+    "wildcard",
+    "middleware",
+    "replay",
+    "typescript",
+    "esm"
+  ],
+  "author": "street contributors",
+  "license": "MIT",
+  "homepage": "https://hassanmubiru.github.io/StreetJS/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hassanmubiru/StreetJS.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hassanmubiru/StreetJS/issues"
+  },
+  "dependencies": {
+    "streetjs": "^1.0.25"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.2",
+    "fast-check": "^4.8.0",
+    "typescript": "^6.0.3"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
