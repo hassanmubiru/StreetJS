@@ -428,7 +428,8 @@ export class WorkerImpl implements Worker {
     return false;
   }
 
-
+  /**
+   * Run the middleware pipeline + handler under an optional per-attempt timeout
    * (Req 14.4). When `timeoutMs` is undefined the handler runs unbounded. When a
    * timeout is set, the handler races a real `setTimeout` timer (timeouts are an
    * inherently wall-clock concern; the injected clock stays reserved for
