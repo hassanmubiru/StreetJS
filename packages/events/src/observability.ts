@@ -67,7 +67,7 @@ export interface EventsObservabilityHandle {
    * Wire the gauges' source and register the health check against a created
    * facade. Call once after `createEvents`. Idempotent per handle.
    */
-  attach(events: Events<AnyEventMap>): void;
+  attach<T extends AnyEventMap>(events: Events<T>): void;
   /** Recompute the gauges from `events.stats()` (best-effort; never throws). */
   refresh(): void;
   /** Stop any refresh timer and release resources. Safe to call once. */
