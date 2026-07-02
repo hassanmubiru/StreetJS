@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { EventBus } from 'streetjs';
 
 import { createEvents } from '../facade.js';
-import { forwardToBus, forwardFromBus, FROM_BUS } from '../integrations/bus.js';
+import { forwardToBus, forwardFromBus, connectBus, FROM_BUS } from '../integrations/bus.js';
 
 interface AppEvents {
   'order.shipped': { id: string };
