@@ -63,7 +63,7 @@ export interface EventsObservabilityHandle {
    * Wire the gauges' source and register the health check against a created
    * facade. Call once after `createEvents`. Idempotent per handle.
    */
-  attach(events: Events): void;
+  attach(events: Events<AnyEventMap>): void;
   /** Recompute the gauges from `events.stats()` (best-effort; never throws). */
   refresh(): void;
   /** Stop any refresh timer and release resources. Safe to call once. */
@@ -83,7 +83,7 @@ export function registerEventsObservability(
 ): EventsObservabilityHandle {
   const { metrics, health } = options;
 
-  let events: Events | undefined;
+  let events: Events<AnyEventMap> | undefined;
   let timer: ReturnType<typeof setInterval> | undefined;
   let closed = false;
 
@@ -142,7 +142,7 @@ export function registerEventsObservability(
     });
   };
 
-  const attach = (created: Events): void => {
+  const attach = (created: Events<AnyEventMap>): void => {
     events = created;
 
     if (health) {
