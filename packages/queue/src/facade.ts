@@ -289,6 +289,16 @@ class QueueFacade implements Queue {
     void ready.catch(() => undefined);
     const worker = new WorkerImpl(this.buildWorkerContext(ready), options);
     this.workers.add(worker);
+
+    // Start the scheduler's delayed-promotion loop (and any cron timers) on the
+    // first worker so delayed/scheduled jobs are promoted in production. This is
+    // deliberately NOT done on `createQueue` so the deterministic `TestHarness`,
+    // which never calls `work()` and drives `promoteDue` itself, stays
+    // deterministic and no stray timers leak (Req 3.4, 4.x). Idempotent.
+    if (!this.schedulerStarted) {
+      this.schedulerStarted = true;
+      this.scheduler.start();
+    }
     return worker;
   }
 
