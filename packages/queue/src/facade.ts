@@ -331,8 +331,11 @@ class QueueFacade implements Queue {
     }
     this.closed = true;
     // Stop reserving new jobs and await in-flight completion across all workers,
-    // then close the driver (Req 14.6).
+    // stop the scheduler's promotion loop / cron timers, then close the driver
+    // (Req 14.6). The scheduler is stopped before the driver closes so no
+    // in-flight promotion tick touches a closing driver.
     await Promise.all([...this.workers].map((worker) => worker.stop()));
+    await this.scheduler.stop();
     await this.driver.close();
   }
 
