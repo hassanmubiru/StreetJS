@@ -24,6 +24,10 @@ import type {
 } from 'streetjs';
 import type { Events, EventsStats, EventsTelemetry } from './facade.js';
 import type { AnyEventMap } from './event.js';
+import type { EventStore } from './store/store.js';
+
+/** The `T`-independent slice of a facade the observability layer reads. */
+type EventsIntrospect = { stats(): EventsStats; readonly store?: EventStore };
 
 /** The name the events health check is registered under. */
 export const EVENTS_HEALTH_CHECK_NAME = 'events';
