@@ -103,23 +103,19 @@ test('worker never exceeds its concurrency bound (Req 7.1, 7.2)', async () => {
   assert.equal(worker.status().inFlight, concurrency);
   assert.ok(peak <= concurrency, `peak ${peak} exceeded concurrency ${concurrency}`);
 
-  // Release everything, feeding the release as new slots open.
-  const release = async () => {
+  // Release everything, feeding the release as new slots open, until the driver
+  // has no ready work and nothing is executing.
+  while (true) {
     while (gate.length > 0) {
       gate.shift()!();
       await new Promise((resolve) => setTimeout(resolve, 2));
     }
-  };
-
-  const stats = queue.driver.stats('default');
-  const drain = (async () => {
-    while ((await queue.driver.stats('default')).ready + current > 0 || gate.length > 0) {
-      await release();
-      await new Promise((resolve) => setTimeout(resolve, 5));
+    const { ready } = await queue.driver.stats('default');
+    if (ready === 0 && current === 0 && gate.length === 0) {
+      break;
     }
-  })();
-  void stats;
-  await drain;
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  }
   await queue.close();
 
   assert.ok(peak <= concurrency, `peak ${peak} exceeded concurrency ${concurrency}`);
