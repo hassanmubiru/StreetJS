@@ -253,8 +253,9 @@ class EventsFacade<T extends EventMap> implements Events<T> {
     pattern: P,
     listener: EventListener<WildcardPayload<T, P>, string>,
   ): Unsubscribe;
-  // Implementation signature (broad by design so both overloads are assignable).
-  on(key: string, listener: EventListener<unknown, string>): Unsubscribe {
+  // Implementation signature (payload `any` so both typed overloads are assignable).
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  on(key: string, listener: (payload: any, ctx: EventContext) => unknown): Unsubscribe {
     return this.emitter.add(key, listener as (p: unknown, c: EventContext) => void, false);
   }
 
@@ -263,7 +264,8 @@ class EventsFacade<T extends EventMap> implements Events<T> {
     pattern: P,
     listener: EventListener<WildcardPayload<T, P>, string>,
   ): Unsubscribe;
-  once(key: string, listener: EventListener<unknown, string>): Unsubscribe {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  once(key: string, listener: (payload: any, ctx: EventContext) => unknown): Unsubscribe {
     return this.emitter.add(key, listener as (p: unknown, c: EventContext) => void, true);
   }
 
