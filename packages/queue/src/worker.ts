@@ -267,25 +267,43 @@ export class WorkerImpl implements Worker {
 
   /**
    * Run a single reserved job to completion: emit `job.started`, execute through
-   * the middleware pipeline and handler, then `ack` on success (emitting
-   * `job.completed`) or route the failure to the retry engine.
+   * the middleware pipeline and handler under a per-attempt timeout, then `ack`
+   * on success (emitting `job.completed`) or route the failure appropriately.
    *
-   * Seam for task 6.2: this is where the per-attempt timeout + `AbortSignal`
-   * wiring and the no-handler → straight-to-DLQ rule are layered in; task 6.3
-   * inserts the rate-limit check before execution.
+   * Two failure paths (task 6.2):
+   *  - **No registered handler** for the envelope's `type` is a PERMANENT
+   *    failure (Req 2.4): the job is moved straight to the DLQ with a
+   *    descriptive error and does NOT consult the retry engine.
+   *  - **Any other failure** (a thrown handler error or a per-attempt timeout,
+   *    Req 14.4) routes through the retry engine, which either re-enqueues for
+   *    a further attempt or dead-letters at exhaustion (Req 6.1, 6.2, 14.2).
+   *
+   * The per-attempt timeout (Req 14.4) fires the execution `AbortSignal` so a
+   * cooperative handler can observe cancellation, emits `job.timeout`
+   * (Req 11.5), and surfaces the timeout as a failure.
+   *
+   * Task 6.3 inserts the rate-limit check before execution.
    */
   protected async executeReservation(reservation: Reservation): Promise<void> {
     const envelope = reservation.envelope;
-    const ctx = this.buildContext(reservation);
+    const controller = new AbortController();
+    const ctx = this.buildContext(reservation, controller.signal);
     const start = this.ctx.clock();
     this.ctx.emitter.emit('job.started', { ctx });
 
+    // No registered handler → PERMANENT failure moved straight to the DLQ,
+    // bypassing the retry engine entirely (Req 2.4).
+    const handler = this.ctx.handlers.get(envelope.type);
+    if (handler === undefined) {
+      await this.deadLetterPermanent(reservation, ctx, {
+        name: 'Error',
+        message: `No handler registered for job type "${envelope.type}".`,
+      });
+      return;
+    }
+
     try {
-      const handler = this.ctx.handlers.get(envelope.type);
-      if (handler === undefined) {
-        throw new Error(`No handler registered for job type "${envelope.type}".`);
-      }
-      await this.runHandler(ctx, envelope.payload, handler);
+      await this.runWithTimeout(ctx, envelope.payload, handler, controller, envelope.timeoutMs);
       await this.driver.ack(reservation);
       this.processed += 1;
       this.releaseDedupe(reservation);
@@ -293,6 +311,71 @@ export class WorkerImpl implements Worker {
     } catch (err) {
       await this.handleFailure(reservation, ctx, serializeError(err));
     }
+  }
+
+  /**
+   * Run the middleware pipeline + handler under an optional per-attempt timeout
+   * (Req 14.4). When `timeoutMs` is undefined the handler runs unbounded. When a
+   * timeout is set, the handler races a real `setTimeout` timer (timeouts are an
+   * inherently wall-clock concern; the injected clock stays reserved for
+   * deterministic backoff/scheduling). If the timer wins the race it:
+   *   1. fires the execution `AbortSignal` via `controller.abort()`,
+   *   2. emits `job.timeout` with `{ ctx, timeoutMs }` (Req 11.5), and
+   *   3. rejects so the caller treats the timeout as a failure (Req 14.4).
+   * The timer is always cleared once the race settles, so no timer is leaked
+   * when the handler finishes first.
+   */
+  protected async runWithTimeout(
+    ctx: JobExecutionContext,
+    payload: unknown,
+    handler: JobHandler<unknown>,
+    controller: AbortController,
+    timeoutMs: number | undefined,
+  ): Promise<void> {
+    if (timeoutMs === undefined) {
+      await this.runHandler(ctx, payload, handler);
+      return;
+    }
+
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeout = new Promise<never>((_resolve, reject) => {
+      timer = setTimeout(() => {
+        // Fire the cooperative cancellation signal (Req 14.4).
+        controller.abort();
+        // Emit the timeout event before surfacing the failure (Req 11.5).
+        this.ctx.emitter.emit('job.timeout', { ctx, timeoutMs });
+        reject(new Error(`Job "${ctx.type}" exceeded its per-attempt timeout of ${timeoutMs}ms.`));
+      }, timeoutMs);
+      // Do not keep the event loop alive solely for a pending timeout.
+      timer.unref?.();
+    });
+
+    try {
+      await Promise.race([this.runHandler(ctx, payload, handler), timeout]);
+    } finally {
+      // Clear the timer whether the handler or the timeout settled first, so a
+      // handler that finishes before the deadline leaks no timer.
+      if (timer !== undefined) {
+        clearTimeout(timer);
+      }
+    }
+  }
+
+  /**
+   * Move a reserved job straight to the dead-letter store as a PERMANENT failure
+   * (e.g. no registered handler, Req 2.4). Unlike {@link handleFailure} this does
+   * NOT consult the retry engine: it dead-letters once, counts the failure,
+   * releases the dedupe key, and emits the terminal `job.failed` event.
+   */
+  protected async deadLetterPermanent(
+    reservation: Reservation,
+    ctx: JobExecutionContext,
+    error: SerializedError,
+  ): Promise<void> {
+    await this.driver.moveToDeadLetter(reservation, error);
+    this.failed += 1;
+    this.releaseDedupe(reservation);
+    this.ctx.emitter.emit('job.failed', { ctx, error });
   }
 
   /**
