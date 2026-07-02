@@ -11,6 +11,7 @@
 export { Event, isEvent, buildEnvelope } from './event.js';
 export type {
   EventMap,
+  AnyEventMap,
   EventName,
   EventPayload,
   EventContext,
