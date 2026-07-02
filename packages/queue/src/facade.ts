@@ -20,7 +20,7 @@ import { buildEnvelope, DEFAULT_QUEUE } from './job.js';
 import type { QueueMiddleware } from './middleware.js';
 import type { QueueEventMap } from './events.js';
 import { QueueEventEmitter } from './events.js';
-import type { Worker, WorkerOptions } from './worker.js';
+import type { Worker, WorkerOptions, WorkerContext } from './worker.js';
 import { WorkerImpl } from './worker.js';
 import type { QueueDriver } from './drivers/driver.js';
 import { MemoryDriver } from './drivers/memory.js';
