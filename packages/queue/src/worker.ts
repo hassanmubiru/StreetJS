@@ -411,7 +411,7 @@ export class WorkerImpl implements Worker {
   }
 
   /** Build the per-execution context. `attempts` was incremented at reserve. */
-  protected buildContext(reservation: Reservation): JobExecutionContext {
+  protected buildContext(reservation: Reservation, signal: AbortSignal): JobExecutionContext {
     const envelope = reservation.envelope;
     return {
       id: envelope.id,
@@ -421,8 +421,8 @@ export class WorkerImpl implements Worker {
       maxAttempts: envelope.maxAttempts,
       enqueuedAt: envelope.enqueuedAt,
       tenantId: envelope.tenantId,
-      // Timeout wiring (firing this signal on timeout) lands in task 6.2.
-      signal: new AbortController().signal,
+      // The execution AbortSignal fired on a per-attempt timeout (Req 14.4).
+      signal,
     };
   }
 
