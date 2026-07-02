@@ -34,6 +34,24 @@ export interface EventsPluginOptions<T extends AnyEventMap = EventMap> extends E
    * startup"). May be async; awaited before `onLoad` resolves.
    */
   register?: (events: Events<T>) => void | Promise<void>;
+
+  /**
+   * Declarative bridge wiring. Each entry is an attach function called with the
+   * constructed facade; if it returns a detach function, that detach is invoked
+   * on `onUnload`. This keeps the plugin decoupled from any specific
+   * integration — compose queue/realtime/bus bridges without the plugin
+   * depending on them:
+   *
+   * ```ts
+   * new EventsPlugin({
+   *   bridges: [
+   *     (events) => forwardToBus(events, bus, [{ appEvent: 'order.shipped' }]),
+   *     (events) => bridgeRealtimeEvents(events, realtime, [{ appEvent: 'report.generated', room: 'reports' }]),
+   *   ],
+   * });
+   * ```
+   */
+  bridges?: Array<(events: Events<T>) => (() => void) | void>;
 }
 
 /** Plugin entry point that constructs and wires the application event layer. */
@@ -45,6 +63,7 @@ export class EventsPlugin<T extends AnyEventMap = EventMap> extends PluginModule
 
   private eventsInstance?: Events<T>;
   private observability?: EventsObservabilityHandle;
+  private bridgeDetachers: Array<() => void> = [];
 
   constructor(options: EventsPluginOptions<T> = {}) {
     super();
@@ -92,6 +111,15 @@ export class EventsPlugin<T extends AnyEventMap = EventMap> extends PluginModule
 
     if (this.options.register) {
       await this.options.register(events);
+    }
+
+    // Apply declarative bridge wiring, collecting any detach functions so
+    // onUnload can tear them down.
+    for (const attach of this.options.bridges ?? []) {
+      const detach = attach(events);
+      if (typeof detach === 'function') {
+        this.bridgeDetachers.push(detach);
+      }
     }
   }
 
