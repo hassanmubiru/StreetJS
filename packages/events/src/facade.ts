@@ -28,7 +28,7 @@ import {
   type WildcardPayload,
 } from './event.js';
 import { Emitter } from './emitter.js';
-import { composePipeline, type EventMiddleware, type PipelineRunner } from './middleware.js';
+import { composePipeline, type DeliveryStep, type EventMiddleware } from './middleware.js';
 import type { EventStore, ReplayFilter } from './store/store.js';
 
 /** Cancels a subscription. Idempotent. */
@@ -184,9 +184,6 @@ class EventsFacade<T extends EventMap> implements Events<T> {
   private readonly errorHandlers: ErrorHandler[] = [];
   private readonly telemetry?: EventsTelemetry;
 
-  /** Composed pipeline, rebuilt whenever middleware is added. */
-  private pipeline: PipelineRunner;
-
   /** Monotonic publish sequence (envelope ordering + replay ordering). */
   private seq = 0;
   /** Ordered async delivery tail — chains fire-and-forget deliveries in order. */
@@ -206,7 +203,6 @@ class EventsFacade<T extends EventMap> implements Events<T> {
     if (options.onError) {
       this.errorHandlers.push(options.onError);
     }
-    this.pipeline = this.buildPipeline();
   }
 
   // ── Publish (ordered, awaited) ──────────────────────────────────────────────
@@ -230,15 +226,16 @@ class EventsFacade<T extends EventMap> implements Events<T> {
     const { name, payload, options } = normalizeArgs(nameOrEvent, payloadOrOptions, maybeOptions);
     this.asyncPending += 1;
     // Chain onto the tail so deliveries run in publish order, never overlapping.
-    this.asyncTail = this.asyncTail.then(async () => {
-      try {
-        await this.dispatch(name, payload, options);
-      } finally {
-        this.asyncPending -= 1;
-      }
-    });
-    // Swallow so a rejected delivery never poisons the shared tail chain.
-    this.asyncTail = this.asyncTail.catch(() => undefined);
+    this.asyncTail = this.asyncTail
+      .then(async () => {
+        try {
+          await this.dispatch(name, payload, options);
+        } finally {
+          this.asyncPending -= 1;
+        }
+      })
+      // Swallow so a rejected delivery never poisons the shared tail chain.
+      .catch(() => undefined);
   }
 
   emit(
@@ -261,7 +258,6 @@ class EventsFacade<T extends EventMap> implements Events<T> {
 
   use(middleware: EventMiddleware): void {
     this.middleware.push(middleware);
-    this.pipeline = this.buildPipeline();
   }
 
   onError(handler: ErrorHandler): void {
@@ -356,89 +352,45 @@ class EventsFacade<T extends EventMap> implements Events<T> {
     let deliveredCount = 0;
     let failedCount = 0;
 
-    const deliver = async (): Promise<void> => {
-      const subs = this.emitter.resolve(envelope.name);
+    // Terminal delivery step: resolve current listeners and deliver in order.
+    const deliver: DeliveryStep = async (context, payload) => {
+      const subs = this.emitter.resolve(context.event);
       for (const sub of subs) {
         if (!sub.active) {
           continue;
         }
         if (sub.once) {
-          // Remove before invoking so re-entrant publishes don't re-deliver.
+          // Remove before invoking so a re-entrant publish won't re-deliver.
           this.emitter.remove(sub);
         }
         const listenerStart = this.clock();
         try {
           // eslint-disable-next-line no-await-in-loop -- ordered, sequential delivery
-          await sub.listener(envelope.payload, ctx);
+          await sub.listener(payload, context);
           deliveredCount += 1;
           this.delivered += 1;
-          this.safeTelemetry(() => this.telemetry?.onDelivered?.(ctx, this.clock() - listenerStart));
+          this.safeTelemetry(() =>
+            this.telemetry?.onDelivered?.(context, this.clock() - listenerStart),
+          );
         } catch (err) {
           failedCount += 1;
           this.failed += 1;
           const serialized = serializeError(err);
-          this.safeTelemetry(() => this.telemetry?.onFailed?.(ctx, serialized));
-          this.reportError(err, ctx);
+          this.safeTelemetry(() => this.telemetry?.onFailed?.(context, serialized));
+          this.reportError(err, context);
         }
       }
     };
 
     // Middleware may veto delivery by throwing / not calling next(); such errors
     // propagate to the publisher (policy), unlike isolated listener errors.
-    await this.pipeline(ctx, envelope.payload);
+    const runner = composePipeline(this.middleware, deliver);
+    await runner(ctx, envelope.payload);
 
     this.safeTelemetry(() =>
       this.telemetry?.onDispatchComplete?.(ctx, this.clock() - start, deliveredCount, failedCount),
     );
     return ctx;
-
-    // NOTE: `deliver` is the terminal step of the composed pipeline; it is wired
-    // in buildPipeline via a per-dispatch closure below.
-    void deliver;
-  }
-
-  /**
-   * The pipeline's terminal delivery step is dispatch-specific (it closes over
-   * the per-event counters), so we rebuild the pipeline to call a stable
-   * delivery entry that resolves the current listeners. To keep middleware
-   * composition stable while allowing per-dispatch counters, delivery is driven
-   * by a context-scoped delivery function stored on the context metadata.
-   */
-  private buildPipeline(): PipelineRunner {
-    return composePipeline(this.middleware, async (ctx, payload) => {
-      const runDeliver = (ctx.metadata['__deliver'] as undefined | (() => Promise<void>));
-      if (runDeliver) {
-        await runDeliver();
-      } else {
-        // Fallback (no per-dispatch deliver installed): deliver directly.
-        await this.directDeliver(ctx, payload);
-      }
-    });
-  }
-
-  /** Direct listener delivery used by the pipeline terminal step. */
-  private async directDeliver(ctx: EventContext, payload: unknown): Promise<void> {
-    const subs = this.emitter.resolve(ctx.event);
-    for (const sub of subs) {
-      if (!sub.active) {
-        continue;
-      }
-      if (sub.once) {
-        this.emitter.remove(sub);
-      }
-      const listenerStart = this.clock();
-      try {
-        // eslint-disable-next-line no-await-in-loop -- ordered, sequential delivery
-        await sub.listener(payload, ctx);
-        this.delivered += 1;
-        this.safeTelemetry(() => this.telemetry?.onDelivered?.(ctx, this.clock() - listenerStart));
-      } catch (err) {
-        this.failed += 1;
-        const serialized = serializeError(err);
-        this.safeTelemetry(() => this.telemetry?.onFailed?.(ctx, serialized));
-        this.reportError(err, ctx);
-      }
-    }
   }
 
   private contextFor(envelope: EventEnvelope, tenantId?: string): EventContext {
