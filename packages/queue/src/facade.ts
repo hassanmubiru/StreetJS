@@ -142,6 +142,18 @@ class QueueFacade implements Queue {
   protected readonly workers = new Set<Worker>();
 
   /**
+   * The scheduler owning the delayed-promotion loop and cron dispatch (Req 3.x,
+   * 4.x). Constructed eagerly so {@link schedule} can register cron entries
+   * synchronously (surfacing `CronParseError` at registration), but its
+   * promotion loop and cron timers are started lazily on the first {@link work}
+   * call — never on mere `createQueue` — so the deterministic `TestHarness`
+   * (which drives `promoteDue` itself) stays deterministic and leaks no timers.
+   */
+  protected readonly scheduler: Scheduler;
+  /** True once the scheduler's loop/cron timers have been started (via work()). */
+  private schedulerStarted = false;
+
+  /**
    * Facade-owned dedupe registry keyed by `queue\u0000dedupeKey`, mapping to the
    * id of the still-pending/ready job that occupies that key (Req 14.5, 14.7).
    * A duplicate dispatch whose key is already present is dropped (no second
@@ -180,6 +192,16 @@ class QueueFacade implements Queue {
       this.rateLimits === undefined
         ? undefined
         : options.rateLimitStore ?? new InMemoryRateLimitStore({ clock: this.clock });
+
+    // The scheduler drives delayed-job promotion and cron dispatch. Its dispatch
+    // hook is this facade's own `dispatch` so a fired cron entry flows through
+    // the exact production dispatch path (envelope build, dedupe, enqueue). The
+    // promotion loop and cron timers stay dormant until the first `work()` call.
+    this.scheduler = new Scheduler(this.driver, (job, opts) => this.dispatch(job, opts), {
+      clock: this.clock,
+      tickIntervalMs: options.schedulerTickIntervalMs,
+      lock: options.scheduleLock,
+    });
     // The DLQ operations are implemented in task 9.1; expose the surface now.
     this.deadLetters = {
       list: () => Promise.reject(new Error('deadLetters.list not implemented (task 9.1)')),
@@ -227,11 +249,15 @@ class QueueFacade implements Queue {
   }
 
   schedule(
-    _cron: string,
-    _job: (new () => Job<unknown>) | Job<unknown>,
-    _options?: JobOptions,
+    cron: string,
+    job: (new () => Job<unknown>) | Job<unknown>,
+    options?: JobOptions,
   ): void {
-    throw new Error('Queue.schedule not implemented (task 8.1)');
+    // Delegate cron parsing/next-fire to the scheduler (which wraps the core
+    // `CronScheduler`). A malformed expression throws `CronParseError`
+    // synchronously here with no partial registration (Req 4.1, 4.3). A fired
+    // entry dispatches a fresh job instance through this facade (Req 4.2).
+    this.scheduler.schedule(cron, job, options);
   }
 
   register<T>(type: string, handler: JobHandler<T>): void {
