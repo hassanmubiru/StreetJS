@@ -314,6 +314,11 @@ class EventsFacade<T extends AnyEventMap> implements Events<T> {
     return this.emitter.listenerCount(name);
   }
 
+  async flush(): Promise<void> {
+    // Await the current async tail; a subsequent publishAsync chains after it.
+    await this.asyncTail;
+  }
+
   async close(): Promise<void> {
     if (this.closed) {
       return;
