@@ -23,11 +23,20 @@
  */
 export type EventMap = Record<string, unknown>;
 
+/**
+ * The generic bound for an event map. Unlike {@link EventMap}, this accepts a
+ * plain `interface AppEvents { ... }` (which has no index signature) as well as
+ * an explicit `Record`, so `createEvents<AppEvents>()` type-checks for the
+ * idiomatic interface form. Used only as a generic constraint.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type AnyEventMap = Record<string, any>;
+
 /** The set of concrete (non-wildcard) event names declared by a map. */
-export type EventName<T extends EventMap> = keyof T & string;
+export type EventName<T extends AnyEventMap> = keyof T & string;
 
 /** The payload type for a concrete event name. */
-export type EventPayload<T extends EventMap, K extends EventName<T>> = T[K];
+export type EventPayload<T extends AnyEventMap, K extends EventName<T>> = T[K];
 
 // ── Wildcard pattern typing ───────────────────────────────────────────────────
 //
