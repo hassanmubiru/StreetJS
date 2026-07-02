@@ -318,18 +318,32 @@ function collectTsFiles(dir: string): string[] {
   return out;
 }
 
-/** Extract every module specifier from `import ... from '…'`, `export ... from
- *  '…'`, bare `import '…'`, and dynamic `import('…')` statements. */
+/** Strip block and line comments so import scanning never matches doc-comment
+ *  prose. Line comments are only stripped when `//` is not part of `://` (so
+ *  URLs inside real code are preserved and cannot mask a following import). */
+function stripComments(source: string): string {
+  return source
+    .replace(/\/\*[\s\S]*?\*\//g, '') // block comments
+    .replace(/(^|[^:])\/\/[^\n]*/g, '$1'); // line comments (keeps `://`)
+}
+
+/** Extract module specifiers from real `import`/`export ... from`/side-effect
+ *  import statements (anchored to a line start so template-literal scaffold code
+ *  and comment prose do not produce false positives) plus dynamic `import(…)`. */
 function extractImportSpecifiers(source: string): string[] {
+  const clean = stripComments(source);
   const specs: string[] = [];
   const patterns = [
-    /\bfrom\s+['"]([^'"]+)['"]/g,
-    /\bimport\s+['"]([^'"]+)['"]/g,
+    // `import ... from '…'` and `export ... from '…'` (anchored to line start)
+    /^\s*(?:import|export)\b[^;]*?\bfrom\s+['"]([^'"]+)['"]/gm,
+    // bare side-effect import: `import '…'`
+    /^\s*import\s+['"]([^'"]+)['"]/gm,
+    // dynamic import: `import('…')`
     /\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/g,
   ];
   for (const re of patterns) {
     let m: RegExpExecArray | null;
-    while ((m = re.exec(source)) !== null) specs.push(m[1]);
+    while ((m = re.exec(clean)) !== null) specs.push(m[1]);
   }
   return specs;
 }
