@@ -68,8 +68,8 @@ test('onLoad constructs the facade and registers the health check + metrics (Req
 
   // The facade is now constructed and exposed through the accessor.
   const facade = plugin.queue;
-  assert.ok(facade, 'plugin.queue is a defined Queue after onLoad');
-  assert.equal(typeof facade.dispatch, 'function', 'the exposed value is a Queue facade');
+  assert.notEqual(facade, undefined, 'plugin.queue is a defined Queue after onLoad');
+  assert.equal(typeof facade?.dispatch, 'function', 'the exposed value is a Queue facade');
 
   // Req 12.1: the `queue` health check is registered and reports `up` for the
   // default Memory driver through the core registry.
