@@ -31,11 +31,13 @@ test('onLoad constructs the facade, registers observability, and runs the startu
   const metrics = new MetricsRegistry();
 
   const received: string[] = [];
+  let captured: Events<AppEvents> | undefined;
   const plugin = new EventsPlugin<AppEvents>({
     health,
     metrics,
     register: (events) => {
       // Plugins/modules subscribe their listeners during startup.
+      captured = events;
       events.on('user.created', (u) => {
         received.push(u.id);
       });
@@ -45,9 +47,11 @@ test('onLoad constructs the facade, registers observability, and runs the startu
   assert.equal(plugin.events, undefined, 'no facade before load');
   await plugin.onLoad(fakeApp());
 
-  const events: Events<AppEvents> | undefined = plugin.events;
+  // The getter exposes the same facade the register hook received.
+  assert.notEqual(plugin.events, undefined, 'facade constructed after load');
+  const events = captured;
   if (!events) {
-    throw new Error('facade should be constructed after onLoad');
+    throw new Error('register hook should have received the facade');
   }
 
   // The startup-registered listener receives events.
