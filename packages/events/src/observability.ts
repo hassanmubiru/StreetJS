@@ -87,7 +87,7 @@ export function registerEventsObservability(
 ): EventsObservabilityHandle {
   const { metrics, health } = options;
 
-  let events: Events<AnyEventMap> | undefined;
+  let events: EventsIntrospect | undefined;
   let timer: ReturnType<typeof setInterval> | undefined;
   let closed = false;
 
@@ -146,7 +146,7 @@ export function registerEventsObservability(
     });
   };
 
-  const attach = (created: Events<AnyEventMap>): void => {
+  const attach = <T extends AnyEventMap>(created: Events<T>): void => {
     events = created;
 
     if (health) {
