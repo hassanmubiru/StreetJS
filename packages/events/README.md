@@ -206,6 +206,47 @@ await events.replay({ since: Date.now() - 3600_000 });
 Replayed events are re-dispatched through middleware and listeners but are **not**
 re-persisted.
 
+### Durable event store (Redis)
+
+For durable, shareable replay across restarts, use the opt-in Redis-backed store
+(built on the core zero-dependency `RedisClient`):
+
+```ts
+import { createEvents } from '@streetjs/events';
+import { RedisEventStore } from '@streetjs/events/redis';
+import { RedisClient } from 'streetjs';
+
+const store = new RedisEventStore({ client: new RedisClient({ host, port }) });
+const events = createEvents<AppEvents>({ store });
+
+await events.publish('user.created', user);  // persisted to Redis (ZSET, INCR-scored)
+await events.replay({ pattern: 'user.*' });   // durable, ordered replay
+```
+
+The `EventStore` interface is the pluggable seam; `MemoryEventStore` (default,
+zero-dep) and `RedisEventStore` (opt-in) both implement it, and are behaviorally
+equivalent for `read`/`count`/replay.
+
+### Distributed fan-out (EventBus)
+
+Application events are in-process by design. To fan them out across processes,
+bridge selected events onto the core `EventBus` (which can run over
+Redis/RabbitMQ/Kafka). Wiring both directions is loop-safe — inbound events are
+tagged so they are not echoed back out:
+
+```ts
+import { EventBus } from 'streetjs';
+import { forwardToBus, forwardFromBus } from '@streetjs/events/bus';
+
+const bus = new EventBus(/* optional distributed transport */);
+
+// Local events fan out to the bus for other instances.
+forwardToBus(events, bus, [{ appEvent: 'order.shipped' }]);
+
+// Bus messages arrive as local application events (tagged, so no loop).
+forwardFromBus(bus, events, [{ topic: 'order.shipped' }]);
+```
+
 ## Observability
 
 Wire a health check and metrics onto the reused core registries. The `telemetry`
