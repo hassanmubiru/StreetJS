@@ -149,7 +149,7 @@ type _JQ_stop = Expect<Equal<() => ReturnType<JobQueue['stop']>, () => void>>;
 
 // register(expression: string, name: string, fn: () => Promise<void>): void
 type _CS_register_p = Expect<
-  Equal<Parameters<CronScheduler['register']>, [string, number, () => Promise<void>]>
+  Equal<Parameters<CronScheduler['register']>, [string, string, () => Promise<void>]>
 >;
 type _CS_register_r = Expect<Equal<ReturnType<CronScheduler['register']>, void>>;
 type _CS_start = Expect<Equal<Parameters<CronScheduler['start']>, []>> &
