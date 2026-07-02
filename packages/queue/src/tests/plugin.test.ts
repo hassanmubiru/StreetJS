@@ -25,7 +25,6 @@ import { HealthCheckRegistry, MetricsRegistry } from 'streetjs';
 import type { SandboxedApp } from 'streetjs';
 
 import { QueuePlugin } from '../plugin.js';
-import type { Queue } from '../facade.js';
 import {
   QUEUE_HEALTH_CHECK_NAME,
   QUEUE_LENGTH_METRIC,
@@ -68,9 +67,14 @@ test('onLoad constructs the facade and registers the health check + metrics (Req
   await plugin.onLoad(app);
 
   // The facade is now constructed and exposed through the accessor.
-  const facade: Queue | undefined = plugin.queue;
+  const facade = plugin.queue as unknown;
   assert.notEqual(facade, undefined, 'plugin.queue is a defined Queue after onLoad');
-  assert.equal(typeof facade?.dispatch, 'function', 'the exposed value is a Queue facade');
+  assert.equal(typeof facade, 'object', 'the exposed facade is an object');
+  assert.equal(
+    typeof (facade as Record<string, unknown>)['dispatch'],
+    'function',
+    'the exposed value is a Queue facade (exposes dispatch)',
+  );
 
   // Req 12.1: the `queue` health check is registered and reports `up` for the
   // default Memory driver through the core registry.
