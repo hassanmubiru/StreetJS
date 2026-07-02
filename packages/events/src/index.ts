@@ -46,3 +46,19 @@ export type { EventMiddleware, DeliveryStep, PipelineRunner } from './middleware
 export { MemoryEventStore } from './store/memory.js';
 export type { MemoryEventStoreOptions } from './store/memory.js';
 export type { EventStore, ReplayFilter } from './store/store.js';
+
+// ── Observability (reuses core HealthCheckRegistry + MetricsRegistry) ───────────
+export {
+  registerEventsObservability,
+  EVENTS_HEALTH_CHECK_NAME,
+  EVENTS_PUBLISHED_METRIC,
+  EVENTS_DELIVERED_METRIC,
+  EVENTS_FAILED_METRIC,
+  EVENTS_HANDLER_LATENCY_METRIC,
+  EVENTS_LISTENERS_METRIC,
+  EVENTS_ASYNC_PENDING_METRIC,
+} from './observability.js';
+export type {
+  EventsObservabilityOptions,
+  EventsObservabilityHandle,
+} from './observability.js';
