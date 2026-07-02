@@ -6,8 +6,12 @@
 // `Job<TPayload>` base class and `JobOptions`) alongside the internal data model
 // a driver stores and reserves (`JobEnvelope`), the per-execution context handed
 // to handlers/middleware (`JobExecutionContext`), and the dead-letter/error
-// shapes (`DeadLetterRecord`, `SerializedError`). Implementation of
-// `buildEnvelope`/attempt-ceiling resolution lands in task 3.1.
+// shapes (`DeadLetterRecord`, `SerializedError`). It also implements
+// `buildEnvelope`, which resolves per-dispatch defaults and the attempt ceiling
+// into an immutable envelope (task 3.1).
+
+import { randomUUID } from 'node:crypto';
+import { parseWindow, type Clock } from 'streetjs';
 
 /**
  * A retry/backoff strategy. `"exponential"` mirrors the core JobQueue's
@@ -149,4 +153,85 @@ export interface DeadLetterRecord<TPayload = unknown> {
   readonly enqueuedAt: number;
   /** Epoch ms at which the job was moved to the dead-letter store. */
   readonly failedAt: number;
+}
+
+/** Default named queue used when a dispatch omits an explicit `queue` (Req 2.5). */
+export const DEFAULT_QUEUE = 'default';
+/** Default priority assigned when a dispatch omits an explicit `priority` (Req 8.3). */
+export const DEFAULT_PRIORITY = 0;
+/** Default attempt ceiling when neither `retries` nor `maxAttempts` is provided (Req 5.6). */
+export const DEFAULT_MAX_ATTEMPTS = 1;
+
+/**
+ * Resolve the attempt ceiling (total attempts allowed, initial + retries) from
+ * the `retries`/`maxAttempts` options.
+ *
+ * Precedence rules (Req 5.6, 5.8):
+ *  - WHEN `retries` is provided, the ceiling is `retries + 1`, and any
+ *    `maxAttempts` value is ignored (even when both are present).
+ *  - ELSE WHEN `maxAttempts` is provided, the ceiling is `maxAttempts`.
+ *  - ELSE the ceiling defaults to 1 (no retry).
+ */
+export function resolveMaxAttempts(options?: JobOptions): number {
+  if (options?.retries !== undefined) {
+    return options.retries + 1;
+  }
+  if (options?.maxAttempts !== undefined) {
+    return options.maxAttempts;
+  }
+  return DEFAULT_MAX_ATTEMPTS;
+}
+
+/** Resolve a `number | string` duration to milliseconds, parsing human strings. */
+function resolveDurationMs(duration: number | string | undefined): number | undefined {
+  if (duration === undefined) {
+    return undefined;
+  }
+  return typeof duration === 'number' ? duration : parseWindow(duration);
+}
+
+/**
+ * Build the serialized {@link JobEnvelope} for a dispatched job.
+ *
+ * Merges the job's per-instance `options` with the dispatch-time `options`
+ * (dispatch-time values take precedence), resolves the default queue
+ * (`"default"`, Req 2.5) and default priority (`0`, Req 8.3), resolves the
+ * attempt ceiling per {@link resolveMaxAttempts} (Req 5.6, 5.8), resolves the
+ * per-attempt `timeout` to `timeoutMs` (parsing human strings via the reused
+ * core `parseWindow`), assigns a unique `id`, stamps `enqueuedAt` from the
+ * injected `clock`, and carries `seq`, `backoff`, and `dedupeKey`. `attempts`
+ * is initialized to 0 (Req 2.1).
+ *
+ * The returned envelope does not carry the delayed run time (`runAt`); the
+ * facade passes that separately to `driver.enqueueDelayed`.
+ *
+ * @param job    The job instance being dispatched.
+ * @param options Dispatch-time option overrides (merged over `job.options`).
+ * @param clock  Injected clock (`() => number`) used for `enqueuedAt`.
+ * @param seq    Monotonic enqueue sequence for FIFO tie-breaking within a priority.
+ */
+export function buildEnvelope<TPayload>(
+  job: Job<TPayload>,
+  options: JobOptions | undefined,
+  clock: Clock,
+  seq: number,
+): JobEnvelope<TPayload> {
+  // Dispatch-time options override per-instance job options.
+  const merged: JobOptions = { ...job.options, ...options };
+
+  return {
+    id: randomUUID(),
+    type: job.type,
+    queue: merged.queue ?? DEFAULT_QUEUE,
+    payload: job.payload,
+    priority: merged.priority ?? DEFAULT_PRIORITY,
+    attempts: 0,
+    maxAttempts: resolveMaxAttempts(merged),
+    backoff: merged.backoff,
+    timeoutMs: resolveDurationMs(merged.timeout),
+    enqueuedAt: clock(),
+    seq,
+    dedupeKey: merged.dedupeKey,
+    tenantId: undefined,
+  };
 }
