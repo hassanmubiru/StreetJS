@@ -66,3 +66,7 @@ export type {
 // ── Plugin registration ─────────────────────────────────────────────────────────
 export { EventsPlugin } from './plugin.js';
 export type { EventsPluginOptions } from './plugin.js';
+
+// ── Testing utilities (Redis-free) ───────────────────────────────────────────────
+export { FakeEvents, createFakeEvents, createMemoryEvents, TestHarness } from './testing.js';
+export type { PublishRecord, FakeEventsControls, TestHarnessOptions } from './testing.js';
