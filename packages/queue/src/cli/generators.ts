@@ -81,7 +81,7 @@ export interface ${className}Payload {
  * ${className} background job.
  *
  * Dispatch it through a queue:
- *   await queue.dispatch(new ${className}({ /* payload */ }));
+ *   await queue.dispatch(new ${className}({ ...fields }));
  *
  * Register a handler for it before starting a worker:
  *   queue.registerClass(${className}, async (payload, ctx) => {
