@@ -77,6 +77,29 @@ export class RespParser {
   }
 }
 
+/**
+ * Classify a reply received on a subscription connection. In RESP2 subscribe
+ * mode a connection receives two kinds of arrays: pushed messages
+ * (`["message", channel, payload]` / `["pmessage", pattern, channel, payload]`)
+ * that must be delivered to the subscriber, and command confirmations
+ * (`["subscribe", channel, count]`, `["unsubscribe", ...]`, an AUTH `+OK`, a
+ * `PONG`, …) that must resolve the corresponding pending command promise.
+ *
+ * Exported for direct unit testing of the pub/sub routing without a live broker.
+ */
+export function classifyPubSubReply(
+  reply: RespValue,
+): { kind: 'message'; payload: string } | { kind: 'command' } {
+  if (Array.isArray(reply) && (reply[0] === 'message' || reply[0] === 'pmessage')) {
+    // `message` → payload at index 2; `pmessage` → payload at index 3.
+    const payload = reply[0] === 'pmessage' ? reply[3] : reply[2];
+    if (typeof payload === 'string') {
+      return { kind: 'message', payload };
+    }
+  }
+  return { kind: 'command' };
+}
+
 // ── RedisClient ───────────────────────────────────────────────────────────────
 
 export interface RedisClientOptions {
