@@ -266,6 +266,25 @@ forwardToBus(events, bus, [{ appEvent: 'order.shipped' }]);
 forwardFromBus(bus, events, [{ topic: 'order.shipped' }]);
 ```
 
+Or wire both directions in one call with `connectBus` (returns a single detach):
+
+```ts
+import { EventBus, RedisEventBusTransport } from 'streetjs';
+import { connectBus } from '@streetjs/events/bus';
+
+// Any core transport plugs in: in-process (default), Redis, RabbitMQ, Kafka.
+const bus = new EventBus(new RedisEventBusTransport({ host, port }));
+
+const detach = connectBus(events, bus, {
+  toBus:   [{ appEvent: 'order.*' }],
+  fromBus: [{ topic: 'order.shipped' }],
+});
+```
+
+An event published on one instance is delivered as a local application event on
+every other instance connected to the same bus — that is the cross-process
+fan-out. The loop guard ensures an inbound event is never echoed back out.
+
 ## Observability
 
 Wire a health check and metrics onto the reused core registries. The `telemetry`
