@@ -116,6 +116,10 @@ export async function main(quiet = false): Promise<ExampleResult> {
   log(`broadcasts: ${broadcasts.map((b) => `${b.room}:${b.type}`).join(', ')}`);
   log(`once fired: ${firstReportOnly} time(s)`);
 
+  // Snapshot the live-flow outcome BEFORE replay (replay re-delivers to current
+  // listeners, which would otherwise inflate these counts).
+  const verifiedSnapshot = [...verifiedUsers];
+
   // 7) Replay — re-dispatch every stored event to a late subscriber.
   const replayed: string[] = [];
   events.on('**', (_p, ctx) => {
@@ -125,7 +129,7 @@ export async function main(quiet = false): Promise<ExampleResult> {
   log(`replayed ${replayedCount} stored event(s): ${replayed.join(', ')}`);
 
   await events.close();
-  return { auditLog, verifiedUsers, broadcasts, replayedCount };
+  return { auditLog, verifiedUsers: verifiedSnapshot, broadcasts, replayedCount };
 }
 
 // Run directly when invoked as a script (node dist/examples/basic.js).
