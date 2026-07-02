@@ -233,12 +233,6 @@ export class TestHarness<T extends AnyEventMap = EventMap> {
     this.eventsImpl = createEvents<T>({
       clock: () => this.nowMs,
       store: useStore ? new MemoryEventStore({ maxEvents: options.maxEvents }) : undefined,
-      telemetry: {
-        onPublished: (ctx) => {
-          // Record name from ctx; payload is captured on the publish wrappers below.
-          void ctx;
-        },
-      },
     });
   }
 
