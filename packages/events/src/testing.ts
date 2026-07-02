@@ -121,7 +121,9 @@ export class FakeEvents<T extends AnyEventMap = EventMap> implements Events<T>, 
     payloadOrOptions?: unknown,
     maybeOptions?: PublishOptions,
   ): void {
-    this.publishAsync(nameOrEvent as EventName<T>, payloadOrOptions, maybeOptions);
+    const { name, payload, options } = normalize(nameOrEvent, payloadOrOptions, maybeOptions);
+    this.published.push({ name, payload, options, async: true });
+    void (this.inner as InnerAny).publish(name, payload, options);
   }
 
   on<K extends EventName<T>>(name: K, listener: EventListener<T[K], K>): Unsubscribe;
