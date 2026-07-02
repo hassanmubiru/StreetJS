@@ -25,6 +25,7 @@ import { WorkerImpl } from './worker.js';
 import type { ResolvedRateLimit } from './worker.js';
 import type { QueueDriver } from './drivers/driver.js';
 import { MemoryDriver } from './drivers/memory.js';
+import { Scheduler, type SchedulerLock } from './scheduler.js';
 
 export interface QueueOptions {
   /** Backend. Defaults to a MemoryDriver (zero-dep, in-process). */
