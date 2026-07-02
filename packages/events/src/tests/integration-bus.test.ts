@@ -131,3 +131,66 @@ test('the detach functions stop forwarding in both directions', async () => {
   assert.equal(busCount, 1);
   await events.close();
 });
+
+// ── Cross-instance fan-out (distributed delivery, verified in-process) ──────────
+
+test('connectBus fans an event from one facade to another over a shared bus', async () => {
+  // Two independent facades (as two app instances/modules) sharing one bus.
+  const instanceA = createEvents<AppEvents>();
+  const instanceB = createEvents<AppEvents>();
+  const bus = new EventBus(); // any core transport (Redis/RabbitMQ/Kafka) plugs in here
+
+  // A forwards its local events out; B receives them as local events.
+  const detachA = connectBus(instanceA, bus, { toBus: [{ appEvent: 'order.shipped' }] });
+  const detachB = connectBus(instanceB, bus, { fromBus: [{ topic: 'order.shipped' }] });
+
+  const bReceived: string[] = [];
+  instanceB.on('order.shipped', (o) => {
+    bReceived.push(o.id);
+  });
+
+  await instanceA.publish('order.shipped', { id: 'o1' });
+  await tick();
+  await instanceB.flush();
+
+  assert.deepEqual(bReceived, ['o1'], 'instance B received the event published on instance A');
+
+  // Detach stops cross-instance delivery.
+  detachA();
+  detachB();
+  await instanceA.publish('order.shipped', { id: 'o2' });
+  await tick();
+  await instanceB.flush();
+  assert.deepEqual(bReceived, ['o1'], 'no further delivery after detach');
+
+  await instanceA.close();
+  await instanceB.close();
+});
+
+test('connectBus wires both directions and the loop guard still holds', async () => {
+  const events = createEvents<AppEvents>();
+  const bus = new EventBus();
+  let appDeliveries = 0;
+  let busDeliveries = 0;
+  events.on('order.shipped', () => {
+    appDeliveries += 1;
+  });
+  bus.subscribe('order.shipped', async () => {
+    busDeliveries += 1;
+  });
+
+  connectBus(events, bus, {
+    toBus: [{ appEvent: 'order.shipped' }],
+    fromBus: [{ topic: 'order.shipped' }],
+  });
+
+  await events.publish('order.shipped', { id: 'o1' });
+  await tick();
+  await events.flush();
+  await tick();
+  await events.flush();
+
+  assert.equal(appDeliveries, 2, 'original + one round-trip, then the loop guard stops it');
+  assert.equal(busDeliveries, 1, 'the bus saw exactly one publish; no loop');
+  await events.close();
+});
