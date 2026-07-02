@@ -45,6 +45,18 @@ export interface QueueOptions {
   /** Observability wiring (reuses core registries). */
   health?: HealthCheckRegistry;
   metrics?: MetricsRegistry;
+  /**
+   * Optional distributed lock for multi-instance exactly-one-fire cron
+   * scheduling (Req 4.5). When omitted, each running instance fires a scheduled
+   * job once per tick (Req 4.6).
+   */
+  scheduleLock?: SchedulerLock;
+  /**
+   * Delayed-promotion tick interval in ms for the scheduler's promotion loop.
+   * Default 1000. Lower values reduce delayed-job latency at the cost of more
+   * frequent `promoteDue` calls.
+   */
+  schedulerTickIntervalMs?: number;
 }
 
 export interface Queue {
