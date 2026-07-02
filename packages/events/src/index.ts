@@ -63,6 +63,16 @@ export type {
   EventsObservabilityHandle,
 } from './observability.js';
 
+// ── Tracing (OpenTelemetry-compatible; reuses core OtelTracer) ──────────────────
+export { createEventsTracing } from './tracing.js';
+export type {
+  EventsTracing,
+  EventsTracingOptions,
+  TracerLike,
+  SpanLike,
+  SpanContextLike,
+} from './tracing.js';
+
 // ── Plugin registration ─────────────────────────────────────────────────────────
 export { EventsPlugin } from './plugin.js';
 export type { EventsPluginOptions } from './plugin.js';

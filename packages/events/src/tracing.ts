@@ -56,9 +56,6 @@ export interface EventsTracing {
   telemetry: EventsTelemetry;
 }
 
-/** Internal metadata key holding the active span for the current dispatch. */
-const SPAN_KEY = '__eventSpan';
-
 /** Parse a W3C `traceparent` string into a span context, or null. */
 function parseTraceparent(value: unknown): SpanContextLike | null {
   if (typeof value !== 'string') return null;
@@ -97,6 +94,12 @@ export function createEventsTracing(
   const spanPrefix = options.spanPrefix ?? 'event';
   const tpKey = options.traceparentKey ?? 'traceparent';
 
+  // Associate the active span with its dispatch context without polluting
+  // metadata (which is persisted/forwarded). Entries are collected automatically
+  // when the per-dispatch context object is GC'd, so nothing leaks even if the
+  // telemetry sink is not wired.
+  const spans = new WeakMap<EventContext, SpanLike>();
+
   const middleware: EventMiddleware = async (ctx, _payload, next) => {
     const parent = parseTraceparent(ctx.metadata[tpKey]) ?? undefined;
     const span = tracer.startSpan(`${spanPrefix} ${ctx.event}`, parent, parent ? parent.spanId : undefined);
@@ -107,10 +110,10 @@ export function createEventsTracing(
       span.attributes['event.tenant_id'] = ctx.tenantId;
     }
 
-    // Propagate the child context so nested publishes chain as child spans, and
-    // stash the span so the telemetry sink can annotate it with counts.
+    // Propagate the child context so nested publishes (from inside a listener)
+    // chain as child spans; record the span so telemetry can annotate counts.
     ctx.metadata[tpKey] = formatTraceparent(span.context);
-    ctx.metadata[SPAN_KEY] = span;
+    spans.set(ctx, span);
 
     try {
       await next();
@@ -121,17 +124,14 @@ export function createEventsTracing(
       span.attributes['error.message'] = err instanceof Error ? err.message : String(err);
       span.end(500);
       throw err;
-    } finally {
-      // Do not leak the span reference into replayed/forwarded metadata.
-      delete ctx.metadata[SPAN_KEY];
     }
   };
 
   const telemetry: EventsTelemetry = {
     onDispatchComplete: (ctx: EventContext, _durationMs, delivered, failed) => {
-      const span = ctx.metadata[SPAN_KEY] as SpanLike | undefined;
+      const span = spans.get(ctx);
       if (span) {
-        // Span is already ended by the middleware; attributes are still read at
+        // The span is already ended by the middleware; attributes are read at
         // flush time, so annotating post-end is safe and exported correctly.
         span.attributes['event.delivered'] = delivered;
         span.attributes['event.failed'] = failed;
