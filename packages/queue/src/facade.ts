@@ -209,12 +209,104 @@ class QueueFacade implements Queue {
       tickIntervalMs: options.schedulerTickIntervalMs,
       lock: options.scheduleLock,
     });
-    // The DLQ operations are implemented in task 9.1; expose the surface now.
-    this.deadLetters = {
-      list: () => Promise.reject(new Error('deadLetters.list not implemented (task 9.1)')),
-      retry: () => Promise.reject(new Error('deadLetters.retry not implemented (task 9.1)')),
-      retryAll: () => Promise.reject(new Error('deadLetters.retryAll not implemented (task 9.1)')),
-      flush: () => Promise.reject(new Error('deadLetters.flush not implemented (task 9.1)')),
+    // The DLQ operations (Req 6.3, 6.4, 6.5) are backed by the driver's
+    // dead-letter methods; the facade only rebuilds an equivalent envelope on
+    // retry and resets its attempt count.
+    this.deadLetters = this.createDeadLetterApi();
+  }
+
+  /**
+   * Build the {@link DeadLetterApi} backing `street queue:failed` / `queue:retry`
+   * / `queue:flush`, delegating storage to the active driver's dead-letter
+   * methods (Req 6.3, 6.4, 6.5). Every operation first ensures the driver is
+   * initialized so a configured driver whose init rejects surfaces a descriptive
+   * error rather than silently falling back to Memory (Req 13.4).
+   */
+  private createDeadLetterApi(): DeadLetterApi {
+    return {
+      // List dead-letter records for a queue (or all queues). When no `limit` is
+      // supplied we return every record (Req 6.3) by passing the driver a very
+      // large ceiling; a driver slices to this ceiling but never blocks on it.
+      list: async (queue?: string, limit?: number): Promise<DeadLetterRecord[]> => {
+        await this.ensureInitialized();
+        return this.driver.listDeadLetters(queue, limit ?? DEFAULT_DEAD_LETTER_LIST_LIMIT);
+      },
+
+      // Remove the record and re-enqueue an equivalent envelope with attempts
+      // reset to 0 so the job is again eligible for up to `maxAttempts` attempts
+      // (Req 6.4). A missing record is a no-op.
+      retry: async (jobId: string): Promise<void> => {
+        await this.ensureInitialized();
+        const record = await this.driver.removeDeadLetter(jobId);
+        if (record === null) {
+          return;
+        }
+        await this.driver.enqueue(record.queue, this.rebuildEnvelope(record));
+      },
+
+      // List the DLQ (for the queue or all), retry each removed record, and
+      // return the number re-enqueued (Req 6.4). We drive removal by id so a
+      // record retried by a concurrent caller is skipped rather than double-run.
+      retryAll: async (queue?: string): Promise<number> => {
+        await this.ensureInitialized();
+        const records = await this.driver.listDeadLetters(queue, DEFAULT_DEAD_LETTER_LIST_LIMIT);
+        let reEnqueued = 0;
+        for (const record of records) {
+          const removed = await this.driver.removeDeadLetter(record.id);
+          if (removed === null) {
+            continue;
+          }
+          await this.driver.enqueue(removed.queue, this.rebuildEnvelope(removed));
+          reEnqueued += 1;
+        }
+        return reEnqueued;
+      },
+
+      // Remove dead-letter records without re-enqueuing any job; return the
+      // count removed (Req 6.5).
+      flush: async (queue?: string): Promise<number> => {
+        await this.ensureInitialized();
+        return this.driver.flushDeadLetters(queue);
+      },
+    };
+  }
+
+  /**
+   * Rebuild an equivalent {@link JobEnvelope} from a {@link DeadLetterRecord} so
+   * a retried job is reservable and, on subsequent failures, retryable up to
+   * `maxAttempts` (Req 6.4).
+   *
+   * Faithful carry-over: `id`, `type`, `queue`, `payload`, `maxAttempts`,
+   * `backoff`, and the original `enqueuedAt` are preserved so the re-enqueued
+   * job is indistinguishable from the original except for its attempt count.
+   *
+   * Resets / defaults (documented because the record does not carry them):
+   *  - `attempts` is reset to 0 so the job gets a full fresh `maxAttempts`
+   *    budget (the MemoryDriver increments attempts at reserve, so 0 means the
+   *    next reservation consumes the first of `maxAttempts` attempts).
+   *  - `seq` is a fresh value from the facade's monotonic counter so FIFO
+   *    tie-breaking places the retried job after already-queued peers.
+   *  - `priority` defaults to 0 — the record does not carry the original
+   *    priority, so a retried job re-enters at the default priority.
+   *  - `timeoutMs`, `dedupeKey`, and `tenantId` are omitted; the record carries
+   *    none of them, so the retried envelope starts without a per-attempt
+   *    timeout, without a dedupe key, and without a tenant.
+   */
+  private rebuildEnvelope(record: DeadLetterRecord): JobEnvelope {
+    return {
+      id: record.id,
+      type: record.type,
+      queue: record.queue,
+      payload: record.payload,
+      priority: DEFAULT_PRIORITY,
+      attempts: 0,
+      maxAttempts: record.maxAttempts,
+      backoff: record.backoff,
+      timeoutMs: undefined,
+      enqueuedAt: record.enqueuedAt,
+      seq: this.nextSeq(),
+      dedupeKey: undefined,
+      tenantId: undefined,
     };
   }
 
