@@ -62,3 +62,7 @@ export type {
   EventsObservabilityOptions,
   EventsObservabilityHandle,
 } from './observability.js';
+
+// ── Plugin registration ─────────────────────────────────────────────────────────
+export { EventsPlugin } from './plugin.js';
+export type { EventsPluginOptions } from './plugin.js';
