@@ -17,6 +17,10 @@
     "./realtime": {
       "import": "./dist/integrations/realtime.js",
       "types": "./dist/integrations/realtime.d.ts"
+    },
+    "./redis": {
+      "import": "./dist/store/redis.js",
+      "types": "./dist/store/redis.d.ts"
     }
   },
   "files": [
