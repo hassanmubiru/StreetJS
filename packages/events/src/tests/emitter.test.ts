@@ -16,10 +16,18 @@ const CTX: EventContext = { event: 'x', id: 'id', timestamp: 0, metadata: {} };
 test('resolve returns exact and wildcard matches in registration order', () => {
   const em = new Emitter();
   const order: string[] = [];
-  em.add('user.created', () => order.push('exact-1'));
-  em.add('user.*', () => order.push('wild-1'));
-  em.add('user.created', () => order.push('exact-2'));
-  em.add('**', () => order.push('wild-all'));
+  em.add('user.created', () => {
+    order.push('exact-1');
+  });
+  em.add('user.*', () => {
+    order.push('wild-1');
+  });
+  em.add('user.created', () => {
+    order.push('exact-2');
+  });
+  em.add('**', () => {
+    order.push('wild-all');
+  });
 
   const subs = em.resolve('user.created');
   for (const s of subs) {
