@@ -123,7 +123,9 @@ test('facade persistence + replay against a real broker', RUN, async () => {
     await events.publish('order.shipped', { id: 'o1' });
 
     const replayed: string[] = [];
-    events.on('**', (_p, ctx) => replayed.push(ctx.event));
+    events.on('**', (_p, ctx) => {
+      replayed.push(ctx.event);
+    });
     const count = await events.replay();
     assert.equal(count, 2);
     assert.deepEqual(replayed, ['user.created', 'order.shipped']);
