@@ -29,7 +29,7 @@ import type {
   JobHandler,
   SerializedError,
 } from './job.js';
-import type { QueueMiddleware } from './middleware.js';
+import { composeMiddleware, type MutableContext, type QueueMiddleware } from './middleware.js';
 import type { QueueEventEmitter } from './events.js';
 import { DEFAULT_BACKOFF, onFailure, type RetryDecision } from './retry.js';
 import type { QueueDriver, Reservation } from './drivers/driver.js';
@@ -525,10 +525,20 @@ export class WorkerImpl implements Worker {
     }
   }
 
-  /** Build the per-execution context. `attempts` was incremented at reserve. */
+  /**
+   * Build the per-execution context. `attempts` was incremented at reserve.
+   *
+   * The context is created as a {@link MutableContext} (a mutable view of the
+   * public readonly `JobExecutionContext`) so tenant-isolation middleware can
+   * assign `ctx.tenantId` and have it observed by every subsequent middleware
+   * and the terminal handler for the rest of the execution (Req 10.4). The same
+   * object reference is threaded through the whole pipeline by the composer, so
+   * the propagation happens naturally. Callers still see the public readonly
+   * surface via the {@link JobExecutionContext} return type.
+   */
   protected buildContext(reservation: Reservation, signal: AbortSignal): JobExecutionContext {
     const envelope = reservation.envelope;
-    return {
+    const ctx: MutableContext = {
       id: envelope.id,
       type: envelope.type,
       queue: reservation.queue,
@@ -539,35 +549,23 @@ export class WorkerImpl implements Worker {
       // The execution AbortSignal fired on a per-attempt timeout (Req 14.4).
       signal,
     };
+    return ctx;
   }
 
   /**
-   * Compose middleware in registration order with the handler as the terminal
-   * step. Each middleware receives the context, the payload, and a `next`
-   * continuation; a middleware that calls `next` more than once is rejected.
+   * Execute the job through the composable middleware pipeline with the handler
+   * as the terminal step (Req 10.1–10.3). Composition is delegated to the shared
+   * {@link composeMiddleware} composer in `middleware.ts` (the single source of
+   * truth for chain ordering and the multiple-`next()` guard), so the worker
+   * executes every handler through the exposed composed runner.
    */
   protected async runHandler(
     ctx: JobExecutionContext,
     payload: unknown,
     handler: JobHandler<unknown>,
   ): Promise<void> {
-    const chain = this.ctx.middleware;
-    let lastIndex = -1;
-
-    const invoke = async (index: number): Promise<void> => {
-      if (index <= lastIndex) {
-        throw new Error('next() called multiple times in a queue middleware.');
-      }
-      lastIndex = index;
-      const middleware = chain[index];
-      if (middleware) {
-        await middleware(ctx, payload, () => invoke(index + 1));
-      } else {
-        await handler(payload, ctx);
-      }
-    };
-
-    await invoke(0);
+    const run = composeMiddleware(this.ctx.middleware, handler);
+    await run(ctx, payload);
   }
 
   /** Release the reservation's dedupe key once it is no longer pending/ready. */
