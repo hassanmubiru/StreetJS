@@ -248,12 +248,23 @@ class EventsFacade<T extends EventMap> implements Events<T> {
 
   // ── Subscribe ───────────────────────────────────────────────────────────────
 
+  on<K extends EventName<T>>(name: K, listener: EventListener<T[K], K>): Unsubscribe;
+  on<P extends string>(
+    pattern: P,
+    listener: EventListener<WildcardPayload<T, P>, string>,
+  ): Unsubscribe;
+  // Implementation signature (broad by design so both overloads are assignable).
   on(key: string, listener: EventListener<unknown, string>): Unsubscribe {
-    return this.emitter.add(key, listener as never, false);
+    return this.emitter.add(key, listener as (p: unknown, c: EventContext) => void, false);
   }
 
+  once<K extends EventName<T>>(name: K, listener: EventListener<T[K], K>): Unsubscribe;
+  once<P extends string>(
+    pattern: P,
+    listener: EventListener<WildcardPayload<T, P>, string>,
+  ): Unsubscribe;
   once(key: string, listener: EventListener<unknown, string>): Unsubscribe {
-    return this.emitter.add(key, listener as never, true);
+    return this.emitter.add(key, listener as (p: unknown, c: EventContext) => void, true);
   }
 
   use(middleware: EventMiddleware): void {
