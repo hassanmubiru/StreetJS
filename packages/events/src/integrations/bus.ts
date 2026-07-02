@@ -143,6 +143,55 @@ export function forwardFromBus<T extends AnyEventMap = EventMap>(
   };
 }
 
+/** Bidirectional wiring options for {@link connectBus}. */
+export interface ConnectBusOptions {
+  /** Application events to forward outbound onto the bus. */
+  toBus?: readonly ToBusBridge[];
+  /** Bus topics to forward inbound into the application event layer. */
+  fromBus?: readonly FromBusBridge[];
+}
+
+/**
+ * Wire an application event facade to a distributed bus in one call — outbound
+ * fan-out (`toBus`) and inbound delivery (`fromBus`) — returning a single detach
+ * that tears down both directions. The loop guard applies: an event delivered
+ * inbound is never echoed back outbound.
+ *
+ * Any core `EventBus` transport works — in-process (default), Redis, RabbitMQ,
+ * Kafka — since the bridge targets the structural {@link EventBusLike}:
+ *
+ * ```ts
+ * import { EventBus, RedisEventBusTransport } from 'streetjs';
+ * const bus = new EventBus(new RedisEventBusTransport({ host, port }));
+ * connectBus(events, bus, {
+ *   toBus:   [{ appEvent: 'order.*' }],
+ *   fromBus: [{ topic: 'order.shipped' }],
+ * });
+ * ```
+ */
+export function connectBus<T extends AnyEventMap = EventMap>(
+  events: Events<T>,
+  bus: EventBusLike,
+  options: ConnectBusOptions = {},
+): () => void {
+  const detachers: Array<() => void> = [];
+  if (options.toBus && options.toBus.length > 0) {
+    detachers.push(forwardToBus(events, bus, options.toBus));
+  }
+  if (options.fromBus && options.fromBus.length > 0) {
+    detachers.push(forwardFromBus(bus, events, options.fromBus));
+  }
+  return () => {
+    for (const detach of detachers) {
+      try {
+        detach();
+      } catch {
+        /* best-effort detach */
+      }
+    }
+  };
+}
+
 /** Internal helper: address the facade through dynamic-name publish/on. */
 type EventsAny = {
   publish(name: string, payload: unknown, options?: { metadata?: Record<string, unknown> }): Promise<unknown>;
