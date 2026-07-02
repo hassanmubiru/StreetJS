@@ -89,7 +89,9 @@ test('a snapshot from resolve is stable if a listener unsubscribes mid-delivery'
     seen.push('a');
     offB?.(); // cancel B during A's delivery
   });
-  offB = em.add('e', () => seen.push('b'));
+  offB = em.add('e', () => {
+    seen.push('b');
+  });
 
   const subs = em.resolve('e');
   for (const s of subs) {
