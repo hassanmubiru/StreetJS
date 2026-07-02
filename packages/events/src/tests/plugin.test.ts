@@ -45,7 +45,9 @@ test('onLoad constructs the facade, registers observability, and runs the startu
   await plugin.onLoad(fakeApp());
 
   const events = plugin.events;
-  assert.ok(events, 'facade constructed after load');
+  if (!events) {
+    throw new Error('facade should be constructed after onLoad');
+  }
 
   // The startup-registered listener receives events.
   await events.publish('user.created', { id: 'u1' });
