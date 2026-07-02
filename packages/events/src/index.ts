@@ -24,3 +24,24 @@ export type {
 
 // ── Wildcard matching ───────────────────────────────────────────────────────────
 export { isWildcard, matchesPattern } from './matcher.js';
+
+// ── Facade ──────────────────────────────────────────────────────────────────────
+export { createEvents } from './facade.js';
+export type {
+  Events,
+  EventsOptions,
+  EventsStats,
+  EventsTelemetry,
+  PublishOptions,
+  ErrorHandler,
+  Unsubscribe,
+} from './facade.js';
+
+// ── Middleware ────────────────────────────────────────────────────────────────
+export { composePipeline } from './middleware.js';
+export type { EventMiddleware, DeliveryStep, PipelineRunner } from './middleware.js';
+
+// ── Event store ─────────────────────────────────────────────────────────────────
+export { MemoryEventStore } from './store/memory.js';
+export type { MemoryEventStoreOptions } from './store/memory.js';
+export type { EventStore, ReplayFilter } from './store/store.js';
