@@ -13,7 +13,7 @@
 // 9.1; those method bodies remain scaffolds here so this task stays focused on
 // dispatch/register/lifecycle.
 
-import { systemClock, parseWindow } from 'streetjs';
+import { systemClock, parseWindow, InMemoryRateLimitStore } from 'streetjs';
 import type { HealthCheckRegistry, MetricsRegistry, RateLimitStore, Clock } from 'streetjs';
 import type { BackoffPolicy, Job, JobHandler, JobOptions, DeadLetterRecord } from './job.js';
 import { buildEnvelope, DEFAULT_QUEUE } from './job.js';
@@ -22,6 +22,7 @@ import type { QueueEventMap } from './events.js';
 import { QueueEventEmitter } from './events.js';
 import type { Worker, WorkerOptions, WorkerContext } from './worker.js';
 import { WorkerImpl } from './worker.js';
+import type { ResolvedRateLimit } from './worker.js';
 import type { QueueDriver } from './drivers/driver.js';
 import { MemoryDriver } from './drivers/memory.js';
 
@@ -106,6 +107,20 @@ class QueueFacade implements Queue {
   /** Injected clock; defaults to wall-clock time (Req 3.1, 3.2). */
   protected readonly clock: Clock;
 
+  /**
+   * Resolved per-queue rate limits keyed by queue name, with the window
+   * normalized to milliseconds via core `parseWindow` (Req 9.1). Undefined when
+   * no `rateLimits` were configured.
+   */
+  protected readonly rateLimits?: ReadonlyMap<string, ResolvedRateLimit>;
+  /**
+   * Backing store for the sliding-window rate limiter, shared across every
+   * worker so their windows agree (Req 9.4). Defaults to the core
+   * `InMemoryRateLimitStore` bound to the injected clock. Present iff
+   * {@link rateLimits} is present.
+   */
+  protected readonly rateLimitStore?: RateLimitStore;
+
   /** Typed handler registry, keyed by job `type` (Req 2.3). */
   protected readonly handlers = new Map<string, JobHandler<unknown>>();
   /** Middleware chain container, composed in registration order (Req 10.1). */
@@ -143,6 +158,15 @@ class QueueFacade implements Queue {
     this.options = options;
     this.clock = options.clock ?? systemClock;
     this.driver = options.driver ?? new MemoryDriver();
+
+    // Resolve per-queue rate limits once (windows normalized to ms) and, when
+    // any are configured, bind a shared sliding-window store to the injected
+    // clock so every worker enforces the same window (Req 9.1, 9.4).
+    this.rateLimits = resolveRateLimits(options.rateLimits);
+    this.rateLimitStore =
+      this.rateLimits === undefined
+        ? undefined
+        : options.rateLimitStore ?? new InMemoryRateLimitStore({ clock: this.clock });
     // The DLQ operations are implemented in task 9.1; expose the surface now.
     this.deadLetters = {
       list: () => Promise.reject(new Error('deadLetters.list not implemented (task 9.1)')),
@@ -244,6 +268,8 @@ class QueueFacade implements Queue {
       emitter: this.emitter,
       clock: this.clock,
       defaultBackoff: this.options.defaultBackoff,
+      rateLimits: this.rateLimits,
+      rateLimitStore: this.rateLimitStore,
       releaseDedupeKey: (queue, dedupeKey, jobId) =>
         this.releaseDedupeKey(queue, dedupeKey, jobId),
       ready,
@@ -332,6 +358,27 @@ class QueueFacade implements Queue {
 /** Compose the dedupe registry key from the queue name and dedupe key. */
 function dedupeRegistryKey(queue: string, dedupeKey: string): string {
   return `${queue}\u0000${dedupeKey}`;
+}
+
+/**
+ * Resolve the configured `rateLimits` option into a queue → {@link ResolvedRateLimit}
+ * map, normalizing each human window (`"5m"`) to milliseconds via core
+ * `parseWindow` (a numeric window is taken as milliseconds directly). Returns
+ * `undefined` when no rate limits are configured so the worker skips the check
+ * entirely (Req 9.1, 9.4).
+ */
+function resolveRateLimits(
+  rateLimits: QueueOptions['rateLimits'],
+): ReadonlyMap<string, ResolvedRateLimit> | undefined {
+  if (rateLimits === undefined) {
+    return undefined;
+  }
+  const resolved = new Map<string, ResolvedRateLimit>();
+  for (const [queue, { requests, window }] of Object.entries(rateLimits)) {
+    const windowMs = typeof window === 'number' ? window : parseWindow(window);
+    resolved.set(queue, { requests, windowMs });
+  }
+  return resolved;
 }
 
 /**

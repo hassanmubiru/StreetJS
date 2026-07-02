@@ -22,7 +22,7 @@
 // Both extend the seams below (`executeReservation`, `runHandler`,
 // `handleFailure`, `runWithTimeout`) rather than reshaping the loop.
 
-import type { Clock } from 'streetjs';
+import type { Clock, RateLimitStore } from 'streetjs';
 import type {
   BackoffPolicy,
   JobExecutionContext,
@@ -67,6 +67,19 @@ export interface WorkerStatus {
 }
 
 /**
+ * A resolved per-queue rate limit: at most `requests` jobs may be *started*
+ * within any sliding window of `windowMs` milliseconds (Req 9.1). The facade
+ * resolves human window strings (e.g. `"5m"`) to `windowMs` via core
+ * `parseWindow` before populating the {@link WorkerContext}.
+ */
+export interface ResolvedRateLimit {
+  /** Max jobs started per window (`R`). */
+  readonly requests: number;
+  /** Sliding window length in milliseconds (`W`). */
+  readonly windowMs: number;
+}
+
+/**
  * Everything the worker needs from the facade to execute a reserved job. The
  * facade owns the handler registry, the middleware chain, the event emitter,
  * the retry-engine wiring (clock, default backoff, rng), and the dedupe-key
@@ -89,6 +102,18 @@ export interface WorkerContext {
   readonly defaultBackoff?: BackoffPolicy;
   /** Deterministic RNG in `[0, 1)` for backoff jitter. Defaults to `Math.random`. */
   readonly rng?: () => number;
+  /**
+   * Resolved per-queue rate limits keyed by queue name (Req 9.1). When a queue
+   * has an entry, the worker enforces its `R`-per-`W` quota before starting a
+   * reserved job. Absent when no limits are configured.
+   */
+  readonly rateLimits?: ReadonlyMap<string, ResolvedRateLimit>;
+  /**
+   * Backing store for the sliding-window rate limiter (Req 9.4). Reuses the core
+   * `RateLimitStore` abstraction with an injectable `Clock` for deterministic
+   * timing. Present iff {@link rateLimits} is present.
+   */
+  readonly rateLimitStore?: RateLimitStore;
   /**
    * Release a dedupe key once its job is no longer pending/ready (acked or
    * dead-lettered), so a fresh dispatch with the same key is admitted (Req 14.5).
@@ -137,6 +162,22 @@ export class WorkerImpl implements Worker {
   protected readonly driver: QueueDriver;
   protected readonly ctx: WorkerContext;
 
+  /**
+   * Resolved per-queue rate limits and the backing sliding-window store
+   * (Req 9.1–9.4). Both are undefined when no limits are configured, in which
+   * case {@link admitUnderRateLimit} is a no-op.
+   */
+  protected readonly rateLimits?: ReadonlyMap<string, ResolvedRateLimit>;
+  protected readonly rateLimitStore?: RateLimitStore;
+  /**
+   * Serializes the rate limiter's read-modify (count → hit) so two concurrent
+   * executions cannot both observe `count < R` and both record a start, which
+   * would let more than `R` jobs start in a window. Rate checks chain off this
+   * promise; only the count+hit critical section is serialized (the subsequent
+   * nack/execute run outside it).
+   */
+  private rateCheckChain: Promise<unknown> = Promise.resolve();
+
   /** Promises for currently-executing jobs; awaited on {@link stop} to drain. */
   private readonly inFlightPromises = new Set<Promise<void>>();
   /** Poll timer handle; cleared on {@link stop}. */
@@ -156,6 +197,8 @@ export class WorkerImpl implements Worker {
     this.pollIntervalMs = options.pollIntervalMs ?? 1000;
     this.stopWhenEmpty = options.stopWhenEmpty ?? false;
     this.visibilityMs = options.visibilityMs ?? DEFAULT_VISIBILITY_MS;
+    this.rateLimits = context.rateLimits;
+    this.rateLimitStore = context.rateLimitStore;
   }
 
   /** Begin the reservation loop. Idempotent (Req 7.4). */
@@ -285,6 +328,15 @@ export class WorkerImpl implements Worker {
    * Task 6.3 inserts the rate-limit check before execution.
    */
   protected async executeReservation(reservation: Reservation): Promise<void> {
+    // Per-queue rate limiting (Req 9.1–9.4): if starting this job would exceed
+    // the configured `R`-per-`W` quota, defer it via nack (never started, never
+    // dropped) and return without emitting `job.started` or counting it as
+    // processed/failed. The deferred job is promoted and retried automatically
+    // once the window admits it.
+    if (!(await this.admitUnderRateLimit(reservation))) {
+      return;
+    }
+
     const envelope = reservation.envelope;
     const controller = new AbortController();
     const ctx = this.buildContext(reservation, controller.signal);
@@ -314,7 +366,69 @@ export class WorkerImpl implements Worker {
   }
 
   /**
-   * Run the middleware pipeline + handler under an optional per-attempt timeout
+   * Enforce the per-queue rate limit before a reserved job is started
+   * (Req 9.1–9.4). Returns `true` when the job may start (and records the start
+   * in the sliding window), or `false` when the job was deferred.
+   *
+   * Semantics for a queue configured with `R` requests per window `W`:
+   *  - Read the current window count via the core `RateLimitStore` WITHOUT
+   *    recording. If starting the job would exceed the quota (`count >= R`), the
+   *    window is full → **defer, never drop** (Req 9.2): nack the reservation to
+   *    a later Due_Time (`now + W`, a safe retry-after that lets the window
+   *    admit it) so the scheduler promotes it and the loop retries it
+   *    automatically once the window opens (Req 9.3).
+   *  - Otherwise record the start (`hit`) and admit the job (Req 9.1).
+   *
+   * Attempt budget: `reserve()` already incremented `envelope.attempts`. A rate
+   * deferral must be transparent to the retry budget — it must NOT consume an
+   * attempt toward `maxAttempts` (a rate-limited job is not a failed job). So we
+   * decrement the attempt consumed at reserve before the nack; when the deferred
+   * job is re-reserved it consumes the attempt afresh, leaving the ceiling
+   * intact (keeps Property 5 / Req 14.2 honest). This deferral never consults
+   * the retry engine and never increments `failed`.
+   *
+   * The read-modify (count → hit) is serialized on {@link rateCheckChain} so two
+   * concurrent executions cannot both observe `count < R` and both start,
+   * upholding "at most `R` started per window" even at `concurrency > 1`.
+   */
+  protected async admitUnderRateLimit(reservation: Reservation): Promise<boolean> {
+    const limit = this.rateLimits?.get(reservation.queue);
+    const store = this.rateLimitStore;
+    if (limit === undefined || store === undefined) {
+      return true; // no limit configured for this queue
+    }
+
+    // Serialize the count→hit critical section against other concurrent checks.
+    const decision = this.rateCheckChain.then(async () => {
+      const now = this.ctx.clock();
+      const inWindow = await store.count(reservation.queue, now, limit.windowMs);
+      if (inWindow >= limit.requests) {
+        return { admitted: false as const, now };
+      }
+      // Under the quota — record the start atomically within the gate (Req 9.1).
+      await store.hit(reservation.queue, now, limit.windowMs);
+      return { admitted: true as const, now };
+    });
+    // Keep the chain alive regardless of outcome; swallow to avoid breaking it.
+    this.rateCheckChain = decision.then(
+      () => undefined,
+      () => undefined,
+    );
+
+    const { admitted, now } = await decision;
+    if (admitted) {
+      return true;
+    }
+
+    // Window is full: return the attempt consumed at reserve so the deferral is
+    // transparent to the retry budget, then defer (never drop) to a later
+    // Due_Time that guarantees the window can admit it (Req 9.2, 9.3, 14.2).
+    reservation.envelope.attempts -= 1;
+    await this.driver.nack(reservation, now + limit.windowMs);
+    return false;
+  }
+
+
    * (Req 14.4). When `timeoutMs` is undefined the handler runs unbounded. When a
    * timeout is set, the handler races a real `setTimeout` timer (timeouts are an
    * inherently wall-clock concern; the injected clock stays reserved for
