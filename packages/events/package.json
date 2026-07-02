@@ -21,6 +21,10 @@
     "./redis": {
       "import": "./dist/store/redis.js",
       "types": "./dist/store/redis.d.ts"
+    },
+    "./bus": {
+      "import": "./dist/integrations/bus.js",
+      "types": "./dist/integrations/bus.d.ts"
     }
   },
   "files": [
