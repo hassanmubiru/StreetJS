@@ -27,6 +27,15 @@ export type {
 export { createQueue } from './facade.js';
 export type { Queue, QueueOptions, DeadLetterApi } from './facade.js';
 
+// ── Scheduler (delayed promotion + cron) ──────────────────────────────────────
+export { Scheduler, CronParseError } from './scheduler.js';
+export type {
+  SchedulerOptions,
+  SchedulerLock,
+  LockAcquisition,
+  ScheduledJob,
+} from './scheduler.js';
+
 // ── Worker ────────────────────────────────────────────────────────────────────
 export type { Worker, WorkerOptions, WorkerStatus } from './worker.js';
 
