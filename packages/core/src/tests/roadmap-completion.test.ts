@@ -413,7 +413,7 @@ describe('@RateLimit decorator', () => {
 
 // ── RESP codec (Redis transport protocol) ─────────────────────────────────────
 
-import { encodeCommand, RespParser } from '../transports/resp.js';
+import { encodeCommand, RespParser, classifyPubSubReply } from '../transports/resp.js';
 
 describe('RESP codec', () => {
   it('encodeCommand produces a RESP2 array of bulk strings', () => {
@@ -437,6 +437,30 @@ describe('RESP codec', () => {
     assert.equal(p.parse(), undefined);
     p.push(Buffer.from('lo\r\n', 'utf8'));
     assert.equal(p.parse(), 'hello');
+  });
+
+  it('classifyPubSubReply routes pushed messages to the subscriber', () => {
+    assert.deepEqual(
+      classifyPubSubReply(['message', 'news', 'hello']),
+      { kind: 'message', payload: 'hello' },
+    );
+  });
+
+  it('classifyPubSubReply extracts the payload from pmessage at index 3', () => {
+    assert.deepEqual(
+      classifyPubSubReply(['pmessage', 'news.*', 'news.tech', 'body']),
+      { kind: 'message', payload: 'body' },
+    );
+  });
+
+  it('classifyPubSubReply treats SUBSCRIBE confirmations as command replies', () => {
+    // ["subscribe", channel, count] must resolve the pending command, not deliver.
+    assert.deepEqual(classifyPubSubReply(['subscribe', 'news', 1]), { kind: 'command' });
+  });
+
+  it('classifyPubSubReply treats AUTH/PONG scalar replies as command replies', () => {
+    assert.deepEqual(classifyPubSubReply('OK'), { kind: 'command' });
+    assert.deepEqual(classifyPubSubReply('PONG'), { kind: 'command' });
   });
 });
 

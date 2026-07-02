@@ -185,15 +185,26 @@ export class RedisClient {
         parser.push(chunk);
         let reply = parser.parse();
         while (reply !== undefined) {
-          if (Array.isArray(reply) && reply[0] === 'message' && typeof reply[2] === 'string') {
-            handler(reply[2]);
+          const classified = classifyPubSubReply(reply);
+          if (classified.kind === 'message') {
+            // Pushed pub/sub payload → deliver to the subscriber.
+            handler(classified.payload);
+          } else {
+            // Command confirmation (AUTH +OK, SUBSCRIBE ack, …) → resolve the
+            // matching pending command promise. Without this the SUBSCRIBE
+            // (and AUTH) command promises would never settle and hang.
+            const cb = sub.pending.shift();
+            if (cb) cb(reply);
           }
           reply = parser.parse();
         }
       });
-      (sub as unknown as { socket: Socket }).socket = sock;
+      sub.socket = sock;
       sub.connected = true;
     });
+    // The subscription connection bypasses connect(), so authenticate here on
+    // password-protected servers before issuing SUBSCRIBE.
+    if (this.password) await sub.command(['AUTH', this.password]);
     await sub.command(['SUBSCRIBE', channel]);
     return () => sub.close();
   }
