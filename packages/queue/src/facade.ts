@@ -218,13 +218,36 @@ class QueueFacade implements Queue {
 
   work(options?: WorkerOptions): Worker {
     // Kick off driver initialization so a configured driver whose init rejects
-    // surfaces the error (the worker awaits readiness when its loop is wired in
-    // task 6.1). Attach a no-op catch so a rejection here is not unhandled; the
+    // surfaces the error. The worker awaits this same readiness promise before
+    // its first reservation and stops without reserving if it rejects. Attach a
+    // no-op catch so a rejection observed here is not treated as unhandled; the
     // dispatch path and close still observe/re-throw the same cached rejection.
-    void this.ensureInitialized().catch(() => undefined);
-    const worker = new WorkerImpl(this.driver, options);
+    const ready = this.ensureInitialized();
+    void ready.catch(() => undefined);
+    const worker = new WorkerImpl(this.buildWorkerContext(ready), options);
     this.workers.add(worker);
     return worker;
+  }
+
+  /**
+   * Assemble the execution seam the worker consumes: the active driver, the
+   * shared handler registry and middleware chain, the typed event emitter, the
+   * injected clock, the default backoff, the dedupe-key removal hook, and the
+   * driver-readiness gate (Req 7.x, 8.4, 14.1). Keeping this a plain data
+   * context leaves the worker decoupled from the facade's internals.
+   */
+  private buildWorkerContext(ready: Promise<void>): WorkerContext {
+    return {
+      driver: this.driver,
+      handlers: this.handlers,
+      middleware: this.middleware,
+      emitter: this.emitter,
+      clock: this.clock,
+      defaultBackoff: this.options.defaultBackoff,
+      releaseDedupeKey: (queue, dedupeKey, jobId) =>
+        this.releaseDedupeKey(queue, dedupeKey, jobId),
+      ready,
+    };
   }
 
   async close(): Promise<void> {
