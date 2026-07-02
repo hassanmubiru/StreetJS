@@ -13,14 +13,14 @@
 // `moveToDeadLetter` (exhaustion).
 //
 // Scope note (what is deliberately left to later tasks):
-//  - Task 6.2 layers a per-attempt timeout that fires the `AbortSignal`, and
-//    routes a reserved envelope whose `type` has no registered handler straight
-//    to the DLQ with a descriptive error (here a no-handler job simply throws
-//    and flows through the same failure path).
+//  - Task 6.2 (implemented) layers a per-attempt timeout that fires the
+//    `AbortSignal` and emits `job.timeout`, and routes a reserved envelope whose
+//    `type` has no registered handler straight to the DLQ with a descriptive
+//    error (a permanent failure that bypasses the retry engine).
 //  - Task 6.3 integrates per-queue rate limiting (defer-via-nack) before a
 //    reserved job is executed.
 // Both extend the seams below (`executeReservation`, `runHandler`,
-// `handleFailure`) rather than reshaping the loop.
+// `handleFailure`, `runWithTimeout`) rather than reshaping the loop.
 
 import type { Clock } from 'streetjs';
 import type {
