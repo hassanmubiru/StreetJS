@@ -161,6 +161,9 @@ export interface Events<T extends AnyEventMap = EventMap> {
   /** Number of listeners for an exact name, or total when omitted. */
   listenerCount(name?: string): number;
 
+  /** Await all currently-queued fire-and-forget (`publishAsync`/`emit`) deliveries. */
+  flush(): Promise<void>;
+
   /** Remove all listeners and await any in-flight async deliveries. */
   close(): Promise<void>;
 }
