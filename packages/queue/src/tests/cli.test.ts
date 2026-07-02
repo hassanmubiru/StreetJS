@@ -54,11 +54,15 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = join(HERE, '..', '..');
 const DIST_DIR = join(PACKAGE_ROOT, 'dist');
 
-/** Make a fresh OS temp dir for a test and hand it to `fn`, cleaning up after. */
-function withTempDir<T>(fn: (dir: string) => T): T {
+/**
+ * Make a fresh OS temp dir for a test and hand it to `fn`, cleaning up after.
+ * `fn` may be async — the directory is only removed once its work settles, so
+ * asynchronous file IO cannot race the cleanup.
+ */
+async function withTempDir<T>(fn: (dir: string) => T | Promise<T>): Promise<T> {
   const dir = mkdtempSync(join(tmpdir(), 'streetjs-queue-cli-'));
   try {
-    return fn(dir);
+    return await fn(dir);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

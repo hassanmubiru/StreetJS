@@ -358,6 +358,12 @@ function isRelative(spec: string): boolean {
 function isStreetjs(spec: string): boolean {
   return spec === 'streetjs' || spec.startsWith('streetjs/');
 }
+/** The package's own public specifier (used in generated scaffold templates and
+ *  cross-test imports). This is the public `@streetjs/queue` entry — not a core
+ *  deep-import — so it is allowed. */
+function isSelfPackage(spec: string): boolean {
+  return spec === '@streetjs/queue' || spec.startsWith('@streetjs/queue/');
+}
 /** Dev-only test dependency permitted in `*.test.ts` / helper test modules. */
 function isAllowedDevDep(spec: string): boolean {
   return spec === 'fast-check';
@@ -377,7 +383,13 @@ test('Req 1.5: every queue src import is relative, a node builtin, "streetjs", o
         violations.push(`${relative(PKG_ROOT, file)} deep-imports core via "${spec}"`);
         continue;
       }
-      if (isRelative(spec) || isNodeBuiltin(spec) || isStreetjs(spec) || isAllowedDevDep(spec)) {
+      if (
+        isRelative(spec) ||
+        isNodeBuiltin(spec) ||
+        isStreetjs(spec) ||
+        isSelfPackage(spec) ||
+        isAllowedDevDep(spec)
+      ) {
         continue;
       }
       violations.push(`${relative(PKG_ROOT, file)} imports disallowed specifier "${spec}"`);
