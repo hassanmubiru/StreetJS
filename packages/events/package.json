@@ -22,6 +22,10 @@
       "import": "./dist/store/redis.js",
       "types": "./dist/store/redis.d.ts"
     },
+    "./postgres": {
+      "import": "./dist/store/postgres.js",
+      "types": "./dist/store/postgres.d.ts"
+    },
     "./bus": {
       "import": "./dist/integrations/bus.js",
       "types": "./dist/integrations/bus.d.ts"
