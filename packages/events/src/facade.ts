@@ -23,6 +23,7 @@ import {
   type EventEnvelope,
   type EventListener,
   type EventMap,
+  type AnyEventMap,
   type EventName,
   type SerializedError,
   type WildcardPayload,

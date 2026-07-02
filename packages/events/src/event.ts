@@ -76,7 +76,7 @@ export type MatchingEventNames<T extends AnyEventMap, P extends string> =
  * every event name `P` matches. Falls back to `unknown` when the pattern
  * matches no declared event (so a forward-looking pattern still compiles).
  */
-export type WildcardPayload<T extends EventMap, P extends string> = [
+export type WildcardPayload<T extends AnyEventMap, P extends string> = [
   MatchingEventNames<T, P>,
 ] extends [never]
   ? unknown
