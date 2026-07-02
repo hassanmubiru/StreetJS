@@ -199,11 +199,11 @@ const SRC_ROOT = resolve(PKG_ROOT, 'src'); // <pkg>/src
 
 /** Assert a prototype method exists and pins its declared arity (`fn.length`). */
 function assertMethod(
-  ctor: { prototype: Record<string, unknown> },
+  ctor: abstract new (...args: never[]) => unknown,
   name: string,
   arity: number,
 ): void {
-  const fn = ctor.prototype[name];
+  const fn = (ctor.prototype as Record<string, unknown>)[name];
   assert.equal(typeof fn, 'function', `expected method ${name} to be a function`);
   assert.equal(
     (fn as (...a: unknown[]) => unknown).length,
