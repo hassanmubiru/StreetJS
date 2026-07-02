@@ -15,8 +15,15 @@
 
 import { systemClock, parseWindow, InMemoryRateLimitStore } from 'streetjs';
 import type { HealthCheckRegistry, MetricsRegistry, RateLimitStore, Clock } from 'streetjs';
-import type { BackoffPolicy, Job, JobHandler, JobOptions, DeadLetterRecord } from './job.js';
-import { buildEnvelope, DEFAULT_QUEUE } from './job.js';
+import type {
+  BackoffPolicy,
+  Job,
+  JobHandler,
+  JobOptions,
+  DeadLetterRecord,
+  JobEnvelope,
+} from './job.js';
+import { buildEnvelope, DEFAULT_QUEUE, DEFAULT_PRIORITY } from './job.js';
 import type { QueueMiddleware } from './middleware.js';
 import type { QueueEventMap } from './events.js';
 import { QueueEventEmitter } from './events.js';
