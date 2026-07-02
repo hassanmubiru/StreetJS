@@ -40,12 +40,37 @@ export class QueueEventEmitter {
     set.add(handler as (e: unknown) => void);
   }
 
-  /** Emit a lifecycle event to all subscribers. */
+  /** Unsubscribe a previously registered handler. A no-op when it was never registered. */
+  off<K extends keyof QueueEventMap>(event: K, handler: QueueEventHandler<K>): void {
+    const set = this.handlers.get(event);
+    if (!set) return;
+    set.delete(handler as (e: unknown) => void);
+    if (set.size === 0) {
+      this.handlers.delete(event);
+    }
+  }
+
+  /**
+   * Emit a lifecycle event to all subscribers.
+   *
+   * Observability must never destabilize processing (Req 11.x): a subscriber
+   * that throws MUST NOT prevent the remaining subscribers from receiving the
+   * event, nor propagate back into the worker/retry transitions that emit it
+   * (e.g. a throwing `job.completed` handler must not be mistaken for a job
+   * failure). Each handler is therefore invoked in isolation and any thrown
+   * value is swallowed. Handlers are copied before iteration so a subscriber
+   * that mutates the subscription set during dispatch cannot corrupt the loop.
+   */
   emit<K extends keyof QueueEventMap>(event: K, payload: QueueEventMap[K]): void {
     const set = this.handlers.get(event);
     if (!set) return;
-    for (const handler of set) {
-      (handler as QueueEventHandler<K>)(payload);
+    for (const handler of [...set]) {
+      try {
+        (handler as QueueEventHandler<K>)(payload);
+      } catch {
+        // A misbehaving subscriber must not break event delivery or the worker
+        // loop. Intentionally swallow; lifecycle events are best-effort.
+      }
     }
   }
 }
