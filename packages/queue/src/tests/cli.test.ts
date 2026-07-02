@@ -110,8 +110,9 @@ test('make:job and make:worker scaffolds compile cleanly under tsc (Req 15.4)', 
     // 2) Write a tsconfig that mirrors the package (NodeNext + strict) and maps
     //    the scaffolds' '@streetjs/queue' import to the built package surface,
     //    so the compile is against the REAL public `.d.ts` (Req 15.4).
-    //    `paths` are resolved relative to `baseUrl`; use a relative path from
-    //    the temp dir to the package `dist` so the config is location-agnostic.
+    //    Without `baseUrl` (deprecated in TS 6.0), `paths` values are resolved
+    //    relative to the tsconfig location, so use a relative path from the
+    //    temp dir to the package `dist`, keeping the config location-agnostic.
     const distFromTmp = relative(dir, DIST_DIR).split('\\').join('/');
     const tsconfig = {
       compilerOptions: {
@@ -123,7 +124,6 @@ test('make:job and make:worker scaffolds compile cleanly under tsc (Req 15.4)', 
         skipLibCheck: true,
         esModuleInterop: true,
         forceConsistentCasingInFileNames: true,
-        baseUrl: '.',
         lib: ['ES2022'],
         types: [],
         paths: {
