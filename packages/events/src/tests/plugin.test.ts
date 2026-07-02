@@ -11,6 +11,7 @@ import { HealthCheckRegistry, MetricsRegistry } from 'streetjs';
 import type { SandboxedApp } from 'streetjs';
 
 import { EventsPlugin } from '../plugin.js';
+import type { Events } from '../facade.js';
 import {
   EVENTS_HEALTH_CHECK_NAME,
   EVENTS_PUBLISHED_METRIC,
