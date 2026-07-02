@@ -84,3 +84,34 @@ test('onUnload is a no-op when never loaded', async () => {
   await assert.doesNotReject(() => plugin.onUnload(fakeApp()));
   assert.equal(plugin.events, undefined);
 });
+
+test('declarative bridges are attached on load and detached on unload', async () => {
+  let attached = 0;
+  let detached = 0;
+  let bridgedEvents: Events<AppEvents> | undefined;
+
+  const plugin = new EventsPlugin<AppEvents>({
+    bridges: [
+      (events) => {
+        attached += 1;
+        bridgedEvents = events;
+        // Return a detach function that must be called on unload.
+        return () => {
+          detached += 1;
+        };
+      },
+      () => {
+        attached += 1;
+        // A bridge that returns nothing is allowed (no detach).
+      },
+    ],
+  });
+
+  await plugin.onLoad(fakeApp());
+  assert.equal(attached, 2, 'both bridges attached on load');
+  assert.equal(bridgedEvents, plugin.events, 'bridge received the constructed facade');
+  assert.equal(detached, 0);
+
+  await plugin.onUnload(fakeApp());
+  assert.equal(detached, 1, 'the returned detach function was called on unload');
+});

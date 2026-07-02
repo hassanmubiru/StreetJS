@@ -127,8 +127,18 @@ export class EventsPlugin<T extends AnyEventMap = EventMap> extends PluginModule
   override async onUnload(_app: SandboxedApp): Promise<void> {
     const obs = this.observability;
     const events = this.eventsInstance;
+    const detachers = this.bridgeDetachers;
     this.observability = undefined;
     this.eventsInstance = undefined;
+    this.bridgeDetachers = [];
+    // Detach bridges first so no bridge fires during/after teardown.
+    for (const detach of detachers) {
+      try {
+        detach();
+      } catch {
+        /* best-effort detach */
+      }
+    }
     obs?.close();
     if (events) {
       await events.close();
