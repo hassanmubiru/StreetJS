@@ -169,6 +169,38 @@ async function connectDriver(label: string, visibilityMs = 30_000): Promise<Driv
   return { driver, client, keyPrefix };
 }
 
+/**
+ * Reap orphaned TCP sockets connected to the broker port.
+ *
+ * WHY THIS EXISTS: the core `RedisClient.subscribe()` opens a dedicated
+ * subscription connection but never resolves its internal `SUBSCRIBE` command
+ * promise (the subscribe confirmation reply is not routed back to the pending
+ * resolver), so the `subscribe()` promise driving `RedisDriver.onWake` never
+ * returns an unsubscribe function. Messages are still delivered (wake-up works),
+ * but the driver can never close that socket, which would keep the Node event
+ * loop alive after the test. Since this task must NOT modify src/core, the pub/sub
+ * test reaps only the leftover socket(s) on the broker port here so the suite
+ * leaks no handle. The filter is precise (`remotePort === CONFIG.port`) so stdio
+ * and unrelated handles are never touched.
+ */
+function reapOrphanRedisSockets(): void {
+  const getHandles = (process as unknown as { _getActiveHandles?: () => unknown[] })
+    ._getActiveHandles;
+  if (typeof getHandles !== 'function') {
+    return;
+  }
+  for (const handle of getHandles.call(process)) {
+    const sock = handle as { remotePort?: number; destroy?: () => void };
+    if (sock && sock.remotePort === CONFIG.port && typeof sock.destroy === 'function') {
+      try {
+        sock.destroy();
+      } catch {
+        // best-effort
+      }
+    }
+  }
+}
+
 /** Purge ready/delayed jobs, flush dead letters, and close the client. */
 async function cleanup(bundle: DriverBundle): Promise<void> {
   try {
@@ -326,6 +358,9 @@ test('pub/sub wake-up fires onWake when a job is enqueued (Req 14.1)', RUN, asyn
     assert.equal(queue, 'default', 'the wake message carries the woken queue name');
   } finally {
     await cleanup(bundle);
+    // Reap the orphaned subscription socket the core client cannot close (see
+    // reapOrphanRedisSockets) so this test leaks no handle.
+    reapOrphanRedisSockets();
   }
 });
 
