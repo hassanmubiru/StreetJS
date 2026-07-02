@@ -103,7 +103,7 @@ export interface EventsOptions {
  * The strongly-typed application event facade. `T` is the application's event
  * map (`{ 'user.created': User; ... }`).
  */
-export interface Events<T extends EventMap = EventMap> {
+export interface Events<T extends AnyEventMap = EventMap> {
   /** Publish a typed event by name + payload; resolves after all listeners settle. */
   publish<K extends EventName<T>>(
     name: K,
@@ -175,7 +175,7 @@ function serializeError(err: unknown): SerializedError {
 /** A mutable view of the readonly public context (facade-internal). */
 type MutableContext = { -readonly [K in keyof EventContext]: EventContext[K] };
 
-class EventsFacade<T extends EventMap> implements Events<T> {
+class EventsFacade<T extends AnyEventMap> implements Events<T> {
   readonly store?: EventStore;
 
   private readonly clock: Clock;
@@ -467,6 +467,6 @@ function normalizeArgs(
  * await events.publish('user.created', user);
  * ```
  */
-export function createEvents<T extends EventMap = EventMap>(options?: EventsOptions): Events<T> {
+export function createEvents<T extends AnyEventMap = EventMap>(options?: EventsOptions): Events<T> {
   return new EventsFacade<T>(options);
 }
