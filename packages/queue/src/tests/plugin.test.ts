@@ -68,7 +68,7 @@ test('onLoad constructs the facade and registers the health check + metrics (Req
   await plugin.onLoad(app);
 
   // The facade is now constructed and exposed through the accessor.
-  const facade = plugin.queue;
+  const facade: Queue | undefined = plugin.queue;
   assert.notEqual(facade, undefined, 'plugin.queue is a defined Queue after onLoad');
   assert.equal(typeof facade?.dispatch, 'function', 'the exposed value is a Queue facade');
 
