@@ -1,0 +1,75 @@
+{
+  "name": "@streetjs/queue",
+  "version": "1.0.0",
+  "description": "StreetJS Queue Framework: strongly-typed, plugin-first background jobs and queues with delayed/cron scheduling, retry/backoff, dead-letter handling, worker concurrency/priority, per-queue rate limiting, middleware, lifecycle events, health/metrics, a CLI, and a Redis-free testing harness over a pluggable driver contract.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./redis": {
+      "import": "./dist/drivers/redis.js",
+      "types": "./dist/drivers/redis.d.ts"
+    }
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.js.map",
+    "dist/**/*.d.ts",
+    "dist/**/*.d.ts.map",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test dist/tests/*.test.js",
+    "lint": "tsc --noEmit",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\""
+  },
+  "keywords": [
+    "streetjs",
+    "street-framework",
+    "queue",
+    "jobs",
+    "background-jobs",
+    "worker",
+    "scheduler",
+    "cron",
+    "retry",
+    "dead-letter",
+    "rate-limiting",
+    "redis",
+    "typescript",
+    "esm"
+  ],
+  "author": "street contributors",
+  "license": "MIT",
+  "homepage": "https://hassanmubiru.github.io/StreetJS/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hassanmubiru/StreetJS.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hassanmubiru/StreetJS/issues"
+  },
+  "dependencies": {
+    "streetjs": "^1.0.25"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.2",
+    "fast-check": "^4.8.0",
+    "typescript": "^6.0.3"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
