@@ -224,8 +224,27 @@ await events.replay({ pattern: 'user.*' });   // durable, ordered replay
 ```
 
 The `EventStore` interface is the pluggable seam; `MemoryEventStore` (default,
-zero-dep) and `RedisEventStore` (opt-in) both implement it, and are behaviorally
-equivalent for `read`/`count`/replay.
+zero-dep), `RedisEventStore`, and `PostgresEventStore` all implement it and are
+behaviorally equivalent for `read`/`count`/replay.
+
+### Durable event store (Postgres)
+
+For relational durability, use the opt-in Postgres store (built on the core
+`PgPool`, no new runtime dependency):
+
+```ts
+import { createEvents } from '@streetjs/events';
+import { PostgresEventStore, POSTGRES_EVENTS_MIGRATION_SQL } from '@streetjs/events/postgres';
+import { PgPool } from 'streetjs';
+
+const pool = new PgPool({ host, port, user, password, database });
+const store = new PostgresEventStore({ pool });   // table: street_events
+await store.init();                                // runs POSTGRES_EVENTS_MIGRATION_SQL
+
+const events = createEvents<AppEvents>({ store });
+await events.publish('user.created', user);        // persisted (JSONB, store_seq-ordered)
+await events.replay({ pattern: 'user.*' });
+```
 
 ### Distributed fan-out (EventBus)
 
@@ -351,7 +370,23 @@ const plugin = new EventsPlugin<AppEvents>({
 await plugin.onLoad(app);
 const events = plugin.events;   // the live facade
 // ...
-await plugin.onUnload(app);     // closes observability + facade
+await plugin.onUnload(app);     // detaches bridges, closes observability + facade
+```
+
+Bridges can be wired declaratively at load — each entry is an attach function
+that may return a detach called on unload. This keeps the plugin decoupled from
+any specific integration:
+
+```ts
+import { forwardToBus } from '@streetjs/events/bus';
+import { bridgeRealtimeEvents } from '@streetjs/events/realtime';
+
+new EventsPlugin<AppEvents>({
+  bridges: [
+    (events) => forwardToBus(events, bus, [{ appEvent: 'order.shipped' }]),
+    (events) => bridgeRealtimeEvents(events, realtime, [{ appEvent: 'report.generated', room: 'reports' }]),
+  ],
+});
 ```
 
 ### CLI
