@@ -291,6 +291,30 @@ in-process dispatcher and `down` if a configured store is unreachable.
 
 (The `EventsPlugin` does all of this wiring for you — see below.)
 
+### Distributed tracing (OpenTelemetry)
+
+`createEventsTracing` emits one span per published event and propagates W3C
+trace context, so a publish issued from inside a listener becomes a **child
+span** automatically (via `AsyncLocalStorage`). It reuses the core `OtelTracer`.
+
+```ts
+import { OtelTracer } from 'streetjs';
+import { createEvents, createEventsTracing } from '@streetjs/events';
+
+const tracer = new OtelTracer({ serviceName: 'app' });
+const tracing = createEventsTracing(tracer);
+
+const events = createEvents<AppEvents>({ telemetry: tracing.telemetry });
+events.use(tracing.middleware);
+```
+
+Each span is named `event <name>` with `event.name` / `event.id` /
+`event.tenant_id` attributes; the telemetry sink adds `event.delivered` /
+`event.failed`. A middleware veto marks the span as an error; **isolated
+listener failures do not** (they are recorded as `event.failed`, consistent with
+the delivery semantics below). An inbound `traceparent` on the event metadata is
+honored as the parent, so traces flow across the queue/realtime/bus bridges.
+
 ## Testing
 
 Redis-free, timing-free utilities:
