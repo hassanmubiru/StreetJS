@@ -13,6 +13,7 @@
 // dispatch. Listener failures are recorded as the `event.failed` span attribute
 // (and the `events_failed_total` metric) rather than as a span error.
 
+import { AsyncLocalStorage } from 'node:async_hooks';
 import type { EventContext } from './event.js';
 import type { EventMiddleware } from './middleware.js';
 import type { EventsTelemetry } from './facade.js';
