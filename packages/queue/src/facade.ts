@@ -512,6 +512,14 @@ function dedupeRegistryKey(queue: string, dedupeKey: string): string {
 }
 
 /**
+ * Default ceiling passed to `driver.listDeadLetters` when `deadLetters.list` is
+ * called without an explicit `limit` (and for `retryAll`). A very large value
+ * so every dead-letter record is returned by default (Req 6.3); a driver slices
+ * to this ceiling but is never expected to hold this many records.
+ */
+const DEFAULT_DEAD_LETTER_LIST_LIMIT = Number.MAX_SAFE_INTEGER;
+
+/**
  * Resolve the configured `rateLimits` option into a queue → {@link ResolvedRateLimit}
  * map, normalizing each human window (`"5m"`) to milliseconds via core
  * `parseWindow` (a numeric window is taken as milliseconds directly). Returns
