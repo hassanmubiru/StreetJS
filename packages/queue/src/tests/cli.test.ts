@@ -88,7 +88,7 @@ async function withIsolatedExitCode(
 
 // ── Req 15.4: the generated scaffolds compile cleanly under `tsc` ─────────────
 
-test('make:job and make:worker scaffolds compile cleanly under tsc (Req 15.4)', () => {
+test('make:job and make:worker scaffolds compile cleanly under tsc (Req 15.4)', async () => {
   // Skip honestly (rather than fake a pass) if the built package surface the
   // scaffolds import against is missing — the scaffolds import '@streetjs/queue'
   // and we resolve that specifier to the package's built `.d.ts`.
@@ -98,7 +98,7 @@ test('make:job and make:worker scaffolds compile cleanly under tsc (Req 15.4)', 
     );
   }
 
-  withTempDir((dir) => {
+  await withTempDir((dir) => {
     // 1) Generate the scaffolds and write them into the temp dir.
     const job = generateJob('SendEmail', dir);
     const worker = generateWorker('EmailWorker', dir);
