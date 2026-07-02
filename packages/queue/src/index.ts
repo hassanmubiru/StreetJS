@@ -51,3 +51,19 @@ export type { QueueEventMap } from './events.js';
 
 // ── Plugin registration ───────────────────────────────────────────────────────
 export { QueuePlugin } from './plugin.js';
+
+// ── Redis-free testing utilities (Req 16.x, 17.x) ─────────────────────────────
+// `FakeQueue`, `MemoryQueue`, and `TestHarness` let consumers exercise queue
+// code without Redis and without wall-clock timing. They are documented as part
+// of the package (README "Testing Jobs") and so are part of the public surface.
+// The Redis driver stays behind the `@streetjs/queue/redis` submodule and is
+// still never re-exported here.
+export { FakeQueue, MemoryQueue, TestHarness } from './testing.js';
+export type {
+  FakeQueueOptions,
+  MemoryQueueOptions,
+  TestHarnessOptions,
+  DispatchRecord,
+  ScheduleRecord,
+  EmittedEvent,
+} from './testing.js';
