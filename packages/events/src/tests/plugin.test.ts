@@ -45,7 +45,7 @@ test('onLoad constructs the facade, registers observability, and runs the startu
   assert.equal(plugin.events, undefined, 'no facade before load');
   await plugin.onLoad(fakeApp());
 
-  const events = plugin.events;
+  const events: Events<AppEvents> | undefined = plugin.events;
   if (!events) {
     throw new Error('facade should be constructed after onLoad');
   }
