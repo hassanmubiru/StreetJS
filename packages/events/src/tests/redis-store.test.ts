@@ -94,7 +94,9 @@ test('the facade persists to and replays from the Redis-backed store', async () 
   assert.deepEqual(replayed, ['user.created', 'order.shipped', 'user.updated']);
 
   const onlyUsers: string[] = [];
-  events.on('user.*', (_p, ctx) => onlyUsers.push(ctx.event));
+  events.on('user.*', (_p, ctx) => {
+    onlyUsers.push(ctx.event);
+  });
   // Re-run isolates filtering on the store side.
   const userReplayed = await events.replay({ pattern: 'user.*' });
   assert.equal(userReplayed, 2);
