@@ -44,14 +44,14 @@ export interface WorkerStatus {
  * timeout handling, and retry/DLQ routing are implemented in tasks 6.1–6.3.
  */
 export class WorkerImpl implements Worker {
-  private running = false;
-  private readonly queues: string[];
-  private readonly concurrency: number;
-  private readonly pollIntervalMs: number;
-  private readonly stopWhenEmpty: boolean;
-  private inFlight = 0;
-  private processed = 0;
-  private failed = 0;
+  protected running = false;
+  protected readonly queues: string[];
+  protected readonly concurrency: number;
+  protected readonly pollIntervalMs: number;
+  protected readonly stopWhenEmpty: boolean;
+  protected inFlight = 0;
+  protected processed = 0;
+  protected failed = 0;
 
   constructor(
     protected readonly driver: QueueDriver,
