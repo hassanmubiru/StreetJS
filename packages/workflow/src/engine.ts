@@ -250,9 +250,21 @@ class WorkflowEngineImpl implements WorkflowEngine {
       onResume: (runId) => this.driveExisting(runId),
     });
 
+    // The Queue bridge built from the configured structural QueueLike (if any).
+    // Wiring it as the executor's `runner` is what routes a `viaQueue: true`
+    // activity through `@streetjs/queue`'s `execute` end-to-end; a `viaQueue:false`
+    // activity and a bridgeless run (no `bridges.queue`) still run directly and
+    // produce an observationally equivalent result (Req 16.2, 16.4, 16.5). The
+    // `WorkflowQueueBridge.runActivity` shape satisfies the executor's
+    // `ActivityRunner` contract structurally.
+    const queueBridge = bridgeWorkflowQueue(config?.bridges?.queue);
+
     // One shared executor; per-run cancellation AbortSignals are minted by the
-    // coordinator so `cancel` aborts in-flight activities (Req 4.4, 14.1).
+    // coordinator so `cancel` aborts in-flight activities (Req 4.4, 14.1). The
+    // queue bridge is passed as its `runner` so `viaQueue` activities route
+    // through the wired queue (Req 16.2, 16.5).
     this.executor = new ActivityExecutor({
+      runner: queueBridge,
       clock: this.clock,
       rng: this.rng,
       signalFor: (runId) => this.coordinator.createAbortSignal(runId),
