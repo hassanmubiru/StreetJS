@@ -41,6 +41,9 @@ export type {
 export { ValidationPipeline, BUILT_IN_VALIDATORS } from "./validation.js";
 export type { Validator } from "./validation.js";
 
+// ── Multipart upload manager (src/multipart.ts, task 10.1) ──────────────────
+export { MultipartManager } from "./multipart.js";
+
 // ── Typed metadata layer (src/metadata.ts, task 9.1) ────────────────────────
 export {
   buildObjectMetadata,
