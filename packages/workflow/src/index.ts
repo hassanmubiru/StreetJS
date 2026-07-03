@@ -35,3 +35,6 @@ export {
   PersistenceError,
   ResumeIntegrityError,
 } from "./errors.js";
+
+// --- Backoff delay math (Task 2.3) ---
+export { computeBackoff } from "./backoff.js";
