@@ -623,6 +623,23 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
     return this.versioning.deleteVersion(key, versionId);
   }
 
+  // ── Lifecycle (task 15.1) ────────────────────────────────────────────────────
+
+  /**
+   * Evaluate the lifecycle `rule` and apply its action to every qualifying
+   * object, returning one {@link LifecycleOutcome} per actioned object
+   * (Requirements 13.1, 13.2). Object age is measured against the configured
+   * clock, and each qualifying object is actioned exactly once — a repeated
+   * evaluation produces no further action on an already-actioned object.
+   * Delegates to the driver's native `lifecycle` capability when present and
+   * otherwise simulates the rule over the driver primitives (Requirement 13.3).
+   * Event publication for applied actions (Requirement 13.4) is wired
+   * separately by the Events bridge in a later task.
+   */
+  applyLifecycle(rule: LifecycleRule): Promise<LifecycleOutcome[]> {
+    return this.lifecycle.apply(rule);
+  }
+
   // ── Image processing (task 19.1) ─────────────────────────────────────────────
   get images(): ImageProcessor {
     throw notYetImplementedError("images");
