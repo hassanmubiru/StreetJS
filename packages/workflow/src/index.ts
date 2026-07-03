@@ -95,3 +95,10 @@ export { TERMINAL } from "./types.js";
 // The WorkflowStore/StoreProbe types are re-exported above from "./types.js";
 // here we add the concrete MemoryWorkflowStore value export.
 export { MemoryWorkflowStore } from "./store.js";
+
+// --- The WorkflowEngine facade (Task 14.1) ---
+// `createWorkflow` is the package's public entry point (Req 1.1). The
+// `WorkflowEngine` facade contract is defined in "./engine.js"; `WorkflowHandle`
+// is already re-exported above from "./types.js".
+export { createWorkflow } from "./engine.js";
+export type { WorkflowEngine } from "./engine.js";
