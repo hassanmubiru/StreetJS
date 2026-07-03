@@ -47,6 +47,7 @@ import { MultipartManager } from "./multipart.js";
 import { ResumableManager } from "./resumable.js";
 import { SignedUrlService } from "./signed-url.js";
 import { ValidationPipeline } from "./validation.js";
+import { VersioningManager } from "./versioning.js";
 import type {
   ValidationInput,
   CopyResult,
