@@ -103,8 +103,7 @@
     "@supabase/supabase-js": ">=2.0.0",
     "@google-cloud/storage": ">=7.0.0",
     "@azure/storage-blob": ">=12.0.0",
-    "minio": ">=8.0.0",
-    "backblaze-b2": ">=1.7.0"
+    "minio": ">=8.0.0"
   },
   "peerDependenciesMeta": {
     "typescript": {
@@ -126,9 +125,6 @@
       "optional": true
     },
     "minio": {
-      "optional": true
-    },
-    "backblaze-b2": {
       "optional": true
     }
   },
