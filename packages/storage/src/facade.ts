@@ -1130,20 +1130,49 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
   }
 
   // ── Observability (task 22.1) ────────────────────────────────────────────────
+
+  /**
+   * Return an immutable snapshot of the live operation statistics tracked as
+   * uploads/downloads/multipart/resumable operations occur: uploads, downloads,
+   * bytes uploaded/downloaded, active uploads, failed uploads, storage usage,
+   * multipart uploads, and resumable sessions (Requirement 23.2). Always
+   * available regardless of whether a metrics registry is configured.
+   */
   stats(): StorageStats {
-    throw notYetImplementedError("stats");
-  }
-  probe(): Promise<DriverProbe> {
-    return notImplemented("probe");
+    return {
+      uploads: this.statsState.uploads,
+      downloads: this.statsState.downloads,
+      bytesUploaded: this.statsState.bytesUploaded,
+      bytesDownloaded: this.statsState.bytesDownloaded,
+      activeUploads: this.statsState.activeUploads,
+      failedUploads: this.statsState.failedUploads,
+      storageUsage: this.statsState.storageUsage,
+      multipartUploads: this.statsState.multipartUploads,
+      resumableSessions: this.statsState.resumableSessions,
+    };
   }
 
   /**
-   * Release any resources held by the facade. Task 5.1 holds no resources, so
-   * this is a no-op; later tasks (observability/bridges) extend it to detach
-   * their handles.
+   * Return the driver's best-effort connectivity/quota probe used by the
+   * registered health check (Requirement 23.3). Delegates to the driver's
+   * optional `probe()` when present; otherwise returns a sensible all-available
+   * default (the zero-dependency `memory`/`local` drivers are always reachable,
+   * readable, writable, and unbounded).
+   */
+  async probe(): Promise<DriverProbe> {
+    if (this.driver.probe !== undefined) {
+      return this.driver.probe();
+    }
+    return { connectivity: true, writable: true, readable: true, quotaAvailable: true };
+  }
+
+  /**
+   * Release any resources held by the facade. Stops the observability handle's
+   * refresh timer (when observability is wired); the driver and bridges hold no
+   * timers of their own.
    */
   async close(): Promise<void> {
-    // No resources held yet.
+    this.observability?.close();
   }
 }
 
