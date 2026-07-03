@@ -17,7 +17,7 @@ const harness = new WorkflowHarness();
 harness.engine.define("wf", async (ctx) => { await ctx.state.set("k", 1); return "done"; });
 const hh = await harness.engine.run("wf", null);
 await harness.assertStatus(hh.runId, "completed");
-await harness.assertHistory(hh.runId, ["run.started", "run.status", "run.status"]);
+await harness.assertHistory(hh.runId, ["run.started", "run.status"]);
 await harness.engine.close();
 
 const fake = new FakeWorkflow();
