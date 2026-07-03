@@ -98,19 +98,16 @@ export class MemoryStorageDriver implements StorageDriver {
     const now = this.clock();
     const existing = this.store.get(key);
 
-    const objectMetadata: StorageObjectMetadata = {
+    // Assemble the typed field set through the single source of truth so the
+    // shape and defaults stay identical across every driver (Requirement 10.1).
+    const objectMetadata = buildObjectMetadata({
       key,
       size: stored.byteLength,
-      contentType: metadata.contentType ?? DEFAULT_CONTENT_TYPE,
-      etag: checksum,
       checksum,
-      owner: metadata.owner,
-      tenant: metadata.tenant,
-      accessLevel: metadata.accessLevel ?? DEFAULT_ACCESS_LEVEL,
       createdAt: existing?.metadata.createdAt ?? now,
       updatedAt: now,
-      custom: metadata.custom ?? {},
-    };
+      write: metadata,
+    });
 
     this.store.set(key, { bytes: stored, metadata: objectMetadata });
     return objectMetadata;
