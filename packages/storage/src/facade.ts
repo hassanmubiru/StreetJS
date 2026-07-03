@@ -39,17 +39,20 @@ import { createHash } from "node:crypto";
 import { Buffer } from "node:buffer";
 
 import type { NodeReadable, StorageDriver, StoredPart } from "./driver.js";
+import { AccessController } from "./access.js";
+import type { AccessOperation } from "./access.js";
 import { MemoryStorageDriver } from "./drivers/memory.js";
 import { LocalStorageDriver } from "./drivers/local.js";
 import { StorageConfigError, ValidationError } from "./errors.js";
 import { LifecycleEngine } from "./lifecycle.js";
-import { normalizeMetadata, toWriteMetadata } from "./metadata.js";
+import { DEFAULT_ACCESS_LEVEL, normalizeMetadata, toWriteMetadata } from "./metadata.js";
 import { MultipartManager } from "./multipart.js";
 import { ResumableManager } from "./resumable.js";
 import { SignedUrlService } from "./signed-url.js";
 import { ValidationPipeline } from "./validation.js";
 import { VersioningManager } from "./versioning.js";
 import type {
+  AccessLevel,
   ValidationInput,
   CopyResult,
   GetResult,
@@ -297,6 +300,16 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
    */
   protected readonly lifecycle: LifecycleEngine;
 
+  /**
+   * The provider-agnostic access controller. It resolves per-object
+   * {@link AccessLevel} decisions through the optional structural `config.auth`
+   * bridge, denying disallowed operations with an {@link AuthorizationError}
+   * before any persistence or read occurs (Requirement 11). When no auth bridge
+   * is configured it is a permissive no-op, so drivers that never configure
+   * access control behave exactly as before.
+   */
+  protected readonly access: AccessController;
+
   constructor(driver: StorageDriver, config: StorageConfig) {
     this.driver = driver;
     this.config = config;
@@ -311,6 +324,24 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
     });
     this.versioning = new VersioningManager(driver);
     this.lifecycle = new LifecycleEngine({ driver, clock: config.clock });
+    this.access = new AccessController({ auth: config.auth });
+  }
+
+  /**
+   * Run the access-control check (when an auth bridge is configured) for
+   * `operation` on `key` at the given `accessLevel`, throwing an
+   * {@link AuthorizationError} on denial so the guarded operation performs no
+   * persistence or read (Requirement 11.3). When no auth bridge is configured
+   * this is a no-op and every operation is permitted.
+   */
+  protected async authorizeAccess(
+    key: string,
+    operation: AccessOperation,
+    accessLevel: AccessLevel,
+    owner?: string,
+    tenant?: string,
+  ): Promise<void> {
+    await this.access.authorize({ key, operation, accessLevel, owner, tenant });
   }
 
   /**
@@ -348,6 +379,16 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
     options?: PutOptions,
   ): Promise<StorageObjectMetadata> {
     const bytes = typeof content === "string" ? encodeUtf8(content) : content;
+    // Access control is the first gate: a denied write throws an
+    // AuthorizationError before any validation or persistence, so nothing is
+    // written (Requirement 11.3). No-op when no auth bridge is configured.
+    await this.authorizeAccess(
+      key,
+      "write",
+      options?.accessLevel ?? DEFAULT_ACCESS_LEVEL,
+      options?.owner,
+      options?.tenant,
+    );
     // Validate the fully-known size/contentType/checksum BEFORE any persistence
     // so a rejection aborts the write with no partial object stored (Req 9.3/9.4).
     await this.runValidation({
@@ -377,6 +418,25 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
    * without throwing.
    */
   async get(key: string): Promise<GetResult> {
+    // When access control is enforced, resolve the object's access level from
+    // its metadata and authorize the read BEFORE returning any bytes; a denied
+    // read throws an AuthorizationError and no content is read (Requirement
+    // 11.3). A `public` object is readable without authentication unless the
+    // configured bridge blocks it (Requirement 11.4). This lookup is skipped
+    // entirely when no auth bridge is configured, leaving the default path
+    // unchanged.
+    if (this.access.enforced) {
+      const metadata = await this.driver.stat(key);
+      if (metadata !== null) {
+        await this.authorizeAccess(
+          key,
+          "read",
+          metadata.accessLevel,
+          metadata.owner,
+          metadata.tenant,
+        );
+      }
+    }
     const result = await this.driver.get(key);
     if (result.found) {
       return { found: true, bytes: result.bytes, metadata: normalizeMetadata(result.metadata) };
@@ -394,6 +454,21 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
    * (Requirement 4.4). Deleting a missing key is a no-op at the driver level.
    */
   async delete(key: string): Promise<void> {
+    // Authorize the delete against the object's access level (Requirement
+    // 11.3). Skipped when no auth bridge is configured; a missing object has no
+    // access level to enforce and the driver delete remains a no-op.
+    if (this.access.enforced) {
+      const metadata = await this.driver.stat(key);
+      if (metadata !== null) {
+        await this.authorizeAccess(
+          key,
+          "delete",
+          metadata.accessLevel,
+          metadata.owner,
+          metadata.tenant,
+        );
+      }
+    }
     await this.driver.delete(key);
   }
 
@@ -476,6 +551,15 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
     stream: NodeReadable,
     options?: PutOptions,
   ): Promise<StorageObjectMetadata> {
+    // Access control gates the streamed write before any bytes reach the driver
+    // (Requirement 11.3). No-op when no auth bridge is configured.
+    await this.authorizeAccess(
+      key,
+      "write",
+      options?.accessLevel ?? DEFAULT_ACCESS_LEVEL,
+      options?.owner,
+      options?.tenant,
+    );
     // With no validation configured, stream straight through the driver so large
     // files never fully buffer (Requirement 5.3).
     if (this.validation === undefined) {
@@ -508,6 +592,21 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
    * (Requirement 5.5).
    */
   async getStream(key: string): Promise<NodeReadable> {
+    // Authorize the streamed read against the object's access level before
+    // producing any stream (Requirement 11.3). Skipped entirely when no auth
+    // bridge is configured so the default path is unchanged.
+    if (this.access.enforced) {
+      const metadata = await this.driver.stat(key);
+      if (metadata !== null) {
+        await this.authorizeAccess(
+          key,
+          "read",
+          metadata.accessLevel,
+          metadata.owner,
+          metadata.tenant,
+        );
+      }
+    }
     return this.driver.getStream(key);
   }
 
