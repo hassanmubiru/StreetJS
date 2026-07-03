@@ -62,7 +62,7 @@ test("the workflow accessor exposes a usable engine on load and is released on u
   await plugin.onLoad(app);
 
   // After load the accessor returns a live, usable engine.
-  const engine = plugin.workflow;
+  const engine: WorkflowEngine | undefined = plugin.workflow;
   assert.ok(engine, "the engine is exposed after onLoad");
 
   // The exposed engine actually works end-to-end: define + run a trivial workflow
