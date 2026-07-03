@@ -1,7 +1,7 @@
 {
   "name": "@streetjs/storage",
   "version": "1.0.0",
-  "description": "StreetJS unified object storage framework: a strongly-typed, cloud-agnostic storage facade over a single driver contract with zero-dependency Memory/Local drivers and optional cloud provider submodules (S3, R2, Supabase, GCS, Azure, MinIO, Backblaze). Switching providers is a configuration change, not a rewrite.",
+  "description": "StreetJS unified storage framework: a strongly-typed, plugin-first, driver-based storage abstraction with zero-dependency memory/local drivers, object operations, streaming, validation, typed metadata, multipart and resumable uploads, signed URLs, versioning, lifecycle rules, access control, a directory API, search, image processing, observability, and a testing harness. Provider SDKs are optional peer dependencies behind submodule exports.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -64,14 +64,17 @@
     "street-framework",
     "storage",
     "object-storage",
-    "s3",
-    "cloud-storage",
     "file-storage",
+    "s3",
+    "r2",
+    "supabase",
+    "gcs",
+    "azure",
+    "minio",
+    "backblaze",
+    "signed-url",
     "multipart",
     "resumable",
-    "signed-url",
-    "versioning",
-    "lifecycle",
     "typescript",
     "esm"
   ],
@@ -95,18 +98,35 @@
   },
   "peerDependencies": {
     "typescript": ">=5.0.0",
-    "@aws-sdk/client-s3": "*",
-    "@aws-sdk/s3-request-presigner": "*",
-    "@supabase/supabase-js": "*",
-    "@google-cloud/storage": "*",
-    "@azure/storage-blob": "*"
+    "@aws-sdk/client-s3": ">=3.0.0",
+    "@aws-sdk/s3-request-presigner": ">=3.0.0",
+    "@supabase/supabase-js": ">=2.0.0",
+    "@google-cloud/storage": ">=7.0.0",
+    "@azure/storage-blob": ">=12.0.0",
+    "minio": ">=8.0.0"
   },
   "peerDependenciesMeta": {
-    "@aws-sdk/client-s3": { "optional": true },
-    "@aws-sdk/s3-request-presigner": { "optional": true },
-    "@supabase/supabase-js": { "optional": true },
-    "@google-cloud/storage": { "optional": true },
-    "@azure/storage-blob": { "optional": true }
+    "typescript": {
+      "optional": true
+    },
+    "@aws-sdk/client-s3": {
+      "optional": true
+    },
+    "@aws-sdk/s3-request-presigner": {
+      "optional": true
+    },
+    "@supabase/supabase-js": {
+      "optional": true
+    },
+    "@google-cloud/storage": {
+      "optional": true
+    },
+    "@azure/storage-blob": {
+      "optional": true
+    },
+    "minio": {
+      "optional": true
+    }
   },
   "engines": {
     "node": ">=22.0.0"
