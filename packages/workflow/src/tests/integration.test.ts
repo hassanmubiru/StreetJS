@@ -366,12 +366,22 @@ describe("live pillar bridges (skipped when the pillar package is absent)", () =
       t.skip("@streetjs/storage present but exposes no createStorage factory; skipping");
       return;
     }
+    // Try the built-in in-process providers so a present package is genuinely
+    // exercised; fall back to skipping if no zero-config instance can be built.
+    const build = createStorage as (config?: unknown) => unknown;
     let storage: unknown;
-    try {
-      storage = (createStorage as (config?: unknown) => unknown)({});
-    } catch (error) {
+    let lastError: unknown;
+    for (const config of [{ provider: "memory" }, { provider: "local" }, {}]) {
+      try {
+        storage = build(config);
+        break;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    if (storage === undefined) {
       t.skip(
-        `@streetjs/storage present but no zero-config in-process instance could be built (${String(error)}); skipping`,
+        `@streetjs/storage present but no in-process instance could be built (${String(lastError)}); skipping`,
       );
       return;
     }
