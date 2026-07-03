@@ -23,15 +23,15 @@
  * sorted by key and never surfaces the `.meta.json` sidecar files as objects
  * (Requirement 4.9).
  *
- * NOTE: Real streaming (`putStream` / `getStream` via
- * `fs.createReadStream`/`createWriteStream` so large files never fully buffer)
- * is refined by task 4.2. To keep this class satisfying the full
- * `StorageDriver` interface so `tsc` compiles, the streaming methods here are
- * minimal implementations layered over `put` / `get` (buffer the stream, emit
- * the stored bytes as a `Readable`). `getStream` throws {@link NotFoundError}
- * for a missing key (Requirement 5.5).
+ * Streaming (task 4.2) uses `fs.createReadStream` / `fs.createWriteStream` so
+ * large files are never fully buffered in memory (Requirement 5.3). `putStream`
+ * pipes the incoming stream through a sha-256 hash on the way to disk, tallying
+ * the byte length as it goes, then writes the sidecar with the same metadata
+ * semantics as `put` (preserving the original `createdAt` on overwrite).
+ * `getStream` returns a `fs.createReadStream` of the object and throws
+ * {@link NotFoundError} for a missing key (Requirement 5.5).
  *
- * _Requirements: 2.1, 2.2, 3.2, 4.1, 4.2, 4.3, 4.4, 4.9, 4.10, 10.1_
+ * _Requirements: 2.1, 2.2, 3.2, 4.1, 4.2, 4.3, 4.4, 4.9, 4.10, 5.1, 5.2, 5.3, 5.5, 10.1_
  */
 
 import { createHash } from "node:crypto";
