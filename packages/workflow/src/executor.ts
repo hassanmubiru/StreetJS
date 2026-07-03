@@ -313,12 +313,17 @@ export class ActivityExecutor {
     if (outcome.status === "completed") {
       return outcome.result as Out;
     }
-    const error = new Error(outcome.error.message);
-    error.name = outcome.error.name;
-    if (outcome.error.stack !== undefined) {
-      error.stack = outcome.error.stack;
+    if (outcome.status === "failed") {
+      const error = new Error(outcome.error.message);
+      error.name = outcome.error.name;
+      if (outcome.error.stack !== undefined) {
+        error.stack = outcome.error.stack;
+      }
+      throw error;
     }
-    throw error;
+    // The executor never returns a `waiting` outcome (activities settle to a
+    // terminal result or terminal failure), but narrow exhaustively for safety.
+    throw new Error("Activity executor produced an unexpected waiting outcome.");
   }
 
   // ── Attempt execution ──────────────────────────────────────────────────────────
@@ -434,7 +439,10 @@ export class ActivityExecutor {
   // ── Signal wiring ──────────────────────────────────────────────────────────────
 
   /** Resolve the run-cancellation signal: explicit → factory → non-aborting default (Req 4.4). */
-  private resolveRunSignal(request: ActivityExecutionRequest<unknown>): AbortSignal {
+  private resolveRunSignal(request: {
+    readonly signal?: AbortSignal;
+    readonly runId?: string;
+  }): AbortSignal {
     if (request.signal !== undefined) {
       return request.signal;
     }
