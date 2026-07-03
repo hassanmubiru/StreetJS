@@ -1204,19 +1204,6 @@ async function collectStream(stream: NodeReadable): Promise<Uint8Array> {
   return new Uint8Array(Buffer.concat(chunks));
 }
 
-/** Build the standard "not yet implemented" error for a facade method. */
-function notYetImplementedError(method: string): Error {
-  return new Error(
-    `Storage.${method} is not implemented yet; it is wired in a later task of the ` +
-      `unified-storage-framework spec.`,
-  );
-}
-
-/** Reject with the standard "not yet implemented" error for an async method. */
-function notImplemented(method: string): Promise<never> {
-  return Promise.reject(notYetImplementedError(method));
-}
-
 // ── Public entry point ─────────────────────────────────────────────────────
 
 /**

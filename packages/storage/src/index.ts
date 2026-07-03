@@ -77,6 +77,28 @@ export type { LifecycleEngineOptions } from "./lifecycle.js";
 // ── Search filtering (src/search.ts, task 18.1) ─────────────────────────────
 export { searchObjects } from "./search.js";
 
+// ── Observability wiring (src/observability.ts, task 22.1) ──────────────────
+export {
+  registerStorageObservability,
+  STORAGE_HEALTH_CHECK_NAME,
+  STORAGE_UPLOADS_METRIC,
+  STORAGE_DOWNLOADS_METRIC,
+  STORAGE_BYTES_UPLOADED_METRIC,
+  STORAGE_BYTES_DOWNLOADED_METRIC,
+  STORAGE_ACTIVE_UPLOADS_METRIC,
+  STORAGE_FAILED_UPLOADS_METRIC,
+  STORAGE_USAGE_METRIC,
+  STORAGE_LATENCY_METRIC,
+  STORAGE_MULTIPART_METRIC,
+  STORAGE_RESUMABLE_METRIC,
+} from "./observability.js";
+export type {
+  StorageObservabilityHandle,
+  StorageObservabilityOptions,
+  StorageTelemetry,
+  StorageIntrospect,
+} from "./observability.js";
+
 // ── Events integration bridge (src/integrations/events.ts, task 21.1) ───────
 export { bridgeStorageEvents } from "./integrations/events.js";
 export type {
