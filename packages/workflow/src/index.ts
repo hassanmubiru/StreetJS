@@ -124,3 +124,12 @@ export type {
   WorkflowTelemetry,
   WorkflowIntrospect,
 } from "./observability.js";
+
+// --- Plugin registration (Task 17.1) ---
+// `WorkflowPlugin` extends the core `PluginModule` and operates within
+// `SandboxedApp` constraints; `onLoad` builds the engine via `createWorkflow`
+// (wiring observability from the plugin-option registries and resuming
+// incomplete runs) and exposes it via a `workflow` accessor without modifying
+// any existing public API (Req 23.1, 23.2, 23.3).
+export { WorkflowPlugin } from "./plugin.js";
+export type { WorkflowPluginOptions } from "./plugin.js";
