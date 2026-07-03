@@ -51,9 +51,19 @@
  * Scheduled resumptions are tracked so the read/lifecycle operations and `close`
  * can settle them deterministically.
  *
- * The four pillar bridges and lifecycle broadcast mapping are wired in task 14.3.
- * This module keeps the file structured so those additions slot in without
- * reshaping the facade.
+ * **Bridge wiring and lifecycle broadcast (Req 15–18).** The four structural
+ * pillar bridges (`storage`/`queue`/`events`/`realtime`) are threaded from
+ * `config.bridges` into the {@link WorkflowRuntime}, which builds each `ctx.*`
+ * surface through the `integrations/*` factories (Req 15.1, 16.1, 16.2, 17.1,
+ * 18.1); an operation on an unwired bridge raises a {@link WorkflowConfigError}
+ * from those factories, while a workflow that never touches a bridge runs
+ * unchanged (Req 15.3, 18.4). The engine additionally holds a
+ * {@link WorkflowRealtimeBridge} built from `config.bridges?.realtime` and
+ * broadcasts run-lifecycle events on transitions: `workflow.started` on run
+ * start, `workflow.progress` when a drive parks `waiting`, `workflow.completed`
+ * on completion, `workflow.failed` on a failed/compensated terminal, and
+ * `workflow.cancelled` on cancel (Req 18.2). Broadcasts are best-effort — the
+ * bridge swallows failures so they never propagate into the engine.
  *
  * _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8,
  * 3.2, 3.3, 9.5, 13.1, 13.2, 13.3, 13.4, 14.1, 14.2, 14.4, 20.4_
@@ -544,6 +554,43 @@ class WorkflowEngineImpl implements WorkflowEngine {
     this.trackStatus(result.run.runId, result.status);
     if (TERMINAL.includes(result.status)) {
       this.notifyTerminal(result.run);
+    }
+    // Broadcast the lifecycle event the drive finalized at (Req 18.2). Every
+    // drive path (initial run, resume, coordinator re-drive, auto-resume) flows
+    // through here, so terminal dispositions broadcast exactly once per drive.
+    await this.broadcastDrive(result.run.runId, result.status);
+  }
+
+  /**
+   * Map a {@link WorkflowRuntime.drive} disposition onto its Realtime lifecycle
+   * event and broadcast it (Req 18.2). `completed` → `workflow.completed`,
+   * `failed` → `workflow.failed`, saga `compensated`/`compensating` also map to
+   * `workflow.failed` (the run did not complete successfully), and a `waiting`
+   * park maps to `workflow.progress`. A plain `running` disposition (a resume that
+   * neither parked nor finalized) broadcasts nothing. Cancellation is broadcast
+   * separately in {@link cancel} since it does not flow through a drive.
+   */
+  private async broadcastDrive(runId: string, status: RunStatus): Promise<void> {
+    let event: WorkflowLifecycleEvent | undefined;
+    switch (status) {
+      case "completed":
+        event = "workflow.completed";
+        break;
+      case "failed":
+      case "compensated":
+      case "compensating":
+        event = "workflow.failed";
+        break;
+      case "waiting":
+        event = "workflow.progress";
+        break;
+      default:
+        // `running`/`paused`/`cancelled` are not broadcast from a drive.
+        event = undefined;
+        break;
+    }
+    if (event !== undefined) {
+      await this.realtimeBridge.broadcastLifecycle(event, runId);
     }
   }
 
