@@ -336,10 +336,8 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
     if (!result.found) {
       return { copied: false };
     }
-    const metadata = await this.driver.put(
-      destination,
-      result.bytes,
-      toWriteMetadata(result.metadata),
+    const metadata = normalizeMetadata(
+      await this.driver.put(destination, result.bytes, toWriteMetadata(result.metadata)),
     );
     return { copied: true, metadata };
   }
@@ -355,10 +353,8 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
     if (!result.found) {
       return { moved: false };
     }
-    const metadata = await this.driver.put(
-      destination,
-      result.bytes,
-      toWriteMetadata(result.metadata),
+    const metadata = normalizeMetadata(
+      await this.driver.put(destination, result.bytes, toWriteMetadata(result.metadata)),
     );
     await this.driver.delete(source);
     return { moved: true, metadata };
@@ -387,7 +383,8 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
    * (Requirement 4.10).
    */
   async stat(key: string): Promise<StorageObjectMetadata | null> {
-    return this.driver.stat(key);
+    const metadata = await this.driver.stat(key);
+    return metadata === null ? null : normalizeMetadata(metadata);
   }
 
   // ── Streaming (task 7.1) ─────────────────────────────────────────────────────
