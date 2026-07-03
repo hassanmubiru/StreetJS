@@ -356,8 +356,7 @@ async function buildS3ClientFromSdk(config: S3StorageDriverConfig): Promise<S3Cl
         getSignedUrl: (client: S3SdkClient, command: S3Command, options: unknown) => Promise<string>;
       };
       try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        presigner = (await import(presignModuleId)) as any;
+        presigner = (await import(presignModuleId)) as unknown as typeof presigner;
       } catch (cause) {
         throw new StorageConfigError(
           'The AWS SDK presigner ("@aws-sdk/s3-request-presigner") is required to ' +
@@ -389,6 +388,15 @@ interface S3Command {
 /** Minimal structural shape of the SDK's `S3Client`. */
 interface S3SdkClient {
   send(command: S3Command): Promise<unknown>;
+}
+
+/**
+ * Minimal structural shape of the lazily loaded `@aws-sdk/client-s3` module: the
+ * `S3Client` constructor plus the command constructors indexed by name.
+ */
+interface S3Sdk {
+  readonly S3Client: new (config: unknown) => S3SdkClient;
+  readonly [command: string]: new (input: unknown) => S3Command;
 }
 
 /** Structural shape of a `GetObjectCommand` response (subset we consume). */
