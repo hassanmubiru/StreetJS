@@ -408,6 +408,11 @@ class WorkflowEngineImpl implements WorkflowEngine {
     // Abort any in-flight activity AbortSignal of this run (Req 14.1).
     this.coordinator.abort(runId);
     const cancelled = await this.transition(run, "cancelled");
+    // A cancelled run is a non-success terminal: record any accrued
+    // retries/compensations and observe its duration on the failed counter
+    // (there is no dedicated cancellation counter) (Req 21.3).
+    this.accrueActivityMetrics(cancelled);
+    this.observability.telemetry.onFailed?.(this.runDurationSeconds(cancelled));
     this.notifyTerminal(cancelled);
     // Broadcast the terminal cancellation lifecycle event (Req 18.2). Best-effort
     // and a no-op without a wired realtime bridge (Req 18.4).
@@ -595,7 +600,18 @@ class WorkflowEngineImpl implements WorkflowEngine {
   private async executeDrive(run: WorkflowRun, fn: WorkflowFunction<unknown, unknown>): Promise<void> {
     const result = await this.runtime.drive(run, fn);
     this.trackStatus(result.run.runId, result.status);
+    // Feed the observability counters/histogram from this drive: activity-level
+    // retry/compensation deltas, and — on a terminal disposition — the run's
+    // completed/failed counter and duration histogram (Req 21.3).
+    this.accrueActivityMetrics(result.run);
     if (TERMINAL.includes(result.status)) {
+      const durationSeconds = this.runDurationSeconds(result.run);
+      if (result.status === "completed") {
+        this.observability.telemetry.onCompleted?.(durationSeconds);
+      } else {
+        // `failed` and `compensated` are non-success terminals.
+        this.observability.telemetry.onFailed?.(durationSeconds);
+      }
       this.notifyTerminal(result.run);
     }
     // Broadcast the lifecycle event the drive finalized at (Req 18.2). Every
