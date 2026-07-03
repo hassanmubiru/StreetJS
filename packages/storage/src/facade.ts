@@ -612,51 +612,61 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
     options?: PutOptions,
   ): Promise<StorageObjectMetadata> {
     const bytes = typeof content === "string" ? encodeUtf8(content) : content;
-    // Access control is the first gate: a denied write throws an
-    // AuthorizationError before any validation or persistence, so nothing is
-    // written (Requirement 11.3). No-op when no auth bridge is configured.
-    await this.authorizeAccess(
-      key,
-      "write",
-      options?.accessLevel ?? DEFAULT_ACCESS_LEVEL,
-      options?.owner,
-      options?.tenant,
-    );
-    // Validate the fully-known size/contentType/checksum BEFORE any persistence
-    // so a rejection aborts the write with no partial object stored (Req 9.3/9.4).
-    await this.runValidation({
-      key,
-      size: bytes.byteLength,
-      contentType: options?.contentType,
-      checksum: sha256Hex(bytes),
-      metadata: options,
-    });
-    // When versioning is enabled, snapshot the current content (if any) BEFORE
-    // the overwrite so the prior Version is retained (Requirement 12.1). The
-    // snapshot never throws into this path: a versioning failure returns null
-    // and the overwrite proceeds without a Version (Requirement 12.5).
-    if (this.config.versioning === true) {
-      await this.versioning.snapshot(key);
-    }
-    // Determine whether this write creates a new object or overwrites an
-    // existing one so the correct event (`storage.uploaded` vs
-    // `storage.updated`) is published (Requirement 18.1). The existence probe is
-    // only performed when an events bridge is configured, so the default path is
-    // unchanged and adds no driver call.
-    const existedBefore = this.events !== undefined ? await this.driver.exists(key) : false;
-    // Surface the complete, typed metadata field set (Requirement 10.1) through
-    // the single source of truth so the shape is consistent across drivers.
-    const metadata = normalizeMetadata(await this.driver.put(key, bytes, options ?? {}));
-    // Publish uploaded/updated after a successful persist. The bridge never
-    // throws into this path (Requirement 18.1, 18.2).
-    if (this.events !== undefined) {
-      if (existedBefore) {
-        this.events.updated(metadata);
-      } else {
-        this.events.uploaded(metadata);
+    const startedMs = this.nowMs();
+    try {
+      // Access control is the first gate: a denied write throws an
+      // AuthorizationError before any validation or persistence, so nothing is
+      // written (Requirement 11.3). No-op when no auth bridge is configured.
+      await this.authorizeAccess(
+        key,
+        "write",
+        options?.accessLevel ?? DEFAULT_ACCESS_LEVEL,
+        options?.owner,
+        options?.tenant,
+      );
+      // Validate the fully-known size/contentType/checksum BEFORE any persistence
+      // so a rejection aborts the write with no partial object stored (Req 9.3/9.4).
+      await this.runValidation({
+        key,
+        size: bytes.byteLength,
+        contentType: options?.contentType,
+        checksum: sha256Hex(bytes),
+        metadata: options,
+      });
+      // When versioning is enabled, snapshot the current content (if any) BEFORE
+      // the overwrite so the prior Version is retained (Requirement 12.1). The
+      // snapshot never throws into this path: a versioning failure returns null
+      // and the overwrite proceeds without a Version (Requirement 12.5).
+      if (this.config.versioning === true) {
+        await this.versioning.snapshot(key);
       }
+      // Determine whether this write creates a new object or overwrites an
+      // existing one so the correct event (`storage.uploaded` vs
+      // `storage.updated`) is published (Requirement 18.1). The existence probe is
+      // only performed when an events bridge is configured, so the default path is
+      // unchanged and adds no driver call.
+      const existedBefore = this.events !== undefined ? await this.driver.exists(key) : false;
+      // Surface the complete, typed metadata field set (Requirement 10.1) through
+      // the single source of truth so the shape is consistent across drivers.
+      const metadata = normalizeMetadata(await this.driver.put(key, bytes, options ?? {}));
+      // Publish uploaded/updated after a successful persist. The bridge never
+      // throws into this path (Requirement 18.1, 18.2).
+      if (this.events !== undefined) {
+        if (existedBefore) {
+          this.events.updated(metadata);
+        } else {
+          this.events.uploaded(metadata);
+        }
+      }
+      // Record the successful upload for stats/metrics (Requirement 23.2).
+      this.recordUpload(bytes.byteLength, (this.nowMs() - startedMs) / 1000);
+      return metadata;
+    } catch (error) {
+      // Any pre-persistence rejection (auth/validation) or driver failure counts
+      // as a failed upload (Requirement 23.2). The error propagates unchanged.
+      this.recordUploadFailure();
+      throw error;
     }
-    return metadata;
   }
 
   /**
@@ -686,8 +696,11 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
         );
       }
     }
+    const startedMs = this.nowMs();
     const result = await this.driver.get(key);
     if (result.found) {
+      // Record the successful download for stats/metrics (Requirement 23.2).
+      this.recordDownload(result.bytes.byteLength, (this.nowMs() - startedMs) / 1000);
       return { found: true, bytes: result.bytes, metadata: normalizeMetadata(result.metadata) };
     }
     return { found: false };
