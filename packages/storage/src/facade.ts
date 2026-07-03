@@ -340,6 +340,13 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
       checksum: sha256Hex(bytes),
       metadata: options,
     });
+    // When versioning is enabled, snapshot the current content (if any) BEFORE
+    // the overwrite so the prior Version is retained (Requirement 12.1). The
+    // snapshot never throws into this path: a versioning failure returns null
+    // and the overwrite proceeds without a Version (Requirement 12.5).
+    if (this.config.versioning === true) {
+      await this.versioning.snapshot(key);
+    }
     // Surface the complete, typed metadata field set (Requirement 10.1) through
     // the single source of truth so the shape is consistent across drivers.
     return normalizeMetadata(await this.driver.put(key, bytes, options ?? {}));
@@ -573,14 +580,30 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
   }
 
   // ── Versioning (task 14.1) ───────────────────────────────────────────────────
-  listVersions(_key: string): Promise<VersionInfo[]> {
-    return notImplemented("listVersions");
+
+  /**
+   * Return the {@link VersionInfo} descriptors of the retained Versions for
+   * `key` (Requirement 12.2), delegating to the versioning manager (native
+   * capability when present, otherwise the reserved-key simulation).
+   */
+  listVersions(key: string): Promise<VersionInfo[]> {
+    return this.versioning.listVersions(key);
   }
-  restoreVersion(_key: string, _versionId: string): Promise<StorageObjectMetadata> {
-    return notImplemented("restoreVersion");
+
+  /**
+   * Make the content of the Version identified by `versionId` the current
+   * content of `key` and return the resulting metadata (Requirement 12.3).
+   */
+  restoreVersion(key: string, versionId: string): Promise<StorageObjectMetadata> {
+    return this.versioning.restoreVersion(key, versionId);
   }
-  deleteVersion(_key: string, _versionId: string): Promise<void> {
-    return notImplemented("deleteVersion");
+
+  /**
+   * Remove exactly the Version identified by `versionId` for `key` while
+   * retaining the remaining Versions (Requirement 12.4).
+   */
+  deleteVersion(key: string, versionId: string): Promise<void> {
+    return this.versioning.deleteVersion(key, versionId);
   }
 
   // ── Image processing (task 19.1) ─────────────────────────────────────────────
