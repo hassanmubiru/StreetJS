@@ -24,3 +24,14 @@ export const WORKFLOW_FRAMEWORK_VERSION = "1.0.0" as const;
  * (types, errors, store, engine facade, context) in later tasks.
  */
 export const WORKFLOW_PACKAGE_NAME = "@streetjs/workflow" as const;
+
+// --- Typed error hierarchy (Task 2.2) ---
+export {
+  WorkflowError,
+  RegistrationError,
+  WorkflowNotFoundError,
+  CancelledResumeError,
+  WorkflowConfigError,
+  PersistenceError,
+  ResumeIntegrityError,
+} from "./errors.js";
