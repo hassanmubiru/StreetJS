@@ -120,9 +120,9 @@ test("WorkflowCommands registers on the core CliKernel without collision (Req 24
 test("generateWorkflow emits typed TS importing only public @streetjs/workflow symbols (Req 24.2, 31.4)", () => {
   const result = generateWorkflow("Sample");
 
-  // Path derives from the PascalCase name under the default workflow dir.
-  assert.ok(result.path.endsWith("SampleWorkflow.ts"), `unexpected path: ${result.path}`);
-  assert.ok(result.path.startsWith(DEFAULT_WORKFLOW_DIR), `path not under default dir: ${result.path}`);
+  // Path derives from the PascalCase name under the default workflow dir
+  // (`join` normalizes the leading "./" away).
+  assert.ok(result.path.endsWith("workflows/SampleWorkflow.ts"), `unexpected path: ${result.path}`);
 
   const contents = result.contents;
 
