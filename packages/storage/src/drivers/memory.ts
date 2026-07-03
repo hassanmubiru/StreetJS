@@ -16,17 +16,19 @@
  * come from an injected {@link Clock} (default `systemClock` from `streetjs`) so
  * time is deterministic in tests.
  *
- * NOTE: Streaming (`putStream` / `getStream`) is refined by task 3.2. To keep
- * the class satisfying the full `StorageDriver` interface so `tsc` compiles, this
- * file provides working implementations layered trivially over `put` / `get`
- * (buffer the stream into memory, emit the stored bytes as a `Readable`). Task
- * 3.2 replaces/hardens these with the streaming-specific behavior and tests.
+ * Streaming (`putStream` / `getStream`, task 3.2) is implemented over the
+ * in-memory buffer using Node stream primitives: `putStream` consumes the
+ * supplied `Readable` through a `pipeline` into a collecting `Writable`,
+ * assembling the bytes and persisting them with the same computed metadata as
+ * `put`; `getStream` returns a `Readable` that emits the stored bytes as a
+ * single chunk and throws {@link NotFoundError} for a missing key.
  *
- * _Requirements: 2.1, 3.2, 4.1, 4.2, 4.3, 4.4, 4.9, 4.10, 10.1_
+ * _Requirements: 2.1, 3.2, 4.1, 4.2, 4.3, 4.4, 4.9, 4.10, 5.1, 5.2, 5.5, 10.1_
  */
 
 import { createHash } from "node:crypto";
-import { Readable } from "node:stream";
+import { Readable, Writable } from "node:stream";
+import { pipeline } from "node:stream/promises";
 
 import { systemClock, type Clock } from "streetjs";
 
