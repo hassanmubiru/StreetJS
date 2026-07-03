@@ -769,8 +769,16 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
   }
 
   // ── Search (task 18.1) ───────────────────────────────────────────────────────
-  search(_filters: SearchFilters): Promise<StorageListItem[]> {
-    return notImplemented("search");
+
+  /**
+   * Return the stored objects that satisfy **every** supplied filter
+   * (Requirement 16.2), evaluated over the driver's `list` + `stat` primitives.
+   * Filtering is conjunctive across prefix, content type, owner, tenant, size
+   * range, updated-time range, and custom metadata (Requirement 16.1); when no
+   * object matches, an empty result set is returned (Requirement 16.3).
+   */
+  search(filters: SearchFilters): Promise<StorageListItem[]> {
+    return searchObjects(this.driver, filters);
   }
 
   // ── Observability (task 22.1) ────────────────────────────────────────────────
