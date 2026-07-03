@@ -1,0 +1,87 @@
+{
+  "name": "@streetjs/gateway",
+  "version": "0.1.0",
+  "description": "StreetJS API Gateway & Edge Framework: strongly-typed, additive reverse proxy with priority/wildcard/regex routing, pluggable load balancing, health-filtered upstreams, circuit breaking, retries/timeouts, rate limiting, auth/authz, request validation, response transformation, API versioning, CORS, compression, structured logging, metrics, a plugin, a CLI, and Redis-free testing utilities over the streetjs core.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./testing": {
+      "import": "./dist/testing/index.js",
+      "types": "./dist/testing/index.d.ts"
+    }
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.js.map",
+    "dist/**/*.d.ts",
+    "dist/**/*.d.ts.map",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test dist/tests/*.test.js",
+    "example": "npm run build && node dist/examples/edge/index.js",
+    "lint": "tsc --noEmit",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\""
+  },
+  "keywords": [
+    "streetjs",
+    "street-framework",
+    "gateway",
+    "api-gateway",
+    "reverse-proxy",
+    "edge",
+    "routing",
+    "load-balancing",
+    "circuit-breaker",
+    "rate-limiting",
+    "cors",
+    "compression",
+    "typescript",
+    "esm"
+  ],
+  "author": "street contributors",
+  "license": "MIT",
+  "homepage": "https://hassanmubiru.github.io/StreetJS/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hassanmubiru/StreetJS.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hassanmubiru/StreetJS/issues"
+  },
+  "dependencies": {
+    "streetjs": "^1.0.25"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.2",
+    "fast-check": "^4.8.0",
+    "typescript": "^6.0.3"
+  },
+  "peerDependencies": {
+    "@streetjs/realtime": ">=1.0.0",
+    "@streetjs/queue": ">=1.0.0",
+    "@streetjs/events": ">=1.0.0",
+    "@streetjs/storage": ">=1.0.0",
+    "typescript": ">=5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@streetjs/realtime": { "optional": true },
+    "@streetjs/queue": { "optional": true },
+    "@streetjs/events": { "optional": true },
+    "@streetjs/storage": { "optional": true },
+    "typescript": { "optional": true }
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
