@@ -38,3 +38,55 @@ export {
 
 // --- Backoff delay math (Task 2.3) ---
 export { computeBackoff } from "./backoff.js";
+
+// --- Shared typed models (Task 2.1) ---
+export type {
+  // Run status + durable run
+  RunStatus,
+  WorkflowRun,
+  // Command journaling
+  CommandRecord,
+  CommandKind,
+  HistoryEvent,
+  RecordedSignal,
+  SerializedError,
+  // Retry + backoff
+  RetryPolicy,
+  Backoff,
+  // Activities, options, middleware, compensation
+  Activity,
+  ActivityOptions,
+  ActivityMiddleware,
+  Compensation,
+  Saga,
+  Branch,
+  ParallelInput,
+  // ctx surface
+  WorkflowContext,
+  QueueContext,
+  EventsContext,
+  StorageContext,
+  RealtimeContext,
+  WorkflowMetadata,
+  WorkflowState,
+  WorkflowLogger,
+  // Function + handle
+  WorkflowFunction,
+  WorkflowHandle,
+  // Structural pillar bridge contracts
+  StorageLike,
+  QueueLike,
+  EventsLike,
+  RealtimeLike,
+  // Persistence contract
+  WorkflowStore,
+  StoreProbe,
+  // Summaries, config, options, stats
+  WorkflowSummary,
+  WorkflowConfig,
+  RunOptions,
+  WorkflowStats,
+} from "./types.js";
+
+// Value re-export: the terminal Run_Status set (Task 2.1).
+export { TERMINAL } from "./types.js";
