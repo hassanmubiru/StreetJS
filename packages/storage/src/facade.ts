@@ -42,6 +42,7 @@ import type { NodeReadable, StorageDriver, StoredPart } from "./driver.js";
 import { AccessController } from "./access.js";
 import type { AccessOperation } from "./access.js";
 import { StorageDirectoryApi } from "./directory.js";
+import { StorageImageProcessor } from "./image.js";
 import { MemoryStorageDriver } from "./drivers/memory.js";
 import { LocalStorageDriver } from "./drivers/local.js";
 import { StorageConfigError, ValidationError } from "./errors.js";
@@ -86,14 +87,77 @@ import type {
 export interface PutOptions extends WriteMetadata {}
 
 /**
- * Placeholder for the image processing surface exposed as `storage.images`.
+ * The output image formats the {@link ImageProcessor} can emit (Requirement
+ * 14.2).
+ */
+export type ImageFormat = "webp" | "avif" | "png" | "jpeg";
+
+/** A resize transformation: at least one of width/height (pixels). */
+export interface ImageResize {
+  readonly width?: number;
+  readonly height?: number;
+}
+
+/** A crop transformation: a rectangular region (pixels) of the source. */
+export interface ImageCrop {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+}
+
+/** A fit transformation: fit the image within a bounding box (pixels). */
+export interface ImageFit {
+  readonly width: number;
+  readonly height: number;
+  /** Optional fit strategy hint for codecs that support it. */
+  readonly mode?: "cover" | "contain" | "fill" | "inside" | "outside";
+}
+
+/**
+ * The transformation / format-conversion parameters accepted by
+ * {@link ImageProcessor.transform}. Every field is optional so a caller
+ * combines only the operations they need; all supported transformations
+ * (resize, crop, rotate, fit, thumbnail, compress — Requirement 14.1) and the
+ * output `format` selection (Requirement 14.2) are expressed here.
+ */
+export interface ImageOperations {
+  /** Resize to the given width/height. */
+  readonly resize?: ImageResize;
+  /** Crop to the given rectangle. */
+  readonly crop?: ImageCrop;
+  /** Rotate by the given number of degrees. */
+  readonly rotate?: number;
+  /** Fit within the given bounding box. */
+  readonly fit?: ImageFit;
+  /** Produce a square thumbnail of the given edge size (pixels). */
+  readonly thumbnail?: { readonly size: number };
+  /** Compress at the given quality (0–100). */
+  readonly compress?: { readonly quality: number };
+  /** Convert the output to this format (defaults to the source format). */
+  readonly format?: ImageFormat;
+  /** Output quality (0–100) applied by the codec when it supports it. */
+  readonly quality?: number;
+}
+
+/**
+ * The image processing surface exposed as `storage.images` (Requirement 14).
  *
- * The full {@link ImageProcessor} is implemented in `src/image.ts` (task 19),
- * at which point this facade imports it from that module. It is declared here
- * only so the {@link Storage} interface type-checks in the interim.
+ * The concrete implementation lives in `src/image.ts`
+ * ({@link StorageImageProcessor}); this interface is the stable public type,
+ * owned here so it re-exports cleanly from `index.ts`. It supports the
+ * resize/crop/rotate/fit/thumbnail/compress transformations and webp/avif/png/
+ * jpeg output formats, performed through the optional structural
+ * `config.imageCodec`.
  */
 export interface ImageProcessor {
-  transform(key: string, operations: Record<string, unknown>): Promise<StorageObjectMetadata>;
+  /**
+   * Produce a transformed / reformatted variant of the image stored at `key`,
+   * returning the variant's {@link StorageObjectMetadata}. A non-image source
+   * yields a descriptive error without modifying the source object
+   * (Requirement 14.4).
+   */
+  transform(key: string, operations: ImageOperations): Promise<StorageObjectMetadata>;
 }
 
 /**
@@ -742,8 +806,28 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
   }
 
   // ── Image processing (task 19.1) ─────────────────────────────────────────────
+
+  /**
+   * The lazily-constructed image processor exposed as `storage.images`. Built on
+   * first access and reused thereafter so its transformation cache is shared
+   * across calls on the same facade (Requirement 14.3).
+   */
+  private imageProcessor?: ImageProcessor;
+
+  /**
+   * The image processing surface (`transform`) implemented over the driver and
+   * the optional structural `config.imageCodec`. It supports the
+   * resize/crop/rotate/fit/thumbnail/compress transformations and webp/avif/png/
+   * jpeg output formats (Requirements 14.1, 14.2), caches identical
+   * transformations (Requirement 14.3), and rejects a non-image source with an
+   * {@link UnsupportedImageError} without modifying the source object
+   * (Requirement 14.4). Lazily constructed and cached.
+   */
   get images(): ImageProcessor {
-    throw notYetImplementedError("images");
+    if (this.imageProcessor === undefined) {
+      this.imageProcessor = new StorageImageProcessor(this.driver, this.config.imageCodec);
+    }
+    return this.imageProcessor;
   }
 
   // ── Directory API (task 17.1) ────────────────────────────────────────────────

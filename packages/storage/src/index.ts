@@ -34,8 +34,16 @@ export type {
   Storage,
   PutOptions,
   ImageProcessor,
+  ImageOperations,
+  ImageFormat,
+  ImageResize,
+  ImageCrop,
+  ImageFit,
   DirectoryApi,
 } from "./facade.js";
+
+// ── Image processor (src/image.ts, task 19.1) ───────────────────────────────
+export { StorageImageProcessor, IMAGE_VARIANT_PREFIX } from "./image.js";
 
 // ── Validation pipeline (src/validation.ts, task 8.1) ───────────────────────
 export { ValidationPipeline, BUILT_IN_VALIDATORS } from "./validation.js";
