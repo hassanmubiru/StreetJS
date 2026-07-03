@@ -234,38 +234,88 @@ export class LocalStorageDriver implements StorageDriver {
     return items;
   }
 
-  // ── Streaming (placeholder; refined by task 4.2) ────────────────────────────
+  // ── Streaming ───────────────────────────────────────────────────────────────
 
   /**
-   * Persist a streamed upload. Implemented here trivially over {@link put} by
-   * buffering the stream into memory; task 4.2 refines this to stream bytes
-   * to disk via `fs.createWriteStream` so large files never fully buffer
-   * (Requirement 5.1).
+   * Persist a streamed upload to `root/<key>` using `fs.createWriteStream` so
+   * the object is never fully buffered in memory (Requirements 5.1, 5.3).
+   * Parent directories are created on demand. As bytes flow to disk they are
+   * piped through a sha-256 hash and the running byte count is tallied, giving
+   * the `checksum`/`etag`/`size` without a second pass. Once the stream is
+   * drained the metadata sidecar is written with the same semantics as
+   * {@link put}: an existing key's original `createdAt` is preserved and only
+   * `updatedAt` advances (Requirements 4.1, 10.1).
    */
   async putStream(
     key: string,
     stream: NodeReadable,
     metadata: WriteMetadata,
   ): Promise<StorageObjectMetadata> {
-    const chunks: Buffer[] = [];
-    for await (const chunk of stream) {
-      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk as Uint8Array));
-    }
-    return this.put(key, new Uint8Array(Buffer.concat(chunks)), metadata);
+    // Read any existing metadata up front so an overwrite preserves createdAt.
+    const existing = await this.readMeta(key);
+
+    const objectPath = this.objectPath(key);
+    await fs.mkdir(path.dirname(objectPath), { recursive: true });
+
+    const hash = createHash("sha256");
+    let size = 0;
+
+    // Pipe the source through a transform that hashes and counts each chunk on
+    // its way to the write stream. Nothing is retained in memory beyond the
+    // current chunk, so arbitrarily large uploads stream straight to disk.
+    await pipeline(
+      stream,
+      async function* hashAndCount(source: AsyncIterable<unknown>) {
+        for await (const chunk of source) {
+          const buf = Buffer.isBuffer(chunk)
+            ? chunk
+            : Buffer.from(chunk as Uint8Array);
+          hash.update(buf);
+          size += buf.byteLength;
+          yield buf;
+        }
+      },
+      createWriteStream(objectPath),
+    );
+
+    const checksum = hash.digest("hex");
+    const now = this.clock();
+
+    const objectMetadata: StorageObjectMetadata = {
+      key,
+      size,
+      contentType: metadata.contentType ?? DEFAULT_CONTENT_TYPE,
+      etag: checksum,
+      checksum,
+      owner: metadata.owner,
+      tenant: metadata.tenant,
+      accessLevel: metadata.accessLevel ?? DEFAULT_ACCESS_LEVEL,
+      createdAt: existing?.createdAt ?? now,
+      updatedAt: now,
+      custom: metadata.custom ?? {},
+    };
+
+    await fs.writeFile(this.metaPath(key), JSON.stringify(objectMetadata), "utf8");
+
+    return objectMetadata;
   }
 
   /**
-   * Return a readable stream of the object at `key`. Implemented here trivially
-   * over {@link get} by emitting the stored bytes; task 4.2 refines this to use
-   * `fs.createReadStream`. Throws {@link NotFoundError} for a missing key
-   * (Requirement 5.5).
+   * Return a `fs.createReadStream` of the object at `key` so readers pull bytes
+   * incrementally without buffering the whole object (Requirements 5.2, 5.3).
+   * Throws {@link NotFoundError} when the key is missing (Requirement 5.5).
    */
   async getStream(key: string): Promise<NodeReadable> {
-    const result = await this.get(key);
-    if (!result.found) {
-      throw new NotFoundError(key);
+    const objectPath = this.objectPath(key);
+    try {
+      await fs.access(objectPath);
+    } catch (error) {
+      if (isNotFound(error)) {
+        throw new NotFoundError(key);
+      }
+      throw error;
     }
-    return Readable.from(Buffer.from(result.bytes));
+    return createReadStream(objectPath);
   }
 
   // ── Internal helpers ────────────────────────────────────────────────────────
