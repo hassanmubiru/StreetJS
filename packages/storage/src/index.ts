@@ -17,3 +17,13 @@ export const STORAGE_FRAMEWORK_VERSION = "1.0.0" as const;
  * (types, errors, drivers, facade) in later tasks.
  */
 export const STORAGE_PACKAGE_NAME = "@streetjs/storage" as const;
+
+// ── Typed error hierarchy (task 2.2) ────────────────────────────────────────
+export {
+  StorageError,
+  StorageConfigError,
+  NotFoundError,
+  ValidationError,
+  AuthorizationError,
+  UnsupportedImageError,
+} from "./errors.js";
