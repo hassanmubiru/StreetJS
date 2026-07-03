@@ -208,12 +208,17 @@ export class MemoryStorageDriver implements StorageDriver {
     return items;
   }
 
-  // ── Streaming (placeholder; refined by task 3.2) ────────────────────────────
+  // ── Streaming ───────────────────────────────────────────────────────────────
 
   /**
-   * Persist a streamed upload. Implemented here trivially over {@link put} by
-   * buffering the stream into memory; task 3.2 refines this with proper
-   * streaming semantics (Requirement 5.1).
+   * Consume a Node {@link Readable} and persist the assembled bytes under `key`
+   * with the same computed metadata as {@link put} (Requirement 5.1).
+   *
+   * The stream is drained through a `pipeline` into a collecting `Writable`,
+   * which gives correct backpressure and propagates read/abort errors (a failed
+   * source stream rejects the returned promise and stores nothing). Each chunk
+   * is normalized to a `Buffer`; the concatenation is handed to {@link put} so
+   * checksum/etag/size/timestamps are computed identically to a buffered write.
    */
   async putStream(
     key: string,
@@ -221,24 +226,37 @@ export class MemoryStorageDriver implements StorageDriver {
     metadata: WriteMetadata,
   ): Promise<StorageObjectMetadata> {
     const chunks: Buffer[] = [];
-    for await (const chunk of stream) {
-      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk as Uint8Array));
-    }
+    const collector = new Writable({
+      write(chunk: unknown, _encoding, callback): void {
+        chunks.push(
+          Buffer.isBuffer(chunk)
+            ? chunk
+            : Buffer.from(chunk as Uint8Array),
+        );
+        callback();
+      },
+    });
+
+    await pipeline(stream, collector);
+
     return this.put(key, new Uint8Array(Buffer.concat(chunks)), metadata);
   }
 
   /**
-   * Return a readable stream of the object at `key`. Implemented here trivially
-   * over {@link get} by emitting the stored bytes; task 3.2 refines this with
-   * proper streaming semantics. Throws {@link NotFoundError} for a missing key
-   * (Requirement 5.2, 5.5).
+   * Return a Node {@link Readable} of the stored bytes at `key` (Requirement
+   * 5.2). Throws {@link NotFoundError} for a missing key (Requirement 5.5).
+   *
+   * The stored bytes are copied and wrapped in a single-element array so
+   * `Readable.from` emits them as one intact chunk (passing a `Buffer` directly
+   * would iterate it byte-by-byte). The copy ensures a consumer draining the
+   * stream can never observe or mutate the backing store.
    */
   async getStream(key: string): Promise<NodeReadable> {
-    const result = await this.get(key);
-    if (!result.found) {
+    const entry = this.store.get(key);
+    if (entry === undefined) {
       throw new NotFoundError(key);
     }
-    return Readable.from(Buffer.from(result.bytes));
+    return Readable.from([Buffer.from(entry.bytes)]);
   }
 }
 
