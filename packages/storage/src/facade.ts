@@ -706,26 +706,39 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
       options?.owner,
       options?.tenant,
     );
-    // With no validation configured, stream straight through the driver so large
-    // files never fully buffer (Requirement 5.3).
-    if (this.validation === undefined) {
-      return normalizeMetadata(await this.driver.putStream(key, stream, options ?? {}));
+    // Broadcast the upload state transitions through the realtime bridge when
+    // configured (Requirement 19.1). Every broadcast is isolated so it never
+    // breaks the upload path (Requirement 19.3).
+    this.realtime?.started(key);
+    try {
+      // With no validation configured, stream straight through the driver so
+      // large files never fully buffer (Requirement 5.3).
+      if (this.validation === undefined) {
+        const metadata = normalizeMetadata(await this.driver.putStream(key, stream, options ?? {}));
+        this.realtime?.completed(key);
+        return metadata;
+      }
+      // With validation configured, size and checksum can only be known once the
+      // full stream is collected. We buffer the stream, validate the complete
+      // input, and only then persist via `driver.put`. Because the driver is not
+      // touched until validation passes, a rejection leaves no partial object
+      // stored (Requirement 9.4); persistence still happens as a single atomic
+      // write on success (Requirement 9.3).
+      const bytes = await collectStream(stream);
+      await this.runValidation({
+        key,
+        size: bytes.byteLength,
+        contentType: options?.contentType,
+        checksum: sha256Hex(bytes),
+        metadata: options,
+      });
+      const metadata = normalizeMetadata(await this.driver.put(key, bytes, options ?? {}));
+      this.realtime?.completed(key);
+      return metadata;
+    } catch (error) {
+      this.realtime?.failed(key, error instanceof Error ? error.message : String(error));
+      throw error;
     }
-    // With validation configured, size and checksum can only be known once the
-    // full stream is collected. We buffer the stream, validate the complete
-    // input, and only then persist via `driver.put`. Because the driver is not
-    // touched until validation passes, a rejection leaves no partial object
-    // stored (Requirement 9.4); persistence still happens as a single atomic
-    // write on success (Requirement 9.3).
-    const bytes = await collectStream(stream);
-    await this.runValidation({
-      key,
-      size: bytes.byteLength,
-      contentType: options?.contentType,
-      checksum: sha256Hex(bytes),
-      metadata: options,
-    });
-    return normalizeMetadata(await this.driver.put(key, bytes, options ?? {}));
   }
 
   /**
