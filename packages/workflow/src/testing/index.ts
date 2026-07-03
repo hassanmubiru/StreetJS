@@ -174,9 +174,9 @@ export interface RecordedSignalDelivery {
  * *what the code under test asked the engine to do* — with no execution side
  * effects and no external dependency (Requirements 25.1, 25.2).
  *
- * The captured interactions are exposed through the readonly {@link definitions0},
- * {@link startedRuns}, and {@link deliveredSignals} collections and the query
- * helpers {@link runsOf}/{@link signalsFor}.
+ * The captured interactions are exposed through the readonly
+ * {@link definedWorkflows}, {@link startedRuns}, and {@link deliveredSignals}
+ * collections and the query helpers {@link runsOf}/{@link signalsFor}.
  */
 export class FakeWorkflow implements WorkflowEngine {
   /** Registered definitions by name (duplicate registration raises {@link RegistrationError}). */
