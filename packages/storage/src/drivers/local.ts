@@ -44,6 +44,7 @@ import { systemClock, type Clock } from "streetjs";
 
 import type { MaybeObject, NodeReadable, StorageDriver } from "../driver.js";
 import { NotFoundError } from "../errors.js";
+import { buildObjectMetadata } from "../metadata.js";
 import type {
   ListOptions,
   StorageListItem,
@@ -58,12 +59,6 @@ export interface LocalStorageDriverOptions {
   /** Injected clock for deterministic timestamps in tests. Default `systemClock`. */
   readonly clock?: Clock;
 }
-
-/** Default content type applied when a write does not specify one. */
-const DEFAULT_CONTENT_TYPE = "application/octet-stream";
-
-/** Default access level applied when a write does not specify one. */
-const DEFAULT_ACCESS_LEVEL = "private" as const;
 
 /** Suffix identifying the metadata sidecar file for an object. */
 const META_SUFFIX = ".meta.json";
