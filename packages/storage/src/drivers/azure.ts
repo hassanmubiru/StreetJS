@@ -647,7 +647,7 @@ function sha256Hex(bytes: Uint8Array): string {
 async function collectStream(stream: NodeJS.ReadableStream): Promise<Uint8Array> {
   const chunks: Buffer[] = [];
   for await (const chunk of stream) {
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk as Uint8Array));
+    chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : Buffer.from(chunk));
   }
   return new Uint8Array(Buffer.concat(chunks));
 }
