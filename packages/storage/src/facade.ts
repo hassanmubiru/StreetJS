@@ -827,8 +827,19 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
    * and returning its metadata (Requirements 7.2, 7.3). The completed object is
    * byte-identical to an equivalent uninterrupted upload.
    */
-  resumeUpload(sessionId: string, stream: NodeReadable): Promise<StorageObjectMetadata> {
-    return this.resumable.resume(sessionId, stream);
+  async resumeUpload(sessionId: string, stream: NodeReadable): Promise<StorageObjectMetadata> {
+    // Broadcast the resumed upload's state transitions through the realtime
+    // bridge when configured (Requirement 19.1); every broadcast is isolated so
+    // it never breaks the upload path (Requirement 19.3).
+    this.realtime?.started(sessionId);
+    try {
+      const metadata = await this.resumable.resume(sessionId, stream);
+      this.realtime?.completed(metadata.key);
+      return metadata;
+    } catch (error) {
+      this.realtime?.failed(sessionId, error instanceof Error ? error.message : String(error));
+      throw error;
+    }
   }
 
   /**
