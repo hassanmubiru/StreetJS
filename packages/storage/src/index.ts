@@ -99,6 +99,10 @@ export type {
   StorageIntrospect,
 } from "./observability.js";
 
+// ── Storage plugin (src/plugin.ts, task 23.1) ───────────────────────────────
+export { StoragePlugin } from "./plugin.js";
+export type { StoragePluginOptions } from "./plugin.js";
+
 // ── Events integration bridge (src/integrations/events.ts, task 21.1) ───────
 export { bridgeStorageEvents } from "./integrations/events.js";
 export type {
