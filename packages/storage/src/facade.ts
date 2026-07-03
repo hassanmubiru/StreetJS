@@ -58,6 +58,8 @@ import { bridgeStorageEvents } from "./integrations/events.js";
 import type { StorageEventPublisher } from "./integrations/events.js";
 import { bridgeStorageQueue } from "./integrations/queue.js";
 import type { StorageQueuePublisher } from "./integrations/queue.js";
+import { bridgeStorageRealtime } from "./integrations/realtime.js";
+import type { StorageRealtimePublisher } from "./integrations/realtime.js";
 import type {
   AccessLevel,
   ValidationInput,
@@ -404,6 +406,17 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
    */
   protected readonly queue?: StorageQueuePublisher;
 
+  /**
+   * The typed Realtime bridge, present only when `config.bridges?.realtime` is
+   * supplied. When defined, upload state transitions (`putStream`/`resumeUpload`
+   * → started/completed, and failed on error) broadcast the corresponding typed
+   * `upload.*` event through it (Requirement 19.1). Every broadcast is isolated
+   * so a failing realtime layer never breaks the upload (Requirement 19.3). When
+   * no realtime bridge is configured this is `undefined` and broadcasting is a
+   * complete no-op — uploads proceed unaffected (Requirement 19.3).
+   */
+  protected readonly realtime?: StorageRealtimePublisher;
+
   constructor(driver: StorageDriver, config: StorageConfig) {
     this.driver = driver;
     this.config = config;
@@ -414,6 +427,10 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
     this.queue =
       config.bridges?.queue !== undefined
         ? bridgeStorageQueue(config.bridges.queue)
+        : undefined;
+    this.realtime =
+      config.bridges?.realtime !== undefined
+        ? bridgeStorageRealtime(config.bridges.realtime)
         : undefined;
     this.validation =
       config.validation !== undefined ? new ValidationPipeline(config.validation) : undefined;
