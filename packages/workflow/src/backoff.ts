@@ -12,27 +12,11 @@
 // `exponential` → `min(base * multiplier^(attempt - 1), maxDelay)`. The `linear`
 // and `jitter` strategies are the additions the workflow requirements layer on
 // (Req 6.4, 6.6). No separate retry system is introduced (Req 6.9).
+//
+// The canonical `Backoff` type is the single source of truth in `src/types.ts`
+// and is imported here (Req 6.1); this module owns only the pure delay math.
 
-/**
- * The per-attempt delay strategy (Req 6.1). `fixed`/`exponential` mirror the
- * @streetjs/queue vocabulary; `linear`/`jitter` are the workflow additions.
- *
- * NOTE: This is a module-local STRUCTURAL definition so that `backoff.ts`
- * compiles independently of the concurrently authored `src/types.ts` (task 2.1).
- * The canonical `Backoff` type is exported from `src/types.ts`; this shape is
- * structurally identical, so a canonical `Backoff` value is assignable here.
- * TODO(task 2.1): once `src/types.ts` lands, import `Backoff` from `./types.js`.
- */
-export type Backoff =
-  | { readonly strategy: "fixed"; readonly delayMs: number } // Req 6.5
-  | { readonly strategy: "linear"; readonly baseMs: number; readonly maxDelayMs: number } // Req 6.4
-  | {
-      readonly strategy: "exponential";
-      readonly baseMs: number;
-      readonly multiplier: number;
-      readonly maxDelayMs: number;
-    } // Req 6.3
-  | { readonly strategy: "jitter"; readonly maxDelayMs: number }; // Req 6.6
+import type { Backoff } from "./types.js";
 
 /**
  * Compute the backoff delay (in ms) to wait before the given `attempt` of an
