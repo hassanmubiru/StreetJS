@@ -93,6 +93,14 @@ export type {
   StorageQueuePublisher,
 } from "./integrations/queue.js";
 
+// ── Realtime integration bridge (src/integrations/realtime.ts, task 21.3) ───
+export { bridgeStorageRealtime, STORAGE_UPLOAD_CHANNEL } from "./integrations/realtime.js";
+export type {
+  StorageRealtimeEventName,
+  StorageRealtimeEventPayload,
+  StorageRealtimePublisher,
+} from "./integrations/realtime.js";
+
 // ── Typed metadata layer (src/metadata.ts, task 9.1) ────────────────────────
 export {
   buildObjectMetadata,
