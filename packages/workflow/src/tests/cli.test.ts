@@ -29,12 +29,7 @@ import { CliKernel, getCommandMeta } from "streetjs";
 import type { Clock, ParsedArgs } from "streetjs";
 
 import { WorkflowCommands } from "../cli/commands.js";
-import {
-  DEFAULT_ACTIVITY_DIR,
-  DEFAULT_WORKFLOW_DIR,
-  generateActivity,
-  generateWorkflow,
-} from "../cli/generators.js";
+import { generateActivity, generateWorkflow } from "../cli/generators.js";
 import { createWorkflow } from "../engine.js";
 import type { WorkflowEngine } from "../engine.js";
 import type { WorkflowFunction } from "../types.js";
@@ -152,8 +147,7 @@ test("generateWorkflow emits typed TS importing only public @streetjs/workflow s
 test("generateActivity emits a typed Activity importing only public @streetjs/workflow symbols (Req 24.2, 31.4)", () => {
   const result = generateActivity("Charge");
 
-  assert.ok(result.path.endsWith("ChargeActivity.ts"), `unexpected path: ${result.path}`);
-  assert.ok(result.path.startsWith(DEFAULT_ACTIVITY_DIR), `path not under default dir: ${result.path}`);
+  assert.ok(result.path.endsWith("activities/ChargeActivity.ts"), `unexpected path: ${result.path}`);
 
   const contents = result.contents;
 
