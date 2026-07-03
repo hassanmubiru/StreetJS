@@ -90,3 +90,8 @@ export type {
 
 // Value re-export: the terminal Run_Status set (Task 2.1).
 export { TERMINAL } from "./types.js";
+
+// --- Persistence store: zero-dependency default (Task 3.1) ---
+// The WorkflowStore/StoreProbe types are re-exported above from "./types.js";
+// here we add the concrete MemoryWorkflowStore value export.
+export { MemoryWorkflowStore } from "./store.js";
