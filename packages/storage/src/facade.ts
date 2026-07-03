@@ -426,6 +426,29 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
   }
 }
 
+/** Encode a string payload as UTF-8 bytes for storage. */
+function encodeUtf8(value: string): Uint8Array {
+  return new TextEncoder().encode(value);
+}
+
+/**
+ * Derive the write-time {@link WriteMetadata} from an existing object's
+ * {@link StorageObjectMetadata}, carried forward when copying/moving so the
+ * destination object preserves the source's content type, ownership, tenancy,
+ * access level, and custom fields. Identity/timestamp fields (`etag`/`checksum`/
+ * `size`/`createdAt`/`updatedAt`) are intentionally omitted — the driver
+ * recomputes them for the destination object.
+ */
+function toWriteMetadata(metadata: StorageObjectMetadata): WriteMetadata {
+  return {
+    contentType: metadata.contentType,
+    owner: metadata.owner,
+    tenant: metadata.tenant,
+    accessLevel: metadata.accessLevel,
+    custom: metadata.custom,
+  };
+}
+
 /** Build the standard "not yet implemented" error for a facade method. */
 function notYetImplementedError(method: string): Error {
   return new Error(
