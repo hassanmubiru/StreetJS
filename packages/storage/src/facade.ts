@@ -49,6 +49,7 @@ import { LifecycleEngine } from "./lifecycle.js";
 import { DEFAULT_ACCESS_LEVEL, normalizeMetadata, toWriteMetadata } from "./metadata.js";
 import { MultipartManager } from "./multipart.js";
 import { ResumableManager } from "./resumable.js";
+import { searchObjects } from "./search.js";
 import { SignedUrlService } from "./signed-url.js";
 import { ValidationPipeline } from "./validation.js";
 import { VersioningManager } from "./versioning.js";
