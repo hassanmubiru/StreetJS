@@ -392,7 +392,7 @@ describe('PostgreSQL Wire Protocol', pgSuite, () => {
 
 // ─── Suite 5: PgPool ────────────────────────────────────────────────────────
 
-describe('PgPool', () => {
+describe('PgPool', pgSuite, () => {
   let pool: PgPool;
 
   before(async () => {
@@ -447,7 +447,7 @@ describe('PgPool', () => {
 
 // ─── Suite 6: Repository & Migrations ───────────────────────────────────────
 
-describe('Repository & Migrations', () => {
+describe('Repository & Migrations', pgSuite, () => {
   let pool: PgPool;
   let runner: StreetMigrationRunner;
   let migrationsDir: string;
@@ -605,7 +605,7 @@ describe('Repository & Migrations', () => {
 
 // ─── Suite 7: Schema Behavior ────────────────────────────────────────────────
 
-describe('Schema: users table (via pool)', () => {
+describe('Schema: users table (via pool)', pgSuite, () => {
   let pool: PgPool;
   let migrationsDir: string;
 
