@@ -37,6 +37,10 @@ export type {
   DirectoryApi,
 } from "./facade.js";
 
+// ── Validation pipeline (src/validation.ts, task 8.1) ───────────────────────
+export { ValidationPipeline, BUILT_IN_VALIDATORS } from "./validation.js";
+export type { Validator } from "./validation.js";
+
 // ── Driver contract (src/driver.ts) ─────────────────────────────────────────
 export type {
   StorageDriver,
