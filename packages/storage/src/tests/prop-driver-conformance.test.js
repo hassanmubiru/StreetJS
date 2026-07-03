@@ -56,6 +56,35 @@ const DRIVERS = [
   { label: "local", make: makeLocalDriver },
 ];
 
+/**
+ * A generator over the domain of *valid object keys*.
+ *
+ * A key is generated as one or more non-empty path segments joined by `/`,
+ * where each segment is drawn from a filesystem-safe character set and is never
+ * the reserved relative-path names `.` or `..`. This deliberately excludes keys
+ * that no real object store accepts as an object key and that the Local driver
+ * (which maps keys onto filesystem paths) cannot represent equivalently to the
+ * opaque-map Memory driver:
+ *   - the empty string and empty segments (e.g. `""`, `"a//b"`),
+ *   - a leading or trailing `/` (e.g. `"/a"`, `"a/"`),
+ *   - the relative segments `"."` / `".."` (path traversal),
+ *   - control characters such as NUL.
+ * Such inputs resolve to an existing/invalid filesystem path (EISDIR / ENOTDIR
+ * / ERR_INVALID_ARG_VALUE) on the Local driver while the Memory driver treats
+ * them as opaque map keys — an out-of-domain divergence, not a driver defect.
+ * This matches the valid-key domain the equivalence property (Property 18)
+ * already documents for its curated key pool.
+ */
+const KEY_SEGMENT_CHARS =
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.".split("");
+const segmentArb = fc
+  .array(fc.constantFrom(...KEY_SEGMENT_CHARS), { minLength: 1, maxLength: 12 })
+  .map((chars) => chars.join(""))
+  .filter((segment) => segment !== "." && segment !== "..");
+const keyArb = fc
+  .array(segmentArb, { minLength: 1, maxLength: 4 })
+  .map((segments) => segments.join("/"));
+
 test.after(() => {
   for (const root of tempRoots) {
     rmSync(root, { recursive: true, force: true });
@@ -67,9 +96,11 @@ test(
   async () => {
     await fc.assert(
       fc.asyncProperty(
-        // Arbitrary non-empty key and arbitrary byte content drive an
-        // additional round-trip so inputs genuinely vary across runs.
-        fc.string({ minLength: 1 }),
+        // A valid object key and arbitrary byte content drive an additional
+        // round-trip so inputs genuinely vary across runs. See `keyArb` for why
+        // the key domain excludes path-relative / empty-segment / control-char
+        // keys that the two drivers cannot represent equivalently.
+        keyArb,
         fc.uint8Array(),
         async (key, content) => {
           for (const { label, make } of DRIVERS) {
