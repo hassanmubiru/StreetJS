@@ -520,6 +520,8 @@ class WorkflowEngineImpl implements WorkflowEngine {
     // outlive the engine. No other long-lived resources are held in this build;
     // timers/signals are driven synchronously through the coordinator.
     await this.settlePendingResumes();
+    // Release the observability handle (best-effort; a no-op when inert).
+    this.observability.close();
   }
 
   // ── Private helpers ───────────────────────────────────────────────────────────
