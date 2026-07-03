@@ -43,6 +43,7 @@ import { MemoryStorageDriver } from "./drivers/memory.js";
 import { LocalStorageDriver } from "./drivers/local.js";
 import { StorageConfigError, ValidationError } from "./errors.js";
 import { normalizeMetadata, toWriteMetadata } from "./metadata.js";
+import { MultipartManager } from "./multipart.js";
 import { ValidationPipeline } from "./validation.js";
 import type {
   ValidationInput,
