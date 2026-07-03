@@ -423,7 +423,7 @@ export function createContext(options: CreateContextOptions): WorkflowContext {
     // (Requirements 8.3, 8.5). Local and un-journaled.
     const branch = cases.get(selector) ?? defaultBranch;
     if (branch !== undefined) {
-      await journal.local(branch)();
+      await journal.local(() => branch());
     }
   }
 
