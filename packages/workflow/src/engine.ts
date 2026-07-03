@@ -278,6 +278,20 @@ class WorkflowEngineImpl implements WorkflowEngine {
     // and lifecycle broadcasts share one structural bridge. When no realtime
     // bridge is configured this is a wired-`false` no-op surface (Req 18.4).
     this.realtimeBridge = bridgeWorkflowRealtime(config?.bridges?.realtime);
+
+    // Observability wiring: register metrics idempotently against the supplied
+    // `MetricsRegistry` and a persistence-store health check against the supplied
+    // `HealthCheckRegistry`, reusing only the core primitives (Req 21.3, 21.5,
+    // 21.6). When neither is configured this is an inert no-op (Req 21.4). The
+    // store probe is best-effort: a store without a `probe` reports available.
+    this.observability = registerWorkflowObservability({
+      ...(config?.metrics !== undefined ? { metrics: config.metrics } : {}),
+      ...(config?.health !== undefined ? { health: config.health } : {}),
+    });
+    this.observability.attach({
+      stats: () => this.stats(),
+      probe: () => this.probeStore(),
+    });
   }
 
   // ── Registration (Req 1.3, 1.4) ──────────────────────────────────────────────
@@ -484,8 +498,13 @@ class WorkflowEngineImpl implements WorkflowEngine {
       failed,
       compensated,
       cancelled,
-      activityRetries: 0,
-      compensations: compensated,
+      // Cumulative activity-level tallies accrued from persisted command records
+      // as runs drive forward, so the snapshot stays consistent with the metrics.
+      activityRetries: this.totalRetries,
+      compensations: this.totalCompensations,
+      // A `waiting` run is parked on a timer/signal, so active timers track the
+      // waiting count. No live queue-depth source exists in this build, so queued
+      // activities report 0 while the gauge is still registered (Req 21.3).
       activeTimers: waiting,
       queuedActivities: 0,
     };
