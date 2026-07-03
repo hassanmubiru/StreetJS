@@ -57,7 +57,7 @@ test("the workflow accessor exposes a usable engine on load and is released on u
   const app = fakeApp();
 
   // Before load the accessor is undefined — no engine exists yet.
-  assert.equal(plugin.workflow, undefined, "the engine is undefined before onLoad");
+  assert.ok(plugin.workflow === undefined, "the engine is undefined before onLoad");
 
   await plugin.onLoad(app);
 
@@ -76,7 +76,7 @@ test("the workflow accessor exposes a usable engine on load and is released on u
   await plugin.onUnload(app);
 
   // After unload the accessor is undefined again — resources are released.
-  assert.equal(plugin.workflow, undefined, "the engine is released (undefined) after onUnload");
+  assert.ok(plugin.workflow === undefined, "the engine is released (undefined) after onUnload");
 });
 
 // ── 2. wireBridges attach/detach lifecycle (Req 23.3) ──────────────────────────────
@@ -130,7 +130,7 @@ test("a wireBridges attach fn that returns nothing is tolerated on load and unlo
 
   // Unload must not throw even though no detacher was collected.
   await plugin.onUnload(app);
-  assert.equal(plugin.workflow, undefined, "the engine is released after onUnload");
+  assert.ok(plugin.workflow === undefined, "the engine is released after onUnload");
 });
 
 // ── 3. Idempotent load and safe never-loaded unload ────────────────────────────────
