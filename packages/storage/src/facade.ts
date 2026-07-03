@@ -281,6 +281,15 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
     options?: PutOptions,
   ): Promise<StorageObjectMetadata> {
     const bytes = typeof content === "string" ? encodeUtf8(content) : content;
+    // Validate the fully-known size/contentType/checksum BEFORE any persistence
+    // so a rejection aborts the write with no partial object stored (Req 9.3/9.4).
+    await this.runValidation({
+      key,
+      size: bytes.byteLength,
+      contentType: options?.contentType,
+      checksum: sha256Hex(bytes),
+      metadata: options,
+    });
     return this.driver.put(key, bytes, options ?? {});
   }
 
@@ -394,7 +403,26 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
     stream: NodeReadable,
     options?: PutOptions,
   ): Promise<StorageObjectMetadata> {
-    return this.driver.putStream(key, stream, options ?? {});
+    // With no validation configured, stream straight through the driver so large
+    // files never fully buffer (Requirement 5.3).
+    if (this.validation === undefined) {
+      return this.driver.putStream(key, stream, options ?? {});
+    }
+    // With validation configured, size and checksum can only be known once the
+    // full stream is collected. We buffer the stream, validate the complete
+    // input, and only then persist via `driver.put`. Because the driver is not
+    // touched until validation passes, a rejection leaves no partial object
+    // stored (Requirement 9.4); persistence still happens as a single atomic
+    // write on success (Requirement 9.3).
+    const bytes = await collectStream(stream);
+    await this.runValidation({
+      key,
+      size: bytes.byteLength,
+      contentType: options?.contentType,
+      checksum: sha256Hex(bytes),
+      metadata: options,
+    });
+    return this.driver.put(key, bytes, options ?? {});
   }
 
   /**
