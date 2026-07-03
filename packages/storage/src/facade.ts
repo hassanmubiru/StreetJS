@@ -261,6 +261,15 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
    */
   protected readonly resumable: ResumableManager;
 
+  /**
+   * The provider-agnostic signed URL service. It delegates to the driver's
+   * native `signedUrl` capability when present and otherwise mints/verifies
+   * HMAC-signed URLs over `(key, op, expiry)` using `config.signingSecret`,
+   * checking expiry against the injected clock, so `signedUrl` behaves
+   * identically across providers (Requirement 8).
+   */
+  protected readonly signedUrls: SignedUrlService;
+
   constructor(driver: StorageDriver, config: StorageConfig) {
     this.driver = driver;
     this.config = config;
@@ -268,6 +277,11 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
       config.validation !== undefined ? new ValidationPipeline(config.validation) : undefined;
     this.multipart = new MultipartManager(driver);
     this.resumable = new ResumableManager(driver);
+    this.signedUrls = new SignedUrlService({
+      signingSecret: config.signingSecret,
+      clock: config.clock,
+      driver,
+    });
   }
 
   /**
