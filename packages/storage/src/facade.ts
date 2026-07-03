@@ -547,8 +547,17 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
   }
 
   // ── Signed URLs (task 13.1) ──────────────────────────────────────────────────
-  signedUrl(_key: string, _op: SignedOperation, _options?: SignedUrlOptions): Promise<string> {
-    return notImplemented("signedUrl");
+
+  /**
+   * Mint a URL authorizing exactly the operation `op` on `key` (Requirement
+   * 8.1), carrying the accepted options for expiration, request headers, content
+   * type, maximum size, and custom metadata (Requirement 8.2). Delegates to the
+   * driver's native signed-URL capability when present and otherwise mints an
+   * HMAC-signed URL over `(key, op, expiry)` using `config.signingSecret`
+   * (throwing a {@link StorageConfigError} when that secret is absent).
+   */
+  signedUrl(key: string, op: SignedOperation, options?: SignedUrlOptions): Promise<string> {
+    return this.signedUrls.sign(key, op, options);
   }
 
   // ── Versioning (task 14.1) ───────────────────────────────────────────────────
