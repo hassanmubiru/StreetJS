@@ -77,6 +77,9 @@ export type { LifecycleEngineOptions } from "./lifecycle.js";
 // ── Search filtering (src/search.ts, task 18.1) ─────────────────────────────
 export { searchObjects } from "./search.js";
 
+// ── Directory API (src/directory.ts, task 17.1) ─────────────────────────────
+export { StorageDirectoryApi } from "./directory.js";
+
 // ── Observability wiring (src/observability.ts, task 22.1) ──────────────────
 export {
   registerStorageObservability,
