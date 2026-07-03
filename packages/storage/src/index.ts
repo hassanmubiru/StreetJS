@@ -51,6 +51,9 @@ export { ResumableManager } from "./resumable.js";
 export { SignedUrlService } from "./signed-url.js";
 export type { SignedUrlServiceOptions } from "./signed-url.js";
 
+// ── Versioning manager (src/versioning.ts, task 14.1) ───────────────────────
+export { VersioningManager } from "./versioning.js";
+
 // ── Typed metadata layer (src/metadata.ts, task 9.1) ────────────────────────
 export {
   buildObjectMetadata,
