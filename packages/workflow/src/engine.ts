@@ -87,6 +87,8 @@ import type {
   WorkflowRealtimeBridge,
 } from "./integrations/realtime.js";
 import { bridgeWorkflowRealtime } from "./integrations/realtime.js";
+import type { WorkflowObservabilityHandle } from "./observability.js";
+import { registerWorkflowObservability } from "./observability.js";
 import type { RuntimeBridges } from "./runtime.js";
 import { WorkflowRuntime } from "./runtime.js";
 import { MemoryWorkflowStore } from "./store.js";
@@ -94,6 +96,7 @@ import type {
   HistoryEvent,
   RunOptions,
   RunStatus,
+  StoreProbe,
   WorkflowConfig,
   WorkflowFunction,
   WorkflowHandle,
