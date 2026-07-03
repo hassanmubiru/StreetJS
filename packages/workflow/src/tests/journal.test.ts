@@ -73,6 +73,7 @@ test("first execution runs the effect and persists the record BEFORE returning (
   const { store, saves } = spyStore(log);
   await store.save(makeRun());
   log.length = 0; // ignore the setup save
+  saves.length = 0;
 
   let t = 0;
   const clock = () => t;
