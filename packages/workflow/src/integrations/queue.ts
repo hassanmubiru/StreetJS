@@ -25,8 +25,8 @@
  * _Requirements: 16.1, 16.2, 16.3, 16.4, 16.5_
  */
 
-import { WorkflowConfigError } from "./errors.js";
-import type { Activity, QueueContext, QueueLike } from "./types.js";
+import { WorkflowConfigError } from "../errors.js";
+import type { Activity, QueueContext, QueueLike } from "../types.js";
 
 /**
  * The queue surface the bridge exposes to the rest of the engine.
