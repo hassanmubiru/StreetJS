@@ -1,7 +1,7 @@
 {
   "name": "@streetjs/storage",
   "version": "1.0.0",
-  "description": "Official Street Framework storage module: a unified file-storage API with signed URLs, upload limits, and transform/scan hooks; in-memory and local-filesystem providers (S3/R2/Azure/GCP via adapters).",
+  "description": "StreetJS unified object storage framework: a strongly-typed, cloud-agnostic storage facade over a single driver contract with zero-dependency Memory/Local drivers and optional cloud provider submodules (S3, R2, Supabase, GCS, Azure, MinIO, Backblaze). Switching providers is a configuration change, not a rewrite.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -9,31 +9,71 @@
     ".": {
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
+    },
+    "./s3": {
+      "import": "./dist/drivers/s3.js",
+      "types": "./dist/drivers/s3.d.ts"
+    },
+    "./r2": {
+      "import": "./dist/drivers/r2.js",
+      "types": "./dist/drivers/r2.d.ts"
+    },
+    "./supabase": {
+      "import": "./dist/drivers/supabase.js",
+      "types": "./dist/drivers/supabase.d.ts"
+    },
+    "./gcs": {
+      "import": "./dist/drivers/gcs.js",
+      "types": "./dist/drivers/gcs.d.ts"
+    },
+    "./azure": {
+      "import": "./dist/drivers/azure.js",
+      "types": "./dist/drivers/azure.d.ts"
+    },
+    "./minio": {
+      "import": "./dist/drivers/minio.js",
+      "types": "./dist/drivers/minio.d.ts"
+    },
+    "./backblaze": {
+      "import": "./dist/drivers/backblaze.js",
+      "types": "./dist/drivers/backblaze.d.ts"
+    },
+    "./testing": {
+      "import": "./dist/testing.js",
+      "types": "./dist/testing.d.ts"
     }
   },
   "files": [
-    "dist/index.js",
-    "dist/index.js.map",
-    "dist/index.d.ts",
-    "dist/index.d.ts.map",
-    "README.md"
+    "dist/**/*.js",
+    "dist/**/*.js.map",
+    "dist/**/*.d.ts",
+    "dist/**/*.d.ts.map",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsc",
+    "test": "node --test dist/tests/*.test.js",
+    "example": "node dist/examples/storage-demo.js",
     "lint": "tsc --noEmit",
-    "test": "tsc && node --test dist/tests/*.test.js",
-    "example": "npm run build && node examples/index.mjs",
-    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
-    "prepublishOnly": "npm run clean && npm run build"
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\""
   },
   "keywords": [
-    "street",
     "streetjs",
     "street-framework",
     "storage",
+    "object-storage",
+    "s3",
+    "cloud-storage",
     "file-storage",
-    "signed-urls",
-    "s3"
+    "multipart",
+    "resumable",
+    "signed-url",
+    "versioning",
+    "lifecycle",
+    "typescript",
+    "esm"
   ],
   "author": "street contributors",
   "license": "MIT",
@@ -46,7 +86,7 @@
     "url": "https://github.com/hassanmubiru/StreetJS/issues"
   },
   "dependencies": {
-    "streetjs": "^1.0.6"
+    "streetjs": "^1.0.25"
   },
   "devDependencies": {
     "@types/node": "^25.9.2",
@@ -54,7 +94,19 @@
     "typescript": "^6.0.3"
   },
   "peerDependencies": {
-    "typescript": ">=5.0.0"
+    "typescript": ">=5.0.0",
+    "@aws-sdk/client-s3": "*",
+    "@aws-sdk/s3-request-presigner": "*",
+    "@supabase/supabase-js": "*",
+    "@google-cloud/storage": "*",
+    "@azure/storage-blob": "*"
+  },
+  "peerDependenciesMeta": {
+    "@aws-sdk/client-s3": { "optional": true },
+    "@aws-sdk/s3-request-presigner": { "optional": true },
+    "@supabase/supabase-js": { "optional": true },
+    "@google-cloud/storage": { "optional": true },
+    "@azure/storage-blob": { "optional": true }
   },
   "engines": {
     "node": ">=22.0.0"
