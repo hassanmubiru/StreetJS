@@ -271,6 +271,16 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
    */
   protected readonly signedUrls: SignedUrlService;
 
+  /**
+   * The provider-agnostic versioning manager. It delegates to the driver's
+   * native `versioning` capability when present and otherwise simulates version
+   * snapshots over the driver primitives (reserved `.versions/<key>/<versionId>`
+   * copies), so `listVersions`/`restoreVersion`/`deleteVersion` and the
+   * overwrite-time snapshot behave identically across providers (Requirement
+   * 12). The snapshot step is only taken when `config.versioning === true`.
+   */
+  protected readonly versioning: VersioningManager;
+
   constructor(driver: StorageDriver, config: StorageConfig) {
     this.driver = driver;
     this.config = config;
@@ -283,6 +293,7 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
       clock: config.clock,
       driver,
     });
+    this.versioning = new VersioningManager(driver);
   }
 
   /**
