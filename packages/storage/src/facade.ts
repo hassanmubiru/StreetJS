@@ -41,6 +41,7 @@ import { Buffer } from "node:buffer";
 import type { NodeReadable, StorageDriver, StoredPart } from "./driver.js";
 import { AccessController } from "./access.js";
 import type { AccessOperation } from "./access.js";
+import { StorageDirectoryApi } from "./directory.js";
 import { MemoryStorageDriver } from "./drivers/memory.js";
 import { LocalStorageDriver } from "./drivers/local.js";
 import { StorageConfigError, ValidationError } from "./errors.js";
