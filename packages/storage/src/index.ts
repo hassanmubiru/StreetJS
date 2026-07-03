@@ -41,6 +41,17 @@ export type {
 export { ValidationPipeline, BUILT_IN_VALIDATORS } from "./validation.js";
 export type { Validator } from "./validation.js";
 
+// ── Typed metadata layer (src/metadata.ts, task 9.1) ────────────────────────
+export {
+  buildObjectMetadata,
+  normalizeMetadata,
+  toWriteMetadata,
+  DEFAULT_CONTENT_TYPE,
+  DEFAULT_ACCESS_LEVEL,
+  STORAGE_METADATA_FIELDS,
+} from "./metadata.js";
+export type { BuildMetadataInput } from "./metadata.js";
+
 // ── Driver contract (src/driver.ts) ─────────────────────────────────────────
 export type {
   StorageDriver,
