@@ -913,6 +913,8 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
    * access level / custom fields at completion.
    */
   createMultipartUpload(key: string, options?: PutOptions): Promise<string> {
+    // Count the created multipart upload for stats/metrics (Requirement 23.2).
+    this.recordMultipart();
     return this.multipart.create(key, options ?? {});
   }
 
@@ -953,6 +955,8 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
    * access level / custom fields.
    */
   startUpload(key: string, options?: PutOptions): Promise<string> {
+    // Count the started resumable session for stats/metrics (Requirement 23.2).
+    this.recordResumable();
     return this.resumable.start(key, options ?? {});
   }
 
