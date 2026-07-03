@@ -82,6 +82,7 @@ import {
   WorkflowNotFoundError,
 } from "./errors.js";
 import { ActivityExecutor } from "./executor.js";
+import { bridgeWorkflowQueue } from "./integrations/queue.js";
 import type {
   WorkflowLifecycleEvent,
   WorkflowRealtimeBridge,
