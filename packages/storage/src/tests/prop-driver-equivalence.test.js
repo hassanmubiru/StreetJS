@@ -125,7 +125,12 @@ function projectMetadata(meta) {
     accessLevel: meta.accessLevel,
     owner: meta.owner ?? null,
     tenant: meta.tenant ?? null,
-    custom: meta.custom ?? {},
+    // Spread into a plain object so a null-prototype custom map (as produced by
+    // fast-check's dictionary generator and kept verbatim by the in-memory
+    // driver) compares equal by content to the plain object the Local driver
+    // reconstructs from its JSON sidecar. The observable custom fields are the
+    // key/value pairs, not the object's internal prototype tag.
+    custom: { ...(meta.custom ?? {}) },
     createdAt: meta.createdAt,
     updatedAt: meta.updatedAt,
   };
