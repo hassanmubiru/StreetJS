@@ -836,6 +836,8 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
     // Broadcast the upload state transitions through the realtime bridge when
     // configured (Requirement 19.1). Every broadcast is isolated so it never
     // breaks the upload path (Requirement 19.3).
+    const startedMs = this.nowMs();
+    this.recordActiveStart();
     this.realtime?.started(key);
     try {
       // With no validation configured, stream straight through the driver so
@@ -843,6 +845,7 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
       if (this.validation === undefined) {
         const metadata = normalizeMetadata(await this.driver.putStream(key, stream, options ?? {}));
         this.realtime?.completed(key);
+        this.recordUpload(metadata.size, (this.nowMs() - startedMs) / 1000);
         return metadata;
       }
       // With validation configured, size and checksum can only be known once the
