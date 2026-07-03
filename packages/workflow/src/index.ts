@@ -133,3 +133,10 @@ export type {
 // any existing public API (Req 23.1, 23.2, 23.3).
 export { WorkflowPlugin } from "./plugin.js";
 export type { WorkflowPluginOptions } from "./plugin.js";
+
+// --- Workflow CLI commands (src/cli/commands.ts, Task 18.2) ─────────────────
+// `WorkflowCommands` registers the `@Command`-decorated `make:workflow`,
+// `make:activity`, `workflow:list`, `workflow:run`, `workflow:cancel`, and
+// `workflow:retry` commands through the core `CliKernel` (Req 24.1). Mirrors
+// `@streetjs/storage` exporting its `StorageCommands` from its public entry.
+export { WorkflowCommands } from "./cli/commands.js";
