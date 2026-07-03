@@ -42,6 +42,7 @@ import type { NodeReadable, StorageDriver, StoredPart } from "./driver.js";
 import { MemoryStorageDriver } from "./drivers/memory.js";
 import { LocalStorageDriver } from "./drivers/local.js";
 import { StorageConfigError, ValidationError } from "./errors.js";
+import { LifecycleEngine } from "./lifecycle.js";
 import { normalizeMetadata, toWriteMetadata } from "./metadata.js";
 import { MultipartManager } from "./multipart.js";
 import { ResumableManager } from "./resumable.js";
