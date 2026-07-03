@@ -60,6 +60,8 @@ import { bridgeStorageQueue } from "./integrations/queue.js";
 import type { StorageQueuePublisher } from "./integrations/queue.js";
 import { bridgeStorageRealtime } from "./integrations/realtime.js";
 import type { StorageRealtimePublisher } from "./integrations/realtime.js";
+import { registerStorageObservability } from "./observability.js";
+import type { StorageObservabilityHandle } from "./observability.js";
 import type {
   AccessLevel,
   ValidationInput,
