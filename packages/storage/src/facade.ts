@@ -231,9 +231,38 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
   /** The configuration this facade was constructed with. */
   protected readonly config: StorageConfig;
 
+  /**
+   * The pre-persistence validation pipeline, present only when
+   * `config.validation` is supplied. When defined it is run as the first step
+   * of every write so a rejection aborts the write before any bytes reach the
+   * driver, leaving no partial object stored (Requirements 9.3, 9.4).
+   */
+  protected readonly validation?: ValidationPipeline;
+
   constructor(driver: StorageDriver, config: StorageConfig) {
     this.driver = driver;
     this.config = config;
+    this.validation =
+      config.validation !== undefined ? new ValidationPipeline(config.validation) : undefined;
+  }
+
+  /**
+   * Run the validation pipeline (when configured) against `input` and throw a
+   * {@link ValidationError} on rejection. This is invoked before any call to
+   * `driver.put`, so a rejected upload never persists content (Requirement
+   * 9.3) and leaves no partial object behind (Requirement 9.4). When no
+   * validation is configured this is a no-op.
+   */
+  protected async runValidation(input: ValidationInput): Promise<void> {
+    if (this.validation === undefined) {
+      return;
+    }
+    const result = await this.validation.validate(input);
+    if (!result.ok) {
+      throw new ValidationError(result.error ?? "upload rejected by validation", {
+        key: input.key,
+      });
+    }
   }
 
   // ── Object operations (task 5.2) ────────────────────────────────────────────
