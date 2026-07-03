@@ -66,6 +66,9 @@ export { VersioningManager } from "./versioning.js";
 export { LifecycleEngine, ARCHIVE_KEY_PREFIX } from "./lifecycle.js";
 export type { LifecycleEngineOptions } from "./lifecycle.js";
 
+// ── Search filtering (src/search.ts, task 18.1) ─────────────────────────────
+export { searchObjects } from "./search.js";
+
 // ── Typed metadata layer (src/metadata.ts, task 9.1) ────────────────────────
 export {
   buildObjectMetadata,
