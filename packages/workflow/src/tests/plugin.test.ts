@@ -165,5 +165,5 @@ test("onUnload on a never-loaded plugin is a safe no-op", async () => {
   // No engine was ever constructed; unload must not throw and the accessor stays
   // undefined.
   await plugin.onUnload(fakeApp());
-  assert.equal(plugin.workflow, undefined, "the accessor stays undefined after a no-op unload");
+  assert.ok(plugin.workflow === undefined, "the accessor stays undefined after a no-op unload");
 });
