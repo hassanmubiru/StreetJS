@@ -345,11 +345,35 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
   }
 
   // ── Streaming (task 7.1) ─────────────────────────────────────────────────────
-  putStream(_key: string, _stream: NodeReadable, _options?: PutOptions): Promise<StorageObjectMetadata> {
-    return notImplemented("putStream");
+
+  /**
+   * Persist the content read from a Node {@link NodeReadable} under `key` and
+   * return the resulting metadata (Requirement 5.1). The stream is forwarded
+   * directly to the driver's streaming primitive along with the write-time
+   * metadata in `options` (content type, owner, tenant, access level, custom
+   * fields); the driver pipes the content through to storage and never buffers
+   * the complete object in memory (Requirement 5.3), which is what lets large
+   * files transfer without loading fully into memory.
+   */
+  async putStream(
+    key: string,
+    stream: NodeReadable,
+    options?: PutOptions,
+  ): Promise<StorageObjectMetadata> {
+    return this.driver.putStream(key, stream, options ?? {});
   }
-  getStream(_key: string): Promise<NodeReadable> {
-    return notImplemented("getStream");
+
+  /**
+   * Return a Node {@link NodeReadable} of the content stored at `key`
+   * (Requirement 5.2). The stream is produced by the driver's streaming
+   * primitive so bytes are pulled incrementally rather than buffered in full
+   * (Requirement 5.3), and piping it to a Node Writable delivers the stored
+   * bytes unchanged (Requirement 5.4). When `key` does not exist the driver
+   * throws {@link NotFoundError}, which propagates unchanged to the caller
+   * (Requirement 5.5).
+   */
+  async getStream(key: string): Promise<NodeReadable> {
+    return this.driver.getStream(key);
   }
 
   // ── Multipart (task 10.1) ────────────────────────────────────────────────────
