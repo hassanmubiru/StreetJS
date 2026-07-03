@@ -232,32 +232,116 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
   }
 
   // ── Object operations (task 5.2) ────────────────────────────────────────────
-  put(_key: string, _content: Uint8Array | string, _options?: PutOptions): Promise<StorageObjectMetadata> {
-    return notImplemented("put");
+
+  /**
+   * Persist `content` under `key` and return the resulting metadata
+   * (Requirement 4.1). A `string` payload is encoded as UTF-8 bytes before it
+   * reaches the driver so all providers store and hash the identical byte
+   * sequence; a `Uint8Array` is passed through untouched. Write-time metadata in
+   * `options` (content type, owner, tenant, access level, custom fields) is
+   * forwarded to the driver, which computes `etag`/`checksum`/`size`/timestamps.
+   */
+  async put(
+    key: string,
+    content: Uint8Array | string,
+    options?: PutOptions,
+  ): Promise<StorageObjectMetadata> {
+    const bytes = typeof content === "string" ? encodeUtf8(content) : content;
+    return this.driver.put(key, bytes, options ?? {});
   }
-  get(_key: string): Promise<GetResult> {
-    return notImplemented("get");
+
+  /**
+   * Read the object at `key`, converting the driver's discriminated
+   * {@link MaybeObject} into the facade {@link GetResult} shape (Requirement
+   * 4.2). A present object yields `{ found: true, bytes, metadata }` with the
+   * stored bytes returned unchanged; an absent one yields `{ found: false }`
+   * without throwing.
+   */
+  async get(key: string): Promise<GetResult> {
+    const result = await this.driver.get(key);
+    if (result.found) {
+      return { found: true, bytes: result.bytes, metadata: result.metadata };
+    }
+    return { found: false };
   }
-  exists(_key: string): Promise<boolean> {
-    return notImplemented("exists");
+
+  /** Report whether an object is stored under `key` (Requirement 4.3). */
+  async exists(key: string): Promise<boolean> {
+    return this.driver.exists(key);
   }
-  delete(_key: string): Promise<void> {
-    return notImplemented("delete");
+
+  /**
+   * Remove the object at `key` so a subsequent `exists` returns false
+   * (Requirement 4.4). Deleting a missing key is a no-op at the driver level.
+   */
+  async delete(key: string): Promise<void> {
+    await this.driver.delete(key);
   }
-  copy(_source: string, _destination: string): Promise<CopyResult> {
-    return notImplemented("copy");
+
+  /**
+   * Copy the object at `source` to `destination` (Requirement 4.5). The copy is
+   * **non-mutating**: the source is read and its content plus metadata are
+   * written to the destination, and the source object is never touched. When
+   * `source` does not exist, no write occurs and a not-found result
+   * (`{ copied: false }`) is returned without throwing (Requirement 4.6).
+   */
+  async copy(source: string, destination: string): Promise<CopyResult> {
+    const result = await this.driver.get(source);
+    if (!result.found) {
+      return { copied: false };
+    }
+    const metadata = await this.driver.put(
+      destination,
+      result.bytes,
+      toWriteMetadata(result.metadata),
+    );
+    return { copied: true, metadata };
   }
-  move(_source: string, _destination: string): Promise<MoveResult> {
-    return notImplemented("move");
+
+  /**
+   * Move the object at `source` to `destination` (Requirements 4.7). The source
+   * content is written to the destination and then the source object is
+   * removed. When `source` does not exist, no operation is performed and a
+   * not-found result (`{ moved: false }`) is returned without throwing.
+   */
+  async move(source: string, destination: string): Promise<MoveResult> {
+    const result = await this.driver.get(source);
+    if (!result.found) {
+      return { moved: false };
+    }
+    const metadata = await this.driver.put(
+      destination,
+      result.bytes,
+      toWriteMetadata(result.metadata),
+    );
+    await this.driver.delete(source);
+    return { moved: true, metadata };
   }
-  rename(_key: string, _newKey: string): Promise<MoveResult> {
-    return notImplemented("rename");
+
+  /**
+   * Rename the object at `key` to `newKey` (Requirement 4.8). This has the same
+   * semantics as {@link move}: the content becomes available under `newKey` and
+   * the old key is removed; a missing source yields `{ moved: false }` without
+   * throwing.
+   */
+  async rename(key: string, newKey: string): Promise<MoveResult> {
+    return this.move(key, newKey);
   }
-  list(_prefix: string, _options?: ListOptions): Promise<StorageListItem[]> {
-    return notImplemented("list");
+
+  /**
+   * Return the keys (with size/timestamp) of objects whose keys begin with
+   * `prefix`, delegating directly to the driver (Requirement 4.9).
+   */
+  async list(prefix: string, options?: ListOptions): Promise<StorageListItem[]> {
+    return this.driver.list(prefix, options);
   }
-  stat(_key: string): Promise<StorageObjectMetadata | null> {
-    return notImplemented("stat");
+
+  /**
+   * Return the metadata for `key` without its content, or `null` if absent
+   * (Requirement 4.10).
+   */
+  async stat(key: string): Promise<StorageObjectMetadata | null> {
+    return this.driver.stat(key);
   }
 
   // ── Streaming (task 7.1) ─────────────────────────────────────────────────────
