@@ -25,7 +25,7 @@ import { MemoryStorageDriver } from "../drivers/memory.js";
 
 /** A fixed clock so updatedAt values are deterministic for time-range filters. */
 function fixedClock(now) {
-  return { now: () => now };
+  return () => now;
 }
 
 /** Build a facade backed by a fresh in-memory driver with a fixed clock. */
