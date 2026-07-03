@@ -41,6 +41,14 @@ export type {
 export { ValidationPipeline, BUILT_IN_VALIDATORS } from "./validation.js";
 export type { Validator } from "./validation.js";
 
+// ── Access controller (src/access.ts, task 16.1) ────────────────────────────
+export { AccessController } from "./access.js";
+export type {
+  AccessOperation,
+  AccessContext,
+  AccessControllerOptions,
+} from "./access.js";
+
 // ── Multipart upload manager (src/multipart.ts, task 10.1) ──────────────────
 export { MultipartManager } from "./multipart.js";
 
