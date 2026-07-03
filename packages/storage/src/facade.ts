@@ -291,7 +291,9 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
       checksum: sha256Hex(bytes),
       metadata: options,
     });
-    return this.driver.put(key, bytes, options ?? {});
+    // Surface the complete, typed metadata field set (Requirement 10.1) through
+    // the single source of truth so the shape is consistent across drivers.
+    return normalizeMetadata(await this.driver.put(key, bytes, options ?? {}));
   }
 
   /**
@@ -539,24 +541,6 @@ async function collectStream(stream: NodeReadable): Promise<Uint8Array> {
     chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk as Uint8Array));
   }
   return new Uint8Array(Buffer.concat(chunks));
-}
-
-/**
- * Derive the write-time {@link WriteMetadata} from an existing object's
- * {@link StorageObjectMetadata}, carried forward when copying/moving so the
- * destination object preserves the source's content type, ownership, tenancy,
- * access level, and custom fields. Identity/timestamp fields (`etag`/`checksum`/
- * `size`/`createdAt`/`updatedAt`) are intentionally omitted — the driver
- * recomputes them for the destination object.
- */
-function toWriteMetadata(metadata: StorageObjectMetadata): WriteMetadata {
-  return {
-    contentType: metadata.contentType,
-    owner: metadata.owner,
-    tenant: metadata.tenant,
-    accessLevel: metadata.accessLevel,
-    custom: metadata.custom,
-  };
 }
 
 /** Build the standard "not yet implemented" error for a facade method. */
