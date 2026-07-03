@@ -390,13 +390,15 @@ interface S3SdkClient {
   send(command: S3Command): Promise<unknown>;
 }
 
+/** A command constructor as exported by `@aws-sdk/client-s3`. */
+type S3CommandCtor = new (input: unknown) => S3Command;
+
 /**
  * Minimal structural shape of the lazily loaded `@aws-sdk/client-s3` module: the
- * `S3Client` constructor plus the command constructors indexed by name.
+ * `S3Client` constructor plus the command constructors accessed by name.
  */
 interface S3Sdk {
   readonly S3Client: new (config: unknown) => S3SdkClient;
-  readonly [command: string]: new (input: unknown) => S3Command;
 }
 
 /** Structural shape of a `GetObjectCommand` response (subset we consume). */
