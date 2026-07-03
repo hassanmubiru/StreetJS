@@ -361,6 +361,9 @@ class WorkflowEngineImpl implements WorkflowEngine {
     this.coordinator.abort(runId);
     const cancelled = await this.transition(run, "cancelled");
     this.notifyTerminal(cancelled);
+    // Broadcast the terminal cancellation lifecycle event (Req 18.2). Best-effort
+    // and a no-op without a wired realtime bridge (Req 18.4).
+    await this.realtimeBridge.broadcastLifecycle("workflow.cancelled", runId);
   }
 
   // ── Restart (Req 2.5) ─────────────────────────────────────────────────────────
