@@ -406,7 +406,7 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
     // With no validation configured, stream straight through the driver so large
     // files never fully buffer (Requirement 5.3).
     if (this.validation === undefined) {
-      return this.driver.putStream(key, stream, options ?? {});
+      return normalizeMetadata(await this.driver.putStream(key, stream, options ?? {}));
     }
     // With validation configured, size and checksum can only be known once the
     // full stream is collected. We buffer the stream, validate the complete
@@ -422,7 +422,7 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
       checksum: sha256Hex(bytes),
       metadata: options,
     });
-    return this.driver.put(key, bytes, options ?? {});
+    return normalizeMetadata(await this.driver.put(key, bytes, options ?? {}));
   }
 
   /**
