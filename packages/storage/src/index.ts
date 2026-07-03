@@ -47,6 +47,10 @@ export { MultipartManager } from "./multipart.js";
 // ── Resumable upload manager (src/resumable.ts, task 11.1) ──────────────────
 export { ResumableManager } from "./resumable.js";
 
+// ── Signed URL service (src/signed-url.ts, task 13.1) ───────────────────────
+export { SignedUrlService } from "./signed-url.js";
+export type { SignedUrlServiceOptions } from "./signed-url.js";
+
 // ── Typed metadata layer (src/metadata.ts, task 9.1) ────────────────────────
 export {
   buildObjectMetadata,
