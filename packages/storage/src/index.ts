@@ -27,3 +27,16 @@ export {
   AuthorizationError,
   UnsupportedImageError,
 } from "./errors.js";
+
+// ── Driver contract (src/driver.ts) ─────────────────────────────────────────
+export type {
+  StorageDriver,
+  MaybeObject,
+  StoredPart,
+  MultipartCapability,
+  ResumableCapability,
+  VersioningCapability,
+  SignedUrlCapability,
+  LifecycleCapability,
+  NodeReadable,
+} from "./driver.js";
