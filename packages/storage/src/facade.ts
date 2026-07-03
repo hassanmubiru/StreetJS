@@ -864,10 +864,15 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
       });
       const metadata = normalizeMetadata(await this.driver.put(key, bytes, options ?? {}));
       this.realtime?.completed(key);
+      this.recordUpload(metadata.size, (this.nowMs() - startedMs) / 1000);
       return metadata;
     } catch (error) {
       this.realtime?.failed(key, error instanceof Error ? error.message : String(error));
+      this.recordUploadFailure();
       throw error;
+    } finally {
+      // The streamed upload is no longer in flight regardless of outcome.
+      this.recordActiveEnd();
     }
   }
 
