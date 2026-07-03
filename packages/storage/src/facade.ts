@@ -45,6 +45,7 @@ import { StorageConfigError, ValidationError } from "./errors.js";
 import { normalizeMetadata, toWriteMetadata } from "./metadata.js";
 import { MultipartManager } from "./multipart.js";
 import { ResumableManager } from "./resumable.js";
+import { SignedUrlService } from "./signed-url.js";
 import { ValidationPipeline } from "./validation.js";
 import type {
   ValidationInput,
