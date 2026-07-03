@@ -173,3 +173,180 @@ test("facade delete denial throws AuthorizationError and keeps the object", asyn
   );
   assert.equal(await storage.exists("keep.txt"), true);
 });
+
+// ── Task 16.2: exhaustive per-level allow/deny + auth-bridge integration ─────
+//
+// The cases above prove the permissive default, the public-read allowance, and
+// a single deny path per level (write). The block below rounds out the access
+// decision matrix required by this task: an explicit ALLOW *and* an explicit
+// DENY for EACH access level, across read/write/delete, plus context-driven
+// role-based and tenant-aware decisions and an async bridge that permits.
+//
+// Requirements: 11.1, 11.3, 11.4
+
+const ALL_LEVELS = /** @type {const} */ ([
+  "public",
+  "private",
+  "signed",
+  "authenticated",
+  "role-based",
+  "tenant-aware",
+]);
+
+const ALL_OPERATIONS = /** @type {const} */ (["read", "write", "delete"]);
+
+test("controller permits every access level across every operation when the bridge allows", async () => {
+  for (const accessLevel of ALL_LEVELS) {
+    for (const operation of ALL_OPERATIONS) {
+      const auth = makeAuth(true);
+      const access = new AccessController({ auth });
+      // Should resolve without throwing for allow (11.1).
+      await access.authorize({ key: `k/${accessLevel}`, operation, accessLevel });
+      // The bridge was consulted with the exact context (11.2 wiring).
+      assert.deepEqual(auth.calls.at(-1), {
+        key: `k/${accessLevel}`,
+        operation,
+        accessLevel,
+        owner: undefined,
+        tenant: undefined,
+      });
+    }
+  }
+});
+
+test("controller denies every access level across write/delete when the bridge blocks", async () => {
+  // Read is validated separately below because `public` reads have a distinct
+  // rule; here we cover the uniformly-denied write and delete operations for
+  // EACH level (11.3).
+  for (const accessLevel of ALL_LEVELS) {
+    for (const operation of /** @type {const} */ (["write", "delete"])) {
+      const access = new AccessController({ auth: makeAuth(false) });
+      await assert.rejects(
+        () => access.authorize({ key: "k", operation, accessLevel }),
+        (err) =>
+          err instanceof AuthorizationError &&
+          err.accessLevel === accessLevel &&
+          err.operation === operation,
+      );
+    }
+  }
+});
+
+test("controller denies non-public reads for every restricted level when the bridge blocks", async () => {
+  // A `read` is denied for every NON-public level when the bridge returns false
+  // (public reads are covered by the dedicated 11.4 cases above).
+  for (const accessLevel of ALL_LEVELS.filter((l) => l !== "public")) {
+    const access = new AccessController({ auth: makeAuth(false) });
+    await assert.rejects(
+      () => access.authorize({ key: "k", operation: "read", accessLevel }),
+      (err) => err instanceof AuthorizationError && err.accessLevel === accessLevel,
+    );
+  }
+});
+
+test("signed access level allows and denies strictly per the bridge decision", async () => {
+  const allow = new AccessController({ auth: makeAuth(true) });
+  await allow.authorize({ key: "s", operation: "read", accessLevel: "signed" });
+
+  const deny = new AccessController({ auth: makeAuth(false) });
+  await assert.rejects(
+    () => deny.authorize({ key: "s", operation: "read", accessLevel: "signed" }),
+    (err) => err instanceof AuthorizationError && err.accessLevel === "signed",
+  );
+});
+
+test("authenticated access level allows and denies strictly per the bridge decision", async () => {
+  const allow = new AccessController({ auth: makeAuth(true) });
+  await allow.authorize({ key: "a", operation: "write", accessLevel: "authenticated" });
+
+  const deny = new AccessController({ auth: makeAuth(false) });
+  await assert.rejects(
+    () => deny.authorize({ key: "a", operation: "write", accessLevel: "authenticated" }),
+    (err) => err instanceof AuthorizationError && err.accessLevel === "authenticated",
+  );
+});
+
+test("role-based decisions key on the bridge's view of the context", async () => {
+  // A structural bridge modelling roles: only the owner "admin" may write a
+  // role-based object; everyone else is denied. This exercises the bridge
+  // integration for role-based access (11.1/11.2/11.3).
+  const roleBridge = makeAuth((ctx) => ctx.owner === "admin");
+  const access = new AccessController({ auth: roleBridge });
+
+  await access.authorize({
+    key: "r",
+    operation: "write",
+    accessLevel: "role-based",
+    owner: "admin",
+  });
+
+  await assert.rejects(
+    () =>
+      access.authorize({
+        key: "r",
+        operation: "write",
+        accessLevel: "role-based",
+        owner: "guest",
+      }),
+    (err) => err instanceof AuthorizationError && err.accessLevel === "role-based",
+  );
+});
+
+test("tenant-aware decisions isolate access to the matching tenant", async () => {
+  // A structural bridge modelling tenant isolation: access is granted only when
+  // the context tenant matches the bridge's expected tenant (11.1/11.2/11.3).
+  const expectedTenant = "acme";
+  const tenantBridge = makeAuth((ctx) => ctx.tenant === expectedTenant);
+  const access = new AccessController({ auth: tenantBridge });
+
+  await access.authorize({
+    key: "t",
+    operation: "read",
+    accessLevel: "tenant-aware",
+    tenant: "acme",
+  });
+
+  await assert.rejects(
+    () =>
+      access.authorize({
+        key: "t",
+        operation: "read",
+        accessLevel: "tenant-aware",
+        tenant: "other-corp",
+      }),
+    (err) => err instanceof AuthorizationError && err.accessLevel === "tenant-aware",
+  );
+});
+
+test("controller permits when an async bridge resolves true", async () => {
+  // Complements the existing async-deny case: an async bridge that resolves
+  // true must be awaited and permit the operation.
+  const access = new AccessController({ auth: makeAuth(async () => true) });
+  await access.authorize({ key: "k", operation: "write", accessLevel: "private" });
+});
+
+test("private access level allows and denies strictly per the bridge decision", async () => {
+  const allow = new AccessController({ auth: makeAuth(true) });
+  await allow.authorize({ key: "pv", operation: "delete", accessLevel: "private" });
+
+  const deny = new AccessController({ auth: makeAuth(false) });
+  await assert.rejects(
+    () => deny.authorize({ key: "pv", operation: "delete", accessLevel: "private" }),
+    (err) => err instanceof AuthorizationError && err.accessLevel === "private",
+  );
+});
+
+test("facade put of a role-based object is denied for a non-owner and persists nothing", async () => {
+  // End-to-end auth-bridge integration through the facade for a role-based
+  // level: a non-admin writer is denied and no object is persisted (11.3).
+  const storage = createStorage({
+    provider: "memory",
+    auth: makeAuth((ctx) => ctx.owner === "admin"),
+  });
+  await assert.rejects(
+    () =>
+      storage.put("role.txt", "data", { accessLevel: "role-based", owner: "guest" }),
+    (err) => err instanceof AuthorizationError && err.operation === "write",
+  );
+  assert.equal(await storage.exists("role.txt"), false);
+});
