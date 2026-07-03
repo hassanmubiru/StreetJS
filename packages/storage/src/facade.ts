@@ -486,6 +486,78 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
     this.versioning = new VersioningManager(driver);
     this.lifecycle = new LifecycleEngine({ driver, clock: config.clock });
     this.access = new AccessController({ auth: config.auth });
+    // Wire observability only when a metrics and/or health registry is supplied.
+    // The handle registers its metrics/health against the existing core
+    // registries idempotently and its telemetry sink is fed live below; when
+    // neither is configured this stays undefined and telemetry is a no-op
+    // (Requirements 23.1, 23.3, 23.4).
+    this.observability =
+      config.metrics !== undefined || config.health !== undefined
+        ? registerStorageObservability({ metrics: config.metrics, health: config.health })
+        : undefined;
+    this.observability?.attach(this);
+  }
+
+  // ── Stats recording helpers (task 22.1) ─────────────────────────────────────
+
+  /**
+   * Record a successful upload of `bytes` taking `latencySeconds`: advances the
+   * upload / bytes-uploaded counters and the tracked storage usage, and feeds
+   * the live telemetry sink (Requirement 23.2).
+   */
+  private recordUpload(bytes: number, latencySeconds: number): void {
+    this.statsState.uploads += 1;
+    this.statsState.bytesUploaded += bytes;
+    this.statsState.storageUsage += bytes;
+    this.observability?.telemetry.onUpload?.(bytes, latencySeconds);
+    this.observability?.telemetry.onStorageUsage?.(this.statsState.storageUsage);
+  }
+
+  /**
+   * Record a successful download of `bytes` taking `latencySeconds`: advances
+   * the download / bytes-downloaded counters and feeds the telemetry sink.
+   */
+  private recordDownload(bytes: number, latencySeconds: number): void {
+    this.statsState.downloads += 1;
+    this.statsState.bytesDownloaded += bytes;
+    this.observability?.telemetry.onDownload?.(bytes, latencySeconds);
+  }
+
+  /** Record a failed upload attempt (Requirement 23.2). */
+  private recordUploadFailure(): void {
+    this.statsState.failedUploads += 1;
+    this.observability?.telemetry.onUploadFailed?.();
+  }
+
+  /** Mark an in-flight (streamed/resumable) upload as started. */
+  private recordActiveStart(): void {
+    this.statsState.activeUploads += 1;
+    this.observability?.telemetry.onActiveUploadsChange?.(this.statsState.activeUploads);
+  }
+
+  /** Mark an in-flight (streamed/resumable) upload as finished. */
+  private recordActiveEnd(): void {
+    if (this.statsState.activeUploads > 0) {
+      this.statsState.activeUploads -= 1;
+    }
+    this.observability?.telemetry.onActiveUploadsChange?.(this.statsState.activeUploads);
+  }
+
+  /** Record a created multipart upload (Requirement 23.2). */
+  private recordMultipart(): void {
+    this.statsState.multipartUploads += 1;
+    this.observability?.telemetry.onMultipartUpload?.();
+  }
+
+  /** Record a started resumable upload session (Requirement 23.2). */
+  private recordResumable(): void {
+    this.statsState.resumableSessions += 1;
+    this.observability?.telemetry.onResumableSession?.();
+  }
+
+  /** Current epoch-ms reading used to measure operation latency. */
+  private nowMs(): number {
+    return Date.now();
   }
 
   /**
