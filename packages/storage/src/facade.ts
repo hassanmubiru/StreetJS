@@ -746,8 +746,25 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
   }
 
   // ── Directory API (task 17.1) ────────────────────────────────────────────────
+
+  /**
+   * The lazily-constructed Directory API over the driver's flat key space
+   * (Requirement 15). Built on first access to `storage.directory` and reused
+   * thereafter so directory operations share one instance per facade.
+   */
+  private directoryApi?: DirectoryApi;
+
+  /**
+   * The directory-style API (`mkdir`/`listDirectory`/`removeDirectory`/`walk`)
+   * implemented entirely over the driver's flat key space using `/`-delimited
+   * prefixes, so it behaves identically across every provider including
+   * prefix-only cloud stores (Requirement 15). Lazily constructed and cached.
+   */
   get directory(): DirectoryApi {
-    throw notYetImplementedError("directory");
+    if (this.directoryApi === undefined) {
+      this.directoryApi = new StorageDirectoryApi(this.driver);
+    }
+    return this.directoryApi;
   }
 
   // ── Search (task 18.1) ───────────────────────────────────────────────────────
