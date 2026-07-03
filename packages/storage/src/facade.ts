@@ -450,17 +450,43 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
   }
 
   // ── Multipart (task 10.1) ────────────────────────────────────────────────────
-  createMultipartUpload(_key: string, _options?: PutOptions): Promise<string> {
-    return notImplemented("createMultipartUpload");
+
+  /**
+   * Begin a multipart upload for `key` and return its upload identifier
+   * (Requirement 6.1). Write-time metadata in `options` is captured so the
+   * assembled object is written with the intended content type / ownership /
+   * access level / custom fields at completion.
+   */
+  createMultipartUpload(key: string, options?: PutOptions): Promise<string> {
+    return this.multipart.create(key, options ?? {});
   }
-  uploadPart(_uploadId: string, _partNumber: number, _content: Uint8Array): Promise<StoredPart> {
-    return notImplemented("uploadPart");
+
+  /**
+   * Persist a single part for `uploadId` and return its {@link StoredPart}
+   * descriptor (Requirement 6.2).
+   */
+  uploadPart(uploadId: string, partNumber: number, content: Uint8Array): Promise<StoredPart> {
+    return this.multipart.uploadPart(uploadId, partNumber, content);
   }
-  completeMultipartUpload(_uploadId: string, _parts: readonly StoredPart[]): Promise<StorageObjectMetadata> {
-    return notImplemented("completeMultipartUpload");
+
+  /**
+   * Assemble the supplied ordered `parts` into the final object and return its
+   * metadata; the content equals the concatenation of the parts in order,
+   * equivalent to a single `put` of that concatenation (Requirement 6.3).
+   */
+  completeMultipartUpload(
+    uploadId: string,
+    parts: readonly StoredPart[],
+  ): Promise<StorageObjectMetadata> {
+    return this.multipart.complete(uploadId, parts);
   }
-  abortMultipartUpload(_uploadId: string): Promise<void> {
-    return notImplemented("abortMultipartUpload");
+
+  /**
+   * Discard all uploaded parts for `uploadId` and create no completed object
+   * (Requirement 6.4).
+   */
+  abortMultipartUpload(uploadId: string): Promise<void> {
+    return this.multipart.abort(uploadId);
   }
 
   // ── Resumable (task 11.1) ────────────────────────────────────────────────────
