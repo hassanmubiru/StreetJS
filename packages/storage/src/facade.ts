@@ -306,7 +306,7 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
   async get(key: string): Promise<GetResult> {
     const result = await this.driver.get(key);
     if (result.found) {
-      return { found: true, bytes: result.bytes, metadata: result.metadata };
+      return { found: true, bytes: result.bytes, metadata: normalizeMetadata(result.metadata) };
     }
     return { found: false };
   }
