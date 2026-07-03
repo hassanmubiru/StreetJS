@@ -63,15 +63,15 @@ test("the workflow accessor exposes a usable engine on load and is released on u
 
   // After load the accessor returns a live, usable engine.
   const engine = plugin.workflow;
-  assert.notEqual(engine, undefined, "the engine is exposed after onLoad");
+  assert.ok(engine, "the engine is exposed after onLoad");
 
   // The exposed engine actually works end-to-end: define + run a trivial workflow
   // through it and get a completed result.
   const wf: WorkflowFunction<null, string> = async () => "ok";
-  engine!.define("wf", wf);
-  const handle = await engine!.run("wf", null);
+  engine.define("wf", wf);
+  const handle = await engine.run("wf", null);
   assert.equal(await handle.result(), "ok", "the exposed engine runs a workflow to completion");
-  assert.equal(await engine!.status(handle.runId), "completed", "the run reaches completed");
+  assert.equal(await engine.status(handle.runId), "completed", "the run reaches completed");
 
   await plugin.onUnload(app);
 
