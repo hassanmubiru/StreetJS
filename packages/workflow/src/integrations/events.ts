@@ -1,68 +1,79 @@
 /**
  * @streetjs/workflow — Events bridge (Pillar 3, Requirement 17).
  *
- * This module wires the workflow engine to `@streetjs/events` through the purely
- * STRUCTURAL {@link EventsLike} contract defined in `../types.js`. It imports no
- * pillar package: any object exposing `publish`/`waitFor`/`subscribe` (the
- * `@streetjs/events` facade does) satisfies the shape structurally, so the base
- * package keeps its single `streetjs` runtime dependency and there is neither a
- * hard dependency nor a circular dependency on `@streetjs/events`
- * (Requirement 17.4). A live `@streetjs/events` instance satisfies `EventsLike`
- * structurally with no adapter.
+ * This module wires the workflow engine to `@streetjs/events` through the
+ * purely STRUCTURAL {@link EventsLike} contract defined in `../types.js`. It
+ * imports no pillar package: any object exposing `publish`/`waitFor`/`subscribe`
+ * (the `@streetjs/events` facade does) satisfies the shape structurally, so the
+ * base package keeps its single `streetjs` runtime dependency and declares no
+ * hard, optional, or peer dependency on the events pillar and introduces no
+ * circular dependency (Requirement 17.4). A live `@streetjs/events` instance
+ * satisfies `EventsLike` structurally with no adapter.
  *
  * {@link bridgeWorkflowEvents} produces the `ctx.events` ({@link EventsContext})
- * surface handed to a Workflow_Function, with the behavior mandated by
- * Requirement 17:
+ * surface handed to a Workflow_Function. Its guarantees follow the requirements:
  *
- *  - 17.1 When wired, `publish(event, payload)` publishes through the
- *         `EventsLike` bridge.
- *  - 17.2 When wired, `waitFor(event)` parks the run as `waiting` until a
- *         matching event arrives, then continues with the (optionally parsed)
- *         typed payload. The waiting intent is surfaced to the runtime through
- *         the optional `onWaitFor` callback so the Coordinator can persist the
- *         `waiting` Run_Status and the awaited event name.
- *  - 17.3 When wired, `subscribe(event, handler)` delivers each matching event
- *         to the supplied handler and returns an unsubscribe function.
- *  - 17.4 No hard/circular dependency on `@streetjs/events` — the bridge depends
- *         only on the structural {@link EventsLike} shape.
- *  - 17.5 `publish` is fire-and-forget: a failure is caught (never rethrown) and
- *         surfaced to the runtime through the optional `onPublishFailure`
- *         callback so it can record a `publish.failed` History event, and the
- *         Workflow_Run continues WITHOUT retrying the publication.
+ *  - 17.1 When an `EventsLike` bridge is wired, `ctx.events.publish` publishes the
+ *         event and payload through the bridge.
+ *  - 17.2 `ctx.events.waitFor` parks the run as `waiting` until a matching event
+ *         arrives and then continues with the typed event payload. The bridge
+ *         surfaces this waiting intent to the runtime through the
+ *         {@link WorkflowEventsBridgeHooks.onWaitFor} hook (mirroring how the
+ *         sibling bridges expose a runtime-facing helper alongside their `ctx`
+ *         surface) before awaiting the underlying `EventsLike.waitFor`.
+ *  - 17.3 `ctx.events.subscribe` delivers each matching event to the supplied
+ *         handler and returns the unsubscribe function.
+ *  - 17.4 No hard dependency and no circular dependency on `@streetjs/events`:
+ *         this module depends only on the structural `EventsLike` shape.
+ *  - 17.5 `ctx.events.publish` is fire-and-forget: a publish failure is caught,
+ *         surfaced to the runtime as a `publish.failed` History event via the
+ *         {@link WorkflowEventsBridgeHooks.onPublishFailure} hook, and the run
+ *         continues WITHOUT retrying the publication and WITHOUT the failure
+ *         propagating into the Workflow_Function.
  *
- * When no bridge is wired, any `ctx.events` operation yields a descriptive
- * {@link WorkflowConfigError} naming the `events` bridge and the attempted
- * operation, mirroring the storage and queue bridges.
+ * As with the other bridges, a `ctx.events` call with no bridge wired yields a
+ * descriptive {@link WorkflowConfigError} naming the bridge (`"events"`) and the
+ * attempted operation.
  *
- * The canonical `EventsLike` / `EventsContext` definitions live in
- * `../types.js`; this module re-exports `EventsLike` for convenience only.
+ * The canonical `EventsLike` / `EventsContext` definitions live in `../types.js`;
+ * this module re-exports `EventsLike` for convenience only.
  *
  * _Requirements: 17.1, 17.3, 17.4, 17.5_
  */
 
 import { WorkflowConfigError } from "../errors.js";
-import type { EventsContext, EventsLike } from "../types.js";
+import type { EventsContext, EventsLike, SerializedError } from "../types.js";
 
 // Convenience re-export; the canonical definition remains in `../types.js`.
 export type { EventsLike } from "../types.js";
 
 /**
- * Runtime coordination hooks the Events bridge invokes so the surrounding engine
- * can react to fire-and-forget publish failures and waiting intents without the
- * bridge itself owning journaling or Run_Status transitions.
+ * Runtime-facing hooks the engine supplies so the bridge can surface intents and
+ * failures it must not itself act upon.
+ *
+ * The `ctx.events` surface is called by the Workflow_Function, but the *effects*
+ * of two of its operations belong to the runtime, not the bridge: recording a
+ * publish failure in the History (17.5) and parking the run as `waiting` (17.2).
+ * The bridge therefore surfaces those to the runtime through these hooks rather
+ * than owning run state or the History, keeping it a thin structural adapter
+ * consistent with the sibling bridges.
  */
 export interface WorkflowEventsBridgeHooks {
   /**
-   * Invoked when a wired `publish` rejects or throws. The bridge catches the
-   * failure and never rethrows (Requirement 17.5); the runtime uses this hook to
-   * record a `publish.failed` History event and continue the run without
-   * retrying the publication.
+   * Invoked when a fire-and-forget `ctx.events.publish` fails, so the runtime can
+   * record a `publish.failed` History event. The failure is NOT rethrown and the
+   * run continues without retrying the publication (Requirement 17.5).
+   *
+   * @param event - The event name whose publication failed.
+   * @param error - The serialized publish failure.
    */
-  readonly onPublishFailure?: (event: string, error: unknown) => void;
+  readonly onPublishFailure?: (event: string, error: SerializedError) => void;
   /**
-   * Invoked when `waitFor` is entered, before the awaited event resolves, so the
-   * runtime can park the Workflow_Run as `waiting` and persist the awaited event
-   * name (Requirement 17.2).
+   * Invoked when `ctx.events.waitFor` is entered, before awaiting the matching
+   * event, so the runtime can park the Workflow_Run as `waiting` on the named
+   * event (Requirement 17.2).
+   *
+   * @param event - The event name the run is now waiting for.
    */
   readonly onWaitFor?: (event: string) => void;
 }
@@ -70,9 +81,9 @@ export interface WorkflowEventsBridgeHooks {
 /**
  * The events surface the bridge exposes to the rest of the engine.
  *
- * `events` is the `ctx.events` surface passed to a Workflow_Function; `wired`
- * reflects whether a structural {@link EventsLike} bridge was supplied in
- * configuration, mirroring the {@link WorkflowQueueBridge} `wired` flag.
+ * `events` is the `ctx.events` surface passed to a Workflow_Function
+ * (Requirement 17). `wired` reflects whether an `EventsLike` bridge was supplied
+ * in configuration, mirroring the `wired` flag on the sibling bridges.
  */
 export interface WorkflowEventsBridge {
   /** The `ctx.events` surface (Requirement 17). */
@@ -82,18 +93,31 @@ export interface WorkflowEventsBridge {
 }
 
 /**
+ * Project an arbitrary thrown value into the JSON-safe {@link SerializedError}
+ * shape recorded in the History, so a publish failure can be surfaced to the
+ * runtime without leaking a live `Error` instance across the bridge boundary.
+ */
+function serializeError(err: unknown): SerializedError {
+  if (err instanceof Error) {
+    return { name: err.name, message: err.message, stack: err.stack };
+  }
+  return { name: "Error", message: String(err) };
+}
+
+/**
  * Build the workflow Events bridge from an optional structural {@link EventsLike}.
  *
- * Passing `undefined` (no bridge configured) returns a surface whose every
- * operation throws a descriptive {@link WorkflowConfigError} naming the `events`
- * bridge, so a Workflow_Run that never calls `ctx.events` runs unchanged while a
- * misconfigured call fails loudly and precisely.
+ * Passing `undefined` (no bridge configured) returns a surface whose
+ * `publish`/`waitFor`/`subscribe` each throw a descriptive
+ * {@link WorkflowConfigError}, so a Workflow_Run that never calls `ctx.events`
+ * runs unchanged while any use of the surface without a wired bridge is surfaced
+ * precisely.
  *
  * @param events - A live `@streetjs/events` instance or any object matching the
  *   {@link EventsLike} shape; omit to run without an events bridge.
- * @param hooks - Optional runtime coordination hooks used to surface
- *   fire-and-forget publish failures (Requirement 17.5) and waiting intents
- *   (Requirement 17.2) to the engine without the bridge owning journaling.
+ * @param hooks - Optional runtime hooks: `onPublishFailure` records a publish
+ *   failure as a `publish.failed` History event (17.5) and `onWaitFor` lets the
+ *   runtime park the run as `waiting` (17.2).
  */
 export function bridgeWorkflowEvents(
   events?: EventsLike,
@@ -105,7 +129,7 @@ export function bridgeWorkflowEvents(
   function unwired(operation: string): never {
     throw new WorkflowConfigError(
       `ctx.events.${operation} was called but no EventsLike bridge is wired; ` +
-        "supply `bridges.events` in the workflow configuration to use ctx.events.",
+        "supply `bridges.events` in the workflow configuration to publish, wait for, or subscribe to events.",
       { bridge: "events", operation },
     );
   }
@@ -115,12 +139,15 @@ export function bridgeWorkflowEvents(
       if (events === undefined) {
         unwired("publish");
       }
-      // Fire-and-forget: isolate any failure, surface it for a `publish.failed`
-      // History event, and continue the run WITHOUT retrying (Requirement 17.5).
+      // Fire-and-forget: a publish failure is caught, surfaced for recording as a
+      // `publish.failed` History event, and swallowed so the run continues
+      // without retrying and without the failure propagating (Requirement 17.5).
       try {
-        await events.publish(event, payload);
-      } catch (error) {
-        hooks?.onPublishFailure?.(event, error);
+        // `publish` may return void or a promise; normalize and await both so a
+        // rejected promise is caught here rather than surfacing to the run.
+        await Promise.resolve(events.publish(event, payload));
+      } catch (err) {
+        hooks?.onPublishFailure?.(event, serializeError(err));
       }
     },
 
@@ -132,10 +159,10 @@ export function bridgeWorkflowEvents(
         unwired("waitFor");
       }
       // Surface the waiting intent so the runtime can park the run as `waiting`
-      // and persist the awaited event name (Requirement 17.2).
+      // on this event before we await its arrival (Requirement 17.2).
       hooks?.onWaitFor?.(event);
       const payload = await events.waitFor(event);
-      // Continue with the typed payload, applying the optional parser.
+      // Continue with the typed event payload, applying the optional parser.
       return options?.parse ? options.parse(payload) : (payload as P);
     },
 
@@ -149,5 +176,8 @@ export function bridgeWorkflowEvents(
     },
   };
 
-  return { events: eventsContext, wired };
+  return {
+    events: eventsContext,
+    wired,
+  };
 }
