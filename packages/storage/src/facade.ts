@@ -54,6 +54,10 @@ import { searchObjects } from "./search.js";
 import { SignedUrlService } from "./signed-url.js";
 import { ValidationPipeline } from "./validation.js";
 import { VersioningManager } from "./versioning.js";
+import { bridgeStorageEvents } from "./integrations/events.js";
+import type { StorageEventPublisher } from "./integrations/events.js";
+import { bridgeStorageQueue } from "./integrations/queue.js";
+import type { StorageQueuePublisher } from "./integrations/queue.js";
 import type {
   AccessLevel,
   ValidationInput,
@@ -376,9 +380,41 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
    */
   protected readonly access: AccessController;
 
+  /**
+   * The typed Events bridge, present only when `config.bridges?.events` is
+   * supplied. When defined, object mutations (`put` → uploaded/updated,
+   * `delete` → deleted, `move`/`rename` → moved, `restoreVersion` → restored)
+   * and applied lifecycle actions (`applyLifecycle`) publish the corresponding
+   * typed `storage.*` event through it (Requirements 13.4, 18.1, 18.2). Every
+   * publish is isolated so a failing events layer never breaks the storage
+   * operation. When no events bridge is configured this is `undefined` and event
+   * publication is a complete no-op.
+   */
+  protected readonly events?: StorageEventPublisher;
+
+  /**
+   * The typed Queue bridge, present only when `config.bridges?.queue` is
+   * supplied. When defined, heavy out-of-band work (thumbnail generation, virus
+   * scanning, OCR, PDF processing, transcoding, image optimization, archive
+   * creation) can be handed off through it (Requirement 17.1). Every dispatch is
+   * isolated so a failing queue never breaks the storage operation
+   * (Requirement 17.4). When no queue bridge is configured this is `undefined`
+   * and job dispatch is a complete no-op — operations proceed unaffected
+   * (Requirement 17.3).
+   */
+  protected readonly queue?: StorageQueuePublisher;
+
   constructor(driver: StorageDriver, config: StorageConfig) {
     this.driver = driver;
     this.config = config;
+    this.events =
+      config.bridges?.events !== undefined
+        ? bridgeStorageEvents(config.bridges.events)
+        : undefined;
+    this.queue =
+      config.bridges?.queue !== undefined
+        ? bridgeStorageQueue(config.bridges.queue)
+        : undefined;
     this.validation =
       config.validation !== undefined ? new ValidationPipeline(config.validation) : undefined;
     this.multipart = new MultipartManager(driver);
@@ -471,9 +507,25 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
     if (this.config.versioning === true) {
       await this.versioning.snapshot(key);
     }
+    // Determine whether this write creates a new object or overwrites an
+    // existing one so the correct event (`storage.uploaded` vs
+    // `storage.updated`) is published (Requirement 18.1). The existence probe is
+    // only performed when an events bridge is configured, so the default path is
+    // unchanged and adds no driver call.
+    const existedBefore = this.events !== undefined ? await this.driver.exists(key) : false;
     // Surface the complete, typed metadata field set (Requirement 10.1) through
     // the single source of truth so the shape is consistent across drivers.
-    return normalizeMetadata(await this.driver.put(key, bytes, options ?? {}));
+    const metadata = normalizeMetadata(await this.driver.put(key, bytes, options ?? {}));
+    // Publish uploaded/updated after a successful persist. The bridge never
+    // throws into this path (Requirement 18.1, 18.2).
+    if (this.events !== undefined) {
+      if (existedBefore) {
+        this.events.updated(metadata);
+      } else {
+        this.events.uploaded(metadata);
+      }
+    }
+    return metadata;
   }
 
   /**
@@ -536,6 +588,11 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
       }
     }
     await this.driver.delete(key);
+    // Publish `storage.deleted` after the removal (Requirement 18.1). The bridge
+    // never throws into this path.
+    if (this.events !== undefined) {
+      this.events.deleted(key);
+    }
   }
 
   /**
@@ -571,6 +628,12 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
       await this.driver.put(destination, result.bytes, toWriteMetadata(result.metadata)),
     );
     await this.driver.delete(source);
+    // Publish `storage.moved` for the relocated object (Requirement 18.1); this
+    // also covers `rename`, which delegates here. The bridge never throws into
+    // this path.
+    if (this.events !== undefined) {
+      this.events.moved(metadata);
+    }
     return { moved: true, metadata };
   }
 
@@ -776,8 +839,14 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
    * Make the content of the Version identified by `versionId` the current
    * content of `key` and return the resulting metadata (Requirement 12.3).
    */
-  restoreVersion(key: string, versionId: string): Promise<StorageObjectMetadata> {
-    return this.versioning.restoreVersion(key, versionId);
+  async restoreVersion(key: string, versionId: string): Promise<StorageObjectMetadata> {
+    const metadata = await this.versioning.restoreVersion(key, versionId);
+    // Publish `storage.restored` after the restore succeeds (Requirement 18.1).
+    // The bridge never throws into this path.
+    if (this.events !== undefined) {
+      this.events.restored(metadata);
+    }
+    return metadata;
   }
 
   /**
@@ -798,11 +867,19 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
    * evaluation produces no further action on an already-actioned object.
    * Delegates to the driver's native `lifecycle` capability when present and
    * otherwise simulates the rule over the driver primitives (Requirement 13.3).
-   * Event publication for applied actions (Requirement 13.4) is wired
-   * separately by the Events bridge in a later task.
+   * When an events bridge is configured, each applied action publishes its
+   * corresponding typed lifecycle event through the bridge (Requirement 13.4);
+   * publication is isolated so a failing events layer never affects the returned
+   * outcomes.
    */
-  applyLifecycle(rule: LifecycleRule): Promise<LifecycleOutcome[]> {
-    return this.lifecycle.apply(rule);
+  async applyLifecycle(rule: LifecycleRule): Promise<LifecycleOutcome[]> {
+    const outcomes = await this.lifecycle.apply(rule);
+    if (this.events !== undefined) {
+      for (const outcome of outcomes) {
+        this.events.lifecycle(outcome);
+      }
+    }
+    return outcomes;
   }
 
   // ── Image processing (task 19.1) ─────────────────────────────────────────────

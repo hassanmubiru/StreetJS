@@ -77,6 +77,22 @@ export type { LifecycleEngineOptions } from "./lifecycle.js";
 // ── Search filtering (src/search.ts, task 18.1) ─────────────────────────────
 export { searchObjects } from "./search.js";
 
+// ── Events integration bridge (src/integrations/events.ts, task 21.1) ───────
+export { bridgeStorageEvents } from "./integrations/events.js";
+export type {
+  StorageEventName,
+  StorageEventPayload,
+  StorageEventPublisher,
+} from "./integrations/events.js";
+
+// ── Queue integration bridge (src/integrations/queue.ts, task 21.2) ─────────
+export { bridgeStorageQueue } from "./integrations/queue.js";
+export type {
+  StorageJobName,
+  StorageJobPayload,
+  StorageQueuePublisher,
+} from "./integrations/queue.js";
+
 // ── Typed metadata layer (src/metadata.ts, task 9.1) ────────────────────────
 export {
   buildObjectMetadata,
