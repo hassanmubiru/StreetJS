@@ -181,3 +181,6 @@ export type {
   StorageStats,
   DriverProbe,
 } from "./types.js";
+
+// ── Storage CLI commands (src/cli/commands.ts, task 24.2) ───────────────────
+export { StorageCommands } from "./cli/commands.js";
