@@ -102,3 +102,25 @@ export { MemoryWorkflowStore } from "./store.js";
 // is already re-exported above from "./types.js".
 export { createWorkflow } from "./engine.js";
 export type { WorkflowEngine } from "./engine.js";
+
+// --- Observability wiring: metrics + persistence health (Task 16.1) ---
+// Reuses only the core `MetricsRegistry` / `HealthCheckRegistry` primitives;
+// registration is idempotent and fully opt-in (Req 21.3, 21.4, 21.5, 21.6).
+export {
+  registerWorkflowObservability,
+  WORKFLOW_STORE_HEALTH_CHECK_NAME,
+  WORKFLOW_RUNNING_METRIC,
+  WORKFLOW_COMPLETED_METRIC,
+  WORKFLOW_FAILED_METRIC,
+  WORKFLOW_RETRIES_METRIC,
+  WORKFLOW_COMPENSATIONS_METRIC,
+  WORKFLOW_DURATION_METRIC,
+  WORKFLOW_ACTIVE_TIMERS_METRIC,
+  WORKFLOW_QUEUED_ACTIVITIES_METRIC,
+} from "./observability.js";
+export type {
+  WorkflowObservabilityHandle,
+  WorkflowObservabilityOptions,
+  WorkflowTelemetry,
+  WorkflowIntrospect,
+} from "./observability.js";
