@@ -192,12 +192,9 @@ async function buildS3ClientFromSdk(config: S3StorageDriverConfig): Promise<S3Cl
   // Held in a variable so the compiler treats this as a dynamic (untyped) import
   // and does not require "@aws-sdk/client-s3" to be installed to build.
   const clientModuleId = "@aws-sdk/client-s3";
-  let sdk: Record<string, new (input: unknown) => S3Command> & {
-    S3Client: new (config: unknown) => S3SdkClient;
-  };
+  let sdk: S3Sdk;
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    sdk = (await import(clientModuleId)) as any;
+    sdk = (await import(clientModuleId)) as unknown as S3Sdk;
   } catch (cause) {
     throw new StorageConfigError(
       'The AWS SDK ("@aws-sdk/client-s3") is required to construct an S3 client ' +
@@ -216,7 +213,7 @@ async function buildS3ClientFromSdk(config: S3StorageDriverConfig): Promise<S3Cl
   });
 
   const send = <R>(command: S3Command): Promise<R> => sdkClient.send(command) as Promise<R>;
-  const command = (name: string, input: unknown): S3Command => new sdk[name]!(input);
+  const command = (name: string, input: unknown): S3Command => new sdk[name](input);
 
   return {
     async putObject({ key, body, contentType, metadata }) {
