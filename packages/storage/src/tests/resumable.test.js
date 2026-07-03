@@ -43,7 +43,7 @@ test("resumeUpload with the full content equals a single put (Req 7.2, 7.3)", as
   const payload = Buffer.from("the quick brown fox jumps over the lazy dog");
 
   const sessionId = await storage.startUpload("k", { contentType: "text/plain" });
-  const meta = await storage.resumeUpload("k-session-ignored" && sessionId, Readable.from([payload]));
+  const meta = await storage.resumeUpload(sessionId, Readable.from([payload]));
 
   assert.equal(meta.key, "k");
   assert.equal(meta.size, payload.byteLength);
