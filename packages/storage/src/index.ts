@@ -28,6 +28,15 @@ export {
   UnsupportedImageError,
 } from "./errors.js";
 
+// ── Storage facade (src/facade.ts, task 5.1) ────────────────────────────────
+export { createStorage } from "./facade.js";
+export type {
+  Storage,
+  PutOptions,
+  ImageProcessor,
+  DirectoryApi,
+} from "./facade.js";
+
 // ── Driver contract (src/driver.ts) ─────────────────────────────────────────
 export type {
   StorageDriver,
