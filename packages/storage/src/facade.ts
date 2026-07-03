@@ -241,11 +241,21 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
    */
   protected readonly validation?: ValidationPipeline;
 
+  /**
+   * The provider-agnostic multipart upload manager. It delegates to the driver's
+   * native `multipart` capability when present and otherwise simulates multipart
+   * over the driver primitives, so `createMultipartUpload`/`uploadPart`/
+   * `completeMultipartUpload`/`abortMultipartUpload` behave identically across
+   * providers (Requirement 6).
+   */
+  protected readonly multipart: MultipartManager;
+
   constructor(driver: StorageDriver, config: StorageConfig) {
     this.driver = driver;
     this.config = config;
     this.validation =
       config.validation !== undefined ? new ValidationPipeline(config.validation) : undefined;
+    this.multipart = new MultipartManager(driver);
   }
 
   /**
