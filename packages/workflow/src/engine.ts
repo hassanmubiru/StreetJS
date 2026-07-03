@@ -715,9 +715,68 @@ class WorkflowEngineImpl implements WorkflowEngine {
     await this.executeDrive(run, fn);
   }
 
-  /** Record the last-known Run_Status for the synchronous stats snapshot. */
+  /**
+   * Record the last-known Run_Status for the synchronous stats snapshot and
+   * refresh the observability gauges (running workflows, active timers, queued
+   * activities) from the fresh snapshot. The refresh is best-effort and a no-op
+   * when no metrics registry is configured (Req 21.3, 21.4).
+   */
   private trackStatus(runId: string, status: RunStatus): void {
     this.statuses.set(runId, status);
+    this.observability.refresh();
+  }
+
+  /**
+   * Best-effort persistence-store availability probe for the health check. A
+   * store that implements `probe()` is asked directly; a store without one is
+   * reported available (it is an in-process implementation that cannot be
+   * unreachable). Never throws (Req 21.5).
+   */
+  private async probeStore(): Promise<StoreProbe> {
+    if (this.store.probe === undefined) {
+      return { available: true, detail: `${this.store.name} store (no probe)` };
+    }
+    return this.store.probe();
+  }
+
+  /**
+   * Accrue the activity-level retry and compensation tallies from a persisted run
+   * snapshot and feed the observability counters the delta since this run was last
+   * observed. Retries are `attempts - 1` per command that consumed more than one
+   * attempt; compensations are commands whose rollback has run. Tracking the
+   * per-run cumulative totals keeps the counters monotonic without double-counting
+   * across successive drives of the same run (Req 21.3).
+   */
+  private accrueActivityMetrics(run: WorkflowRun): void {
+    let retries = 0;
+    let compensations = 0;
+    for (const cmd of run.commands) {
+      if (cmd.attempts > 1) {
+        retries += cmd.attempts - 1;
+      }
+      if (cmd.compensated === true) {
+        compensations += 1;
+      }
+    }
+
+    const retriesDelta = retries - (this.retriesByRun.get(run.runId) ?? 0);
+    if (retriesDelta > 0) {
+      this.retriesByRun.set(run.runId, retries);
+      this.totalRetries += retriesDelta;
+      this.observability.telemetry.onRetries?.(retriesDelta);
+    }
+
+    const compensationsDelta = compensations - (this.compensationsByRun.get(run.runId) ?? 0);
+    if (compensationsDelta > 0) {
+      this.compensationsByRun.set(run.runId, compensations);
+      this.totalCompensations += compensationsDelta;
+      this.observability.telemetry.onCompensations?.(compensationsDelta);
+    }
+  }
+
+  /** Run duration in seconds from a persisted snapshot, clamped at zero. */
+  private runDurationSeconds(run: WorkflowRun): number {
+    return Math.max(0, (run.updatedAt - run.createdAt) / 1000);
   }
 }
 
