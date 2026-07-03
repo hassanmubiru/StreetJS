@@ -105,19 +105,16 @@ export class LocalStorageDriver implements StorageDriver {
     const now = this.clock();
     const existing = await this.readMeta(key);
 
-    const objectMetadata: StorageObjectMetadata = {
+    // Assemble the typed field set through the single source of truth so the
+    // shape and defaults stay identical across every driver (Requirement 10.1).
+    const objectMetadata = buildObjectMetadata({
       key,
       size: stored.byteLength,
-      contentType: metadata.contentType ?? DEFAULT_CONTENT_TYPE,
-      etag: checksum,
       checksum,
-      owner: metadata.owner,
-      tenant: metadata.tenant,
-      accessLevel: metadata.accessLevel ?? DEFAULT_ACCESS_LEVEL,
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
-      custom: metadata.custom ?? {},
-    };
+      write: metadata,
+    });
 
     const objectPath = this.objectPath(key);
     await fs.mkdir(path.dirname(objectPath), { recursive: true });
@@ -276,19 +273,16 @@ export class LocalStorageDriver implements StorageDriver {
     const checksum = hash.digest("hex");
     const now = this.clock();
 
-    const objectMetadata: StorageObjectMetadata = {
+    // Assemble the typed field set through the single source of truth so the
+    // shape and defaults stay identical across every driver (Requirement 10.1).
+    const objectMetadata = buildObjectMetadata({
       key,
       size,
-      contentType: metadata.contentType ?? DEFAULT_CONTENT_TYPE,
-      etag: checksum,
       checksum,
-      owner: metadata.owner,
-      tenant: metadata.tenant,
-      accessLevel: metadata.accessLevel ?? DEFAULT_ACCESS_LEVEL,
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
-      custom: metadata.custom ?? {},
-    };
+      write: metadata,
+    });
 
     await fs.writeFile(this.metaPath(key), JSON.stringify(objectMetadata), "utf8");
 
