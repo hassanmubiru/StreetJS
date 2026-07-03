@@ -193,27 +193,19 @@ test("move-to-cold relocates aged objects under coldPrefix exactly once (Req 13.
 });
 
 test("age-based rules never action internal version-snapshot keys", async () => {
-  const { storage, setTime } = makeStorage();
-  // Enable versioning through a separate facade over the same key space is not
-  // possible here; instead assert that a delete-after-days over the whole key
-  // space ignores reserved `.versions/` keys created by the versioning sim.
+  // With versioning enabled the overwrite snapshots prior content under the
+  // reserved `.versions/` key space. A delete-after-days over the whole key
+  // space must action only the real object, never the snapshot.
   const versioned = createStorage({ provider: "memory", versioning: true, clock: () => T0 });
   await versioned.put("k", "v1");
   await versioned.put("k", "v2"); // snapshots prior content under `.versions/`
 
-  // A far-future delete-after-days over the entire key space would match every
-  // object by age, but reserved snapshot keys must be excluded.
-  const versions = await versioned.listVersions("k");
-  assert.equal(versions.length, 1);
+  assert.equal((await versioned.listVersions("k")).length, 1);
 
   const outcomes = await versioned.applyLifecycle({ type: "delete-after-days", days: 0 });
   // Only the real object "k" is actioned; the snapshot under `.versions/` is not.
   assert.deepEqual(outcomes, [{ key: "k", action: "deleted" }]);
   assert.equal((await versioned.listVersions("k")).length, 1);
-
-  // Suppress unused-variable lint for the shared-clock storage.
-  void storage;
-  void setTime;
 });
 
 test("LifecycleEngine is exported and constructible", () => {
