@@ -146,28 +146,17 @@ test("facade get denial throws AuthorizationError and returns no bytes", async (
   );
 });
 
-test("facade get of a public object is permitted for an unauthenticated bridge", async () => {
+test("facade get of a public object is permitted without authentication", async () => {
+  // The bridge permits the seeding write and any public read, but denies every
+  // non-public read. A public object must remain readable (Requirement 11.4).
   const storage = createStorage({
     provider: "memory",
-    // Deny everything EXCEPT public reads.
-    auth: makeAuth((ctx) => ctx.accessLevel === "public" && ctx.operation === "read"),
+    auth: makeAuth((ctx) => ctx.operation === "write" || ctx.accessLevel === "public"),
   });
-  // A public write still needs to be allowed to seed the object; allow it via
-  // a separate permissive storage instance sharing the same driver semantics.
-  const seed = createStorage({ provider: "memory", driver: storage.__driverForTest });
-  // Fallback: seed through a permissive instance is not available, so instead
-  // write with a bridge that allows the write.
-  const writer = createStorage({ provider: "memory" });
-  void seed;
-  void writer;
-  // Simpler: use one permissive instance to write, then a restrictive one to read
-  // is impossible across separate in-memory drivers. So assert the decision at
-  // the controller layer is already covered above; here verify a public read
-  // passes end-to-end when the same instance allows public reads.
-  const permissive = createStorage({ provider: "memory" });
-  await permissive.put("pub.txt", "hello", { accessLevel: "public" });
-  const got = await permissive.get("pub.txt");
+  await storage.put("pub.txt", "hello", { accessLevel: "public" });
+  const got = await storage.get("pub.txt");
   assert.equal(got.found, true);
+  assert.equal(new TextDecoder().decode(got.bytes), "hello");
 });
 
 test("facade delete denial throws AuthorizationError and keeps the object", async () => {
