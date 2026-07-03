@@ -212,8 +212,9 @@ async function buildS3ClientFromSdk(config: S3StorageDriverConfig): Promise<S3Cl
     credentials: config.credentials,
   });
 
+  const commands = sdk as unknown as Record<string, S3CommandCtor>;
   const send = <R>(command: S3Command): Promise<R> => sdkClient.send(command) as Promise<R>;
-  const command = (name: string, input: unknown): S3Command => new sdk[name](input);
+  const command = (name: string, input: unknown): S3Command => new commands[name](input);
 
   return {
     async putObject({ key, body, contentType, metadata }) {
