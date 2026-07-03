@@ -26,13 +26,22 @@ import { StreetPostgresRepository } from '../src/database/repository.js';
 
 // ─── Test DB configuration ─────────────────────────────────────────────────────
 
+const PG_HOST = process.env['PG_HOST'];
+
 const PG_OPTS = {
-  host: process.env['PG_HOST'] ?? 'localhost',
+  host: PG_HOST ?? 'localhost',
   port: parseInt(process.env['PG_PORT'] ?? '5432', 10),
   user: process.env['PG_USER'] ?? 'street',
   password: process.env['PG_PASSWORD'] ?? 'street_secret',
   database: process.env['PG_DATABASE'] ?? 'street_test',
 };
+
+// PostgreSQL-dependent suites are skipped unless PG_HOST is set, mirroring the
+// gating used in src/tests/postgres-certification.e2e.test.ts. Without a live
+// database the before() hooks would attempt to connect to localhost and hang.
+const pgSuite = PG_HOST
+  ? {}
+  : { skip: 'PostgreSQL not configured (set PG_HOST to run these suites)' };
 
 const TEST_TABLE = 'test_items_' + randomBytes(4).toString('hex');
 const TEST_UPLOADS = join(tmpdir(), 'street_test_uploads_' + randomBytes(4).toString('hex'));
@@ -288,7 +297,7 @@ describe('HTTP Server', () => {
 
 // ─── Suite 4: PostgreSQL Wire Driver ────────────────────────────────────────
 
-describe('PostgreSQL Wire Protocol', () => {
+describe('PostgreSQL Wire Protocol', pgSuite, () => {
   let conn: PgConnection;
 
   before(async () => {
