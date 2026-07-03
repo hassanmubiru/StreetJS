@@ -44,6 +44,9 @@ export type { Validator } from "./validation.js";
 // ── Multipart upload manager (src/multipart.ts, task 10.1) ──────────────────
 export { MultipartManager } from "./multipart.js";
 
+// ── Resumable upload manager (src/resumable.ts, task 11.1) ──────────────────
+export { ResumableManager } from "./resumable.js";
+
 // ── Typed metadata layer (src/metadata.ts, task 9.1) ────────────────────────
 export {
   buildObjectMetadata,

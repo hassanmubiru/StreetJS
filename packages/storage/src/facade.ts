@@ -501,14 +501,34 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
   }
 
   // ── Resumable (task 11.1) ────────────────────────────────────────────────────
-  startUpload(_key: string, _options?: PutOptions): Promise<string> {
-    return notImplemented("startUpload");
+
+  /**
+   * Create a resumable upload session for `key` and return its session id
+   * (Requirement 7.1). Write-time metadata in `options` is captured so the
+   * object created on completion carries the intended content type / ownership /
+   * access level / custom fields.
+   */
+  startUpload(key: string, options?: PutOptions): Promise<string> {
+    return this.resumable.start(key, options ?? {});
   }
-  resumeUpload(_sessionId: string, _stream: NodeReadable): Promise<StorageObjectMetadata> {
-    return notImplemented("resumeUpload");
+
+  /**
+   * Continue the session `sessionId` from its last persisted offset using the
+   * full content carried by `stream`, creating the final object on completion
+   * and returning its metadata (Requirements 7.2, 7.3). The completed object is
+   * byte-identical to an equivalent uninterrupted upload.
+   */
+  resumeUpload(sessionId: string, stream: NodeReadable): Promise<StorageObjectMetadata> {
+    return this.resumable.resume(sessionId, stream);
   }
-  cancelUpload(_sessionId: string): Promise<void> {
-    return notImplemented("cancelUpload");
+
+  /**
+   * Discard the session `sessionId` without creating an object (Requirement
+   * 7.4), unless it is already completing, in which case the upload is allowed
+   * to finish and the object is created (Requirement 7.5).
+   */
+  cancelUpload(sessionId: string): Promise<void> {
+    return this.resumable.cancel(sessionId);
   }
 
   // ── Signed URLs (task 13.1) ──────────────────────────────────────────────────
