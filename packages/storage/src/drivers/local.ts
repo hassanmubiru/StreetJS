@@ -35,10 +35,10 @@
  */
 
 import { createHash } from "node:crypto";
-import { existsSync } from "node:fs";
+import { createReadStream, createWriteStream, existsSync } from "node:fs";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
 
 import { systemClock, type Clock } from "streetjs";
 
