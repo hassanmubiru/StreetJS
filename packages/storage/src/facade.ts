@@ -251,12 +251,22 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
    */
   protected readonly multipart: MultipartManager;
 
+  /**
+   * The provider-agnostic resumable upload manager. It delegates to the driver's
+   * native `resumable` capability when present and otherwise simulates
+   * offset-tracked sessions over the driver primitives, so `startUpload`/
+   * `resumeUpload`/`cancelUpload` behave identically across providers
+   * (Requirement 7).
+   */
+  protected readonly resumable: ResumableManager;
+
   constructor(driver: StorageDriver, config: StorageConfig) {
     this.driver = driver;
     this.config = config;
     this.validation =
       config.validation !== undefined ? new ValidationPipeline(config.validation) : undefined;
     this.multipart = new MultipartManager(driver);
+    this.resumable = new ResumableManager(driver);
   }
 
   /**
