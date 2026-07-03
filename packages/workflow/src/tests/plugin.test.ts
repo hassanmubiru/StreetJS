@@ -56,8 +56,10 @@ test("the workflow accessor exposes a usable engine on load and is released on u
   const plugin = new WorkflowPlugin({ clock: CLOCK });
   const app = fakeApp();
 
-  // Before load the accessor is undefined — no engine exists yet.
-  assert.ok(plugin.workflow === undefined, "the engine is undefined before onLoad");
+  // Before load the accessor is undefined — no engine exists yet. Read into a
+  // local so the equality check narrows the local, not the `workflow` getter.
+  const beforeLoad: WorkflowEngine | undefined = plugin.workflow;
+  assert.ok(beforeLoad === undefined, "the engine is undefined before onLoad");
 
   await plugin.onLoad(app);
 
