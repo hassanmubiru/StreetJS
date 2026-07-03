@@ -53,6 +53,8 @@ import type {
   ValidationInput,
   CopyResult,
   GetResult,
+  LifecycleOutcome,
+  LifecycleRule,
   ListOptions,
   MoveResult,
   SearchFilters,
@@ -146,6 +148,9 @@ export interface Storage<T extends StorageMetadataMap = StorageMetadataMap> {
   listVersions(key: string): Promise<VersionInfo[]>;
   restoreVersion(key: string, versionId: string): Promise<StorageObjectMetadata>;
   deleteVersion(key: string, versionId: string): Promise<void>;
+
+  // Lifecycle (Requirement 13)
+  applyLifecycle(rule: LifecycleRule): Promise<LifecycleOutcome[]>;
 
   // Image processing (Requirement 14)
   readonly images: ImageProcessor;
@@ -282,6 +287,16 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
    */
   protected readonly versioning: VersioningManager;
 
+  /**
+   * The provider-agnostic lifecycle engine. It delegates to the driver's native
+   * `lifecycle` capability when present and otherwise simulates rule evaluation
+   * over the driver primitives (`list`/`stat`/`get`/`put`/`delete`), measuring
+   * object age against the injected clock and applying each rule's action to a
+   * qualifying object exactly once, so `applyLifecycle` behaves identically
+   * across providers (Requirement 13).
+   */
+  protected readonly lifecycle: LifecycleEngine;
+
   constructor(driver: StorageDriver, config: StorageConfig) {
     this.driver = driver;
     this.config = config;
@@ -295,6 +310,7 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
       driver,
     });
     this.versioning = new VersioningManager(driver);
+    this.lifecycle = new LifecycleEngine({ driver, clock: config.clock });
   }
 
   /**
