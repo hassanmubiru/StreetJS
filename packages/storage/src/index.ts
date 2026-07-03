@@ -1,14 +1,19 @@
 /**
  * @streetjs/storage
  *
- * Unified storage framework for StreetJS. This is the public entry point.
+ * Unified storage framework for StreetJS. This is the public entry point of the
+ * package. Core types, errors, the driver contract, drivers, and the storage
+ * facade are re-exported from here as they are implemented in subsequent tasks.
  *
- * Scaffold placeholder: the full public surface (createStorage, Storage<T>,
- * types, errors, plugin, and testing utilities) is wired up in later tasks.
+ * For now this file provides a minimal placeholder export so that `tsc` emits a
+ * valid `dist/index.js` and the package builds clean.
  */
 
-/** Package name constant, used as a minimal placeholder export. */
-export const STORAGE_PACKAGE_NAME = "@streetjs/storage";
+/** The semantic version line of the storage framework package surface. */
+export const STORAGE_FRAMEWORK_VERSION = "1.0.0" as const;
 
-/** Package version marker for the scaffold. */
-export const STORAGE_PACKAGE_VERSION = "1.0.0";
+/**
+ * Marker identifying the package. Replaced/augmented with real public exports
+ * (types, errors, drivers, facade) in later tasks.
+ */
+export const STORAGE_PACKAGE_NAME = "@streetjs/storage" as const;

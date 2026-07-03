@@ -1,7 +1,7 @@
 {
   "name": "@streetjs/storage",
   "version": "1.0.0",
-  "description": "StreetJS unified storage framework: a strongly-typed, plugin-first, driver-based storage abstraction with zero-dependency memory/local drivers, object operations, streaming, validation, typed metadata, multipart and resumable uploads, signed URLs, versioning, lifecycle rules, access control, a directory API, search, image processing, observability, and a testing harness. Provider SDKs are optional peer dependencies behind submodule exports.",
+  "description": "StreetJS unified storage framework: a strongly-typed, plugin-first, driver-based object storage layer with zero-dependency in-memory and filesystem drivers, streaming, validation, metadata, multipart, resumable uploads, signed URLs, versioning, lifecycle, access control, and optional cloud provider integrations (S3, R2, Supabase, GCS, Azure, MinIO, Backblaze) isolated behind optional submodules.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -39,8 +39,8 @@
       "types": "./dist/drivers/backblaze.d.ts"
     },
     "./testing": {
-      "import": "./dist/testing.js",
-      "types": "./dist/testing.d.ts"
+      "import": "./dist/testing/index.js",
+      "types": "./dist/testing/index.d.ts"
     }
   },
   "files": [
@@ -55,7 +55,7 @@
   "scripts": {
     "build": "tsc",
     "test": "node --test dist/tests/*.test.js",
-    "example": "node dist/examples/storage-demo.js",
+    "example": "node dist/examples/basic.js",
     "lint": "tsc --noEmit",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\""
   },
@@ -74,7 +74,7 @@
     "backblaze",
     "signed-url",
     "multipart",
-    "resumable",
+    "streaming",
     "typescript",
     "esm"
   ],
@@ -103,7 +103,8 @@
     "@supabase/supabase-js": ">=2.0.0",
     "@google-cloud/storage": ">=7.0.0",
     "@azure/storage-blob": ">=12.0.0",
-    "minio": ">=8.0.0"
+    "minio": ">=8.0.0",
+    "backblaze-b2": ">=1.7.0"
   },
   "peerDependenciesMeta": {
     "typescript": {
@@ -125,6 +126,9 @@
       "optional": true
     },
     "minio": {
+      "optional": true
+    },
+    "backblaze-b2": {
       "optional": true
     }
   },
