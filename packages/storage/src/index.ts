@@ -54,6 +54,10 @@ export type { SignedUrlServiceOptions } from "./signed-url.js";
 // ── Versioning manager (src/versioning.ts, task 14.1) ───────────────────────
 export { VersioningManager } from "./versioning.js";
 
+// ── Lifecycle engine (src/lifecycle.ts, task 15.1) ──────────────────────────
+export { LifecycleEngine, ARCHIVE_KEY_PREFIX } from "./lifecycle.js";
+export type { LifecycleEngineOptions } from "./lifecycle.js";
+
 // ── Typed metadata layer (src/metadata.ts, task 9.1) ────────────────────────
 export {
   buildObjectMetadata,
