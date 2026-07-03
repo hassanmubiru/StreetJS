@@ -966,14 +966,21 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
     // Broadcast the resumed upload's state transitions through the realtime
     // bridge when configured (Requirement 19.1); every broadcast is isolated so
     // it never breaks the upload path (Requirement 19.3).
+    const startedMs = this.nowMs();
+    this.recordActiveStart();
     this.realtime?.started(sessionId);
     try {
       const metadata = await this.resumable.resume(sessionId, stream);
       this.realtime?.completed(metadata.key);
+      this.recordUpload(metadata.size, (this.nowMs() - startedMs) / 1000);
       return metadata;
     } catch (error) {
       this.realtime?.failed(sessionId, error instanceof Error ? error.message : String(error));
+      this.recordUploadFailure();
       throw error;
+    } finally {
+      // The resumed upload is no longer in flight regardless of outcome.
+      this.recordActiveEnd();
     }
   }
 
