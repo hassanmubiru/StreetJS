@@ -518,6 +518,29 @@ function encodeUtf8(value: string): Uint8Array {
 }
 
 /**
+ * Compute the lowercase sha-256 hex digest of `bytes`, matching the checksum
+ * scheme the drivers compute at write time so the value passed to the
+ * validation pipeline is identical to the object's stored checksum.
+ */
+function sha256Hex(bytes: Uint8Array): string {
+  return createHash("sha256").update(bytes).digest("hex");
+}
+
+/**
+ * Drain a Node {@link NodeReadable} fully into a single {@link Uint8Array}. Used
+ * by `putStream` only when a validation pipeline is configured, so size and
+ * checksum can be computed and validated before any content is persisted. Each
+ * chunk is normalized to a `Buffer` before concatenation.
+ */
+async function collectStream(stream: NodeReadable): Promise<Uint8Array> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk as Uint8Array));
+  }
+  return new Uint8Array(Buffer.concat(chunks));
+}
+
+/**
  * Derive the write-time {@link WriteMetadata} from an existing object's
  * {@link StorageObjectMetadata}, carried forward when copying/moving so the
  * destination object preserves the source's content type, ownership, tenancy,
