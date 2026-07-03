@@ -419,6 +419,46 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
    */
   protected readonly realtime?: StorageRealtimePublisher;
 
+  /**
+   * The observability handle, present only when `config.metrics` or
+   * `config.health` is supplied. When defined, its telemetry sink is fed live as
+   * operations occur (uploads/downloads/bytes/failed/active/multipart/resumable
+   * counters + latency histogram — Requirement 23.2) and its `attach` registers
+   * the `storage` health check sourced from {@link probe} (Requirement 23.3).
+   * When neither registry is configured this is `undefined` and every telemetry
+   * call is a complete no-op. Metrics/health reuse the existing core registries
+   * only; no parallel system is introduced (Requirements 23.1, 23.4).
+   */
+  protected readonly observability?: StorageObservabilityHandle;
+
+  /**
+   * The live, mutable statistics tracked as operations occur. `stats()` returns
+   * an immutable snapshot of this state (Requirement 23.2). Kept independent of
+   * the optional metrics registry so `stats()` is always available even when no
+   * observability is wired.
+   */
+  private readonly statsState: {
+    uploads: number;
+    downloads: number;
+    bytesUploaded: number;
+    bytesDownloaded: number;
+    activeUploads: number;
+    failedUploads: number;
+    storageUsage: number;
+    multipartUploads: number;
+    resumableSessions: number;
+  } = {
+    uploads: 0,
+    downloads: 0,
+    bytesUploaded: 0,
+    bytesDownloaded: 0,
+    activeUploads: 0,
+    failedUploads: 0,
+    storageUsage: 0,
+    multipartUploads: 0,
+    resumableSessions: 0,
+  };
+
   constructor(driver: StorageDriver, config: StorageConfig) {
     this.driver = driver;
     this.config = config;
