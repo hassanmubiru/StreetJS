@@ -194,6 +194,27 @@ class WorkflowEngineImpl implements WorkflowEngine {
   /** Whether non-terminal runs are auto-resumed as definitions register (Req 13.1, 14.4). */
   private readonly autoResume: boolean;
 
+  /**
+   * Observability wiring over the reused core `MetricsRegistry` /
+   * `HealthCheckRegistry` primitives (Req 21.3, 21.5, 21.6). Registered
+   * idempotently at construction; a no-op sink when neither registry is
+   * configured (Req 21.4). The engine feeds it live on every transition and
+   * refreshes its gauges from {@link stats}.
+   */
+  private readonly observability: WorkflowObservabilityHandle;
+
+  /** Running total of consumed activity retries, for the {@link stats} snapshot. */
+  private totalRetries = 0;
+
+  /** Running total of executed activity compensations, for the {@link stats} snapshot. */
+  private totalCompensations = 0;
+
+  /** Last-observed cumulative retries per run, so counter increments are deltas only. */
+  private readonly retriesByRun = new Map<string, number>();
+
+  /** Last-observed cumulative compensations per run, so counter increments are deltas only. */
+  private readonly compensationsByRun = new Map<string, number>();
+
   /** Registered Workflow_Functions by name (the Definition Registry). */
   private readonly registry = new Map<string, WorkflowFunction<unknown, unknown>>();
 
