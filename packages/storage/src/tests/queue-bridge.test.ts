@@ -23,14 +23,20 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { createStorage, bridgeStorageQueue } from "../index.js";
+import type { StorageJobPayload } from "../index.js";
+
+interface CapturedJob {
+  readonly job: string;
+  readonly payload: StorageJobPayload;
+}
 
 /** A recording QueueLike double capturing every dispatched (job, payload). */
 function recordingQueue() {
-  const dispatched = [];
+  const dispatched: CapturedJob[] = [];
   return {
     dispatched,
-    dispatch(job, payload) {
-      dispatched.push({ job, payload });
+    dispatch(job: string, payload: unknown): void {
+      dispatched.push({ job, payload: payload as StorageJobPayload });
     },
   };
 }
