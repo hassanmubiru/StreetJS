@@ -136,6 +136,7 @@ test("exists/delete/stat/list behave consistently", async () => {
   assert.equal(await driver.exists("d/missing.txt"), false);
 
   const stat = await driver.stat("d/b.txt");
+  assert.ok(stat);
   assert.equal(stat.size, 2);
   assert.equal(await driver.stat("d/missing.txt"), null);
 
