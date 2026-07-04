@@ -25,14 +25,21 @@ import assert from "node:assert/strict";
 import { Readable } from "node:stream";
 
 import { createStorage, bridgeStorageRealtime, STORAGE_UPLOAD_CHANNEL } from "../index.js";
+import type { StorageRealtimeEventPayload } from "../index.js";
+
+interface CapturedBroadcast {
+  readonly channel: string;
+  readonly event: string;
+  readonly payload: StorageRealtimeEventPayload;
+}
 
 /** A recording RealtimeLike double capturing every broadcast (channel, event, payload). */
 function recordingRealtime() {
-  const broadcasts = [];
+  const broadcasts: CapturedBroadcast[] = [];
   return {
     broadcasts,
-    broadcast(channel, event, payload) {
-      broadcasts.push({ channel, event, payload });
+    broadcast(channel: string, event: string, payload: unknown): void {
+      broadcasts.push({ channel, event, payload: payload as StorageRealtimeEventPayload });
     },
   };
 }
