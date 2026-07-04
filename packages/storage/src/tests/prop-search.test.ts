@@ -22,10 +22,21 @@ import assert from "node:assert/strict";
 import fc from "fast-check";
 
 import { createStorage } from "../index.js";
+import type { SearchFilters } from "../types.js";
+
+/** The generated object shape stored and evaluated by the reference filter. */
+interface GeneratedObject {
+  key: string;
+  content: string;
+  owner: string | undefined;
+  tenant: string | undefined;
+  contentType: string;
+  category: string | undefined;
+}
 
 // UTF-8 byte length, matching how the facade encodes string payloads before
 // the driver records `size`.
-const byteSize = (content) => new TextEncoder().encode(content).length;
+const byteSize = (content: string) => new TextEncoder().encode(content).length;
 
 // Domains kept small so filters match frequently, exercising both the
 // "matches" and "excludes nothing/everything" branches.
