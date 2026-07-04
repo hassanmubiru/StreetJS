@@ -207,7 +207,7 @@ test("advanced capabilities are undefined (simulated by the facade)", () => {
 // ── configuration guards ──────────────────────────────────────────────────────
 
 test("createGoogleCloudStorageDriver throws StorageConfigError when no client is injected", () => {
-  assert.throws(() => createGoogleCloudStorageDriver(undefined), (err) => {
+  assert.throws(() => createGoogleCloudStorageDriver(undefined as unknown as GcsClientLike), (err) => {
     assert.ok(err instanceof StorageConfigError);
     assert.equal(err.provider, "gcs");
     return true;
