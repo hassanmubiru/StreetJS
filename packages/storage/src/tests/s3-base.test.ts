@@ -25,11 +25,14 @@ import {
 } from "../drivers/s3-base.js";
 import { NotFoundError } from "../errors.js";
 import { registerStorageDriverContractTests } from "./contract.js";
+import type { S3ClientLike, S3StyleDriverOptions } from "../drivers/s3-base.js";
+import type { VersioningCapability } from "../driver.js";
+import type { StorageObjectMetadata } from "../types.js";
 
 const FIXED_NOW = 1_700_000_000_000;
 const fixedClock = () => FIXED_NOW;
 
-function bytes(str) {
+function bytes(str: string) {
   return new TextEncoder().encode(str);
 }
 

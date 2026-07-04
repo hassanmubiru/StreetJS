@@ -196,7 +196,7 @@ function registerCloudIntegration({ provider, envVars, connect }: CloudIntegrati
 
   // Requirement 27.2 / 27.4: credentials present → attempt the live round-trip.
   test(title, async (t) => {
-    let driver;
+    let driver: StorageDriver;
     try {
       driver = await connect();
     } catch (error) {
