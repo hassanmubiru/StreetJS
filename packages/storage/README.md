@@ -634,8 +634,10 @@ const probe = await storage.probe();
 ## CLI
 
 `StorageCommands` provides `make:storage`, `storage:list`, `storage:sync`,
-`storage:clean`, `storage:migrate`, and `storage:verify` (registered with the
-StreetJS CLI). Examples:
+`storage:clean`, `storage:migrate`, and `storage:verify`. These are **registered
+by your application through the core `CliKernel`** (construct `StorageCommands`
+and register it) — they are not part of the standalone `@streetjs/cli` (`street`)
+built-in command set. Once registered they are invoked as shown below:
 
 ```bash
 street make:storage Avatars --dir src/storage --provider local
