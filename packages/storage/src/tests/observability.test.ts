@@ -128,7 +128,7 @@ test("probe() delegates to the driver's probe when present (Req 23.3)", async ()
     quotaAvailable: true,
   };
   // A minimal driver implementing the mandatory primitives + probe.
-  const driver = {
+  const driver: StorageDriver = {
     name: "fake",
     async put() {
       return {
