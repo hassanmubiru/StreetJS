@@ -889,6 +889,9 @@ jobs:
           npm run build -w packages/plugin-marzpay
           npm run build -w packages/plugin-htmx
 
+      - name: Build @streetjs/realtime (make:channel/make:gateway compile test imports its built types)
+        run: npm run build -w packages/realtime
+
       - name: Run CLI test suite
         run: npm run test -w packages/cli
 
