@@ -30,7 +30,7 @@ test("MIME type validator rejects disallowed or missing content type", async () 
   const pipeline = new ValidationPipeline({ allowedMimeTypes: ["image/png"] });
   const disallowed = await pipeline.validate({ key: "a.gif", size: 1, contentType: "image/gif" });
   assert.equal(disallowed.ok, false);
-  assert.ok(disallowed.error.includes("image/gif"));
+  assert.ok(disallowed.error!.includes("image/gif"));
 
   const missing = await pipeline.validate({ key: "a", size: 1 });
   assert.equal(missing.ok, false);
