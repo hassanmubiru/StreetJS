@@ -93,12 +93,17 @@ Nothing here touches the internet.
 
 ## CLI
 
-Registered through the core `CliKernel`:
+`GatewayCommands` provides the following `@Command`-decorated commands. They are
+**registered by your application through the core `CliKernel`** (construct
+`GatewayCommands` and register it, optionally passing a `Gateway`/`GatewayConfig`
+for the operational commands) — they are **not** part of the standalone
+`@streetjs/cli` (`street`) built-in command set. Once registered they are
+invoked as:
 
-- `street make:gateway-route <Name> [--dir <dir>]` — scaffold a typed route.
-- `street make:proxy <Name> [--dir <dir>]` — scaffold a proxy/gateway setup.
-- `street gateway:routes` — list configured routes as `pattern → service`.
-- `street gateway:health` — print upstream health counts + per-target state.
+- `make:gateway-route <Name> [--dir <dir>]` — scaffold a typed route.
+- `make:proxy <Name> [--dir <dir>]` — scaffold a proxy/gateway setup.
+- `gateway:routes` — list configured routes as `pattern → service`.
+- `gateway:health` — print upstream health counts + per-target state.
 
 ## Example
 
