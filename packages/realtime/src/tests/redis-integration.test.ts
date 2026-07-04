@@ -236,6 +236,11 @@ test(
     const prefix = uniquePrefix();
     const a = await createInstance(prefix, 'A');
     try {
+      // Wait for the adapter to finish initializing (subscribe + mark connected)
+      // via the facade's documented readiness signal before probing health —
+      // otherwise this races `init()` and observes the pre-init `down` state.
+      await a.realtime.ready;
+
       // Healthy while connected.
       assert.equal(a.adapter.health().status, 'up', 'adapter should start healthy');
 
