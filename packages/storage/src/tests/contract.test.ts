@@ -89,7 +89,7 @@ test("a non-conforming driver is reported as failed, not thrown", async () => {
   // A driver that always reports a missing object exists violates the
   // not-found and round-trip checks; the runner must capture this as failures
   // rather than throwing.
-  const brokenDriver = {
+  const brokenDriver: StorageDriver = {
     name: "broken",
     async put(key, bytes) {
       return {
