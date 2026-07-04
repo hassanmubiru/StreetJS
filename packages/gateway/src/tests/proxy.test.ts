@@ -172,10 +172,25 @@ describe("proxyWebSocketUpgrade (real in-process upgrade)", () => {
     const upstreamPort = (upstream.address() as AddressInfo).port;
     const upstreamUrl = `http://127.0.0.1:${upstreamPort}`;
 
+    // Track every accepted socket on both servers. Once a connection is
+    // *upgraded*, node detaches it from the server's own tracking, so neither
+    // `server.close()` nor `server.closeAllConnections()` will tear it down —
+    // we must destroy these sockets ourselves to let the servers close and the
+    // process exit deterministically.
+    const openSockets = new Set<net.Socket>();
+    const trackConnections = (server: http.Server): void => {
+      server.on("connection", (s: net.Socket) => {
+        openSockets.add(s);
+        s.on("close", () => openSockets.delete(s));
+      });
+    };
+
     // 2) A front server whose upgrade event is bridged to the upstream by the
     //    helper under test.
     const errors: Error[] = [];
     const front = http.createServer();
+    trackConnections(front);
+    trackConnections(upstream);
     front.on("upgrade", (req, socket, head) => {
       proxyWebSocketUpgrade(target(upstreamUrl), req, socket, head, {
         onError: (err) => errors.push(err),
