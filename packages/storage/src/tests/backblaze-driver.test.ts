@@ -21,21 +21,35 @@ import {
 import { StorageConfigError } from "../errors.js";
 import { NotFoundError } from "../errors.js";
 import { registerStorageDriverContractTests } from "./contract.js";
+import type { S3ClientLike } from "../drivers/s3-base.js";
+import type { VersioningCapability } from "../driver.js";
 
 const FIXED_NOW = 1_700_000_000_000;
 const fixedClock = () => FIXED_NOW;
 
-function bytes(str) {
+function bytes(str: string) {
   return new TextEncoder().encode(str);
+}
+
+interface FakeObject {
+  body: Uint8Array;
+  contentType?: string | undefined;
+  metadata?: Record<string, string> | undefined;
+}
+interface FakeUploadState {
+  key: string;
+  contentType?: string | undefined;
+  metadata?: Record<string, string> | undefined;
+  parts: Map<number, Uint8Array>;
 }
 
 /** A minimal in-memory S3ClientLike standing in for the B2 S3 endpoint. */
 function makeFakeClient({ withMultipart = true } = {}) {
-  const objects = new Map();
-  const uploads = new Map();
+  const objects = new Map<string, FakeObject>();
+  const uploads = new Map<string, FakeUploadState>();
   let seed = 0;
 
-  const client = {
+  const client: S3ClientLike = {
     async putObject({ key, body, contentType, metadata }) {
       objects.set(key, {
         body: body.slice(),
