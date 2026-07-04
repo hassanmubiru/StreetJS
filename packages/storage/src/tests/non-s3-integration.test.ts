@@ -77,7 +77,7 @@ interface CloudIntegrationSpec {
  * @param {readonly string[]} vars The env var names the provider requires.
  * @returns {{ state: "absent" | "present" | "misconfigured", present: string[], missing: string[] }}
  */
-function classifyCredentials(vars) {
+function classifyCredentials(vars: readonly string[]): CredentialClassification {
   const present = vars.filter((name) => {
     const value = process.env[name];
     return typeof value === "string" && value.trim() !== "";
