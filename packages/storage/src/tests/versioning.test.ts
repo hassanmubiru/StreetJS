@@ -27,6 +27,7 @@ import { createStorage } from "../facade.js";
 import { VersioningManager } from "../versioning.js";
 import { MemoryStorageDriver } from "../drivers/memory.js";
 import { NotFoundError } from "../errors.js";
+import type { StorageDriver } from "../driver.js";
 
 const fixedClock = () => 1_700_000_000_000;
 
