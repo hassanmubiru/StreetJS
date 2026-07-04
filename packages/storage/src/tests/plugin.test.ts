@@ -52,7 +52,7 @@ test("onLoad exposes a usable Storage facade via the `storage` accessor (Req 20.
 
   const read = await storage.get("greeting.txt");
   assert.equal(read.found, true);
-  assert.equal(Buffer.from(read.bytes).toString("utf8"), "hello world");
+  assert.equal(Buffer.from(read.bytes!).toString("utf8"), "hello world");
 
   await plugin.onUnload(fakeApp());
 });
