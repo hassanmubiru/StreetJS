@@ -99,13 +99,13 @@ function makeFakeClient({ withMultipart = true } = {}) {
       return { uploadId };
     };
     client.uploadPart = async ({ uploadId, partNumber, body }) => {
-      uploads.get(uploadId).parts.set(partNumber, body.slice());
+      uploads.get(uploadId)!.parts.set(partNumber, body.slice());
       return { etag: `${uploadId}-${partNumber}` };
     };
     client.completeMultipartUpload = async ({ uploadId, parts }) => {
-      const session = uploads.get(uploadId);
+      const session = uploads.get(uploadId)!;
       const ordered = [...parts].sort((a, b) => a.partNumber - b.partNumber);
-      const buffers = ordered.map((p) => Buffer.from(session.parts.get(p.partNumber)));
+      const buffers = ordered.map((p) => Buffer.from(session.parts.get(p.partNumber)!));
       objects.set(session.key, {
         body: new Uint8Array(Buffer.concat(buffers)),
         contentType: session.contentType,
