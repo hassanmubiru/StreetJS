@@ -51,7 +51,7 @@ test("size validator rejects content larger than maxSize", async () => {
   assert.equal((await pipeline.validate({ key: "a", size: 10 })).ok, true);
   const tooBig = await pipeline.validate({ key: "a", size: 11 });
   assert.equal(tooBig.ok, false);
-  assert.ok(tooBig.error.includes("11"));
+  assert.ok(tooBig.error!.includes("11"));
 });
 
 test("filename validator matches against the final path segment", async () => {
