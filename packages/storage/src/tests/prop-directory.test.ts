@@ -41,18 +41,18 @@ const dirArb = fc
   .map((segments) => segments.join("/"));
 
 /** Normalize a directory path the same way the Directory API does. */
-function toPrefix(path) {
+function toPrefix(path: string) {
   return path === "" ? "" : path + "/";
 }
 
 /** Keys strictly beneath `prefix` in the flat key set (no markers here). */
-function expectedWalk(keys, prefix) {
+function expectedWalk(keys: string[], prefix: string) {
   return keys.filter((key) => key.startsWith(prefix) && key !== prefix);
 }
 
 /** Immediate children beneath `prefix`: file keys and collapsed sub-dir keys. */
-function expectedImmediate(keys, prefix) {
-  const entries = new Set();
+function expectedImmediate(keys: string[], prefix: string) {
+  const entries = new Set<string>();
   for (const key of keys) {
     if (!key.startsWith(prefix)) continue;
     const remainder = key.slice(prefix.length);

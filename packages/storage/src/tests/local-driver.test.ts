@@ -27,7 +27,7 @@ import type { StorageDriver } from "../driver.js";
  * Create a fresh, isolated temporary root and a driver bound to it, run `body`,
  * and always clean up the directory afterward.
  */
-async function withDriver(body) {
+async function withDriver(body: (driver: StorageDriver, root: string) => Promise<void>) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "streetjs-local-driver-"));
   const driver = new LocalStorageDriver({ root });
   try {
