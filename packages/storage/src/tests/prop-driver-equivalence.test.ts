@@ -113,7 +113,7 @@ const operationArb = fc.oneof(
   fc.record({ type: fc.constant("delete"), key: keyArb }),
   fc.record({ type: fc.constant("stat"), key: keyArb }),
   fc.record({ type: fc.constant("list"), prefix: fc.constantFrom(...PREFIXES), options: listOptionsArb }),
-);
+) as unknown as fc.Arbitrary<Op>;
 
 const sequenceArb = fc.array(operationArb, { minLength: 1, maxLength: 30 });
 
