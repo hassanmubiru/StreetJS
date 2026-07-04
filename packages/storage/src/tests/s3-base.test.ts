@@ -330,7 +330,7 @@ test("versioning/lifecycle/signedUrl are undefined unless injected", () => {
 
 test("native versioning/lifecycle/signedUrl capabilities are delegated when injected", () => {
   const { client } = makeFakeClient();
-  const versioning = { snapshot: async () => null, list: async () => [], restore: async () => ({}), deleteVersion: async () => {} };
+  const versioning = { snapshot: async () => null, list: async () => [], restore: async () => ({}), deleteVersion: async () => {} } as unknown as VersioningCapability;
   const lifecycle = { apply: async () => [] };
   const signedUrl = { sign: async () => "url", verify: () => ({ valid: true }) };
 
