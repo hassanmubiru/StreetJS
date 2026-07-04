@@ -105,7 +105,7 @@ test("versioning failure allows the overwrite to proceed without a Version (Req 
   // snapshotting. The overwrite must still succeed and record no Version.
   const base = new MemoryStorageDriver({ clock: fixedClock });
   let failNextGet = false;
-  const flaky = {
+  const flaky: StorageDriver = {
     ...base,
     name: "flaky",
     put: (key, bytes, meta) => base.put(key, bytes, meta),
