@@ -88,6 +88,7 @@ test("onUnload releases resources: accessor cleared, close() called, detachers i
 
   // Spy on the facade's close() so we can assert it is called on unload.
   const facade = plugin.storage;
+  assert.ok(facade, "facade exposed after load");
   let closeCalls = 0;
   const originalClose = facade.close.bind(facade);
   facade.close = async () => {
