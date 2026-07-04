@@ -145,6 +145,11 @@ export function registerGatewayObservability(
     );
   }
 
+  // The core `Gauge` primitive only exposes `set(value)` (no `inc`/`dec`), so —
+  // adapting the sibling which drives gauges purely from `refresh()` — we track
+  // the live connection count locally and `set()` the gauge on each change.
+  let liveConnections = 0;
+
   const telemetry: GatewayTelemetry = metrics
     ? {
         onRequest: (latencyMs, isError) =>
@@ -157,11 +162,13 @@ export function registerGatewayObservability(
           }),
         onConnectionOpen: () =>
           safe(() => {
-            activeConnectionsGauge?.inc();
+            liveConnections++;
+            activeConnectionsGauge?.set(liveConnections);
           }),
         onConnectionClose: () =>
           safe(() => {
-            activeConnectionsGauge?.dec();
+            liveConnections = Math.max(0, liveConnections - 1);
+            activeConnectionsGauge?.set(liveConnections);
           }),
       }
     : NOOP_TELEMETRY;
