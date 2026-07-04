@@ -28,6 +28,7 @@ import {
   STORAGE_HEALTH_CHECK_NAME,
   STORAGE_UPLOADS_METRIC,
 } from "../index.js";
+import type { Storage } from "../index.js";
 
 /** A minimal SandboxedApp-like stub: exposes only `use` / `on`. */
 function fakeApp() {
