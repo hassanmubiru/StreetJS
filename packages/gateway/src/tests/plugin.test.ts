@@ -61,7 +61,7 @@ const CANNED_FORWARDER: Forwarder = async () => ({
 });
 
 const ROUTES: readonly RouteConfig[] = [
-  { pattern: "/api/*", kind: "prefix", service: "backend" },
+  { pattern: "/api", kind: "prefix", service: "backend" },
 ];
 
 const SERVICES: readonly ServiceConfig[] = [
