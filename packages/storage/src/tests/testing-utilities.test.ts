@@ -24,7 +24,7 @@ import {
   createAdvanceableClock,
 } from "../testing/index.js";
 
-function bytes(str) {
+function bytes(str: string) {
   return new TextEncoder().encode(str);
 }
 
