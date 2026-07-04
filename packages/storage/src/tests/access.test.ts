@@ -192,16 +192,16 @@ test("facade delete denial throws AuthorizationError and keeps the object", asyn
 //
 // Requirements: 11.1, 11.3, 11.4
 
-const ALL_LEVELS = /** @type {const} */ ([
+const ALL_LEVELS: readonly AccessLevel[] = [
   "public",
   "private",
   "signed",
   "authenticated",
   "role-based",
   "tenant-aware",
-]);
+];
 
-const ALL_OPERATIONS = /** @type {const} */ (["read", "write", "delete"]);
+const ALL_OPERATIONS: readonly AccessOperation[] = ["read", "write", "delete"];
 
 test("controller permits every access level across every operation when the bridge allows", async () => {
   for (const accessLevel of ALL_LEVELS) {
