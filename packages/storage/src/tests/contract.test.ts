@@ -118,7 +118,7 @@ test("a non-conforming driver is reported as failed, not thrown", async () => {
       return [];
     },
     async putStream(key, _stream, _metadata) {
-      return this.put(key, new Uint8Array());
+      return this.put(key, new Uint8Array(), {});
     },
     async getStream() {
       throw new Error("unsupported");
