@@ -141,7 +141,7 @@ test("injected-client factory is synchronous (returns a driver, not a promise)",
   const { client } = makeFakeClient();
   const driver = createBackblazeB2Driver(client);
   assert.equal(typeof driver.put, "function");
-  assert.notEqual(typeof driver.then, "function");
+  assert.notEqual(typeof (driver as { then?: unknown }).then, "function");
 });
 
 // ── primitives round-trip through the injected client ──────────────────────────
