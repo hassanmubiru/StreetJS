@@ -38,6 +38,8 @@ import {
   STORAGE_MULTIPART_METRIC,
   STORAGE_RESUMABLE_METRIC,
 } from "../index.js";
+import type { StorageObservabilityHandle } from "../index.js";
+import type { StorageDriver } from "../driver.js";
 
 test("stats() starts zeroed and is available without any registry (Req 23.2)", async () => {
   const storage = createStorage({ provider: "memory" });
@@ -187,18 +189,18 @@ test("config.metrics registers all storage metrics of the correct kind and refle
   await storage.put("a.txt", "hello"); // 5 bytes
   await storage.get("a.txt");
 
-  assert.match(metrics.get(STORAGE_UPLOADS_METRIC).render(), /storage_uploads_total 1/);
-  assert.match(metrics.get(STORAGE_DOWNLOADS_METRIC).render(), /storage_downloads_total 1/);
+  assert.match(metrics.get(STORAGE_UPLOADS_METRIC)!.render(), /storage_uploads_total 1/);
+  assert.match(metrics.get(STORAGE_DOWNLOADS_METRIC)!.render(), /storage_downloads_total 1/);
   assert.match(
-    metrics.get(STORAGE_BYTES_UPLOADED_METRIC).render(),
+    metrics.get(STORAGE_BYTES_UPLOADED_METRIC)!.render(),
     /storage_bytes_uploaded_total 5/,
   );
   assert.match(
-    metrics.get(STORAGE_BYTES_DOWNLOADED_METRIC).render(),
+    metrics.get(STORAGE_BYTES_DOWNLOADED_METRIC)!.render(),
     /storage_bytes_downloaded_total 5/,
   );
-  assert.match(metrics.get(STORAGE_USAGE_METRIC).render(), /storage_usage_bytes 5/);
-  assert.match(metrics.get(STORAGE_LATENCY_METRIC).render(), /storage_operation_latency_seconds_count 2/);
+  assert.match(metrics.get(STORAGE_USAGE_METRIC)!.render(), /storage_usage_bytes 5/);
+  assert.match(metrics.get(STORAGE_LATENCY_METRIC)!.render(), /storage_operation_latency_seconds_count 2/);
 
   await storage.close();
 });
