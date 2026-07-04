@@ -17,16 +17,17 @@ import assert from "node:assert/strict";
 import { createMinIODriver, connectMinIODriver } from "../drivers/minio.js";
 import { StorageConfigError } from "../errors.js";
 import { registerStorageDriverContractTests } from "./contract.js";
+import type { S3ClientLike, S3StyleDriverOptions } from "../drivers/s3-base.js";
 
 const FIXED_NOW = 1_700_000_000_000;
 const fixedClock = () => FIXED_NOW;
 
-function bytes(str) {
+function bytes(str: string) {
   return new TextEncoder().encode(str);
 }
 
 /** A minimal in-memory S3ClientLike double, mirroring the s3-base test fake. */
-function makeFakeClient() {
+function makeFakeClient(): S3ClientLike {
   const objects = new Map(); // key -> { body, contentType, metadata }
   return {
     async putObject({ key, body, contentType, metadata }) {

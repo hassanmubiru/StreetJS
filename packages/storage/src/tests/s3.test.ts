@@ -217,7 +217,9 @@ test("createS3StorageDriverFromConfig wraps a supplied client without loading an
 
   const meta = await driver.put("k", bytes("v"), {});
   assert.equal(meta.key, "k");
-  assert.deepEqual((await driver.get("k")).bytes, bytes("v"));
+  const got = await driver.get("k");
+  assert.ok(got.found);
+  assert.deepEqual(got.bytes, bytes("v"));
 });
 
 test("createS3StorageDriverFromConfig throws a descriptive StorageConfigError when the AWS SDK is absent", async () => {
