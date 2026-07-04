@@ -48,7 +48,9 @@ const distinctEntriesArb = fc
       }),
     ),
   )
-  .map(([keys, contents]) => keys.map((key, index) => [key, contents[index]]));
+  .map(([keys, contents]) =>
+    keys.map((key, index): [string, Uint8Array] => [key, contents[index]]),
+  );
 
 test("Feature: unified-storage-framework, Property 17: Concurrent uploads never corrupt data", async () => {
   await fc.assert(
