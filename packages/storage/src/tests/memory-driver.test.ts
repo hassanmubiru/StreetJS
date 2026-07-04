@@ -165,13 +165,13 @@ test("stat returns metadata for an existing key without content", async () => {
 
   const meta = await driver.stat("stat/key.txt");
 
-  assert.notEqual(meta, null);
+  assert.ok(meta);
   assert.equal(meta.key, "stat/key.txt");
   assert.equal(meta.size, content.byteLength);
   assert.equal(meta.contentType, "text/plain");
   assert.equal(meta.updatedAt, FIXED_NOW);
   // stat carries no bytes field.
-  assert.equal(meta.bytes, undefined);
+  assert.equal((meta as { bytes?: unknown }).bytes, undefined);
 });
 
 test("stat returns null for a missing key", async () => {
