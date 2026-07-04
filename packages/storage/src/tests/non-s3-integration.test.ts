@@ -106,7 +106,7 @@ function classifyCredentials(vars: readonly string[]): CredentialClassification 
  * @param {string} provider The provider name (for key namespacing / messages).
  * @param {import("../driver.js").StorageDriver} driver The connected driver.
  */
-async function exerciseLiveRoundTrip(provider, driver) {
+async function exerciseLiveRoundTrip(provider: string, driver: StorageDriver) {
   const unique = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
   const prefix = `streetjs-integration/${provider}/`;
   const key = `${prefix}${unique}.bin`;
@@ -164,7 +164,7 @@ async function exerciseLiveRoundTrip(provider, driver) {
  * @param {() => Promise<import("../driver.js").StorageDriver>} spec.connect
  *   Builds the live driver from the environment (resolves its SDK lazily).
  */
-function registerCloudIntegration({ provider, envVars, connect }) {
+function registerCloudIntegration({ provider, envVars, connect }: CloudIntegrationSpec) {
   const title = `[integration] ${provider} driver live round-trip`;
   const cred = classifyCredentials(envVars);
 
