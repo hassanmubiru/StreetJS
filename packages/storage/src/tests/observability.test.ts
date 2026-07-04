@@ -211,12 +211,12 @@ test("config.health registers the storage health check reporting up over the mem
 
   const live = await health.runLiveness();
   assert.ok(STORAGE_HEALTH_CHECK_NAME in live.checks);
-  const check = live.checks[STORAGE_HEALTH_CHECK_NAME];
+  const check = live.checks[STORAGE_HEALTH_CHECK_NAME]!;
   assert.equal(check.status, "up");
-  assert.equal(check.details.connectivity, true);
-  assert.equal(check.details.writable, true);
-  assert.equal(check.details.readable, true);
-  assert.equal(check.details.quotaAvailable, true);
+  assert.equal(check.details!.connectivity, true);
+  assert.equal(check.details!.writable, true);
+  assert.equal(check.details!.readable, true);
+  assert.equal(check.details!.quotaAvailable, true);
 
   await storage.close();
 });
