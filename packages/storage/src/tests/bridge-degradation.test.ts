@@ -59,11 +59,11 @@ function throwingBridges() {
 
 /** A recording EventsLike double capturing every published (event, payload). */
 function recordingEvents() {
-  const published = [];
+  const published: CapturedEvent[] = [];
   return {
     published,
-    publish(event, payload) {
-      published.push({ event, payload });
+    publish(event: string, payload: unknown): void {
+      published.push({ event, payload: payload as StorageEventPayload });
     },
   };
 }
