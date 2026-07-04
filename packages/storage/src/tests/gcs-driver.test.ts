@@ -16,13 +16,14 @@ import {
   createGoogleCloudStorageDriver,
   connectGoogleCloudStorageDriver,
 } from "../drivers/gcs.js";
+import type { GcsClientLike } from "../drivers/gcs.js";
 import { StorageConfigError } from "../errors.js";
 import { registerStorageDriverContractTests } from "./contract.js";
 
 const FIXED_NOW = 1_700_000_000_000;
 const fixedClock = () => FIXED_NOW;
 
-function bytes(str) {
+function bytes(str: string) {
   return new TextEncoder().encode(str);
 }
 
