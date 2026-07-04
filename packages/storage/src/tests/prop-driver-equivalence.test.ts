@@ -181,7 +181,7 @@ async function applyOp(driver: StorageDriver, op: Op) {
       };
     }
     default:
-      throw new Error(`unknown op type: ${op.type}`);
+      throw new Error(`unknown op type: ${(op as { type: string }).type}`);
   }
 }
 
