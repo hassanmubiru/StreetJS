@@ -15,6 +15,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { MemoryStorageDriver } from "../drivers/memory.js";
+import type { GetResult, StorageObjectMetadata } from "../types.js";
 
 /** A fixed clock returning a constant epoch-ms value for deterministic tests. */
 const FIXED_NOW = 1_700_000_000_000;
