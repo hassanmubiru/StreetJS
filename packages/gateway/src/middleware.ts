@@ -7,6 +7,10 @@
  * middleware receives the shared {@link RequestContext} and a `next` closure that
  * invokes the remainder of the chain.
  *
+ * Because {@link NextFn} is a zero-argument thunk, the request context is supplied
+ * when the composed function is invoked (see {@link runPipeline}); the `next`
+ * closures handed to each middleware then close over that same context.
+ *
  * Every `next` closure is guarded so it can be invoked at most once; a second
  * invocation throws, surfacing a common middleware bug (calling `next()` twice)
  * rather than silently re-running downstream layers.
@@ -19,22 +23,28 @@ import type { GatewayResponse, Middleware, NextFn, RequestContext } from "./type
  *
  * Runs the middlewares in array order — `middlewares[0]` is the outermost layer,
  * wrapping `middlewares[1]`, and so on, with `terminal` at the core. The returned
- * function starts the chain when invoked.
+ * thunk starts the chain when invoked; supply the {@link RequestContext} at
+ * invocation time. Each invocation builds a fresh set of once-guards, so a
+ * composed pipeline may be reused across requests.
  *
  * Each `next` handed to a middleware may be called at most once; a second call
  * throws an {@link Error}.
  */
 export function compose(middlewares: readonly Middleware[], terminal: NextFn): NextFn {
-  // Fold from the innermost layer outward so index 0 ends up outermost.
-  let chain: NextFn = guardOnce(terminal, middlewares.length);
-  for (let i = middlewares.length - 1; i >= 0; i--) {
-    const mw = middlewares[i]!;
-    const downstream = chain;
-    const wrapped: NextFn = (ctx: RequestContext) => mw(ctx, downstream as NextFn);
-    // `next` closures are guarded so a middleware cannot advance the chain twice.
-    chain = guardOnce(wrapped, i);
-  }
-  return chain;
+  return (ctx?: RequestContext): Promise<GatewayResponse> => {
+    if (ctx === undefined) {
+      throw new Error("compose(...): the composed pipeline must be invoked with a RequestContext");
+    }
+    // Fold from the innermost layer outward so index 0 ends up outermost. Guards
+    // are created per invocation so the pipeline can be safely reused.
+    let chain: NextFn = guardOnce(terminal, -1);
+    for (let i = middlewares.length - 1; i >= 0; i--) {
+      const mw = middlewares[i]!;
+      const downstream = chain;
+      chain = guardOnce(() => mw(ctx, downstream), i);
+    }
+    return chain();
+  };
 }
 
 /**
@@ -51,18 +61,18 @@ export function runPipeline(
 
 /**
  * Wrap a chain step so it can only be invoked once. `index` identifies the layer
- * for a clear diagnostic (`length` denotes the terminal handler).
+ * for a clear diagnostic (`-1` denotes the terminal handler).
  */
 function guardOnce(fn: NextFn, index: number): NextFn {
   let called = false;
-  return (ctx: RequestContext) => {
+  return (): Promise<GatewayResponse> => {
     if (called) {
-      const where = index === -1 ? "the pipeline" : `middleware[${index}]`;
+      const where = index === -1 ? "the terminal handler" : `middleware[${index}]`;
       throw new Error(
-        `next() was called more than once from ${where}; each middleware may advance the chain at most once`,
+        `next() was called more than once from ${where}; each layer may advance the chain at most once`,
       );
     }
     called = true;
-    return fn(ctx);
+    return fn();
   };
 }
