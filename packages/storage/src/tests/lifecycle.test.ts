@@ -39,7 +39,7 @@ function makeStorage() {
   return {
     storage,
     driver,
-    setTime: (value) => {
+    setTime: (value: number) => {
       now = value;
     },
   };
