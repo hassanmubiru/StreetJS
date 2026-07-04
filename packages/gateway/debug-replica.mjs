@@ -20,7 +20,9 @@ async function main() {
   const upstreamUrl = `http://127.0.0.1:${upstreamPort}`;
 
   const errors = [];
+  const sockets = new Set();
   const front = http.createServer();
+  front.on("connection", (s) => { sockets.add(s); s.on("close", () => sockets.delete(s)); });
   front.on("upgrade", (req, socket, head) => {
     proxyWebSocketUpgrade(target(upstreamUrl), req, socket, head, { onError: (e) => errors.push(e) });
   });
