@@ -2,11 +2,8 @@
  * @streetjs/storage
  *
  * Unified storage framework for StreetJS. This is the public entry point of the
- * package. Core types, errors, the driver contract, drivers, and the storage
- * facade are re-exported from here as they are implemented in subsequent tasks.
- *
- * For now this file provides a minimal placeholder export so that `tsc` emits a
- * valid `dist/index.js` and the package builds clean.
+ * package: core types, errors, the driver contract, drivers, the storage
+ * facade, integrations, plugin, and CLI commands are re-exported from here.
  */
 
 /** The semantic version line of the storage framework package surface. */
