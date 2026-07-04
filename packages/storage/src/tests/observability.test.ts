@@ -254,8 +254,8 @@ test("the health check reports down when the driver probe reports a failing dime
   const storage = createStorage({ provider: "fake", driver, health });
 
   const live = await health.runLiveness();
-  assert.equal(live.checks[STORAGE_HEALTH_CHECK_NAME].status, "down");
-  assert.equal(live.checks[STORAGE_HEALTH_CHECK_NAME].details.writable, false);
+  assert.equal(live.checks[STORAGE_HEALTH_CHECK_NAME]!.status, "down");
+  assert.equal(live.checks[STORAGE_HEALTH_CHECK_NAME]!.details!.writable, false);
 
   await storage.close();
 });
@@ -264,7 +264,7 @@ test("registration is idempotent against a shared registry (Req 23.1)", async ()
   const metrics = new MetricsRegistry();
   const first = registerStorageObservability({ metrics });
   // A second registration against the same registry must not throw.
-  let second;
+  let second!: StorageObservabilityHandle;
   assert.doesNotThrow(() => {
     second = registerStorageObservability({ metrics });
   });
