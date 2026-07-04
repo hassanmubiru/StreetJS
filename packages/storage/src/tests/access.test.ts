@@ -16,15 +16,23 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { AccessController } from "../access.js";
+import type { AccessOperation } from "../access.js";
 import { createStorage } from "../facade.js";
 import { AuthorizationError } from "../errors.js";
+import type { AccessLevel, AuthLike } from "../types.js";
+
+/** The context shape the structural auth bridge's `can` predicate receives. */
+type CanContext = Parameters<AuthLike["can"]>[0];
+
+/** A boolean decision or a predicate over the forwarded access context. */
+type Decision = boolean | ((context: CanContext) => boolean | Promise<boolean>);
 
 // A tiny structural AuthLike bridge whose `can` is driven by an injected fn.
-function makeAuth(decision) {
-  const calls = [];
+function makeAuth(decision: Decision): AuthLike & { calls: CanContext[] } {
+  const calls: CanContext[] = [];
   return {
     calls,
-    can(context) {
+    can(context: CanContext) {
       calls.push(context);
       return typeof decision === "function" ? decision(context) : decision;
     },
@@ -47,7 +55,7 @@ test("controller reports enforced when an auth bridge is configured", () => {
 });
 
 test("controller supports every access level and denies when the bridge says false", async () => {
-  const levels = ["public", "private", "signed", "authenticated", "role-based", "tenant-aware"];
+  const levels: readonly AccessLevel[] = ["public", "private", "signed", "authenticated", "role-based", "tenant-aware"];
   for (const accessLevel of levels) {
     const access = new AccessController({ auth: makeAuth(false) });
     // A write is denied for every level when the bridge returns false (11.1/11.3).

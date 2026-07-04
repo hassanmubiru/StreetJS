@@ -46,7 +46,7 @@ function makeFakeClient({ withMultipart = false } = {}) {
   const uploads = new Map(); // uploadId -> { key, metadata, parts: Map<number, body> }
   let uploadCounterSeed = 0;
 
-  const client = {
+  const client: S3ClientLike = {
     async putObject({ key, body, contentType, metadata }) {
       objects.set(key, {
         body: body.slice(),
@@ -124,7 +124,9 @@ function makeFakeClient({ withMultipart = false } = {}) {
   return { client, objects, uploads };
 }
 
-function makeDriver(opts = {}) {
+function makeDriver(
+  opts: { withMultipart?: boolean; driverOptions?: Partial<S3StyleDriverOptions> } = {},
+) {
   const { client } = makeFakeClient(opts);
   return createS3StyleDriver(client, { clock: fixedClock, name: "s3", ...opts.driverOptions });
 }
@@ -203,8 +205,10 @@ test("stat returns metadata without content and null for a missing key", async (
   const driver = makeDriver();
   await driver.put("stat/key.txt", bytes("stat me"), { contentType: "text/plain" });
 
-  const meta = await driver.stat("stat/key.txt");
+  const meta: (StorageObjectMetadata & { readonly bytes?: undefined }) | null =
+    await driver.stat("stat/key.txt");
   assert.notEqual(meta, null);
+  assert.ok(meta);
   assert.equal(meta.key, "stat/key.txt");
   assert.equal(meta.contentType, "text/plain");
   assert.equal(meta.bytes, undefined);

@@ -236,9 +236,9 @@ registerCloudIntegration({
   envVars: ["SUPABASE_URL", "SUPABASE_KEY", "SUPABASE_BUCKET"],
   connect: () =>
     connectSupabaseStorageDriver({
-      url: process.env.SUPABASE_URL,
-      key: process.env.SUPABASE_KEY,
-      bucket: process.env.SUPABASE_BUCKET,
+      url: process.env.SUPABASE_URL!,
+      key: process.env.SUPABASE_KEY!,
+      bucket: process.env.SUPABASE_BUCKET!,
     }),
 });
 
@@ -247,7 +247,7 @@ registerCloudIntegration({
   envVars: ["GCS_BUCKET", "GCS_PROJECT_ID", "GOOGLE_APPLICATION_CREDENTIALS"],
   connect: () =>
     connectGoogleCloudStorageDriver({
-      bucket: process.env.GCS_BUCKET,
+      bucket: process.env.GCS_BUCKET!,
       projectId: process.env.GCS_PROJECT_ID,
       keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS,
     }),
@@ -258,7 +258,7 @@ registerCloudIntegration({
   envVars: ["AZURE_STORAGE_CONNECTION_STRING", "AZURE_STORAGE_CONTAINER"],
   connect: () =>
     connectAzureBlobDriver({
-      container: process.env.AZURE_STORAGE_CONTAINER,
-      connectionString: process.env.AZURE_STORAGE_CONNECTION_STRING,
+      container: process.env.AZURE_STORAGE_CONTAINER!,
+      connectionString: process.env.AZURE_STORAGE_CONNECTION_STRING!,
     }),
 });

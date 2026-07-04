@@ -28,6 +28,7 @@ import fc from "fast-check";
 
 import { createStorage } from "../index.js";
 import { MemoryStorageDriver } from "../drivers/memory.js";
+import type { LifecycleRule } from "../types.js";
 
 const DAY = 24 * 60 * 60 * 1000;
 // A fixed evaluation instant, chosen large enough that every object's write

@@ -12,18 +12,19 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { createAzureBlobDriver, connectAzureBlobDriver } from "../drivers/azure.js";
+import type { AzureBlobClientLike } from "../drivers/azure.js";
 import { StorageConfigError } from "../errors.js";
 import { registerStorageDriverContractTests } from "./contract.js";
 
 const FIXED_NOW = 1_700_000_000_000;
 const fixedClock = () => FIXED_NOW;
 
-function bytes(str) {
+function bytes(str: string) {
   return new TextEncoder().encode(str);
 }
 
 /** A minimal in-memory AzureBlobClientLike double. */
-function makeFakeClient() {
+function makeFakeClient(): AzureBlobClientLike {
   const blobs = new Map(); // blobName -> { body, contentType, metadata }
   return {
     async upload({ blobName, body, contentType, metadata }) {
@@ -120,6 +121,7 @@ test("exists/delete/stat/list behave consistently", async () => {
   assert.equal(await driver.exists("d/missing.txt"), false);
 
   const stat = await driver.stat("d/b.txt");
+  assert.ok(stat);
   assert.equal(stat.size, 2);
   assert.equal(await driver.stat("d/missing.txt"), null);
 
@@ -189,7 +191,7 @@ test("advanced capabilities are left undefined for facade simulation", () => {
 
 test("createAzureBlobDriver throws StorageConfigError when no client is injected", () => {
   assert.throws(
-    () => createAzureBlobDriver(undefined),
+    () => createAzureBlobDriver(undefined as unknown as AzureBlobClientLike),
     (err) => {
       assert.ok(err instanceof StorageConfigError);
       assert.equal(err.provider, "azure");
