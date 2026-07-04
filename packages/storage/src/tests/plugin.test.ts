@@ -44,7 +44,7 @@ test("onLoad exposes a usable Storage facade via the `storage` accessor (Req 20.
   await plugin.onLoad(fakeApp());
 
   // The accessor now exposes the live facade.
-  const storage = plugin.storage;
+  const storage: Storage | undefined = plugin.storage;
   assert.ok(storage, "facade exposed after load");
 
   // The exposed facade is actually usable — a put/get round-trips.
