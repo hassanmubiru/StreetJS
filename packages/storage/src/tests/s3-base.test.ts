@@ -312,9 +312,10 @@ test("multipart abort discards the upload without creating an object", async () 
   const { client } = makeFakeClient({ withMultipart: true });
   const driver = createS3StyleDriver(client, { clock: fixedClock });
 
-  const uploadId = await driver.multipart.create("aborted/file.bin", {});
-  await driver.multipart.uploadPart(uploadId, 1, bytes("data"));
-  await driver.multipart.abort(uploadId);
+  const mp = driver.multipart!;
+  const uploadId = await mp.create("aborted/file.bin", {});
+  await mp.uploadPart(uploadId, 1, bytes("data"));
+  await mp.abort(uploadId);
 
   assert.equal(await driver.exists("aborted/file.bin"), false);
 });
