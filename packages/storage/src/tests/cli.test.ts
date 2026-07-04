@@ -18,18 +18,28 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
+import type { ParsedArgs } from "streetjs";
+
 import {
   generateStorage,
   isValidGeneratorName,
   isValidProvider,
   DEFAULT_STORAGE_DIR,
 } from "../cli/generators.js";
+import type { BuiltInProvider } from "../cli/generators.js";
 import { StorageCommands } from "../cli/commands.js";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 /** Build a ParsedArgs object matching the shape streetjs' parseArgv produces. */
-function parsedArgs({ command = null, positional = [], flags = {} } = {}) {
+function parsedArgs(
+  options: {
+    command?: string | null;
+    positional?: string[];
+    flags?: Record<string, string | boolean>;
+  } = {},
+): ParsedArgs {
+  const { command = null, positional = [], flags = {} } = options;
   return { command, positional, flags };
 }
 

@@ -79,9 +79,10 @@ const filtersArb = fc.record({
 
 // Independent reference implementation of the AND-semantics filter, evaluated
 // against the known write-time metadata of a stored object.
-function satisfies(obj, filters) {
+function satisfies(obj: GeneratedObject, filters: SearchFilters) {
   const size = byteSize(obj.content);
-  const custom = obj.category !== undefined ? { category: obj.category } : {};
+  const custom: Record<string, unknown> =
+    obj.category !== undefined ? { category: obj.category } : {};
 
   if (filters.prefix !== undefined && !obj.key.startsWith(filters.prefix)) return false;
   if (filters.contentType !== undefined && obj.contentType !== filters.contentType) return false;
