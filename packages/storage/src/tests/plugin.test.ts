@@ -28,7 +28,6 @@ import {
   STORAGE_HEALTH_CHECK_NAME,
   STORAGE_UPLOADS_METRIC,
 } from "../index.js";
-import type { Storage } from "../index.js";
 
 /** A minimal SandboxedApp-like stub: exposes only `use` / `on`. */
 function fakeApp() {
@@ -46,6 +45,7 @@ test("onLoad exposes a usable Storage facade via the `storage` accessor (Req 20.
   // The accessor now exposes the live facade.
   const storage = plugin.storage;
   assert.ok(storage, "facade exposed after load");
+  if (!storage) throw new Error("unreachable: facade must be defined after load");
 
   // The exposed facade is actually usable — a put/get round-trips.
   const written = await storage.put("greeting.txt", "hello world");
