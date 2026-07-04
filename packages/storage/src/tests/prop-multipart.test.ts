@@ -68,6 +68,8 @@ test(
 
           assert.equal(multipartResult.found, true);
           assert.equal(singleResult.found, true);
+          assert.ok(multipartResult.bytes);
+          assert.ok(singleResult.bytes);
           assert.deepEqual(
             Buffer.from(multipartResult.bytes),
             Buffer.from(singleResult.bytes),
