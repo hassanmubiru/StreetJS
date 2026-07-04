@@ -39,7 +39,7 @@ function makeMemoryDriver() {
 }
 
 /** Temp roots allocated for Local drivers, cleaned up after the run. */
-const tempRoots = [];
+const tempRoots: string[] = [];
 
 /** Factory: a fresh filesystem driver rooted at a unique temp dir per call. */
 function makeLocalDriver() {
