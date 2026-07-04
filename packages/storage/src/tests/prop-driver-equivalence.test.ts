@@ -28,12 +28,23 @@ import fc from "fast-check";
 
 import { MemoryStorageDriver } from "../drivers/memory.js";
 import { LocalStorageDriver } from "../drivers/local.js";
+import type { StorageDriver } from "../driver.js";
+import type { AccessLevel, ListOptions, StorageObjectMetadata, WriteMetadata } from "../types.js";
+
+/** One generated object operation applied identically to both drivers. */
+type Op =
+  | { readonly type: "put"; readonly key: string; readonly bytes: Uint8Array; readonly meta: WriteMetadata }
+  | { readonly type: "get"; readonly key: string }
+  | { readonly type: "exists"; readonly key: string }
+  | { readonly type: "delete"; readonly key: string }
+  | { readonly type: "stat"; readonly key: string }
+  | { readonly type: "list"; readonly prefix: string; readonly options?: ListOptions };
 
 /** A fixed clock so both drivers stamp identical timestamps for the same op. */
 const fixedClock = () => 1_700_000_000_000;
 
 /** The valid AccessLevel values (Requirement 11.1). */
-const ACCESS_LEVELS = [
+const ACCESS_LEVELS: readonly AccessLevel[] = [
   "public",
   "private",
   "signed",
