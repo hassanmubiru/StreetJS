@@ -33,7 +33,7 @@ function bytes(str: string) {
  * would, and returns `null` (never throws) for a missing object so the driver's
  * not-found mapping is exercised.
  */
-function makeFakeClient() {
+function makeFakeClient(): GcsClientLike {
   const objects = new Map(); // name -> { bytes, contentType, metadata }
   return {
     async save(name, data, options) {
