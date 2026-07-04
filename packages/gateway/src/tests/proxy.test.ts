@@ -249,6 +249,8 @@ describe("proxyWebSocketUpgrade (real in-process upgrade)", () => {
       assert.deepEqual(errors, [], "no proxy transport errors expected");
       client.destroy();
     } finally {
+      // Force-destroy any surviving (upgraded/detached) sockets first, then close.
+      for (const s of openSockets) s.destroy();
       await closeServer(front);
       await closeServer(upstream);
     }
