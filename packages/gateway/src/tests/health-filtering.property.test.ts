@@ -69,7 +69,7 @@ test("Feature: gateway, Property: health-filtering — a balancer over the filte
       const balancer = new RoundRobinBalancer();
 
       for (let i = 0; i < picks; i++) {
-        const chosen = balancer.pick(healthy, new Map());
+        const chosen = balancer.pick(healthy);
         if (healthy.length === 0) {
           assert.equal(chosen, undefined);
         } else {
