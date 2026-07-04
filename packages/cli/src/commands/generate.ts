@@ -186,12 +186,12 @@ export class ${className}Controller {
   async findById(ctx: StreetContext): Promise<void> {
     const id = ctx.params['id'];
     if (!id) {
-      ctx.status(400).json({ error: 'Missing id parameter' });
+      ctx.json({ error: 'Missing id parameter' }, 400);
       return;
     }
     const item = await this.service.findById(id);
     if (!item) {
-      ctx.status(404).json({ error: '${className} not found' });
+      ctx.json({ error: '${className} not found' }, 404);
       return;
     }
     ctx.json(item);
@@ -202,11 +202,11 @@ export class ${className}Controller {
   async create(ctx: StreetContext): Promise<void> {
     const data = ctx.body as Record<string, unknown> | null;
     if (!data || typeof data !== 'object') {
-      ctx.status(400).json({ error: 'Invalid request body' });
+      ctx.json({ error: 'Invalid request body' }, 400);
       return;
     }
     const item = await this.service.create(data);
-    ctx.status(201).json(item);
+    ctx.json(item, 201);
   }
 
   @Put('/:id')
@@ -215,12 +215,12 @@ export class ${className}Controller {
     const id = ctx.params['id'];
     const data = ctx.body as Record<string, unknown> | null;
     if (!id || !data) {
-      ctx.status(400).json({ error: 'Missing id or body' });
+      ctx.json({ error: 'Missing id or body' }, 400);
       return;
     }
     const item = await this.service.update(id, data);
     if (!item) {
-      ctx.status(404).json({ error: '${className} not found' });
+      ctx.json({ error: '${className} not found' }, 404);
       return;
     }
     ctx.json(item);
@@ -231,11 +231,11 @@ export class ${className}Controller {
   async delete(ctx: StreetContext): Promise<void> {
     const id = ctx.params['id'];
     if (!id) {
-      ctx.status(400).json({ error: 'Missing id parameter' });
+      ctx.json({ error: 'Missing id parameter' }, 400);
       return;
     }
     await this.service.delete(id);
-    ctx.status(204).send();
+    ctx.send(204);
   }
 }
 `;
