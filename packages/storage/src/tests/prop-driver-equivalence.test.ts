@@ -204,7 +204,7 @@ test(
             assert.deepEqual(
               localObs,
               memObs,
-              `observation diverged at step ${i} for op ${JSON.stringify(op.type)} (key=${op.key ?? op.prefix})`,
+              `observation diverged at step ${i} for op ${JSON.stringify(op.type)} (key=${"key" in op ? op.key : op.prefix})`,
             );
           }
         } finally {
