@@ -23,6 +23,8 @@ import assert from "node:assert/strict";
 
 import { createStorage } from "../facade.js";
 import { UnsupportedImageError } from "../errors.js";
+import type { ImageOperations } from "../facade.js";
+import type { ImageCodec } from "../types.js";
 
 const fixedClock = () => 1_700_000_000_000;
 
@@ -32,7 +34,7 @@ const fixedClock = () => 1_700_000_000_000;
  * processor cache prevents re-invocation for identical requests.
  */
 function makeFakeCodec() {
-  const codec = {
+  const codec: ImageCodec & { calls: number } = {
     calls: 0,
     transform(bytes, operation) {
       codec.calls += 1;
@@ -67,8 +69,9 @@ test("a rejected non-image transform leaves the source Object unmodified (Req 14
   await storage.put("notes.txt", "just some text", { contentType: "text/plain" });
 
   const before = await storage.get("notes.txt");
-  const beforeBytes = Buffer.from(before.bytes);
+  const beforeBytes = Buffer.from(before.bytes!);
   const beforeMeta = before.metadata;
+  assert.ok(beforeMeta);
 
   await assert.rejects(
     () => storage.images.transform("notes.txt", { format: "png", resize: { width: 4 } }),
@@ -76,10 +79,11 @@ test("a rejected non-image transform leaves the source Object unmodified (Req 14
   );
 
   const after = await storage.get("notes.txt");
+  assert.ok(after.metadata);
 
   // Bytes are byte-for-byte intact.
-  assert.ok(beforeBytes.equals(Buffer.from(after.bytes)));
-  assert.equal(Buffer.from(after.bytes).toString(), "just some text");
+  assert.ok(beforeBytes.equals(Buffer.from(after.bytes!)));
+  assert.equal(Buffer.from(after.bytes!).toString(), "just some text");
 
   // Metadata is intact: identity, size, content type, and checksum unchanged.
   assert.equal(after.metadata.key, beforeMeta.key);
@@ -97,7 +101,7 @@ test("identical transform requests invoke the codec only once (Req 14.3)", async
   const pngBytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3, 4]);
   await storage.put("photo.png", pngBytes, { contentType: "image/png" });
 
-  const operations = { resize: { width: 100, height: 100 }, format: "webp" };
+  const operations: ImageOperations = { resize: { width: 100, height: 100 }, format: "webp" };
 
   const first = await storage.images.transform("photo.png", operations);
   const second = await storage.images.transform("photo.png", operations);
