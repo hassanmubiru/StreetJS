@@ -48,12 +48,16 @@ function parsedArgs(
  * with process.exitCode reset, restoring both afterwards. Returns the captured
  * output plus the exitCode observed after `fn` completes.
  */
-async function captureRun(fn) {
+async function captureRun(fn: () => unknown): Promise<{
+  logs: string[];
+  errors: string[];
+  exitCode: typeof process.exitCode;
+}> {
   const originalLog = console.log;
   const originalError = console.error;
   const originalExitCode = process.exitCode;
-  const logs = [];
-  const errors = [];
+  const logs: string[] = [];
+  const errors: string[] = [];
   console.log = (...args) => logs.push(args.join(" "));
   console.error = (...args) => errors.push(args.join(" "));
   process.exitCode = undefined;
