@@ -181,10 +181,11 @@ test("native multipart delegates through the client when available", async () =>
   const driver = createBackblazeB2Driver(client, { clock: fixedClock });
 
   assert.notEqual(driver.multipart, undefined);
-  const uploadId = await driver.multipart.create("big/file.bin", {});
-  const p1 = await driver.multipart.uploadPart(uploadId, 1, bytes("part-one-"));
-  const p2 = await driver.multipart.uploadPart(uploadId, 2, bytes("part-two"));
-  await driver.multipart.complete(uploadId, [p1, p2]);
+  const mp = driver.multipart!;
+  const uploadId = await mp.create("big/file.bin", {});
+  const p1 = await mp.uploadPart(uploadId, 1, bytes("part-one-"));
+  const p2 = await mp.uploadPart(uploadId, 2, bytes("part-two"));
+  await mp.complete(uploadId, [p1, p2]);
 
   const result = await driver.get("big/file.bin");
   assert.equal(result.found, true);
@@ -193,7 +194,7 @@ test("native multipart delegates through the client when available", async () =>
 
 test("native capabilities are delegated when injected via options", () => {
   const { client } = makeFakeClient();
-  const versioning = { snapshot: async () => null, list: async () => [], restore: async () => ({}), deleteVersion: async () => {} };
+  const versioning = { snapshot: async () => null, list: async () => [], restore: async () => ({}), deleteVersion: async () => {} } as unknown as VersioningCapability;
   const lifecycle = { apply: async () => [] };
   const signedUrl = { sign: async () => "url", verify: () => ({ valid: true }) };
 
