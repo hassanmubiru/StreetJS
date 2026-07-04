@@ -23,17 +23,23 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { createStorage, bridgeStorageEvents } from "../index.js";
+import type { StorageEventPayload } from "../index.js";
 
 const DAY = 24 * 60 * 60 * 1000;
 const T0 = 1_700_000_000_000;
 
+interface CapturedEvent {
+  readonly event: string;
+  readonly payload: StorageEventPayload;
+}
+
 /** A recording EventsLike double capturing every published (event, payload). */
 function recordingEvents() {
-  const published = [];
+  const published: CapturedEvent[] = [];
   return {
     published,
-    publish(event, payload) {
-      published.push({ event, payload });
+    publish(event: string, payload: unknown): void {
+      published.push({ event, payload: payload as StorageEventPayload });
     },
   };
 }
