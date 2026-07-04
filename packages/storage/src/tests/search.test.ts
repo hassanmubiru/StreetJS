@@ -22,9 +22,10 @@ import assert from "node:assert/strict";
 import { createStorage } from "../facade.js";
 import { searchObjects } from "../search.js";
 import { MemoryStorageDriver } from "../drivers/memory.js";
+import type { StorageListItem } from "../types.js";
 
 /** A fixed clock so updatedAt values are deterministic for time-range filters. */
-function fixedClock(now) {
+function fixedClock(now: number) {
   return () => now;
 }
 
