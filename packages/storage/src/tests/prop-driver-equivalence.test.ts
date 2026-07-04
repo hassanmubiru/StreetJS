@@ -189,7 +189,7 @@ test(
   "Feature: unified-storage-framework, Property 18: Memory and Local drivers are observationally equivalent",
   async () => {
     await fc.assert(
-      fc.asyncProperty(sequenceArb, async (operations) => {
+      fc.asyncProperty(sequenceArb, async (operations: readonly Op[]) => {
         // Fresh temp dir + fresh drivers per run keep every sequence independent.
         const root = await fs.mkdtemp(path.join(os.tmpdir(), "streetjs-driver-equiv-"));
         const memory = new MemoryStorageDriver({ clock: fixedClock });
