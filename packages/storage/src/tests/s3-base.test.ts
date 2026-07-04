@@ -295,11 +295,12 @@ test("multipart capability is wired and assembles parts when the client supports
   const driver = createS3StyleDriver(client, { clock: fixedClock });
 
   assert.notEqual(driver.multipart, undefined);
+  const mp = driver.multipart!;
 
-  const uploadId = await driver.multipart.create("big/file.bin", { contentType: "text/plain" });
-  const p1 = await driver.multipart.uploadPart(uploadId, 1, bytes("part-one-"));
-  const p2 = await driver.multipart.uploadPart(uploadId, 2, bytes("part-two"));
-  const meta = await driver.multipart.complete(uploadId, [p1, p2]);
+  const uploadId = await mp.create("big/file.bin", { contentType: "text/plain" });
+  const p1 = await mp.uploadPart(uploadId, 1, bytes("part-one-"));
+  const p2 = await mp.uploadPart(uploadId, 2, bytes("part-two"));
+  const meta = await mp.complete(uploadId, [p1, p2]);
 
   assert.equal(meta.key, "big/file.bin");
   const result = await driver.get("big/file.bin");
