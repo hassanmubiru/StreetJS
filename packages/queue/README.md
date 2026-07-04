@@ -220,8 +220,9 @@ Each `DeadLetterRecord` carries the job `id`, `type`, `queue`, `payload`,
 consumed `attempts`, `maxAttempts`, the serialized `error`, and the `enqueuedAt`
 / `failedAt` timestamps.
 
-The same operations are available from the CLI (registered through the core
-`CliKernel`):
+The same operations are available as commands your application registers through
+the core `CliKernel` (they are not part of the standalone `@streetjs/cli`
+(`street`) built-in command set):
 
 ```bash
 street queue:failed              # list dead-letter records
