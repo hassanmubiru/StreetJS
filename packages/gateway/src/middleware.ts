@@ -8,8 +8,10 @@
  * invokes the remainder of the chain.
  *
  * Because {@link NextFn} is a zero-argument thunk, the request context is supplied
- * when the composed function is invoked (see {@link runPipeline}); the `next`
- * closures handed to each middleware then close over that same context.
+ * when the composed pipeline is invoked (see {@link runPipeline}); the `next`
+ * closures handed to each middleware then close over that same context. The
+ * composed value is assignable to {@link NextFn} (its context parameter is
+ * optional), so it can be used anywhere a `NextFn` is expected.
  *
  * Every `next` closure is guarded so it can be invoked at most once; a second
  * invocation throws, surfacing a common middleware bug (calling `next()` twice)
@@ -17,6 +19,12 @@
  */
 
 import type { GatewayResponse, Middleware, NextFn, RequestContext } from "./types.js";
+
+/**
+ * A composed pipeline: a {@link NextFn}-compatible thunk that accepts the shared
+ * {@link RequestContext} at invocation time.
+ */
+type Pipeline = (ctx?: RequestContext) => Promise<GatewayResponse>;
 
 /**
  * Compose `middlewares` into a single {@link NextFn} around `terminal`.
@@ -31,20 +39,7 @@ import type { GatewayResponse, Middleware, NextFn, RequestContext } from "./type
  * throws an {@link Error}.
  */
 export function compose(middlewares: readonly Middleware[], terminal: NextFn): NextFn {
-  return (ctx?: RequestContext): Promise<GatewayResponse> => {
-    if (ctx === undefined) {
-      throw new Error("compose(...): the composed pipeline must be invoked with a RequestContext");
-    }
-    // Fold from the innermost layer outward so index 0 ends up outermost. Guards
-    // are created per invocation so the pipeline can be safely reused.
-    let chain: NextFn = guardOnce(terminal, -1);
-    for (let i = middlewares.length - 1; i >= 0; i--) {
-      const mw = middlewares[i]!;
-      const downstream = chain;
-      chain = guardOnce(() => mw(ctx, downstream), i);
-    }
-    return chain();
-  };
+  return build(middlewares, terminal);
 }
 
 /**
@@ -56,7 +51,27 @@ export function runPipeline(
   middlewares: readonly Middleware[],
   terminal: NextFn,
 ): Promise<GatewayResponse> {
-  return compose(middlewares, terminal)(ctx);
+  return build(middlewares, terminal)(ctx);
+}
+
+/** Build the ctx-accepting pipeline shared by {@link compose} and {@link runPipeline}. */
+function build(middlewares: readonly Middleware[], terminal: NextFn): Pipeline {
+  return (ctx?: RequestContext): Promise<GatewayResponse> => {
+    if (ctx === undefined) {
+      throw new Error(
+        "compose(...): the composed pipeline must be invoked with a RequestContext",
+      );
+    }
+    // Fold from the innermost layer outward so index 0 ends up outermost. Guards
+    // are created per invocation so the pipeline can be safely reused.
+    let chain: NextFn = guardOnce(terminal, -1);
+    for (let i = middlewares.length - 1; i >= 0; i--) {
+      const mw = middlewares[i]!;
+      const downstream = chain;
+      chain = guardOnce(() => mw(ctx, downstream), i);
+    }
+    return chain();
+  };
 }
 
 /**
