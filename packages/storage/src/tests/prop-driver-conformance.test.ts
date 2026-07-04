@@ -36,7 +36,7 @@ import { LocalStorageDriver } from "../drivers/local.js";
 const fixedClock = () => 1_700_000_000_000;
 
 /** Temp roots allocated for Local drivers, cleaned up after the run. */
-const tempRoots = [];
+const tempRoots: string[] = [];
 
 /** Factory: a fresh in-memory driver per call. */
 function makeMemoryDriver() {
