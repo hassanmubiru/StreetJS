@@ -185,7 +185,8 @@ test("putStream/getStream round-trip through the injected client", async () => {
 
 test("getStream throws NotFoundError for a missing key", async () => {
   const driver = makeDriver();
-  await assert.rejects(() => driver.getStream("absent"), (err) => {
+  await assert.rejects(() => driver.getStream("absent"), (err: unknown) => {
+    assert.ok(err instanceof Error);
     assert.equal(err.name, "NotFoundError");
     return true;
   });
@@ -205,7 +206,7 @@ test("advanced capabilities are undefined (simulated by the facade)", () => {
 // ── configuration guards ──────────────────────────────────────────────────────
 
 test("createSupabaseStorageDriver throws StorageConfigError when no client is injected", () => {
-  assert.throws(() => createSupabaseStorageDriver(undefined), (err) => {
+  assert.throws(() => createSupabaseStorageDriver(undefined as unknown as SupabaseStorageClientLike), (err) => {
     assert.ok(err instanceof StorageConfigError);
     assert.equal(err.provider, "supabase");
     return true;
