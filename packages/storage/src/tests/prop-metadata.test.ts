@@ -26,12 +26,13 @@ import fc from "fast-check";
 
 import { createStorage } from "../facade.js";
 import { DEFAULT_ACCESS_LEVEL, DEFAULT_CONTENT_TYPE } from "../metadata.js";
+import type { AccessLevel } from "../types.js";
 
 /** A fixed clock so object timestamps are deterministic across runs. */
 const fixedClock = () => 1_700_000_000_000;
 
 /** The valid AccessLevel values (Requirement 11.1). */
-const ACCESS_LEVELS = [
+const ACCESS_LEVELS: AccessLevel[] = [
   "public",
   "private",
   "signed",
