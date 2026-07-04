@@ -127,7 +127,7 @@ describe("integration: load balancing across two real backends", () => {
 
     try {
       // Mark the "bad" target unhealthy; all traffic must land on "good".
-      gateway.health.set(tb.id, "unhealthy");
+      gateway.health.setState(tb.id, "unhealthy");
       for (let i = 0; i < 5; i++) await gateway.handle(req({ path: "/svc" }));
       assert.equal(good.requests.length, 5);
       assert.equal(bad.requests.length, 0);
