@@ -282,7 +282,7 @@ for (const provider of PROVIDERS) {
 
   // Requirement 27.2 — credentials present: run against the provider.
   test(testName, async (t) => {
-    let driver;
+    let driver: StorageDriver;
     try {
       driver = await provider.connect(values);
     } catch (error) {

@@ -26,16 +26,18 @@ import {
 } from "../drivers/s3.js";
 import { StorageConfigError } from "../errors.js";
 import { registerStorageDriverContractTests } from "./contract.js";
+import type { S3ClientLike } from "../drivers/s3-base.js";
+import type { VersioningCapability } from "../driver.js";
 
 const FIXED_NOW = 1_700_000_000_000;
 const fixedClock = () => FIXED_NOW;
 
-function bytes(str) {
+function bytes(str: string) {
   return new TextEncoder().encode(str);
 }
 
 /** A minimal in-memory S3ClientLike (with native multipart) standing in for the SDK. */
-function makeFakeClient() {
+function makeFakeClient(): S3ClientLike {
   const objects = new Map(); // key -> { body, contentType, metadata }
   const uploads = new Map(); // uploadId -> { key, contentType, metadata, parts: Map }
   let seed = 0;
@@ -149,6 +151,7 @@ test("createS3StorageDriver reports a missing key as found:false (not an error)"
 test("createS3StorageDriver wires native multipart from the injected client", async () => {
   const driver = createS3StorageDriver(makeFakeClient(), { clock: fixedClock });
   assert.notEqual(driver.multipart, undefined);
+  assert.ok(driver.multipart);
 
   const uploadId = await driver.multipart.create("big/file.bin", { contentType: "text/plain" });
   const p1 = await driver.multipart.uploadPart(uploadId, 1, bytes("part-one-"));
@@ -157,6 +160,7 @@ test("createS3StorageDriver wires native multipart from the injected client", as
 
   assert.equal(meta.key, "big/file.bin");
   const result = await driver.get("big/file.bin");
+  assert.ok(result.found);
   assert.deepEqual(result.bytes, bytes("part-one-part-two"));
 });
 
