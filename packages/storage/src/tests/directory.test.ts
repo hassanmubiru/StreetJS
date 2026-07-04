@@ -83,13 +83,13 @@ test("listDirectory returns only immediate children (15.2)", async () => {
 
   // The sub-directory entry is synthesized with size 0.
   const subdir = listing.find((item) => item.key === "photos/2024/");
-  assert.equal(subdir.size, 0);
+  assert.equal(subdir!.size, 0);
 
   // File entries carry their real byte sizes.
   const fileA = listing.find((item) => item.key === "photos/a.jpg");
-  assert.equal(fileA.size, 1);
+  assert.equal(fileA!.size, 1);
   const fileB = listing.find((item) => item.key === "photos/b.jpg");
-  assert.equal(fileB.size, 2);
+  assert.equal(fileB!.size, 2);
 });
 
 test("listDirectory accepts leading/trailing delimiters equivalently (15.2)", async () => {
