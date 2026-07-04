@@ -88,6 +88,7 @@ test("Feature: unified-storage-framework, Property 5: Metadata round-trips throu
       // The write-supplied fields must equal what was written on every surface
       // that returns metadata (put, stat, get).
       for (const meta of [putMeta, statMeta, getResult.metadata]) {
+        assert.ok(meta, "metadata must be present on every surface");
         assert.equal(meta.owner, write.owner, "owner must round-trip");
         assert.equal(meta.tenant, write.tenant, "tenant must round-trip");
         assert.equal(
