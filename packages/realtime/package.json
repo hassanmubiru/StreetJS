@@ -25,6 +25,7 @@
   ],
   "scripts": {
     "build": "tsc",
+    "example": "npm run build && node dist/examples/room-broadcast.js",
     "test": "node --test dist/tests/*.test.js",
     "lint": "tsc --noEmit",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\""
