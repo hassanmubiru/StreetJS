@@ -253,7 +253,7 @@ test("bridgeStorageEvents is a standalone never-throwing publisher", () => {
   const events = recordingEvents();
   const publisher = bridgeStorageEvents(events);
 
-  const metadata = {
+  const metadata: StorageObjectMetadata = {
     key: "k",
     size: 1,
     contentType: "text/plain",
