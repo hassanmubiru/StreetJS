@@ -53,8 +53,9 @@ async function main() {
     log("echo ok, errors=", errors.length);
     client.destroy();
   } finally {
-    log("closing front, conns=", (await new Promise((r)=>front.getConnections((e,c)=>r(c)))));
-    await new Promise((r) => { front.closeAllConnections?.(); front.close(() => r()); });
+    log("closing front, tracked sockets=", sockets.size);
+    for (const s of sockets) s.destroy();
+    await new Promise((r) => { front.close(() => r()); });
     log("front closed");
     log("closing upstream, conns=", (await new Promise((r)=>upstream.getConnections((e,c)=>r(c)))));
     await new Promise((r) => { upstream.closeAllConnections?.(); upstream.close(() => r()); });
