@@ -117,7 +117,7 @@ test("FakeUpload buffers chunks and persists on complete", async () => {
   assert.equal(meta.key, "big.bin");
 
   const got = await storage.get("big.bin");
-  assert.deepEqual(Buffer.from(got.bytes), Buffer.from(bytes("part-1;part-2")));
+  assert.deepEqual(Buffer.from(got.bytes!), Buffer.from(bytes("part-1;part-2")));
 
   assert.throws(() => upload.write("more"));
   await assert.rejects(() => upload.complete());
