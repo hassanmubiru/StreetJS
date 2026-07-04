@@ -5,5 +5,5 @@ import { GATEWAY_PACKAGE_NAME, GATEWAY_FRAMEWORK_VERSION } from "../index.js";
 
 test("built entry point exposes package markers", () => {
   assert.equal(GATEWAY_PACKAGE_NAME, "@streetjs/gateway");
-  assert.equal(GATEWAY_FRAMEWORK_VERSION, "0.1.0");
+  assert.equal(GATEWAY_FRAMEWORK_VERSION, "1.0.0");
 });

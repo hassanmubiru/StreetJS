@@ -13,7 +13,7 @@
 
 /** Package identity markers. */
 export const GATEWAY_PACKAGE_NAME = "@streetjs/gateway" as const;
-export const GATEWAY_FRAMEWORK_VERSION = "0.1.0" as const;
+export const GATEWAY_FRAMEWORK_VERSION = "1.0.0" as const;
 
 // ── Facade ──────────────────────────────────────────────────────────────────────
 export { createGateway } from "./gateway.js";
