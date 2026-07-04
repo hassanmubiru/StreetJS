@@ -115,7 +115,7 @@ test("stat returns metadata for an existing key and null for a missing one", asy
     await driver.put("docs/readme.txt", bytes, { contentType: "text/plain" });
 
     const meta = await driver.stat("docs/readme.txt");
-    assert.notEqual(meta, null);
+    assert.ok(meta);
     assert.equal(meta.key, "docs/readme.txt");
     assert.equal(meta.size, bytes.byteLength);
     assert.equal(meta.contentType, "text/plain");
