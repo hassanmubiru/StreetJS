@@ -72,7 +72,7 @@ test(
 
           // Evaluate the rule at the fixed instant NOW.
           clockValue = NOW;
-          const rule = { type: "delete-after-days", days: thresholdDays };
+          const rule: LifecycleRule = { type: "delete-after-days", days: thresholdDays };
 
           // The qualifying set: objects at least `thresholdDays` old.
           const expectedKeys = objects
