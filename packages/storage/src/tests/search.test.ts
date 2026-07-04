@@ -36,7 +36,7 @@ function makeStorage(now = 1000) {
 }
 
 /** Collect the sorted keys from a list of StorageListItem results. */
-function keysOf(items) {
+function keysOf(items: readonly StorageListItem[]) {
   return items.map((item) => item.key).sort();
 }
 
