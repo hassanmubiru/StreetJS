@@ -72,8 +72,8 @@ test("get on a missing key reports not-found", async () => {
   await withDriver(async (driver) => {
     const result = await driver.get("does/not/exist.txt");
     assert.equal(result.found, false);
-    assert.equal(result.bytes, undefined);
-    assert.equal(result.metadata, undefined);
+    assert.equal((result as { bytes?: Uint8Array }).bytes, undefined);
+    assert.equal((result as { metadata?: unknown }).metadata, undefined);
   });
 });
 
