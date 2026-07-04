@@ -126,12 +126,12 @@ test("attach registers the single 'storage' health check sourced from probe() co
     "expected the 'storage' health check to be registered",
   );
 
-  const check = live.checks[STORAGE_HEALTH_CHECK_NAME];
+  const check = live.checks[STORAGE_HEALTH_CHECK_NAME]!;
   // The single check surfaces every probe dimension Req 23.3 requires.
-  assert.ok("connectivity" in check.details);
-  assert.ok("writable" in check.details);
-  assert.ok("readable" in check.details);
-  assert.ok("quotaAvailable" in check.details);
+  assert.ok("connectivity" in check.details!);
+  assert.ok("writable" in check.details!);
+  assert.ok("readable" in check.details!);
+  assert.ok("quotaAvailable" in check.details!);
 
   handle.close();
   await storage.close();
