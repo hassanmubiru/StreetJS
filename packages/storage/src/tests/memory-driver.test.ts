@@ -109,7 +109,7 @@ test("get on a missing key reports found:false (not an error)", async () => {
   const result = await driver.get("does/not/exist");
 
   assert.equal(result.found, false);
-  assert.equal(result.bytes, undefined);
+  assert.equal((result as { bytes?: Uint8Array }).bytes, undefined);
 });
 
 test("get returns a copy so mutating the result never corrupts the store", async () => {
@@ -118,9 +118,11 @@ test("get returns a copy so mutating the result never corrupts the store", async
   await driver.put("safe/key", content, {});
 
   const first = await driver.get("safe/key");
+  assert.ok(first.found);
   first.bytes[0] = 0; // mutate the returned buffer
 
   const second = await driver.get("safe/key");
+  assert.ok(second.found);
   assert.deepEqual(second.bytes, content);
 });
 
