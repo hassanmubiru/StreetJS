@@ -275,6 +275,9 @@ jobs:
       - name: Build registry-server (CLI registry tests import its built output)
         run: npm run build -w packages/registry-server
 
+      - name: Build @streetjs/realtime (make:channel/make:gateway compile test imports its built types)
+        run: npm run build -w packages/realtime
+
       - name: Build CLI package
         run: npm run build -w packages/cli
 
