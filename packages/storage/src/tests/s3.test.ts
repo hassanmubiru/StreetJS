@@ -165,7 +165,22 @@ test("createS3StorageDriver wires native multipart from the injected client", as
 });
 
 test("createS3StorageDriver delegates injected native capabilities", () => {
-  const versioning = { snapshot: async () => null, list: async () => [], restore: async () => ({}), deleteVersion: async () => {} };
+  const versioning: VersioningCapability = {
+    snapshot: async () => null,
+    list: async () => [],
+    restore: async () => ({
+      key: "",
+      size: 0,
+      contentType: "application/octet-stream",
+      etag: "",
+      checksum: "",
+      accessLevel: "private",
+      createdAt: 0,
+      updatedAt: 0,
+      custom: {},
+    }),
+    deleteVersion: async () => {},
+  };
   const driver = createS3StorageDriver(makeFakeClient(), { capabilities: { versioning } });
   assert.equal(driver.versioning, versioning);
 });
@@ -174,7 +189,7 @@ test("createS3StorageDriver delegates injected native capabilities", () => {
 
 test("createS3StorageDriver throws StorageConfigError when no client is injected", () => {
   assert.throws(
-    () => createS3StorageDriver(undefined),
+    () => createS3StorageDriver(undefined as unknown as S3ClientLike),
     (error) => {
       assert.ok(error instanceof StorageConfigError);
       assert.equal(error.provider, "s3");
@@ -185,7 +200,7 @@ test("createS3StorageDriver throws StorageConfigError when no client is injected
 
 test("createS3StorageDriver throws StorageConfigError for a non-conforming client", () => {
   assert.throws(
-    () => createS3StorageDriver({ putObject() {} }),
+    () => createS3StorageDriver({ putObject() {} } as unknown as S3ClientLike),
     (error) => error instanceof StorageConfigError && error.provider === "s3",
   );
 });
