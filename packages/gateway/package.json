@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/gateway",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "StreetJS API Gateway & Edge Framework: strongly-typed, additive reverse proxy with priority/wildcard/regex routing, pluggable load balancing, health-filtered upstreams, circuit breaking, retries/timeouts, rate limiting, auth/authz, request validation, response transformation, API versioning, CORS, compression, structured logging, metrics, a plugin, a CLI, and Redis-free testing utilities over the streetjs core.",
   "type": "module",
   "main": "./dist/index.js",
