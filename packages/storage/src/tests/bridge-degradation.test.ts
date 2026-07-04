@@ -29,6 +29,12 @@ import assert from "node:assert/strict";
 import { Readable } from "node:stream";
 
 import { createStorage } from "../index.js";
+import type { StorageEventPayload } from "../index.js";
+
+interface CapturedEvent {
+  readonly event: string;
+  readonly payload: StorageEventPayload;
+}
 
 /** A bridge trio whose every method throws synchronously on use. */
 function throwingBridges() {
