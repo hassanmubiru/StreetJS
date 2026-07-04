@@ -62,7 +62,7 @@ test("put/get round-trips empty content exactly", async () => {
     await driver.put("empty.bin", empty, NO_META);
 
     const result = await driver.get("empty.bin");
-    assert.equal(result.found, true);
+    assert.ok(result.found);
     assert.equal(result.bytes.byteLength, 0);
     assert.equal(result.metadata.size, 0);
   });
