@@ -1,0 +1,491 @@
+src/tests/access.test.ts(23,19): error TS7006: Parameter 'decision' implicitly has an 'any' type.
+src/tests/access.test.ts(24,9): error TS7034: Variable 'calls' implicitly has type 'any[]' in some locations where its type cannot be determined.
+src/tests/access.test.ts(26,5): error TS7005: Variable 'calls' implicitly has an 'any[]' type.
+src/tests/access.test.ts(27,9): error TS7006: Parameter 'context' implicitly has an 'any' type.
+src/tests/access.test.ts(55,62): error TS2322: Type 'string' is not assignable to type 'AccessLevel'.
+src/tests/access.test.ts(86,21): error TS7006: Parameter 'ctx' implicitly has an 'any' type.
+src/tests/access.test.ts(124,21): error TS7006: Parameter 'ctx' implicitly has an 'any' type.
+src/tests/access.test.ts(139,21): error TS7006: Parameter 'ctx' implicitly has an 'any' type.
+src/tests/access.test.ts(154,21): error TS7006: Parameter 'ctx' implicitly has an 'any' type.
+src/tests/access.test.ts(166,21): error TS7006: Parameter 'ctx' implicitly has an 'any' type.
+src/tests/access.test.ts(204,57): error TS2322: Type 'string' is not assignable to type 'AccessOperation'.
+src/tests/access.test.ts(204,68): error TS2322: Type 'string' is not assignable to type 'AccessLevel'.
+src/tests/access.test.ts(225,44): error TS2322: Type 'string' is not assignable to type 'AccessOperation'.
+src/tests/access.test.ts(225,55): error TS2322: Type 'string' is not assignable to type 'AccessLevel'.
+src/tests/access.test.ts(241,61): error TS2322: Type 'string' is not assignable to type 'AccessLevel'.
+src/tests/access.test.ts(273,32): error TS7006: Parameter 'ctx' implicitly has an 'any' type.
+src/tests/access.test.ts(299,34): error TS7006: Parameter 'ctx' implicitly has an 'any' type.
+src/tests/access.test.ts(344,21): error TS7006: Parameter 'ctx' implicitly has an 'any' type.
+src/tests/azure-driver.test.ts(21,16): error TS7006: Parameter 'str' implicitly has an 'any' type.
+src/tests/azure-driver.test.ts(29,20): error TS7031: Binding element 'blobName' implicitly has an 'any' type.
+src/tests/azure-driver.test.ts(29,30): error TS7031: Binding element 'body' implicitly has an 'any' type.
+src/tests/azure-driver.test.ts(29,36): error TS7031: Binding element 'contentType' implicitly has an 'any' type.
+src/tests/azure-driver.test.ts(29,49): error TS7031: Binding element 'metadata' implicitly has an 'any' type.
+src/tests/azure-driver.test.ts(37,22): error TS7031: Binding element 'blobName' implicitly has an 'any' type.
+src/tests/azure-driver.test.ts(49,27): error TS7031: Binding element 'blobName' implicitly has an 'any' type.
+src/tests/azure-driver.test.ts(60,24): error TS7031: Binding element 'blobName' implicitly has an 'any' type.
+src/tests/azure-driver.test.ts(63,20): error TS7031: Binding element 'blobName' implicitly has an 'any' type.
+src/tests/azure-driver.test.ts(66,23): error TS7031: Binding element 'prefix' implicitly has an 'any' type.
+src/tests/azure-driver.test.ts(123,16): error TS18047: 'stat' is possibly 'null'.
+src/tests/azure-driver.test.ts(192,33): error TS2345: Argument of type 'undefined' is not assignable to parameter of type 'AzureBlobClientLike'.
+src/tests/backblaze-driver.test.ts(28,16): error TS7006: Parameter 'str' implicitly has an 'any' type.
+src/tests/backblaze-driver.test.ts(39,23): error TS7031: Binding element 'key' implicitly has an 'any' type.
+src/tests/backblaze-driver.test.ts(39,28): error TS7031: Binding element 'body' implicitly has an 'any' type.
+src/tests/backblaze-driver.test.ts(39,34): error TS7031: Binding element 'contentType' implicitly has an 'any' type.
+src/tests/backblaze-driver.test.ts(39,47): error TS7031: Binding element 'metadata' implicitly has an 'any' type.
+src/tests/backblaze-driver.test.ts(47,23): error TS7031: Binding element 'key' implicitly has an 'any' type.
+src/tests/backblaze-driver.test.ts(59,24): error TS7031: Binding element 'key' implicitly has an 'any' type.
+src/tests/backblaze-driver.test.ts(70,26): error TS7031: Binding element 'key' implicitly has an 'any' type.
+src/tests/backblaze-driver.test.ts(73,25): error TS7031: Binding element 'prefix' implicitly has an 'any' type.
+src/tests/backblaze-driver.test.ts(82,12): error TS2339: Property 'createMultipartUpload' does not exist on type '{ putObject({ key, body, contentType, metadata }: { key: any; body: any; contentType: any; metadata: any; }): Promise<{ etag: string; }>; getObject({ key }: { key: any; }): Promise<{ body: any; contentType: any; etag: string; size: any; lastModified: number; metadata: any; } | null>; headObject({ key }: { ...; }): P...'.
+src/tests/backblaze-driver.test.ts(82,45): error TS7031: Binding element 'key' implicitly has an 'any' type.
+src/tests/backblaze-driver.test.ts(82,50): error TS7031: Binding element 'contentType' implicitly has an 'any' type.
+src/tests/backblaze-driver.test.ts(82,63): error TS7031: Binding element 'metadata' implicitly has an 'any' type.
+src/tests/backblaze-driver.test.ts(87,12): error TS2339: Property 'uploadPart' does not exist on type '{ putObject({ key, body, contentType, metadata }: { key: any; body: any; contentType: any; metadata: any; }): Promise<{ etag: string; }>; getObject({ key }: { key: any; }): Promise<{ body: any; contentType: any; etag: string; size: any; lastModified: number; metadata: any; } | null>; headObject({ key }: { ...; }): P...'.
+src/tests/backblaze-driver.test.ts(87,34): error TS7031: Binding element 'uploadId' implicitly has an 'any' type.
+src/tests/backblaze-driver.test.ts(87,44): error TS7031: Binding element 'partNumber' implicitly has an 'any' type.
+src/tests/backblaze-driver.test.ts(87,56): error TS7031: Binding element 'body' implicitly has an 'any' type.
+src/tests/backblaze-driver.test.ts(91,12): error TS2339: Property 'completeMultipartUpload' does not exist on type '{ putObject({ key, body, contentType, metadata }: { key: any; body: any; contentType: any; metadata: any; }): Promise<{ etag: string; }>; getObject({ key }: { key: any; }): Promise<{ body: any; contentType: any; etag: string; size: any; lastModified: number; metadata: any; } | null>; headObject({ key }: { ...; }): P...'.
+src/tests/backblaze-driver.test.ts(91,47): error TS7031: Binding element 'uploadId' implicitly has an 'any' type.
+src/tests/backblaze-driver.test.ts(91,57): error TS7031: Binding element 'parts' implicitly has an 'any' type.
+src/tests/backblaze-driver.test.ts(103,12): error TS2339: Property 'abortMultipartUpload' does not exist on type '{ putObject({ key, body, contentType, metadata }: { key: any; body: any; contentType: any; metadata: any; }): Promise<{ etag: string; }>; getObject({ key }: { key: any; }): Promise<{ body: any; contentType: any; etag: string; size: any; lastModified: number; metadata: any; } | null>; headObject({ key }: { ...; }): P...'.
+src/tests/backblaze-driver.test.ts(103,44): error TS7031: Binding element 'uploadId' implicitly has an 'any' type.
+src/tests/backblaze-driver.test.ts(130,33): error TS2339: Property 'then' does not exist on type 'StorageDriver'.
+src/tests/backblaze-driver.test.ts(170,26): error TS18048: 'driver.multipart' is possibly 'undefined'.
+src/tests/backblaze-driver.test.ts(171,20): error TS18048: 'driver.multipart' is possibly 'undefined'.
+src/tests/backblaze-driver.test.ts(172,20): error TS18048: 'driver.multipart' is possibly 'undefined'.
+src/tests/backblaze-driver.test.ts(173,9): error TS18048: 'driver.multipart' is possibly 'undefined'.
+src/tests/backblaze-driver.test.ts(188,21): error TS2322: Type '{ snapshot: () => Promise<null>; list: () => Promise<never[]>; restore: () => Promise<{}>; deleteVersion: () => Promise<void>; }' is not assignable to type 'VersioningCapability'.
+  The types returned by 'restore(...)' are incompatible between these types.
+    Type 'Promise<{}>' is not assignable to type 'Promise<StorageObjectMetadata<Record<string, unknown>>>'.
+      Type '{}' is missing the following properties from type 'StorageObjectMetadata<Record<string, unknown>>': key, size, contentType, etag, and 5 more.
+src/tests/bridge-degradation.test.ts(56,9): error TS7034: Variable 'published' implicitly has type 'any[]' in some locations where its type cannot be determined.
+src/tests/bridge-degradation.test.ts(58,5): error TS7005: Variable 'published' implicitly has an 'any[]' type.
+src/tests/bridge-degradation.test.ts(59,13): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/tests/bridge-degradation.test.ts(59,20): error TS7006: Parameter 'payload' implicitly has an 'any' type.
+src/tests/cli.test.ts(41,27): error TS7006: Parameter 'fn' implicitly has an 'any' type.
+src/tests/cli.test.ts(45,9): error TS7034: Variable 'logs' implicitly has type 'any[]' in some locations where its type cannot be determined.
+src/tests/cli.test.ts(46,9): error TS7034: Variable 'errors' implicitly has type 'any[]' in some locations where its type cannot be determined.
+src/tests/cli.test.ts(52,14): error TS7005: Variable 'logs' implicitly has an 'any[]' type.
+src/tests/cli.test.ts(52,20): error TS7005: Variable 'errors' implicitly has an 'any[]' type.
+src/tests/cli.test.ts(85,71): error TS2345: Argument of type '"s3"' is not assignable to parameter of type '"memory" | "local" | undefined'.
+src/tests/cli.test.ts(128,29): error TS2322: Type 'string' is not assignable to type 'null | undefined'.
+src/tests/cli.test.ts(143,29): error TS2322: Type 'string' is not assignable to type 'null | undefined'.
+src/tests/cli.test.ts(153,29): error TS2322: Type 'string' is not assignable to type 'null | undefined'.
+src/tests/contract.test.ts(41,7): error TS7034: Variable 'tempRoots' implicitly has type 'any[]' in some locations where its type cannot be determined.
+src/tests/contract.test.ts(51,22): error TS7005: Variable 'tempRoots' implicitly has an 'any[]' type.
+src/tests/contract.test.ts(93,15): error TS7006: Parameter 'key' implicitly has an 'any' type.
+src/tests/contract.test.ts(93,20): error TS7006: Parameter 'bytes' implicitly has an 'any' type.
+src/tests/contract.test.ts(119,21): error TS7006: Parameter 'key' implicitly has an 'any' type.
+src/tests/contract.test.ts(119,26): error TS7006: Parameter '_stream' implicitly has an 'any' type.
+src/tests/contract.test.ts(119,35): error TS7006: Parameter '_metadata' implicitly has an 'any' type.
+src/tests/contract.test.ts(127,55): error TS2322: Type '{ name: string; put(key: any, bytes: any): Promise<{ key: any; size: any; contentType: string; etag: string; checksum: string; accessLevel: string; createdAt: number; updatedAt: number; custom: {}; }>; ... 6 more ...; getStream(): Promise<...>; }' is not assignable to type 'StorageDriver | Promise<StorageDriver>'.
+  Type '{ name: string; put(key: any, bytes: any): Promise<{ key: any; size: any; contentType: string; etag: string; checksum: string; accessLevel: string; createdAt: number; updatedAt: number; custom: {}; }>; ... 6 more ...; getStream(): Promise<...>; }' is not assignable to type 'StorageDriver'.
+    The types returned by 'put(...)' are incompatible between these types.
+      Type 'Promise<{ key: any; size: any; contentType: string; etag: string; checksum: string; accessLevel: string; createdAt: number; updatedAt: number; custom: {}; }>' is not assignable to type 'Promise<StorageObjectMetadata<Record<string, unknown>>>'.
+        Type '{ key: any; size: any; contentType: string; etag: string; checksum: string; accessLevel: string; createdAt: number; updatedAt: number; custom: {}; }' is not assignable to type 'StorageObjectMetadata<Record<string, unknown>>'.
+          Types of property 'accessLevel' are incompatible.
+            Type 'string' is not assignable to type 'AccessLevel'.
+src/tests/directory.test.ts(32,21): error TS7006: Parameter 'storage' implicitly has an 'any' type.
+src/tests/directory.test.ts(85,16): error TS18048: 'subdir' is possibly 'undefined'.
+src/tests/directory.test.ts(89,16): error TS18048: 'fileA' is possibly 'undefined'.
+src/tests/directory.test.ts(91,16): error TS18048: 'fileB' is possibly 'undefined'.
+src/tests/events-bridge.test.ts(32,9): error TS7034: Variable 'published' implicitly has type 'any[]' in some locations where its type cannot be determined.
+src/tests/events-bridge.test.ts(34,5): error TS7005: Variable 'published' implicitly has an 'any[]' type.
+src/tests/events-bridge.test.ts(35,13): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/tests/events-bridge.test.ts(35,20): error TS7006: Parameter 'payload' implicitly has an 'any' type.
+src/tests/events-bridge.test.ts(262,22): error TS2345: Argument of type '{ key: string; size: number; contentType: string; etag: string; checksum: string; accessLevel: string; createdAt: number; updatedAt: number; custom: {}; }' is not assignable to parameter of type 'StorageObjectMetadata<Record<string, unknown>>'.
+  Types of property 'accessLevel' are incompatible.
+    Type 'string' is not assignable to type 'AccessLevel'.
+src/tests/events-bridge.test.ts(263,21): error TS2345: Argument of type '{ key: string; size: number; contentType: string; etag: string; checksum: string; accessLevel: string; createdAt: number; updatedAt: number; custom: {}; }' is not assignable to parameter of type 'StorageObjectMetadata<Record<string, unknown>>'.
+  Types of property 'accessLevel' are incompatible.
+    Type 'string' is not assignable to type 'AccessLevel'.
+src/tests/events-bridge.test.ts(265,19): error TS2345: Argument of type '{ key: string; size: number; contentType: string; etag: string; checksum: string; accessLevel: string; createdAt: number; updatedAt: number; custom: {}; }' is not assignable to parameter of type 'StorageObjectMetadata<Record<string, unknown>>'.
+  Types of property 'accessLevel' are incompatible.
+    Type 'string' is not assignable to type 'AccessLevel'.
+src/tests/events-bridge.test.ts(266,22): error TS2345: Argument of type '{ key: string; size: number; contentType: string; etag: string; checksum: string; accessLevel: string; createdAt: number; updatedAt: number; custom: {}; }' is not assignable to parameter of type 'StorageObjectMetadata<Record<string, unknown>>'.
+  Types of property 'accessLevel' are incompatible.
+    Type 'string' is not assignable to type 'AccessLevel'.
+src/tests/events-bridge.test.ts(289,51): error TS2345: Argument of type '{ key: string; size: number; contentType: string; etag: string; checksum: string; accessLevel: string; createdAt: number; updatedAt: number; custom: {}; }' is not assignable to parameter of type 'StorageObjectMetadata<Record<string, unknown>>'.
+  Types of property 'accessLevel' are incompatible.
+    Type 'string' is not assignable to type 'AccessLevel'.
+src/tests/gcs-driver.test.ts(25,16): error TS7006: Parameter 'str' implicitly has an 'any' type.
+src/tests/gcs-driver.test.ts(38,16): error TS7006: Parameter 'name' implicitly has an 'any' type.
+src/tests/gcs-driver.test.ts(38,22): error TS7006: Parameter 'data' implicitly has an 'any' type.
+src/tests/gcs-driver.test.ts(38,28): error TS7006: Parameter 'options' implicitly has an 'any' type.
+src/tests/gcs-driver.test.ts(45,20): error TS7006: Parameter 'name' implicitly has an 'any' type.
+src/tests/gcs-driver.test.ts(49,18): error TS7006: Parameter 'name' implicitly has an 'any' type.
+src/tests/gcs-driver.test.ts(52,18): error TS7006: Parameter 'name' implicitly has an 'any' type.
+src/tests/gcs-driver.test.ts(55,23): error TS7006: Parameter 'name' implicitly has an 'any' type.
+src/tests/gcs-driver.test.ts(67,22): error TS7031: Binding element 'prefix' implicitly has an 'any' type.
+src/tests/gcs-driver.test.ts(139,16): error TS18047: 'stat' is possibly 'null'.
+src/tests/gcs-driver.test.ts(188,18): error TS18046: 'err' is of type 'unknown'.
+src/tests/gcs-driver.test.ts(207,54): error TS2345: Argument of type 'undefined' is not assignable to parameter of type 'GcsClientLike'.
+src/tests/image.test.ts(37,15): error TS7006: Parameter 'bytes' implicitly has an 'any' type.
+src/tests/image.test.ts(37,22): error TS7006: Parameter 'operation' implicitly has an 'any' type.
+src/tests/image.test.ts(70,35): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'Uint8Array<ArrayBufferLike> | undefined' is not assignable to parameter of type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+      Type 'undefined' is not assignable to type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+src/tests/image.test.ts(81,44): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'Uint8Array<ArrayBufferLike> | undefined' is not assignable to parameter of type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+      Type 'undefined' is not assignable to type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+src/tests/image.test.ts(82,28): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'Uint8Array<ArrayBufferLike> | undefined' is not assignable to parameter of type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+      Type 'undefined' is not assignable to type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+src/tests/image.test.ts(85,16): error TS18048: 'after.metadata' is possibly 'undefined'.
+src/tests/image.test.ts(85,36): error TS18048: 'beforeMeta' is possibly 'undefined'.
+src/tests/image.test.ts(86,16): error TS18048: 'after.metadata' is possibly 'undefined'.
+src/tests/image.test.ts(86,37): error TS18048: 'beforeMeta' is possibly 'undefined'.
+src/tests/image.test.ts(87,16): error TS18048: 'after.metadata' is possibly 'undefined'.
+src/tests/image.test.ts(88,16): error TS18048: 'after.metadata' is possibly 'undefined'.
+src/tests/image.test.ts(88,41): error TS18048: 'beforeMeta' is possibly 'undefined'.
+src/tests/image.test.ts(89,16): error TS18048: 'after.metadata' is possibly 'undefined'.
+src/tests/image.test.ts(89,37): error TS18048: 'beforeMeta' is possibly 'undefined'.
+src/tests/image.test.ts(90,16): error TS18048: 'after.metadata' is possibly 'undefined'.
+src/tests/image.test.ts(90,42): error TS18048: 'beforeMeta' is possibly 'undefined'.
+src/tests/image.test.ts(102,61): error TS2345: Argument of type '{ resize: { width: number; height: number; }; format: string; }' is not assignable to parameter of type 'ImageOperations'.
+  Types of property 'format' are incompatible.
+    Type 'string' is not assignable to type 'ImageFormat | undefined'.
+src/tests/image.test.ts(103,62): error TS2345: Argument of type '{ resize: { width: number; height: number; }; format: string; }' is not assignable to parameter of type 'ImageOperations'.
+  Types of property 'format' are incompatible.
+    Type 'string' is not assignable to type 'ImageFormat | undefined'.
+src/tests/lifecycle.test.ts(42,15): error TS7006: Parameter 'value' implicitly has an 'any' type.
+src/tests/local-driver.test.ts(29,27): error TS7006: Parameter 'body' implicitly has an 'any' type.
+src/tests/local-driver.test.ts(43,27): error TS7006: Parameter 'driver' implicitly has an 'any' type.
+src/tests/local-driver.test.ts(59,27): error TS7006: Parameter 'driver' implicitly has an 'any' type.
+src/tests/local-driver.test.ts(71,27): error TS7006: Parameter 'driver' implicitly has an 'any' type.
+src/tests/local-driver.test.ts(80,27): error TS7006: Parameter 'driver' implicitly has an 'any' type.
+src/tests/local-driver.test.ts(89,27): error TS7006: Parameter 'driver' implicitly has an 'any' type.
+src/tests/local-driver.test.ts(103,27): error TS7006: Parameter 'driver' implicitly has an 'any' type.
+src/tests/local-driver.test.ts(110,27): error TS7006: Parameter 'driver' implicitly has an 'any' type.
+src/tests/local-driver.test.ts(128,27): error TS7006: Parameter 'driver' implicitly has an 'any' type.
+src/tests/local-driver.test.ts(134,29): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/tests/local-driver.test.ts(138,30): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/tests/local-driver.test.ts(144,27): error TS7006: Parameter 'driver' implicitly has an 'any' type.
+src/tests/local-driver.test.ts(148,29): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/tests/local-driver.test.ts(156,27): error TS7006: Parameter 'driver' implicitly has an 'any' type.
+src/tests/local-driver.test.ts(168,27): error TS7006: Parameter 'driver' implicitly has an 'any' type.
+src/tests/local-driver.test.ts(180,18): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/tests/memory-driver.test.ts(29,16): error TS7006: Parameter 'str' implicitly has an 'any' type.
+src/tests/memory-driver.test.ts(112,23): error TS2339: Property 'bytes' does not exist on type '{ readonly found: false; }'.
+src/tests/memory-driver.test.ts(121,9): error TS2339: Property 'bytes' does not exist on type 'MaybeObject'.
+  Property 'bytes' does not exist on type '{ readonly found: false; }'.
+src/tests/memory-driver.test.ts(124,27): error TS2339: Property 'bytes' does not exist on type 'MaybeObject'.
+  Property 'bytes' does not exist on type '{ readonly found: false; }'.
+src/tests/memory-driver.test.ts(167,16): error TS18047: 'meta' is possibly 'null'.
+src/tests/memory-driver.test.ts(168,16): error TS18047: 'meta' is possibly 'null'.
+src/tests/memory-driver.test.ts(169,16): error TS18047: 'meta' is possibly 'null'.
+src/tests/memory-driver.test.ts(170,16): error TS18047: 'meta' is possibly 'null'.
+src/tests/memory-driver.test.ts(172,16): error TS18047: 'meta' is possibly 'null'.
+src/tests/memory-driver.test.ts(172,21): error TS2339: Property 'bytes' does not exist on type 'StorageObjectMetadata<Record<string, unknown>>'.
+src/tests/minio-driver.test.ts(24,16): error TS7006: Parameter 'str' implicitly has an 'any' type.
+src/tests/minio-driver.test.ts(32,23): error TS7031: Binding element 'key' implicitly has an 'any' type.
+src/tests/minio-driver.test.ts(32,28): error TS7031: Binding element 'body' implicitly has an 'any' type.
+src/tests/minio-driver.test.ts(32,34): error TS7031: Binding element 'contentType' implicitly has an 'any' type.
+src/tests/minio-driver.test.ts(32,47): error TS7031: Binding element 'metadata' implicitly has an 'any' type.
+src/tests/minio-driver.test.ts(40,23): error TS7031: Binding element 'key' implicitly has an 'any' type.
+src/tests/minio-driver.test.ts(52,24): error TS7031: Binding element 'key' implicitly has an 'any' type.
+src/tests/minio-driver.test.ts(63,26): error TS7031: Binding element 'key' implicitly has an 'any' type.
+src/tests/minio-driver.test.ts(66,25): error TS7031: Binding element 'prefix' implicitly has an 'any' type.
+src/tests/minio-driver.test.ts(87,75): error TS2353: Object literal may only specify known properties, and 'name' does not exist in type 'MinIODriverOptions'.
+src/tests/minio-driver.test.ts(124,16): error TS18047: 'stat' is possibly 'null'.
+src/tests/minio-driver.test.ts(143,41): error TS2345: Argument of type 'undefined' is not assignable to parameter of type 'S3ClientLike'.
+src/tests/non-s3-integration.test.ts(62,30): error TS7006: Parameter 'vars' implicitly has an 'any' type.
+src/tests/non-s3-integration.test.ts(63,32): error TS7006: Parameter 'name' implicitly has an 'any' type.
+src/tests/non-s3-integration.test.ts(67,32): error TS7006: Parameter 'name' implicitly has an 'any' type.
+src/tests/non-s3-integration.test.ts(91,38): error TS7006: Parameter 'provider' implicitly has an 'any' type.
+src/tests/non-s3-integration.test.ts(91,48): error TS7006: Parameter 'driver' implicitly has an 'any' type.
+src/tests/non-s3-integration.test.ts(127,20): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/tests/non-s3-integration.test.ts(149,37): error TS7031: Binding element 'provider' implicitly has an 'any' type.
+src/tests/non-s3-integration.test.ts(149,47): error TS7031: Binding element 'envVars' implicitly has an 'any' type.
+src/tests/non-s3-integration.test.ts(149,56): error TS7031: Binding element 'connect' implicitly has an 'any' type.
+src/tests/non-s3-integration.test.ts(221,7): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/tests/non-s3-integration.test.ts(222,7): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/tests/non-s3-integration.test.ts(223,7): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/tests/non-s3-integration.test.ts(232,7): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/tests/non-s3-integration.test.ts(243,7): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/tests/non-s3-integration.test.ts(244,7): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/tests/observability.registration.test.ts(131,31): error TS18048: 'check.details' is possibly 'undefined'.
+src/tests/observability.test.ts(167,53): error TS2322: Type '{ name: string; put(): Promise<{ key: string; size: number; contentType: string; etag: string; checksum: string; accessLevel: string; createdAt: number; updatedAt: number; custom: {}; }>; ... 7 more ...; probe(): Promise<...>; }' is not assignable to type 'StorageDriver'.
+  The types returned by 'put(...)' are incompatible between these types.
+    Type 'Promise<{ key: string; size: number; contentType: string; etag: string; checksum: string; accessLevel: string; createdAt: number; updatedAt: number; custom: {}; }>' is not assignable to type 'Promise<StorageObjectMetadata<Record<string, unknown>>>'.
+      Type '{ key: string; size: number; contentType: string; etag: string; checksum: string; accessLevel: string; createdAt: number; updatedAt: number; custom: {}; }' is not assignable to type 'StorageObjectMetadata<Record<string, unknown>>'.
+        Types of property 'accessLevel' are incompatible.
+          Type 'string' is not assignable to type 'AccessLevel'.
+src/tests/observability.test.ts(190,16): error TS2532: Object is possibly 'undefined'.
+src/tests/observability.test.ts(191,16): error TS2532: Object is possibly 'undefined'.
+src/tests/observability.test.ts(193,5): error TS2532: Object is possibly 'undefined'.
+src/tests/observability.test.ts(197,5): error TS2532: Object is possibly 'undefined'.
+src/tests/observability.test.ts(200,16): error TS2532: Object is possibly 'undefined'.
+src/tests/observability.test.ts(201,16): error TS2532: Object is possibly 'undefined'.
+src/tests/observability.test.ts(214,16): error TS18048: 'check.details' is possibly 'undefined'.
+src/tests/observability.test.ts(215,16): error TS18048: 'check.details' is possibly 'undefined'.
+src/tests/observability.test.ts(216,16): error TS18048: 'check.details' is possibly 'undefined'.
+src/tests/observability.test.ts(217,16): error TS18048: 'check.details' is possibly 'undefined'.
+src/tests/observability.test.ts(252,53): error TS2322: Type '{ name: string; put(): Promise<never>; get(): Promise<{ found: boolean; }>; exists(): Promise<boolean>; delete(): Promise<void>; stat(): Promise<null>; list(): Promise<...>; putStream(): Promise<...>; getStream(): Promise<...>; probe(): Promise<...>; }' is not assignable to type 'StorageDriver'.
+  The types returned by 'get(...)' are incompatible between these types.
+    Type 'Promise<{ found: boolean; }>' is not assignable to type 'Promise<MaybeObject>'.
+      Type '{ found: boolean; }' is not assignable to type 'MaybeObject'.
+        Type '{ found: boolean; }' is not assignable to type '{ readonly found: false; }'.
+          Types of property 'found' are incompatible.
+            Type 'boolean' is not assignable to type 'false'.
+src/tests/observability.test.ts(256,16): error TS2532: Object is possibly 'undefined'.
+src/tests/observability.test.ts(265,7): error TS7034: Variable 'second' implicitly has type 'any' in some locations where its type cannot be determined.
+src/tests/observability.test.ts(272,3): error TS18048: 'second' is possibly 'undefined'.
+src/tests/observability.test.ts(277,5): error TS7005: Variable 'second' implicitly has an 'any' type.
+src/tests/observability.test.ts(282,3): error TS18048: 'second' is possibly 'undefined'.
+src/tests/plugin.test.ts(50,25): error TS18048: 'storage' is possibly 'undefined'.
+src/tests/plugin.test.ts(53,22): error TS18048: 'storage' is possibly 'undefined'.
+src/tests/plugin.test.ts(92,25): error TS18048: 'facade' is possibly 'undefined'.
+src/tests/plugin.test.ts(93,3): error TS18048: 'facade' is possibly 'undefined'.
+src/tests/prop-concurrent.test.ts(60,69): error TS2345: Argument of type 'string | Uint8Array<ArrayBuffer>' is not assignable to parameter of type 'string'.
+  Type 'Uint8Array<ArrayBuffer>' is not assignable to type 'string'.
+src/tests/prop-concurrent.test.ts(66,44): error TS2345: Argument of type 'string | Uint8Array<ArrayBuffer>' is not assignable to parameter of type 'string'.
+  Type 'Uint8Array<ArrayBuffer>' is not assignable to type 'string'.
+src/tests/prop-directory.test.ts(44,19): error TS7006: Parameter 'path' implicitly has an 'any' type.
+src/tests/prop-directory.test.ts(49,23): error TS7006: Parameter 'keys' implicitly has an 'any' type.
+src/tests/prop-directory.test.ts(49,29): error TS7006: Parameter 'prefix' implicitly has an 'any' type.
+src/tests/prop-directory.test.ts(50,23): error TS7006: Parameter 'key' implicitly has an 'any' type.
+src/tests/prop-directory.test.ts(54,28): error TS7006: Parameter 'keys' implicitly has an 'any' type.
+src/tests/prop-directory.test.ts(54,34): error TS7006: Parameter 'prefix' implicitly has an 'any' type.
+src/tests/prop-directory.test.ts(131,29): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'string'.
+src/tests/prop-driver-conformance.test.ts(39,7): error TS7034: Variable 'tempRoots' implicitly has type 'any[]' in some locations where its type cannot be determined.
+src/tests/prop-driver-conformance.test.ts(89,22): error TS7005: Variable 'tempRoots' implicitly has an 'any[]' type.
+src/tests/prop-driver-equivalence.test.ts(115,26): error TS7006: Parameter 'meta' implicitly has an 'any' type.
+src/tests/prop-driver-equivalence.test.ts(140,24): error TS7006: Parameter 'driver' implicitly has an 'any' type.
+src/tests/prop-driver-equivalence.test.ts(140,32): error TS7006: Parameter 'op' implicitly has an 'any' type.
+src/tests/prop-driver-equivalence.test.ts(169,27): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/tests/prop-driver-equivalence.test.ts(196,94): error TS2339: Property 'key' does not exist on type '{ type: "put"; key: string; bytes: Uint8Array<ArrayBuffer>; meta: { contentType?: string | undefined; owner?: string | undefined; tenant?: string | undefined; accessLevel?: string | undefined; custom?: Record<...> | undefined; }; } | ... 4 more ... | { ...; }'.
+  Property 'key' does not exist on type '{ type: "list"; prefix: string; options: { limit?: number | undefined; cursor?: string | undefined; delimiter?: boolean | undefined; }; }'.
+src/tests/prop-driver-equivalence.test.ts(196,104): error TS2339: Property 'prefix' does not exist on type '{ type: "put"; key: string; bytes: Uint8Array<ArrayBuffer>; meta: { contentType?: string | undefined; owner?: string | undefined; tenant?: string | undefined; accessLevel?: string | undefined; custom?: Record<...> | undefined; }; } | ... 4 more ... | { ...; }'.
+  Property 'prefix' does not exist on type '{ type: "put"; key: string; bytes: Uint8Array<ArrayBuffer>; meta: { contentType?: string | undefined; owner?: string | undefined; tenant?: string | undefined; accessLevel?: string | undefined; custom?: Record<...> | undefined; }; }'.
+src/tests/prop-lifecycle.test.ts(82,54): error TS2345: Argument of type '{ type: string; days: number; }' is not assignable to parameter of type 'LifecycleRule'.
+  Type '{ type: string; days: number; }' is not assignable to type '{ readonly type: "delete-after-days"; readonly days: number; readonly prefix?: string | undefined; }'.
+    Types of property 'type' are incompatible.
+      Type 'string' is not assignable to type '"delete-after-days"'.
+src/tests/prop-lifecycle.test.ts(96,55): error TS2345: Argument of type '{ type: string; days: number; }' is not assignable to parameter of type 'LifecycleRule'.
+  Type '{ type: string; days: number; }' is not assignable to type '{ readonly type: "delete-after-days"; readonly days: number; readonly prefix?: string | undefined; }'.
+    Types of property 'type' are incompatible.
+      Type 'string' is not assignable to type '"delete-after-days"'.
+src/tests/prop-metadata.test.ts(80,55): error TS2345: Argument of type '{ contentType?: string | undefined; owner?: string | undefined; tenant?: string | undefined; accessLevel?: string | undefined; custom?: Record<string, string | number | boolean> | undefined; }' is not assignable to parameter of type 'PutOptions'.
+  Types of property 'accessLevel' are incompatible.
+    Type 'string | undefined' is not assignable to type 'AccessLevel | undefined'.
+      Type 'string' is not assignable to type 'AccessLevel | undefined'.
+src/tests/prop-metadata.test.ts(90,22): error TS18049: 'meta' is possibly 'null' or 'undefined'.
+src/tests/prop-metadata.test.ts(91,22): error TS18049: 'meta' is possibly 'null' or 'undefined'.
+src/tests/prop-metadata.test.ts(93,11): error TS18049: 'meta' is possibly 'null' or 'undefined'.
+src/tests/prop-metadata.test.ts(98,11): error TS18049: 'meta' is possibly 'null' or 'undefined'.
+src/tests/prop-metadata.test.ts(103,11): error TS18049: 'meta' is possibly 'null' or 'undefined'.
+src/tests/prop-metadata.test.ts(109,22): error TS18049: 'meta' is possibly 'null' or 'undefined'.
+src/tests/prop-metadata.test.ts(110,29): error TS18049: 'meta' is possibly 'null' or 'undefined'.
+src/tests/prop-metadata.test.ts(111,19): error TS18049: 'meta' is possibly 'null' or 'undefined'.
+src/tests/prop-metadata.test.ts(112,29): error TS18049: 'meta' is possibly 'null' or 'undefined'.
+src/tests/prop-metadata.test.ts(113,19): error TS18049: 'meta' is possibly 'null' or 'undefined'.
+src/tests/prop-metadata.test.ts(114,29): error TS18049: 'meta' is possibly 'null' or 'undefined'.
+src/tests/prop-metadata.test.ts(115,29): error TS18049: 'meta' is possibly 'null' or 'undefined'.
+src/tests/prop-multipart.test.ts(72,25): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'Uint8Array<ArrayBufferLike> | undefined' is not assignable to parameter of type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+      Type 'undefined' is not assignable to type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+src/tests/prop-multipart.test.ts(73,25): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'Uint8Array<ArrayBufferLike> | undefined' is not assignable to parameter of type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+      Type 'undefined' is not assignable to type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+src/tests/prop-multipart.test.ts(75,40): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'Uint8Array<ArrayBufferLike> | undefined' is not assignable to parameter of type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+      Type 'undefined' is not assignable to type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+src/tests/prop-resumable.test.ts(95,40): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'Uint8Array<ArrayBufferLike> | undefined' is not assignable to parameter of type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+      Type 'undefined' is not assignable to type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+src/tests/prop-resumable.test.ts(96,40): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'Uint8Array<ArrayBufferLike> | undefined' is not assignable to parameter of type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+      Type 'undefined' is not assignable to type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+src/tests/prop-resumable.test.ts(96,71): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'Uint8Array<ArrayBufferLike> | undefined' is not assignable to parameter of type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+      Type 'undefined' is not assignable to type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+src/tests/prop-search.test.ts(28,19): error TS7006: Parameter 'content' implicitly has an 'any' type.
+src/tests/prop-search.test.ts(71,20): error TS7006: Parameter 'obj' implicitly has an 'any' type.
+src/tests/prop-search.test.ts(71,25): error TS7006: Parameter 'filters' implicitly has an 'any' type.
+src/tests/prop-search.test.ts(83,11): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ category: any; } | { category?: undefined; }'.
+  No index signature with a parameter of type 'string' was found on type '{ category: any; } | { category?: undefined; }'.
+src/tests/prop-search.test.ts(107,51): error TS2339: Property 'owner' does not exist on type '{ contentType: "text/plain" | "image/png" | "image/jpeg"; }'.
+src/tests/prop-search.test.ts(108,52): error TS2339: Property 'tenant' does not exist on type '{ contentType: "text/plain" | "image/png" | "image/jpeg"; }'.
+src/tests/prop-search.test.ts(109,54): error TS2339: Property 'custom' does not exist on type '{ contentType: "text/plain" | "image/png" | "image/jpeg"; }'.
+src/tests/queue-bridge.test.ts(29,9): error TS7034: Variable 'dispatched' implicitly has type 'any[]' in some locations where its type cannot be determined.
+src/tests/queue-bridge.test.ts(31,5): error TS7005: Variable 'dispatched' implicitly has an 'any[]' type.
+src/tests/queue-bridge.test.ts(32,14): error TS7006: Parameter 'job' implicitly has an 'any' type.
+src/tests/queue-bridge.test.ts(32,19): error TS7006: Parameter 'payload' implicitly has an 'any' type.
+src/tests/r2-driver.test.ts(32,16): error TS7006: Parameter 'str' implicitly has an 'any' type.
+src/tests/r2-driver.test.ts(41,23): error TS7031: Binding element 'key' implicitly has an 'any' type.
+src/tests/r2-driver.test.ts(41,28): error TS7031: Binding element 'body' implicitly has an 'any' type.
+src/tests/r2-driver.test.ts(41,34): error TS7031: Binding element 'contentType' implicitly has an 'any' type.
+src/tests/r2-driver.test.ts(41,47): error TS7031: Binding element 'metadata' implicitly has an 'any' type.
+src/tests/r2-driver.test.ts(49,23): error TS7031: Binding element 'key' implicitly has an 'any' type.
+src/tests/r2-driver.test.ts(63,24): error TS7031: Binding element 'key' implicitly has an 'any' type.
+src/tests/r2-driver.test.ts(76,26): error TS7031: Binding element 'key' implicitly has an 'any' type.
+src/tests/r2-driver.test.ts(79,25): error TS7031: Binding element 'prefix' implicitly has an 'any' type.
+src/tests/realtime-bridge.test.ts(31,9): error TS7034: Variable 'broadcasts' implicitly has type 'any[]' in some locations where its type cannot be determined.
+src/tests/realtime-bridge.test.ts(33,5): error TS7005: Variable 'broadcasts' implicitly has an 'any[]' type.
+src/tests/realtime-bridge.test.ts(34,15): error TS7006: Parameter 'channel' implicitly has an 'any' type.
+src/tests/realtime-bridge.test.ts(34,24): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/tests/realtime-bridge.test.ts(34,31): error TS7006: Parameter 'payload' implicitly has an 'any' type.
+src/tests/resumable.test.ts(54,32): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'Uint8Array<ArrayBufferLike> | undefined' is not assignable to parameter of type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+      Type 'undefined' is not assignable to type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+src/tests/resumable.test.ts(90,32): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'Uint8Array<ArrayBufferLike> | undefined' is not assignable to parameter of type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+      Type 'undefined' is not assignable to type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+src/tests/resumable.test.ts(128,32): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'Uint8Array<ArrayBufferLike> | undefined' is not assignable to parameter of type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+      Type 'undefined' is not assignable to type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+src/tests/s3-base.test.ts(32,16): error TS7006: Parameter 'str' implicitly has an 'any' type.
+src/tests/s3-base.test.ts(47,23): error TS7031: Binding element 'key' implicitly has an 'any' type.
+src/tests/s3-base.test.ts(47,28): error TS7031: Binding element 'body' implicitly has an 'any' type.
+src/tests/s3-base.test.ts(47,34): error TS7031: Binding element 'contentType' implicitly has an 'any' type.
+src/tests/s3-base.test.ts(47,47): error TS7031: Binding element 'metadata' implicitly has an 'any' type.
+src/tests/s3-base.test.ts(55,23): error TS7031: Binding element 'key' implicitly has an 'any' type.
+src/tests/s3-base.test.ts(69,24): error TS7031: Binding element 'key' implicitly has an 'any' type.
+src/tests/s3-base.test.ts(82,26): error TS7031: Binding element 'key' implicitly has an 'any' type.
+src/tests/s3-base.test.ts(85,25): error TS7031: Binding element 'prefix' implicitly has an 'any' type.
+src/tests/s3-base.test.ts(94,12): error TS2339: Property 'createMultipartUpload' does not exist on type '{ putObject({ key, body, contentType, metadata }: { key: any; body: any; contentType: any; metadata: any; }): Promise<{ etag: string; }>; getObject({ key }: { key: any; }): Promise<{ body: any; contentType: any; etag: string; size: any; lastModified: number; metadata: any; } | null>; headObject({ key }: { ...; }): P...'.
+src/tests/s3-base.test.ts(94,45): error TS7031: Binding element 'key' implicitly has an 'any' type.
+src/tests/s3-base.test.ts(94,50): error TS7031: Binding element 'contentType' implicitly has an 'any' type.
+src/tests/s3-base.test.ts(94,63): error TS7031: Binding element 'metadata' implicitly has an 'any' type.
+src/tests/s3-base.test.ts(99,12): error TS2339: Property 'uploadPart' does not exist on type '{ putObject({ key, body, contentType, metadata }: { key: any; body: any; contentType: any; metadata: any; }): Promise<{ etag: string; }>; getObject({ key }: { key: any; }): Promise<{ body: any; contentType: any; etag: string; size: any; lastModified: number; metadata: any; } | null>; headObject({ key }: { ...; }): P...'.
+src/tests/s3-base.test.ts(99,34): error TS7031: Binding element 'uploadId' implicitly has an 'any' type.
+src/tests/s3-base.test.ts(99,44): error TS7031: Binding element 'partNumber' implicitly has an 'any' type.
+src/tests/s3-base.test.ts(99,56): error TS7031: Binding element 'body' implicitly has an 'any' type.
+src/tests/s3-base.test.ts(103,12): error TS2339: Property 'completeMultipartUpload' does not exist on type '{ putObject({ key, body, contentType, metadata }: { key: any; body: any; contentType: any; metadata: any; }): Promise<{ etag: string; }>; getObject({ key }: { key: any; }): Promise<{ body: any; contentType: any; etag: string; size: any; lastModified: number; metadata: any; } | null>; headObject({ key }: { ...; }): P...'.
+src/tests/s3-base.test.ts(103,47): error TS7031: Binding element 'uploadId' implicitly has an 'any' type.
+src/tests/s3-base.test.ts(103,57): error TS7031: Binding element 'parts' implicitly has an 'any' type.
+src/tests/s3-base.test.ts(116,12): error TS2339: Property 'abortMultipartUpload' does not exist on type '{ putObject({ key, body, contentType, metadata }: { key: any; body: any; contentType: any; metadata: any; }): Promise<{ etag: string; }>; getObject({ key }: { key: any; }): Promise<{ body: any; contentType: any; etag: string; size: any; lastModified: number; metadata: any; } | null>; headObject({ key }: { ...; }): P...'.
+src/tests/s3-base.test.ts(116,44): error TS7031: Binding element 'uploadId' implicitly has an 'any' type.
+src/tests/s3-base.test.ts(126,79): error TS2339: Property 'driverOptions' does not exist on type '{}'.
+src/tests/s3-base.test.ts(205,16): error TS18047: 'meta' is possibly 'null'.
+src/tests/s3-base.test.ts(206,16): error TS18047: 'meta' is possibly 'null'.
+src/tests/s3-base.test.ts(207,16): error TS18047: 'meta' is possibly 'null'.
+src/tests/s3-base.test.ts(207,21): error TS2339: Property 'bytes' does not exist on type 'StorageObjectMetadata<Record<string, unknown>>'.
+src/tests/s3-base.test.ts(292,26): error TS18048: 'driver.multipart' is possibly 'undefined'.
+src/tests/s3-base.test.ts(293,20): error TS18048: 'driver.multipart' is possibly 'undefined'.
+src/tests/s3-base.test.ts(294,20): error TS18048: 'driver.multipart' is possibly 'undefined'.
+src/tests/s3-base.test.ts(295,22): error TS18048: 'driver.multipart' is possibly 'undefined'.
+src/tests/s3-base.test.ts(307,26): error TS18048: 'driver.multipart' is possibly 'undefined'.
+src/tests/s3-base.test.ts(308,9): error TS18048: 'driver.multipart' is possibly 'undefined'.
+src/tests/s3-base.test.ts(309,9): error TS18048: 'driver.multipart' is possibly 'undefined'.
+src/tests/s3-base.test.ts(329,21): error TS2322: Type '{ snapshot: () => Promise<null>; list: () => Promise<never[]>; restore: () => Promise<{}>; deleteVersion: () => Promise<void>; }' is not assignable to type 'VersioningCapability'.
+  The types returned by 'restore(...)' are incompatible between these types.
+    Type 'Promise<{}>' is not assignable to type 'Promise<StorageObjectMetadata<Record<string, unknown>>>'.
+      Type '{}' is missing the following properties from type 'StorageObjectMetadata<Record<string, unknown>>': key, size, contentType, etag, and 5 more.
+src/tests/s3-integration.test.ts(45,18): error TS7006: Parameter 'names' implicitly has an 'any' type.
+src/tests/s3-integration.test.ts(73,19): error TS7006: Parameter 'v' implicitly has an 'any' type.
+src/tests/s3-integration.test.ts(97,19): error TS7006: Parameter 'v' implicitly has an 'any' type.
+src/tests/s3-integration.test.ts(121,19): error TS7006: Parameter 'v' implicitly has an 'any' type.
+src/tests/s3-integration.test.ts(145,19): error TS7006: Parameter 'v' implicitly has an 'any' type.
+src/tests/s3-integration.test.ts(171,27): error TS7006: Parameter 'provider' implicitly has an 'any' type.
+src/tests/s3-integration.test.ts(178,24): error TS18046: 'names' is of type 'unknown'.
+src/tests/s3-integration.test.ts(181,7): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+  No index signature with a parameter of type 'string' was found on type '{}'.
+src/tests/s3-integration.test.ts(188,7): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+  No index signature with a parameter of type 'string' was found on type '{}'.
+src/tests/s3-integration.test.ts(208,29): error TS7006: Parameter 'driver' implicitly has an 'any' type.
+src/tests/s3.test.ts(33,16): error TS7006: Parameter 'str' implicitly has an 'any' type.
+src/tests/s3.test.ts(44,23): error TS7031: Binding element 'key' implicitly has an 'any' type.
+src/tests/s3.test.ts(44,28): error TS7031: Binding element 'body' implicitly has an 'any' type.
+src/tests/s3.test.ts(44,34): error TS7031: Binding element 'contentType' implicitly has an 'any' type.
+src/tests/s3.test.ts(44,47): error TS7031: Binding element 'metadata' implicitly has an 'any' type.
+src/tests/s3.test.ts(52,23): error TS7031: Binding element 'key' implicitly has an 'any' type.
+src/tests/s3.test.ts(64,24): error TS7031: Binding element 'key' implicitly has an 'any' type.
+src/tests/s3.test.ts(75,26): error TS7031: Binding element 'key' implicitly has an 'any' type.
+src/tests/s3.test.ts(78,25): error TS7031: Binding element 'prefix' implicitly has an 'any' type.
+src/tests/s3.test.ts(84,35): error TS7031: Binding element 'key' implicitly has an 'any' type.
+src/tests/s3.test.ts(84,40): error TS7031: Binding element 'contentType' implicitly has an 'any' type.
+src/tests/s3.test.ts(84,53): error TS7031: Binding element 'metadata' implicitly has an 'any' type.
+src/tests/s3.test.ts(89,24): error TS7031: Binding element 'uploadId' implicitly has an 'any' type.
+src/tests/s3.test.ts(89,34): error TS7031: Binding element 'partNumber' implicitly has an 'any' type.
+src/tests/s3.test.ts(89,46): error TS7031: Binding element 'body' implicitly has an 'any' type.
+src/tests/s3.test.ts(93,37): error TS7031: Binding element 'uploadId' implicitly has an 'any' type.
+src/tests/s3.test.ts(93,47): error TS7031: Binding element 'parts' implicitly has an 'any' type.
+src/tests/s3.test.ts(105,34): error TS7031: Binding element 'uploadId' implicitly has an 'any' type.
+src/tests/s3.test.ts(153,26): error TS18048: 'driver.multipart' is possibly 'undefined'.
+src/tests/s3.test.ts(154,20): error TS18048: 'driver.multipart' is possibly 'undefined'.
+src/tests/s3.test.ts(155,20): error TS18048: 'driver.multipart' is possibly 'undefined'.
+src/tests/s3.test.ts(156,22): error TS18048: 'driver.multipart' is possibly 'undefined'.
+src/tests/s3.test.ts(160,27): error TS2339: Property 'bytes' does not exist on type 'MaybeObject'.
+  Property 'bytes' does not exist on type '{ readonly found: false; }'.
+src/tests/s3.test.ts(165,76): error TS2322: Type '{ snapshot: () => Promise<null>; list: () => Promise<never[]>; restore: () => Promise<{}>; deleteVersion: () => Promise<void>; }' is not assignable to type 'VersioningCapability'.
+  The types returned by 'restore(...)' are incompatible between these types.
+    Type 'Promise<{}>' is not assignable to type 'Promise<StorageObjectMetadata<Record<string, unknown>>>'.
+      Type '{}' is missing the following properties from type 'StorageObjectMetadata<Record<string, unknown>>': key, size, contentType, etag, and 5 more.
+src/tests/s3.test.ts(173,33): error TS2345: Argument of type 'undefined' is not assignable to parameter of type 'S3ClientLike'.
+src/tests/s3.test.ts(184,35): error TS2322: Type '() => void' is not assignable to type '(input: S3PutObjectInput) => Promise<S3PutObjectOutput>'.
+  Type 'void' is not assignable to type 'Promise<S3PutObjectOutput>'.
+src/tests/s3.test.ts(201,44): error TS2339: Property 'bytes' does not exist on type 'MaybeObject'.
+  Property 'bytes' does not exist on type '{ readonly found: false; }'.
+src/tests/search.test.ts(27,21): error TS7006: Parameter 'now' implicitly has an 'any' type.
+src/tests/search.test.ts(38,17): error TS7006: Parameter 'items' implicitly has an 'any' type.
+src/tests/search.test.ts(39,21): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/tests/supabase-driver.test.ts(25,16): error TS7006: Parameter 'str' implicitly has an 'any' type.
+src/tests/supabase-driver.test.ts(38,20): error TS7031: Binding element 'path' implicitly has an 'any' type.
+src/tests/supabase-driver.test.ts(38,26): error TS7031: Binding element 'body' implicitly has an 'any' type.
+src/tests/supabase-driver.test.ts(38,32): error TS7031: Binding element 'contentType' implicitly has an 'any' type.
+src/tests/supabase-driver.test.ts(38,45): error TS7031: Binding element 'metadata' implicitly has an 'any' type.
+src/tests/supabase-driver.test.ts(46,20): error TS7006: Parameter 'path' implicitly has an 'any' type.
+src/tests/supabase-driver.test.ts(50,18): error TS7006: Parameter 'path' implicitly has an 'any' type.
+src/tests/supabase-driver.test.ts(53,18): error TS7006: Parameter 'path' implicitly has an 'any' type.
+src/tests/supabase-driver.test.ts(56,16): error TS7006: Parameter 'path' implicitly has an 'any' type.
+src/tests/supabase-driver.test.ts(68,18): error TS7031: Binding element 'prefix' implicitly has an 'any' type.
+src/tests/supabase-driver.test.ts(138,16): error TS18047: 'stat' is possibly 'null'.
+src/tests/supabase-driver.test.ts(187,18): error TS18046: 'err' is of type 'unknown'.
+src/tests/supabase-driver.test.ts(206,51): error TS2345: Argument of type 'undefined' is not assignable to parameter of type 'SupabaseStorageClientLike'.
+src/tests/testing-utilities.test.ts(27,16): error TS7006: Parameter 'str' implicitly has an 'any' type.
+src/tests/testing-utilities.test.ts(38,32): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'Uint8Array<ArrayBufferLike> | undefined' is not assignable to parameter of type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+      Type 'undefined' is not assignable to type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+src/tests/testing-utilities.test.ts(120,32): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'Uint8Array<ArrayBufferLike> | undefined' is not assignable to parameter of type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+      Type 'undefined' is not assignable to type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+src/tests/validation.test.ts(33,13): error TS18048: 'disallowed.error' is possibly 'undefined'.
+src/tests/validation.test.ts(54,13): error TS18048: 'tooBig.error' is possibly 'undefined'.
+src/tests/versioning.test.ts(46,28): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'Uint8Array<ArrayBufferLike> | undefined' is not assignable to parameter of type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+      Type 'undefined' is not assignable to type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+src/tests/versioning.test.ts(77,28): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'Uint8Array<ArrayBufferLike> | undefined' is not assignable to parameter of type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+      Type 'undefined' is not assignable to type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+src/tests/versioning.test.ts(110,11): error TS7006: Parameter 'key' implicitly has an 'any' type.
+src/tests/versioning.test.ts(110,16): error TS7006: Parameter 'bytes' implicitly has an 'any' type.
+src/tests/versioning.test.ts(110,23): error TS7006: Parameter 'meta' implicitly has an 'any' type.
+src/tests/versioning.test.ts(111,11): error TS7006: Parameter 'key' implicitly has an 'any' type.
+src/tests/versioning.test.ts(117,14): error TS7006: Parameter 'key' implicitly has an 'any' type.
+src/tests/versioning.test.ts(118,14): error TS7006: Parameter 'key' implicitly has an 'any' type.
+src/tests/versioning.test.ts(119,12): error TS7006: Parameter 'key' implicitly has an 'any' type.
+src/tests/versioning.test.ts(120,12): error TS7006: Parameter 'prefix' implicitly has an 'any' type.
+src/tests/versioning.test.ts(120,20): error TS7006: Parameter 'options' implicitly has an 'any' type.
+src/tests/versioning.test.ts(121,17): error TS7006: Parameter 'key' implicitly has an 'any' type.
+src/tests/versioning.test.ts(121,22): error TS7006: Parameter 'stream' implicitly has an 'any' type.
+src/tests/versioning.test.ts(121,30): error TS7006: Parameter 'meta' implicitly has an 'any' type.
+src/tests/versioning.test.ts(122,17): error TS7006: Parameter 'key' implicitly has an 'any' type.
+src/tests/versioning.test.ts(135,28): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'Uint8Array<ArrayBufferLike> | undefined' is not assignable to parameter of type 'WithImplicitCoercion<string | ArrayLike<number>>'.
+      Type 'undefined' is not assignable to type 'WithImplicitCoercion<string | ArrayLike<number>>'.
