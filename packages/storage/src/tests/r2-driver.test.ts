@@ -25,16 +25,17 @@ import {
 } from "../drivers/r2.js";
 import { StorageConfigError } from "../errors.js";
 import { registerStorageDriverContractTests } from "./contract.js";
+import type { S3ClientLike } from "../drivers/s3-base.js";
 
 const FIXED_NOW = 1_700_000_000_000;
 const fixedClock = () => FIXED_NOW;
 
-function bytes(str) {
+function bytes(str: string) {
   return new TextEncoder().encode(str);
 }
 
 /** A minimal in-memory S3ClientLike standing in for the R2 (S3-API) client. */
-function makeFakeClient() {
+function makeFakeClient(): S3ClientLike {
   const objects = new Map(); // key -> { body, contentType, metadata }
 
   return {

@@ -50,6 +50,24 @@ import { connectSupabaseStorageDriver } from "../drivers/supabase.js";
 import { connectGoogleCloudStorageDriver } from "../drivers/gcs.js";
 import { connectAzureBlobDriver } from "../drivers/azure.js";
 import { StorageConfigError } from "../errors.js";
+import type { StorageDriver } from "../driver.js";
+
+/** The credential-presence classification for a provider. */
+type CredentialState = "absent" | "present" | "misconfigured";
+
+/** The outcome of classifying a provider's credential environment variables. */
+interface CredentialClassification {
+  readonly state: CredentialState;
+  readonly present: string[];
+  readonly missing: string[];
+}
+
+/** A single cloud provider's honest-skip integration registration spec. */
+interface CloudIntegrationSpec {
+  readonly provider: string;
+  readonly envVars: readonly string[];
+  connect(): Promise<StorageDriver>;
+}
 
 // ── Credential detection ──────────────────────────────────────────────────────
 
