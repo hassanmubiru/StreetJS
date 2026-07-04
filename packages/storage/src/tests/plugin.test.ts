@@ -44,7 +44,7 @@ test("onLoad exposes a usable Storage facade via the `storage` accessor (Req 20.
 
   // The accessor now exposes the live facade.
   const storage = plugin.storage;
-  assert.notEqual(storage, undefined, "facade exposed after load");
+  assert.ok(storage, "facade exposed after load");
 
   // The exposed facade is actually usable — a put/get round-trips.
   const written = await storage.put("greeting.txt", "hello world");
