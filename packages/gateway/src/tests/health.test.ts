@@ -158,6 +158,5 @@ test("built-in tcp/http checker factories construct without connecting", () => {
   assert.equal(http.length, 2, "checker takes (target, signal)");
 });
 
-test("live tcp/http probes are skipped (no network in this suite)", (t) => {
-  t.skip("network-dependent: tcpChecker/httpChecker require a live upstream to exercise");
-});
+// Live tcp/http probe coverage against real in-process loopback servers lives in
+// `health-live.test.ts` (no internet: everything binds to 127.0.0.1).
