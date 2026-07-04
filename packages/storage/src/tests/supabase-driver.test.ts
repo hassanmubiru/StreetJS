@@ -16,13 +16,14 @@ import {
   createSupabaseStorageDriver,
   connectSupabaseStorageDriver,
 } from "../drivers/supabase.js";
+import type { SupabaseStorageClientLike } from "../drivers/supabase.js";
 import { StorageConfigError } from "../errors.js";
 import { registerStorageDriverContractTests } from "./contract.js";
 
 const FIXED_NOW = 1_700_000_000_000;
 const fixedClock = () => FIXED_NOW;
 
-function bytes(str) {
+function bytes(str: string) {
   return new TextEncoder().encode(str);
 }
 
@@ -32,7 +33,7 @@ function bytes(str) {
  * object model would, and returns `null` (never throws) for a missing object so
  * the driver's not-found mapping is exercised.
  */
-function makeFakeClient() {
+function makeFakeClient(): SupabaseStorageClientLike {
   const objects = new Map(); // path -> { bytes, contentType, metadata }
   return {
     async upload({ path, body, contentType, metadata }) {

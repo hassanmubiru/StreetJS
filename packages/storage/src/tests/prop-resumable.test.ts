@@ -92,6 +92,8 @@ test(
           const referenceGet = await referenceStore.get(key);
           assert.equal(resumedGet.found, true);
           assert.equal(referenceGet.found, true);
+          assert.ok(resumedGet.bytes);
+          assert.ok(referenceGet.bytes);
           assert.deepEqual(Buffer.from(resumedGet.bytes), payload);
           assert.deepEqual(Buffer.from(resumedGet.bytes), Buffer.from(referenceGet.bytes));
         },
