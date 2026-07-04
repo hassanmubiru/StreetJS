@@ -227,7 +227,7 @@ test("controller denies every access level across write/delete when the bridge b
   // rule; here we cover the uniformly-denied write and delete operations for
   // EACH level (11.3).
   for (const accessLevel of ALL_LEVELS) {
-    for (const operation of /** @type {const} */ (["write", "delete"])) {
+    for (const operation of ["write", "delete"] as const) {
       const access = new AccessController({ auth: makeAuth(false) });
       await assert.rejects(
         () => access.authorize({ key: "k", operation, accessLevel }),
