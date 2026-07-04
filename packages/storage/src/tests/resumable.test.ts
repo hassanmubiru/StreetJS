@@ -51,7 +51,7 @@ test("resumeUpload with the full content equals a single put (Req 7.2, 7.3)", as
 
   const got = await storage.get("k");
   assert.equal(got.found, true);
-  assert.deepEqual(Buffer.from(got.bytes), payload);
+  assert.deepEqual(Buffer.from(got.bytes!), payload);
 
   // Byte-identical to an equivalent single, uninterrupted put.
   const reference = createStorage({ provider: "memory", clock: fixedClock });
