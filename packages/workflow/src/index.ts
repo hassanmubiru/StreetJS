@@ -9,11 +9,7 @@
  * client. Pillar integration is achieved through optional, structural `*Like`
  * bridge contracts, and Redis persistence is isolated behind the dedicated
  * `@streetjs/workflow/redis` submodule. Core types, errors, the store contract,
- * the engine facade, and the context surface are re-exported from here as they
- * are implemented in subsequent tasks.
- *
- * For now this file provides a minimal placeholder export so that `tsc` emits a
- * valid `dist/index.js` and the package builds clean.
+ * the engine facade, and the context surface are re-exported from here.
  */
 
 /** The semantic version line of the workflow engine package surface. */
