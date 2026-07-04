@@ -133,7 +133,7 @@ test("versioning failure allows the overwrite to proceed without a Version (Req 
 
   assert.equal(meta.key, "k");
   const got = await storage.get("k");
-  assert.equal(Buffer.from(got.bytes).toString(), "v2");
+  assert.equal(Buffer.from(got.bytes!).toString(), "v2");
   // No Version was created because the snapshot failed (listVersions reads
   // succeed again once the flag is cleared).
   assert.deepEqual(await storage.listVersions("k"), []);
