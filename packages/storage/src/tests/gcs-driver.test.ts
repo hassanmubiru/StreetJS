@@ -186,7 +186,8 @@ test("putStream/getStream round-trip through the injected client", async () => {
 
 test("getStream throws NotFoundError for a missing key", async () => {
   const driver = makeDriver();
-  await assert.rejects(() => driver.getStream("absent"), (err) => {
+  await assert.rejects(() => driver.getStream("absent"), (err: unknown) => {
+    assert.ok(err instanceof Error);
     assert.equal(err.name, "NotFoundError");
     return true;
   });
