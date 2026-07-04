@@ -20,6 +20,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { createStorage } from "../facade.js";
+import type { Storage } from "../facade.js";
 import { MemoryStorageDriver } from "../drivers/memory.js";
 
 /** Build a facade backed by a fresh in-memory driver. */
@@ -29,7 +30,7 @@ function makeStorage() {
 }
 
 /** Seed the store with a small hierarchy of objects. */
-async function seed(storage) {
+async function seed(storage: Storage) {
   await storage.put("photos/a.jpg", "a");
   await storage.put("photos/b.jpg", "bb");
   await storage.put("photos/2024/c.jpg", "ccc");
