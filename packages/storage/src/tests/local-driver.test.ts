@@ -21,6 +21,7 @@ import * as os from "node:os";
 import * as path from "node:path";
 
 import { LocalStorageDriver } from "../drivers/local.js";
+import type { StorageDriver } from "../driver.js";
 
 /**
  * Create a fresh, isolated temporary root and a driver bound to it, run `body`,

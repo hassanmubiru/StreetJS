@@ -113,7 +113,12 @@ test(
           const storage = createStorage({ provider: "memory" });
 
           for (const obj of objects) {
-            const metadata = {
+            const metadata: {
+              contentType: string;
+              owner?: string;
+              tenant?: string;
+              custom?: Record<string, unknown>;
+            } = {
               contentType: obj.contentType,
             };
             if (obj.owner !== undefined) metadata.owner = obj.owner;
