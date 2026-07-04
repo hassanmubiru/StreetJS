@@ -96,7 +96,10 @@ test("generateStorage throws for invalid names before producing output", () => {
 });
 
 test("generateStorage throws for a non-built-in provider", () => {
-  assert.throws(() => generateStorage("Uploads", DEFAULT_STORAGE_DIR, "s3"), /Invalid storage provider/);
+  assert.throws(
+    () => generateStorage("Uploads", DEFAULT_STORAGE_DIR, "s3" as BuiltInProvider),
+    /Invalid storage provider/,
+  );
   assert.equal(isValidProvider("memory"), true);
   assert.equal(isValidProvider("local"), true);
   assert.equal(isValidProvider("s3"), false);
