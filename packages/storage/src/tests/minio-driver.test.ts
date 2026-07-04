@@ -85,7 +85,8 @@ test("driver name is fixed to minio", () => {
 
 test("name is not overridable through options", () => {
   // MinIODriverOptions omits `name`; even a stray value must not change it.
-  const driver = createMinIODriver(makeFakeClient(), { clock: fixedClock, name: "s3" });
+  const strayOptions: S3StyleDriverOptions = { clock: fixedClock, name: "s3" };
+  const driver = createMinIODriver(makeFakeClient(), strayOptions);
   assert.equal(driver.name, "minio");
 });
 
