@@ -223,7 +223,7 @@ test("config.health registers the storage health check reporting up over the mem
 
 test("the health check reports down when the driver probe reports a failing dimension (Req 23.3)", async () => {
   const health = new HealthCheckRegistry();
-  const driver = {
+  const driver: StorageDriver = {
     name: "fake",
     async put() {
       throw new Error("unused");
