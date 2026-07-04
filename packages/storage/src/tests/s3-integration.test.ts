@@ -38,11 +38,27 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
+import type { StorageDriver } from "../driver.js";
+
+/** The resolved credential/option values for a provider, keyed by field name. */
+type ResolvedValues = Record<string, string>;
+
+/** How a provider's credential environment is classified. */
+type ProviderClassification = "absent" | "present" | "misconfigured";
+
+/** A descriptor for an S3-compatible provider under test. */
+interface ProviderDescriptor {
+  readonly label: string;
+  readonly required: Readonly<Record<string, readonly string[]>>;
+  readonly optional?: Readonly<Record<string, readonly string[]>>;
+  connect(v: ResolvedValues): Promise<StorageDriver>;
+}
+
 /**
  * Read the first non-empty value among a list of candidate environment variable
  * names. Returns `undefined` when none are set to a non-empty string.
  */
-function readEnv(names) {
+function readEnv(names: readonly string[]): string | undefined {
   for (const name of names) {
     const value = process.env[name];
     if (typeof value === "string" && value.trim() !== "") {
@@ -58,7 +74,7 @@ function readEnv(names) {
  * any optional fields, and an async `connect(values)` that builds a driver from
  * the resolved configuration by lazily importing its submodule.
  */
-const PROVIDERS = [
+const PROVIDERS: readonly ProviderDescriptor[] = [
   {
     label: "S3",
     required: {
@@ -168,9 +184,9 @@ const PROVIDERS = [
  * and the human-readable list of accepted env-var names used in skip/fail
  * messages.
  */
-function classifyProvider(provider) {
-  const values = {};
-  const requiredNames = [];
+function classifyProvider(provider: ProviderDescriptor) {
+  const values: ResolvedValues = {};
+  const requiredNames: string[] = [];
   let resolvedCount = 0;
   const total = Object.keys(provider.required).length;
 
