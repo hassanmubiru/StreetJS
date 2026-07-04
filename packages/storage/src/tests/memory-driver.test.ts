@@ -27,7 +27,7 @@ function makeDriver() {
 }
 
 /** Encode a UTF-8 string into a Uint8Array for storage. */
-function bytes(str) {
+function bytes(str: string) {
   return new TextEncoder().encode(str);
 }
 
