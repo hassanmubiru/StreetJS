@@ -87,7 +87,7 @@ test("interrupted resume continues from the persisted offset (Req 7.2, 7.3)", as
 
   const got = await storage.get("resumable/obj");
   assert.equal(got.found, true);
-  assert.deepEqual(Buffer.from(got.bytes), payload);
+  assert.deepEqual(Buffer.from(got.bytes!), payload);
 });
 
 test("cancelUpload before completion discards the session (Req 7.4)", async () => {
@@ -125,5 +125,5 @@ test("cancelUpload while completing lets the upload finish (Req 7.5)", async () 
   assert.equal(finalMeta.key, "committing/obj");
   const got = await storage.get("committing/obj");
   assert.equal(got.found, true);
-  assert.deepEqual(Buffer.from(got.bytes), payload);
+  assert.deepEqual(Buffer.from(got.bytes!), payload);
 });
