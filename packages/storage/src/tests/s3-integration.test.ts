@@ -205,7 +205,7 @@ function classifyProvider(provider: ProviderDescriptor) {
     }
   }
 
-  let classification;
+  let classification: ProviderClassification;
   if (resolvedCount === 0) {
     classification = "absent";
   } else if (resolvedCount === total) {
@@ -221,7 +221,7 @@ function classifyProvider(provider: ProviderDescriptor) {
  * Upload/download/delete round-trip asserting byte fidelity. Cleans up the test
  * object on a best-effort basis so live buckets are not left with test data.
  */
-async function runRoundTrip(driver) {
+async function runRoundTrip(driver: StorageDriver) {
   const key = `streetjs-integration/${Date.now()}-${Math.random().toString(16).slice(2)}.bin`;
   const content = new TextEncoder().encode(
     `streetjs storage integration round-trip ${new Date().toISOString()}`,
