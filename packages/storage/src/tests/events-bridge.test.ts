@@ -23,7 +23,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { createStorage, bridgeStorageEvents } from "../index.js";
-import type { StorageEventPayload } from "../index.js";
+import type { StorageEventPayload, StorageObjectMetadata } from "../index.js";
 
 const DAY = 24 * 60 * 60 * 1000;
 const T0 = 1_700_000_000_000;
