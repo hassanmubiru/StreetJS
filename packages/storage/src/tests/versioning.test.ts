@@ -44,7 +44,7 @@ test("overwrite snapshots prior content and retains unlimited Versions (Req 12.1
 
   // Current content is the latest write.
   const got = await storage.get("doc");
-  assert.equal(Buffer.from(got.bytes).toString(), "v3");
+  assert.equal(Buffer.from(got.bytes!).toString(), "v3");
 });
 
 test("first write to a key creates no Version (Req 12.1)", async () => {
@@ -75,7 +75,7 @@ test("restoreVersion makes a Version's content current (Req 12.3)", async () => 
 
   assert.equal(meta.key, "k");
   const got = await storage.get("k");
-  assert.equal(Buffer.from(got.bytes).toString(), "original");
+  assert.equal(Buffer.from(got.bytes!).toString(), "original");
 });
 
 test("restoreVersion of an unknown Version throws NotFoundError", async () => {
