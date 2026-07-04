@@ -153,6 +153,11 @@ async function createInstance(keyPrefix: string, instanceId: string): Promise<In
   const adapter = new RedisAdapter({ client, keyPrefix, instanceId, presenceTtlMs: 60_000 });
   const server = new StreetWebSocketServer();
   const realtime = createRealtime({ server, adapter });
+  // Await adapter initialization (subscribe + mark connected) via a public
+  // operation that internally awaits the facade's readiness, so callers never
+  // race `init()` — e.g. a synchronous `health()` probe or a connection drop
+  // performed immediately after construction (Req 13.3).
+  await realtime.room(`${keyPrefix}__ready__`).presence();
   return {
     realtime,
     adapter,
