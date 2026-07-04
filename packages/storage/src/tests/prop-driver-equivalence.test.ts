@@ -123,7 +123,7 @@ const sequenceArb = fc.array(operationArb, { minLength: 1, maxLength: 30 });
  * persists metadata through JSON (which drops `undefined` keys) compares equal
  * to one that keeps the key present with an `undefined` value.
  */
-function projectMetadata(meta) {
+function projectMetadata(meta: StorageObjectMetadata | null | undefined) {
   if (meta === null || meta === undefined) {
     return null;
   }
@@ -148,7 +148,7 @@ function projectMetadata(meta) {
 }
 
 /** Apply one operation to a driver and return its canonical observation. */
-async function applyOp(driver, op) {
+async function applyOp(driver: StorageDriver, op: Op) {
   switch (op.type) {
     case "put": {
       const meta = await driver.put(op.key, op.bytes, op.meta);
