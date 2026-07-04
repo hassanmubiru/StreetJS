@@ -28,6 +28,7 @@ import {
 } from "./contract.js";
 import { MemoryStorageDriver } from "../drivers/memory.js";
 import { LocalStorageDriver } from "../drivers/local.js";
+import type { StorageDriver } from "../driver.js";
 
 /** A fixed clock for deterministic timestamps. */
 const fixedClock = () => 1_700_000_000_000;
