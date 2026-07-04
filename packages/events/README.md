@@ -439,8 +439,10 @@ street make:event UserCreated       # scaffolds a typed Event class
 street make:listener UserCreated     # scaffolds a listener registration
 ```
 
-Generated scaffolds import only public `@streetjs/events` symbols and compile
-under `tsc`.
+These commands are provided by `@streetjs/events` and are **registered by your
+application through the core `CliKernel`** — they are not part of the standalone
+`@streetjs/cli` (`street`) built-in command set. Generated scaffolds import only
+public `@streetjs/events` symbols and compile under `tsc`.
 
 ## Delivery semantics
 
