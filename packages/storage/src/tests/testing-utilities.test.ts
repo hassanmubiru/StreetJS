@@ -35,7 +35,7 @@ test("MemoryStorage returns a working in-memory Storage facade", async () => {
   assert.equal(await storage.exists("a.txt"), true);
   const got = await storage.get("a.txt");
   assert.equal(got.found, true);
-  assert.deepEqual(Buffer.from(got.bytes), Buffer.from(bytes("hello")));
+  assert.deepEqual(Buffer.from(got.bytes!), Buffer.from(bytes("hello")));
 });
 
 test("MemoryStorageDriver is re-exported for driver-level substitution", async () => {
