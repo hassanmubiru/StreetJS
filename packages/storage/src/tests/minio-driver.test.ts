@@ -123,6 +123,7 @@ test("exists/delete/stat/list behave consistently", async () => {
   assert.equal(await driver.exists("d/missing.txt"), false);
 
   const stat = await driver.stat("d/b.txt");
+  assert.ok(stat);
   assert.equal(stat.size, 2);
   assert.equal(await driver.stat("d/missing.txt"), null);
 
@@ -142,7 +143,7 @@ test("get on a missing key reports found:false", async () => {
 // ── configuration guards ──────────────────────────────────────────────────────
 
 test("createMinIODriver throws StorageConfigError when no client is injected", () => {
-  assert.throws(() => createMinIODriver(undefined), (err) => {
+  assert.throws(() => createMinIODriver(undefined as unknown as S3ClientLike), (err) => {
     assert.ok(err instanceof StorageConfigError);
     assert.equal(err.provider, "minio");
     return true;
