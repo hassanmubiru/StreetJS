@@ -60,7 +60,8 @@ after(async () => {
   if (available && client) await client.close();
 });
 
-test('publishes and delivers a message to a live subscriber', { skip: !available && 'NATS server not reachable' }, async () => {
+test('publishes and delivers a message to a live subscriber', async (t) => {
+  if (!available) { t.skip('NATS server not reachable'); return; }
   const subject = 'street.basic.' + randomBytes(3).toString('hex');
   const received = [];
   client.subscribe(subject, (msg) => { received.push(msg.data.toString('utf8')); });
