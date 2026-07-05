@@ -110,38 +110,44 @@ if (existsSync(WASM_PATH) && !force) {
 }
 
 console.log('Downloading SQLite WASM binary...');
-console.log('URL:', WASM_URL);
 console.log('Destination:', WASM_PATH);
 
-// Retry a few times so a transient network blip doesn't fail the build.
-const MAX_ATTEMPTS = 3;
+// Retry a few times per CDN, then fall through to the next mirror, so a
+// transient network blip or a single CDN's rate-limit/outage doesn't fail
+// the build.
+const ATTEMPTS_PER_URL = 3;
 let lastErr;
-for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-  try {
-    const res = await fetchUrl(WASM_URL);
-    await pipeline(res, createWriteStream(WASM_PATH));
+for (const url of WASM_URLS) {
+  console.log('URL:', url);
+  for (let attempt = 1; attempt <= ATTEMPTS_PER_URL; attempt++) {
+    try {
+      const res = await fetchUrl(url);
+      await pipeline(res, createWriteStream(WASM_PATH));
 
-    const actual = await sha256OfFile(WASM_PATH);
-    if (actual !== EXPECTED_SHA256) {
-      unlinkSync(WASM_PATH);
-      console.error(`::error::downloaded sqlite3.wasm SHA-256 mismatch — expected ${EXPECTED_SHA256}, got ${actual}`);
-      process.exit(1);
-    }
-    console.log('SHA-256:', actual, '(verified)');
-    console.log('Download complete:', WASM_PATH);
-    process.exit(0);
-  } catch (err) {
-    lastErr = err;
-    if (existsSync(WASM_PATH)) {
-      try { unlinkSync(WASM_PATH); } catch { /* ignore */ }
-    }
-    if (attempt < MAX_ATTEMPTS) {
-      const delayMs = 1000 * attempt;
-      console.warn(`Download attempt ${attempt}/${MAX_ATTEMPTS} failed (${err.message || err}); retrying in ${delayMs}ms...`);
-      await new Promise((r) => setTimeout(r, delayMs));
+      const actual = await sha256OfFile(WASM_PATH);
+      if (actual !== EXPECTED_SHA256) {
+        unlinkSync(WASM_PATH);
+        console.error(`::error::downloaded sqlite3.wasm SHA-256 mismatch — expected ${EXPECTED_SHA256}, got ${actual}`);
+        process.exit(1);
+      }
+      console.log('SHA-256:', actual, '(verified)');
+      console.log('Download complete:', WASM_PATH);
+      process.exit(0);
+    } catch (err) {
+      lastErr = err;
+      if (existsSync(WASM_PATH)) {
+        try { unlinkSync(WASM_PATH); } catch { /* ignore */ }
+      }
+      if (attempt < ATTEMPTS_PER_URL) {
+        const delayMs = 1000 * attempt;
+        console.warn(`Download attempt ${attempt}/${ATTEMPTS_PER_URL} from ${url} failed (${err.message || err}); retrying in ${delayMs}ms...`);
+        await new Promise((r) => setTimeout(r, delayMs));
+      } else {
+        console.warn(`All ${ATTEMPTS_PER_URL} attempts from ${url} failed (${err.message || err}).`);
+      }
     }
   }
 }
 
-console.error(`::error::Download failed after ${MAX_ATTEMPTS} attempts: ${lastErr?.message || lastErr}`);
+console.error(`::error::Download failed from all ${WASM_URLS.length} mirror(s) after ${ATTEMPTS_PER_URL} attempts each: ${lastErr?.message || lastErr}`);
 process.exit(1);
