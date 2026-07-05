@@ -38,7 +38,16 @@ const WASM_PATH = join(__dirname, 'sqlite3.wasm');
 // Official SQLite WASM build — sqlite3.wasm from the @sqlite.org/sqlite-wasm npm
 // package. The version and its pinned SHA-256 MUST be updated together.
 const WASM_VERSION = '3.47.2-build1';
-const WASM_URL = `https://cdn.jsdelivr.net/npm/@sqlite.org/sqlite-wasm@${WASM_VERSION}/sqlite-wasm/jswasm/sqlite3.wasm`;
+const WASM_PATH_SUFFIX = `@sqlite.org/sqlite-wasm@${WASM_VERSION}/sqlite-wasm/jswasm/sqlite3.wasm`;
+// Two independent CDNs mirroring the same published npm package, so a
+// transient outage/rate-limit on one (observed: jsDelivr intermittently
+// returning HTTP 403) doesn't fail the build — every candidate serves
+// byte-identical content verified against the same pinned EXPECTED_SHA256.
+const WASM_URLS = [
+  `https://cdn.jsdelivr.net/npm/${WASM_PATH_SUFFIX}`,
+  `https://unpkg.com/${WASM_PATH_SUFFIX}`,
+];
+const WASM_URL = WASM_URLS[0]; // kept for log/doc continuity (first candidate tried)
 const EXPECTED_SHA256 = '246fd886c2989ccc7959ca415f9fbb0daa01b0d99d7c8ef9f9fa37c68c345584';
 
 const args = new Set(process.argv.slice(2));
