@@ -2,10 +2,52 @@
 // `street migrate:create <name>`, `street migrate:run`, and `street migrate:diff`
 
 import { mkdir, writeFile, readdir } from 'node:fs/promises';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import type { CliContext } from '../index.js';
 
 export class MigrateCommand {
+  /**
+   * Best-effort detection of the project's configured database driver, used to
+   * fail fast with a clear message when migrations (PostgreSQL-only) are run
+   * against a SQLite-configured project. Resolution order:
+   *   1. An explicit PostgreSQL configuration in the environment always wins
+   *      (`PG_HOST`/`PG_DATABASE`/`PG_USER`/`PG_PASSWORD`/`DATABASE_URL`).
+   *   2. `DB_DRIVER` from the environment.
+   *   3. `DB_DRIVER=<value>` in a project `.env` file.
+   *   4. The `dbDriver` default declared in `street.config.ts`.
+   * Returns the resolved driver string, or `undefined` when it cannot be
+   * determined (in which case the PostgreSQL path proceeds as before).
+   */
+  private resolveDbDriver(cwd: string): string | undefined {
+    // An explicit Postgres target in the environment takes precedence.
+    for (const k of ['PG_HOST', 'PG_DATABASE', 'PG_USER', 'PG_PASSWORD', 'DATABASE_URL']) {
+      if (process.env[k]) return 'postgres';
+    }
+    if (process.env['DB_DRIVER']) return process.env['DB_DRIVER'].toLowerCase();
+    // Fall back to the project's .env file (not auto-loaded by the runtime).
+    const envPath = resolve(cwd, '.env');
+    if (existsSync(envPath)) {
+      const m = readFileSync(envPath, 'utf8').match(/^\s*DB_DRIVER\s*=\s*["']?([A-Za-z0-9_-]+)/m);
+      if (m?.[1]) return m[1].toLowerCase();
+    }
+    // Fall back to the default declared in street.config.ts.
+    const cfgPath = resolve(cwd, 'street.config.ts');
+    if (existsSync(cfgPath)) {
+      const m = readFileSync(cfgPath, 'utf8').match(/dbDriver\s*:[^,\n]*\?\?\s*["']([A-Za-z0-9_-]+)["']/);
+      if (m?.[1]) return m[1].toLowerCase();
+    }
+    return undefined;
+  }
+
+  /** Emit clear guidance when migrations are attempted on a SQLite project. */
+  private warnSqliteUnsupported(): void {
+    console.error('[street] This project is configured for SQLite (DB_DRIVER=sqlite).');
+    console.error('[street] `street migrate:run` / `migrate:diff` currently support PostgreSQL only.');
+    console.error('[street] To use migrations, configure PostgreSQL (set PG_HOST/PG_DATABASE/... or');
+    console.error('[street] recreate the project with `--database postgres`), then re-run.');
+    process.exitCode = 1;
+  }
   /**
    * `street migrate:create <name>` — creates a new timestamped SQL migration file pair.
    */
