@@ -139,6 +139,13 @@ export class MigrateCommand {
 
     console.log(`[street] Found ${migrationFiles.length} migration file(s).`);
 
+    // Migrations are PostgreSQL-only; fail fast with clear guidance on SQLite
+    // projects instead of surfacing a confusing PostgreSQL connection error.
+    if (this.resolveDbDriver(ctx.cwd) === 'sqlite') {
+      this.warnSqliteUnsupported();
+      return;
+    }
+
     // We need to run migrations via the application's PgPool.
     // Since the application has its own bootstrap, we create a minimal runner here.
     const { PgPool, StreetMigrationRunner } = await import('streetjs');
@@ -193,6 +200,12 @@ export class MigrateCommand {
     const confirmDestructive = Boolean(ctx.args.flags['confirm-destructive']);
     const migrationsDir = resolve(ctx.cwd, 'migrations');
     await mkdir(migrationsDir, { recursive: true });
+
+    // Schema diff is PostgreSQL-only; fail fast with clear guidance on SQLite.
+    if (this.resolveDbDriver(ctx.cwd) === 'sqlite') {
+      this.warnSqliteUnsupported();
+      return;
+    }
 
     const { PgPool, MigrationDiffer } = await import('streetjs');
 
