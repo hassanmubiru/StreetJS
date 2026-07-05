@@ -112,8 +112,8 @@ test('stops delivering after unsubscribe', async (t) => {
 
 test(
   'supports queue-group delivery: exactly one member of the group receives each message',
-  { skip: !available && 'NATS server not reachable' },
-  async () => {
+  async (t) => {
+    if (!available) { t.skip('NATS server not reachable'); return; }
     const subject = 'street.queue.' + randomBytes(3).toString('hex');
     const queue = 'workers';
     const a = new NatsClient({ host: HOST, port: PORT, timeoutMs: 5000 });
