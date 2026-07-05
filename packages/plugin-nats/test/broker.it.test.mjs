@@ -91,7 +91,8 @@ test('delivers a reply-to message back to the requester subject', async (t) => {
   assert.equal(replies[0], 'pong');
 });
 
-test('stops delivering after unsubscribe', { skip: !available && 'NATS server not reachable' }, async () => {
+test('stops delivering after unsubscribe', async (t) => {
+  if (!available) { t.skip('NATS server not reachable'); return; }
   const subject = 'street.unsub.' + randomBytes(3).toString('hex');
   let count = 0;
   const sid = client.subscribe(subject, () => { count++; });
