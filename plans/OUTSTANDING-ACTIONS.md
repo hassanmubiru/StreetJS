@@ -43,6 +43,8 @@
 | 10 | ✅ **Done** — `app-*` scaffolds relocated to `examples/scaffold-*`; `zizmor.yml` + Dependabot dirs updated; no functional refs left (see Completed section) | [MAINTAINER] | `REPOSITORY-CLEANUP-PLAN.md`, `DOCKER-REVIEW.md` | `app-*` gone from root; CI green |
 | 11 | Move SEO files (`BingSiteAuth.xml`, `googledf*.html`) to the website repo, then `git rm` here | [OPERATOR] | cleanup plan, `SECURITY-CLASSIFICATION.md` | Files removed; root allowlist updated |
 
+| 30 | **Redis Cluster / PostgreSQL HA support is absent, not just untested.** Verified by direct inspection: `RedisClientOptions` (`packages/core/src/transports/resp.ts`) is `{ host?, port?, password? }` — no `nodes[]`/`sentinels[]` field, no `MOVED`/`ASK` cluster-redirect handling. `PgConnectOptions` (`packages/core/src/database/wire.ts`) is `{ host, port, user, password, database }` — single endpoint only, no replica/standby/failover field. Neither client can participate in a Redis Cluster topology or a PostgreSQL HA/failover setup. Distinct from the NATS gap (item — live NATS integration test added, `packages/plugin-nats/test/broker.it.test.mjs`, 4/4 pass against a real broker): that was a missing **test** against an existing client; this is a missing **capability** in the client itself, so no test can honestly close it without first extending the client. If cluster Redis or HA PostgreSQL are supported deployment targets, the clients need multi-seed-node config + redirect/failover handling before that configuration is production-supported. | [RUNTIME] | direct client-signature inspection (this audit) | `RedisClientOptions`/`PgConnectOptions` accept multi-node/HA config + a live-cluster/HA integration test passes |
+
 ## P2 — Medium
 | # | Action | Owner | Source |
 |---|---|---|---|
