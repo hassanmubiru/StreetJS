@@ -73,7 +73,8 @@ test('publishes and delivers a message to a live subscriber', async (t) => {
   assert.equal(received[0], 'hello-nats');
 });
 
-test('delivers a reply-to message back to the requester subject', { skip: !available && 'NATS server not reachable' }, async () => {
+test('delivers a reply-to message back to the requester subject', async (t) => {
+  if (!available) { t.skip('NATS server not reachable'); return; }
   const subject = 'street.rpc.' + randomBytes(3).toString('hex');
   const replySubject = 'street.reply.' + randomBytes(3).toString('hex');
   const replies = [];
