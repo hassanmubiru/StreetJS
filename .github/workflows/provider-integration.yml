@@ -112,6 +112,9 @@ jobs:
       - name: Build core (provides streetjs PgPool)
         run: npm run build -w packages/core
 
+      - name: Build storage
+        run: npm run build -w packages/storage
+
       - name: Run storage provider integration tests (Postgres + GCS + Azure)
         env:
           PG_HOST: 127.0.0.1
