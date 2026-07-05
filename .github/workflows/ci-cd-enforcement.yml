@@ -183,6 +183,11 @@ jobs:
           # CLI tests import the built @streetjs/plugin-marzpay (dist/index.js);
           # build it so marzpay integration/PBT suites can resolve the module.
           npm run build -w packages/plugin-marzpay
+          # make.integration.test.js generates a realtime channel/gateway and
+          # type-checks the output against the real package
+          # (packages/realtime/dist/index.d.ts); build it so that test can
+          # resolve the module instead of failing with "build not found".
+          npm run build -w packages/realtime
           npm test -w packages/cli
           echo "Backward compatibility regression passed ✔"
 
