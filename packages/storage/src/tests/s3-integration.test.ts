@@ -85,6 +85,7 @@ const PROVIDERS: readonly ProviderDescriptor[] = [
     },
     optional: {
       endpoint: ["STREETJS_S3_ENDPOINT"],
+      forcePathStyle: ["STREETJS_S3_FORCE_PATH_STYLE"],
     },
     async connect(v) {
       const { createS3StorageDriverFromConfig } = await import("../drivers/s3.js");
@@ -92,6 +93,11 @@ const PROVIDERS: readonly ProviderDescriptor[] = [
         bucket: v.bucket,
         region: v.region,
         endpoint: v.endpoint,
+        // Path-style addressing is required by S3-compatible gateways such as
+        // MinIO (which do not support virtual-hosted-style bucket subdomains).
+        // Opt-in via STREETJS_S3_FORCE_PATH_STYLE; unset preserves SDK defaults
+        // (virtual-hosted-style) for real AWS S3.
+        forcePathStyle: v.forcePathStyle !== undefined ? v.forcePathStyle !== "false" : undefined,
         credentials: {
           accessKeyId: v.accessKeyId,
           secretAccessKey: v.secretAccessKey,
