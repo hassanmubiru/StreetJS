@@ -125,8 +125,11 @@ function escapeRegExp(value: string): string {
 /**
  * Returns true iff `changelog` contains a non-empty notes entry for `version`
  * (Requirement 11.2). An entry is a markdown heading line (`#`/`##`/…) that
- * mentions the version, followed by at least one line of non-blank,
- * non-heading content before the next heading or end of file.
+ * mentions the version, followed by at least one line of non-blank content
+ * before the next heading **at the same or a shallower level** (e.g. `##`
+ * ends a `##` entry, but a deeper `###` sub-heading — such as the "Added" /
+ * "Fixed" Keep a Changelog convention — is content WITHIN the entry, not the
+ * start of the next one) or end of file.
  *
  * The version match is delimited so `1.2.3` does not match `1.2.30`. Pure and
  * deterministic.
@@ -138,16 +141,22 @@ export function validateReleaseNotes(changelog: string, version: string): boolea
   const lines = changelog.split(/\r?\n/);
   // Heading lines that reference the version, delimited so 1.2.3 ≠ 1.2.30.
   const versionRef = new RegExp(`(?<![\\d.])${escapeRegExp(version)}(?![\\d.])`);
-  const headingPattern = /^\s{0,3}#{1,6}\s/;
+  const headingPattern = /^\s{0,3}(#{1,6})\s/;
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    if (!headingPattern.test(line) || !versionRef.test(line)) continue;
+    const headingMatch = headingPattern.exec(line);
+    if (!headingMatch || !versionRef.test(line)) continue;
+    const headingLevel = headingMatch[1]!.length;
 
-    // Found the version's heading; scan its body until the next heading.
+    // Found the version's heading; scan its body until a heading at the same
+    // or a shallower level begins the next entry. A deeper heading (greater
+    // `#` count, e.g. this entry's own "### Added" sub-section) is part of
+    // this entry's body, not the next one.
     for (let j = i + 1; j < lines.length; j++) {
       const body = lines[j];
-      if (headingPattern.test(body)) break; // next section begins
+      const bodyHeadingMatch = headingPattern.exec(body);
+      if (bodyHeadingMatch && bodyHeadingMatch[1]!.length <= headingLevel) break; // next entry begins
       if (body.trim().length > 0) return true; // non-empty content found
     }
   }
