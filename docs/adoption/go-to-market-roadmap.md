@@ -4,6 +4,8 @@ title: Adoption & Go-To-Market Roadmap
 nav_order: 72
 permalink: /adoption/go-to-market-roadmap/
 description: "Evidence-based execution roadmap to move StreetJS from technically mature to widely adopted — adoption, community, production proof, ecosystem, benchmarks, enterprise trust, positioning, and risk."
+sitemap: false
+noindex: true
 ---
 
 {% include doc-styles.html %}

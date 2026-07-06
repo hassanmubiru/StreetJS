@@ -4,6 +4,7 @@ title:       "Multi-tenant CRM — roadmap"
 permalink:   /showcase/crm-roadmap/
 nav_exclude: true
 description:  "Planned multi-tenant CRM reference app for StreetJS — to be built on the verified SaaS, RBAC, and multi-tenant foundation. Roadmap, not a demo."
+sitemap: false
 ---
 
 # Multi-tenant CRM — roadmap

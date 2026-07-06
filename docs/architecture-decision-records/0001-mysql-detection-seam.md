@@ -3,6 +3,8 @@ layout: default
 title: "ADR-0001: MySQL/MariaDB runtime-detection seam"
 nav_exclude: true
 description: "ADR-0001: MySQL/MariaDB runtime-detection seam — StreetJS, the production-grade, memory-safe TypeScript backend framework for Node.js."
+sitemap: false
+noindex: true
 ---
 
 # ADR-0001: MySQL/MariaDB runtime-detection seam

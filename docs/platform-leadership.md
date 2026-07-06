@@ -4,6 +4,8 @@ title:      "Platform Leadership"
 nav_order:  18
 permalink:  /platform-leadership/
 description: "StreetJS Framework Platform Leadership exit criteria — the strict, machine-computed gate that grants the 95+ classification only when every platform capability is independently VERIFIED."
+sitemap:     false
+noindex:     true
 ---
 
 {% include doc-styles.html %}
