@@ -1,3 +1,12 @@
+---
+layout: default
+title: "Good First Issues — curated backlog"
+nav_exclude: true
+description: "Good First Issues — curated backlog — StreetJS, the production-grade, memory-safe TypeScript backend framework for Node.js."
+sitemap:     false
+noindex:     true
+---
+
 # Good First Issues — curated backlog
 
 A curated, **ready-to-file** backlog of scoped first contributions, derived from
