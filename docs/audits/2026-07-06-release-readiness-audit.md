@@ -1,3 +1,12 @@
+---
+layout: default
+title: "StreetJS Release-Readiness Audit — 2026-07-06"
+nav_exclude: true
+description: "Evidence-only StreetJS release-readiness audit for 2026-07-06 — CONDITIONALLY READY: every checkable engineering gate passes, with the only open item being live verification against four cloud/vendor providers blocked on unavailable credentials, not any known defect."
+sitemap:     false
+noindex:     true
+---
+
 # StreetJS Release-Readiness Audit — 2026-07-06
 
 > **Point-in-time record.** Immutable once published, per `audits/REPORT-INDEX.md`
