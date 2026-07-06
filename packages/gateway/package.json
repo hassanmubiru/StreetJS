@@ -13,9 +13,6 @@
     "./testing": {
       "import": "./dist/testing/index.js",
       "types": "./dist/testing/index.d.ts"
-    },
-    "./nonexistent-subpath": {
-      "import": "./dist/does-not-exist.js"
     }
   },
   "files": [
@@ -75,21 +72,11 @@
     "typescript": ">=5.0.0"
   },
   "peerDependenciesMeta": {
-    "@streetjs/realtime": {
-      "optional": true
-    },
-    "@streetjs/queue": {
-      "optional": true
-    },
-    "@streetjs/events": {
-      "optional": true
-    },
-    "@streetjs/storage": {
-      "optional": true
-    },
-    "typescript": {
-      "optional": true
-    }
+    "@streetjs/realtime": { "optional": true },
+    "@streetjs/queue": { "optional": true },
+    "@streetjs/events": { "optional": true },
+    "@streetjs/storage": { "optional": true },
+    "typescript": { "optional": true }
   },
   "engines": {
     "node": ">=22.0.0"
