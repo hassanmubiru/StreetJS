@@ -1,0 +1,55 @@
+# .github/workflows/repo-hygiene.yml
+# Whole-monorepo hygiene checks, run automatically on every push/PR — closing
+# the gap where these checks previously only ran manually during ad-hoc
+# release audits, and only against streetjs/cli/core-compat rather than all
+# packages. Complements (does not replace) the deeper, narrower existing
+# gates: `policy-checks` and `package-integrity` in ci-cd.yml, and the
+# dedicated `secret-scan.yml` (Gitleaks + TruffleHog).
+#
+# Checks (scripts/audit/repo-wide-checks.mjs), across all 54 non-private
+# packages:
+#   1. Manifest integrity   — every package's exports/main/types/module/bin
+#                             target resolves to a real file on disk. No build
+#                             required — pure package.json + filesystem check.
+#   2. README named imports — every `import { X } from '@scope/pkg'` in a
+#      package's README resolves to a real export. Best-effort: a package not
+#      built in this job is honestly reported as skipped, never fabricated.
+#   3. Placeholder markers  — TODO/FIXME/HACK/@ts-ignore/@ts-nocheck in
+#      production src, excluding CLI generator templates (which intentionally
+#      emit "TODO" as starter guidance INTO scaffolded user code, not as
+#      incomplete logic in code we ship and run ourselves).
+#   4. Circular dependencies — Tarjan's-SCC-based detection across every
+#      package's src/ (scripts/check-cycles.mjs), not just core/cli/edge.
+#
+# Fast and independent: no service containers, no build step required for
+# checks 1/3/4. Runs in a couple of minutes.
+name: Repository Hygiene
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: repo-hygiene-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  repo-wide-checks:
+    name: Manifest + README + placeholder + circular-dependency checks (all packages)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+
+      - name: Run repo-wide hygiene checks
+        run: node scripts/audit/repo-wide-checks.mjs
