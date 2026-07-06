@@ -1,3 +1,12 @@
+---
+layout: default
+title: "StreetJS Documentation Index"
+nav_exclude: true
+description: "One-stop navigation for the StreetJS repository — everything discoverable in ≤ 2 clicks, for contributors, adopters, maintainers, and security reviewers."
+sitemap:     false
+noindex:     true
+---
+
 # StreetJS Documentation Index
 
 > **Purpose:** one-stop navigation for the StreetJS repository — everything
