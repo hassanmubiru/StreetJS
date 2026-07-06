@@ -221,8 +221,8 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Build core package
-        run: npm run build -w packages/core
+      - name: Build core package (app layout, needed for coverage's test build)
+        run: npm run build:app -w packages/core
 
       - name: Generate coverage evidence (for the release scorecard)
         # Non-fatal: c8's own check-coverage gate is enforced elsewhere (the
@@ -245,6 +245,13 @@ jobs:
             --out release-inputs.json \
             --coverage-lcov packages/core/coverage/lcov.info \
             --repo github.com/${{ github.repository }}
+
+      - name: Rebuild core (lib layout, needed for streetjs resolution)
+        # The coverage step above requires the app-layout build; the release
+        # renderer (verify:release) imports `buildReleaseReport` from the
+        # `streetjs` package as a library, which needs the lib-layout
+        # dist/index.js — rebuild it now that coverage/lcov.info is captured.
+        run: npm run clean -w packages/core && npm run build -w packages/core
 
       - name: Resolve release version
         id: ver
