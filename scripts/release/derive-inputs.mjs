@@ -134,7 +134,11 @@ async function main() {
   const outPath = resolve(REPO_ROOT, flags.out || 'release-inputs.json');
   const lcovPath = resolve(REPO_ROOT, flags['coverage-lcov'] || 'packages/core/coverage/lcov.info');
   const repoSlug = flags.repo || 'github.com/hassanmubiru/StreetJS';
-  const mergePath = flags.merge ? resolve(REPO_ROOT, flags.merge) : outPath;
+  // Default merge source is the git-TRACKED template (maintainer-owned rubric
+  // dimensions + thresholds + health), not the gitignored output path — that
+  // file may not exist at all on a fresh checkout, which is exactly the bug
+  // this script fixes. `--merge` may still override for local iteration.
+  const mergePath = resolve(REPO_ROOT, flags.merge || 'release-inputs.template.json');
 
   // Preserve any existing maintainer-supplied rubric-based dimensions/health
   // via a shallow merge — this script only OVERWRITES the fields it can
