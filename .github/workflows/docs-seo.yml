@@ -9,6 +9,7 @@ on:
     paths:
       - 'docs/**'
       - 'scripts/docs/assert-seo.mjs'
+      - 'scripts/docs/assert-sitemap-cleanliness.mjs'
       - '.github/workflows/docs-seo.yml'
   pull_request:
     paths:
