@@ -236,13 +236,13 @@ jobs:
           # Fills in the two machine-measurable scorecard dimensions from real,
           # live sources every run: `security` from the public OpenSSF
           # Scorecard API (no credentials required), `coverage` from the
-          # coverage/lcov.info just generated. Any existing release-inputs.json
-          # (maintainer-supplied reliability/performance/health/thresholds) is
-          # preserved via merge — this step never fabricates those rubric-based
-          # values (Req 11.6).
+          # coverage/lcov.info just generated. The rubric-based dimensions
+          # (reliability, performance), thresholds, and health counts come from
+          # the git-TRACKED release-inputs.template.json (maintainer-owned) —
+          # this step never fabricates those values (Req 11.6). Produces the
+          # gitignored release-inputs.json the enforcement step below reads.
           node scripts/release/derive-inputs.mjs \
             --out release-inputs.json \
-            --merge release-inputs.json \
             --coverage-lcov packages/core/coverage/lcov.info \
             --repo github.com/${{ github.repository }}
 

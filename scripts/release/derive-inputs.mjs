@@ -25,8 +25,10 @@
 //                 design (Req 11.6) exists specifically to prevent. If a
 //                 maintainer-supplied inputs file already carries values for
 //                 these dimensions, this script PRESERVES them via a shallow
-//                 merge; otherwise they are left absent (render-report.mjs's
-//                 own zero-default then applies honestly).
+//                 merge against the git-TRACKED `release-inputs.template.json`
+//                 (default merge source — see --merge below); otherwise they
+//                 are left absent (render-report.mjs's own zero-default then
+//                 applies honestly).
 //   - health (dependencyFreshness/testTrends/vulnerabilityTrends) : NOT
 //                 derived here. These are current-vs-previous-release deltas
 //                 and require a stored cross-release baseline that does not
@@ -37,7 +39,8 @@
 // Usage:
 //   node scripts/release/derive-inputs.mjs [--out release-inputs.json]
 //     [--coverage-lcov packages/core/coverage/lcov.info]
-//     [--repo github.com/OWNER/REPO] [--merge <existing-file>]
+//     [--repo github.com/OWNER/REPO]
+//     [--merge release-inputs.template.json]   (default; git-tracked template)
 //
 // Network failures (OpenSSF API unreachable) are non-fatal: that dimension is
 // simply omitted (never fabricated as a passing score), and a warning is
