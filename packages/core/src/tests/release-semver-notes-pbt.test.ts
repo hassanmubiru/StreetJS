@@ -106,6 +106,43 @@ describe('Property 29: semver and release-notes validation are correct', () => {
     );
   });
 
+  // Regression: the real-world Keep a Changelog convention nests a deeper
+  // sub-heading ("### Added" / "### Fixed" / etc.) directly under the version
+  // heading, with the actual bullet content living under THAT sub-heading —
+  // not immediately under the version heading itself. An earlier
+  // implementation treated any heading (regardless of depth) as ending the
+  // entry, so it never saw the bullets and always reported `false` for every
+  // real changelog entry ever written this way.
+  it('validateReleaseNotes accepts a version entry with a deeper Keep-a-Changelog sub-heading before its body', () => {
+    fc.assert(
+      fc.property(
+        validSemverArb,
+        fc.constantFrom('Added', 'Changed', 'Fixed', 'Removed', 'Security', 'Deprecated'),
+        fc.string({ minLength: 1, maxLength: 60 }).filter((s) => s.trim().length > 0 && !/^\s{0,3}#/.test(s)),
+        (version, section, body) => {
+          const changelog = `# Changelog\n\n## [${version}]\n\n### ${section}\n- ${body}\n`;
+          assert.equal(validateReleaseNotes(changelog, version), true);
+        },
+      ),
+      { numRuns: NUM_RUNS },
+    );
+  });
+
+  // The sub-heading itself must NOT count as "next entry" only when it is
+  // strictly deeper than the version heading; a heading at the SAME depth as
+  // the version heading (e.g. another `##`) must still correctly end the
+  // entry, even when no deeper sub-heading is present.
+  it('validateReleaseNotes still rejects an empty entry when the next heading is at the same depth', () => {
+    fc.assert(
+      fc.property(validSemverArb, (version) => {
+        const other = version === '9.9.9' ? '8.8.8' : '9.9.9';
+        const changelog = `# Changelog\n\n## [${version}]\n\n## [${other}]\n\n### Added\n- something\n`;
+        assert.equal(validateReleaseNotes(changelog, version), false);
+      }),
+      { numRuns: NUM_RUNS },
+    );
+  });
+
   it('validateReleaseNotes rejects when the version heading has no body before the next heading', () => {
     fc.assert(
       fc.property(validSemverArb, (version) => {
