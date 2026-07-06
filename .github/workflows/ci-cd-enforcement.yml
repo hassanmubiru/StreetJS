@@ -224,6 +224,28 @@ jobs:
       - name: Build core package
         run: npm run build -w packages/core
 
+      - name: Generate coverage evidence (for the release scorecard)
+        # Non-fatal: c8's own check-coverage gate is enforced elsewhere (the
+        # `build-and-test` job in ci-cd.yml); here we only need the resulting
+        # coverage/lcov.info as a measurement input, so a failing coverage
+        # *threshold* must not block emitting real (if below-bar) evidence.
+        run: npm run coverage -w packages/core || true
+
+      - name: Derive live release-inputs.json (security + coverage)
+        run: |
+          # Fills in the two machine-measurable scorecard dimensions from real,
+          # live sources every run: `security` from the public OpenSSF
+          # Scorecard API (no credentials required), `coverage` from the
+          # coverage/lcov.info just generated. Any existing release-inputs.json
+          # (maintainer-supplied reliability/performance/health/thresholds) is
+          # preserved via merge — this step never fabricates those rubric-based
+          # values (Req 11.6).
+          node scripts/release/derive-inputs.mjs \
+            --out release-inputs.json \
+            --merge release-inputs.json \
+            --coverage-lcov packages/core/coverage/lcov.info \
+            --repo github.com/${{ github.repository }}
+
       - name: Resolve release version
         id: ver
         env:
