@@ -104,7 +104,10 @@ for (const { permalink, file, checkNoindex } of EXCLUDED_PAGES) {
 
   if (checkNoindex) {
     const html = read(file);
-    /<meta name="robots" content="noindex, follow">/.test(html)
+    // head_custom.html emits "noindex, follow" (with space); the redirect
+    // layout (used by the comparisons/* stubs) emits its own "noindex,follow"
+    // (no space) — both satisfy R5.2's "remain reachable, but not indexed".
+    /<meta name="robots" content="noindex,\s*follow">/.test(html)
       ? ok(`${permalink} emits noindex meta tag`)
       : fail('noindex-meta', `${permalink} missing <meta name="robots" content="noindex, follow">`);
   }
