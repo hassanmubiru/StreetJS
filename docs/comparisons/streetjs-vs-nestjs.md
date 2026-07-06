@@ -5,4 +5,5 @@ redirect_to: /compare/streetjs-vs-nestjs/
 title:       "StreetJS vs NestJS"
 nav_exclude: true
 sitemap:     false
+noindex:     true
 ---
