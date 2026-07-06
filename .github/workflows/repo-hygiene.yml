@@ -51,5 +51,22 @@ jobs:
 
       - uses: ./.github/actions/setup
 
+      - name: Build core + pillars (so README import-verification has real coverage)
+        # Checks 1/3/4 need no build at all. Check 2 (README imports) can only
+        # verify a package's imports against its REAL exports if that package
+        # is built — an unbuilt package is honestly reported as skipped, never
+        # fabricated as passing. Building core + the 6 pillars here (each
+        # already independently build-verified by their own workflows) gives
+        # check 2 real coverage on the packages most central to release
+        # quality, without slowing this job down with a full 54-package build.
+        run: |
+          npm run build -w packages/core
+          npm run build -w packages/realtime
+          npm run build -w packages/queue
+          npm run build -w packages/events
+          npm run build -w packages/storage
+          npm run build -w packages/gateway
+          npm run build -w packages/workflow
+
       - name: Run repo-wide hygiene checks
         run: node scripts/audit/repo-wide-checks.mjs
