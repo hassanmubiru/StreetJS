@@ -1,3 +1,12 @@
+---
+layout: default
+title: "MarzPay Integration Research Artifact"
+nav_exclude: true
+description: "MarzPay integration research artifact — verified capabilities and documented limitations for the MarzPay payment API, audited from MarzPay_Documentation."
+sitemap:     false
+noindex:     true
+---
+
 # MarzPay Integration Research Artifact
 
 > **Status:** Verify-don't-invent research foundation (Requirement 1, Task 1).
