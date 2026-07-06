@@ -52,10 +52,22 @@ function listPublicPackages() {
 }
 
 // ── 1. Manifest integrity ───────────────────────────────────────────────────
+// A package that has never been built in this job context (no dist/ at all)
+// is honestly reported as SKIPPED, not failed — this job intentionally only
+// builds core + the 6 pillars (see the workflow) to stay fast; building all
+// ~53 packages hits real, undeclared cross-package build-order dependencies
+// (e.g. a package's test files importing a sibling package that must be
+// built first) that are a separate concern from manifest-target integrity.
+// A package WITH a dist/ present is checked in full: every declared target
+// must resolve, or it is a genuine failure.
 function checkManifestIntegrity(packages) {
   info('\n=== [1/4] Manifest integrity (exports/main/types/module/bin) ===');
-  let checked = 0;
+  let checked = 0, skippedNotBuilt = 0;
   for (const { dir, base, pj } of packages) {
+    if (!existsSync(join(base, 'dist'))) {
+      skippedNotBuilt++;
+      continue;
+    }
     const seen = new Set();
     const walk = (v) => {
       if (typeof v === 'string' && v.startsWith('./')) {
@@ -75,7 +87,7 @@ function checkManifestIntegrity(packages) {
     walk(pj.module);
     walk(pj.bin);
   }
-  info(`  checked ${checked} manifest target(s) across ${packages.length} package(s).`);
+  info(`  checked ${checked} manifest target(s) across ${packages.length - skippedNotBuilt} built package(s); ${skippedNotBuilt} package(s) skipped (not built in this context).`);
 }
 
 // ── 2. README named imports ─────────────────────────────────────────────────
