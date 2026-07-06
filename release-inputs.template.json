@@ -1,5 +1,5 @@
 {
-  "_comment": "Release Engineering scorecard evidence (Req 11). Consumed by scripts/release/render-report.mjs via the CI 'Release Engineering Enforcement' job. Scores are 0-100. The enforcement gate passes when every dimension's score >= its threshold AND the changelog has a valid semver entry with non-empty release notes. Review and raise thresholds as the project's measured quality improves.",
+  "_comment": "Release Engineering scorecard TEMPLATE (Req 11) — tracked in git, unlike release-inputs.json (gitignored generated artifact). Holds the rubric-based dimensions (reliability, performance) and the health/thresholds a maintainer must set by judgment, since they cannot be measured live. scripts/release/derive-inputs.mjs merges this template with LIVE security+coverage evidence on every CI run to produce the actual release-inputs.json the enforcement gate reads. Update this file, not release-inputs.json, to change thresholds or rubric scores.",
   "thresholds": {
     "security": 70,
     "reliability": 70,
@@ -33,6 +33,6 @@
       "source": "Maintainer assessment grounded in the benchmark regression gate (packages/core benchmarks vs committed baseline.json) passing with no >10% throughput regression.",
       "note": "Rubric-based score. Raise once a normalized performance index is computed from benchmark output."
     },
-    "thresholds_rationale": "Thresholds are set to the bar the project demonstrably meets today (coverage 70 sits below the measured 77.03% line coverage; security 70 sits just under the real OpenSSF 7.3). These are intentionally honest current-state bars, not the aspirational default of 80. Raise them over time."
+    "thresholds_rationale": "coverage/security thresholds are set to a bar the project has historically met; they are honest current-state bars, not an aspirational default. security and coverage themselves are now derived LIVE each run by derive-inputs.mjs (OpenSSF Scorecard API; packages/core coverage/lcov.info) — review these thresholds periodically against the live-measured values and raise them as quality improves."
   }
 }
