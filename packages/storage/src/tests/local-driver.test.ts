@@ -184,3 +184,58 @@ test("nested keys round-trip through put/get/exists/list", async () => {
     );
   });
 });
+
+// ── Path traversal containment ────────────────────────────────────────────────
+//
+// Regression coverage for a path-traversal vulnerability: a key containing
+// `../` segments (or an absolute path) must never resolve outside the
+// driver's configured root. Without this guard, `put`/`get` could read or
+// write arbitrary filesystem locations reachable by the process.
+
+test("put rejects a key that resolves outside the storage root via ../ segments", async () => {
+  await withDriver(async (driver, root) => {
+    const victimDir = await fs.mkdtemp(path.join(os.tmpdir(), "streetjs-local-driver-victim-"));
+    try {
+      const escapeKey = `${path.relative(root, victimDir)}/pwned.txt`;
+      await assert.rejects(
+        () => driver.put(escapeKey, new Uint8Array([1, 2, 3]), NO_META),
+        ValidationError,
+      );
+      assert.equal(
+        await fs.access(path.join(victimDir, "pwned.txt")).then(
+          () => true,
+          () => false,
+        ),
+        false,
+        "no file should have been created outside the storage root",
+      );
+    } finally {
+      await fs.rm(victimDir, { recursive: true, force: true });
+    }
+  });
+});
+
+test("put rejects an absolute-path key", async () => {
+  await withDriver(async (driver) => {
+    await assert.rejects(
+      () => driver.put("/etc/passwd-streetjs-test-should-not-write", new Uint8Array([1]), NO_META),
+      ValidationError,
+    );
+  });
+});
+
+test("get rejects a key that resolves outside the storage root via ../ segments", async () => {
+  await withDriver(async (driver, root) => {
+    await assert.rejects(() => driver.get(`../${path.basename(root)}-sibling/secret.txt`), ValidationError);
+  });
+});
+
+test("legitimate nested keys are unaffected by the containment guard", async () => {
+  await withDriver(async (driver) => {
+    const bytes = new Uint8Array([9, 9, 9]);
+    await driver.put("safe/nested/key.txt", bytes, NO_META);
+    const result = await driver.get("safe/nested/key.txt");
+    assert.equal(result.found, true);
+    assert.deepEqual(result.bytes, bytes);
+  });
+});
