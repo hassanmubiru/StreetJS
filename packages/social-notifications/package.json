@@ -16,7 +16,8 @@
     "dist/index.js.map",
     "dist/index.d.ts",
     "dist/index.d.ts.map",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsc",
