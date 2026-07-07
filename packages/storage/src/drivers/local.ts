@@ -320,7 +320,7 @@ export class LocalStorageDriver implements StorageDriver {
     const resolved = path.resolve(this.root, key + suffix);
     const rootWithSep = this.root.endsWith(path.sep) ? this.root : this.root + path.sep;
     if (resolved !== this.root && !resolved.startsWith(rootWithSep)) {
-      throw new ValidationError(`key resolves outside the storage root: ${key}`, key);
+      throw new ValidationError("key resolves outside the storage root (path traversal)", { key });
     }
     return resolved;
   }
