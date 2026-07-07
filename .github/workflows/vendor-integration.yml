@@ -78,7 +78,6 @@ jobs:
 
       - name: Auth0 (client-credentials token)
         if: ${{ env.AUTH0_DOMAIN != '' }}
-        continue-on-error: true # TEMP: diagnosing a live 403; remove once resolved
         run: node scripts/vendor/check-auth0.mjs
 
       # Layer B: run every official plugin's REAL backing-service integration
