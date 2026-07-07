@@ -1,4 +1,5 @@
 import 'reflect-metadata';
 import { streetApp } from 'streetjs';
-import type { WebSocketServer } from 'streetjs/websocket';
+import * as websocketServer from 'streetjs/websocket';
 const app = streetApp({ port: 3000 });
+console.log(websocketServer);
