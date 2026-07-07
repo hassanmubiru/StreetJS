@@ -45,6 +45,12 @@ paths = [
 regexes = [
   # Azurite's documented well-known development account key (public constant).
   '''Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==''',
+  # RFC 6455's own published example Sec-WebSocket-Key handshake nonce, used in
+  # two deleted debug scripts (packages/gateway/debug-ws.mjs,
+  # debug-replica.mjs). Flagged by the default `generic-api-key` rule against
+  # history even though the files are gone from the tree; this is the literal
+  # public sample value from the WebSocket protocol spec, not a real secret.
+  '''dGhlIHNhbXBsZSBub25jZQ==''',
   # Obviously-fake signing secrets used in unit tests / examples.
   '''a-very-secret-signing-key''',
   '''a-very-secret-key-1234''',
