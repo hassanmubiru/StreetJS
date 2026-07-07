@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "capabilityId": "plugin.s3",
+  "status": "BLOCKED",
+  "evidence": {
+    "sourceCode": true,
+    "passingTests": false,
+    "documentation": true,
+    "artifact": true
+  },
+  "command": "node \"/home/runner/work/StreetJS/StreetJS/scripts/plugins/integration.mjs\" s3",
+  "exitCode": 0,
+  "timestamp": "2026-07-07T19:31:56.910Z",
+  "durationMs": 164,
+  "timedOut": false,
+  "blockedReason": {
+    "missingPrerequisite": "S3_BUCKET",
+    "kind": "credential"
+  },
+  "generator": {
+    "tool": "street-command-runner",
+    "version": "1"
+  }
+}

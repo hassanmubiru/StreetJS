@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "capabilityId": "plugin.stripe",
+  "status": "VERIFIED",
+  "evidence": {
+    "sourceCode": true,
+    "passingTests": true,
+    "documentation": true,
+    "artifact": true
+  },
+  "command": "node \"/home/runner/work/StreetJS/StreetJS/scripts/plugins/integration.mjs\" stripe",
+  "exitCode": 0,
+  "timestamp": "2026-07-07T19:31:58.458Z",
+  "durationMs": 481,
+  "timedOut": false,
+  "generator": {
+    "tool": "street-command-runner",
+    "version": "1"
+  }
+}
