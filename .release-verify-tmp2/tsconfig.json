@@ -4,6 +4,8 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "strict": true,
-    "skipLibCheck": false
+    "skipLibCheck": false,
+    "declaration": true,
+    "outDir": "dist"
   }
 }
