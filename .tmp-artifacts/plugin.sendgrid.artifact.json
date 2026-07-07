@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "capabilityId": "plugin.sendgrid",
+  "status": "VERIFIED",
+  "evidence": {
+    "sourceCode": true,
+    "passingTests": true,
+    "documentation": true,
+    "artifact": true
+  },
+  "command": "node \"/home/runner/work/StreetJS/StreetJS/scripts/plugins/integration.mjs\" sendgrid",
+  "exitCode": 0,
+  "timestamp": "2026-07-07T19:31:57.976Z",
+  "durationMs": 393,
+  "timedOut": false,
+  "generator": {
+    "tool": "street-command-runner",
+    "version": "1"
+  }
+}
