@@ -43,7 +43,7 @@ import { pipeline } from "node:stream/promises";
 import { systemClock, type Clock } from "streetjs";
 
 import type { MaybeObject, NodeReadable, StorageDriver } from "../driver.js";
-import { NotFoundError } from "../errors.js";
+import { NotFoundError, ValidationError } from "../errors.js";
 import { buildObjectMetadata } from "../metadata.js";
 import type {
   ListOptions,
@@ -309,14 +309,30 @@ export class LocalStorageDriver implements StorageDriver {
 
   // ── Internal helpers ────────────────────────────────────────────────────────
 
+  /**
+   * Resolve `key` to an absolute path guaranteed to stay within `this.root`.
+   * Rejects any key whose resolved path escapes the configured root (e.g. via
+   * `../` segments or an absolute path), which would otherwise let a caller
+   * read or write arbitrary filesystem locations reachable by the process
+   * (path traversal). Both `objectPath` and `metaPath` route through this.
+   */
+  private resolveContained(key: string, suffix = ""): string {
+    const resolved = path.resolve(this.root, key + suffix);
+    const rootWithSep = this.root.endsWith(path.sep) ? this.root : this.root + path.sep;
+    if (resolved !== this.root && !resolved.startsWith(rootWithSep)) {
+      throw new ValidationError(`key resolves outside the storage root: ${key}`, key);
+    }
+    return resolved;
+  }
+
   /** Absolute filesystem path to the object bytes for `key`. */
   private objectPath(key: string): string {
-    return path.join(this.root, key);
+    return this.resolveContained(key);
   }
 
   /** Absolute filesystem path to the metadata sidecar for `key`. */
   private metaPath(key: string): string {
-    return path.join(this.root, key + META_SUFFIX);
+    return this.resolveContained(key, META_SUFFIX);
   }
 
   /** Read and parse the metadata sidecar for `key`, or `null` when absent. */
