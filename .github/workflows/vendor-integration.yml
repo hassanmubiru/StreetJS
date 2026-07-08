@@ -91,6 +91,26 @@ jobs:
         if: ${{ env.AUTH0_DOMAIN != '' }}
         run: node scripts/vendor/check-auth0.mjs
 
+      # ── Cloud storage providers (Supabase, GCS, Azure, Backblaze B2) ────────
+      # packages/storage's own test suite (dist/tests/*.test.js) already
+      # implements an honest credential-based skip policy per provider (see
+      # non-s3-integration.test.ts / s3-integration.test.ts): a provider's live
+      # round-trip only runs when ALL of its env vars are present, otherwise it
+      # is reported as skipped (never as a false pass). No mocking, ever.
+      - name: Build storage package (for its live provider integration tests)
+        run: npm run build -w packages/storage
+
+      - name: Materialize GCS service-account key file
+        if: ${{ secrets.GCS_SERVICE_ACCOUNT_JSON != '' }}
+        env:
+          GCS_SERVICE_ACCOUNT_JSON: ${{ secrets.GCS_SERVICE_ACCOUNT_JSON }}
+        run: |
+          echo "$GCS_SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/gcs-service-account.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/gcs-service-account.json" >> "$GITHUB_ENV"
+
+      - name: Cloud storage providers (Supabase / GCS / Azure / Backblaze B2)
+        run: npm run test -w packages/storage
+
       # Layer B: run every official plugin's REAL backing-service integration
       # through CommandRunner, emitting one plugin.<id>.artifact.json each
       # (pass result + plugin id + ISO-8601 timestamp). A plugin whose service
