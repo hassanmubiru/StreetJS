@@ -102,9 +102,7 @@ jobs:
         run: npm run build -w packages/storage
 
       - name: Materialize GCS service-account key file
-        if: ${{ secrets.GCS_SERVICE_ACCOUNT_JSON != '' }}
-        env:
-          GCS_SERVICE_ACCOUNT_JSON: ${{ secrets.GCS_SERVICE_ACCOUNT_JSON }}
+        if: ${{ env.GCS_SERVICE_ACCOUNT_JSON != '' }}
         run: |
           echo "$GCS_SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/gcs-service-account.json"
           echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/gcs-service-account.json" >> "$GITHUB_ENV"
