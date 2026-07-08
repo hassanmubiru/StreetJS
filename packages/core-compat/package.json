@@ -124,7 +124,7 @@
     "LICENSE"
   ],
   "dependencies": {
-    "streetjs": "1.0.27"
+    "streetjs": "1.1.0"
   },
   "keywords": [
     "streetjs",
