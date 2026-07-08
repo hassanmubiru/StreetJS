@@ -24,13 +24,56 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   Generated controllers now use the real API: `ctx.json(data, status)` and
   `ctx.send(status)`. Generated code now type-checks cleanly.
 
-## [Unreleased]
+## [1.1.0] - 2026-07-08
 
 > Repository-level governance, security, and organization hardening, plus
-> **additive, backward-compatible** plugin security hardening. No existing
-> `@streetjs/core` public API, signature, or published-package path was changed
-> or removed — the runtime changes below only **add** optional config fields and
-> new exported functions (existing callers are unaffected).
+> **additive, backward-compatible** plugin security hardening, plus a release
+> readiness pass (security fix, packaging fix, CI reliability fixes). No
+> existing `@streetjs/core` public API, signature, or published-package path
+> was changed or removed — the runtime changes below only **add** optional
+> config fields and new exported functions (existing callers are unaffected).
+
+### Security
+- **Fixed a path-traversal vulnerability in `@streetjs/storage`'s
+  `LocalStorageDriver`.** `objectPath()`/`metaPath()` resolved `root/<key>` via
+  a bare `path.join` with no containment check, so a key such as
+  `../../etc/passwd` (or an absolute path) could read or write arbitrary
+  filesystem locations reachable by the process. Fixed by resolving every key
+  through a new `resolveContained()` helper that rejects any key whose
+  resolved path escapes the configured root, throwing `ValidationError`
+  instead. Added 4 regression tests (`../` escape on `put`/`get`, absolute-path
+  rejection, and a confirmation that legitimate nested keys are unaffected).
+
+### Fixed
+- **Packaging: added the missing `LICENSE` file to 26 published packages**
+  (including `streetjs` itself) whose `package.json` declared `"license":
+  "MIT"` but shipped no `LICENSE` in the actual npm tarball. Added the file and
+  the `LICENSE` entry to each package's `files` array; verified via `npm pack
+  --dry-run` that the license now ships.
+- **CI: fixed the `Secret Scanning` gate**, which was failing on a Gitleaks
+  `generic-api-key` false positive — two now-deleted debug scripts
+  (`packages/gateway/debug-ws.mjs`, `debug-replica.mjs`) contained
+  `Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==`, which is the literal published
+  example handshake nonce from RFC 6455, not a real secret. Added it to the
+  `.gitleaks.toml` allowlist.
+- **CI: fixed the `Repository policy` gate**, which was failing on 3 unapproved
+  files at the repo root: two stray tracked empty files (`npm`, `tsc`, almost
+  certainly an old shell-redirection typo) were removed, and
+  `release-inputs.template.json` was moved to `scripts/release/` alongside its
+  sibling `derive-inputs.mjs` (which had its default `--merge` path updated to
+  match).
+- **CI reliability: fixed a scale-dependent false-failure in the WebSocket
+  scale certification harness** (`scripts/audit/ws-scale.mjs`). At 10,000
+  concurrent connections on a loaded CI runner, connect latency itself was
+  2.3-3.6s (p50/max), and the harness's fixed 500ms post-close wait was
+  sometimes too short to observe the server finish draining its client set —
+  reporting a false "server leaked N clients after close." The underlying
+  server-side cleanup (`StreetWebSocketServer` deleting each client from its
+  tracked set on the `ws` `close`/`error` events) was confirmed correct via
+  repeated clean local runs at N=10000 before any change. Fixed the harness to
+  poll for `clients.size === 0` (up to 10s) instead of assuming a fixed delay
+  is always enough. Re-verified locally (1,000 and 10,000) and on real CI (all
+  three matrix points: 1,000 / 5,000 / 10,000).
 
 ### Plugin security (additive, backward-compatible runtime)
 - **Outbound HTTP timeouts** on all 9 official `node:https` plugins — stripe,
