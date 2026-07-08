@@ -100,6 +100,18 @@ jobs:
       - name: Build storage package (for its live provider integration tests)
         run: npm run build -w packages/storage
 
+      # The Supabase/GCS/Azure/Backblaze drivers resolve their vendor SDK via a
+      # lazy dynamic import() (never at module load), so the package has zero
+      # hard SDK dependencies. Without the SDK installed, a driver with valid
+      # credentials still can't run its live round-trip and is honestly
+      # reported as "passed-with-skip" (Requirement 27.4) rather than a false
+      # failure — but that means credentials alone don't prove the driver
+      # actually works end-to-end. Installing the real, optional peer SDKs here
+      # lets the tests exercise the genuine live round-trip whenever credentials
+      # are present.
+      - name: Install optional cloud-provider SDKs (for real live round-trips)
+        run: npm install --no-save @supabase/supabase-js @google-cloud/storage @azure/storage-blob -w packages/storage
+
       - name: Materialize GCS service-account key file
         if: ${{ env.GCS_SERVICE_ACCOUNT_JSON != '' }}
         run: |
