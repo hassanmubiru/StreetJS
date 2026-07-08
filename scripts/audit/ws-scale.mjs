@@ -46,8 +46,17 @@ const deliveryRate = connected ? +((received / connected) * 100).toFixed(1) : 0;
 const throughput = broadcastMs ? Math.round((received / broadcastMs) * 1000) : 0;
 
 for (const ws of sockets) ws.close();
-await new Promise((r) => setTimeout(r, 500));
-const remainingServerClients = wss.clients?.size ?? -1;
+// Poll for the server to drain `clients` rather than assuming a fixed delay is
+// always enough: under a loaded/shared CI runner, N close() calls + their FIN
+// handshakes can take proportionally longer at higher N (the same congestion
+// that raises connect latency also raises close-teardown latency), so a fixed
+// short wait can read a transient in-flight state as a permanent leak. Poll up
+// to 10s (20 x 500ms), matching the connect phase's own scale-proportional cost.
+let remainingServerClients = wss.clients?.size ?? -1;
+for (let i = 0; i < 20 && remainingServerClients > 0; i++) {
+  await new Promise((r) => setTimeout(r, 500));
+  remainingServerClients = wss.clients?.size ?? -1;
+}
 await wss.close();
 await new Promise((r) => httpServer.close(r));
 
