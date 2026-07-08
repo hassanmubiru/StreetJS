@@ -7,7 +7,7 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-## [1.1.0] - 2026-07-08
+## [1.1.1] - 2026-07-08
 
 > Repository-level governance, security, and organization hardening, plus
 > **additive, backward-compatible** plugin security hardening, plus a release
