@@ -166,3 +166,8 @@ bootstrap().catch((err) => {
 import type { RawWsHandler } from 'streetjs/websocket';
 const _probe: RawWsHandler = (ws, req) => { void ws; void req; };
 void _probe;
+
+// F-8 repro probe 2: import the WebSocket type directly from 'ws' ourselves
+import type { WebSocket as WsSocket } from 'ws';
+const _probe2: WsSocket | null = null;
+void _probe2;
