@@ -161,3 +161,8 @@ bootstrap().catch((err) => {
   console.error('[street] Fatal error:', err);
   process.exit(1);
 });
+
+// F-8 repro probe: force TS to resolve the RawWsHandler type (uses ws.WebSocket)
+import type { RawWsHandler } from 'streetjs/websocket';
+const _probe: RawWsHandler = (ws, req) => { void ws; void req; };
+void _probe;
