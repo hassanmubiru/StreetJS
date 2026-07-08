@@ -1,7 +1,7 @@
 {
   "name": "@streetjs/core",
-  "version": "1.0.27",
-  "description": "DEPRECATED \u2014 use `streetjs` instead. Backward-compatibility shim that re-exports the streetjs package.",
+  "version": "1.1.0",
+  "description": "DEPRECATED — use `streetjs` instead. Backward-compatibility shim that re-exports the streetjs package.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
