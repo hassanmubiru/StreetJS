@@ -109,13 +109,16 @@ jobs:
       # actually works end-to-end. Installing the real, optional peer SDKs here
       # lets the tests exercise the genuine live round-trip whenever credentials
       # are present.
-      # `--no-save` is intentionally NOT used here: in this ephemeral CI
-      # checkout it is the only reliable way to make npm actually fetch these
-      # optional peer SDKs (confirmed locally — `--no-save` silently no-ops
-      # against an already-reconciled workspace lockfile, `--save-dev` does
-      # not). This never touches the committed repo since the job never pushes.
+      # Installed by `cd`-ing into the package directly rather than via the
+      # root `npm install ... -w packages/storage` form: the `-w` form hit a
+      # real npm bug in this exact scenario ("Cannot read properties of
+      # undefined (reading 'spec')") when adding packages not already in the
+      # workspace's dependency graph. `--no-save` was also tried and silently
+      # no-ops against an already-reconciled workspace lockfile. This never
+      # touches the committed repo since the job never pushes.
       - name: Install optional cloud-provider SDKs (for real live round-trips)
-        run: npm install @supabase/supabase-js @google-cloud/storage @azure/storage-blob -w packages/storage
+        working-directory: packages/storage
+        run: npm install @supabase/supabase-js @google-cloud/storage @azure/storage-blob
 
       - name: Materialize GCS service-account key file
         if: ${{ env.GCS_SERVICE_ACCOUNT_JSON != '' }}
