@@ -161,6 +161,23 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `audits/PLUGIN-MATURITY-MATRIX.md` to reflect the shipped timeouts, verifiers,
   and redis/mongodb TLS.
 
+## [1.0.27] - 2026-07-06
+
+### Fixed
+- Re-published `streetjs`, `@streetjs/core` (compat shim), and `@streetjs/cli` in
+  lockstep with npm provenance attestation, superseding `1.0.26` (published
+  manually out-of-band, without provenance, and out of version lockstep). No
+  functional change beyond the `1.0.26` CLI fix below; `1.0.26` is deprecated
+  on npm in favor of this release.
+
+## [1.0.26] - 2026-07-05
+
+### Fixed
+- `street generate controller` no longer emits `ctx.status(n).json(...)` /
+  `ctx.status(204).send()` — `StreetContext` has no `status()` method.
+  Generated controllers now use the real API: `ctx.json(data, status)` and
+  `ctx.send(status)`. Generated code now type-checks cleanly.
+
 ---
 
 ## [1.0.25] - 2026-06-22
