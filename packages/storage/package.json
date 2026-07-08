@@ -92,8 +92,8 @@
     "streetjs": "^1.0.25"
   },
   "devDependencies": {
-    "@supabase/supabase-js": "^2.109.0",
-    "@types/node": "^25.9.2",
+    "@supabase/supabase-js": "^2.110.0",
+    "@types/node": "^26.1.0",
     "fast-check": "^4.8.0",
     "typescript": "^6.0.3"
   },
