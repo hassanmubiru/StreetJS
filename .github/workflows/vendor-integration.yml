@@ -88,16 +88,15 @@ jobs:
         if: ${{ env.STRIPE_API_KEY != '' }}
         run: node scripts/vendor/check-stripe.mjs
 
-      - name: Auth0 (client-credentials token)
-        if: ${{ env.AUTH0_DOMAIN != '' }}
-        run: node scripts/vendor/check-auth0.mjs
-
       # ── Cloud storage providers (Supabase, GCS, Azure, Backblaze B2) ────────
       # packages/storage's own test suite (dist/tests/*.test.js) already
       # implements an honest credential-based skip policy per provider (see
       # non-s3-integration.test.ts / s3-integration.test.ts): a provider's live
       # round-trip only runs when ALL of its env vars are present, otherwise it
       # is reported as skipped (never as a false pass). No mocking, ever.
+      # Ordered before Auth0 so an unrelated Auth0 credential/tenant issue never
+      # blocks these independent checks (each step here is independently gated
+      # and does not depend on Auth0 succeeding).
       - name: Build storage package (for its live provider integration tests)
         run: npm run build -w packages/storage
 
@@ -109,6 +108,10 @@ jobs:
 
       - name: Cloud storage providers (Supabase / GCS / Azure / Backblaze B2)
         run: npm run test -w packages/storage
+
+      - name: Auth0 (client-credentials token)
+        if: ${{ env.AUTH0_DOMAIN != '' }}
+        run: node scripts/vendor/check-auth0.mjs
 
       # Layer B: run every official plugin's REAL backing-service integration
       # through CommandRunner, emitting one plugin.<id>.artifact.json each
