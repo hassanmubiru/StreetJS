@@ -107,8 +107,8 @@ dispatch. The full 30/60-min soak is **UNTESTED locally** (time) — it runs in 
 broadcast delivery/throughput, per-connection memory, and post-close client
 cleanup; emits `artifacts/ws-scale.json`.
 
-**Local proof, all three CI matrix targets (1,000 / 5,000 / 10,000), verified
-directly (not just in CI):**
+**Local proof at 1,000 and 10,000 (verified directly this session); 5,000
+verified via a real CI run** (`ws-scale (5000)`, 2026-07-08, `success`):
 ```
 1,000:  connected=1000/1000    errors=0  broadcast delivery=100%  ~23KB/conn  serverClientsAfterClose=0  ✅
 10,000: connected=10000/10000  errors=0  broadcast delivery=100%  ~23KB/conn  serverClientsAfterClose=0  ✅
