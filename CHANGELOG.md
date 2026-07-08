@@ -7,6 +7,18 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [Unreleased]
+
+### Fixed
+- **`street create` scaffolded new projects with `streetjs` pinned to `^1.0.6`**,
+  so a fresh project's `npm install` resolved to `1.0.25` — missing every fix
+  shipped since then, including the `1.1.1` path-traversal fix in
+  `@streetjs/storage`. Bumped the scaffold's dependency to `^1.1.1` in
+  `packages/cli/src/commands/create.ts` (matching `@streetjs/cli`'s own
+  already-current `streetjs` dependency). Verified end-to-end: a fresh
+  `street create` + `npm install` now resolves `node_modules/streetjs` to
+  `1.1.1` and `tsc --noEmit` compiles clean.
+
 ## [1.1.1] - 2026-07-08
 
 > Repository-level governance, security, and organization hardening, plus
