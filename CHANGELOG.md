@@ -15,6 +15,12 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 > existing `@streetjs/core` public API, signature, or published-package path
 > was changed or removed — the runtime changes below only **add** optional
 > config fields and new exported functions (existing callers are unaffected).
+>
+> **Note:** `1.1.0` is intentionally skipped for `streetjs`/`@streetjs/core`/
+> `@streetjs/cli` — the `v1.1.0` git tag was already used by an unrelated
+> `@streetjs/plugin-marzpay` release (2026-06-25), and this repository's tags
+> share one flat `v*` namespace across the core framework and independently
+> versioned plugins. `1.1.1` avoids the collision.
 
 ### Security
 - **Fixed a path-traversal vulnerability in `@streetjs/storage`'s
