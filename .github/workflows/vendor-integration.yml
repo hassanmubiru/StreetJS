@@ -109,17 +109,27 @@ jobs:
       # actually works end-to-end. Installing the real, optional peer SDKs here
       # lets the tests exercise the genuine live round-trip whenever credentials
       # are present.
-      # `--package-lock=false` (not `--no-save`, not the root `-w` form) is
-      # required here: both other approaches were tried and either silently
-      # no-op against an already-reconciled workspace lockfile, or hit a real
-      # npm 10.8.2 Arborist bug ("Cannot read properties of undefined
-      # (reading 'spec')") when saving the ideal tree for a workspace member.
-      # `--package-lock=false` skips that save step entirely while still
-      # installing real packages into node_modules. This never touches the
-      # committed repo since the job never pushes.
+      # `--prefix packages/storage --package-lock=false` (not `--no-save`, not
+      # the root `-w` form, not a plain `working-directory:` + bare `npm
+      # install`) is required here. Every other shape was tried and each
+      # silently no-ops or fails:
+      #   - the root `-w packages/storage` form hits a real npm 10.8.2 Arborist
+      #     bug ("Cannot read properties of undefined (reading 'spec')") when
+      #     saving the ideal tree for a workspace member;
+      #   - `--no-save` silently no-ops against an already-reconciled workspace
+      #     lockfile (reports success but installs nothing);
+      #   - running plain `npm install <pkgs> --package-lock=false` with cwd set
+      #     to `packages/storage/` (whether via `working-directory:` or a shell
+      #     `cd`) still resolves the ambient workspace root from `package.json`'s
+      #     `workspaces` field and silently no-ops with `npm warn workspaces
+      #     @streetjs/storage in filter set, but no workspace folder present` —
+      #     it never touches `packages/storage/node_modules/` at all.
+      # `--prefix` is the one flag that actually overrides where npm resolves
+      # its install root, bypassing the workspace auto-detection entirely while
+      # still skipping the lockfile save. This never touches the committed repo
+      # since the job never pushes.
       - name: Install optional cloud-provider SDKs (for real live round-trips)
-        working-directory: packages/storage
-        run: npm install @supabase/supabase-js @google-cloud/storage @azure/storage-blob --package-lock=false
+        run: npm install @supabase/supabase-js @google-cloud/storage @azure/storage-blob --package-lock=false --prefix packages/storage
 
       - name: Materialize GCS service-account key file
         if: ${{ env.GCS_SERVICE_ACCOUNT_JSON != '' }}
