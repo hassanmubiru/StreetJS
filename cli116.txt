@@ -1,0 +1,2 @@
+job=86215633264
+CLI Unit + Migration (Node 22)	Build CLI package	2026-07-09T20:00:05.8785344Z npm error Lifecycle script `build` failed with error:
