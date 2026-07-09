@@ -1,0 +1,7 @@
+===== PR #116 =====
+{"failing":["certify","CLI Unit + Migration (Node 22)","CLI Unit + Migration (Node 24)","Backward Compatibility Regression (22)","Backward Compatibility Regression (24)","Package Integrity (pack + clean-install import)"],"pending":0}
+
+===== PR #117 =====
+{"failing":["Platform Leadership exit-criteria aggregation"],"pending":0}
+
+===== PR #113 =====
