@@ -1,0 +1,3 @@
+1d301b19 Changes to be committed: 	modified:   packages/storage/src/tests/contract.ts 	modified:   packages/storage/src/tests/supabase-driver.test.ts
+c0493151 	modified:   packages/storage/src/tests/contract.ts
+9eff97c3 Changes to be committed: 	modified:   packages/storage/src/index.ts 	new file:   packages/storage/src/tests/contract.test.js 	new file:   packages/storage/src/tests/contract.ts
