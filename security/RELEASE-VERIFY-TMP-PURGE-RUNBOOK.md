@@ -16,12 +16,15 @@ An ad-hoc release-verification run downloaded the **gitleaks tool binary** into
 - `0a7147b4` — added `.release-verify-tmp3/gitleaks` (21 MB ELF) +
   `.release-verify-tmp3/gitleaks.tar.gz` (8 MB).
 
-GitHub secret-scanning alert #16 flagged a Google API key
-(`AIzaSy…znhrh0`) **inside that gitleaks binary**. It is one of gitleaks' own
-detection-rule test fixtures embedded in the compiled tool — **not a
-StreetJS-owned credential**, so there is nothing for StreetJS to rotate/revoke.
-The alert should be closed as a false positive (third-party test fixture) once
-history is cleaned.
+GitHub secret-scanning opened **16 alerts (#1–#16)**, every one detected in that
+same file `.release-verify-tmp3/gitleaks` at consecutive lines **19541–19556** —
+a block of Google API keys that are gitleaks' own **detection-rule test
+fixtures** embedded in the compiled tool. They are **not StreetJS-owned
+credentials**, so there is nothing for StreetJS to rotate/revoke. Two are
+self-evidently fixtures: **#4** `AIzaSyabcdefghijklmnopqrstuvwxyz1234567` (a
+literal alphabet) and **#11** `AIzay…` (a malformed, non-`AIzaSy` prefix). All 16
+alerts should be closed as false positives (third-party test fixtures) once
+history is cleaned — a single purge of the binary resolves all of them at once.
 
 Related earlier stray commits from the same class (scaffold files, not secrets),
 worth purging in the same pass:
