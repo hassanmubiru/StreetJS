@@ -1,0 +1,660 @@
+========== PR #117 ==========
+title:	build(deps): bump the actions group across 1 directory with 10 updates
+state:	OPEN
+author:	dependabot
+labels:	dependencies
+assignees:	
+reviewers:	hassanmubiru (Requested)
+projects:	
+milestone:	
+number:	117
+url:	https://github.com/hassanmubiru/StreetJS/pull/117
+additions:	81
+deletions:	81
+auto-merge:	disabled
+--
+Bumps the actions group with 10 updates in the / directory:
+
+| Package | From | To |
+| --- | --- | --- |
+| [actions/checkout](https://github.com/actions/checkout) | `6.0.3` | `7.0.0` |
+| [actions/setup-node](https://github.com/actions/setup-node) | `5.0.0` | `6.4.0` |
+| [zizmorcore/zizmor-action](https://github.com/zizmorcore/zizmor-action) | `0.5.6` | `0.5.7` |
+| [docker/login-action](https://github.com/docker/login-action) | `4.2.0` | `4.3.0` |
+| [sigstore/cosign-installer](https://github.com/sigstore/cosign-installer) | `3.7.0` | `4.1.2` |
+| [github/codeql-action/init](https://github.com/github/codeql-action) | `4.36.2` | `4.36.3` |
+| [github/codeql-action/analyze](https://github.com/github/codeql-action) | `4.36.2` | `4.36.3` |
+| [ruby/setup-ruby](https://github.com/ruby/setup-ruby) | `1.312.0` | `1.316.0` |
+| [github/codeql-action/upload-sarif](https://github.com/github/codeql-action) | `4.36.2` | `4.36.3` |
+| [trufflesecurity/trufflehog](https://github.com/trufflesecurity/trufflehog) | `3.95.5` | `3.95.8` |
+
+
+Updates `actions/checkout` from 6.0.3 to 7.0.0
+<details>
+<summary>Release notes</summary>
+<p><em>Sourced from <a href="https://github.com/actions/checkout/releases">actions/checkout's releases</a>.</em></p>
+<blockquote>
+<h2>v7.0.0</h2>
+<h2>What's Changed</h2>
+<ul>
+<li>block checking out fork pr for pull_request_target and workflow_run by <a href="https://github.com/aiqiaoy"><code>@​aiqiaoy</code></a> in <a href="https://redirect.github.com/actions/checkout/pull/2454">actions/checkout#2454</a></li>
+<li>Bump actions/publish-immutable-action from 0.0.3 to 0.0.4 in the minor-actions-dependencies group across 1 directory by <a href="https://github.com/dependabot"><code>@​dependabot</code></a>[bot] in <a href="https://redirect.github.com/actions/checkout/pull/2458">actions/checkout#2458</a></li>
+<li>Bump flatted from 3.3.1 to 3.4.2 by <a href="https://github.com/dependabot"><code>@​dependabot</code></a>[bot] in <a href="https://redirect.github.com/actions/checkout/pull/2460">actions/checkout#2460</a></li>
+<li>Bump js-yaml from 4.1.0 to 4.2.0 by <a href="https://github.com/dependabot"><code>@​dependabot</code></a>[bot] in <a href="https://redirect.github.com/actions/checkout/pull/2461">actions/checkout#2461</a></li>
+<li>Bump <code>@​actions/core</code> and <code>@​actions/tool-cache</code> and Remove uuid by <a href="https://github.com/dependabot"><code>@​dependabot</code></a>[bot] in <a href="https://redirect.github.com/actions/checkout/pull/2459">actions/checkout#2459</a></li>
+<li>upgrade module to esm and update dependencies by <a href="https://github.com/aiqiaoy"><code>@​aiqiaoy</code></a> in <a href="https://redirect.github.com/actions/checkout/pull/2463">actions/checkout#2463</a></li>
+<li>Bump the minor-npm-dependencies group across 1 directory with 3 updates by <a href="https://github.com/dependabot"><code>@​dependabot</code></a>[bot] in <a href="https://redirect.github.com/actions/checkout/pull/2462">actions/checkout#2462</a></li>
+<li>getting ready for checkout v7 release by <a href="https://github.com/aiqiaoy"><code>@​aiqiaoy</code></a> in <a href="https://redirect.github.com/actions/checkout/pull/2464">actions/checkout#2464</a></li>
+<li>update error wording by <a href="https://github.com/aiqiaoy"><code>@​aiqiaoy</code></a> in <a href="https://redirect.github.com/actions/checkout/pull/2467">actions/checkout#2467</a></li>
+</ul>
+<h2>New Contributors</h2>
+<ul>
+<li><a href="https://github.com/aiqiaoy"><code>@​aiqiaoy</code></a> made their first contribution in <a href="https://redirect.github.com/actions/checkout/pull/2454">actions/checkout#2454</a></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a href="https://github.com/actions/checkout/compare/v6.0.3...v7.0.0">https://github.com/actions/checkout/compare/v6.0.3...v7.0.0</a></p>
+</blockquote>
+</details>
+<details>
+<summary>Changelog</summary>
+<p><em>Sourced from <a href="https://github.com/actions/checkout/blob/main/CHANGELOG.md">actions/checkout's changelog</a>.</em></p>
+<blockquote>
+<h1>Changelog</h1>
+<h2>v7.0.0</h2>
+<ul>
+<li>Block checking out fork PR for pull_request_target and workflow_run by <a href="https://github.com/aiqiaoy"><code>@​aiqiaoy</code></a> in <a href="https://redirect.github.com/actions/checkout/pull/2454">actions/checkout#2454</a></li>
+<li>Bump actions/publish-immutable-action from 0.0.3 to 0.0.4 in the minor-actions-dependencies group across 1 directory by <a href="https://github.com/dependabot"><code>@​dependabot</code></a>[bot] in <a href="https://redirect.github.com/actions/checkout/pull/2458">actions/checkout#2458</a></li>
+<li>Bump flatted from 3.3.1 to 3.4.2 by <a href="https://github.com/dependabot"><code>@​dependabot</code></a>[bot] in <a href="https://redirect.github.com/actions/checkout/pull/2460">actions/checkout#2460</a></li>
+<li>Bump js-yaml from 4.1.0 to 4.2.0 by <a href="https://github.com/dependabot"><code>@​dependabot</code></a>[bot] in <a href="https://redirect.github.com/actions/checkout/pull/2461">actions/checkout#2461</a></li>
+<li>Bump <code>@​actions/core</code> and <code>@​actions/tool-cache</code> and Remove uuid by <a href="https://github.com/dependabot"><code>@​dependabot</code></a>[bot] in <a href="https://redirect.github.com/actions/checkout/pull/2459">actions/checkout#2459</a></li>
+<li>upgrade module to esm and update dependencies by <a href="https://github.com/aiqiaoy"><code>@​aiqiaoy</code></a> in <a href="https://redirect.github.com/actions/checkout/pull/2463">actions/checkout#2463</a></li>
+<li>Bump the minor-npm-dependencies group across 1 directory with 3 updates by <a href="https://github.com/dependabot"><code>@​dependabot</code></a>[bot] in <a href="https://redirect.github.com/actions/checkout/pull/2462">actions/checkout#2462</a></li>
+</ul>
+<h2>v6.0.3</h2>
+<ul>
+<li>Fix checkout init for SHA-256 repositories by <a href="https://github.com/yaananth"><code>@​yaananth</code></a> in <a href="https://redirect.github.com/actions/checkout/pull/2439">actions/checkout#2439</a></li>
+<li>fix: expand merge commit SHA regex and add SHA-256 test cases by <a href="https://github.com/yaananth"><code>@​yaananth</code></a> in <a href="https://redirect.github.com/actions/checkout/pull/2414">actions/checkout#2414</a></li>
+</ul>
+<h2>v6.0.2</h2>
+<ul>
+<li>Fix tag handling: preserve annotations and explicit fetch-tags by <a href="https://github.com/ericsciple"><code>@​ericsciple</code></a> in <a href="https://redirect.github.com/actions/checkout/pull/2356">actions/checkout#2356</a></li>
+</ul>
+<h2>v6.0.1</h2>
+<ul>
+<li>Add worktree support for persist-credentials includeIf by <a href="https://github.com/ericsciple"><code>@​ericsciple</code></a> in <a href="https://redirect.github.com/actions/checkout/pull/2327">actions/checkout#2327</a></li>
+</ul>
+<h2>v6.0.0</h2>
+<ul>
+<li>Persist creds to a separate file by <a href="https://github.com/ericsciple"><code>@​ericsciple</code></a> in <a href="https://redirect.github.com/actions/checkout/pull/2286">actions/checkout#2286</a></li>
+<li>Update README to include Node.js 24 support details and requirements by <a href="https://github.com/salmanmkc"><code>@​salmanmkc</code></a> in <a href="https://redirect.github.com/actions/checkout/pull/2248">actions/checkout#2248</a></li>
+</ul>
+<h2>v5.0.1</h2>
+<ul>
+<li>Port v6 cleanup to v5 by <a href="https://github.com/ericsciple"><code>@​ericsciple</code></a> in <a href="https://redirect.github.com/actions/checkout/pull/2301">actions/checkout#2301</a></li>
+</ul>
+<h2>v5.0.0</h2>
+<ul>
+<li>Update actions checkout to use node 24 by <a href="https://github.com/salmanmkc"><code>@​salmanmkc</code></a> in <a href="https://redirect.github.com/actions/checkout/pull/2226">actions/checkout#2226</a></li>
+</ul>
+<h2>v4.3.1</h2>
+<ul>
+<li>Port v6 cleanup to v4 by <a href="https://github.com/ericsciple"><code>@​ericsciple</code></a> in <a href="https://redirect.github.com/actions/checkout/pull/2305">actions/checkout#2305</a></li>
+</ul>
+<h2>v4.3.0</h2>
+<ul>
+<li>docs: update README.md by <a href="https://github.com/motss"><code>@​motss</code></a> in <a href="https://redirect.github.com/actions/checkout/pull/1971">actions/checkout#1971</a></li>
+<li>Add internal repos for checking out multiple repositories by <a href="https://github.com/mouismail"><code>@​mouismail</code></a> in <a href="https://redirect.github.com/actions/checkout/pull/1977">actions/checkout#1977</a></li>
+<li>Documentation update - add recommended permissions to Readme by <a href="https://github.com/benwells"><code>@​benwells</code></a> in <a href="https://redirect.github.com/actions/checkout/pull/2043">actions/checkout#2043</a></li>
+<li>Adjust positioning of user email note and permissions heading by <a href="https://github.com/joshmgross"><code>@​joshmgross</code></a> in <a href="https://redirect.github.com/actions/checkout/pull/2044">actions/checkout#2044</a></li>
+<li>Update README.md by <a href="https://github.com/nebuk89"><code>@​nebuk89</code></a> in <a href="https://redirect.github.com/actions/checkout/pull/2194">actions/checkout#2194</a></li>
+<li>Update CODEOWNERS for actions by <a href="https://github.com/TingluoHuang"><code>@​TingluoHuang</code></a> in <a href="https://redirect.github.com/actions/checkout/pull/2224">actions/checkout#2224</a></li>
+<li>Update package dependencies by <a href="https://github.com/salmanmkc"><code>@​salmanmkc</code></a> in <a href="https://redirect.github.com/actions/checkout/pull/2236">actions/checkout#2236</a></li>
+</ul>
+<h2>v4.2.2</h2>
+<ul>
+<li><code>url-helper.ts</code> now leverages well-known environment variables by <a href="https://github.com/jww3"><code>@​jww3</code></a> in <a href="https://redirect.github.com/actions/checkout/pull/1941">actions/checkout#1941</a></li>
+<li>Expand unit test coverage for <code>isGhes</code> by <a href="https://github.com/jww3"><code>@​jww3</code></a> in <a href="https://redirect.github.com/actions/checkout/pull/1946">actions/checkout#1946</a></li>
+</ul>
+<h2>v4.2.1</h2>
+<ul>
+<li>Check out other refs/* by commit if provided, fall back to ref by <a href="https://github.com/orhantoy"><code>@​orhantoy</code></a> in <a href="https://redirect.github.com/actions/checkout/pull/1924">actions/checkout#1924</a></li>
+</ul>
+<!-- raw HTML omitted -->
+</blockquote>
+<p>... (truncated)</p>
+</details>
+<details>
+<summary>Commits</summary>
+<ul>
+<li><a href="https://github.com/actions/checkout/commit/9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0"><code>9c091bb</code></a> update error wording (<a href="https://redirect.github.com/actions/checkout/issues/2467">#2467</a>)</li>
+<li><a href="https://github.com/actions/checkout/commit/1044a6dea927916f2c38ba5aeffbc0a847b1221a"><code>1044a6d</code></a> getting ready for checkout v7 release (<a href="https://redirect.github.com/actions/checkout/issues/2464">#2464</a>)</li>
+<li><a href="https://github.com/actions/checkout/commit/f0282184c7ce73ab54c7e4ab5a617122602e575f"><code>f028218</code></a> Bump the minor-npm-dependencies group across 1 directory with 3 updates (<a href="https://redirect.github.com/actions/checkout/issues/2462">#2462</a>)</li>
+<li><a href="https://github.com/actions/checkout/commit/d914b262ffc244530a203ab40decab34c3abf34d"><code>d914b26</code></a> upgrade module to esm and update dependencies (<a href="https://redirect.github.com/actions/checkout/issues/2463">#2463</a>)</li>
+<li><a href="https://github.com/actions/checkout/commit/537c7ef99cef6e5ddb5e7ff5d16d14510503801d"><code>537c7ef</code></a> Bump <code>@​actions/core</code> and <code>@​actions/tool-cache</code> and Remove uuid (<a href="https://redirect.github.com/actions/checkout/issues/2459">#2459</a>)</li>
+<li><a href="https://github.com/actions/checkout/commit/130a169078a413d3a5246a393625e8e742f387f6"><code>130a169</code></a> Bump js-yaml from 4.1.0 to 4.2.0 (<a href="https://redirect.github.com/actions/checkout/issues/2461">#2461</a>)</li>
+<li><a href="https://github.com/actions/checkout/commit/7d09575332117a40b46e5e020664df234cd416f3"><code>7d09575</code></a> Bump flatted from 3.3.1 to 3.4.2 (<a href="https://redirect.github.com/actions/checkout/issues/2460">#2460</a>)</li>
+<li><a href="https://github.com/actions/checkout/commit/0f9f3aa320cb53abeb534aeb54048075d9697a0e"><code>0f9f3aa</code></a> Bump actions/publish-immutable-action (<a href="https://redirect.github.com/actions/checkout/issues/2458">#2458</a>)</li>
+<li><a href="https://github.com/actions/checkout/commit/f9e715a95fcd1f9253f77dd28f11e88d2d6460c7"><code>f9e715a</code></a> block checking out fork pr for pull_request_target and workflow_run (<a href="https://redirect.github.com/actions/checkout/issues/2454">#2454</a>)</li>
+<li>See full diff in <a href="https://github.com/actions/checkout/compare/df4cb1c069e1874edd31b4311f1884172cec0e10...9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0">compare view</a></li>
+</ul>
+</details>
+<br />
+
+Updates `actions/setup-node` from 5.0.0 to 6.4.0
+<details>
+<summary>Release notes</summary>
+<p><em>Sourced from <a href="https://github.com/actions/setup-node/releases">actions/setup-node's releases</a>.</em></p>
+<blockquote>
+<h2>v6.4.0</h2>
+<h2>What's Changed</h2>
+<h3>Dependency updates:</h3>
+<ul>
+<li>Upgrade <a href="https://github.com/actions"><code>@​actions</code></a> dependencies by <a href="https://github.com/Copilot"><code>@​Copilot</code></a> in <a href="https://redirect.github.com/actions/setup-node/pull/1525">actions/setup-node#1525</a></li>
+<li>Update Node.js versions in versions.yml and bump package to v6.4.0  by <a href="https://github.com/priya-kinthali"><code>@​priya-kinthali</code></a> in <a href="https://redirect.github.com/actions/setup-node/pull/1533">actions/setup-node#1533</a></li>
+</ul>
+<h2>New Contributors</h2>
+<ul>
+<li><a href="https://github.com/Copilot"><code>@​Copilot</code></a> made their first contribution in <a href="https://redirect.github.com/actions/setup-node/pull/1525">actions/setup-node#1525</a></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a href="https://github.com/actions/setup-node/compare/v6...v6.4.0">https://github.com/actions/setup-node/compare/v6...v6.4.0</a></p>
+<h2>v6.3.0</h2>
+<h2>What's Changed</h2>
+<h3>Enhancements:</h3>
+<ul>
+<li>Support parsing <code>devEngines</code> field by <a href="https://github.com/susnux"><code>@​susnux</code></a> in <a href="https://redirect.github.com/actions/setup-node/pull/1283">actions/setup-node#1283</a></li>
+</ul>
+<blockquote>
+<p>When using node-version-file: package.json, setup-node now prefers devEngines.runtime over engines.node.</p>
+</blockquote>
+<h3>Dependency updates:</h3>
+<ul>
+<li>Fix npm audit issues by <a href="https://github.com/gowridurgad"><code>@​gowridurgad</code></a> in <a href="https://redirect.github.com/actions/setup-node/pull/1491">actions/setup-node#1491</a></li>
+<li>Replace uuid with crypto.randomUUID() by <a href="https://github.com/trivikr"><code>@​trivikr</code></a> in <a href="https://redirect.github.com/actions/setup-node/pull/1378">actions/setup-node#1378</a></li>
+<li>Upgrade minimatch from 3.1.2 to 3.1.5 by <a href="https://github.com/dependabot"><code>@​dependabot</code></a> in <a href="https://redirect.github.com/actions/setup-node/pull/1498">actions/setup-node#1498</a></li>
+</ul>
+<h3>Bug fixes:</h3>
+<ul>
+<li>Remove hardcoded bearer for mirror-url <a href="https://github.com/marco-ippolito"><code>@​marco-ippolito</code></a> in <a href="https://redirect.github.com/actions/setup-node/pull/1467">actions/setup-node#1467</a></li>
+<li>Scope test lockfiles by package manager and update cache tests by <a href="https://github.com/gowridurgad"><code>@​gowridurgad</code></a> in <a href="https://redirect.github.com/actions/setup-node/pull/1495">actions/setup-node#1495</a></li>
+</ul>
+<h2>New Contributors</h2>
+<ul>
+<li><a href="https://github.com/susnux"><code>@​susnux</code></a> made their first contribution in <a href="https://redirect.github.com/actions/setup-node/pull/1283">actions/setup-node#1283</a></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a href="https://github.com/actions/setup-node/compare/v6...v6.3.0">https://github.com/actions/setup-node/compare/v6...v6.3.0</a></p>
+<h2>v6.2.0</h2>
+<h2>What's Changed</h2>
+<h3>Documentation</h3>
+<ul>
+<li>Documentation update related to absence of Lockfile by <a href="https://github.com/mahabaleshwars"><code>@​mahabaleshwars</code></a> in <a href="https://redirect.github.com/actions/setup-node/pull/1454">actions/setup-node#1454</a></li>
+<li>Correct mirror option typos by <a href="https://github.com/MikeMcC399"><code>@​MikeMcC399</code></a> in <a href="https://redirect.github.com/actions/setup-node/pull/1442">actions/setup-node#1442</a></li>
+<li>Readme update on checkout version v6 by <a href="https://github.com/deining"><code>@​deining</code></a> in <a href="https://redirect.github.com/actions/setup-node/pull/1446">actions/setup-node#1446</a></li>
+<li>Readme typo fixes <a href="https://github.com/munyari"><code>@​munyari</code></a> in <a href="https://redirect.github.com/actions/setup-node/pull/1226">actions/setup-node#1226</a></li>
+<li>Advanced document update on checkout version v6 by <a href="https://github.com/aparnajyothi-y"><code>@​aparnajyothi-y</code></a>  in <a href="https://redirect.github.com/actions/setup-node/pull/1468">actions/setup-node#1468</a></li>
+</ul>
+<h3>Dependency updates:</h3>
+<ul>
+<li>Upgrade <code>@​actions/cache</code> to v5.0.1 by <a href="https://github.com/salmanmkc"><code>@​salmanmkc</code></a> in <a href="https://redirect.github.com/actions/setup-node/pull/1449">actions/setup-node#1449</a></li>
+</ul>
+<h2>New Contributors</h2>
+<ul>
+<li><a href="https://github.com/mahabaleshwars"><code>@​mahabaleshwars</code></a> made their first contribution in <a href="https://redirect.github.com/actions/setup-node/pull/1454">actions/setup-node#1454</a></li>
+<li><a href="https://github.com/MikeMcC399"><code>@​MikeMcC399</code></a> made their first contribution in <a href="https://redirect.github.com/actions/setup-node/pull/1442">actions/setup-node#1442</a></li>
+<li><a href="https://github.com/deining"><code>@​deining</code></a> made their first contribution in <a href="https://redirect.github.com/actions/setup-node/pull/1446">actions/setup-node#1446</a></li>
+</ul>
+<!-- raw HTML omitted -->
+</blockquote>
+<p>... (truncated)</p>
+</details>
+<details>
+<summary>Commits</summary>
+<ul>
+<li><a href="https://github.com/actions/setup-node/commit/48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e"><code>48b55a0</code></a> Update Node.js versions in versions.yml and bump package to v6.4.0 (<a href="https://redirect.github.com/actions/setup-node/issues/1533">#1533</a>)</li>
+<li><a href="https://github.com/actions/setup-node/commit/ab72c7e7eba0eaa11f8cab0f5679243900c2cac9"><code>ab72c7e</code></a> Upgrade <a href="https://github.com/actions"><code>@​actions</code></a> dependencies (<a href="https://redirect.github.com/actions/setup-node/issues/1525">#1525</a>)</li>
+<li><a href="https://github.com/actions/setup-node/commit/53b83947a5a98c8d113130e565377fae1a50d02f"><code>53b8394</code></a> Bump minimatch from 3.1.2 to 3.1.5 (<a href="https://redirect.github.com/actions/setup-node/issues/1498">#1498</a>)</li>
+<li><a href="https://github.com/actions/setup-node/commit/54045abd5dcd3b0fee9ca02fa24c57545834c9cc"><code>54045ab</code></a> Scope test lockfiles by package manager and update cache tests (<a href="https://redirect.github.com/actions/setup-node/issues/1495">#1495</a>)</li>
+<li><a href="https://github.com/actions/setup-node/commit/c882bffdbd4df51ace6b940023952e8669c9932a"><code>c882bff</code></a> Replace uuid with crypto.randomUUID() (<a href="https://redirect.github.com/actions/setup-node/issues/1378">#1378</a>)</li>
+<li><a href="https://github.com/actions/setup-node/commit/774c1d62961e73038a114d59c8847023c003194d"><code>774c1d6</code></a> feat(node-version-file): support parsing <code>devEngines</code> field (<a href="https://redirect.github.com/actions/setup-node/issues/1283">#1283</a>)</li>
+<li><a href="https://github.com/actions/setup-node/commit/efcb663fc60e97218a2b2d6d827f7830f164739e"><code>efcb663</code></a> fix: remove hardcoded bearer (<a href="https://redirect.github.com/actions/setup-node/issues/1467">#1467</a>)</li>
+<li><a href="https://github.com/actions/setup-node/commit/d02c89dce7e1ba9ef629ce0680989b3a1cc72edb"><code>d02c89d</code></a> Fix npm audit issues (<a href="https://redirect.github.com/actions/setup-node/issues/1491">#1491</a>)</li>
+<li><a href="https://github.com/actions/setup-node/commit/6044e13b5dc448c55e2357c09f80417699197238"><code>6044e13</code></a> Docs: bump actions/checkout from v5 to v6 (<a href="https://redirect.github.com/actions/setup-node/issues/1468">#1468</a>)</li>
+<li><a href="https://github.com/actions/setup-node/commit/8e494633d082d609d1e9ff931be32f8a44f1f657"><code>8e49463</code></a> Fix README typo (<a href="https://redirect.github.com/actions/setup-node/issues/1226">#1226</a>)</li>
+<li>Additional commits viewable in <a href="https://github.com/actions/setup-node/compare/v5...48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e">compare view</a></li>
+</ul>
+</details>
+<br />
+
+Updates `zizmorcore/zizmor-action` from 0.5.6 to 0.5.7
+<details>
+<summary>Release notes</summary>
+<p><em>Sourced from <a href="https://github.com/zizmorcore/zizmor-action/releases">zizmorcore/zizmor-action's releases</a>.</em></p>
+<blockquote>
+<h2>v0.5.7</h2>
+<p>1.26.1 is now available via the action
+1.26.1 is now the default version of zizmor used by the action</p>
+</blockquote>
+</details>
+<details>
+<summary>Commits</summary>
+<ul>
+<li><a href="https://github.com/zizmorcore/zizmor-action/commit/192e21d79ab29983730a13d1382995c2307fbcaa"><code>192e21d</code></a> Sync zizmor versions (<a href="https://redirect.github.com/zizmorcore/zizmor-action/issues/127">#127</a>)</li>
+<li><a href="https://github.com/zizmorcore/zizmor-action/commit/2720f2673c0b64a8656d08b009ac239b9383c0ae"><code>2720f26</code></a> Update README.md with new actions/checkout version (<a href="https://redirect.github.com/zizmorcore/zizmor-action/issues/126">#126</a>)</li>
+<li><a href="https://github.com/zizmorcore/zizmor-action/commit/40b41b824eab0ad9c19ddf9856be25550729e6d8"><code>40b41b8</code></a> chore(deps): bump the github-actions group with 2 updates (<a href="https://redirect.github.com/zizmorcore/zizmor-action/issues/123">#123</a>)</li>
+<li><a href="https://github.com/zizmorcore/zizmor-action/commit/a687b25bf3aa149153e80ed5f45292e47589888c"><code>a687b25</code></a> chore(deps): bump github/codeql-action from 4.35.5 to 4.36.0 in the github-ac...</li>
+<li><a href="https://github.com/zizmorcore/zizmor-action/commit/64a6900ea7f40fab0caa7dcfc77b392d28fe0cb1"><code>64a6900</code></a> add note to explain that the default value for <code>online-checks</code> is different t...</li>
+<li><a href="https://github.com/zizmorcore/zizmor-action/commit/14050abd109fcba34e6e2f31a723280997808e82"><code>14050ab</code></a> chore(deps): bump the github-actions group with 2 updates (<a href="https://redirect.github.com/zizmorcore/zizmor-action/issues/118">#118</a>)</li>
+<li><a href="https://github.com/zizmorcore/zizmor-action/commit/ee9b4194a74f093e38908dbcfcb078f63eeef002"><code>ee9b419</code></a> chore(deps): bump github/codeql-action in the github-actions group (<a href="https://redirect.github.com/zizmorcore/zizmor-action/issues/116">#116</a>)</li>
+<li><a href="https://github.com/zizmorcore/zizmor-action/commit/fddf2b4aa9bf29290c6bf9866e6d113b0cdf6f67"><code>fddf2b4</code></a> Bump pins in README (<a href="https://redirect.github.com/zizmorcore/zizmor-action/issues/115">#115</a>)</li>
+<li>See full diff in <a href="https://github.com/zizmorcore/zizmor-action/compare/5f14fd08f7cf1cb1609c1e344975f152c7ee938d...192e21d79ab29983730a13d1382995c2307fbcaa">compare view</a></li>
+</ul>
+</details>
+<br />
+
+Updates `docker/login-action` from 4.2.0 to 4.3.0
+<details>
+<summary>Release notes</summary>
+<p><em>Sourced from <a href="https://github.com/docker/login-action/releases">docker/login-action's releases</a>.</em></p>
+<blockquote>
+<h2>v4.3.0</h2>
+<ul>
+<li>Preserve names in esbuild bundle by <a href="https://github.com/crazy-max"><code>@​crazy-max</code></a> in <a href="https://redirect.github.com/docker/login-action/pull/1022">docker/login-action#1022</a></li>
+<li>Bump <code>@​aws-sdk/client-ecr</code> and <code>@​aws-sdk/client-ecr-public</code> to 3.1076.0 <a href="https://redirect.github.com/docker/login-action/pull/999">docker/login-action#999</a> <a href="https://redirect.github.com/docker/login-action/pull/1030">docker/login-action#1030</a></li>
+<li>Bump <code>@​docker/actions-toolkit</code> from 0.90.0 to 0.92.0 in <a href="https://redirect.github.com/docker/login-action/pull/1004">docker/login-action#1004</a> <a href="https://redirect.github.com/docker/login-action/pull/1027">docker/login-action#1027</a></li>
+<li>Bump <code>@​sigstore/core</code> from 3.1.0 to 3.2.1 in <a href="https://redirect.github.com/docker/login-action/pull/1023">docker/login-action#1023</a></li>
+<li>Bump <code>@​sigstore/verify</code> from 3.1.0 to 3.1.1 in <a href="https://redirect.github.com/docker/login-action/pull/1029">docker/login-action#1029</a></li>
+<li>Bump http-proxy-agent and https-proxy-agent to 9.1.0 in <a href="https://redirect.github.com/docker/login-action/pull/1017">docker/login-action#1017</a></li>
+<li>Bump js-yaml from 4.1.1 to 5.2.0 in <a href="https://redirect.github.com/docker/login-action/pull/1028">docker/login-action#1028</a></li>
+<li>Bump sigstore from 4.1.0 to 4.1.1 in <a href="https://redirect.github.com/docker/login-action/pull/1031">docker/login-action#1031</a></li>
+<li>Bump tmp from 0.2.5 to 0.2.7 in <a href="https://redirect.github.com/docker/login-action/pull/1002">docker/login-action#1002</a></li>
+<li>Bump undici from 6.24.1 to 6.27.0 in <a href="https://redirect.github.com/docker/login-action/pull/1020">docker/login-action#1020</a></li>
+<li>Bump vite from 7.3.3 to 7.3.6 in <a href="https://redirect.github.com/docker/login-action/pull/1019">docker/login-action#1019</a></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a href="https://github.com/docker/login-action/compare/v4.2.0...v4.3.0">https://github.com/docker/login-action/compare/v4.2.0...v4.3.0</a></p>
+</blockquote>
+</details>
+<details>
+<summary>Commits</summary>
+<ul>
+<li><a href="https://github.com/docker/login-action/commit/c99871dec2022cc055c062a10cc1a1310835ceb4"><code>c99871d</code></a> Merge pull request <a href="https://redirect.github.com/docker/login-action/issues/1030">#1030</a> from docker/dependabot/npm_and_yarn/aws-sdk-dependen...</li>
+<li><a href="https://github.com/docker/login-action/commit/b43355553d3ea8fb194053c74a883544c9fc25b1"><code>b433555</code></a> [dependabot skip] chore: update generated content</li>
+<li><a href="https://github.com/docker/login-action/commit/678a46a45e920924c7b07d6209b4d02a3031d403"><code>678a46a</code></a> build(deps): bump the aws-sdk-dependencies group across 1 directory with 2 up...</li>
+<li><a href="https://github.com/docker/login-action/commit/f9a0aea0f208193fd8b1c2cffdf4be3b345d3e8a"><code>f9a0aea</code></a> Merge pull request <a href="https://redirect.github.com/docker/login-action/issues/1031">#1031</a> from docker/dependabot/npm_and_yarn/sigstore-4.1.1</li>
+<li><a href="https://github.com/docker/login-action/commit/cc1e4cb459afd4c2ed14dd1998c217908162b52b"><code>cc1e4cb</code></a> build(deps): bump sigstore from 4.1.0 to 4.1.1</li>
+<li><a href="https://github.com/docker/login-action/commit/02e17303690804fb3ed891da7cd98e78c249fc3e"><code>02e1730</code></a> Merge pull request <a href="https://redirect.github.com/docker/login-action/issues/1029">#1029</a> from docker/dependabot/npm_and_yarn/sigstore/verify-...</li>
+<li><a href="https://github.com/docker/login-action/commit/b5485183742f9c17a05828cc9a655d45bcf24b31"><code>b548518</code></a> build(deps): bump <code>@​sigstore/verify</code> from 3.1.0 to 3.1.1</li>
+<li><a href="https://github.com/docker/login-action/commit/a244be39449bb9d5bcc834770924d8c3f72806ab"><code>a244be3</code></a> Merge pull request <a href="https://redirect.github.com/docker/login-action/issues/1027">#1027</a> from docker/dependabot/npm_and_yarn/docker/actions-t...</li>
+<li><a href="https://github.com/docker/login-action/commit/ee0d698156bca198952822c0f8ef652bc58ab218"><code>ee0d698</code></a> [dependabot skip] chore: update generated content</li>
+<li><a href="https://github.com/docker/login-action/commit/127dc2c62e49cc3f37601f40b7bbf4fe7051fac4"><code>127dc2c</code></a> build(deps): bump <code>@​docker/actions-toolkit</code> from 0.91.0 to 0.92.0</li>
+<li>Additional commits viewable in <a href="https://github.com/docker/login-action/compare/650006c6eb7dba73a995cc03b0b2d7f5ca915bee...c99871dec2022cc055c062a10cc1a1310835ceb4">compare view</a></li>
+</ul>
+</details>
+<br />
+
+Updates `sigstore/cosign-installer` from 3.7.0 to 4.1.2
+<details>
+<summary>Release notes</summary>
+<p><em>Sourced from <a href="https://github.com/sigstore/cosign-installer/releases">sigstore/cosign-installer's releases</a>.</em></p>
+<blockquote>
+<h2>v4.1.2</h2>
+<h2>What's Changed</h2>
+<ul>
+<li>Bump cosign to 3.0.6 in <a href="https://redirect.github.com/sigstore/cosign-installer/pull/232">sigstore/cosign-installer#232</a></li>
+</ul>
+<h2>v4.1.1</h2>
+<h2>What's Changed</h2>
+<ul>
+<li>chore: update default cosign-release to v3.0.5 in <a href="https://redirect.github.com/sigstore/cosign-installer/pull/223">sigstore/cosign-installer#223</a></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a href="https://github.com/sigstore/cosign-installer/compare/v4.1.0...v4.1.1">https://github.com/sigstore/cosign-installer/compare/v4.1.0...v4.1.1</a></p>
+<h2>v4.1.0</h2>
+<h2>What's Changed</h2>
+<p>We recommend updating as soon as possible as this includes bug fixes for Cosign. We also recommend removing <code>with: cosign-release</code> and strongly discourage using <code>cosign-release</code> unless you have a specific reason to use an older version of Cosign.</p>
+<ul>
+<li>Bump cosign to 3.0.5 in <a href="https://redirect.github.com/sigstore/cosign-installer/pull/220">sigstore/cosign-installer#220</a></li>
+<li>fix: add retry to curl downloads for transient network failures in <a href="https://redirect.github.com/sigstore/cosign-installer/pull/210">sigstore/cosign-installer#210</a></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a href="https://github.com/sigstore/cosign-installer/compare/v4.0.0...v4.1.0">https://github.com/sigstore/cosign-installer/compare/v4.0.0...v4.1.0</a></p>
+<h2>v4.0.0</h2>
+<h2>What's Changed?</h2>
+<p><strong>Note:</strong> You must upgrade to cosign-installer v4 if you want to install <a href="https://blog.sigstore.dev/cosign-3-0-available/">Cosign v3+</a>. You may still install Cosign v2.x with cosign-installer v4.</p>
+<p>In version v3+, using <code>cosign sign-blob</code> requires adding the <code>--bundle</code> flag which may require you to update your signing command.</p>
+<ul>
+<li>Add support for Cosign v3 releases (<a href="https://redirect.github.com/sigstore/cosign-installer/issues/201">#201</a>)</li>
+</ul>
+<h2>v3.10.1</h2>
+<h2>What's Changed?</h2>
+<p><strong>Note:</strong> cosign-installer v3.x cannot be used to install <a href="https://blog.sigstore.dev/cosign-3-0-available/">Cosign v3.x</a>. You must upgrade to cosign-installer v4 in order to use Cosign v3.</p>
+<p><strong>Note:</strong> This is planned to be the final release of Cosign v2, though we will cut new releases for any critical security or bug fixes. We recommend transitioning to <a href="https://blog.sigstore.dev/cosign-3-0-available/">Cosign v3</a>.</p>
+<ul>
+<li>Bump default Cosign to v2.6.1 (<a href="https://redirect.github.com/sigstore/cosign-installer/issues/203">#203</a>)</li>
+</ul>
+<h2>v3.10.0</h2>
+<h2>What's Changed</h2>
+<ul>
+<li>Bump default Cosign to v2.6.0 in <a href="https://redirect.github.com/sigstore/cosign-installer/pull/200">sigstore/cosign-installer#200</a></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a href="https://github.com/sigstore/cosign-installer/compare/v3.9.2...v3.10.0">https://github.com/sigstore/cosign-installer/compare/v3.9.2...v3.10.0</a></p>
+<h2>v3.9.2</h2>
+<h2>What's Changed</h2>
+<ul>
+<li>not fail fast and setup permissions in <a href="https://redirect.github.com/sigstore/cosign-installer/pull/195">sigstore/cosign-installer#195</a></li>
+<li>drop old unsupported versions &lt;v2.0.0 in <a href="https://redirect.github.com/sigstore/cosign-installer/pull/192">sigstore/cosign-installer#192</a></li>
+<li>Update default to v2.5.3 in <a href="https://redirect.github.com/sigstore/cosign-installer/pull/196">sigstore/cosign-installer#196</a></li>
+</ul>
+<!-- raw HTML omitted -->
+</blockquote>
+<p>... (truncated)</p>
+</details>
+<details>
+<summary>Commits</summary>
+<ul>
+<li><a href="https://github.com/sigstore/cosign-installer/commit/6f9f17788090df1f26f669e9d70d6ae9567deba6"><code>6f9f177</code></a> Bump cosign to 3.0.6 (<a href="https://redirect.github.com/sigstore/cosign-installer/issues/232">#232</a>)</li>
+<li><a href="https://github.com/sigstore/cosign-installer/commit/b5e753ae2d39589c7b38850b463739151fc67f07"><code>b5e753a</code></a> Bump actions/github-script from 8.0.0 to 9.0.0 (<a href="https://redirect.github.com/sigstore/cosign-installer/issues/230">#230</a>)</li>
+<li><a href="https://github.com/sigstore/cosign-installer/commit/115e4ce455e573aa6e9ba51e8d040ddd5c1378af"><code>115e4ce</code></a> Bump actions/setup-go from 6.3.0 to 6.4.0 (<a href="https://redirect.github.com/sigstore/cosign-installer/issues/226">#226</a>)</li>
+<li><a href="https://github.com/sigstore/cosign-installer/commit/cad07c2e89fa2edd6e2d7bab4c1aa38e53f76003"><code>cad07c2</code></a> chore: update default cosign-release to v3.0.5 (<a href="https://redirect.github.com/sigstore/cosign-installer/issues/223">#223</a>)</li>
+<li><a href="https://github.com/sigstore/cosign-installer/commit/ba7bc0a3fef59531c69a25acd34668d6d3fe6f22"><code>ba7bc0a</code></a> fix: add retry to curl downloads for transient network failures (<a href="https://redirect.github.com/sigstore/cosign-installer/issues/210">#210</a>)</li>
+<li><a href="https://github.com/sigstore/cosign-installer/commit/5a292e1504fdf08d68831aa1d265e92aee5701f9"><code>5a292e1</code></a> Bump cosign to 3.0.5 (<a href="https://redirect.github.com/sigstore/cosign-installer/issues/220">#220</a>)</li>
+<li><a href="https://github.com/sigstore/cosign-installer/commit/351ea76151ae2dbbf52374c9dd639f4981de944f"><code>351ea76</code></a> Bump actions/checkout from 6.0.1 to 6.0.2 (<a href="https://redirect.github.com/sigstore/cosign-installer/issues/217">#217</a>)</li>
+<li><a href="https://github.com/sigstore/cosign-installer/commit/c17565ff322a3403de48978f18d9ee0cfa7c2cd5"><code>c17565f</code></a> test with go 1.26 too (<a href="https://redirect.github.com/sigstore/cosign-installer/issues/221">#221</a>)</li>
+<li><a href="https://github.com/sigstore/cosign-installer/commit/a6fdd19182ff7fb86ae39a9329ba29eb602cbabb"><code>a6fdd19</code></a> Bump actions/setup-go from 6.1.0 to 6.3.0 (<a href="https://redirect.github.com/sigstore/cosign-installer/issues/218">#218</a>)</li>
+<li><a href="https://github.com/sigstore/cosign-installer/commit/430b6a704fe0c92f1b1261d84376a900f38d90ff"><code>430b6a7</code></a> docs: fix registry from gcr.io to ghcr.io (<a href="https://redirect.github.com/sigstore/cosign-installer/issues/213">#213</a>)</li>
+<li>Additional commits viewable in <a href="https://github.com/sigstore/cosign-installer/compare/dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da...6f9f17788090df1f26f669e9d70d6ae9567deba6">compare view</a></li>
+</ul>
+</details>
+<br />
+
+Updates `github/codeql-action/init` from 4.36.2 to 4.36.3
+<details>
+<summary>Release notes</summary>
+<p><em>Sourced from <a href="https://github.com/github/codeql-action/releases">github/codeql-action/init's releases</a>.</em></p>
+<blockquote>
+<h2>v4.36.3</h2>
+<p>No user facing changes.</p>
+</blockquote>
+</details>
+<details>
+<summary>Changelog</summary>
+<p><em>Sourced from <a href="https://github.com/github/codeql-action/blob/main/CHANGELOG.md">github/codeql-action/init's changelog</a>.</em></p>
+<blockquote>
+<h1>CodeQL Action Changelog</h1>
+<p>See the <a href="https://github.com/github/codeql-action/releases">releases page</a> for the relevant changes to the CodeQL CLI and language packs.</p>
+<h2>[UNRELEASED]</h2>
+<p>No user facing changes.</p>
+<h2>4.37.0 - 08 Jul 2026</h2>
+<ul>
+<li>Update default CodeQL bundle version to <a href="https://github.com/github/codeql-action/releases/tag/codeql-bundle-v2.26.0">2.26.0</a>. <a href="https://redirect.github.com/github/codeql-action/pull/3995">#3995</a></li>
+<li>In addition to the existing input format, the <code>config-file</code> input for the <code>codeql-action/init</code> step will soon support a new <code>[owner/]repo[@ref][:path]</code> format. All components except the repository name are optional. If omitted, <code>owner</code> defaults to the same owner as the repository the analysis is running for, <code>ref</code> to <code>main</code>, and <code>path</code> to <code>.github/codeql-action.yaml</code>. Support for this format ships in this version of the CodeQL Action, but will only be enabled over the coming weeks. <a href="https://redirect.github.com/github/codeql-action/pull/3973">#3973</a></li>
+</ul>
+<h2>4.36.3 - 01 Jul 2026</h2>
+<p>No user facing changes.</p>
+<h2>4.36.2 - 04 Jun 2026</h2>
+<ul>
+<li>Cache CodeQL CLI version information across Actions steps. <a href="https://redirect.github.com/github/codeql-action/pull/3943">#3943</a></li>
+<li>Reduce requests while waiting for analysis processing by using exponential backoff when polling SARIF processing status. <a href="https://redirect.github.com/github/codeql-action/pull/3937">#3937</a></li>
+<li>Update default CodeQL bundle version to <a href="https://github.com/github/codeql-action/releases/tag/codeql-bundle-v2.25.6">2.25.6</a>. <a href="https://redirect.github.com/github/codeql-action/pull/3948">#3948</a></li>
+</ul>
+<h2>4.36.1 - 02 Jun 2026</h2>
+<p>No user facing changes.</p>
+<h2>4.36.0 - 22 May 2026</h2>
+<ul>
+<li><em>Breaking change</em>: Bump the minimum required CodeQL bundle version to 2.19.4. <a href="https://redirect.github.com/github/codeql-action/pull/3894">#3894</a></li>
+<li>Add support for SHA-256 Git object IDs. <a href="https://redirect.github.com/github/codeql-action/pull/3893">#3893</a></li>
+<li>Update default CodeQL bundle version to <a href="https://github.com/github/codeql-action/releases/tag/codeql-bundle-v2.25.5">2.25.5</a>. <a href="https://redirect.github.com/github/codeql-action/pull/3926">#3926</a></li>
+</ul>
+<h2>4.35.5 - 15 May 2026</h2>
+<ul>
+<li>We have improved how the JavaScript bundles for the CodeQL Action are generated to avoid duplication across bundles and reduce the size of the repository by around 70%. This should have no effect on the runtime behaviour of the CodeQL Action. <a href="https://redirect.github.com/github/codeql-action/pull/3899">#3899</a></li>
+<li>For performance and accuracy reasons, <a href="https://redirect.github.com/github/roadmap/issues/1158">improved incremental analysis</a> will now only be enabled on a pull request when diff-informed analysis is also enabled for that run. If diff-informed analysis is unavailable (for example, because the PR diff ranges could not be computed), the action will fall back to a full analysis. <a href="https://redirect.github.com/github/codeql-action/pull/3791">#3791</a></li>
+<li>If multiple inputs are provided for the GitHub-internal <code>analysis-kinds</code> input, only <code>code-scanning</code> will be enabled. The <code>analysis-kinds</code> input is experimental, for GitHub-internal use only, and may change without notice at any time. <a href="https://redirect.github.com/github/codeql-action/pull/3892">#3892</a></li>
+<li>Added an experimental change which, when running a Code Scanning analysis for a PR with <a href="https://redirect.github.com/github/roadmap/issues/1158">improved incremental analysis</a> enabled, prefers CodeQL CLI versions that have a cached overlay-base database for the configured languages. This speeds up analysis for a repository when there is not yet a cached overlay-base database for the latest CLI version. We expect to roll this change out to everyone in May. <a href="https://redirect.github.com/github/codeql-action/pull/3880">#3880</a></li>
+</ul>
+<h2>4.35.4 - 07 May 2026</h2>
+<ul>
+<li>Update default CodeQL bundle version to <a href="https://github.com/github/codeql-action/releases/tag/codeql-bundle-v2.25.4">2.25.4</a>. <a href="https://redirect.github.com/github/codeql-action/pull/3881">#3881</a></li>
+</ul>
+<h2>4.35.3 - 01 May 2026</h2>
+<ul>
+<li><em>Upcoming breaking change</em>: Add a deprecation warning for customers using CodeQL version 2.19.3 and earlier. These versions of CodeQL were discontinued on 9 April 2026 alongside GitHub Enterprise Server 3.15, and will be unsupported by the next minor release of the CodeQL Action. <a href="https://redirect.github.com/github/codeql-action/pull/3837">#3837</a></li>
+<li>Configurations for private registries that use Cloudsmith or GCP OIDC are now accepted. <a href="https://redirect.github.com/github/codeql-action/pull/3850">#3850</a></li>
+<li>Best-effort connection tests for private registries now use <code>GET</code> requests instead of <code>HEAD</code> for better compatibility with various registry implementations. For NuGet feeds, the test is now always performed against the service index. <a href="https://redirect.github.com/github/codeql-action/pull/3853">#3853</a></li>
+<li>Fixed a bug where two diagnostics produced within the same millisecond could overwrite each other on disk, causing one of them to be lost. <a href="https://redirect.github.com/github/codeql-action/pull/3852">#3852</a></li>
+</ul>
+<!-- raw HTML omitted -->
+</blockquote>
+<p>... (truncated)</p>
+</details>
+<details>
+<summary>Commits</summary>
+<ul>
+<li><a href="https://github.com/github/codeql-action/commit/54f647b7e1bb85c95cddabcd46b0c578ec92bc1a"><code>54f647b</code></a> Merge pull request <a href="https://redirect.github.com/github/codeql-action/issues/3984">#3984</a> from github/update-v4.36.3-1f34ec164</li>
+<li><a href="https://github.com/github/codeql-action/commit/e78819e05527766c3c5919e3177647e280c6cb83"><code>e78819e</code></a> Trigger checks</li>
+<li><a href="https://github.com/github/codeql-action/commit/2c9d3d63eb4941734e2d29468953529a56f5ff1c"><code>2c9d3d6</code></a> Update changelog for v4.36.3</li>
+<li><a href="https://github.com/github/codeql-action/commit/1f34ec16430d82636d18716acc7aaa6d843b35a9"><code>1f34ec1</code></a> Merge pull request <a href="https://redirect.github.com/github/codeql-action/issues/3983">#3983</a> from github/mbg/repo-props/ff-for-config-file-prop</li>
+<li><a href="https://github.com/github/codeql-action/commit/d5f0145480025b49d8b08c3f6b36e6ad41a68c90"><code>d5f0145</code></a> Log when repository property has a value but is ignored</li>
+<li><a href="https://github.com/github/codeql-action/commit/f27f56386a3c745af8d7bbfb806098c714a5e32a"><code>f27f563</code></a> Add test for when the FF is off</li>
+<li><a href="https://github.com/github/codeql-action/commit/0025d0f2b5676fde748a0be9725dcce18dd9f986"><code>0025d0f</code></a> Use FF</li>
+<li><a href="https://github.com/github/codeql-action/commit/f7fa18f05d107ff6735857c3510fbff190c9a1eb"><code>f7fa18f</code></a> Add FF for config file repo property</li>
+<li><a href="https://github.com/github/codeql-action/commit/628fc3f124e68b0151f0d2a5d81e864ee1e42335"><code>628fc3f</code></a> Merge pull request <a href="https://redirect.github.com/github/codeql-action/issues/3979">#3979</a> from github/henrymercer/overlay-db-cleanup-size-tele...</li>
+<li><a href="https://github.com/github/codeql-action/commit/9cfb67bab9b32441237f92d4ba29a7f3ccff259f"><code>9cfb67b</code></a> Add clarifying comments</li>
+<li>Additional commits viewable in <a href="https://github.com/github/codeql-action/compare/8aad20d150bbac5944a9f9d289da16a4b0d87c1e...54f647b7e1bb85c95cddabcd46b0c578ec92bc1a">compare view</a></li>
+</ul>
+</details>
+<br />
+
+Updates `github/codeql-action/analyze` from 4.36.2 to 4.36.3
+<details>
+<summary>Release notes</summary>
+<p><em>Sourced from <a href="https://github.com/github/codeql-action/releases">github/codeql-action/analyze's releases</a>.</em></p>
+<blockquote>
+<h2>v4.36.3</h2>
+<p>No user facing changes.</p>
+</blockquote>
+</details>
+<details>
+<summary>Changelog</summary>
+<p><em>Sourced from <a href="https://github.com/github/codeql-action/blob/main/CHANGELOG.md">github/codeql-action/analyze's changelog</a>.</em></p>
+<blockquote>
+<h1>CodeQL Action Changelog</h1>
+<p>See the <a href="https://github.com/github/codeql-action/releases">releases page</a> for the relevant changes to the CodeQL CLI and language packs.</p>
+<h2>[UNRELEASED]</h2>
+<p>No user facing changes.</p>
+<h2>4.37.0 - 08 Jul 2026</h2>
+<ul>
+<li>Update default CodeQL bundle version to <a href="https://github.com/github/codeql-action/releases/tag/codeql-bundle-v2.26.0">2.26.0</a>. <a href="https://redirect.github.com/github/codeql-action/pull/3995">#3995</a></li>
+<li>In addition to the existing input format, the <code>config-file</code> input for the <code>codeql-action/init</code> step will soon support a new <code>[owner/]repo[@ref][:path]</code> format. All components except the repository name are optional. If omitted, <code>owner</code> defaults to the same owner as the repository the analysis is running for, <code>ref</code> to <code>main</code>, and <code>path</code> to <code>.github/codeql-action.yaml</code>. Support for this format ships in this version of the CodeQL Action, but will only be enabled over the coming weeks. <a href="https://redirect.github.com/github/codeql-action/pull/3973">#3973</a></li>
+</ul>
+<h2>4.36.3 - 01 Jul 2026</h2>
+<p>No user facing changes.</p>
+<h2>4.36.2 - 04 Jun 2026</h2>
+<ul>
+<li>Cache CodeQL CLI version information across Actions steps. <a href="https://redirect.github.com/github/codeql-action/pull/3943">#3943</a></li>
+<li>Reduce requests while waiting for analysis processing by using exponential backoff when polling SARIF processing status. <a href="https://redirect.github.com/github/codeql-action/pull/3937">#3937</a></li>
+<li>Update default CodeQL bundle version to <a href="https://github.com/github/codeql-action/releases/tag/codeql-bundle-v2.25.6">2.25.6</a>. <a href="https://redirect.github.com/github/codeql-action/pull/3948">#3948</a></li>
+</ul>
+<h2>4.36.1 - 02 Jun 2026</h2>
+<p>No user facing changes.</p>
+<h2>4.36.0 - 22 May 2026</h2>
+<ul>
+<li><em>Breaking change</em>: Bump the minimum required CodeQL bundle version to 2.19.4. <a href="https://redirect.github.com/github/codeql-action/pull/3894">#3894</a></li>
+<li>Add support for SHA-256 Git object IDs. <a href="https://redirect.github.com/github/codeql-action/pull/3893">#3893</a></li>
+<li>Update default CodeQL bundle version to <a href="https://github.com/github/codeql-action/releases/tag/codeql-bundle-v2.25.5">2.25.5</a>. <a href="https://redirect.github.com/github/codeql-action/pull/3926">#3926</a></li>
+</ul>
+<h2>4.35.5 - 15 May 2026</h2>
+<ul>
+<li>We have improved how the JavaScript bundles for the CodeQL Action are generated to avoid duplication across bundles and reduce the size of the repository by around 70%. This should have no effect on the runtime behaviour of the CodeQL Action. <a href="https://redirect.github.com/github/codeql-action/pull/3899">#3899</a></li>
+<li>For performance and accuracy reasons, <a href="https://redirect.github.com/github/roadmap/issues/1158">improved incremental analysis</a> will now only be enabled on a pull request when diff-informed analysis is also enabled for that run. If diff-informed analysis is unavailable (for example, because the PR diff ranges could not be computed), the action will fall back to a full analysis. <a href="https://redirect.github.com/github/codeql-action/pull/3791">#3791</a></li>
+<li>If multiple inputs are provided for the GitHub-internal <code>analysis-kinds</code> input, only <code>code-scanning</code> will be enabled. The <code>analysis-kinds</code> input is experimental, for GitHub-internal use only, and may change without notice at any time. <a href="https://redirect.github.com/github/codeql-action/pull/3892">#3892</a></li>
+<li>Added an experimental change which, when running a Code Scanning analysis for a PR with <a href="https://redirect.github.com/github/roadmap/issues/1158">improved incremental analysis</a> enabled, prefers CodeQL CLI versions that have a cached overlay-base database for the configured languages. This speeds up analysis for a repository when there is not yet a cached overlay-base database for the latest CLI version. We expect to roll this change out to everyone in May. <a href="https://redirect.github.com/github/codeql-action/pull/3880">#3880</a></li>
+</ul>
+<h2>4.35.4 - 07 May 2026</h2>
+<ul>
+<li>Update default CodeQL bundle version to <a href="https://github.com/github/codeql-action/releases/tag/codeql-bundle-v2.25.4">2.25.4</a>. <a href="https://redirect.github.com/github/codeql-action/pull/3881">#3881</a></li>
+</ul>
+<h2>4.35.3 - 01 May 2026</h2>
+<ul>
+<li><em>Upcoming breaking change</em>: Add a deprecation warning for customers using CodeQL version 2.19.3 and earlier. These versions of CodeQL were discontinued on 9 April 2026 alongside GitHub Enterprise Server 3.15, and will be unsupported by the next minor release of the CodeQL Action. <a href="https://redirect.github.com/github/codeql-action/pull/3837">#3837</a></li>
+<li>Configurations for private registries that use Cloudsmith or GCP OIDC are now accepted. <a href="https://redirect.github.com/github/codeql-action/pull/3850">#3850</a></li>
+<li>Best-effort connection tests for private registries now use <code>GET</code> requests instead of <code>HEAD</code> for better compatibility with various registry implementations. For NuGet feeds, the test is now always performed against the service index. <a href="https://redirect.github.com/github/codeql-action/pull/3853">#3853</a></li>
+<li>Fixed a bug where two diagnostics produced within the same millisecond could overwrite each other on disk, causing one of them to be lost. <a href="https://redirect.github.com/github/codeql-action/pull/3852">#3852</a></li>
+</ul>
+<!-- raw HTML omitted -->
+</blockquote>
+<p>... (truncated)</p>
+</details>
+<details>
+<summary>Commits</summary>
+<ul>
+<li><a href="https://github.com/github/codeql-action/commit/54f647b7e1bb85c95cddabcd46b0c578ec92bc1a"><code>54f647b</code></a> Merge pull request <a href="https://redirect.github.com/github/codeql-action/issues/3984">#3984</a> from github/update-v4.36.3-1f34ec164</li>
+<li><a href="https://github.com/github/codeql-action/commit/e78819e05527766c3c5919e3177647e280c6cb83"><code>e78819e</code></a> Trigger checks</li>
+<li><a href="https://github.com/github/codeql-action/commit/2c9d3d63eb4941734e2d29468953529a56f5ff1c"><code>2c9d3d6</code></a> Update changelog for v4.36.3</li>
+<li><a href="https://github.com/github/codeql-action/commit/1f34ec16430d82636d18716acc7aaa6d843b35a9"><code>1f34ec1</code></a> Merge pull request <a href="https://redirect.github.com/github/codeql-action/issues/3983">#3983</a> from github/mbg/repo-props/ff-for-config-file-prop</li>
+<li><a href="https://github.com/github/codeql-action/commit/d5f0145480025b49d8b08c3f6b36e6ad41a68c90"><code>d5f0145</code></a> Log when repository property has a value but is ignored</li>
+<li><a href="https://github.com/github/codeql-action/commit/f27f56386a3c745af8d7bbfb806098c714a5e32a"><code>f27f563</code></a> Add test for when the FF is off</li>
+<li><a href="https://github.com/github/codeql-action/commit/0025d0f2b5676fde748a0be9725dcce18dd9f986"><code>0025d0f</code></a> Use FF</li>
+<li><a href="https://github.com/github/codeql-action/commit/f7fa18f05d107ff6735857c3510fbff190c9a1eb"><code>f7fa18f</code></a> Add FF for config file repo property</li>
+<li><a href="https://github.com/github/codeql-action/commit/628fc3f124e68b0151f0d2a5d81e864ee1e42335"><code>628fc3f</code></a> Merge pull request <a href="https://redirect.github.com/github/codeql-action/issues/3979">#3979</a> from github/henrymercer/overlay-db-cleanup-size-tele...</li>
+<li><a href="https://github.com/github/codeql-action/commit/9cfb67bab9b32441237f92d4ba29a7f3ccff259f"><code>9cfb67b</code></a> Add clarifying comments</li>
+<li>Additional commits viewable in <a href="https://github.com/github/codeql-action/compare/8aad20d150bbac5944a9f9d289da16a4b0d87c1e...54f647b7e1bb85c95cddabcd46b0c578ec92bc1a">compare view</a></li>
+</ul>
+</details>
+<br />
+
+Updates `ruby/setup-ruby` from 1.312.0 to 1.316.0
+<details>
+<summary>Release notes</summary>
+<p><em>Sourced from <a href="https://github.com/ruby/setup-ruby/releases">ruby/setup-ruby's releases</a>.</em></p>
+<blockquote>
+<h2>v1.316.0</h2>
+<h2>What's Changed</h2>
+<ul>
+<li>Update CRuby releases on Windows by <a href="https://github.com/ruby-builder-bot"><code>@​ruby-builder-bot</code></a> in <a href="https://redirect.github.com/ruby/setup-ruby/pull/926">ruby/setup-ruby#926</a></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a href="https://github.com/ruby/setup-ruby/compare/v1.315.0...v1.316.0">https://github.com/ruby/setup-ruby/compare/v1.315.0...v1.316.0</a></p>
+<h2>v1.315.0</h2>
+<h2>What's Changed</h2>
+<ul>
+<li>Bump actions/checkout from 6 to 7 by <a href="https://github.com/dependabot"><code>@​dependabot</code></a>[bot] in <a href="https://redirect.github.com/ruby/setup-ruby/pull/924">ruby/setup-ruby#924</a></li>
+<li>Add ruby-3.4.10 by <a href="https://github.com/ruby-builder-bot"><code>@​ruby-builder-bot</code></a> in <a href="https://redirect.github.com/ruby/setup-ruby/pull/925">ruby/setup-ruby#925</a></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a href="https://github.com/ruby/setup-ruby/compare/v1.314.0...v1.315.0">https://github.com/ruby/setup-ruby/compare/v1.314.0...v1.315.0</a></p>
+<h2>v1.314.0</h2>
+<h2>What's Changed</h2>
+<ul>
+<li>Add support for ubuntu-26.04 and ubuntu-26.04-arm by <a href="https://github.com/eregon"><code>@​eregon</code></a> in <a href="https://redirect.github.com/ruby/setup-ruby/pull/923">ruby/setup-ruby#923</a></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a href="https://github.com/ruby/setup-ruby/compare/v1.313.0...v1.314.0">https://github.com/ruby/setup-ruby/compare/v1.313.0...v1.314.0</a></p>
+<h2>v1.313.0</h2>
+<h2>What's Changed</h2>
+<ul>
+<li>Add jruby-10.0.6.0 by <a href="https://github.com/ruby-builder-bot"><code>@​ruby-builder-bot</code></a> in <a href="https://redirect.github.com/ruby/setup-ruby/pull/921">ruby/setup-ruby#921</a></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a href="https://github.com/ruby/setup-ruby/compare/v1.312.0...v1.313.0">https://github.com/ruby/setup-ruby/compare/v1.312.0...v1.313.0</a></p>
+</blockquote>
+</details>
+<details>
+<summary>Commits</summary>
+<ul>
+<li><a href="https://github.com/ruby/setup-ruby/commit/d45b1a4e94b71acab930e56e79c6aa188764e7f9"><code>d45b1a4</code></a> Update CRuby releases on Windows</li>
+<li><a href="https://github.com/ruby/setup-ruby/commit/0dafeac902942906541bc140009cdbf32665b601"><code>0dafeac</code></a> Add ruby-3.4.10</li>
+<li><a href="https://github.com/ruby/setup-ruby/commit/bf35c27edc951760db12f3d7956eefe8f8bff334"><code>bf35c27</code></a> Bump actions/checkout from 6 to 7</li>
+<li><a href="https://github.com/ruby/setup-ruby/commit/9eb537ca036ebaed86729dcb9309076e4c5c3b74"><code>9eb537c</code></a> Add support for ubuntu-26.04 and ubuntu-26.04-arm</li>
+<li><a href="https://github.com/ruby/setup-ruby/commit/e1a3b100ca5b42a161972918033044897de6b795"><code>e1a3b10</code></a> Improve versions-strings-for-builder.rb</li>
+<li><a href="https://github.com/ruby/setup-ruby/commit/0df5288f065336bfb788449df7f616ca86399d04"><code>0df5288</code></a> Remove <code>gem install sassc</code> on Windows JRuby</li>
+<li><a href="https://github.com/ruby/setup-ruby/commit/89f90524b88a01fe6e0b732220432cc6142926af"><code>89f9052</code></a> Add jruby-10.0.6.0</li>
+<li>See full diff in <a href="https://github.com/ruby/setup-ruby/compare/12fd324f1d0b43274fdc8130f6980590a667c455...d45b1a4e94b71acab930e56e79c6aa188764e7f9">compare view</a></li>
+</ul>
+</details>
+<br />
+
+Updates `github/codeql-action/upload-sarif` from 4.36.2 to 4.36.3
+<details>
+<summary>Release notes</summary>
+<p><em>Sourced from <a href="https://github.com/github/codeql-action/releases">github/codeql-action/upload-sarif's releases</a>.</em></p>
+<blockquote>
+<h2>v4.36.3</h2>
+<p>No user facing changes.</p>
+</blockquote>
+</details>
+<details>
+<summary>Changelog</summary>
+<p><em>Sourced from <a href="https://github.com/github/codeql-action/blob/main/CHANGELOG.md">github/codeql-action/upload-sarif's changelog</a>.</em></p>
+<blockquote>
+<h1>CodeQL Action Changelog</h1>
+<p>See the <a href="https://github.com/github/codeql-action/releases">releases page</a> for the relevant changes to the CodeQL CLI and language packs.</p>
+<h2>[UNRELEASED]</h2>
+<p>No user facing changes.</p>
+<h2>4.37.0 - 08 Jul 2026</h2>
+<ul>
+<li>Update default CodeQL bundle version to <a href="https://github.com/github/codeql-action/releases/tag/codeql-bundle-v2.26.0">2.26.0</a>. <a href="https://redirect.github.com/github/codeql-action/pull/3995">#3995</a></li>
+<li>In addition to the existing input format, the <code>config-file</code> input for the <code>codeql-action/init</code> step will soon support a new <code>[owner/]repo[@ref][:path]</code> format. All components except the repository name are optional. If omitted, <code>owner</code> defaults to the same owner as the repository the analysis is running for, <code>ref</code> to <code>main</code>, and <code>path</code> to <code>.github/codeql-action.yaml</code>. Support for this format ships in this version of the CodeQL Action, but will only be enabled over the coming weeks. <a href="https://redirect.github.com/github/codeql-action/pull/3973">#3973</a></li>
+</ul>
+<h2>4.36.3 - 01 Jul 2026</h2>
+<p>No user facing changes.</p>
+<h2>4.36.2 - 04 Jun 2026</h2>
+<ul>
+<li>Cache CodeQL CLI version information across Actions steps. <a href="https://redirect.github.com/github/codeql-action/pull/3943">#3943</a></li>
+<li>Reduce requests while waiting for analysis processing by using exponential backoff when polling SARIF processing status. <a href="https://redirect.github.com/github/codeql-action/pull/3937">#3937</a></li>
+<li>Update default CodeQL bundle version to <a href="https://github.com/github/codeql-action/releases/tag/codeql-bundle-v2.25.6">2.25.6</a>. <a href="https://redirect.github.com/github/codeql-action/pull/3948">#3948</a></li>
+</ul>
+<h2>4.36.1 - 02 Jun 2026</h2>
+<p>No user facing changes.</p>
+<h2>4.36.0 - 22 May 2026</h2>
+<ul>
+<li><em>Breaking change</em>: Bump the minimum required CodeQL bundle version to 2.19.4. <a href="https://redirect.github.com/github/codeql-action/pull/3894">#3894</a></li>
+<li>Add support for SHA-256 Git object IDs. <a href="https://redirect.github.com/github/codeql-action/pull/3893">#3893</a></li>
+<li>Update default CodeQL bundle version to <a href="https://github.com/github/codeql-action/releases/tag/codeql-bundle-v2.25.5">2.25.5</a>. <a href="https://redirect.github.com/github/codeql-action/pull/3926">#3926</a></li>
+</ul>
+<h2>4.35.5 - 15 May 2026</h2>
+<ul>
+<li>We have improved how the JavaScript bundles for the CodeQL Action are generated to avoid duplication across bundles and reduce the size of the repository by around 70%. This should have no effect on the runtime behaviour of the CodeQL Action. <a href="https://redirect.github.com/github/codeql-action/pull/3899">#3899</a></li>
+<li>For performance and accuracy reasons, <a href="https://redirect.github.com/github/roadmap/issues/1158">improved incremental analysis</a> will now only be enabled on a pull request when diff-informed analysis is also enabled for that run. If diff-informed analysis is unavailable (for example, because the PR diff ranges could not be computed), the action will fall back to a full analysis. <a href="https://redirect.github.com/github/codeql-action/pull/3791">#3791</a></li>
+<li>If multiple inputs are provided for the GitHub-internal <code>analysis-kinds</code> input, only <code>code-scanning</code> will be enabled. The <code>analysis-kinds</code> input is experimental, for GitHub-internal use only, and may change without notice at any time. <a href="https://redirect.github.com/github/codeql-action/pull/3892">#3892</a></li>
+<li>Added an experimental change which, when running a Code Scanning analysis for a PR with <a href="https://redirect.github.com/github/roadmap/issues/1158">improved incremental analysis</a> enabled, prefers CodeQL CLI versions that have a cached overlay-base database for the configured languages. This speeds up analysis for a repository when there is not yet a cached overlay-base database for the latest CLI version. We expect to roll this change out to everyone in May. <a href="https://redirect.github.com/github/codeql-action/pull/3880">#3880</a></li>
+</ul>
+<h2>4.35.4 - 07 May 2026</h2>
+<ul>
+<li>Update default CodeQL bundle version to <a href="https://github.com/github/codeql-action/releases/tag/codeql-bundle-v2.25.4">2.25.4</a>. <a href="https://redirect.github.com/github/codeql-action/pull/3881">#3881</a></li>
+</ul>
+<h2>4.35.3 - 01 May 2026</h2>
+<ul>
+<li><em>Upcoming breaking change</em>: Add a deprecation warning for customers using CodeQL version 2.19.3 and earlier. These versions of CodeQL were discontinued on 9 April 2026 alongside GitHub Enterprise Server 3.15, and will be unsupported by the next minor release of the CodeQL Action. <a href="https://redirect.github.com/github/codeql-action/pull/3837">#3837</a></li>
+<li>Configurations for private registries that use Cloudsmith or GCP OIDC are now accepted. <a href="https://redirect.github.com/github/codeql-action/pull/3850">#3850</a></li>
+<li>Best-effort connection tests for private registries now use <code>GET</code> requests instead of <code>HEAD</code> for better compatibility with various registry implementations. For NuGet feeds, the test is now always performed against the service index. <a href="https://redirect.github.com/github/codeql-action/pull/3853">#3853</a></li>
+<li>Fixed a bug where two diagnostics produced within the same millisecond could overwrite each other on disk, causing one of them to be lost. <a href="https://redirect.github.com/github/codeql-action/pull/3852">#3852</a></li>
+</ul>
+<!-- raw HTML omitted -->
+</blockquote>
+<p>... (truncated)</p>
+</details>
+<details>
+<summary>Commits</summary>
+<ul>
+<li><a href="https://github.com/github/codeql-action/commit/54f647b7e1bb85c95cddabcd46b0c578ec92bc1a"><code>54f647b</code></a> Merge pull request <a href="https://redirect.github.com/github/codeql-action/issues/3984">#3984</a> from github/update-v4.36.3-1f34ec164</li>
+<li><a href="https://github.com/github/codeql-action/commit/e78819e05527766c3c5919e3177647e280c6cb83"><code>e78819e</code></a> Trigger checks</li>
+<li><a href="https://github.com/github/codeql-action/commit/2c9d3d63eb4941734e2d29468953529a56f5ff1c"><code>2c9d3d6</code></a> Update changelog for v4.36.3</li>
+<li><a href="https://github.com/github/codeql-action/commit/1f34ec16430d82636d18716acc7aaa6d843b35a9"><code>1f34ec1</code></a> Merge pull request <a href="https://redirect.github.com/github/codeql-action/issues/3983">#3983</a> from github/mbg/repo-props/ff-for-config-file-prop</li>
+<li><a href="https://github.com/github/codeql-action/commit/d5f0145480025b49d8b08c3f6b36e6ad41a68c90"><code>d5f0145</code></a> Log when repository property has a value but is ignored</li>
+<li><a href="https://github.com/github/codeql-action/commit/f27f56386a3c745af8d7bbfb806098c714a5e32a"><code>f27f563</code></a> Add test for when the FF is off</li>
+<li><a href="https://github.com/github/codeql-action/commit/0025d0f2b5676fde748a0be9725dcce18dd9f986"><code>0025d0f</code></a> Use FF</li>
+<li><a href="https://github.com/github/codeql-action/commit/f7fa18f05d107ff6735857c3510fbff190c9a1eb"><code>f7fa18f</code></a> Add FF for config file repo property</li>
+<li><a href="https://github.com/github/codeql-action/commit/628fc3f124e68b0151f0d2a5d81e864ee1e42335"><code>628fc3f</code></a> Merge pull request <a href="https://redirect.github.com/github/codeql-action/issues/3979">#3979</a> from github/henrymercer/overlay-db-cleanup-size-tele...</li>
+<li><a href="https://github.com/github/codeql-action/commit/9cfb67bab9b32441237f92d4ba29a7f3ccff259f"><code>9cfb67b</code></a> Add clarifying comments</li>
+<li>Additional commits viewable in <a href="https://github.com/github/codeql-action/compare/8aad20d150bbac5944a9f9d289da16a4b0d87c1e...54f647b7e1bb85c95cddabcd46b0c578ec92bc1a">compare view</a></li>
+</ul>
+</details>
+<br />
+
+Updates `trufflesecurity/trufflehog` from 3.95.5 to 3.95.8
+<details>
+<summary>Release notes</summary>
+<p><em>Sourced from <a href="https://github.com/trufflesecurity/trufflehog/releases">trufflesecurity/trufflehog's releases</a>.</em></p>
+<blockquote>
+<h2>v3.95.8</h2>
+<h2>What's Changed</h2>
+<ul>
+<li>removed &quot;unauthorized&quot; as exception for rotated graphana secrets by <a href="https://github.com/jordanTunstill"><code>@​jordanTunstill</code></a> in <a href="https://redirect.github.com/trufflesecurity/trufflehog/pull/5068">trufflesecurity/trufflehog#5068</a></li>
+<li>fix(azuresastoken): match SAS tokens regardless of parameter order by <a href="https://github.com/genisis0x"><code>@​genisis0x</code></a> in <a href="https://redirect.github.com/trufflesecurity/trufflehog/pull/5043">trufflesecurity/trufflehog#5043</a></li>
+<li>Add prometheus metrics for engine chan...
+
+_Description has been truncated_
+
+--- CHECKS ---
