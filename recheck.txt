@@ -1,0 +1,7 @@
+===== PR #117 =====
+["dependency-review","Root folder allowlist","Root folder allowlist","Platform Leadership exit-criteria aggregation"]
+
+===== PR #116 =====
+["Root folder allowlist","Root folder allowlist","CLI Unit + Migration (Node 22)","CLI Unit + Migration (Node 24)","Backward Compatibility Regression (22)","Backward Compatibility Regression (24)","Package Integrity (pack + clean-install import)","Core (Node 22)","Core (Node 24)"]
+
+===== PR #113 =====
