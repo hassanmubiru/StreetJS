@@ -1,0 +1,9 @@
+
+> streetjs@1.1.1 prebuild
+> node src/database/sqlite/download-wasm.mjs
+
+sqlite3.wasm already present and verified at: /home/error51/Downloads/street-framework/streetJS/packages/core/src/database/sqlite/sqlite3.wasm
+
+> streetjs@1.1.1 build
+> tsc -p tsconfig.lib.json
+
