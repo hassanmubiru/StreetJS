@@ -1,0 +1,2 @@
+{"annotation_level":"failure","message":"Process completed with exit code 1.","path":".github"}
+{"annotation_level":"failure","message":"Unapproved file at repo root. Move it to a subfolder (security/ audits/ plans/ governance/ docs/ infra/ scripts/) or add it to the allowlist in repository-policy.yml with justification.","path":"st.txt"}
