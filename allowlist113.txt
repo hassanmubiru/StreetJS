@@ -1,1 +1,4 @@
 runid=29038895857
+Root folder allowlist	UNKNOWN STEP	2026-07-09T17:59:15.9744883Z [36;1m    echo "::error file=$f::Unapproved file at repo root. Move it to a subfolder (security/ audits/ plans/ governance/ docs/ infra/ scripts/) or add it to the allowlist in repository-policy.yml with justification."[0m
+Root folder allowlist	UNKNOWN STEP	2026-07-09T17:59:16.0316874Z ##[error]Unapproved file at repo root. Move it to a subfolder (security/ audits/ plans/ governance/ docs/ infra/ scripts/) or add it to the allowlist in repository-policy.yml with justification.
+Root folder allowlist	UNKNOWN STEP	2026-07-09T17:59:16.0330969Z ##[error]Process completed with exit code 1.
