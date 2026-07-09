@@ -1,0 +1,17 @@
+.dockerignore
+.env.example
+.gitattributes
+.gitignore
+.gitleaks.toml
+.npmrc
+CHANGELOG.md
+CITATION.cff
+CODE_OF_CONDUCT.md
+CONTRIBUTING.md
+GOVERNANCE.md
+LICENSE
+MAINTAINERS.md
+README.md
+SECURITY.md
+package-lock.json
+package.json
