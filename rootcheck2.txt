@@ -15,3 +15,4 @@ README.md
 SECURITY.md
 package-lock.json
 package.json
+rootcheck2.txt
