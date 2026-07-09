@@ -137,13 +137,6 @@ jobs:
           echo "$GCS_SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/gcs-service-account.json"
           echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/gcs-service-account.json" >> "$GITHUB_ENV"
 
-      # TEMPORARY diagnostic — never prints secret values, only shape/type/length,
-      # to pinpoint why the GCS service-account key fails to sign JWTs downstream.
-      # Removed once the root cause is confirmed.
-      - name: Diagnose GCS service-account key shape (no secret values printed)
-        if: ${{ env.GCS_SERVICE_ACCOUNT_JSON != '' }}
-        run: node scripts/vendor/diagnose-gcs-key-shape.mjs
-
       - name: Cloud storage providers (Supabase / GCS / Azure / Backblaze B2)
         run: npm run test -w packages/storage
 
