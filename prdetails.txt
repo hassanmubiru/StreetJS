@@ -921,3 +921,471 @@ For pre-releases, please refer to <a href="https://github.com/vuejs/core/blob/mi
 
 
 --- CHECKS ---
+Backward Compatibility Regression (22)	fail	8s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378260/job/86040806937	
+Backward Compatibility Regression (24)	fail	10s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378260/job/86040806970	
+CLI Unit + Migration (Node 22)	fail	14s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378215/job/86040806946	
+CLI Unit + Migration (Node 24)	fail	18s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378215/job/86040806948	
+Core (Node 22)	fail	9s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378215/job/86040903033	
+Core (Node 24)	fail	8s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378215/job/86040903029	
+Package Integrity (pack + clean-install import)	fail	25s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378215/job/86040806910	
+Root folder allowlist	fail	4s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994376864/job/86040802477	
+Root folder allowlist	fail	6s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378233/job/86040807079	
+certify	fail	6m23s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378204/job/86040806866	
+Analyze (actions)	pass	40s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378212/job/86040806949	
+Analyze (javascript-typescript)	pass	1m8s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378212/job/86040806945	
+Certification Suites + DB E2E	pass	1m3s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378215/job/86040806951	
+Code Hygiene Scan	pass	4s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378260/job/86040806936	
+CodeQL	pass	2s	https://github.com/hassanmubiru/StreetJS/runs/86040938295	
+Forbidden files (RESTRICTED tier)	pass	4s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994376842/job/86040802444	
+Forbidden files (RESTRICTED tier)	pass	8s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378227/job/86040806984	
+Governance docs present	pass	4s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994376864/job/86040802495	
+Governance docs present	pass	6s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378233/job/86040807013	
+Manifest + README + placeholder + circular-dependency checks (all packages)	pass	33s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378202/job/86040806890	
+Memory Leak (Node 22)	pass	27s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378215/job/86040806916	
+Memory Leak (Node 24)	pass	16s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378215/job/86040806922	
+Memory Safety Enforcement (22)	pass	25s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378260/job/86040807010	
+Memory Safety Enforcement (24)	pass	20s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378260/job/86040806943	
+MySQL Integration Tests	pass	46s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378215/job/86040806932	
+No RESTRICTED files tracked	pass	4s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994376864/job/86040802494	
+No RESTRICTED files tracked	pass	5s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378233/job/86040807155	
+Plugin offline tests (build + node:test)	pass	48s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994376850/job/86040802509	
+Plugin offline tests (build + node:test)	pass	46s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378205/job/86040806954	
+Plugin security standard	pass	8s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994376842/job/86040802393	
+Plugin security standard	pass	8s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378227/job/86040806998	
+Plugins must not ship Dockerfiles	pass	5s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994376864/job/86040802481	
+Plugins must not ship Dockerfiles	pass	5s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378233/job/86040807025	
+Policy Checks (no-placeholders + audit)	pass	14s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378215/job/86040806934	
+Realtime (Node 22)	pass	33s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378199/job/86040806846	
+Realtime (Node 24)	pass	31s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378199/job/86040806837	
+Scan infra for real identifiers	pass	6s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994376847/job/86040802409	
+Scan infra for real identifiers	pass	5s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378196/job/86040806783	
+Secrets Guard (block private keys)	pass	9s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378215/job/86040806958	
+Security Audit (npm audit)	pass	17s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378260/job/86040806930	
+Security Lint (zizmor)	pass	23s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378215/job/86040806905	
+TLS handshake integration (build + node:test)	pass	23s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994376846/job/86040802498	
+TLS handshake integration (build + node:test)	pass	22s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378271/job/86040806981	
+Test Summary	pass	4s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378215/job/86040971490	
+Upgrade Codemods Verification	pass	18s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378215/job/86040806925	
+block-private-keys	pass	8s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994376847/job/86040802376	
+block-private-keys	pass	6s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378196/job/86040806753	
+browser-compat	pass	25s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994376849/job/86040802533	
+browser-compat	pass	29s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378208/job/86040806838	
+chaos-testing (Node 22)	pass	25s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378215/job/86040807034	
+chaos-testing (Node 24)	pass	20s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378215/job/86040807053	
+client-ci (22)	pass	14s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994376822/job/86040802377	
+client-ci (22)	pass	17s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378223/job/86040806823	
+client-ci (24)	pass	18s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994376822/job/86040802378	
+client-ci (24)	pass	17s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378223/job/86040806815	
+dast	pass	2m35s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378193/job/86040807001	
+dependency-review	pass	18s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378200/job/86040806671	
+devtools-verify	pass	33s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378209/job/86040806895	
+frontend-ci (22)	pass	33s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994376833/job/86040802439	
+frontend-ci (22)	pass	36s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378257/job/86040806926	
+frontend-ci (24)	pass	37s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994376833/job/86040802411	
+frontend-ci (24)	pass	28s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378257/job/86040806919	
+fuzz-testing (Node 22)	pass	25s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378215/job/86040807046	
+fuzz-testing (Node 24)	pass	22s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378215/job/86040807067	
+gitleaks	pass	11s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378194/job/86040806852	
+infrastructure (Node 22)	pass	21s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378215/job/86040807056	
+infrastructure (Node 24)	pass	19s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378215/job/86040807066	
+kafka-integration	pass	55s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378210/job/86040806661	
+load-testing (Node 22)	pass	27s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378215/job/86040807041	
+load-testing (Node 24)	pass	21s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378215/job/86040807054	
+memory-safety (Node 22)	pass	21s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378215/job/86040807070	
+memory-safety (Node 24)	pass	22s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378215/job/86040807057	
+mongodb-integration	pass	37s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994376856/job/86040802623	
+mongodb-integration	pass	39s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378222/job/86040806914	
+orm-integration	pass	41s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994376858/job/86040802447	
+orm-integration	pass	42s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378219/job/86040807121	
+rabbitmq-integration	pass	48s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378234/job/86040806845	
+reference-apps	pass	28s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994376844/job/86040802524	
+reference-apps	pass	27s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378216/job/86040806887	
+registry-e2e	pass	35s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378228/job/86040806881	
+search-providers	pass	35s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994376863/job/86040802647	
+Performance Benchmarks	skipping	0	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378215/job/86040939414	
+search-providers	pass	40s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378218/job/86040806844	
+verify-signing-anchor	pass	6s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994376847/job/86040802321	
+storage-providers	pass	49s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378218/job/86040806832	
+security/snyk (hassanmubiru)	pass	0	https://app.snyk.io/org/hassanmubiru/pr-checks/b6c3b8a5-e118-4314-a27b-d82b9ab51a76	1 security test has passed
+Docker Build & Push	skipping	0	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378215/job/86040939065	
+verify-signing-anchor	pass	7s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378196/job/86040806746	
+trufflehog	pass	17s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378194/job/86040806839	
+security (Node 24)	pass	26s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378215/job/86040807058	
+storage-providers	pass	41s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994376863/job/86040802628	
+security (Node 22)	pass	30s	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378215/job/86040807044	
+Release Engineering Enforcement	skipping	0	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378260/job/86040807483	
+Test & Publish	skipping	0	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378215/job/86040939424	
+kafka-chaos	skipping	0	https://github.com/hassanmubiru/StreetJS/actions/runs/28994378210/job/86040818556	
+
+========== PR #113 ==========
+title:	build(deps-dev): bump the web-development-dependencies group across 4 directories with 3 updates
+state:	OPEN
+author:	dependabot
+labels:	dependencies
+assignees:	
+reviewers:	hassanmubiru (Requested)
+projects:	
+milestone:	
+number:	113
+url:	https://github.com/hassanmubiru/StreetJS/pull/113
+additions:	196
+deletions:	196
+auto-merge:	disabled
+--
+Bumps the web-development-dependencies group with 1 update in the /examples/marzpay-next/web directory: [@types/node](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/HEAD/types/node).
+Bumps the web-development-dependencies group with 2 updates in the /examples/marzpay-react/web directory: [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/tree/HEAD/packages/plugin-react) and [vite](https://github.com/vitejs/vite/tree/HEAD/packages/vite).
+Bumps the web-development-dependencies group with 1 update in the /examples/scaffold-next/web directory: [@types/node](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/HEAD/types/node).
+Bumps the web-development-dependencies group with 2 updates in the /examples/scaffold-react/web directory: [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/tree/HEAD/packages/plugin-react) and [vite](https://github.com/vitejs/vite/tree/HEAD/packages/vite).
+
+Updates `@types/node` from 26.0.0 to 26.0.1
+<details>
+<summary>Commits</summary>
+<ul>
+<li>See full diff in <a href="https://github.com/DefinitelyTyped/DefinitelyTyped/commits/HEAD/types/node">compare view</a></li>
+</ul>
+</details>
+<br />
+
+Updates `@vitejs/plugin-react` from 6.0.2 to 6.0.3
+<details>
+<summary>Changelog</summary>
+<p><em>Sourced from <a href="https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/CHANGELOG.md">@​vitejs/plugin-react's changelog</a>.</em></p>
+<blockquote>
+<h2>6.0.3 (2026-06-23)</h2>
+</blockquote>
+</details>
+<details>
+<summary>Commits</summary>
+<ul>
+<li><a href="https://github.com/vitejs/vite-plugin-react/commit/640fd358a0e82393acfce4e92e19a6ac6e1641a7"><code>640fd35</code></a> release: plugin-react@6.0.3</li>
+<li><a href="https://github.com/vitejs/vite-plugin-react/commit/889efb02cdc4ec978a5e177a37e0213cfded38a4"><code>889efb0</code></a> fix(deps): update all non-major dependencies (<a href="https://github.com/vitejs/vite-plugin-react/tree/HEAD/packages/plugin-react/issues/1249">#1249</a>)</li>
+<li><a href="https://github.com/vitejs/vite-plugin-react/commit/6c57dd4c5d71075b48039df2532804e72880da21"><code>6c57dd4</code></a> fix(plugin-react): use '/' base in bundledDev preamble to fix non-root base p...</li>
+<li><a href="https://github.com/vitejs/vite-plugin-react/commit/3cc33a703636b558a1c1c99e787ddc6bd64aab2d"><code>3cc33a7</code></a> fix(deps): update react-related dependencies (<a href="https://github.com/vitejs/vite-plugin-react/tree/HEAD/packages/plugin-react/issues/1245">#1245</a>)</li>
+<li><a href="https://github.com/vitejs/vite-plugin-react/commit/c0f7c7ff709dc9d88bc1f29f1b27c1b3e2bfcfca"><code>c0f7c7f</code></a> docs: mention the Biome rule in the &quot;Consistent components exports&quot; section (...</li>
+<li><a href="https://github.com/vitejs/vite-plugin-react/commit/cd80f0f7b2b750f6e8f719f9c3dbe4f22ddd94db"><code>cd80f0f</code></a> fix(deps): update all non-major dependencies (<a href="https://github.com/vitejs/vite-plugin-react/tree/HEAD/packages/plugin-react/issues/1241">#1241</a>)</li>
+<li><a href="https://github.com/vitejs/vite-plugin-react/commit/e38accafea0c7c84f7fc72fd69d9cec731fa7600"><code>e38acca</code></a> fix(deps): update all non-major dependencies (<a href="https://github.com/vitejs/vite-plugin-react/tree/HEAD/packages/plugin-react/issues/1227">#1227</a>)</li>
+<li><a href="https://github.com/vitejs/vite-plugin-react/commit/9a9bb26c23b966dceed47ff9ec257faeb0e777d9"><code>9a9bb26</code></a> perf(react): improve react compiler preset so that slightly more modules are ...</li>
+<li>See full diff in <a href="https://github.com/vitejs/vite-plugin-react/commits/plugin-react@6.0.3/packages/plugin-react">compare view</a></li>
+</ul>
+</details>
+<br />
+
+Updates `vite` from 8.0.16 to 8.1.0
+<details>
+<summary>Release notes</summary>
+<p><em>Sourced from <a href="https://github.com/vitejs/vite/releases">vite's releases</a>.</em></p>
+<blockquote>
+<h2>create-vite@8.1.0</h2>
+<p>Please refer to <a href="https://github.com/vitejs/vite/blob/create-vite@8.1.0/packages/create-vite/CHANGELOG.md">CHANGELOG.md</a> for details.</p>
+<h2>plugin-legacy@8.1.0</h2>
+<p>Please refer to <a href="https://github.com/vitejs/vite/blob/plugin-legacy@8.1.0/packages/plugin-legacy/CHANGELOG.md">CHANGELOG.md</a> for details.</p>
+<h2>v8.1.0</h2>
+<p>Please refer to <a href="https://github.com/vitejs/vite/blob/v8.1.0/packages/vite/CHANGELOG.md">CHANGELOG.md</a> for details.</p>
+<h2>plugin-legacy@8.1.0-beta.0</h2>
+<p>Please refer to <a href="https://github.com/vitejs/vite/blob/plugin-legacy@8.1.0-beta.0/packages/plugin-legacy/CHANGELOG.md">CHANGELOG.md</a> for details.</p>
+<h2>v8.1.0-beta.0</h2>
+<p>Please refer to <a href="https://github.com/vitejs/vite/blob/v8.1.0-beta.0/packages/vite/CHANGELOG.md">CHANGELOG.md</a> for details.</p>
+</blockquote>
+</details>
+<details>
+<summary>Changelog</summary>
+<p><em>Sourced from <a href="https://github.com/vitejs/vite/blob/main/packages/vite/CHANGELOG.md">vite's changelog</a>.</em></p>
+<blockquote>
+<h2><a href="https://github.com/vitejs/vite/compare/v8.1.0-beta.0...v8.1.0">8.1.0</a> (2026-06-23)</h2>
+<h3>Features</h3>
+<ul>
+<li>extend <code>server.fs.deny</code> list with common files (<a href="https://redirect.github.com/vitejs/vite/issues/22707">#22707</a>) (<a href="https://github.com/vitejs/vite/commit/61ba8fdc6500e8aa668021833ae5e6ebd200466d">61ba8fd</a>)</li>
+<li>update rolldown to 1.1.2 (<a href="https://redirect.github.com/vitejs/vite/issues/22695">#22695</a>) (<a href="https://github.com/vitejs/vite/commit/4f008a6213014fe5e898f42561bdc621e103903e">4f008a6</a>)</li>
+<li>use <code>~</code> for Rolldown (<a href="https://redirect.github.com/vitejs/vite/issues/22693">#22693</a>) (<a href="https://github.com/vitejs/vite/commit/9928722f7d08de27907c48b65ddc071244166e05">9928722</a>)</li>
+</ul>
+<h3>Bug Fixes</h3>
+<ul>
+<li><strong>bundled-dev:</strong> errors should be kept when incremental build fails (<a href="https://redirect.github.com/vitejs/vite/issues/22617">#22617</a>) (<a href="https://github.com/vitejs/vite/commit/9a0dd481ac2160078b8173879e0fa86e5e6af05d">9a0dd48</a>)</li>
+<li>cache falsy values in perEnvironmentState (<a href="https://redirect.github.com/vitejs/vite/issues/22715">#22715</a>) (<a href="https://github.com/vitejs/vite/commit/0e91e79841b501d29dc86a6b7c0313660781196a">0e91e79</a>)</li>
+<li><strong>glob:</strong> respect caseSensitive option in hmr matcher (<a href="https://redirect.github.com/vitejs/vite/issues/22711">#22711</a>) (<a href="https://github.com/vitejs/vite/commit/65f525e643ba31faeaeafbc5d888b61465e6b48d">65f525e</a>)</li>
+<li><strong>html:</strong> omit nonce on import map when cspNonce is unset (<a href="https://redirect.github.com/vitejs/vite/issues/22713">#22713</a>) (<a href="https://github.com/vitejs/vite/commit/8340bb51cab703427a13d5df40b0005352c1b676">8340bb5</a>)</li>
+<li><strong>optimizer:</strong> skip null-valued exports in expandGlobIds glob resolution (<a href="https://redirect.github.com/vitejs/vite/issues/22611">#22611</a>) (<a href="https://github.com/vitejs/vite/commit/8b9f5cd9f19f6002e1323b10155ab943219e86aa">8b9f5cd</a>)</li>
+<li>resolved build options should be kept as a getter (<a href="https://redirect.github.com/vitejs/vite/issues/22691">#22691</a>) (<a href="https://github.com/vitejs/vite/commit/3527191cad6c935a3d129506cc9a893c84009037">3527191</a>)</li>
+<li><strong>server:</strong> handle malformed URI in memory files middleware (<a href="https://redirect.github.com/vitejs/vite/issues/22714">#22714</a>) (<a href="https://github.com/vitejs/vite/commit/df9e0a589ff64e09c32beca9494bff4757d4ea37">df9e0a5</a>)</li>
+<li>use literal envPrefix queries for Vite Task (<a href="https://redirect.github.com/vitejs/vite/issues/22706">#22706</a>) (<a href="https://github.com/vitejs/vite/commit/da727337b13ac6144e523eb06852b2a52c377f22">da72733</a>)</li>
+<li>warn on deprecated envFile (<a href="https://redirect.github.com/vitejs/vite/issues/22555">#22555</a>) (<a href="https://github.com/vitejs/vite/commit/ed7b28352e347dc7c95d590d2e696c3e5bd1e3d7">ed7b283</a>)</li>
+</ul>
+<h3>Code Refactoring</h3>
+<ul>
+<li><strong>client:</strong> inline dev-id value in CSS selector (<a href="https://redirect.github.com/vitejs/vite/issues/22736">#22736</a>) (<a href="https://github.com/vitejs/vite/commit/57f59bc843dd527a81c503684b7f408872edaef3">57f59bc</a>)</li>
+<li>remove unused removeRawQuery util (<a href="https://redirect.github.com/vitejs/vite/issues/22724">#22724</a>) (<a href="https://github.com/vitejs/vite/commit/403cc608e4e8633b0335f5e8221c83dfca4994f8">403cc60</a>)</li>
+<li>use <code>rolldownOptions</code> property for chunkImportMap (<a href="https://redirect.github.com/vitejs/vite/issues/22692">#22692</a>) (<a href="https://github.com/vitejs/vite/commit/8e8816ca9fa249d210150c5590bac06af3560aa7">8e8816c</a>)</li>
+</ul>
+<h2><a href="https://github.com/vitejs/vite/compare/v8.0.16...v8.1.0-beta.0">8.1.0-beta.0</a> (2026-06-15)</h2>
+<h3>Features</h3>
+<ul>
+<li><code>import.meta.glob</code> support <code>caseSensitive</code> option (<a href="https://redirect.github.com/vitejs/vite/issues/21707">#21707</a>) (<a href="https://github.com/vitejs/vite/commit/2ad6737a838cc23ebb9b2766682d28b11078dab5">2ad6737</a>)</li>
+<li>add warning to discourage Vite with yarn pnp (<a href="https://redirect.github.com/vitejs/vite/issues/21906">#21906</a>) (<a href="https://github.com/vitejs/vite/commit/3fbb55add62a1b94a2b47b7da70db4ae99a7c943">3fbb55a</a>)</li>
+<li><strong>build:</strong> chunk importmap (<a href="https://redirect.github.com/vitejs/vite/issues/21580">#21580</a>) (<a href="https://github.com/vitejs/vite/commit/e1803128e5698202e22c6e5e17dc9ebd83d4f3f5">e180312</a>)</li>
+<li><strong>css:</strong> support lightningcss plugin dependency (<a href="https://redirect.github.com/vitejs/vite/issues/21748">#21748</a>) (<a href="https://github.com/vitejs/vite/commit/0b7aaedc98cacb00e6db33f5f79a70192da38304">0b7aaed</a>)</li>
+<li><strong>deps:</strong> bump <code>@​vitejs/devtools</code> peer dependency version (<a href="https://redirect.github.com/vitejs/vite/issues/22542">#22542</a>) (<a href="https://github.com/vitejs/vite/commit/d2c2bc090bab9bb9508e5060accb5179b6310257">d2c2bc0</a>)</li>
+<li><strong>html:</strong> add <code>html.additionalAssetSources</code> option (<a href="https://redirect.github.com/vitejs/vite/issues/21412">#21412</a>) (<a href="https://github.com/vitejs/vite/commit/a41404b8894d4de729ed49fb51e0b6230d6cb511">a41404b</a>)</li>
+<li>integrate with Vite Task for zero-config build caching (<a href="https://redirect.github.com/vitejs/vite/issues/22453">#22453</a>) (<a href="https://github.com/vitejs/vite/commit/f8d75f7723aeb635126c8dc0e0c33266c72d24c0">f8d75f7</a>)</li>
+<li>rename <code>server.hmr</code> options to <code>server.ws</code> options (<a href="https://redirect.github.com/vitejs/vite/issues/21357">#21357</a>) (<a href="https://github.com/vitejs/vite/commit/9ce3036d31d4e56b8ef3730a39a7f0e54baa951f">9ce3036</a>)</li>
+<li><strong>server:</strong> support multiple hosts in __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS (<a href="https://redirect.github.com/vitejs/vite/issues/21501">#21501</a>) (<a href="https://github.com/vitejs/vite/commit/735f9a19a9d0e313c865c87daad677aaf358406b">735f9a1</a>)</li>
+<li>track dependencies when loading config with native (<a href="https://redirect.github.com/vitejs/vite/issues/22602">#22602</a>) (<a href="https://github.com/vitejs/vite/commit/a7e2da8cdb306cfdf1660aa4b1fe24873a8dd873">a7e2da8</a>)</li>
+<li><strong>types:</strong> add more precise typing for known <code>query</code> types to match known <code>as</code> types (<a href="https://redirect.github.com/vitejs/vite/issues/21863">#21863</a>) (<a href="https://github.com/vitejs/vite/commit/cc39e55401d559b771fa3e029d90c419a364b805">cc39e55</a>)</li>
+<li>update rolldown to 1.1.1 (<a href="https://redirect.github.com/vitejs/vite/issues/22593">#22593</a>) (<a href="https://github.com/vitejs/vite/commit/8a13d6337eea3e74d6a7abaaa7e1d378f5b9bc49">8a13d63</a>)</li>
+<li><strong>wasm:</strong> direct .wasm imports (WASM ESM Integration) (<a href="https://redirect.github.com/vitejs/vite/issues/21779">#21779</a>) (<a href="https://github.com/vitejs/vite/commit/c23d85b9654685d7217cfc33817d2953b77744f8">c23d85b</a>)</li>
+</ul>
+<h3>Bug Fixes</h3>
+<ul>
+<li>apply correct fs restrictions for pnpm gvs (<a href="https://redirect.github.com/vitejs/vite/issues/22415">#22415</a>) (<a href="https://github.com/vitejs/vite/commit/092320bfe115e4d9952a7d172bc40cd3ec14a4c3">092320b</a>)</li>
+<li><strong>css:</strong> support external CSS with lightningcss (<a href="https://redirect.github.com/vitejs/vite/issues/18389">#18389</a>) (<a href="https://github.com/vitejs/vite/commit/d64a1a5557b3caea9469e70b647ff2c9d9def809">d64a1a5</a>)</li>
+<li><strong>deps:</strong> update all non-major dependencies (<a href="https://redirect.github.com/vitejs/vite/issues/22637">#22637</a>) (<a href="https://github.com/vitejs/vite/commit/44bb9d95a246011a2fba9a19cadeac4181bef1b4">44bb9d9</a>)</li>
+<li><strong>deps:</strong> update all non-major dependencies (<a href="https://redirect.github.com/vitejs/vite/issues/22681">#22681</a>) (<a href="https://github.com/vitejs/vite/commit/f4f063382dde0d67b2158374c56443d0bf5c9501">f4f0633</a>)</li>
+<li><strong>html:</strong> insert import map before modulepreload that is not self-close tag (<a href="https://redirect.github.com/vitejs/vite/issues/21409">#21409</a>) (<a href="https://github.com/vitejs/vite/commit/e399c89a7decff73ff42a4a01679ecc235ce6845">e399c89</a>)</li>
+<li><strong>optimizer:</strong> preserve sourcemaps for transformed optimized deps with follow-up transforms (<a href="https://redirect.github.com/vitejs/vite/issues/22428">#22428</a>) (<a href="https://github.com/vitejs/vite/commit/1298951ebc5e5a94164c21f142fe748ca37eea68">1298951</a>)</li>
+</ul>
+<!-- raw HTML omitted -->
+</blockquote>
+<p>... (truncated)</p>
+</details>
+<details>
+<summary>Commits</summary>
+<ul>
+<li><a href="https://github.com/vitejs/vite/commit/5909efd8fbfd1bf1eab65427aea0613124b2797a"><code>5909efd</code></a> fix: allow multiple <code>bindCLIShortcuts</code> calls with shortcut merging (<a href="https://github.com/vitejs/vite/tree/HEAD/packages/vite/issues/21103">#21103</a>)</li>
+<li><a href="https://github.com/vitejs/vite/commit/39a0a15fd24ed37257c48b795097a3794e54d255"><code>39a0a15</code></a> chore(deps): update rolldown-related dependencies (<a href="https://github.com/vitejs/vite/tree/HEAD/packages/vite/issues/21095">#21095</a>)</li>
+<li><a href="https://github.com/vitejs/vite/commit/6a34ac3422686e7cf7cc9a25d299cb8e5a8d92a0"><code>6a34ac3</code></a> fix(deps): update all non-major dependencies (<a href="https://github.com/vitejs/vite/tree/HEAD/packages/vite/issues/21096">#21096</a>)</li>
+<li><a href="https://github.com/vitejs/vite/commit/02ceaec45e17bef19159188a28d9196fed1761be"><code>02ceaec</code></a> chore(deps): update dependency <code>@​rollup/plugin-commonjs</code> to v29 (<a href="https://github.com/vitejs/vite/tree/HEAD/packages/vite/issues/21099">#21099</a>)</li>
+<li><a href="https://github.com/vitejs/vite/commit/572aaca4594ed2377a4f63443a449e4bf3c0468c"><code>572aaca</code></a> release: v7.2.2</li>
+<li><a href="https://github.com/vitejs/vite/commit/728c8eeebc0ad7ba48e680f46bbdb55020b2e152"><code>728c8ee</code></a> fix: revert &quot;refactor: use fs.cpSync (<a href="https://github.com/vitejs/vite/tree/HEAD/packages/vite/issues/21019">#21019</a>)&quot; (<a href="https://github.com/vitejs/vite/tree/HEAD/packages/vite/issues/21081">#21081</a>)</li>
+<li><a href="https://github.com/vitejs/vite/commit/a532e68c6b7ed82ae7569d2d3380eb6417e9267d"><code>a532e68</code></a> release: v7.2.1</li>
+<li><a href="https://github.com/vitejs/vite/commit/82d2d6ccf5a69c3d67e44e3704a0c3eb34db2236"><code>82d2d6c</code></a> fix(worker): some worker asset was missing (<a href="https://github.com/vitejs/vite/tree/HEAD/packages/vite/issues/21074">#21074</a>)</li>
+<li><a href="https://github.com/vitejs/vite/commit/f83264f5d97caa8ba80276a9ee9e82cb0e69c4ca"><code>f83264f</code></a> refactor(build): rename <code>indexOfMatchInSlice</code> to <code>findPreloadMarker</code> (<a href="https://github.com/vitejs/vite/tree/HEAD/packages/vite/issues/21054">#21054</a>)</li>
+<li><a href="https://github.com/vitejs/vite/commit/8293de0e17af8a876d49761ed6651bd38b709174"><code>8293de0</code></a> release: v7.2.0</li>
+<li>Additional commits viewable in <a href="https://github.com/vitejs/vite/commits/create-vite@8.1.0/packages/vite">compare view</a></li>
+</ul>
+</details>
+<br />
+
+Updates `@types/node` from 26.0.0 to 26.0.1
+<details>
+<summary>Commits</summary>
+<ul>
+<li>See full diff in <a href="https://github.com/DefinitelyTyped/DefinitelyTyped/commits/HEAD/types/node">compare view</a></li>
+</ul>
+</details>
+<br />
+
+Updates `@vitejs/plugin-react` from 6.0.2 to 6.0.3
+<details>
+<summary>Changelog</summary>
+<p><em>Sourced from <a href="https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/CHANGELOG.md">@​vitejs/plugin-react's changelog</a>.</em></p>
+<blockquote>
+<h2>6.0.3 (2026-06-23)</h2>
+</blockquote>
+</details>
+<details>
+<summary>Commits</summary>
+<ul>
+<li><a href="https://github.com/vitejs/vite-plugin-react/commit/640fd358a0e82393acfce4e92e19a6ac6e1641a7"><code>640fd35</code></a> release: plugin-react@6.0.3</li>
+<li><a href="https://github.com/vitejs/vite-plugin-react/commit/889efb02cdc4ec978a5e177a37e0213cfded38a4"><code>889efb0</code></a> fix(deps): update all non-major dependencies (<a href="https://github.com/vitejs/vite-plugin-react/tree/HEAD/packages/plugin-react/issues/1249">#1249</a>)</li>
+<li><a href="https://github.com/vitejs/vite-plugin-react/commit/6c57dd4c5d71075b48039df2532804e72880da21"><code>6c57dd4</code></a> fix(plugin-react): use '/' base in bundledDev preamble to fix non-root base p...</li>
+<li><a href="https://github.com/vitejs/vite-plugin-react/commit/3cc33a703636b558a1c1c99e787ddc6bd64aab2d"><code>3cc33a7</code></a> fix(deps): update react-related dependencies (<a href="https://github.com/vitejs/vite-plugin-react/tree/HEAD/packages/plugin-react/issues/1245">#1245</a>)</li>
+<li><a href="https://github.com/vitejs/vite-plugin-react/commit/c0f7c7ff709dc9d88bc1f29f1b27c1b3e2bfcfca"><code>c0f7c7f</code></a> docs: mention the Biome rule in the &quot;Consistent components exports&quot; section (...</li>
+<li><a href="https://github.com/vitejs/vite-plugin-react/commit/cd80f0f7b2b750f6e8f719f9c3dbe4f22ddd94db"><code>cd80f0f</code></a> fix(deps): update all non-major dependencies (<a href="https://github.com/vitejs/vite-plugin-react/tree/HEAD/packages/plugin-react/issues/1241">#1241</a>)</li>
+<li><a href="https://github.com/vitejs/vite-plugin-react/commit/e38accafea0c7c84f7fc72fd69d9cec731fa7600"><code>e38acca</code></a> fix(deps): update all non-major dependencies (<a href="https://github.com/vitejs/vite-plugin-react/tree/HEAD/packages/plugin-react/issues/1227">#1227</a>)</li>
+<li><a href="https://github.com/vitejs/vite-plugin-react/commit/9a9bb26c23b966dceed47ff9ec257faeb0e777d9"><code>9a9bb26</code></a> perf(react): improve react compiler preset so that slightly more modules are ...</li>
+<li>See full diff in <a href="https://github.com/vitejs/vite-plugin-react/commits/plugin-react@6.0.3/packages/plugin-react">compare view</a></li>
+</ul>
+</details>
+<br />
+
+Updates `vite` from 8.0.16 to 8.1.0
+<details>
+<summary>Release notes</summary>
+<p><em>Sourced from <a href="https://github.com/vitejs/vite/releases">vite's releases</a>.</em></p>
+<blockquote>
+<h2>create-vite@8.1.0</h2>
+<p>Please refer to <a href="https://github.com/vitejs/vite/blob/create-vite@8.1.0/packages/create-vite/CHANGELOG.md">CHANGELOG.md</a> for details.</p>
+<h2>plugin-legacy@8.1.0</h2>
+<p>Please refer to <a href="https://github.com/vitejs/vite/blob/plugin-legacy@8.1.0/packages/plugin-legacy/CHANGELOG.md">CHANGELOG.md</a> for details.</p>
+<h2>v8.1.0</h2>
+<p>Please refer to <a href="https://github.com/vitejs/vite/blob/v8.1.0/packages/vite/CHANGELOG.md">CHANGELOG.md</a> for details.</p>
+<h2>plugin-legacy@8.1.0-beta.0</h2>
+<p>Please refer to <a href="https://github.com/vitejs/vite/blob/plugin-legacy@8.1.0-beta.0/packages/plugin-legacy/CHANGELOG.md">CHANGELOG.md</a> for details.</p>
+<h2>v8.1.0-beta.0</h2>
+<p>Please refer to <a href="https://github.com/vitejs/vite/blob/v8.1.0-beta.0/packages/vite/CHANGELOG.md">CHANGELOG.md</a> for details.</p>
+</blockquote>
+</details>
+<details>
+<summary>Changelog</summary>
+<p><em>Sourced from <a href="https://github.com/vitejs/vite/blob/main/packages/vite/CHANGELOG.md">vite's changelog</a>.</em></p>
+<blockquote>
+<h2><a href="https://github.com/vitejs/vite/compare/v8.1.0-beta.0...v8.1.0">8.1.0</a> (2026-06-23)</h2>
+<h3>Features</h3>
+<ul>
+<li>extend <code>server.fs.deny</code> list with common files (<a href="https://redirect.github.com/vitejs/vite/issues/22707">#22707</a>) (<a href="https://github.com/vitejs/vite/commit/61ba8fdc6500e8aa668021833ae5e6ebd200466d">61ba8fd</a>)</li>
+<li>update rolldown to 1.1.2 (<a href="https://redirect.github.com/vitejs/vite/issues/22695">#22695</a>) (<a href="https://github.com/vitejs/vite/commit/4f008a6213014fe5e898f42561bdc621e103903e">4f008a6</a>)</li>
+<li>use <code>~</code> for Rolldown (<a href="https://redirect.github.com/vitejs/vite/issues/22693">#22693</a>) (<a href="https://github.com/vitejs/vite/commit/9928722f7d08de27907c48b65ddc071244166e05">9928722</a>)</li>
+</ul>
+<h3>Bug Fixes</h3>
+<ul>
+<li><strong>bundled-dev:</strong> errors should be kept when incremental build fails (<a href="https://redirect.github.com/vitejs/vite/issues/22617">#22617</a>) (<a href="https://github.com/vitejs/vite/commit/9a0dd481ac2160078b8173879e0fa86e5e6af05d">9a0dd48</a>)</li>
+<li>cache falsy values in perEnvironmentState (<a href="https://redirect.github.com/vitejs/vite/issues/22715">#22715</a>) (<a href="https://github.com/vitejs/vite/commit/0e91e79841b501d29dc86a6b7c0313660781196a">0e91e79</a>)</li>
+<li><strong>glob:</strong> respect caseSensitive option in hmr matcher (<a href="https://redirect.github.com/vitejs/vite/issues/22711">#22711</a>) (<a href="https://github.com/vitejs/vite/commit/65f525e643ba31faeaeafbc5d888b61465e6b48d">65f525e</a>)</li>
+<li><strong>html:</strong> omit nonce on import map when cspNonce is unset (<a href="https://redirect.github.com/vitejs/vite/issues/22713">#22713</a>) (<a href="https://github.com/vitejs/vite/commit/8340bb51cab703427a13d5df40b0005352c1b676">8340bb5</a>)</li>
+<li><strong>optimizer:</strong> skip null-valued exports in expandGlobIds glob resolution (<a href="https://redirect.github.com/vitejs/vite/issues/22611">#22611</a>) (<a href="https://github.com/vitejs/vite/commit/8b9f5cd9f19f6002e1323b10155ab943219e86aa">8b9f5cd</a>)</li>
+<li>resolved build options should be kept as a getter (<a href="https://redirect.github.com/vitejs/vite/issues/22691">#22691</a>) (<a href="https://github.com/vitejs/vite/commit/3527191cad6c935a3d129506cc9a893c84009037">3527191</a>)</li>
+<li><strong>server:</strong> handle malformed URI in memory files middleware (<a href="https://redirect.github.com/vitejs/vite/issues/22714">#22714</a>) (<a href="https://github.com/vitejs/vite/commit/df9e0a589ff64e09c32beca9494bff4757d4ea37">df9e0a5</a>)</li>
+<li>use literal envPrefix queries for Vite Task (<a href="https://redirect.github.com/vitejs/vite/issues/22706">#22706</a>) (<a href="https://github.com/vitejs/vite/commit/da727337b13ac6144e523eb06852b2a52c377f22">da72733</a>)</li>
+<li>warn on deprecated envFile (<a href="https://redirect.github.com/vitejs/vite/issues/22555">#22555</a>) (<a href="https://github.com/vitejs/vite/commit/ed7b28352e347dc7c95d590d2e696c3e5bd1e3d7">ed7b283</a>)</li>
+</ul>
+<h3>Code Refactoring</h3>
+<ul>
+<li><strong>client:</strong> inline dev-id value in CSS selector (<a href="https://redirect.github.com/vitejs/vite/issues/22736">#22736</a>) (<a href="https://github.com/vitejs/vite/commit/57f59bc843dd527a81c503684b7f408872edaef3">57f59bc</a>)</li>
+<li>remove unused removeRawQuery util (<a href="https://redirect.github.com/vitejs/vite/issues/22724">#22724</a>) (<a href="https://github.com/vitejs/vite/commit/403cc608e4e8633b0335f5e8221c83dfca4994f8">403cc60</a>)</li>
+<li>use <code>rolldownOptions</code> property for chunkImportMap (<a href="https://redirect.github.com/vitejs/vite/issues/22692">#22692</a>) (<a href="https://github.com/vitejs/vite/commit/8e8816ca9fa249d210150c5590bac06af3560aa7">8e8816c</a>)</li>
+</ul>
+<h2><a href="https://github.com/vitejs/vite/compare/v8.0.16...v8.1.0-beta.0">8.1.0-beta.0</a> (2026-06-15)</h2>
+<h3>Features</h3>
+<ul>
+<li><code>import.meta.glob</code> support <code>caseSensitive</code> option (<a href="https://redirect.github.com/vitejs/vite/issues/21707">#21707</a>) (<a href="https://github.com/vitejs/vite/commit/2ad6737a838cc23ebb9b2766682d28b11078dab5">2ad6737</a>)</li>
+<li>add warning to discourage Vite with yarn pnp (<a href="https://redirect.github.com/vitejs/vite/issues/21906">#21906</a>) (<a href="https://github.com/vitejs/vite/commit/3fbb55add62a1b94a2b47b7da70db4ae99a7c943">3fbb55a</a>)</li>
+<li><strong>build:</strong> chunk importmap (<a href="https://redirect.github.com/vitejs/vite/issues/21580">#21580</a>) (<a href="https://github.com/vitejs/vite/commit/e1803128e5698202e22c6e5e17dc9ebd83d4f3f5">e180312</a>)</li>
+<li><strong>css:</strong> support lightningcss plugin dependency (<a href="https://redirect.github.com/vitejs/vite/issues/21748">#21748</a>) (<a href="https://github.com/vitejs/vite/commit/0b7aaedc98cacb00e6db33f5f79a70192da38304">0b7aaed</a>)</li>
+<li><strong>deps:</strong> bump <code>@​vitejs/devtools</code> peer dependency version (<a href="https://redirect.github.com/vitejs/vite/issues/22542">#22542</a>) (<a href="https://github.com/vitejs/vite/commit/d2c2bc090bab9bb9508e5060accb5179b6310257">d2c2bc0</a>)</li>
+<li><strong>html:</strong> add <code>html.additionalAssetSources</code> option (<a href="https://redirect.github.com/vitejs/vite/issues/21412">#21412</a>) (<a href="https://github.com/vitejs/vite/commit/a41404b8894d4de729ed49fb51e0b6230d6cb511">a41404b</a>)</li>
+<li>integrate with Vite Task for zero-config build caching (<a href="https://redirect.github.com/vitejs/vite/issues/22453">#22453</a>) (<a href="https://github.com/vitejs/vite/commit/f8d75f7723aeb635126c8dc0e0c33266c72d24c0">f8d75f7</a>)</li>
+<li>rename <code>server.hmr</code> options to <code>server.ws</code> options (<a href="https://redirect.github.com/vitejs/vite/issues/21357">#21357</a>) (<a href="https://github.com/vitejs/vite/commit/9ce3036d31d4e56b8ef3730a39a7f0e54baa951f">9ce3036</a>)</li>
+<li><strong>server:</strong> support multiple hosts in __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS (<a href="https://redirect.github.com/vitejs/vite/issues/21501">#21501</a>) (<a href="https://github.com/vitejs/vite/commit/735f9a19a9d0e313c865c87daad677aaf358406b">735f9a1</a>)</li>
+<li>track dependencies when loading config with native (<a href="https://redirect.github.com/vitejs/vite/issues/22602">#22602</a>) (<a href="https://github.com/vitejs/vite/commit/a7e2da8cdb306cfdf1660aa4b1fe24873a8dd873">a7e2da8</a>)</li>
+<li><strong>types:</strong> add more precise typing for known <code>query</code> types to match known <code>as</code> types (<a href="https://redirect.github.com/vitejs/vite/issues/21863">#21863</a>) (<a href="https://github.com/vitejs/vite/commit/cc39e55401d559b771fa3e029d90c419a364b805">cc39e55</a>)</li>
+<li>update rolldown to 1.1.1 (<a href="https://redirect.github.com/vitejs/vite/issues/22593">#22593</a>) (<a href="https://github.com/vitejs/vite/commit/8a13d6337eea3e74d6a7abaaa7e1d378f5b9bc49">8a13d63</a>)</li>
+<li><strong>wasm:</strong> direct .wasm imports (WASM ESM Integration) (<a href="https://redirect.github.com/vitejs/vite/issues/21779">#21779</a>) (<a href="https://github.com/vitejs/vite/commit/c23d85b9654685d7217cfc33817d2953b77744f8">c23d85b</a>)</li>
+</ul>
+<h3>Bug Fixes</h3>
+<ul>
+<li>apply correct fs restrictions for pnpm gvs (<a href="https://redirect.github.com/vitejs/vite/issues/22415">#22415</a>) (<a href="https://github.com/vitejs/vite/commit/092320bfe115e4d9952a7d172bc40cd3ec14a4c3">092320b</a>)</li>
+<li><strong>css:</strong> support external CSS with lightningcss (<a href="https://redirect.github.com/vitejs/vite/issues/18389">#18389</a>) (<a href="https://github.com/vitejs/vite/commit/d64a1a5557b3caea9469e70b647ff2c9d9def809">d64a1a5</a>)</li>
+<li><strong>deps:</strong> update all non-major dependencies (<a href="https://redirect.github.com/vitejs/vite/issues/22637">#22637</a>) (<a href="https://github.com/vitejs/vite/commit/44bb9d95a246011a2fba9a19cadeac4181bef1b4">44bb9d9</a>)</li>
+<li><strong>deps:</strong> update all non-major dependencies (<a href="https://redirect.github.com/vitejs/vite/issues/22681">#22681</a>) (<a href="https://github.com/vitejs/vite/commit/f4f063382dde0d67b2158374c56443d0bf5c9501">f4f0633</a>)</li>
+<li><strong>html:</strong> insert import map before modulepreload that is not self-close tag (<a href="https://redirect.github.com/vitejs/vite/issues/21409">#21409</a>) (<a href="https://github.com/vitejs/vite/commit/e399c89a7decff73ff42a4a01679ecc235ce6845">e399c89</a>)</li>
+<li><strong>optimizer:</strong> preserve sourcemaps for transformed optimized deps with follow-up transforms (<a href="https://redirect.github.com/vitejs/vite/issues/22428">#22428</a>) (<a href="https://github.com/vitejs/vite/commit/1298951ebc5e5a94164c21f142fe748ca37eea68">1298951</a>)</li>
+</ul>
+<!-- raw HTML omitted -->
+</blockquote>
+<p>... (truncated)</p>
+</details>
+<details>
+<summary>Commits</summary>
+<ul>
+<li><a href="https://github.com/vitejs/vite/commit/5909efd8fbfd1bf1eab65427aea0613124b2797a"><code>5909efd</code></a> fix: allow multiple <code>bindCLIShortcuts</code> calls with shortcut merging (<a href="https://github.com/vitejs/vite/tree/HEAD/packages/vite/issues/21103">#21103</a>)</li>
+<li><a href="https://github.com/vitejs/vite/commit/39a0a15fd24ed37257c48b795097a3794e54d255"><code>39a0a15</code></a> chore(deps): update rolldown-related dependencies (<a href="https://github.com/vitejs/vite/tree/HEAD/packages/vite/issues/21095">#21095</a>)</li>
+<li><a href="https://github.com/vitejs/vite/commit/6a34ac3422686e7cf7cc9a25d299cb8e5a8d92a0"><code>6a34ac3</code></a> fix(deps): update all non-major dependencies (<a href="https://github.com/vitejs/vite/tree/HEAD/packages/vite/issues/21096">#21096</a>)</li>
+<li><a href="https://github.com/vitejs/vite/commit/02ceaec45e17bef19159188a28d9196fed1761be"><code>02ceaec</code></a> chore(deps): update dependency <code>@​rollup/plugin-commonjs</code> to v29 (<a href="https://github.com/vitejs/vite/tree/HEAD/packages/vite/issues/21099">#21099</a>)</li>
+<li><a href="https://github.com/vitejs/vite/commit/572aaca4594ed2377a4f63443a449e4bf3c0468c"><code>572aaca</code></a> release: v7.2.2</li>
+<li><a href="https://github.com/vitejs/vite/commit/728c8eeebc0ad7ba48e680f46bbdb55020b2e152"><code>728c8ee</code></a> fix: revert &quot;refactor: use fs.cpSync (<a href="https://github.com/vitejs/vite/tree/HEAD/packages/vite/issues/21019">#21019</a>)&quot; (<a href="https://github.com/vitejs/vite/tree/HEAD/packages/vite/issues/21081">#21081</a>)</li>
+<li><a href="https://github.com/vitejs/vite/commit/a532e68c6b7ed82ae7569d2d3380eb6417e9267d"><code>a532e68</code></a> release: v7.2.1</li>
+<li><a href="https://github.com/vitejs/vite/commit/82d2d6ccf5a69c3d67e44e3704a0c3eb34db2236"><code>82d2d6c</code></a> fix(worker): some worker asset was missing (<a href="https://github.com/vitejs/vite/tree/HEAD/packages/vite/issues/21074">#21074</a>)</li>
+<li><a href="https://github.com/vitejs/vite/commit/f83264f5d97caa8ba80276a9ee9e82cb0e69c4ca"><code>f83264f</code></a> refactor(build): rename <code>indexOfMatchInSlice</code> to <code>findPreloadMarker</code> (<a href="https://github.com/vitejs/vite/tree/HEAD/packages/vite/issues/21054">#21054</a>)</li>
+<li><a href="https://github.com/vitejs/vite/commit/8293de0e17af8a876d49761ed6651bd38b709174"><code>8293de0</code></a> release: v7.2.0</li>
+<li>Additional commits viewable in <a href="https://github.com/vitejs/vite/commits/create-vite@8.1.0/packages/vite">compare view</a></li>
+</ul>
+</details>
+<br />
+
+
+Dependabot will resolve any conflicts with this PR as long as you don't alter it yourself. You can also trigger a rebase manually by commenting `@dependabot rebase`.
+
+[//]: # (dependabot-automerge-start)
+[//]: # (dependabot-automerge-end)
+
+---
+
+<details>
+<summary>Dependabot commands and options</summary>
+<br />
+
+You can trigger Dependabot actions by commenting on this PR:
+- `@dependabot rebase` will rebase this PR
+- `@dependabot recreate` will recreate this PR, overwriting any edits that have been made to it
+- `@dependabot show <dependency name> ignore conditions` will show all of the ignore conditions of the specified dependency
+- `@dependabot ignore <dependency name> major version` will close this group update PR and stop Dependabot creating any more for the specific dependency's major version (unless you unignore this specific dependency's major version or upgrade to it yourself)
+- `@dependabot ignore <dependency name> minor version` will close this group update PR and stop Dependabot creating any more for the specific dependency's minor version (unless you unignore this specific dependency's minor version or upgrade to it yourself)
+- `@dependabot ignore <dependency name>` will close this group update PR and stop Dependabot creating any more for the specific dependency (unless you unignore this specific dependency or upgrade to it yourself)
+- `@dependabot unignore <dependency name>` will remove all of the ignore conditions of the specified dependency
+- `@dependabot unignore <dependency name> <ignore condition>` will remove the ignore condition of the specified dependency and ignore conditions
+
+
+</details>
+
+--- CHECKS ---
+Backward Compatibility Regression (22)	fail	11s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486318/job/85324798916	
+Backward Compatibility Regression (24)	fail	10s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486318/job/85324798913	
+CLI Unit + Migration (Node 22)	fail	10s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486173/job/85324798523	
+CLI Unit + Migration (Node 24)	fail	10s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486173/job/85324798537	
+Core (Node 22)	fail	13s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486173/job/85324842244	
+Core (Node 24)	fail	11s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486173/job/85324842265	
+Root folder allowlist	fail	6s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777483956/job/85324791496	
+Root folder allowlist	fail	5s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486172/job/85324798449	
+gitleaks	fail	10s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486195/job/85324798379	
+Docker Build & Push	skipping	0	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486173/job/85324912083	
+Performance Benchmarks	skipping	0	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486173/job/85324912400	
+Release Engineering Enforcement	skipping	0	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486318/job/85324819257	
+Test & Publish	skipping	0	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486173/job/85324912068	
+kafka-chaos	skipping	0	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486234/job/85324814661	
+certify	pass	8m9s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486255/job/85324798624	
+CodeQL	pass	2s	https://github.com/hassanmubiru/StreetJS/runs/85324900674	
+Plugins must not ship Dockerfiles	pass	4s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486172/job/85324798483	
+No RESTRICTED files tracked	pass	4s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486172/job/85324798540	
+Scan infra for real identifiers	pass	5s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777483987/job/85324791952	
+Plugin security standard	pass	4s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486262/job/85324798683	
+Memory Leak (Node 22)	pass	19s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486173/job/85324798505	
+Memory Leak (Node 24)	pass	15s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486173/job/85324798550	
+No RESTRICTED files tracked	pass	4s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777483956/job/85324791485	
+block-private-keys	pass	7s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777483987/job/85324791967	
+Policy Checks (no-placeholders + audit)	pass	14s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486173/job/85324798648	
+Upgrade Codemods Verification	pass	22s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486173/job/85324798501	
+Governance docs present	pass	6s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486172/job/85324798473	
+Plugin security standard	pass	5s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777484031/job/85324791982	
+Plugins must not ship Dockerfiles	pass	7s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777483956/job/85324791463	
+Governance docs present	pass	6s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777483956/job/85324791477	
+Package Integrity (pack + clean-install import)	pass	31s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486173/job/85324798487	
+Manifest + README + placeholder + circular-dependency checks (all packages)	pass	32s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486263/job/85324798697	
+Secrets Guard (block private keys)	pass	7s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486173/job/85324798492	
+Memory Safety Enforcement (24)	pass	20s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486318/job/85324798917	
+Test Summary	pass	4s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486173/job/85324949768	
+Analyze (actions)	pass	40s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486164/job/85324798572	
+Security Lint (zizmor)	pass	16s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486173/job/85324798488	
+Certification Suites + DB E2E	pass	1m10s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486173/job/85324798482	
+Code Hygiene Scan	pass	6s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486318/job/85324798962	
+block-private-keys	pass	7s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486251/job/85324798575	
+MySQL Integration Tests	pass	42s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486173/job/85324798507	
+browser-compat	pass	26s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486289/job/85324798602	
+Memory Safety Enforcement (22)	pass	26s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486318/job/85324798958	
+Analyze (javascript-typescript)	pass	1m47s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486164/job/85324798502	
+Scan infra for real identifiers	pass	5s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486251/job/85324798570	
+Forbidden files (RESTRICTED tier)	pass	6s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777484031/job/85324791942	
+Forbidden files (RESTRICTED tier)	pass	5s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486262/job/85324798652	
+Security Audit (npm audit)	pass	10s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486318/job/85324798948	
+chaos-testing (Node 22)	pass	25s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486173/job/85324798591	
+chaos-testing (Node 24)	pass	23s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486173/job/85324798515	
+dependency-review	pass	11s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486326/job/85324798750	
+fuzz-testing (Node 22)	pass	22s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486173/job/85324798531	
+fuzz-testing (Node 24)	pass	25s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486173/job/85324798707	
+infrastructure (Node 22)	pass	25s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486173/job/85324798486	
+infrastructure (Node 24)	pass	20s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486173/job/85324798678	
+kafka-integration	pass	49s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486234/job/85324798635	
+load-testing (Node 22)	pass	20s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486173/job/85324798509	
+load-testing (Node 24)	pass	16s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486173/job/85324798520	
+memory-safety (Node 22)	pass	22s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486173/job/85324798704	
+memory-safety (Node 24)	pass	22s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486173/job/85324798494	
+rabbitmq-integration	pass	41s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486242/job/85324798709	
+reference-apps	pass	29s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486373/job/85324799125	
+search-providers	pass	36s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486219/job/85324798600	
+security (Node 22)	pass	28s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486173/job/85324798599	
+security (Node 24)	pass	30s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486173/job/85324798610	
+security/snyk (hassanmubiru)	pass	0	https://app.snyk.io/org/hassanmubiru/pr-checks/469e9df6-23ae-49a3-8339-116f4921218f	No manifest changes detected in 1 project
+storage-providers	pass	48s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486219/job/85324798672	
+trufflehog	pass	17s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486195/job/85324798422	
+verify-signing-anchor	pass	7s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777483987/job/85324792075	
+verify-signing-anchor	pass	5s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486251/job/85324798627	
+
+========== PR #110 ==========
