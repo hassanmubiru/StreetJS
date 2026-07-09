@@ -1,0 +1,8 @@
+7604a60d 	new file:   gitstatus-scratch.txt
+5a6e272c 	modified:   .github/workflows/vendor-integration.yml
+ffd930d4 	modified:   packages/storage/src/tests/azure-driver.test.ts
+b9374a78 	modified:   packages/storage/src/tests/azure-driver.test.ts
+837caa43 	modified:   packages/storage/src/tests/gcs-driver.test.ts
+3df90db6 	modified:   packages/storage/src/tests/gcs-driver.test.ts 	modified:   packages/storage/src/tests/supabase-driver.test.ts
+1d301b19 Changes to be committed: 	modified:   packages/storage/src/tests/contract.ts 	modified:   packages/storage/src/tests/supabase-driver.test.ts
+c0493151 	modified:   packages/storage/src/tests/contract.ts
