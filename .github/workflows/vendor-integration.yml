@@ -109,16 +109,17 @@ jobs:
       # actually works end-to-end. Installing the real, optional peer SDKs here
       # lets the tests exercise the genuine live round-trip whenever credentials
       # are present.
-      # Installed by `cd`-ing into the package directly rather than via the
-      # root `npm install ... -w packages/storage` form: the `-w` form hit a
-      # real npm bug in this exact scenario ("Cannot read properties of
-      # undefined (reading 'spec')") when adding packages not already in the
-      # workspace's dependency graph. `--no-save` was also tried and silently
-      # no-ops against an already-reconciled workspace lockfile. This never
-      # touches the committed repo since the job never pushes.
+      # `--package-lock=false` (not `--no-save`, not the root `-w` form) is
+      # required here: both other approaches were tried and either silently
+      # no-op against an already-reconciled workspace lockfile, or hit a real
+      # npm 10.8.2 Arborist bug ("Cannot read properties of undefined
+      # (reading 'spec')") when saving the ideal tree for a workspace member.
+      # `--package-lock=false` skips that save step entirely while still
+      # installing real packages into node_modules. This never touches the
+      # committed repo since the job never pushes.
       - name: Install optional cloud-provider SDKs (for real live round-trips)
         working-directory: packages/storage
-        run: npm install @supabase/supabase-js @google-cloud/storage @azure/storage-blob
+        run: npm install @supabase/supabase-js @google-cloud/storage @azure/storage-blob --package-lock=false
 
       - name: Materialize GCS service-account key file
         if: ${{ env.GCS_SERVICE_ACCOUNT_JSON != '' }}
