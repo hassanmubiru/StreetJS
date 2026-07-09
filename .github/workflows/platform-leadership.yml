@@ -78,8 +78,15 @@ jobs:
       # platform-leadership.report.json and mirrors GRANTED/WITHHELD in its exit
       # code (Req 12.4/12.5). A WITHHELD decision fails this step — that is the
       # gate reflecting, not setting, the computed result.
+      # On pull_request the per-capability artifacts are produced by workflows
+      # that don't run on this event, so the aggregation is run in ADVISORY mode
+      # (visibility-only, never blocks): the decision is still computed and the
+      # report uploaded, but a WITHHELD does not fail the PR. On
+      # workflow_dispatch/schedule — where the artifacts genuinely exist — the
+      # gate stays STRICT and a real WITHHELD fails, preserving the zero-trust
+      # exit-criteria guarantee where it is authoritative. See issue #118.
       - name: Aggregate Platform Leadership decision
-        run: node packages/cli/bin/street.js verify --aggregate
+        run: node packages/cli/bin/street.js verify --aggregate ${{ github.event_name == 'pull_request' && '--advisory' || '' }}
 
       # Always upload the report, even when the gate fails on WITHHELD, so the
       # machine-readable decision and its provenance are retained as evidence.
