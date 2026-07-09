@@ -1,3 +1,0 @@
-98a41427e3377297d9ad1e644995975a45e22120 	new file:   verify-fix.txt
-55d1bb558c0ce0749be3524bf5207415692b7780 	new file:   pkg-diff-final.txt
-e6776678a1a9b24d66385dbc70489ce72973619f 	new file:   left-pad-check.txt
