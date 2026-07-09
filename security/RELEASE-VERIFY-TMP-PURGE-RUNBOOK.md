@@ -83,11 +83,12 @@ git push --force --mirror
    blobs (secret scanning also indexes `refs/pull/*` and internal caches that a
    force-push does not clear). Reference commit `0a7147b4` and alert #16. This is
    the same step used for the 2026 signing-key purge (OUTSTANDING-ACTIONS #3).
-2. **Close secret-scanning alert #16** as a false positive / used-in-tests once
-   Support confirms the blob is gone (the key was a gitleaks fixture, not a
-   StreetJS secret; no Google-side revocation is required — but if you have any
-   doubt it could be a real key your org owns, revoke it in Google Cloud Console
-   first).
+2. **Close secret-scanning alerts #1–#16** as false positives / used-in-tests
+   once Support confirms the blob is gone (all 16 are gitleaks fixtures in the
+   same binary, not StreetJS secrets; no Google-side revocation is required —
+   but if you have any doubt any could be a real key your org owns, revoke it in
+   Google Cloud Console first). Removing the single binary blob resolves all 16
+   alerts at once.
 3. All collaborators must **re-clone or hard-reset** to the rewritten `main`
    (old clones still contain the blobs).
 4. Rebase any open PRs onto the new `main` (their base SHAs changed).
