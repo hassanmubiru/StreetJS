@@ -221,7 +221,7 @@ test("connectSupabaseStorageDriver throws StorageConfigError when the Supabase S
   // process-wide, not test-file-scoped. Detect that case and report an honest
   // skip rather than a false failure, matching this package's established
   // honest-skip convention (see non-s3-integration.test.ts).
-  if (await isSdkResolvable("@supabase/supabase-js")) {
+  if (isSdkResolvable("@supabase/supabase-js")) {
     t.skip(
       '"@supabase/supabase-js" is installed in this test run, so the SDK-absent ' +
         "precondition this guard checks does not hold here. Skipping — the guard is " +

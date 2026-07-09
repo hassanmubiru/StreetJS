@@ -69,9 +69,9 @@ import type { AccessLevel, StorageObjectMetadata } from "../types.js";
  * @param {string} specifier The module specifier to probe (e.g. `"@supabase/supabase-js"`).
  * @returns {Promise<boolean>} `true` when the specifier resolves to an installed module.
  */
-export async function isSdkResolvable(specifier: string): Promise<boolean> {
+export function isSdkResolvable(specifier: string): boolean {
   try {
-    await import.meta.resolve(specifier);
+    import.meta.resolve(specifier);
     return true;
   } catch {
     return false;
