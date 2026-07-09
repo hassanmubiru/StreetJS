@@ -17,7 +17,7 @@
 
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, sep } from 'node:path';
-import yaml from 'js-yaml';
+import { loadAll } from 'js-yaml';
 
 let errors = 0;
 
@@ -57,7 +57,7 @@ for (const path of files) {
 
   let docs;
   try {
-    docs = yaml.loadAll(readFileSync(path, 'utf8'));
+    docs = loadAll(readFileSync(path, 'utf8'));
   } catch (e) {
     const msg = String(e.message ?? e).replace(/\n/g, ' | ');
     console.log(`::error title=YAML Syntax Error,file=${norm}::${msg}`);

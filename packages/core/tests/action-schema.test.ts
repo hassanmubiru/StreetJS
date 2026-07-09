@@ -2,7 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import yaml from "js-yaml";
+import { load as loadYaml } from "js-yaml";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -23,7 +23,7 @@ assert.ok(
 
 /** Lazily parsed action document (re-reads each describe block for isolation) */
 function loadAction(): Record<string, unknown> {
-  return yaml.load(readFileSync(actionYmlPath, "utf-8")) as Record<
+  return loadYaml(readFileSync(actionYmlPath, "utf-8")) as Record<
     string,
     unknown
   >;

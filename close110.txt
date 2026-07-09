@@ -1,2 +1,0 @@
-✓ Closed pull request hassanmubiru/StreetJS#110 (Solution (#50): Plugin: `@streetjs/plugin-telegram` (bot API))
-EXIT:0
