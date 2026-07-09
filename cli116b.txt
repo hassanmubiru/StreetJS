@@ -1,0 +1,12 @@
+CLI Unit + Migration (Node 22)	Build core package (CLI dependency)	2026-07-09T19:59:48.6657279Z > tsc -p tsconfig.lib.json
+CLI Unit + Migration (Node 22)	Build CLI package	2026-07-09T20:00:05.8543840Z ##[error]src/commands/registry.ts(89,27): error TS2345: Argument of type 'KeyObject' is not assignable to parameter of type 'JsonWebKeyInput | BinaryLike | PublicKeyInput | RawPublicKeyInput'.
+---broader---
+CLI Unit + Migration (Node 22)	Build CLI package	2026-07-09T20:00:05.8543840Z ##[error]src/commands/registry.ts(89,27): error TS2345: Argument of type 'KeyObject' is not assignable to parameter of type 'JsonWebKeyInput | BinaryLike | PublicKeyInput | RawPublicKeyInput'.
+CLI Unit + Migration (Node 22)	Build CLI package	2026-07-09T20:00:05.8785344Z npm error Lifecycle script `build` failed with error:
+CLI Unit + Migration (Node 22)	Build CLI package	2026-07-09T20:00:05.8786019Z npm error code 2
+CLI Unit + Migration (Node 22)	Build CLI package	2026-07-09T20:00:05.8786673Z npm error path /home/runner/work/StreetJS/StreetJS/packages/cli
+CLI Unit + Migration (Node 22)	Build CLI package	2026-07-09T20:00:05.8787666Z npm error workspace @streetjs/cli@1.1.1
+CLI Unit + Migration (Node 22)	Build CLI package	2026-07-09T20:00:05.8788483Z npm error location /home/runner/work/StreetJS/StreetJS/packages/cli
+CLI Unit + Migration (Node 22)	Build CLI package	2026-07-09T20:00:05.8789219Z npm error command failed
+CLI Unit + Migration (Node 22)	Build CLI package	2026-07-09T20:00:05.8789676Z npm error command sh -c tsc
+CLI Unit + Migration (Node 22)	Build CLI package	2026-07-09T20:00:05.8853292Z ##[error]Process completed with exit code 2.
