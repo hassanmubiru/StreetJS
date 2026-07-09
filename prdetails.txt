@@ -658,3 +658,266 @@ Updates `trufflesecurity/trufflehog` from 3.95.5 to 3.95.8
 _Description has been truncated_
 
 --- CHECKS ---
+Backward Compatibility Regression (22)	fail	17s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840714/job/86137990465	
+Backward Compatibility Regression (24)	fail	12s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840714/job/86137990659	
+CLI Unit + Migration (Node 22)	fail	15s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840733/job/86137990496	
+CLI Unit + Migration (Node 24)	fail	11s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840733/job/86137990408	
+Core (Node 22)	fail	13s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840733/job/86138210125	
+Core (Node 24)	fail	13s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840733/job/86138210597	
+Platform Leadership exit-criteria aggregation	fail	30s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840784/job/86137990391	
+Root folder allowlist	fail	6s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023836982/job/86137977538	
+Root folder allowlist	fail	6s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840690/job/86138009471	
+dependency-review	fail	12s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023841176/job/86137991680	
+Docker Build & Push	skipping	0	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840733/job/86138279715	
+Performance Benchmarks	skipping	0	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840733/job/86138279643	
+Release Engineering Enforcement	skipping	0	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840714/job/86138032320	
+Verify plugin signatures + provenance	pass	22s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023837307/job/86137978915	
+kafka-chaos	skipping	0	https://github.com/hassanmubiru/StreetJS/actions/runs/29023836841/job/86137978056	
+Memory Leak (Node 24)	pass	33s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840733/job/86137990279	
+Forbidden files (RESTRICTED tier)	pass	5s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023836598/job/86137976001	
+CodeQL	pass	2s	https://github.com/hassanmubiru/StreetJS/runs/86138167390	
+Plugins must not ship Dockerfiles	pass	5s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023836982/job/86137977320	
+TLS handshake integration (build + node:test)	pass	25s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023836513/job/86137975194	
+Plugin offline tests (build + node:test)	pass	44s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023836884/job/86137977012	
+Security Audit (npm audit)	pass	9s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840714/job/86137990395	
+Scan infra for real identifiers	pass	5s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023836809/job/86137977082	
+Memory Safety Enforcement (22)	pass	21s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840714/job/86137990524	
+Governance docs present	pass	5s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023836982/job/86137977365	
+No RESTRICTED files tracked	pass	6s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023836982/job/86137977312	
+Realtime (Node 22)	pass	33s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023841067/job/86137992117	
+Upgrade Codemods Verification	pass	22s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840733/job/86137990607	
+Memory Leak (Node 22)	pass	29s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840733/job/86137990271	
+Realtime (Node 24)	pass	26s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023841067/job/86137992042	
+Code Hygiene Scan	pass	6s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840714/job/86137990442	
+Memory Safety Enforcement (24)	pass	25s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840714/job/86137990418	
+Test & Publish	skipping	0	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840733/job/86138280628	
+MySQL Integration Tests	pass	51s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840733/job/86137990291	
+No RESTRICTED files tracked	pass	6s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840690/job/86138009561	
+Policy Checks (no-placeholders + audit)	pass	12s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840733/job/86137990275	
+Certification Suites + DB E2E	pass	1m2s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840733/job/86137990290	
+kafka-chaos	skipping	0	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840861/job/86137992179	
+Secrets Guard (block private keys)	pass	9s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840733/job/86137990301	
+Governance docs present	pass	4s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840690/job/86138009447	
+Plugin security standard	pass	7s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023836598/job/86137975972	
+Plugins must not ship Dockerfiles	pass	7s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840690/job/86138009576	
+Manifest + README + placeholder + circular-dependency checks (all packages)	pass	31s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840812/job/86137991103	
+TLS handshake integration (build + node:test)	pass	21s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840977/job/86137991468	
+Scan infra for real identifiers	pass	4s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840904/job/86137990834	
+Package Integrity (pack + clean-install import)	pass	48s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840733/job/86137990349	
+Security Lint (zizmor)	pass	17s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840733/job/86137990257	
+Analyze (javascript-typescript)	pass	1m24s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840732/job/86137990259	
+Test Summary	pass	3s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840733/job/86138322033	
+Plugin offline tests (build + node:test)	pass	55s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023841106/job/86137991645	
+Analyze (actions)	pass	41s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840732/job/86137990231	
+Forbidden files (RESTRICTED tier)	pass	7s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840691/job/86137990656	
+Plugin security standard	pass	11s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840691/job/86137990725	
+Verify plugin signatures + provenance	pass	18s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840874/job/86137990947	
+block-private-keys	pass	9s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023836809/job/86137976892	
+block-private-keys	pass	7s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840904/job/86137990912	
+browser-compat	pass	26s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023836791/job/86137976565	
+browser-compat	pass	25s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023841042/job/86137991511	
+certify	pass	8m3s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840682/job/86137990627	
+chaos-testing (Node 22)	pass	29s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840733/job/86137990481	
+chaos-testing (Node 24)	pass	24s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840733/job/86137990332	
+client-ci (22)	pass	19s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023836739/job/86137977258	
+client-ci (24)	pass	17s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023836739/job/86137977240	
+cloud-verify	pass	2m43s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840902/job/86137991052	
+dast	pass	1m52s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023841137/job/86137991658	
+devtools-verify	pass	1m1s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840939/job/86137991805	
+docs-seo	pass	27s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023836422/job/86137975586	
+enterprise-e2e	pass	29s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840920/job/86137991222	
+frontend-ci (22)	pass	38s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023836873/job/86137976926	
+frontend-ci (24)	pass	29s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023836873/job/86137977050	
+fuzz-testing (Node 22)	pass	25s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840733/job/86137990498	
+fuzz-testing (Node 24)	pass	25s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840733/job/86137990300	
+gitleaks	pass	10s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840708/job/86137989884	
+infrastructure (Node 22)	pass	23s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840733/job/86137990593	
+infrastructure (Node 24)	pass	20s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840733/job/86137990561	
+kafka-integration	pass	55s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023836841/job/86137977293	
+kafka-integration	pass	59s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840861/job/86137990748	
+load-testing (Node 22)	pass	28s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840733/job/86137990494	
+load-testing (Node 24)	pass	29s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840733/job/86137990505	
+memory-safety (Node 22)	pass	21s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840733/job/86137990327	
+memory-safety (Node 24)	pass	20s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840733/job/86137990483	
+mongodb-integration	pass	51s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023836653/job/86137976254	
+orm-integration	pass	40s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023836860/job/86137977087	
+promtool	pass	22s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840958/job/86137991166	
+rabbitmq-integration	pass	39s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023836439/job/86137974869	
+rabbitmq-integration	pass	40s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840907/job/86137991020	
+reference-apps	pass	31s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023836433/job/86137975279	
+reference-apps	pass	34s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840951/job/86137991450	
+registry-e2e	pass	29s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023841006/job/86137991493	
+search-providers	pass	41s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023836512/job/86137975161	
+search-providers	pass	33s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840935/job/86137990867	
+security (Node 22)	pass	33s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840733/job/86137990475	
+security (Node 24)	pass	28s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840733/job/86137990401	
+security/snyk (hassanmubiru)	pass	0	https://app.snyk.io/org/hassanmubiru/pr-checks/66818985-fb2f-4fa8-887c-a8e5c85ddefc	No manifest changes detected in 1 project
+storage-providers	pass	44s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023836512/job/86137975147	
+storage-providers	pass	45s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840935/job/86137990885	
+trufflehog	pass	15s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840708/job/86137989807	
+verify-signing-anchor	pass	6s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023836809/job/86137976944	
+verify-signing-anchor	pass	4s	https://github.com/hassanmubiru/StreetJS/actions/runs/29023840904/job/86137990805	
+
+========== PR #116 ==========
+title:	build(deps-dev): bump the development-dependencies group across 1 directory with 3 updates
+state:	OPEN
+author:	dependabot
+labels:	dependencies
+assignees:	
+reviewers:	hassanmubiru (Requested)
+projects:	
+milestone:	
+number:	116
+url:	https://github.com/hassanmubiru/StreetJS/pull/116
+additions:	184
+deletions:	180
+auto-merge:	disabled
+--
+Bumps the development-dependencies group with 3 updates in the / directory: [@types/node](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/HEAD/types/node), [js-yaml](https://github.com/nodeca/js-yaml) and [vue](https://github.com/vuejs/core).
+
+Updates `@types/node` from 25.9.2 to 26.1.0
+<details>
+<summary>Commits</summary>
+<ul>
+<li>See full diff in <a href="https://github.com/DefinitelyTyped/DefinitelyTyped/commits/HEAD/types/node">compare view</a></li>
+</ul>
+</details>
+<br />
+
+Updates `js-yaml` from 4.2.0 to 5.2.1
+<details>
+<summary>Changelog</summary>
+<p><em>Sourced from <a href="https://github.com/nodeca/js-yaml/blob/master/CHANGELOG.md">js-yaml's changelog</a>.</em></p>
+<blockquote>
+<h2>[5.2.1] - 2026-07-02</h2>
+<h3>Fixed</h3>
+<ul>
+<li>Add <code>Map</code> support to !!omap (should work when <code>realMapTag</code> used)</li>
+</ul>
+<h3>Security</h3>
+<ul>
+<li>Remove quadratic complexity from !!omap <code>addItem</code>. Regression from v5
+(usually not critical, because YAML11_SCHEMA is not default anymore).</li>
+</ul>
+<h2>4.3.0, 3.15.0 - 2026-06-27</h2>
+<h3>Security</h3>
+<ul>
+<li>Backported <code>maxTotalMergeKeys</code> option.</li>
+</ul>
+<h2>[5.2.0] - 2026-06-26</h2>
+<h3>Added</h3>
+<ul>
+<li>Added <code>maxTotalMergeKeys</code> (10000) loader option to limit the total number of
+keys processed by YAML merge (<code>&lt;&lt;</code>) across one <code>load()</code> / <code>loadAll()</code> call.</li>
+<li>Added <code>maxAliases</code> (-1) loader option to limit the number of YAML aliases per
+document.</li>
+</ul>
+<h3>Removed</h3>
+<ul>
+<li><code>maxMergeSeqLength</code> replaced with <code>maxTotalMergeKeys</code> for limiting YAML merge
+processing.</li>
+</ul>
+<h3>Fixed</h3>
+<ul>
+<li>Round-trip of integers with exponential form (&gt;= <code>1e21</code>)</li>
+</ul>
+<h2>[5.1.0] - 2026-06-23</h2>
+<h3>Added</h3>
+<ul>
+<li>Collection tags can finalize an incrementally populated carrier into a
+different result value.</li>
+</ul>
+<h3>Changed</h3>
+<ul>
+<li>[breaking] <code>quoteStyle</code> now selects the preferred quote style; use the
+restored <code>forceQuotes</code> option to force quoting non-key strings.</li>
+</ul>
+<h2>[5.0.0] - 2026-06-20</h2>
+<h3>Added</h3>
+<ul>
+<li>Added named exports for schemas, tags, parser events and AST utilities.</li>
+<li>Reworked <code>JSON_SCHEMA</code> and <code>CORE_SCHEMA</code> with spec-compliant scalar resolution
+rules, and added <code>YAML11_SCHEMA</code>.</li>
+<li>Added <code>realMapTag</code> for lossless mappings with non-string and complex keys.
+Object-based mappings now reject complex keys instead of stringifying them.</li>
+<li>Added <code>dump()</code> <code>transform</code> option for changing the generated AST before
+rendering.</li>
+<li>Added <code>dump()</code> options <code>seqInlineFirst</code>, <code>flowBracketPadding</code>,
+<code>flowSkipCommaSpace</code>, <code>flowSkipColonSpace</code>, <code>quoteFlowKeys</code>, <code>quoteStyle</code> and</li>
+</ul>
+<!-- raw HTML omitted -->
+</blockquote>
+<p>... (truncated)</p>
+</details>
+<details>
+<summary>Commits</summary>
+<ul>
+<li><a href="https://github.com/nodeca/js-yaml/commit/ac16b42c46c11c5c7f66062bfc78b168b5f07ecd"><code>ac16b42</code></a> 5.2.1 released</li>
+<li><a href="https://github.com/nodeca/js-yaml/commit/4a864e55eec5044da67ca95a13f48c73e9ae8c0d"><code>4a864e5</code></a> Deps bump</li>
+<li><a href="https://github.com/nodeca/js-yaml/commit/39f3211a2f01b3c6982710cf21434ab7060acefe"><code>39f3211</code></a> !!omap: add <code>Map</code> support and remove quadratic complexity</li>
+<li><a href="https://github.com/nodeca/js-yaml/commit/ff17f1e5bbd1d0dcfb9567ff4526f7206a666f7b"><code>ff17f1e</code></a> Changelog update</li>
+<li><a href="https://github.com/nodeca/js-yaml/commit/8ed15f1cf6a0f1818ea4c0cd5d3973e87af2158f"><code>8ed15f1</code></a> deps bump</li>
+<li><a href="https://github.com/nodeca/js-yaml/commit/1a562dc14cac81354643e45936cde968b6da324c"><code>1a562dc</code></a> Fix changelog link</li>
+<li><a href="https://github.com/nodeca/js-yaml/commit/c28ed5ec1aa66a37b8202e17d0caa122922a1b00"><code>c28ed5e</code></a> 5.2.0 released</li>
+<li><a href="https://github.com/nodeca/js-yaml/commit/125cd5ab9f1355d4edaf6d95bf3a7099dc333d35"><code>125cd5a</code></a> Add <code>maxAliases</code> option</li>
+<li><a href="https://github.com/nodeca/js-yaml/commit/3105455b81dee69e0fd36e09ac0b2ccfdb54adc1"><code>3105455</code></a> Replace <code>maxMergeSeqLength</code>option with <code>maxTotalMergeKeys</code> (more robust)</li>
+<li><a href="https://github.com/nodeca/js-yaml/commit/39d00d65eb6b88362a5c806cea57541e687aaccb"><code>39d00d6</code></a> numbers: Drop boxed numbers support, simplify .identify() checks, clarify rou...</li>
+<li>Additional commits viewable in <a href="https://github.com/nodeca/js-yaml/compare/4.2.0...5.2.1">compare view</a></li>
+</ul>
+</details>
+<br />
+
+Updates `vue` from 3.5.38 to 3.5.39
+<details>
+<summary>Release notes</summary>
+<p><em>Sourced from <a href="https://github.com/vuejs/core/releases">vue's releases</a>.</em></p>
+<blockquote>
+<h2>v3.5.39</h2>
+<p>For stable releases, please refer to <a href="https://github.com/vuejs/core/blob/main/CHANGELOG.md">CHANGELOG.md</a> for details.
+For pre-releases, please refer to <a href="https://github.com/vuejs/core/blob/minor/CHANGELOG.md">CHANGELOG.md</a> of the <code>minor</code> branch.</p>
+</blockquote>
+</details>
+<details>
+<summary>Changelog</summary>
+<p><em>Sourced from <a href="https://github.com/vuejs/core/blob/main/CHANGELOG.md">vue's changelog</a>.</em></p>
+<blockquote>
+<h2><a href="https://github.com/vuejs/core/compare/v3.5.38...v3.5.39">3.5.39</a> (2026-06-25)</h2>
+<h3>Bug Fixes</h3>
+<ul>
+<li><strong>compiler-core:</strong> correct filter rewrite recursion (<a href="https://redirect.github.com/vuejs/core/issues/14959">#14959</a>) (<a href="https://github.com/vuejs/core/commit/be7ce314b96256f1c56f53088d51ed6bc77fde28">be7ce31</a>)</li>
+<li><strong>hydration:</strong> force patch dynamic props when hydrating (<a href="https://redirect.github.com/vuejs/core/issues/9083">#9083</a>) (<a href="https://github.com/vuejs/core/commit/024cf06daa33db4660431f20aa050acb99cff07f">024cf06</a>), closes <a href="https://redirect.github.com/vuejs/core/issues/9033">#9033</a></li>
+<li><strong>hydration:</strong> respect data-allow-mismatch on conditional branches (<a href="https://redirect.github.com/vuejs/core/issues/12801">#12801</a>) (<a href="https://github.com/vuejs/core/commit/164af639a120421194f7afe0e097bdf254c90199">164af63</a>), closes <a href="https://redirect.github.com/vuejs/core/issues/12782">#12782</a></li>
+<li><strong>reactivity:</strong> avoid triggering effects when set fails (<a href="https://redirect.github.com/vuejs/core/issues/14964">#14964</a>) (<a href="https://github.com/vuejs/core/commit/e450973eabc0038f398344b981acd8759c246c50">e450973</a>)</li>
+<li><strong>runtime-core:</strong> handle non-isomorphic block element update (<a href="https://redirect.github.com/vuejs/core/issues/15002">#15002</a>) (<a href="https://github.com/vuejs/core/commit/932ddd058d69be9bbd8cd796c89f0d1a4fc128d7">932ddd0</a>), closes <a href="https://redirect.github.com/vuejs/core/issues/6385">#6385</a></li>
+<li><strong>runtime-core:</strong> normalize function children for elements and Teleport (<a href="https://redirect.github.com/vuejs/core/issues/9108">#9108</a>) (<a href="https://github.com/vuejs/core/commit/2f374cda18cbe331ede1a49a324b423c75d0faf3">2f374cd</a>), closes <a href="https://redirect.github.com/vuejs/core/issues/9107">#9107</a></li>
+<li><strong>runtime-core:</strong> pause tracking when invoking function refs (<a href="https://redirect.github.com/vuejs/core/issues/14985">#14985</a>) (<a href="https://github.com/vuejs/core/commit/3ac052b6b1e9d3978e98cc30a1a89a9b9b51358b">3ac052b</a>)</li>
+<li><strong>runtime-core:</strong> preserve once event listener name (<a href="https://redirect.github.com/vuejs/core/issues/8341">#8341</a>) (<a href="https://github.com/vuejs/core/commit/87b73b64a0d9b4e2dd2dacfe98f2f1c2396d7a61">87b73b6</a>), closes <a href="https://redirect.github.com/vuejs/core/issues/8342">#8342</a></li>
+<li><strong>runtime-dom:</strong> preserve option modifier event names (<a href="https://redirect.github.com/vuejs/core/issues/8338">#8338</a>) (<a href="https://github.com/vuejs/core/commit/4b659e699925555464ea9ae8fa3e1984609f6dc2">4b659e6</a>), closes <a href="https://redirect.github.com/vuejs/core/issues/8334">#8334</a></li>
+<li><strong>ssr:</strong> dedupe inherited scope ids during vnode rendering (<a href="https://redirect.github.com/vuejs/core/issues/15005">#15005</a>) (<a href="https://github.com/vuejs/core/commit/027da6b2810c4752131439d2645f3d931d07242f">027da6b</a>), closes <a href="https://redirect.github.com/vuejs/core/issues/12159">#12159</a> <a href="https://redirect.github.com/vuejs/core/issues/12175">#12175</a></li>
+<li><strong>ssr:</strong> resolve nested async teleport content (<a href="https://redirect.github.com/vuejs/core/issues/9431">#9431</a>) (<a href="https://github.com/vuejs/core/commit/31d0f23757afb410c638a9c29d44d76d0944e18f">31d0f23</a>), closes <a href="https://redirect.github.com/vuejs/core/issues/6207">#6207</a></li>
+<li><strong>teleport:</strong> handle teleport unmount edge case (<a href="https://redirect.github.com/vuejs/core/issues/12705">#12705</a>) (<a href="https://github.com/vuejs/core/commit/671997ade74e34880cebe3c340269b8598c3b26c">671997a</a>), closes <a href="https://redirect.github.com/vuejs/core/issues/12702">#12702</a></li>
+<li><strong>types:</strong> support named tuple emits (<a href="https://redirect.github.com/vuejs/core/issues/12676">#12676</a>) (<a href="https://github.com/vuejs/core/commit/232f4022e3160b30b11748a6d97ea2c15ed3b74f">232f402</a>), closes <a href="https://redirect.github.com/vuejs/core/issues/12673">#12673</a></li>
+<li><strong>types:</strong> validate defineModel defaults (<a href="https://redirect.github.com/vuejs/core/issues/14968">#14968</a>) (<a href="https://github.com/vuejs/core/commit/747f57e9cdb3c5f084f8da5ca7e0e0b7b326b662">747f57e</a>), closes <a href="https://redirect.github.com/vuejs/core/issues/14966">#14966</a></li>
+</ul>
+</blockquote>
+</details>
+<details>
+<summary>Commits</summary>
+<ul>
+<li><a href="https://github.com/vuejs/core/commit/c0606e91798c8dca4f33d101e1dd836d672592c1"><code>c0606e9</code></a> release: v3.5.39</li>
+<li><a href="https://github.com/vuejs/core/commit/4b659e699925555464ea9ae8fa3e1984609f6dc2"><code>4b659e6</code></a> fix(runtime-dom): preserve option modifier event names (<a href="https://redirect.github.com/vuejs/core/issues/8338">#8338</a>)</li>
+<li><a href="https://github.com/vuejs/core/commit/232f4022e3160b30b11748a6d97ea2c15ed3b74f"><code>232f402</code></a> fix(types): support named tuple emits (<a href="https://redirect.github.com/vuejs/core/issues/12676">#12676</a>)</li>
+<li><a href="https://github.com/vuejs/core/commit/671997ade74e34880cebe3c340269b8598c3b26c"><code>671997a</code></a> fix(teleport): handle teleport unmount edge case (<a href="https://redirect.github.com/vuejs/core/issues/12705">#12705</a>)</li>
+<li><a href="https://github.com/vuejs/core/commit/164af639a120421194f7afe0e097bdf254c90199"><code>164af63</code></a> fix(hydration): respect data-allow-mismatch on conditional branches (<a href="https://redirect.github.com/vuejs/core/issues/12801">#12801</a>)</li>
+<li><a href="https://github.com/vuejs/core/commit/2f374cda18cbe331ede1a49a324b423c75d0faf3"><code>2f374cd</code></a> fix(runtime-core): normalize function children for elements and Teleport (<a href="https://redirect.github.com/vuejs/core/issues/9108">#9108</a>)</li>
+<li><a href="https://github.com/vuejs/core/commit/87b73b64a0d9b4e2dd2dacfe98f2f1c2396d7a61"><code>87b73b6</code></a> fix(runtime-core): preserve once event listener name (<a href="https://redirect.github.com/vuejs/core/issues/8341">#8341</a>)</li>
+<li><a href="https://github.com/vuejs/core/commit/027da6b2810c4752131439d2645f3d931d07242f"><code>027da6b</code></a> fix(ssr): dedupe inherited scope ids during vnode rendering (<a href="https://redirect.github.com/vuejs/core/issues/15005">#15005</a>)</li>
+<li><a href="https://github.com/vuejs/core/commit/024cf06daa33db4660431f20aa050acb99cff07f"><code>024cf06</code></a> fix(hydration): force patch dynamic props when hydrating (<a href="https://redirect.github.com/vuejs/core/issues/9083">#9083</a>)</li>
+<li><a href="https://github.com/vuejs/core/commit/be7ce314b96256f1c56f53088d51ed6bc77fde28"><code>be7ce31</code></a> fix(compiler-core): correct filter rewrite recursion (<a href="https://redirect.github.com/vuejs/core/issues/14959">#14959</a>)</li>
+<li>Additional commits viewable in <a href="https://github.com/vuejs/core/compare/v3.5.38...v3.5.39">compare view</a></li>
+</ul>
+</details>
+<br />
+
+
+--- CHECKS ---
