@@ -1,0 +1,41 @@
+Root folder allowlist	Only approved files may live at the repo root	﻿2026-07-09T16:29:20.5748486Z ##[group]Run # Approved root files (CHARTER §1). Directories are not checked here.
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5750861Z [36;1m# Approved root files (CHARTER §1). Directories are not checked here.[0m
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5752570Z [36;1mallow=$(cat <<'EOF'[0m
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5753697Z [36;1mREADME.md[0m
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5754553Z [36;1mLICENSE[0m
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5755391Z [36;1mCHANGELOG.md[0m
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5756286Z [36;1mCITATION.cff[0m
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5757184Z [36;1mCODE_OF_CONDUCT.md[0m
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5758164Z [36;1mCONTRIBUTING.md[0m
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5759136Z [36;1mGOVERNANCE.md[0m
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5760062Z [36;1mMAINTAINERS.md[0m
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5760974Z [36;1mSECURITY.md[0m
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5761837Z [36;1mpackage.json[0m
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5762728Z [36;1mpackage-lock.json[0m
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5763917Z [36;1m.npmrc[0m
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5764721Z [36;1m.gitignore[0m
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5765575Z [36;1m.gitattributes[0m
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5766535Z [36;1m.gitleaks.toml[0m
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5767442Z [36;1m.dockerignore[0m
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5768337Z [36;1m.env.example[0m
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5769181Z [36;1mEOF[0m
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5769932Z [36;1m)[0m
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5770680Z [36;1mfail=0[0m
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5771509Z [36;1mwhile IFS= read -r f; do[0m
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5772581Z [36;1m  [ -z "$f" ] && continue[0m
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5773793Z [36;1m  if ! grep -qxF "$f" <<<"$allow"; then[0m
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5777247Z [36;1m    echo "::error file=$f::Unapproved file at repo root. Move it to a subfolder (security/ audits/ plans/ governance/ docs/ infra/ scripts/) or add it to the allowlist in repository-policy.yml with justification."[0m
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5780601Z [36;1m    fail=1[0m
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5781426Z [36;1m  fi[0m
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5782464Z [36;1mdone < <(git ls-files --full-name | grep -E '^[^/]+$')[0m
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5784243Z [36;1m[ "$fail" -eq 0 ] && echo "Root folder allowlist clean ✔"[0m
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5785843Z [36;1mexit $fail[0m
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5947755Z shell: /usr/bin/bash -e {0}
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.5948787Z ##[endgroup]
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.6382454Z ##[error]Unapproved file at repo root. Move it to a subfolder (security/ audits/ plans/ governance/ docs/ infra/ scripts/) or add it to the allowlist in repository-policy.yml with justification.
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.6402968Z ##[error]Unapproved file at repo root. Move it to a subfolder (security/ audits/ plans/ governance/ docs/ infra/ scripts/) or add it to the allowlist in repository-policy.yml with justification.
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.6413079Z ##[error]Unapproved file at repo root. Move it to a subfolder (security/ audits/ plans/ governance/ docs/ infra/ scripts/) or add it to the allowlist in repository-policy.yml with justification.
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.6424173Z ##[error]Unapproved file at repo root. Move it to a subfolder (security/ audits/ plans/ governance/ docs/ infra/ scripts/) or add it to the allowlist in repository-policy.yml with justification.
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.6452242Z ##[error]Unapproved file at repo root. Move it to a subfolder (security/ audits/ plans/ governance/ docs/ infra/ scripts/) or add it to the allowlist in repository-policy.yml with justification.
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.6467235Z ##[error]Unapproved file at repo root. Move it to a subfolder (security/ audits/ plans/ governance/ docs/ infra/ scripts/) or add it to the allowlist in repository-policy.yml with justification.
+Root folder allowlist	Only approved files may live at the repo root	2026-07-09T16:29:20.6477685Z ##[error]Process completed with exit code 1.
