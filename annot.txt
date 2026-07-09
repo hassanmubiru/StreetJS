@@ -1,0 +1,5 @@
+runid=29047458165
+{"conclusion":"success","id":86219546320,"name":"Governance docs present"}
+{"conclusion":"success","id":86219546332,"name":"Plugins must not ship Dockerfiles"}
+{"conclusion":"failure","id":86219546335,"name":"Root folder allowlist"}
+{"conclusion":"success","id":86219546410,"name":"No RESTRICTED files tracked"}
