@@ -1,0 +1,3 @@
+e543be230ec8f155c2d2a36c140197638524f990 	deleted:    log-scratch.txt
+9b863ff955d54ef1c53c823dee1806f57094447b 	new file:   gs2.txt
+b63d2ebd4fdf449447c05563d6ec48133fcc5a76 	deleted:    gitstatus-scratch.txt
