@@ -4,3 +4,9 @@ total_bytes  chunk_size  num_chunks  current_ms  array_collect_ms  ratio
   1,000,000       16384          62        14.3               0.5  30.0x
  10,000,000       16384         611      1183.8               6.9  171.1x
  50,000,000       16384        3052     27734.3              15.2  1820.1x
+100,000,000       16384        6104    109094.6              31.5  3461.1x
+
+If "current" scales worse than linearly relative to "array_collect" as num_chunks
+grows (ratio increasing with chunk count), that is direct evidence of O(n^2)
+behavior in the per-chunk Buffer.concat([this.buffer, chunk]) pattern.
+EXIT:0
