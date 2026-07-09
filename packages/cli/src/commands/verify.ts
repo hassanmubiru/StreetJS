@@ -161,6 +161,29 @@ export class VerifyCommand {
     }
     console.log(`[street]   report: ${reportPath}`);
 
+    // `--advisory` makes the run visibility-only: the decision is still computed
+    // SOLELY by the aggregator and persisted verbatim (nothing above changes),
+    // but the process exits 0 regardless of GRANTED/WITHHELD. This is for
+    // contexts where the per-capability artifacts are legitimately absent
+    // because their producing workflows do not run on this event (e.g. a pull
+    // request) — a WITHHELD there reflects "not evaluated in this context", not
+    // "failed", so it must not block. The strict gate (below) is unchanged for
+    // main/scheduled/release/dispatch runs, where the artifacts do exist and a
+    // real WITHHELD must fail — so the zero-trust guarantee (Req 12.3/12.4) is
+    // preserved wherever it is meaningful; advisory mode never lets a genuine
+    // WITHHELD pass on those authoritative events.
+    if (ctx.args.flags['advisory']) {
+      if (report.decision !== 'GRANTED') {
+        console.log(
+          '[street]   advisory mode: decision is WITHHELD but this run is ' +
+            'non-blocking (artifacts for some capabilities are not produced on ' +
+            'this event). Exiting 0. See docs/platform-leadership.md.',
+        );
+      }
+      process.exitCode = 0;
+      return;
+    }
+
     // The exit code reflects — but does not set — the computed decision so a
     // CI gate fails when leadership is withheld.
     process.exitCode = report.decision === 'GRANTED' ? 0 : 1;
