@@ -18,7 +18,7 @@ import {
 } from "../drivers/supabase.js";
 import type { SupabaseStorageClientLike } from "../drivers/supabase.js";
 import { StorageConfigError } from "../errors.js";
-import { registerStorageDriverContractTests } from "./contract.js";
+import { registerStorageDriverContractTests, isSdkResolvable } from "./contract.js";
 
 const FIXED_NOW = 1_700_000_000_000;
 const fixedClock = () => FIXED_NOW;
