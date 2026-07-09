@@ -14,7 +14,7 @@ import assert from "node:assert/strict";
 import { createAzureBlobDriver, connectAzureBlobDriver } from "../drivers/azure.js";
 import type { AzureBlobClientLike } from "../drivers/azure.js";
 import { StorageConfigError } from "../errors.js";
-import { registerStorageDriverContractTests } from "./contract.js";
+import { registerStorageDriverContractTests, isSdkResolvable } from "./contract.js";
 
 const FIXED_NOW = 1_700_000_000_000;
 const fixedClock = () => FIXED_NOW;
