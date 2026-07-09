@@ -200,7 +200,20 @@ test("createAzureBlobDriver throws StorageConfigError when no client is injected
   );
 });
 
-test("connectAzureBlobDriver throws StorageConfigError when the Azure SDK is absent", async () => {
+test("connectAzureBlobDriver throws StorageConfigError when the Azure SDK is absent", async (t) => {
+  // See the identical guard in supabase-driver.test.ts for why this honest-skip
+  // check is needed: Node module resolution is process-wide, so a live
+  // integration run that installs "@azure/storage-blob" makes it resolvable for
+  // every test file, invalidating this guard's SDK-absent precondition.
+  if (isSdkResolvable("@azure/storage-blob")) {
+    t.skip(
+      '"@azure/storage-blob" is installed in this test run, so the SDK-absent ' +
+        "precondition this guard checks does not hold here. Skipping — the guard is " +
+        "exercised whenever the SDK is genuinely absent (the default state).",
+    );
+    return;
+  }
+
   await assert.rejects(
     () =>
       connectAzureBlobDriver({
