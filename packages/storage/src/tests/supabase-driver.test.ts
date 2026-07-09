@@ -213,7 +213,23 @@ test("createSupabaseStorageDriver throws StorageConfigError when no client is in
   });
 });
 
-test("connectSupabaseStorageDriver throws StorageConfigError when the Supabase SDK is absent", async () => {
+test("connectSupabaseStorageDriver throws StorageConfigError when the Supabase SDK is absent", async (t) => {
+  // This guard's precondition is that "@supabase/supabase-js" cannot be
+  // resolved in this process. That's true by default, but not when a live
+  // integration run (e.g. vendor-integration.yml) has installed the optional
+  // peer SDK to exercise real round-trips — Node module resolution is
+  // process-wide, not test-file-scoped. Detect that case and report an honest
+  // skip rather than a false failure, matching this package's established
+  // honest-skip convention (see non-s3-integration.test.ts).
+  if (await isSdkResolvable("@supabase/supabase-js")) {
+    t.skip(
+      '"@supabase/supabase-js" is installed in this test run, so the SDK-absent ' +
+        "precondition this guard checks does not hold here. Skipping — the guard is " +
+        "exercised whenever the SDK is genuinely absent (the default state).",
+    );
+    return;
+  }
+
   await assert.rejects(
     () => connectSupabaseStorageDriver({ url: "https://x.supabase.co", key: "k", bucket: "b" }),
     (err) => {
