@@ -16,3 +16,4 @@ CORE_EXIT:0
 > @streetjs/cli@1.1.1 build
 > tsc
 
+CLI_EXIT:0
