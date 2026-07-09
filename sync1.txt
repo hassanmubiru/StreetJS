@@ -1,3 +1,0 @@
-?? sync1.txt
-406d2694ed925dbe1aff6c176a0fd7e5ee73f583
-406d2694ed925dbe1aff6c176a0fd7e5ee73f583	refs/heads/main
