@@ -1389,3 +1389,38 @@ verify-signing-anchor	pass	7s	https://github.com/hassanmubiru/StreetJS/actions/r
 verify-signing-anchor	pass	5s	https://github.com/hassanmubiru/StreetJS/actions/runs/28777486251/job/85324798627	
 
 ========== PR #110 ==========
+title:	Solution (#50): Plugin: `@streetjs/plugin-telegram` (bot API)
+state:	OPEN
+author:	TFGSUMIT
+labels:	
+assignees:	
+reviewers:	hassanmubiru (Requested)
+projects:	
+milestone:	
+number:	110
+url:	https://github.com/hassanmubiru/StreetJS/pull/110
+additions:	14
+deletions:	0
+auto-merge:	disabled
+--
+**PR Description:** Implement Telegram Bot-API plugin for StreetJS.
+
+**Changes Made:**
+
+* Added `config.ts` file to define configuration options.
+* Added `types.ts` file to define type definitions.
+* Added `manifest.ts` file to contain signed manifest.
+* Implemented `TelegramClient` class in `client.ts` file to interact with Telegram Bot API.
+* Implemented `TelegramPlugin` class in `plugin.ts` file to send notifications and files.
+
+**Testing Instructions:**
+
+1. Clone the repository and install dependencies using `npm install`.
+2. Update `config.ts` file with your bot token, chat ID, and base URL.
+3. Run `npm start` to start the plugin.
+4. Test sending notifications and files using the `sendNotification` and `sendFile` methods.
+5. Verify that the plugin is working correctly by checking the Telegram chat for notifications and files.
+
+--- CHECKS ---
+security/snyk (hassanmubiru)	pass	0	https://app.snyk.io/org/hassanmubiru/pr-checks/08fcba37-e806-4517-9f07-c95a833d1a9a	No manifest changes detected in 1 project
+
