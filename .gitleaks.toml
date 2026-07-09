@@ -78,17 +78,9 @@ regexes = [
   # AWS's published documentation example key ID (a public non-secret used in
   # AWS docs and in our SECRET-SCANNING-GUIDE.md as an illustration).
   '''AKIAIOSFODNN7EXAMPLE''',
-  # gitleaks' OWN embedded test-fixture Google API key. It was flagged (GitHub
-  # secret-scanning alert #16) only because the gitleaks tool binary itself was
-  # accidentally committed to history in `.release-verify-tmp3/gitleaks`
-  # (commit 0a7147b4) during an ad-hoc release-verify run — the string lives
-  # inside the third-party scanner binary's detection-rule corpus, not in any
-  # StreetJS source or config, so it is not a StreetJS-owned credential. The
-  # binary is gone from the tree and `.release-verify-tmp*/` is now gitignored;
-  # this allowlist stops the repo's own gitleaks gate re-flagging the fixture
-  # against history until the operator history-purge (see
-  # security/RELEASE-VERIFY-TMP-PURGE-RUNBOOK.md) removes the blob.
-  '''AIzaSyD3asb-2pEZVqMkmL6M9N6nHZRR_znhrh0''',
+  # (The gitleaks-binary fixture keys — GitHub alerts #1–#16 — are exempted by
+  # the `(^|/)\.release-verify-tmp` PATH allowlist above, which covers all ~16
+  # at once rather than listing each key value here.)
   # Obvious placeholder JWT secret in a README docker-run example.
   '''my-jwt-secret-at-least-32-chars''',
 ]
