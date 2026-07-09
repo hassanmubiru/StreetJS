@@ -56,7 +56,11 @@ worth purging in the same pass:
 
 ```bash
 # 0. Fresh mirror clone (never rewrite your working checkout).
-git clone --mirror git@github.com:hassanmubiru/StreetJS.git streetjs-purge.git
+#    Use HTTPS via the gh CLI credential helper (SSH keys are not configured on
+#    this machine — `git@github.com` returns "Permission denied (publickey)").
+#    Run once so git uses your gh token for github.com over HTTPS:
+gh auth setup-git
+git clone --mirror https://github.com/hassanmubiru/StreetJS.git streetjs-purge.git
 cd streetjs-purge.git
 
 # 1. Remove every .release-verify-tmp* path from ALL history (branches + tags).
