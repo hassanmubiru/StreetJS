@@ -222,7 +222,7 @@ export class VerifyCommand {
     console.error(
       '[street] Usage: street verify <capabilityId> [--out <dir>] [--timeout <ms>] ' +
         '[--docs] [--no-source] [--no-tests] -- <command...>\n' +
-        '[street]        street verify --aggregate [--out <dir>]',
+        '[street]        street verify --aggregate [--out <dir>] [--advisory]',
     );
   }
 }
