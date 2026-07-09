@@ -1,0 +1,10 @@
+dependency-review	UNKNOWN STEP	2026-07-09T17:58:39.9116489Z   fail-on-severity: high
+dependency-review	UNKNOWN STEP	2026-07-09T17:58:39.9118101Z   deny-licenses: AGPL-1.0-or-later, AGPL-3.0-or-later, GPL-2.0-or-later, GPL-3.0-or-later
+dependency-review	UNKNOWN STEP	2026-07-09T17:58:39.9119983Z   comment-summary-in-pr: on-failure
+dependency-review	UNKNOWN STEP	2026-07-09T17:58:59.3014448Z ##[group]Vulnerabilities
+dependency-review	UNKNOWN STEP	2026-07-09T17:58:59.3015727Z Dependency review did not detect any vulnerable packages with severity level "high" or higher.
+dependency-review	UNKNOWN STEP	2026-07-09T17:58:59.3025486Z ##[group]Licenses
+dependency-review	UNKNOWN STEP	2026-07-09T17:58:59.3027119Z The following dependencies have incompatible licenses:
+dependency-review	UNKNOWN STEP	2026-07-09T17:58:59.3029585Z [1m.github/workflows/secret-scan.yml » trufflesecurity/trufflehog@00155c9dc586f34d189adc83d3ac2698c2ec551f[22m – License: [31mAGPL-3.0[39m
+dependency-review	UNKNOWN STEP	2026-07-09T17:58:59.3057083Z ##[error]Dependency review detected incompatible licenses.
+EXIT:0
