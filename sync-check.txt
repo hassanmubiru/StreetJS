@@ -1,9 +1,0 @@
-From https://github.com/hassanmubiru/StreetJS
- * branch              main       -> FETCH_HEAD
----local---
-53279911fc3768c0766008586f9e5b5197155ed4
----remote---
-53279911fc3768c0766008586f9e5b5197155ed4
----status---
- D final2.txt
-?? sync-check.txt
