@@ -38,6 +38,18 @@ paths = [
   '''(^|/)SECURITY-AUDIT\.md$''',
   '''(^|/)security/SECRET-SCANNING-GUIDE\.md$''',
   '''(^|/)security/THREAT-MODEL-2026\.md$''',
+  # Release-verify scratch dirs that accidentally captured the downloaded
+  # gitleaks TOOL BINARY (`.release-verify-tmp3/gitleaks`, committed in
+  # 0a7147b4). That third-party binary embeds ~16 Google API keys as its own
+  # detection-rule TEST FIXTURES (GitHub secret-scanning alerts #1–#16, all in
+  # that one file at lines 19541–19556; note #4 `AIzaSyabcdef…1234567` is a
+  # literal alphabet and #11 has a malformed `AIzay` prefix — obvious fixtures,
+  # not StreetJS credentials). Path-scoped so the whole binary is exempt from
+  # the repo's own gitleaks gate rather than listing 16 individual keys. These
+  # dirs are now gitignored; a history purge (security/RELEASE-VERIFY-TMP-PURGE-
+  # RUNBOOK.md) removes the blob from history, which is what resolves the GitHub
+  # alerts (this allowlist only governs the repo's own scan).
+  '''(^|/)\.release-verify-tmp''',
 ]
 
 # Specific well-known/public or obviously-fake values used in tests, docs, and
