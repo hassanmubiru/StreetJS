@@ -1,10 +1,19 @@
 # Runbook — Purge `.release-verify-tmp*` blobs from git history
 
 **Owner:** [OPERATOR] (requires force-push to `main`; destructive)
-**Trigger:** GitHub secret-scanning alert #16 (`google_api_key`), plus stray large
+**Trigger:** GitHub secret-scanning alerts #1–#16 (`google_api_key`), plus stray large
 binaries committed by ad-hoc release-verify runs.
-**Status:** NOT YET RUN — documented for operator execution. Nothing in this file
-executes automatically.
+**Status:** NOT RUN — deliberately skipped after risk review (2026-07-10). All 16
+alerts are already closed as `used_in_tests` (they are gitleaks' own third-party
+test fixtures, non-exploitable, nothing to revoke) and recurrence is prevented via
+`.gitignore` + `.gitleaks.toml`. The purge was judged not worth its cost:
+rewriting history would unsign all 4920 commits (degrading P0 signed-commits
+control #5), change every commit SHA (breaking clones + PR refs), require
+temporarily disabling force-push protection, and still need a GitHub Support
+request for PR-ref/cache purge. **This runbook is retained as a ready procedure
+for a future, genuine leak** — not for the (now-closed) fixture alerts. Nothing in
+this file executes automatically. Recovery SHA of `main` at the decision point:
+`ae2afa38`.
 
 ---
 
