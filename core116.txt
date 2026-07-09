@@ -1,0 +1,4 @@
+Core (Node 22)	UNKNOWN STEP	2026-07-09T18:01:32.1228203Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+Core (Node 22)	UNKNOWN STEP	2026-07-09T18:01:35.8134434Z SyntaxError: The requested module 'js-yaml' does not provide an export named 'default'
+Core (Node 22)	UNKNOWN STEP	2026-07-09T18:01:35.8164225Z ##[error]Process completed with exit code 1.
+EXIT:0
