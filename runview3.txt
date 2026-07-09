@@ -1,0 +1,36 @@
+
+X main vendor-integration · 28995137749
+Triggered via workflow_dispatch about 1 minute ago
+
+JOBS
+X vendor in 49s (ID 86043034272)
+  ✓ Set up job
+  ✓ Initialize containers
+  ✓ Run actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+  ✓ Run ./.github/actions/setup
+  ✓ Build core
+  ✓ Build redis plugin (for its Layer-B integration)
+  ✓ SendGrid (scopes check)
+  ✓ Stripe (balance check)
+  ✓ Build storage package (for its live provider integration tests)
+  ✓ Install optional cloud-provider SDKs (for real live round-trips)
+  ✓ Materialize GCS service-account key file
+  X Cloud storage providers (Supabase / GCS / Azure / Backblaze B2)
+  - Auth0 (client-credentials token)
+  - Plugin integration verification (Layer B)
+  ✓ Upload plugin verification artifacts
+  ✓ Post Run ./.github/actions/setup
+  ✓ Post Run actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+  ✓ Stop containers
+  ✓ Complete job
+
+ANNOTATIONS
+! No files were found with the provided path: verification-artifacts/plugins/. No artifacts will be uploaded.
+vendor: .github#44
+
+X Process completed with exit code 1.
+vendor: .github#2326
+
+
+To see what failed, try: gh run view 28995137749 --log-failed
+View this run on GitHub: https://github.com/hassanmubiru/StreetJS/actions/runs/28995137749
