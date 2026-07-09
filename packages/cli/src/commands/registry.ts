@@ -86,7 +86,12 @@ export class RegistryCommand {
       const pubPath = this.flag(ctx, 'public-key');
       publicKeyPem = pubPath
         ? await readFile(resolve(ctx.cwd, pubPath), 'utf8')
-        : createPublicKey(privateKey).export({ type: 'spki', format: 'pem' }).toString();
+        // Derive the public key from the private PEM string (not the KeyObject):
+        // createPublicKey() accepts a private key input and returns the matching
+        // public key. Passing the PEM string (a BinaryLike) typechecks under both
+        // @types/node v25 and v26 — v26 tightened createPublicKey's parameter
+        // union to no longer accept a KeyObject directly here (TS2345).
+        : createPublicKey(privatePem).export({ type: 'spki', format: 'pem' }).toString();
 
       const tarball = await readFile(resolve(ctx.cwd, tarballPath));
       tarballBase64 = tarball.toString('base64');
