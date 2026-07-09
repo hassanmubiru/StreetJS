@@ -1,0 +1,4 @@
+?? check-clean.txt
+b504f1cfd66e09fb6a6d7d1f9a84128936c8385a 	deleted:    final-check.txt
+5e4aad9a991a1d4ef1b58d1a1f66e1f88d9d63ab 	new file:   final-check.txt
+0004184bc07c2ba39c53ecb3cbb644fd34c2c5dc 	deleted:    verify-log.txt
