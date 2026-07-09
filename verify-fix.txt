@@ -1,20 +1,3 @@
+98a41427e3377297d9ad1e644995975a45e22120 	new file:   verify-fix.txt
 55d1bb558c0ce0749be3524bf5207415692b7780 	new file:   pkg-diff-final.txt
 e6776678a1a9b24d66385dbc70489ce72973619f 	new file:   left-pad-check.txt
-6ce9d50dead1e6ebed426c4563ab9a9eb560a200 	modified:   packages/storage/package.json
----content---
-  "dependencies": {
-    "streetjs": "^1.0.25"
-  },
-  "devDependencies": {
-    "@types/node": "^25.9.2",
-    "fast-check": "^4.8.0",
----peer---
-  "peerDependencies": {
-    "@aws-sdk/client-s3": ">=3.0.0",
-    "@aws-sdk/s3-request-presigner": ">=3.0.0",
-    "@azure/storage-blob": ">=12.0.0",
-    "@google-cloud/storage": ">=7.0.0",
-    "@supabase/supabase-js": ">=2.0.0",
-    "minio": ">=8.0.0",
-    "typescript": ">=5.0.0"
-  },
