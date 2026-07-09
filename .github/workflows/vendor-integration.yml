@@ -55,6 +55,18 @@ jobs:
       AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
       AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_CLIENT_SECRET }}
       AUTH0_AUDIENCE: ${{ secrets.AUTH0_AUDIENCE }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      SUPABASE_BUCKET: ${{ secrets.SUPABASE_BUCKET }}
+      GCS_BUCKET: ${{ secrets.GCS_BUCKET }}
+      GCS_PROJECT_ID: ${{ secrets.GCS_PROJECT_ID }}
+      AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+      AZURE_STORAGE_CONTAINER: ${{ secrets.AZURE_STORAGE_CONTAINER }}
+      STREETJS_B2_ENDPOINT: ${{ secrets.STREETJS_B2_ENDPOINT }}
+      STREETJS_B2_BUCKET: ${{ secrets.STREETJS_B2_BUCKET }}
+      STREETJS_B2_KEY_ID: ${{ secrets.STREETJS_B2_KEY_ID }}
+      STREETJS_B2_APPLICATION_KEY: ${{ secrets.STREETJS_B2_APPLICATION_KEY }}
+      GCS_SERVICE_ACCOUNT_JSON: ${{ secrets.GCS_SERVICE_ACCOUNT_JSON }}
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
@@ -75,6 +87,58 @@ jobs:
       - name: Stripe (balance check)
         if: ${{ env.STRIPE_API_KEY != '' }}
         run: node scripts/vendor/check-stripe.mjs
+
+      # ── Cloud storage providers (Supabase, GCS, Azure, Backblaze B2) ────────
+      # packages/storage's own test suite (dist/tests/*.test.js) already
+      # implements an honest credential-based skip policy per provider (see
+      # non-s3-integration.test.ts / s3-integration.test.ts): a provider's live
+      # round-trip only runs when ALL of its env vars are present, otherwise it
+      # is reported as skipped (never as a false pass). No mocking, ever.
+      # Ordered before Auth0 so an unrelated Auth0 credential/tenant issue never
+      # blocks these independent checks (each step here is independently gated
+      # and does not depend on Auth0 succeeding).
+      - name: Build storage package (for its live provider integration tests)
+        run: npm run build -w packages/storage
+
+      # The Supabase/GCS/Azure/Backblaze drivers resolve their vendor SDK via a
+      # lazy dynamic import() (never at module load), so the package has zero
+      # hard SDK dependencies. Without the SDK installed, a driver with valid
+      # credentials still can't run its live round-trip and is honestly
+      # reported as "passed-with-skip" (Requirement 27.4) rather than a false
+      # failure — but that means credentials alone don't prove the driver
+      # actually works end-to-end. Installing the real, optional peer SDKs here
+      # lets the tests exercise the genuine live round-trip whenever credentials
+      # are present.
+      # `--prefix packages/storage --package-lock=false` (not `--no-save`, not
+      # the root `-w` form, not a plain `working-directory:` + bare `npm
+      # install`) is required here. Every other shape was tried and each
+      # silently no-ops or fails:
+      #   - the root `-w packages/storage` form hits a real npm 10.8.2 Arborist
+      #     bug ("Cannot read properties of undefined (reading 'spec')") when
+      #     saving the ideal tree for a workspace member;
+      #   - `--no-save` silently no-ops against an already-reconciled workspace
+      #     lockfile (reports success but installs nothing);
+      #   - running plain `npm install <pkgs> --package-lock=false` with cwd set
+      #     to `packages/storage/` (whether via `working-directory:` or a shell
+      #     `cd`) still resolves the ambient workspace root from `package.json`'s
+      #     `workspaces` field and silently no-ops with `npm warn workspaces
+      #     @streetjs/storage in filter set, but no workspace folder present` —
+      #     it never touches `packages/storage/node_modules/` at all.
+      # `--prefix` is the one flag that actually overrides where npm resolves
+      # its install root, bypassing the workspace auto-detection entirely while
+      # still skipping the lockfile save. This never touches the committed repo
+      # since the job never pushes.
+      - name: Install optional cloud-provider SDKs (for real live round-trips)
+        run: npm install @supabase/supabase-js @google-cloud/storage @azure/storage-blob --package-lock=false --prefix packages/storage
+
+      - name: Materialize GCS service-account key file
+        if: ${{ env.GCS_SERVICE_ACCOUNT_JSON != '' }}
+        run: |
+          echo "$GCS_SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/gcs-service-account.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/gcs-service-account.json" >> "$GITHUB_ENV"
+
+      - name: Cloud storage providers (Supabase / GCS / Azure / Backblaze B2)
+        run: npm run test -w packages/storage
 
       - name: Auth0 (client-credentials token)
         if: ${{ env.AUTH0_DOMAIN != '' }}

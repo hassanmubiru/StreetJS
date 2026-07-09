@@ -1,3 +1,12 @@
+---
+layout: default
+title: "StreetJS Plugin Marketplace — Architecture & Status (Phase 18A)"
+nav_exclude: true
+description: "StreetJS Plugin Marketplace — Architecture & Status (Phase 18A) — internal build-status ledger covering what already ships, the per-page funnel gaps closed this pass, and the metadata schema, taxonomy, badge governance, and SEO model."
+sitemap:     false
+noindex:     true
+---
+
 # StreetJS Plugin Marketplace — Architecture & Status (Phase 18A)
 
 > Tags: **VERIFIED** (built + live) · **IMPLEMENTED** (added this pass) · **GAP** ·

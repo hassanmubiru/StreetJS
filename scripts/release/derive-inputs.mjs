@@ -40,7 +40,7 @@
 //   node scripts/release/derive-inputs.mjs [--out release-inputs.json]
 //     [--coverage-lcov packages/core/coverage/lcov.info]
 //     [--repo github.com/OWNER/REPO]
-//     [--merge release-inputs.template.json]   (default; git-tracked template)
+//     [--merge scripts/release/release-inputs.template.json]   (default; git-tracked template)
 //
 // Network failures (OpenSSF API unreachable) are non-fatal: that dimension is
 // simply omitted (never fabricated as a passing score), and a warning is
@@ -141,8 +141,7 @@ async function main() {
   // dimensions + thresholds + health), not the gitignored output path — that
   // file may not exist at all on a fresh checkout, which is exactly the bug
   // this script fixes. `--merge` may still override for local iteration.
-  const mergePath = resolve(REPO_ROOT, flags.merge || 'release-inputs.template.json');
-
+  const mergePath = resolve(REPO_ROOT, flags.merge || 'scripts/release/release-inputs.template.json');
   // Preserve any existing maintainer-supplied rubric-based dimensions/health
   // via a shallow merge — this script only OVERWRITES the fields it can
   // actually measure live; it never invents reliability/performance/health.

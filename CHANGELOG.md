@@ -7,30 +7,74 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-## [1.0.27] - 2026-07-06
-
-### Fixed
-- Re-published `streetjs`, `@streetjs/core` (compat shim), and `@streetjs/cli` in
-  lockstep with npm provenance attestation, superseding `1.0.26` (published
-  manually out-of-band, without provenance, and out of version lockstep). No
-  functional change beyond the `1.0.26` CLI fix below; `1.0.26` is deprecated
-  on npm in favor of this release.
-
-## [1.0.26] - 2026-07-05
-
-### Fixed
-- `street generate controller` no longer emits `ctx.status(n).json(...)` /
-  `ctx.status(204).send()` — `StreetContext` has no `status()` method.
-  Generated controllers now use the real API: `ctx.json(data, status)` and
-  `ctx.send(status)`. Generated code now type-checks cleanly.
-
 ## [Unreleased]
 
+### Fixed
+- **`street create` scaffolded new projects with `streetjs` pinned to `^1.0.6`**,
+  so a fresh project's `npm install` resolved to `1.0.25` — missing every fix
+  shipped since then, including the `1.1.1` path-traversal fix in
+  `@streetjs/storage`. Bumped the scaffold's dependency to `^1.1.1` in
+  `packages/cli/src/commands/create.ts` (matching `@streetjs/cli`'s own
+  already-current `streetjs` dependency). Verified end-to-end: a fresh
+  `street create` + `npm install` now resolves `node_modules/streetjs` to
+  `1.1.1` and `tsc --noEmit` compiles clean.
+
+## [1.1.1] - 2026-07-08
+
 > Repository-level governance, security, and organization hardening, plus
-> **additive, backward-compatible** plugin security hardening. No existing
-> `@streetjs/core` public API, signature, or published-package path was changed
-> or removed — the runtime changes below only **add** optional config fields and
-> new exported functions (existing callers are unaffected).
+> **additive, backward-compatible** plugin security hardening, plus a release
+> readiness pass (security fix, packaging fix, CI reliability fixes). No
+> existing `@streetjs/core` public API, signature, or published-package path
+> was changed or removed — the runtime changes below only **add** optional
+> config fields and new exported functions (existing callers are unaffected).
+>
+> **Note:** `1.1.0` is intentionally skipped for `streetjs`/`@streetjs/core`/
+> `@streetjs/cli` — the `v1.1.0` git tag was already used by an unrelated
+> `@streetjs/plugin-marzpay` release (2026-06-25), and this repository's tags
+> share one flat `v*` namespace across the core framework and independently
+> versioned plugins. `1.1.1` avoids the collision.
+
+### Security
+- **Fixed a path-traversal vulnerability in `@streetjs/storage`'s
+  `LocalStorageDriver`.** `objectPath()`/`metaPath()` resolved `root/<key>` via
+  a bare `path.join` with no containment check, so a key such as
+  `../../etc/passwd` (or an absolute path) could read or write arbitrary
+  filesystem locations reachable by the process. Fixed by resolving every key
+  through a new `resolveContained()` helper that rejects any key whose
+  resolved path escapes the configured root, throwing `ValidationError`
+  instead. Added 4 regression tests (`../` escape on `put`/`get`, absolute-path
+  rejection, and a confirmation that legitimate nested keys are unaffected).
+
+### Fixed
+- **Packaging: added the missing `LICENSE` file to 26 published packages**
+  (including `streetjs` itself) whose `package.json` declared `"license":
+  "MIT"` but shipped no `LICENSE` in the actual npm tarball. Added the file and
+  the `LICENSE` entry to each package's `files` array; verified via `npm pack
+  --dry-run` that the license now ships.
+- **CI: fixed the `Secret Scanning` gate**, which was failing on a Gitleaks
+  `generic-api-key` false positive — two now-deleted debug scripts
+  (`packages/gateway/debug-ws.mjs`, `debug-replica.mjs`) contained
+  `Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==`, which is the literal published
+  example handshake nonce from RFC 6455, not a real secret. Added it to the
+  `.gitleaks.toml` allowlist.
+- **CI: fixed the `Repository policy` gate**, which was failing on 3 unapproved
+  files at the repo root: two stray tracked empty files (`npm`, `tsc`, almost
+  certainly an old shell-redirection typo) were removed, and
+  `release-inputs.template.json` was moved to `scripts/release/` alongside its
+  sibling `derive-inputs.mjs` (which had its default `--merge` path updated to
+  match).
+- **CI reliability: fixed a scale-dependent false-failure in the WebSocket
+  scale certification harness** (`scripts/audit/ws-scale.mjs`). At 10,000
+  concurrent connections on a loaded CI runner, connect latency itself was
+  2.3-3.6s (p50/max), and the harness's fixed 500ms post-close wait was
+  sometimes too short to observe the server finish draining its client set —
+  reporting a false "server leaked N clients after close." The underlying
+  server-side cleanup (`StreetWebSocketServer` deleting each client from its
+  tracked set on the `ws` `close`/`error` events) was confirmed correct via
+  repeated clean local runs at N=10000 before any change. Fixed the harness to
+  poll for `clients.size === 0` (up to 10s) instead of assuming a fixed delay
+  is always enough. Re-verified locally (1,000 and 10,000) and on real CI (all
+  three matrix points: 1,000 / 5,000 / 10,000).
 
 ### Plugin security (additive, backward-compatible runtime)
 - **Outbound HTTP timeouts** on all 9 official `node:https` plugins — stripe,
@@ -134,6 +178,23 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   accurate `StreetContext` route handlers and raw-body guidance; refreshed
   `audits/PLUGIN-MATURITY-MATRIX.md` to reflect the shipped timeouts, verifiers,
   and redis/mongodb TLS.
+
+## [1.0.27] - 2026-07-06
+
+### Fixed
+- Re-published `streetjs`, `@streetjs/core` (compat shim), and `@streetjs/cli` in
+  lockstep with npm provenance attestation, superseding `1.0.26` (published
+  manually out-of-band, without provenance, and out of version lockstep). No
+  functional change beyond the `1.0.26` CLI fix below; `1.0.26` is deprecated
+  on npm in favor of this release.
+
+## [1.0.26] - 2026-07-05
+
+### Fixed
+- `street generate controller` no longer emits `ctx.status(n).json(...)` /
+  `ctx.status(204).send()` — `StreetContext` has no `status()` method.
+  Generated controllers now use the real API: `ctx.json(data, status)` and
+  `ctx.send(status)`. Generated code now type-checks cleanly.
 
 ---
 

@@ -49,6 +49,35 @@ import type { StorageDriver } from "../driver.js";
 import { STORAGE_METADATA_FIELDS } from "../metadata.js";
 import type { AccessLevel, StorageObjectMetadata } from "../types.js";
 
+// ── Optional-SDK resolvability probe ──────────────────────────────────────────
+
+/**
+ * Report whether an optional provider SDK module specifier can be resolved in
+ * this process, without importing/evaluating it as a side effect.
+ *
+ * Several driver unit test suites (Supabase, GCS, Azure) assert that
+ * `connectXDriver` throws `StorageConfigError` specifically *because* the
+ * optional peer SDK is absent. That assertion's precondition — the SDK is
+ * unresolvable — holds by default, but Node module resolution is process-wide,
+ * not test-file-scoped: a live-integration test run that installs the SDKs (to
+ * exercise genuine round-trips; see non-s3-integration.test.ts) makes the SDK
+ * resolvable for every test file sharing that `node --test` process. Callers use
+ * this probe to honestly skip that specific guard test in that situation, rather
+ * than reporting a false failure, matching this package's established
+ * honest-skip convention (Requirement 27.3/27.4).
+ *
+ * @param {string} specifier The module specifier to probe (e.g. `"@supabase/supabase-js"`).
+ * @returns {Promise<boolean>} `true` when the specifier resolves to an installed module.
+ */
+export function isSdkResolvable(specifier: string): boolean {
+  try {
+    import.meta.resolve(specifier);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 // ── Public result/report shapes ───────────────────────────────────────────────
 
 /**

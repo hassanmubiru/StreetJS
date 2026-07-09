@@ -2,13 +2,16 @@ name: Docs SEO
 
 # Builds the Jekyll documentation site and asserts the SEO artifacts render
 # (sitemap.xml, robots.txt → sitemap, Open Graph + description + JSON-LD on the
-# home page, and the docs search index). Complements the deploy in pages.yml.
+# home page, and the docs search index), plus that internal/working docs stay
+# excluded from the sitemap and noindexed while remaining reachable by URL.
+# Complements the deploy in pages.yml.
 
 on:
   push:
     paths:
       - 'docs/**'
       - 'scripts/docs/assert-seo.mjs'
+      - 'scripts/docs/assert-sitemap-cleanliness.mjs'
       - '.github/workflows/docs-seo.yml'
   pull_request:
     paths:
@@ -48,3 +51,8 @@ jobs:
         env:
           SITE_DIR: docs/_site
         run: node scripts/docs/assert-seo.mjs
+      - name: Assert sitemap cleanliness
+        working-directory: .
+        env:
+          SITE_DIR: docs/_site
+        run: node scripts/docs/assert-sitemap-cleanliness.mjs
