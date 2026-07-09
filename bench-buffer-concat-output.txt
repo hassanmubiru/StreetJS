@@ -3,3 +3,4 @@ Buffer accumulation strategy comparison (realistic TCP chunk sizes)
 total_bytes  chunk_size  num_chunks  current_ms  array_collect_ms  ratio
   1,000,000       16384          62        14.3               0.5  30.0x
  10,000,000       16384         611      1183.8               6.9  171.1x
+ 50,000,000       16384        3052     27734.3              15.2  1820.1x
