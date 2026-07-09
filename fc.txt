@@ -1,9 +1,0 @@
-===== PR #116 =====
-{"failing":["Root folder allowlist","Root folder allowlist"],"pending":0}
-
-===== PR #117 =====
-{"failing":["Platform Leadership exit-criteria aggregation"],"pending":0}
-
-===== PR #113 =====
-{"failing":["Root folder allowlist","Root folder allowlist"],"pending":0}
-
