@@ -141,3 +141,14 @@ logs/
 # preview/encryption keys that trip secret scanners; regenerated each build).
 .next/
 **/.next/
+
+# Release-verification scratch dirs. `scripts/post-publish-verify.sh` and
+# ad-hoc release checks download tooling (e.g. the gitleaks binary + tarball)
+# into a temporary `.release-verify-tmp*/` directory. These are large
+# third-party binaries whose embedded detection-rule test fixtures trip secret
+# scanners (a gitleaks binary contains example Google/AWS/etc. keys as part of
+# its own ruleset). They must never be committed. See GitHub secret-scanning
+# alert #16 (the flagged key was a gitleaks test fixture inside the committed
+# `.release-verify-tmp3/gitleaks` binary, not a StreetJS credential).
+.release-verify-tmp*/
+release-verify-tmp*/
