@@ -32,4 +32,12 @@ jobs:
           # License policy: deny known-incompatible copyleft/unknown licenses for
           # an MIT-licensed project. Adjust as the policy evolves.
           deny-licenses: AGPL-1.0-or-later, AGPL-3.0-or-later, GPL-2.0-or-later, GPL-3.0-or-later
+          # Exempt the TruffleHog secret-scanning GitHub Action from the license
+          # policy. It is AGPL-3.0, but it is a CI-only tool invoked as a build
+          # step (see .github/workflows/secret-scan.yml) — it is never bundled,
+          # linked, or distributed with the MIT-licensed framework, so its
+          # copyleft terms do not attach to StreetJS's shipped artifacts. Scoped
+          # to this single action by package-url so the AGPL/GPL denial still
+          # applies to every other (especially runtime) dependency.
+          allow-dependencies-licenses: pkg:githubactions/trufflesecurity/trufflehog
           comment-summary-in-pr: on-failure
