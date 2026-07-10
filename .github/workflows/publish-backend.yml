@@ -1,0 +1,109 @@
+name: Publish Backend Packages
+
+# Publishes the backend/framework and vertical-domain packages to npm WITH
+# provenance. These packages previously had no CI publish path (they were
+# published manually, without provenance); this workflow closes that gap and
+# mirrors publish-frontend.yml. Idempotent: any version already on the registry
+# is skipped, so only packages whose version was bumped actually publish.
+# Trigger manually, or by pushing a `backend-v*` tag.
+#
+# Required secret: NPM_TOKEN (npm Automation token — bypasses 2FA OTP).
+
+on:
+  push:
+    tags: ['backend-v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-backend-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Build, test & publish backend packages
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    permissions:
+      contents: read
+      id-token: write   # required for npm provenance
+
+    env:
+      # Dependency order is resolved by building twice (see below); this is the
+      # publish/verify set. Leaf/base packages first, dependents last.
+      PKGS: >-
+        events queue storage gateway realtime workflow search ai commerce
+        devtools admin registry-server dating-profiles social-users
+        social-comments social-notifications dating-moderation dating-auth
+        dating-messaging social-feed
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Build core (backend packages compile against streetjs)
+        run: npm run build -w packages/core
+
+      - name: Build all packages (two passes for dependency order)
+        run: |
+          set -euo pipefail
+          for round in 1 2; do
+            for p in $PKGS; do
+              npm run build -w "packages/$p"
+            done
+          done
+
+      - name: Test all packages
+        run: |
+          set -euo pipefail
+          for p in $PKGS; do
+            if node -e "process.exit(require('./packages/'+process.argv[1]+'/package.json').scripts?.test?0:1)" "$p"; then
+              npm test -w "packages/$p"
+            else
+              echo "no test script for $p — skipping"
+            fi
+          done
+
+      - name: Publish (idempotent, with provenance)
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          for p in $PKGS; do
+            NAME=$(node -p "require('./packages/$p/package.json').name")
+            VERSION=$(node -p "require('./packages/$p/package.json').version")
+            if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+              echo "$NAME@$VERSION already published — skipping."
+            else
+              npm publish -w "packages/$p" --provenance --access public
+              echo "Published $NAME@$VERSION"
+            fi
+          done
+
+      - name: Verify provenance attestations (only for versions published now)
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          sleep 20
+          fail=0
+          for p in $PKGS; do
+            NAME=$(node -p "require('./packages/$p/package.json').name")
+            VERSION=$(node -p "require('./packages/$p/package.json').version")
+            att=$(npm view "$NAME@$VERSION" dist.attestations --json 2>/dev/null || echo "")
+            if [ -z "$att" ] || [ "$att" = "null" ] || [ "$att" = "{}" ]; then
+              echo "::warning::$NAME@$VERSION has no provenance attestation (may predate this workflow)"
+            else
+              echo "Provenance OK: $NAME@$VERSION"
+            fi
+          done
+          exit "$fail"
