@@ -358,7 +358,7 @@ Repository rename and release-pipeline hardening. No API changes.
   of 3, 47-package monorepo, 19 official plugins; added hero, comparison table,
   Official Plugins, and Security & Supply Chain sections). No API changes.
 
-## [Unreleased]
+## [1.0.6] - 2026-06-09
 
 ### Added
 
@@ -493,7 +493,7 @@ Repository rename and release-pipeline hardening. No API changes.
 
 ---
 
-## [1.0.3] — 2026-05-29
+## [1.0.3] — 2026-05-28
 
 ### Fixed
 
@@ -549,11 +549,7 @@ Repository rename and release-pipeline hardening. No API changes.
   the npm registry, installs the published CLI globally, and validates the
   generated project end-to-end.
 
----
-
-## [1.0.3] — 2026-05-28
-
-### Fixed
+### Fixed — CI publish workflow robustness
 
 **CI publish workflow robustness**
 - Split combined "Run system tests" step into separate per-suite steps (security, memory-safety, infrastructure) with `--test-concurrency=1` — helps identify which test suite fails and prevents a timeout in one suite from blocking the others
