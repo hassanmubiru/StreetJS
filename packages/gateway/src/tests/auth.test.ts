@@ -99,6 +99,42 @@ test("kind 'jwt' returns null when neither verifier is provided", async () => {
   assert.equal(await authenticate({ kind: "jwt" }, req({ authorization: "Bearer t" })), null);
 });
 
+// ── bearer parsing: scheme, separators, and ReDoS regression ─────────────────────
+
+test("kind 'jwt' is case-insensitive on the Bearer scheme and trims the token", async () => {
+  let seen = "";
+  const deps: AuthDeps = { verifyJwt: (t) => ((seen = t), alice) };
+  await authenticate({ kind: "jwt" }, req({ authorization: "  bEaReR   tok.123  " }), deps);
+  assert.equal(seen, "tok.123");
+});
+
+test("kind 'jwt' accepts a tab separator between scheme and token", async () => {
+  let seen = "";
+  const deps: AuthDeps = { verifyJwt: (t) => ((seen = t), alice) };
+  await authenticate({ kind: "jwt" }, req({ authorization: "Bearer\t\ttok.123" }), deps);
+  assert.equal(seen, "tok.123");
+});
+
+test("kind 'jwt' returns null when the scheme has no separator or token", async () => {
+  const deps: AuthDeps = { verifyJwt: () => alice };
+  // "Bearerx" (no separator) and bare "Bearer" (no token) must both be rejected.
+  assert.equal(await authenticate({ kind: "jwt" }, req({ authorization: "Bearerx" }), deps), null);
+  assert.equal(await authenticate({ kind: "jwt" }, req({ authorization: "Bearer" }), deps), null);
+  assert.equal(await authenticate({ kind: "jwt" }, req({ authorization: "Bearer   " }), deps), null);
+});
+
+test("bearer parsing stays linear on adversarial whitespace (polynomial-ReDoS regression)", async () => {
+  // Formerly quadratic input for /^Bearer[ \t]+(.+)$/i: "bearer" + many tabs and
+  // no non-whitespace token. Must resolve to null fast, not hang.
+  const deps: AuthDeps = { verifyJwt: () => alice };
+  const evil = "bearer" + "\t".repeat(200_000);
+  const start = performance.now();
+  const identity = await authenticate({ kind: "jwt" }, req({ authorization: evil }), deps);
+  const elapsedMs = performance.now() - start;
+  assert.equal(identity, null);
+  assert.ok(elapsedMs < 1000, `bearer parse took ${elapsedMs.toFixed(1)}ms (expected < 1000ms)`);
+});
+
 // ── authenticate: session ────────────────────────────────────────────────────────
 
 test("kind 'session' resolves via x-session-id header", async () => {
