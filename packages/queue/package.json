@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/queue",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "StreetJS Queue Framework: strongly-typed, plugin-first background jobs and queues with delayed/cron scheduling, retry/backoff, dead-letter handling, worker concurrency/priority, per-queue rate limiting, middleware, lifecycle events, health/metrics, a CLI, and a Redis-free testing harness over a pluggable driver contract.",
   "type": "module",
   "main": "./dist/index.js",

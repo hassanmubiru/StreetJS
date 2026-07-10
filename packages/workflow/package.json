@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/workflow",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "StreetJS Core v2 Pillar 5: a production-grade, strongly-typed, durable workflow orchestration engine that composes the realtime, queue, events, and storage pillars into reliable, multi-step, long-running workflows through an imperative, journaled, deterministic-replay execution model. Zero-dependency in-memory persistence by default, optional Redis persistence isolated behind a submodule, and optional structural pillar bridges with no hard pillar dependency.",
   "type": "module",
   "main": "./dist/index.js",

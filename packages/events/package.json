@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/events",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "StreetJS application event layer: a strongly-typed, plugin-first, in-process event system with local/async/ordered dispatch, wildcard subscriptions, once listeners, a composable middleware pipeline, optional event replay over a pluggable event store, health/metrics, a CLI, and a testing harness. Not a message broker.",
   "type": "module",
   "main": "./dist/index.js",

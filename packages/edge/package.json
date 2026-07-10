@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/edge",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Edge Runtime adapter for the Street framework",
   "type": "module",
   "main": "./dist/index.js",

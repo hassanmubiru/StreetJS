@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/dating-auth",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Consumer-platform reference package: dating authentication built entirely on Street core JwtService, SessionManager, and AbuseEngine — no independent auth logic.",
   "type": "module",
   "main": "./dist/index.js",

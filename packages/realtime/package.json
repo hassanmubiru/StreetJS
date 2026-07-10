@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/realtime",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "StreetJS Realtime Framework: strongly-typed, plugin-first rooms, presence, typing, broadcast, auth, rate limiting, and pluggable cluster adapters layered over streetjs.",
   "type": "module",
   "main": "./dist/index.js",
