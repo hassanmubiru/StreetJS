@@ -294,16 +294,20 @@ not executed during this session — so not asserted as passing.
 
 ## Justification of decision
 
-From this session's evidence: builds are clean (53/53 buildable, dependency-order),
-every executed test suite passes with zero failures, the v1.1.2 release is published
-and provenance-attested with consistent lockstep versions, `main` CI is green, and
-there are **0 open** security alerts across all three surfaces. That is strong
-evidence of a healthy, releasable engineering state — hence **not** "NOT COMPLETE".
+From this session's evidence: builds are clean (53/53 buildable, dependency-order);
+the **full per-package test corpus (2054 pass / 0 fail / 34 skip) and core system
+suites (35 pass / 0 fail / 1 skip)** were executed and are green; the single failure
+(a flaky time-dependent gateway test) was root-caused and **fixed**, then re-verified
+stable; the v1.1.2 release is published and provenance-attested with consistent
+lockstep versions; `main` CI is green; and there are **0 open** security alerts across
+all three surfaces. That is strong, current evidence of a healthy engineering state —
+hence **not** "NOT COMPLETE".
 
-It is **not** "ENGINEERING COMPLETE" because completeness cannot be asserted purely
-from this session: the **full test corpus was not executed here** (Phase 3/14), and
-one Medium follow-up (cosign v4 tag-signing, M-1) plus minor doc/hygiene items
-remain. Those are verification-coverage and tracked-follow-up gaps, not demonstrated
-defects. The evidence-based verdict is therefore **CONDITIONALLY COMPLETE**:
-engineering-complete for the verified surface, conditional on (a) a full-suite test
-run, (b) closing M-1, and (c) the Low doc/hygiene items.
+It is **not** "ENGINEERING COMPLETE" because three residuals cannot be closed from
+this session without inference: (a) environment-gated verifications not run here
+(live-PostgreSQL Infrastructure suite, Docker, examples, benchmarks); (b) the Medium
+follow-up M-1 (cosign v4 tag-signing migration — mitigated but unfinished); (c) Low
+coverage/doc gaps (`@streetjs/edge` lacks tests + README; 7 packages lack a direct
+test script). None is a demonstrated defect. The evidence-based verdict is therefore
+**CONDITIONALLY COMPLETE** — engineering-complete across everything verified this
+session, conditional on the small, explicitly-listed residual set above.
