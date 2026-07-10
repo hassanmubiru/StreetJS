@@ -1,0 +1,11 @@
+{
+  "name": "@streetjs/ci-live-sdks",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Isolated, pinned install of the optional cloud-provider SDKs used ONLY by the vendor-integration live round-trip tests. Deliberately NOT a workspace member and never published. Exists so CI installs these via `npm ci` (lockfile + integrity hashes) instead of an unpinned `npm install`, satisfying OpenSSF Scorecard Pinned-Dependencies (js/pinned-dependencies). See .github/workflows/vendor-integration.yml for how it is consumed.",
+  "dependencies": {
+    "@supabase/supabase-js": "2.110.2",
+    "@google-cloud/storage": "7.21.0",
+    "@azure/storage-blob": "12.33.0"
+  }
+}
