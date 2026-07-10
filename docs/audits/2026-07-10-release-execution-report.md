@@ -164,11 +164,25 @@ URL `https://github.com/hassanmubiru/StreetJS/releases/tag/v1.1.2`.
 
 ## Phase 10 — GitHub Actions
 
-- `ci-cd.yml` on release commit `4807d582`: **success** (incl. `Test & Publish`).
-- The subsequent lockfile commit and the `v1.1.2` tag push each re-trigger
-  `ci-cd.yml`; publishing is idempotent (already-published `1.1.2` is skipped).
-- **NOT VERIFIED:** final conclusion of the tag-triggered `ci-cd.yml` run was not
-  awaited to completion this session (publish already confirmed on npm regardless).
+- `ci-cd.yml` on release commit `4807d582`: **success** (incl. `Test & Publish` → npm publish + provenance).
+- **`v1.1.2` tag-triggered run (`29078716545`): FAILURE — investigated (this session).**
+  The failing job was `Test & Publish`, at the **tag-only** step *"Pack and sign
+  release tarballs"*: `cosign sign-blob … create bundle file: open : no such file
+  or directory`. Root cause: the actions dependency bump moved
+  `sigstore/cosign-installer` from **v3.7.0 → v4.1.2**, and cosign v4 defaults to
+  the new bundle format, breaking the `--output-signature/--output-certificate`
+  invocation. The same commit's **main-push** run (`29078485468`) succeeded, and
+  by design (workflow comment: signing runs *after* npm publish and "can never
+  affect what is already on the registry") **npm publish + provenance were
+  unaffected** — verified on npm.
+- **Fix applied this session:** pinned `cosign-installer` back to the known-good
+  **v3.7.0** (`dc72c7d5…`) in `ci-cd.yml` — the version that signed the v1.1.1
+  release (2026-07-08) — with a comment tracking a proper `cosign sign-blob
+  --bundle` (v4) migration. The `v1.1.2` tag was **not** re-pushed (moving a
+  published release tag is bad practice); the fix applies to the next release.
+- **Consequence for v1.1.2:** the GitHub Release exists but does **not** carry the
+  cosign-signed tarball assets (`.sig`/`.pem`). npm provenance (SLSA v1) is present
+  and is the primary supply-chain attestation.
 
 ---
 
@@ -181,10 +195,15 @@ Fresh install from npm into a clean temp project (this session):
 - ESM import: `import('streetjs')` → resolves **ok**.
 - CLI: `node …/@streetjs/cli/bin/street.js --version` → **`street v1.1.2`**.
 - GitHub Release version matches npm version matches tag: **1.1.2**.
-- **NOT VERIFIED:** end-to-end `street create` → generated-project `tsc` compile
-  and example execution were not run in this session (the scaffold pin update to
-  `^1.1.2` is present in the published CLI; a full generated-project build was not
-  re-executed here).
+- **End-to-end `street create` → `tsc` (verified this session)** using the
+  *published* CLI 1.1.2 from npm:
+  - `npm install @streetjs/cli@1.1.2` → `street v1.1.2`.
+  - `street create demoapp` → exit 0; generated `package.json` pins
+    **`"streetjs": "^1.1.2"`** (the scaffold fix is live); `package.json`,
+    `tsconfig.json`, `src/main.ts` all present.
+  - `npm install` in the generated project → exit 0; resolved
+    `node_modules/streetjs` = **1.1.2**.
+  - `npx tsc --noEmit` → **exit 0, no errors**.
 
 ---
 
