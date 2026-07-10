@@ -7,5 +7,11 @@
     "@supabase/supabase-js": "2.110.2",
     "@google-cloud/storage": "7.21.0",
     "@azure/storage-blob": "12.33.0"
+  },
+  "comments": {
+    "overrides": "Force the transitive `uuid` (pulled in by @google-cloud/storage via gaxios/teeny-request, which pin ^9) up to the patched 11.1.1 that fixes GHSA-w5hq-g745-h8pq / CVE-2026-41907 (out-of-bounds write in v3/v5/v6 when a caller buffer is supplied). uuid 11.1.1 keeps a CJS `require` export, so gaxios/teeny-request's `require('uuid').v4()` still works; verified `npm audit` clean + all three SDKs load. Chosen over 14.x (ESM-only major, would break the CJS consumers) and over leaving 9.0.1 (Dependabot alert)."
+  },
+  "overrides": {
+    "uuid": "11.1.1"
   }
 }
