@@ -20,6 +20,12 @@
     "dist/**/*.js.map",
     "dist/**/*.d.ts",
     "dist/**/*.d.ts.map",
+    "!dist/**/*.test.js",
+    "!dist/**/*.test.js.map",
+    "!dist/**/*.test.d.ts",
+    "!dist/**/*.test.d.ts.map",
+    "!dist/tests/**",
+    "!dist/**/__tests__/**",
     "README.md",
     "LICENSE"
   ],
@@ -72,11 +78,21 @@
     "typescript": ">=5.0.0"
   },
   "peerDependenciesMeta": {
-    "@streetjs/realtime": { "optional": true },
-    "@streetjs/queue": { "optional": true },
-    "@streetjs/events": { "optional": true },
-    "@streetjs/storage": { "optional": true },
-    "typescript": { "optional": true }
+    "@streetjs/realtime": {
+      "optional": true
+    },
+    "@streetjs/queue": {
+      "optional": true
+    },
+    "@streetjs/events": {
+      "optional": true
+    },
+    "@streetjs/storage": {
+      "optional": true
+    },
+    "typescript": {
+      "optional": true
+    }
   },
   "engines": {
     "node": ">=22.0.0"
