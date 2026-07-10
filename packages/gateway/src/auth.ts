@@ -55,13 +55,33 @@ function header(headers: Headers, name: string): string | undefined {
   return Array.isArray(raw) ? raw[0] : raw;
 }
 
-/** Extract a bearer token from an `Authorization: Bearer <token>` header. */
+/**
+ * Extract a bearer token from an `Authorization: Bearer <token>` header.
+ *
+ * Parsed with a linear scan rather than a regex: the previous
+ * `/^Bearer[ \t]+(.+)$/i` was flagged as a polynomial-ReDoS (`js/polynomial-redos`)
+ * because `.` also matches space/tab, so `[ \t]+` and `(.+)` overlap and the
+ * engine can partition a whitespace run in many ways before failing. This scan
+ * is O(n) with no backtracking and preserves the exact contract: a
+ * case-insensitive `Bearer` scheme, at least one space/tab separator, and a
+ * non-empty trimmed token.
+ */
 function bearerToken(headers: Headers): string | undefined {
   const auth = header(headers, "authorization");
   if (auth === undefined) return undefined;
-  const match = /^Bearer[ \t]+(.+)$/i.exec(auth.trim());
-  if (match === null) return undefined;
-  const token = match[1]!.trim();
+  const trimmed = auth.trim();
+
+  // Scheme must be a case-insensitive "Bearer".
+  if (trimmed.length < 6 || trimmed.slice(0, 6).toLowerCase() !== "bearer") {
+    return undefined;
+  }
+
+  // Require at least one space/tab separator between the scheme and the token.
+  let i = 6;
+  while (i < trimmed.length && (trimmed[i] === " " || trimmed[i] === "\t")) i++;
+  if (i === 6) return undefined;
+
+  const token = trimmed.slice(i).trim();
   return token.length > 0 ? token : undefined;
 }
 
