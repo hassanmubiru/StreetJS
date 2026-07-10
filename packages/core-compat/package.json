@@ -120,8 +120,7 @@
   "files": [
     "dist/**/*.js",
     "dist/**/*.d.ts",
-    "README.md",
-    "LICENSE"
+    "README.md"
   ],
   "dependencies": {
     "streetjs": "1.1.2"
