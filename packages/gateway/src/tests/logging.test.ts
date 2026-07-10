@@ -80,16 +80,21 @@ test("default sink is a no-op and finish still returns the record", () => {
   assert.equal(record.requestId, "req-3");
 });
 
-test("newRequestId with a fixed rng is deterministic and non-empty", () => {
-  const a = newRequestId(() => 0.5);
-  const b = newRequestId(() => 0.5);
-  assert.equal(a, b, "same rng yields the same id within the same ms tick");
+test("newRequestId with a fixed rng and clock is deterministic and non-empty", () => {
+  // Inject BOTH the rng and the clock so the id is fully deterministic — without
+  // a fixed clock, two calls that straddle a millisecond boundary differ in the
+  // timestamp portion even with the same rng (a real-time race).
+  const fixedNow = () => 1_700_000_000_000;
+  const a = newRequestId(() => 0.5, fixedNow);
+  const b = newRequestId(() => 0.5, fixedNow);
+  assert.equal(a, b, "same rng + same clock yields the same id");
   assert.ok(a.length > 0, "id is non-empty");
   assert.match(a, /^[0-9a-z]+-[0-9a-z]+$/, "id has a timestamp-random shape");
 });
 
 test("newRequestId with different rng values differ", () => {
-  const a = newRequestId(() => 0.1);
-  const b = newRequestId(() => 0.9);
+  const fixedNow = () => 1_700_000_000_000;
+  const a = newRequestId(() => 0.1, fixedNow);
+  const b = newRequestId(() => 0.9, fixedNow);
   assert.notEqual(a, b);
 });
