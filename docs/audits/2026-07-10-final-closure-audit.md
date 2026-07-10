@@ -73,25 +73,38 @@ Full sweep of all packages with a `build` script (clean + build each):
 
 ---
 
-## Phase 3 — Test verification  ◑ (subset passed; full corpus NOT VERIFIED locally)
+## Phase 3 — Test verification  ✅ (full corpus executed this session; 1 flaky test found + fixed)
 
-Executed this session (real `node --test` summaries):
+**Full per-package test sweep** (built all in dependency order first, then ran every
+package's `test` script):
 
-| Suite | tests | pass | fail | skipped |
-|-------|:----:|:----:|:----:|:-------:|
-| `streetjs` (core) integration (`test:run`) | 14 | 14 | 0 | 0 |
-| `streetjs` (core) hardening (`test:hardening`) | 17 | 17 | 0 | 0 |
-| `@streetjs/cli` | 293 + 56 | 292 + 56 | 0 | 1 |
-| `@streetjs/gateway` | 252 | 252 | 0 | 0 |
-| `@streetjs/storage` | 374 | 367 | 0 | 7 |
+- **Packages:** 46 have a test script and were executed; 8 have no test script.
+- **Aggregate tests this session: 2054 passed, 0 failed, 34 skipped.**
+- Skips are reported as skipped, **never** counted as passing (they gate on live
+  services/credentials, e.g. orm 5, queue 6, realtime 4, nats 4, storage 7, events 3).
 
-- **0 failures** across everything run. Skips (1 cli, 7 storage) are reported as
-  skipped, **not** counted as passing.
-- **NOT VERIFIED this session:** the other ~48 packages' test suites and core's
-  heavy **system suites** (`test:security`/`memory`/`load`/`fuzz`/`chaos`/`infra`)
-  were not executed locally (time/Node-22 constraints). Core's `test` script
-  (`node --test dist/tests/integration.test.js`) requires a full `tsc` first
-  (`test:run`), not the library build — a harness nuance, not a failure.
+**Core heavy system suites** (`test:system:ci`, this session): **35 passed, 0 failed,
+1 skipped** — Security ✓, Memory ✓, Load ✓, Fuzz ✓, Chaos ✓; **Infrastructure
+SKIPPED** (requires live PostgreSQL).
+
+**Finding (fixed this session) — flaky/time-dependent test:** the sweep exposed one
+failure — `@streetjs/gateway` `logging.test.ts` "newRequestId … deterministic":
+`newRequestId()` builds `${Date.now().toString(36)}-${random}`, and the test called
+it twice asserting `a === b`, which fails whenever the two calls straddle a
+millisecond boundary (it passed earlier by timing luck; failed under sweep load —
+`expected mrf2zppr… / actual mrf2zppq…`). **Fixed:** made the timestamp source
+injectable (`newRequestId(rng, now)`, additive/backward-compatible) and the test now
+injects a fixed clock. Verified: gateway **252/252, 0 fail**, and the test passes on
+3 consecutive repeat runs (no flake). This is a **test-quality** defect, not a
+runtime defect.
+
+- **8 packages without a `test` script:** `@streetjs/core` (core-compat, a generated
+  re-export shim), `@streetjs/edge`, and `plugin-{auth0,r2,s3,sendgrid,stripe,twilio}`
+  — the HTTP plugins are largely exercised by core's centralized
+  `plugins-official-hardening` suite (17/17 pass this session). `edge` and the shim
+  have no direct tests (coverage gap, Finding L-6).
+- **NOT VERIFIED this session:** the **Infrastructure** system suite (live
+  PostgreSQL), Docker-dependent tests, and example execution.
 
 ---
 
