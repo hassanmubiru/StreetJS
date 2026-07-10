@@ -9,6 +9,8 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-07-10
+
 ### Fixed
 - **`street create` scaffolded new projects with `streetjs` pinned to `^1.0.6`**,
   so a fresh project's `npm install` resolved to `1.0.25` — missing every fix
