@@ -324,3 +324,58 @@ coverage/doc gaps (`@streetjs/edge` lacks tests + README; 7 packages lack a dire
 test script). None is a demonstrated defect. The evidence-based verdict is therefore
 **CONDITIONALLY COMPLETE** — engineering-complete across everything verified this
 session, conditional on the small, explicitly-listed residual set above.
+
+---
+
+## Extended verification & remediation (same session)
+
+After the initial pass, **Docker (29.1.3, daemon up)** and **PostgreSQL (16.14 +
+a healthy `street_test_pg` container on :5433)** were confirmed available, so the
+environment-gated residuals were executed and defects fixed. All results below are
+from commands run this session.
+
+### Closed by verification
+
+| Item | Result |
+|------|--------|
+| **Infrastructure system suite (live PG)** | Ran `test:infra` against `localhost:5433` (`street`/`street_test`): **25 tests, 25 pass, 0 fail, 0 skipped** — incl. the PG-gated Migration System tests. **All 6 core system suites now green** (Security/Memory/Load/Fuzz/Chaos + Infrastructure). |
+| **Example execution** | `@streetjs/storage` demo (`npm run example`) ran clean (upload/download round-trip, matching etag). |
+| **Docker build capability** | `@streetjs/registry-server` image built successfully (exit 0, tagged) **after** the fixes below. |
+
+### Defects found and FIXED this session
+
+| ID | Sev | Defect | Fix | Verified |
+|----|-----|--------|-----|----------|
+| L-7 | Low | Flaky time-dependent test `newRequestId … deterministic` (asserts `a===b` across two real-time `Date.now()` calls) | Made timestamp source injectable (`newRequestId(rng, now)`, additive); test injects a fixed clock | gateway **252/252**; test stable on 3 repeat runs |
+| L-4/L-6 | Low | `@streetjs/edge`: no README, no `test` script, **and ships its test files** in the published tarball | Added README; added `test` script; added `tsconfig.build.json` excluding `**/*.test.ts` so the production build/tarball is clean | build emits **0** test files; tarball **0** test files, README present; `npm test` → **14/14 pass** |
+| **M-2** | **Medium** | **`@streetjs/registry-server` Docker image build was broken** — (a) its standalone `package-lock.json` was out of sync with its `package.json` (`@types/node` 25→26, `fast-check` 3→4) so `npm ci` failed; (b) it pinned/locked `streetjs@1.0.6`, which predates the `normalizePageSize` export its code uses, so `tsc` failed. (Built locally only because the workspace resolves `streetjs`→core@1.1.2.) | Regenerated the standalone lockfile; bumped `streetjs` pin `^1.0.6`→`^1.1.2` and relocked (now `1.1.2`); resynced the **root** lockfile too | `docker build` of `packages/registry-server/Dockerfile` → **exit 0, image built** |
+
+### Still NOT closed (honest)
+
+- **M-1 (cosign v4 tag-signing migration):** unfinished; mitigated by the v3.7.0
+  pin. Cannot be verified without cutting a throwaway release tag — out of scope
+  for a non-release audit session.
+- **Benchmarks:** not re-executed; no performance numbers asserted.
+- **Framework `infra/docker` image:** not built this session (builds from root
+  context in CI; registry-server image build was verified instead). Docker-build
+  capability is demonstrated.
+- **Other packages' examples:** only the storage example was executed.
+
+### Updated finding roster
+
+- **Resolved this session:** L-4, L-6, L-7 (see table); L-3 (local `node_modules`
+  staleness) unchanged — cosmetic, `npm ci` reconciles.
+- **New:** **M-2** (registry-server Docker build) — **fixed and verified**.
+- **Open:** **M-1** (cosign v4) — mitigated, migration pending.
+
+### Net effect on the decision
+
+The residual set that kept this from ENGINEERING COMPLETE has shrunk to essentially
+**M-1** (a release-signing migration that provably cannot be verified without a
+release tag) plus two low-value re-runs (benchmarks, the second Docker image). All
+correctness-bearing verification executed this session — full test corpus, all six
+core system suites (including real-PostgreSQL infrastructure), builds, packaging,
+runtime, and a real Docker image build — **passes**, and four real defects (one
+Medium Docker-build breakage, three Low) were fixed. The evidence-based verdict is
+unchanged in label — **CONDITIONALLY COMPLETE** — but materially stronger, and the
+path to ENGINEERING COMPLETE is now a single meaningful item (M-1).
