@@ -22,10 +22,13 @@ import type { AccessLogRecord, AccessLogSink } from "./types.js";
  *
  * The id is `<base36 timestamp>-<base36 random>`, e.g. `"lz4f9k-3f8a1b"`. It is
  * intended for log correlation, not cryptographic uniqueness. `rng` defaults to
- * `Math.random`; inject a fixed generator to obtain a deterministic id in tests.
+ * `Math.random` and `now` to `Date.now`; inject fixed sources to obtain a fully
+ * deterministic id in tests (both the timestamp and the random suffix are then
+ * fixed — otherwise two calls that straddle a millisecond boundary differ in the
+ * timestamp portion even with the same `rng`).
  */
-export function newRequestId(rng: () => number = Math.random): string {
-  const time = Date.now().toString(36);
+export function newRequestId(rng: () => number = Math.random, now: () => number = Date.now): string {
+  const time = now().toString(36);
   // Drop the leading "0." from the base36 fraction; pad so the suffix is stable
   // in length even when the random fraction is short.
   const random = rng().toString(36).slice(2).padEnd(8, "0").slice(0, 8);
