@@ -1109,15 +1109,7 @@ jobs:
       # already on the registry.
       - name: Install cosign
         if: ${{ github.ref_type == 'tag' }}
-        # Pinned to v3.7.0: cosign v4.x changed `sign-blob` to default to the new
-        # bundle format and broke the `--output-signature/--output-certificate`
-        # invocation below ("create bundle file: open : no such file or
-        # directory"), which failed the tag-triggered release-asset signing on
-        # v1.1.2. v3.7.0 is the known-good that signed the v1.1.1 release
-        # (2026-07-08). A proper migration to `cosign sign-blob --bundle` (v4) is
-        # tracked separately; until then this pin keeps signed GitHub Release
-        # assets working. (npm publish + provenance run earlier and are unaffected.)
-        uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da # v3.7.0
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
 
       - name: Pack and sign release tarballs
         if: ${{ github.ref_type == 'tag' }}
@@ -1131,11 +1123,14 @@ jobs:
           # Include the per-release CycloneDX SBOM generated above.
           [ -f "sbom-${GITHUB_REF_NAME}.json" ] && cp "sbom-${GITHUB_REF_NAME}.json" release-assets/
           cd release-assets
+          # cosign v4: emit a single Sigstore bundle per tarball (sig + cert +
+          # tlog entry in one file). v4 defaults to the new bundle format, so the
+          # old `--output-signature/--output-certificate` pair failed with
+          # "create bundle file: open :" (empty bundle path). `--bundle <path>`
+          # gives it an explicit output and is the v4-recommended blob-signing
+          # form; verify with `cosign verify-blob --bundle <f>.cosign.bundle`.
           for f in *.tgz; do
-            cosign sign-blob --yes \
-              --output-signature "$f.sig" \
-              --output-certificate "$f.pem" \
-              "$f"
+            cosign sign-blob --yes --bundle "$f.cosign.bundle" "$f"
           done
           echo "Signed release assets:"; ls -la
 
