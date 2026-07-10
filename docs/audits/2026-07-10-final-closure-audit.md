@@ -20,6 +20,19 @@ no skipped test is counted as passing. Nothing is fabricated.
 
 ---
 
+> **ADDENDUM (same session, extended verification & remediation) — see the
+> "Extended verification" section at the end.** After the initial pass, a
+> PostgreSQL server + Docker became available, so previously environment-gated
+> items were executed and several real defects were found **and fixed**:
+> the Infrastructure system suite now passes against **real PostgreSQL** (25/25,
+> all 6 core system suites green); a **flaky gateway test** was fixed; `@streetjs/edge`
+> got a README + `test` script + a **test-file packaging-pollution** fix; and the
+> **`@streetjs/registry-server` Docker image build (which was broken)** was fixed
+> (stale standalone lockfile + stale `streetjs@1.0.6` pin). The verdict remains
+> **CONDITIONALLY COMPLETE**, now gated essentially only on **M-1 (cosign v4
+> migration, needs a test tag)** plus a couple of low-value re-runs (benchmarks,
+> the framework `infra/docker` image).
+
 ## Final decision: **CONDITIONALLY COMPLETE** (strong evidence; small residual set)
 
 Everything executed this session passes: all 53 buildable packages compile (in
