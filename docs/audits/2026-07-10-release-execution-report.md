@@ -212,13 +212,16 @@ Fresh install from npm into a clean temp project (this session):
 | Severity | Finding |
 |----------|---------|
 | **Low** | CHANGELOG historical relabels (`1.0.6`, `1.0.3` merge) are best-evidence reconciliations (tag + feature-landing dates); recommend maintainer confirmation. |
+| **Medium** | `cosign-installer` v3.7.0→v4.1.2 (actions bump) broke the **tag-only** "Pack and sign release tarballs" step (cosign v4 new bundle-format default), failing the `v1.1.2` tag CI run. Does **not** affect npm publish/provenance (verified). **Fixed** this session by pinning cosign back to v3.7.0; a `cosign sign-blob --bundle` v4 migration is the tracked follow-up. v1.1.2's GitHub Release lacks signed tarball assets as a result. |
 | **Low** | `scripts/release.sh` is outdated for the current monorepo: it targets only core+cli, never regenerates `core-compat`, and publishes locally (no provenance). It was **not used**; release went through `ci-cd.yml`. Recommend updating or removing it. |
 | **Informational** | Release is CI-driven: a version bump landing on `main` triggers `ci-cd.yml` to publish with provenance (idempotent). The tag + GitHub Release document the release. |
 
-### NOT VERIFIED (explicitly)
-- Local `npm pack --dry-run` per-package content (validated by CI Package Integrity instead).
-- Final conclusion of the `v1.1.2`-tag-triggered `ci-cd.yml` run (publish already confirmed on npm).
-- Full `street create` → generated-project `tsc`/example execution end-to-end.
+### Post-report verification (all previously-open items now closed)
+- ✅ Local `npm pack --dry-run` per package — verified clean (Phase 6 table).
+- ✅ `v1.1.2` tag CI run conclusion — investigated: failed at the tag-only cosign
+  sign step; root-caused; release unaffected; fix applied (Phase 10).
+- ✅ Full `street create` → `npm install` → `tsc --noEmit` end-to-end — verified
+  clean against the published 1.1.2 (Phase 11).
 
 ---
 
