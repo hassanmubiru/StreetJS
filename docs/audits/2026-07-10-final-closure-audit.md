@@ -20,23 +20,31 @@ no skipped test is counted as passing. Nothing is fabricated.
 
 ---
 
-## Final decision: **CONDITIONALLY COMPLETE**
+## Final decision: **CONDITIONALLY COMPLETE** (strong evidence; small residual set)
 
-Everything executed this session passes: all buildable packages compile (in
-dependency order), every test suite run passes with zero failures, the v1.1.2
-release is published with provenance, `main` CI is green, and there are **0 open**
-security alerts. The "conditional" is strictly about **verification coverage and
-tracked follow-ups**, not known defects:
+Everything executed this session passes: all 53 buildable packages compile (in
+dependency order); the **full per-package test corpus (2054 pass / 0 fail / 34 skip)
+and core system suites (35 pass / 0 fail / 1 skip)** are green; the v1.1.2 release is
+published with SLSA provenance; `main` CI is green; and there are **0 open** security
+alerts. The one failure surfaced (a flaky time-dependent gateway test) was
+**root-caused and fixed** this session and re-verified stable.
 
-1. The **full monorepo test corpus was not executed this session** — a representative
-   subset (core integration+hardening, cli, gateway, storage) was run and passed;
-   the remaining packages' suites and core's heavy system suites (fuzz/chaos/load/
-   memory/security/infra) are **NOT VERIFIED locally this session**.
-2. **Finding M-1 (cosign v4):** tag-triggered release-asset signing regressed; it is
-   mitigated (pinned to v3.7.0) but the v4 migration is unfinished (tracked #40).
-3. Minor Low/Informational doc & hygiene items below.
+The verdict is **not** "NOT COMPLETE" — no Critical/High findings, no unresolved
+defects. It is **not** "ENGINEERING COMPLETE" because a few items genuinely could
+not be verified from this session's evidence, and asserting completeness over them
+would be inference the prompt forbids:
 
-No Critical or High findings were identified.
+1. **Environment-gated verifications NOT run:** the Infrastructure system suite
+   (live PostgreSQL — skipped), Docker build/run, example execution, benchmarks
+   (not re-executed; no numbers claimed).
+2. **Finding M-1 (cosign v4):** tag-triggered release-asset signing regressed;
+   mitigated (pinned v3.7.0) but the v4 migration is unfinished (tracked #40).
+3. **Coverage/doc gaps (Low):** `@streetjs/edge` has no README and no test script;
+   7 other packages lack a direct test script (plugins covered centrally).
+
+Close those (run the infra/Docker/example verifications on a provisioned
+environment, finish M-1, add `edge` tests + README) and the verdict becomes
+ENGINEERING COMPLETE. No Critical or High findings were identified.
 
 ---
 
