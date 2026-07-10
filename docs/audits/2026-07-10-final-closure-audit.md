@@ -352,9 +352,16 @@ from commands run this session.
 
 ### Still NOT closed (honest)
 
-- **M-1 (cosign v4 tag-signing migration):** unfinished; mitigated by the v3.7.0
-  pin. Cannot be verified without cutting a throwaway release tag — out of scope
-  for a non-release audit session.
+- **M-1 (cosign signing migration): NOW MIGRATED + flag-validated (2026-07-10).**
+  Root cause confirmed: `cosign-installer@v4.1.2` installs **cosign binary v3.0.6**,
+  which defaults `--new-bundle-format=true`; that mode **requires `--bundle`** (per
+  `cosign sign-blob --help`, validated against the v3.0.6 binary this session), but
+  the step passed `--output-signature/--output-certificate` with no `--bundle` →
+  empty-path bundle write → the `create bundle file: open :` error. **Fix applied:**
+  step now runs `cosign sign-blob --yes --bundle "$f.cosign.bundle" "$f"` (installer
+  restored to v4.1.2; `--output-*` pin dropped). `verify-blob --bundle` confirmed for
+  consumers; `ci-cd.yml` re-parses clean. **Residual:** full end-to-end keyless
+  signing needs OIDC (can't run locally) — confirm on the next genuine release tag.
 - **Benchmarks:** not re-executed; no performance numbers asserted.
 - **Framework `infra/docker` image:** not built this session (builds from root
   context in CI; registry-server image build was verified instead). Docker-build
