@@ -258,6 +258,8 @@ Source scans (`packages/*/src`, excluding tests):
 | L-3 | Low | Local `node_modules` stale (`@types/node` 25.9.2 vs lockfile 26.1.0) | `npm ls` invalid lines; lockfile=26.1.0 | local env | none (repo correct) | `npm ci` to reconcile locally |
 | L-4 | Low | `packages/edge` missing README | `ls packages/edge/README.md` → absent | `packages/edge` | published pkg lacks docs | Add README |
 | L-5 | Low | CHANGELOG `[1.0.6]` out of chronological order | heading scan | `CHANGELOG.md` | cosmetic | Reorder / confirm |
+| L-6 | Low | 8 packages have no `test` script | sweep: no-test-script=8 | core-compat, edge, 6 HTTP plugins | edge + shim untested directly (plugins covered by core hardening suite) | Add tests for `edge`; consider per-plugin suites |
+| L-7 | Low **(fixed this session)** | Flaky time-dependent test | sweep fail: `newRequestId … deterministic` (`mrf2zppr`≠`mrf2zppq`) | `packages/gateway/src/logging.ts` + `tests/logging.test.ts` | intermittent CI failures | Fixed: injectable clock; 252/252 + 3 stable repeats |
 | I-1 | Info | Local Node 20 vs `engines >=22` | `node --version` | env | some pkgs warn on Node 20 | Use Node 22+ locally |
 
 **No Critical or High findings.**
@@ -266,17 +268,19 @@ Source scans (`packages/*/src`, excluding tests):
 
 ## Phase 14 — NOT VERIFIED (this session)
 
-1. **Full monorepo test corpus** — only core(integration+hardening)/cli/gateway/
-   storage run; ~48 other packages' suites and core system suites (fuzz/chaos/
-   load/memory/security/infra) not executed locally.
+*(Updated: the full per-package test corpus AND core system suites WERE executed
+this session — see Phase 3 — so they are no longer listed here.)*
+
+1. **Infrastructure system suite** — SKIPPED (requires a live PostgreSQL); reported
+   as skipped, not passing.
 2. **Performance benchmarks** — artifacts present but not re-executed; no numbers reported.
 3. **Docker build/run** and **examples execution** — not run this session.
 4. **Generated API-doc site build** and per-command CLI-doc accuracy — not built/checked.
 5. **`street create` → generated-project compile** — verified earlier today, not
    re-run in this audit session.
 
-Reason in all cases: not executed during this session (scope/time/Node-22/infra),
-so not asserted as passing.
+Reason in all cases: requires service containers/credentials/infra not available, or
+not executed during this session — so not asserted as passing.
 
 ---
 
