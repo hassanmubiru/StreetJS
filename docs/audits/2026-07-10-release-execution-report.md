@@ -115,11 +115,14 @@ session):
 
 ## Phase 6 — Packaging
 
-- CI job **`Package Integrity (pack + clean-install import)`** on `4807d582` → **success**
-  (npm pack + clean-install import validation).
-- **NOT VERIFIED locally this session:** a separate local `npm pack --dry-run`
-  per-package tarball content listing was not run; packaging was validated by the
-  CI Package Integrity job above.
+- CI job **`Package Integrity (pack + clean-install import)`** on `4807d582` → **success**.
+- **Local `npm pack --dry-run` (verified this session)** for all three packages:
+
+| Package | files | pollution (`dist/tests`,`dist/src`) | LICENSE | README | types | bin/templates |
+|---------|:-----:|:-----------------------------------:|:-------:|:------:|:-----:|:-------------:|
+| `streetjs` (core) | 673 | none ✓ | ✓ | ✓ | ✓ | n/a |
+| `@streetjs/cli` | 111 | none ✓ | ✓ | ✓ | ✓ | `bin/street.js` ✓, `templates/` ✓ |
+| `@streetjs/core` (compat) | 47 | none ✓ | ✓ | ✓ | ✓ | n/a |
 
 ---
 
