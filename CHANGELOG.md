@@ -9,6 +9,25 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.1.4] - 2026-07-11
+
+### Fixed
+- **Kafka `listOffset` now retries transient not-leader errors.** A fresh-topic
+  or just-rebalanced partition can transiently return `NOT_LEADER_FOR_PARTITION`
+  (error code 6) or `REPLICA_NOT_AVAILABLE` (code 9) while leadership settles,
+  which previously surfaced as a hard `KafkaProtocolError` from `listOffset`
+  (and, downstream, from produce/consume startup). The client now retries these
+  retriable offset errors with backoff before failing, matching how Kafka
+  clients are expected to handle leader elections. Non-retriable protocol errors
+  still fail fast. (`packages/core/src/transports/kafka/client.ts`.)
+
+### CI / Release
+- Cut as a clean release snapshot so the published `streetjs` /
+  `@streetjs/core` / `@streetjs/cli` line carries the Kafka retry fix and the
+  certification-suite `files`-allowlist fix that had landed on `main` after the
+  `v1.1.3` tag was cut. No public API changed; this is a backward-compatible
+  patch.
+
 ## [1.1.3] - 2026-07-10
 
 ### Fixed
