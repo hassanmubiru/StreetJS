@@ -147,12 +147,17 @@ deferred behind these; the framework is already broad.
   Ready to implement once the RFC is accepted and cluster CI infra is provisioned.
 - **Milestone:** M2 — additive config + passing live-cluster/HA integration suite.
 
-**N-2. Extract `@streetjs/resilience` (Theme D / TD-1) — P2**
+**N-2. Consolidated resilience primitive (Theme D / TD-1) — P2 — ◑ RFC DRAFTED (2026-07-11)**
 - **Objective:** unify the 2× `CircuitBreaker` + ~7 ad-hoc retry/backoff helpers into
   one internal primitive; keep existing public re-exports.
 - **Business value:** lower maintenance cost. **Technical value:** consistency.
   **Complexity:** Medium. **Effort:** 3–5 days. **Dependencies:** none (additive).
   **Risks:** behavioral drift; mitigate by migrating call sites behind existing tests.
+- **Status:** design complete — `rfcs/0004-resilience-primitive.md` (internal
+  `packages/core/src/resilience/` + `streetjs/resilience` subpath; gateway keeps its
+  public re-exports; incremental test-guarded migration). Deliberately **not
+  rush-implemented** into certified core for a Low-impact debt item — RFC-gated per
+  the repo's own process; ready to implement on acceptance.
 - **Milestone:** M2.
 
 **N-3. Per-plugin test-script locality (Theme D / TD-2) — P2 — ✅ SHIPPED (2026-07-11)**
