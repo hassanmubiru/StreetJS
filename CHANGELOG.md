@@ -9,6 +9,8 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-07-11
+
 > All items below were found by **dogfooding** the `saas` template end-to-end
 > (scaffold → install → build → migrate → boot), per the "become a consumer" phase.
 
