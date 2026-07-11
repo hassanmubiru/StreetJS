@@ -3,7 +3,7 @@ layout:      default
 title:       "High-Availability Data Clients"
 permalink:   /ha-clients/
 nav_exclude: true
-description:  "StreetJS high-availability data clients — Redis Cluster routing (hash-slot, MOVED/ASK) and PostgreSQL primary discovery + failover. Added in 1.2.0, additive and dependency-free."
+description:  "StreetJS high-availability data clients — Redis Cluster routing (hash-slot, MOVED/ASK) and PostgreSQL primary discovery + failover. Added in 1.2.0, additive and built on the framework's minimal-dependency core."
 ---
 
 # High-Availability Data Clients
