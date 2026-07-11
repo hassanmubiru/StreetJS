@@ -272,6 +272,13 @@ deferred behind these; the framework is already broad.
 
 ## Release Plan
 
+- ✅ **1.2.0 shipped (2026-07-11)** — the HA feature minor. `streetjs` /
+  `@streetjs/core` / `@streetjs/cli` `1.2.0` published to npm with SLSA provenance;
+  signed GitHub Release `v1.2.0` (3 tarballs + 3 cosign bundles + SBOM); CHANGELOG
+  `[1.2.0]` documents Redis Cluster + PostgreSQL HA + the resilience module.
+  Verified: fresh `npm i streetjs@1.2.0` imports `streetjs/resilience`,
+  `streetjs/redis-cluster`, `streetjs/pg-ha` and main-level `RedisClusterClient` /
+  `PgHaClient`. Tag run `29162247404` green (publish + cosign + release all ✓).
 - **Cadence:** continue the proven CI-driven, provenance-carrying patch/minor cadence
   (1.1.x → 1.2.x). **No change to the release mechanism** — it is certified.
 - **Minors** for all additive work (HA clients, resilience module, edge profile) under
