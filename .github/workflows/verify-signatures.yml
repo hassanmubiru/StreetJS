@@ -28,6 +28,9 @@ on:
       - 'packages/plugin-*/manifest.pub'
       - 'packages/core/src/platform/plugins/**'
       - 'scripts/security/verify-release.mjs'
+      - 'scripts/security/keyless-identity.mjs'
+      - 'scripts/security/verify-keyless.mjs'
+      - 'scripts/tests/keyless-identity.test.mjs'
       - '.github/workflows/verify-signatures.yml'
 
 permissions:
