@@ -53,6 +53,7 @@ export class PgHaClient {
   private readonly base: Omit<PgConnectOptions, 'host' | 'port'>;
   private readonly defaultTarget: PgTarget;
   private readonly maxFailover: number;
+  private readonly queryTimeoutMs: number;
   private readonly conns = new Map<string, PgConnection>();
   private readonly roles = new Map<string, Role>();
   private connected = false;
