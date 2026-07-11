@@ -289,3 +289,52 @@ pure external dependency. No open engineering defect remains; every engineering 
 discovered this engagement (F-1 pollution, the release-infra gap, M-1 cosign, F-2
 cert test) is fixed and verified. Verdict remains **CONDITIONALLY COMPLETE**, now
 gated solely on credential-dependent provider verification.
+
+---
+
+## Post-audit closure #3 (same engagement) — Kafka listOffsets transient-leader retry (F-3)
+
+**Investigation of the reported pipeline failures.** Two failures existed, both on
+the **`v1.1.3` tag run** (tag runs are immutable snapshots):
+1. `street CI/CD` — the certification test F-2 (already fixed; `main` green).
+2. `Kafka Integration` — a genuine, separate defect (below). **Not a credentials
+   issue** — Kafka integration uses a service-container broker.
+
+**F-3 (Medium) — `KafkaClient.listOffset` did not retry transient leadership errors.**
+The tag run failed: `not ok 1 - produces and consumes a single record on one
+partition / error: 'Kafka listOffsets failed with error code 6' (KafkaProtocolError)`.
+Error code **6 = NOT_LEADER_FOR_PARTITION** (transient, right after topic creation).
+`client.ts` threw immediately on any non-zero listOffsets error, while the producer
+and coordinator paths already retry transiently. **Fix:** wrapped `listOffset` in a
+retry that, on transient leader errors (5 LEADER_NOT_AVAILABLE, 6
+NOT_LEADER_FOR_PARTITION, 9 REPLICA_NOT_AVAILABLE), forces a metadata refresh (so
+`leaderFor` re-resolves the leader) and backs off — mirroring the existing
+coordinator-retry pattern.
+
+**Verified this engagement:** core builds + type-checks clean; offline Kafka tests
+13/13; **live integration against a real `apache/kafka:3.7.1` broker (Docker):
+7/7 pass on 3 consecutive runs**, no code-6 failures. The fix commit (`081e8bf2`)
+triggered the path-filtered `kafka-integration` workflow on `main` → **success**
+(the prior `9d33425a` run had failed on the same race).
+
+### Credentials the workflows look for (answering the operator question)
+No current failure is credential-related. The provider/vendor integration workflows
+**skip** (not fail) when their secrets are absent. The secrets referenced across
+workflows:
+- **Operational (set/working):** `NPM_TOKEN`, `STREET_PLUGIN_SIGNING_KEY`,
+  `GITHUB_TOKEN`; app: `JWT_SECRET`, `KEK`, `SESSION_KEY`, `PG_PASSWORD`.
+- **Provider (absent → NOT VERIFIED, skipped):** Auth0 (`AUTH0_DOMAIN/CLIENT_ID/
+  CLIENT_SECRET/AUDIENCE`), Stripe (`STRIPE_API_KEY`,`STRIPE_SECRET_KEY`), Twilio
+  (`TWILIO_ACCOUNT_SID`,`TWILIO_AUTH_TOKEN`), SendGrid (`SENDGRID_API_KEY`), PayPal
+  (`PAYPAL_ACCESS_TOKEN`,`PAYPAL_BASE_URL`), AI (`OPENAI_API_KEY`,`ANTHROPIC_API_KEY`,
+  `OLLAMA_HOST`), Supabase (`SUPABASE_URL/KEY/BUCKET`), GCS (`GCS_BUCKET/PROJECT_ID/
+  SERVICE_ACCOUNT_JSON`), Azure (`AZURE_STORAGE_CONNECTION_STRING/CONTAINER`), S3
+  (`S3_ACCESS_KEY_ID/SECRET_ACCESS_KEY/BUCKET/REGION`), R2 (`R2_ACCESS_KEY_ID/
+  SECRET_ACCESS_KEY/ACCOUNT_ID/BUCKET`), Backblaze B2 (`STREETJS_B2_KEY_ID/
+  APPLICATION_KEY/BUCKET/ENDPOINT`).
+
+### Status
+- **F-3:** ✅ FIXED + verified (live broker + CI green on `main`).
+- `main` pipeline: green. The only red is the historical, immutable `v1.1.3` tag run
+  (predates F-2/F-3 fixes) — not re-runnable with the fixes; superseded on `main`.
+- Providers remain **NOT VERIFIED** (credentials absent, as listed above).
