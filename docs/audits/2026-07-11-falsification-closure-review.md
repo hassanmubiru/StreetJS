@@ -175,3 +175,72 @@ verification to also be executed and pass.
 published package (including every export subpath) from the registry"** CI gate so
 this defect class (packaging/exports vs. published tarball) cannot recur or escape
 detection; then a subsequent pass can reach ENGINEERING CERTIFIED on evidence.
+
+---
+
+# Addendum — Post-Review Follow-up (2026-07-11, later same day)
+
+After the closure review above, three follow-up items were executed and verified
+with fresh commands this engagement.
+
+## 1. Branch reconciliation — no outstanding branches to merge
+
+Checked exhaustively:
+
+- `git ls-remote --heads origin` → **only `main`**.
+- `gh api repos/hassanmubiru/StreetJS/branches` → **only `main`**.
+- `gh pr list --state open` → **0 open PRs** (all 40+ historical PRs are MERGED or CLOSED).
+
+The only non-`main` refs were two **stale local-only** branches,
+`ci/gate-plugin-hardening-tests` (`acac5c59`) and
+`test/tls-handshake-integration-suite` (`d0c81e54`), both 1087 commits behind
+`main`. Their content is already fully integrated: the 5 TLS/webhook `*.it.test.mjs`
+files are **byte-identical** to `main` (0-line diff), and their only differing file,
+`.github/workflows/tls-integration.yml`, is **older** on the branch (it would
+downgrade `actions/checkout` v7→v6 and Node 22→20). Merging was therefore either a
+no-op or a regression. Both branches were **deleted** (reflog-recoverable at the
+SHAs above). Local branches are now `main` + `gh-pages` only; working tree clean;
+local `main` == `origin/main`.
+
+## 2. CI pipeline — `main` green; the only 2 failures were stale tag runs
+
+Across the last 200 workflow runs, exactly **2 failures** existed, both on the
+immutable **`v1.1.3` tag** (runs from 02:24 UTC):
+
+- **Kafka Integration** — `listOffsets failed with error code 6`
+  (`NOT_LEADER_FOR_PARTITION`). The transient-leader **retry loop is present on
+  `main`** (`packages/core/src/transports/kafka/client.ts`).
+- **street CI/CD certification** — `files must not publish tests: !dist/tests/**`
+  (the `files`-allowlist / certification-negation issue, also fixed on `main`).
+
+That tag was later re-pointed to a commit that is an ancestor of `main`; both fixes
+landed afterward. Every workflow's **latest run on `main` reports success**
+(`Soak / Scale / Chaos` is a scheduled long-running job, not a failure). No
+reproducible pipeline failure represents a live defect.
+
+## 3. Clean release snapshot — `v1.1.4` cut
+
+Because the published `v1.1.3` tag predated the Kafka retry fix, a clean patch
+release was cut so the published line carries it (published tags are never
+re-pointed). Verified this engagement:
+
+- Lockstep trio bumped `1.1.3 → 1.1.4` (`streetjs` / `@streetjs/core` /
+  `@streetjs/cli`) via `scripts/release.sh patch`; lockstep confirmed by
+  `check-tag-version.mjs` + pre-push hook.
+- `ci-cd.yml` on `main` (run `29142205092`) = **success** — CLI suite passed on
+  Node 22 (the local Node-20 `dist/main.js` stderr was an environment artifact; 0
+  test assertions failed), all three packages published, **provenance verified**.
+- npm re-verify: `streetjs` / `@streetjs/core` / `@streetjs/cli` `latest = 1.1.4`,
+  **provenance: OK** on all three.
+- Tag `v1.1.4` (`de5cf355`) pushed; tag-triggered run `29142403633` = **success** —
+  cosign steps ran; **signed GitHub Release `v1.1.4`** published (non-draft) with 3
+  tarballs, 3 `*.cosign.bundle` files, and `sbom-v1.1.4.json`.
+
+**CHANGELOG** updated with a `[1.1.4] - 2026-07-11` entry (Kafka `listOffset`
+retry; clean-snapshot note).
+
+**Net effect on verdict:** unchanged — **CONDITIONALLY CERTIFIED**. This follow-up
+removed stale branches, confirmed the pipeline carries no live defect, and produced
+a provenance-signed `v1.1.4` release; it did not add or resolve any engineering-owned
+NOT VERIFIED item (per-subpath runtime and the framework Docker image remain as
+listed above).
