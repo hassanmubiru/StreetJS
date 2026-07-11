@@ -132,7 +132,7 @@ deferred behind these; the framework is already broad.
 
 ### NEAR-TERM (3–6 months) — "Unlock enterprise + tidy the foundation"
 
-**N-1. HA data clients — Redis Cluster + PostgreSQL failover (Theme B) — P1**
+**N-1. HA data clients — Redis Cluster + PostgreSQL failover (Theme B) — P1 — ◑ RFC DRAFTED (2026-07-11)**
 - **Objective:** extend `RedisClientOptions`/`PgConnectOptions` to multi-node/replica
   topologies with redirect/failover handling (Transition Report P1-3, TD is a
   *capability* gap, not a defect).
@@ -140,6 +140,11 @@ deferred behind these; the framework is already broad.
   value:** High. **Complexity:** High. **Effort:** 3–6 weeks + live-cluster tests.
 - **Dependencies:** live cluster/HA test infra. **Risks:** protocol edge cases;
   mitigate with property-based + live-topology integration tests.
+- **Status:** design complete — `rfcs/0003-ha-data-clients.md` (additive option
+  shapes, CLUSTER SLOTS + MOVED/ASK routing, PG primary discovery + failover,
+  live-topology test plan). **Cannot be honestly marked SHIPPED without live
+  Redis-Cluster / PG-HA integration infra** (evidence discipline: no simulation).
+  Ready to implement once the RFC is accepted and cluster CI infra is provisioned.
 - **Milestone:** M2 — additive config + passing live-cluster/HA integration suite.
 
 **N-2. Extract `@streetjs/resilience` (Theme D / TD-1) — P2**
