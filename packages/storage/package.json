@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/storage",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "StreetJS unified storage framework: a strongly-typed, plugin-first, driver-based object storage layer with zero-dependency in-memory and filesystem drivers, streaming, validation, metadata, multipart, resumable uploads, signed URLs, versioning, lifecycle, access control, and optional cloud provider integrations (S3, R2, Supabase, GCS, Azure, MinIO, Backblaze) isolated behind optional submodules.",
   "type": "module",
   "main": "./dist/index.js",
