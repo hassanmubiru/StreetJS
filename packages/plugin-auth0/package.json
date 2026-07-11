@@ -29,6 +29,7 @@
   ],
   "scripts": {
     "build": "tsc",
+    "test": "node --test test/*.test.mjs",
     "sign": "node scripts/sign-manifest.mjs",
     "lint": "tsc --noEmit",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
