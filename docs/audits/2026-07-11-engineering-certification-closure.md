@@ -32,8 +32,11 @@ No known unresolved engineering defect remains. The only outstanding items are
 **operational dependencies** (provider credentials, GitHub/npm administration) and
 **future product development** — neither is an engineering defect.
 
-**Certification: CONDITIONALLY CERTIFIED** — engineering-complete, with operational
-dependencies remaining (credential-gated provider verification).
+**Certification: ENGINEERING CERTIFIED** (updated 2026-07-11 after closing the last
+two engineering-owned NOT VERIFIED items — per-subpath runtime imports, 130/130
+across all 54 published packages; and a clean `infra/docker/Dockerfile` build that
+also boots). The only residual is credential-gated provider verification, which is a
+purely **operational** dependency, not an engineering item.
 
 ---
 
