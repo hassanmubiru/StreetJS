@@ -23,6 +23,10 @@ describe('REPOSITORY — build-output hygiene', () => {
   it('npm `files` allowlist excludes tests and dist/src', () => {
     const pkg = JSON.parse(readFileSync(join(coreRoot, 'package.json'), 'utf8')) as { files: string[] };
     for (const f of pkg.files) {
+      // `!`-prefixed entries are allowlist *exclusions* (e.g. `!dist/**/*.test.js`,
+      // `!dist/tests/**`) — they subtract files from the tarball, so they are the
+      // opposite of "publishing" and must not be flagged here.
+      if (f.startsWith('!')) continue;
       assert.ok(!f.includes('dist/tests'), `files must not publish tests: ${f}`);
       assert.ok(!f.startsWith('dist/src/'), `files must not publish dist/src: ${f}`);
     }
