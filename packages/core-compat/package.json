@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/core",
-  "version": "1.1.4",
+  "version": "1.2.0",
   "description": "DEPRECATED — use `streetjs` instead. Backward-compatibility shim that re-exports the streetjs package.",
   "type": "module",
   "main": "./dist/index.js",
@@ -115,6 +115,21 @@
       "browser": "./dist/browser.js",
       "import": "./dist/browser.js",
       "types": "./dist/browser.d.ts"
+    },
+    "./resilience": {
+      "browser": "./dist/resilience.js",
+      "import": "./dist/resilience.js",
+      "types": "./dist/resilience.d.ts"
+    },
+    "./redis-cluster": {
+      "browser": "./dist/redis-cluster.js",
+      "import": "./dist/redis-cluster.js",
+      "types": "./dist/redis-cluster.d.ts"
+    },
+    "./pg-ha": {
+      "browser": "./dist/pg-ha.js",
+      "import": "./dist/pg-ha.js",
+      "types": "./dist/pg-ha.d.ts"
     }
   },
   "files": [
@@ -123,7 +138,7 @@
     "README.md"
   ],
   "dependencies": {
-    "streetjs": "1.1.4"
+    "streetjs": "1.2.0"
   },
   "keywords": [
     "streetjs",
