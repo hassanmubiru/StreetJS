@@ -81,7 +81,7 @@ dependencies remaining (credential-gated provider verification).
 | F-2 | Certification test false-positive on `files` negation entry | Low | **FIXED** — skip `!`-prefixed exclusions; suite 51/51; `main` green |
 | F-3 | Kafka `listOffset` no retry on transient NOT_LEADER (code 6) | Medium | **FIXED** — transient-leader retry + metadata refresh; verified live (7/7 ×3) + CI green |
 | F-4 | Published `@streetjs/storage@1.0.1` broken import (over-broad `!dist/tests/**` removed shipped `contract.js`) | High | **FIXED** — narrowed exclusion to `*.test.*`; republished `storage@1.0.2`; verified importing from npm with provenance |
-| M-1 | cosign tag-signing failed (v3 new-bundle-format needs `--bundle`) | Medium | **FIXED** — migrated to `sign-blob --bundle`; live-validated on `v1.1.3` (signed bundle assets present) |
+| M-1 | cosign tag-signing failed (v3 new-bundle-format needs `--bundle`) | Medium | **FIXED** — migrated to `sign-blob --bundle`; live-validated on a core-line release tag `v1.1.4` this engagement (tag run `29142403633`: "Pack and sign release tarballs" + "Publish signed GitHub Release" both ✓; 3 `.cosign.bundle` assets present) |
 
 **No unresolved engineering defect remains.** All discovered defects are FIXED and
 verified this engagement or in the immediately-preceding engagements with evidence
