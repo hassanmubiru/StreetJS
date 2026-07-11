@@ -9,6 +9,17 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+- **`street` CLI now loads the project `.env`.** The scaffolds ship a
+  `.env.example` (copy → `.env`) and the generated app reads `process.env`, but the
+  CLI never loaded `.env` — so a user's `.env` was silently ignored (`street start`
+  failed with "JWT_SECRET must be set in production"; `street dev` used ephemeral
+  keys; DB config was missing) despite following the documented setup. `runCli` now
+  loads `<cwd>/.env` once for every command except `create`, with real shell/CI env
+  vars keeping precedence over `.env` (standard dotenv semantics). New dependency-free
+  loader `packages/cli/src/env.ts` (`parseEnv` / `loadEnvFile`) + unit tests.
+  *Found by dogfooding the `saas` template end-to-end.*
+
 ## [1.2.0] - 2026-07-11
 
 ### Added
