@@ -58,6 +58,12 @@ jobs:
         with:
           node-version: '22'
 
+      # Keyless-signing identity policy (RFC 0005): pure, build-free unit tests —
+      # crucially, that a valid Fulcio cert from a different repo/workflow/ref is
+      # REJECTED. Runs before the build since it has no dependencies.
+      - name: Keyless identity policy tests
+        run: npm run test:keyless-identity
+
       # The verifier imports `verifyManifest` from the built `streetjs`, so core
       # must be built before it runs.
       - name: Build core (provides the manifest verifier)
