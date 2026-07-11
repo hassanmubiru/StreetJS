@@ -88,13 +88,20 @@ deferred behind these; the framework is already broad.
   (acceptable — presence itself signals sustainability).
 - **Milestone:** M1 — at least one live channel with a public tiers page.
 
-**I-3. Registry "install-and-import-every-subpath" CI gate (Theme B) — P1**
+**I-3. Registry "install-and-import-every-subpath" CI gate (Theme B) — P1 — ✅ SHIPPED (2026-07-11)**
 - **Objective:** automate the exact check run manually during certification (130/130),
   so the F-4/F-5 packaging defect class can never recur.
 - **Business value:** release confidence. **Technical value:** High — self-guarding
   pipeline. **Complexity:** Medium. **Effort:** 2–4 days.
 - **Dependencies:** none (pattern exists in `publish-backend.yml`). **Risks:** registry
-  flakiness; mitigate with retries + scheduled + pre-release triggers.
+  flakiness; mitigated via honest-BLOCKED-on-install-failure + scheduled + on-release
+  triggers.
+- **Delivered:** `scripts/verify-registry-subpaths.mjs` (installs all published
+  packages from the registry, imports every `exports` subpath incl. JSON with
+  `type: json`; fails only on a real import failure, honest-BLOCKED on registry
+  outage) + `.github/workflows/registry-subpath-import.yml` (dispatch + `release:
+  published` + weekly cron). **Verified live in CI (Node 22): 54 packages, 130/130
+  subpaths OK, run `29144639144` green.**
 - **Milestone:** M1.
 
 **I-4. Contributor pipeline activation (Theme A) — P2**
