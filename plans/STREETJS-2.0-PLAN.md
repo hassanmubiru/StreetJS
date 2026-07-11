@@ -33,7 +33,7 @@ them so users migrate once.
 
 **Instrumentation note:** none of this should require invasive telemetry in the
 framework. Use registry download stats, issue/discussion labels, and voluntary
-adopter reports. Do **not** add phone-home telemetry to a dependency-free framework.
+adopter reports. Do **not** add phone-home telemetry to a minimal-dependency framework.
 
 ---
 

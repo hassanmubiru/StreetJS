@@ -145,7 +145,7 @@ Opportunity · No Action Needed.
 
 ### 13. Competitive positioning — **Future Opportunity (P3)**
 - **Finding:** `docs/comparisons`/`compare` content exists.
-- **Opinion:** Differentiation (dependency-free core, signed supply chain, verticals) is
+- **Opinion:** Differentiation (minimal-dependency core, signed supply chain, verticals) is
   real but under-marketed. **Priority:** P3 — a positioning/narrative investment, not
   engineering.
 
@@ -158,7 +158,7 @@ Opportunity · No Action Needed.
 ## Executive Summary
 
 StreetJS is, on the engineering axis, a **mature, enterprise-grade framework**: a
-dependency-free core, 54 well-organized packages, a signed and provenance-carrying
+minimal-dependency core, 54 well-organized packages, a signed and provenance-carrying
 supply chain, complete governance *documentation*, SemVer discipline, and unusually
 broad docs. On the **organizational/strategic axis**, it is **early-stage and
 fragile**: it is effectively a solo project (bus factor = 1), funding is not yet
@@ -193,7 +193,7 @@ enterprise specifically — the HA client capability already on the roadmap.
 
 ## Top Five Things That Should NOT Be Changed
 
-1. **The dependency-free core architecture** — a genuine, rare differentiator.
+1. **The minimal-dependency core architecture** — a genuine, rare differentiator.
 2. **The signed / provenance-carrying supply chain and release pipeline** — already
    best-in-class; do not disrupt it.
 3. **SemVer + additive-only API discipline + Keep-a-Changelog** — keep exactly as is.
@@ -213,7 +213,7 @@ enterprise specifically — the HA client capability already on the roadmap.
   2–5 year risk.
 - **Worst case:** maintainer unavailability stalls the project despite its technical
   merit — the exact scenario the bus-factor risk warns about.
-- The differentiators (dependency-free core, signed supply chain) age well; the
+- The differentiators (minimal-dependency core, signed supply chain) age well; the
   organizational fragility is the variable that decides the outcome.
 
 ## Final Recommendation

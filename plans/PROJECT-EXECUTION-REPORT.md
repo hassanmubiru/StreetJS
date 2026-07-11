@@ -118,7 +118,7 @@ at the intermediate commits noted inline).
 - Only `core-compat` (generated shim) now lacks a test script, by design.
 
 ### N-4 — ARCHITECTURE.md + `street doctor` ✅
-- **What:** created top-level `ARCHITECTURE.md` — dependency-free-core principle, the
+- **What:** created top-level `ARCHITECTURE.md` — minimal-dependency-core principle, the
   full 54-package map by category, a "which package do I need" guide, extension
   model, test-coverage locality, and the release/supply-chain summary.
 - **Finding:** `street doctor` already existed (`packages/cli/src/commands/doctor.ts`:
@@ -239,7 +239,7 @@ completed and verified from the current environment (green in CI at the cited ru
 IDs). The remaining items are bounded and explicit: organizational (people/funding)
 and infrastructure (live HA topologies). No reproducible engineering defect was
 identified within the scope of this engagement. The framework's identity and
-guarantees — dependency-free core, signed provenance supply chain, additive SemVer
+guarantees — minimal-dependency core, signed provenance supply chain, additive SemVer
 discipline, self-guarding CI — were preserved throughout, and the self-guarding CI
 demonstrably prevented a packaging regression from shipping.
 

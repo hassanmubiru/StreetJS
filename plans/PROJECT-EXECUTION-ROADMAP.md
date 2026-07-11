@@ -20,7 +20,7 @@ are planning opinions, not measured commitments.
 
 ## Executive Summary
 
-StreetJS is a certified, production-ready, dependency-free TypeScript full-stack
+StreetJS is a certified, production-ready, minimal-dependency TypeScript full-stack
 framework with a signed, provenance-carrying supply chain. Its constraints are
 **organizational, not technical**: bus factor = 1 and no active funding cap its
 ability to grow safely (Strategy Review). Therefore this roadmap deliberately
@@ -36,7 +36,7 @@ deferred behind these; the framework is already broad.
 
 ## Vision Statement
 
-> StreetJS is the TypeScript framework you can trust end-to-end: a dependency-free
+> StreetJS is the TypeScript framework you can trust end-to-end: a minimal-dependency
 > core, a cryptographically verifiable supply chain, and enterprise-grade data
 > capabilities — maintained by a healthy team and a sustainable community.
 
@@ -52,7 +52,7 @@ deferred behind these; the framework is already broad.
 4. **Additive, SemVer-honest evolution.** Breaking changes wait for a planned major.
 5. **Prove, don't assert.** Every release self-verifies (CI gates), every benchmark is
    reproducible.
-6. **Say no on purpose.** Reject initiatives that dilute the dependency-free,
+6. **Say no on purpose.** Reject initiatives that dilute the minimal-dependency,
    verifiable-supply-chain identity.
 
 ---
@@ -199,7 +199,7 @@ deferred behind these; the framework is already broad.
 - **Business value:** reduces onboarding friction (the Docker image's correct
   `PG_HOST` fail-fast currently surprises newcomers). **Complexity:** Low–Medium.
   **Effort:** 3–5 days. **Milestone:** M2.
-- **Delivered:** top-level `ARCHITECTURE.md` — dependency-free-core principle, the
+- **Delivered:** top-level `ARCHITECTURE.md` — minimal-dependency-core principle, the
   full 54-package map by category, a "which package do I need" guide, the extension
   model, test-coverage locality (folding in N-3's documentation goal), and the
   release/supply-chain summary. **`street doctor` was already implemented**
@@ -320,7 +320,7 @@ deferred behind these; the framework is already broad.
 1. Convert the strong first-party plugin model into third-party growth (M-2): index +
    author guide + signed submission.
 2. Publish positioning content and reproducible benchmarks (M-3) to make the
-   dependency-free / signed-supply-chain differentiators legible.
+   minimal-dependency / signed-supply-chain differentiators legible.
 3. Edge/serverless profile (M-4) to broaden where StreetJS runs.
 - **Opinion:** ecosystem work should trail maintainer growth — a network of plugins
   needs reviewers to remain trustworthy.
@@ -405,7 +405,7 @@ No new technical debt is proposed. No defect exists to fix.
 
 ## Do-NOT-Pursue List (would dilute the framework)
 
-1. **Adding runtime dependencies to the core** — the dependency-free core is the
+1. **Adding runtime dependencies to the core** — the minimal-dependency core is the
    identity; never compromise it for convenience.
 2. **A bespoke package manager / registry replacement** — reuse npm + provenance; do
    not reinvent.
@@ -476,5 +476,5 @@ No new technical debt is proposed. No defect exists to fix.
 
 **Bottom line:** invest in carrying capacity (people, funding, self-guarding CI)
 first; ship HA clients to unlock enterprise; then expand the ecosystem. Keep the
-dependency-free, verifiable-supply-chain identity permanent, and defer all breaking
+minimal-dependency, verifiable-supply-chain identity permanent, and defer all breaking
 changes to a telemetry-gated 2.0.
