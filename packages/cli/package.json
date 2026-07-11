@@ -9,6 +9,10 @@
     "street": "bin/street.js"
   },
   "files": [
+    "dist/env.js",
+    "dist/env.js.map",
+    "dist/env.d.ts",
+    "dist/env.d.ts.map",
     "dist/argv.js",
     "dist/argv.js.map",
     "dist/argv.d.ts",
