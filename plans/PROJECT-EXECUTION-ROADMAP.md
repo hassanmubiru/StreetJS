@@ -209,13 +209,17 @@ deferred behind these; the framework is already broad.
 
 ### MID-TERM (6–12 months) — "Ecosystem + supply-chain leadership"
 
-**M-1. Keyless / KMS signing → SLSA L3 (Theme B/Supply-chain) — P3**
+**M-1. Keyless / KMS signing → SLSA L3 (Theme B/Supply-chain) — P3 — ◑ RFC DRAFTED (2026-07-11)**
 - **Objective:** migrate plugin signing to Sigstore/OIDC or KMS/HSM, removing the
   long-lived key.
 - **Business value:** enterprise procurement checklists; supply-chain leadership.
-  **Complexity:** Medium. **Effort:** 1–2 weeks. **Dependencies:** none blocking.
-  **Risks:** verification-flow changes; mitigate with a transition period verifying
-  both anchors. **Milestone:** M3.
+  **Complexity:** Medium. **Effort:** 1–2 weeks. **Dependencies:** CI OIDC config
+  (operational). **Risks:** verification-flow changes; mitigate with a dual-anchor
+  transition window.
+- **Status:** design complete — `rfcs/0005-keyless-signing.md` (Sigstore/OIDC keyless
+  with identity pinning + Rekor, dual-anchor transition, KMS fallback, test plan).
+  Implementation gated on the owner enabling CI OIDC (`id-token: write`) + accepting
+  the Sigstore trust model. **Milestone:** M3.
 
 **M-2. Third-party plugin ecosystem (Theme C) — P3**
 - **Objective:** public community-plugins index + plugin-author guide + signed-manifest
