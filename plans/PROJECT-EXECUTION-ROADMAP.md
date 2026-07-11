@@ -257,11 +257,15 @@ deferred behind these; the framework is already broad.
 
 ### LONG-TERM (1–3 years) — "2.0 and durability"
 
-**L-1. StreetJS 2.0 major (Theme D) — P3**
+**L-1. StreetJS 2.0 major (Theme D) — P3 — ◑ PLAN DRAFTED (telemetry-gated)**
 - **Objective:** retire the `@streetjs/core` compat shim (TD-5) on migration telemetry;
   simplify to `streetjs` + scoped plugins.
 - **Business value:** cleaner surface. **Complexity:** Medium (mostly deprecation
-  choreography). **Dependencies:** download telemetry. **Milestone:** M5.
+  choreography). **Dependencies:** download telemetry.
+- **Status:** planning doc `plans/STREETJS-2.0-PLAN.md` — the telemetry-gated entry
+  criteria (evidence + maintainer capacity + safe shim retirement + accepted RFCs per
+  change), signals to monitor, candidate 2.0 items, and an explicit **"do not start
+  2.0 yet"** recommendation. No 2.0 milestone opened. **Milestone:** M5.
 
 **L-2. Governance activation at N≥3 (Theme A) — P2 when unlocked**
 - **Objective:** activate Steering Committee/elections once maintainer count supports
