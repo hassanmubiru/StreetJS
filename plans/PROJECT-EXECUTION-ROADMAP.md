@@ -226,10 +226,14 @@ deferred behind these; the framework is already broad.
   submission flow.
 - **Business value:** network effects / stickiness. **Technical value:** Medium.
   **Complexity:** Medium. **Dependencies:** governance activation (needs maintainers).
-- **Delivered:** `docs/plugin-authoring.md` — the plugin-author guide (PluginModule
+- **Delivered:** (a) `docs/plugin-authoring.md` — the plugin-author guide (PluginModule
   contract, package layout + `files` allowlist lessons, manifest, signing/verification,
-  offline test, publishing via npm + registry, principles). **Remaining:** a public
-  community-plugins index + submission flow (needs maintainer/governance capacity).
+  offline test, publishing via npm + registry, principles); (b) `examples/plugin-starter/`
+  — a real, working starter template (`PluginModule` skeleton + manifest + offline
+  contract test + example + correct `files` allowlist), **verified: `tsc` builds clean
+  and its contract test passes 2/2**; not a workspace member (marked `private`) so it
+  is never published and never touched by workspace/reference-app CI. **Remaining:** a
+  public community-plugins index + submission flow (needs maintainer/governance capacity).
 - **Milestone:** M3.
 
 **M-3. Reproducible competitive benchmarks (Theme C) — P3**
