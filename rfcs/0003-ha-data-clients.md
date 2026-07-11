@@ -11,20 +11,37 @@ tracking-issue:
 
 ## Implementation status (2026-07-11)
 
-**Partially implemented — correctness-critical foundations landed and verified.**
-- ✅ Redis Cluster pure primitives shipped in `packages/core/src/transports/cluster.ts`
-  and exposed as the `streetjs/redis-cluster` subpath: `crc16` (CCITT/XMODEM),
-  `hashSlot` (with hash-tag support), `parseRedirect` (MOVED/ASK), `parseClusterSlots`,
-  `buildSlotMap`. **Verified offline against Redis reference vectors**
-  (`crc16("123456789")===0x31C3`, `hashSlot("foo")===12182`, hash-tag co-location):
-  `src/tests/cluster.test.ts` 13/13.
-- ✅ Additive `nodes?` field added to `RedisClientOptions` (non-breaking; single-node
-  behavior unchanged).
-- ⏳ **Remaining (needs live-topology CI infra):** the cluster routing engine
-  (per-node connection pool + MOVED/ASK-following execute path + slot-map refresh),
-  the PostgreSQL multi-host/primary-discovery/failover client, and the live
-  Redis-Cluster / PG-HA integration suites. These cannot be marked VERIFIED without
-  the cluster/HA topologies stood up in CI (evidence discipline — no simulation).
+**Implemented and live-verified against real topologies (Docker).**
+
+Redis Cluster:
+- ✅ Pure primitives (`transports/cluster.ts`): `crc16` (CCITT/XMODEM), `hashSlot`
+  (hash-tag aware), `parseRedirect` (MOVED/ASK), `parseClusterSlots`, `buildSlotMap`
+  — verified offline against Redis reference vectors (`crc16("123456789")===0x31C3`,
+  `hashSlot("foo")===12182`): `cluster.test` 13/13.
+- ✅ Routing client `RedisClusterClient` (`transports/cluster-client.ts`): per-node
+  connection pool, slot-map discovery via `CLUSTER SLOTS`, key-slot routing,
+  MOVED (with slot-map self-heal) and ASK (ASKING + one-shot redirect) handling.
+  Exposed via `streetjs/redis-cluster`.
+- ✅ **Live-verified** against a real 3-master/3-replica cluster: full 16384-slot
+  discovery; set/get/del across all masters; explicit MOVED redirect followed +
+  slot-map self-healed; hash-tag co-location. Integration test
+  `redis-cluster.it.test` 5/5 (self-skips without a cluster).
+- ✅ Additive `nodes?` field on `RedisClientOptions` (non-breaking).
+
+PostgreSQL HA:
+- ✅ `PgHaClient` (`database/ha.ts`): multi-host, primary discovery via
+  `pg_is_in_recovery()`, role-targeted routing (`primary` / `prefer-replica` /
+  `any`), and failover — a per-attempt query timeout detects a dead/wedged primary,
+  drops it, re-discovers the topology, and retries (picks up a promoted primary).
+  Exposed via `streetjs/pg-ha`.
+- ✅ **Live-verified** against a real primary + streaming-replica topology:
+  discovery (primary vs standby), `prefer-replica` reads landing on the standby, and
+  **failover** — after promoting the standby (`pg_promote`) and stopping the old
+  primary, a `target: primary` query re-resolved to the promoted node and succeeded;
+  a post-failover write/read succeeded. Integration test `pg-ha.it.test`
+  (self-skips without `PG_HA_PRIMARY`/`PG_HA_REPLICA`).
+
+Packaging: `verify-package` resolves all 171 published modules (new subpaths ship).
 
 ## Summary
 
