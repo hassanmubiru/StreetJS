@@ -164,12 +164,19 @@ deferred behind these; the framework is already broad.
   nothing new is published (no F-1 regression). Only `core-compat` (generated shim)
   now lacks a test script, by design.
 
-**N-4. ARCHITECTURE.md + package map + `street doctor` (Theme C DX) — P2**
+**N-4. ARCHITECTURE.md + package map + `street doctor` (Theme C DX) — P2 — ✅ SHIPPED (2026-07-11)**
 - **Objective:** single architectural entry point + first-run diagnostics (Node engine,
   `PG_HOST` reachability, plugin signatures).
 - **Business value:** reduces onboarding friction (the Docker image's correct
   `PG_HOST` fail-fast currently surprises newcomers). **Complexity:** Low–Medium.
   **Effort:** 3–5 days. **Milestone:** M2.
+- **Delivered:** top-level `ARCHITECTURE.md` — dependency-free-core principle, the
+  full 54-package map by category, a "which package do I need" guide, the extension
+  model, test-coverage locality (folding in N-3's documentation goal), and the
+  release/supply-chain summary. **`street doctor` was already implemented**
+  (`packages/cli/src/commands/doctor.ts`: Node ≥22, TypeScript ≥5, required
+  `.env.example` vars, live DB connectivity) and routed/documented in the CLI — no
+  new command needed.
 
 ### MID-TERM (6–12 months) — "Ecosystem + supply-chain leadership"
 
