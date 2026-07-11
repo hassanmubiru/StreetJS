@@ -19,6 +19,15 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   vars keeping precedence over `.env` (standard dotenv semantics). New dependency-free
   loader `packages/cli/src/env.ts` (`parseEnv` / `loadEnvFile`) + unit tests.
   *Found by dogfooding the `saas` template end-to-end.*
+- **`street migrate:run` gives actionable guidance on SQLite projects.** The `saas`
+  template's migrations are PostgreSQL-dialect (`BIGSERIAL`/`TIMESTAMPTZ`/`now()`),
+  so running them on the SQLite default failed with a terse message. It now explains
+  the dialect mismatch and the exact fix (start the bundled `docker compose` Postgres,
+  set `DB_DRIVER=postgres` + `PG_*` in `.env`, re-run) — or keep SQLite and hand-write
+  SQLite-dialect migrations. *(The coherent Postgres path — `street create --template
+  saas --database postgres` — was dogfood-verified end-to-end: install → build →
+  `.env`-only `migrate:run` applying all 3 migrations on live Postgres → boot →
+  `/health` 200.)*
 
 ## [1.2.0] - 2026-07-11
 
