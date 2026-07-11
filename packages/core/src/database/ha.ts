@@ -71,6 +71,7 @@ export class PgHaClient {
     };
     this.defaultTarget = opts.target ?? 'primary';
     this.maxFailover = Math.max(1, opts.maxFailover ?? 2);
+    this.queryTimeoutMs = Math.max(1, opts.queryTimeoutMs ?? 8000);
   }
 
   /** Connect to all reachable hosts and classify each as primary/replica. */
