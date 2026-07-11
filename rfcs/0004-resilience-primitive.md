@@ -1,7 +1,7 @@
 ---
 rfc: 0004
 title: Consolidated resilience primitive (retry / backoff / circuit breaker)
-status: Draft
+status: Implemented
 authors: ["@hassanmubiru"]
 created: 2026-07-11
 tracking-issue:
