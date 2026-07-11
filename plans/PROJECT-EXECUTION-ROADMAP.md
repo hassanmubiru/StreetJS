@@ -367,7 +367,7 @@ No new technical debt is proposed. No defect exists to fix.
 ## Official Prioritized Development Plan (single list)
 
 1. **[P1] Maintainer #2** (I-1) — Immediate
-2. **[P1] Subpath-import CI gate** (I-3) — Immediate
+2. **[P1] Subpath-import CI gate** (I-3) — Immediate — ✅ **SHIPPED 2026-07-11**
 3. **[P1] `release-inputs.json` CI generation** (I-5) — Immediate
 4. **[P2] Enable funding channel** (I-2) — Immediate
 5. **[P2] Contributor pipeline** (I-4) — Immediate
