@@ -405,8 +405,9 @@ No new technical debt is proposed. No defect exists to fix.
 
 ## Do-NOT-Pursue List (would dilute the framework)
 
-1. **Adding runtime dependencies to the core** — the minimal-dependency core is the
-   identity; never compromise it for convenience.
+1. **Adding heavy or uncurated runtime dependencies to the core** — the minimal,
+   curated footprint (currently 3 direct deps, each with zero transitive deps) is
+   the identity; keep additions rare, tiny, zero-transitive, and justified.
 2. **A bespoke package manager / registry replacement** — reuse npm + provenance; do
    not reinvent.
 3. **Framework-owned hosted cloud/PaaS** — out of scope; would fracture focus and
