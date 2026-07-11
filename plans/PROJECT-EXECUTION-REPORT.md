@@ -74,14 +74,14 @@ at the intermediate commits noted inline).
 
 ## Delivered This Engagement
 
-| Item | Tier | Status | Verification |
+| Item | Tier | Status | Verification (evidence ID) |
 |------|------|--------|-------------|
-| I-3 Registry subpath-import CI gate | Immediate | ✅ SHIPPED | live CI run green; 130/130 subpaths |
-| I-5 `release-inputs.json` CI generation | Immediate | ✅ DONE (already wired) + VERIFIED | v1.1.4 tag job green; local 6/6 controls pass |
-| N-3 Per-plugin test-script locality | Near-term | ✅ SHIPPED | 6 plugins × 4 tests; CI `plugin-tests` 21/21 |
-| N-4 ARCHITECTURE.md + `street doctor` | Near-term | ✅ SHIPPED | doc created; `doctor` already existed |
-| N-2 Consolidated resilience primitive | Near-term | ✅ SHIPPED (RFC 0004 Implemented) | resilience 11/11 + regressions green; full CI green |
-| N-1 HA data clients — foundations | Near-term | ◑ FOUNDATIONS SHIPPED | cluster 13/13 vs Redis reference vectors; routing/failover + live infra remain |
+| I-3 Registry subpath-import CI gate | Immediate | ✅ Shipped | CI run `29144639144` green; 130/130 subpaths |
+| I-5 `release-inputs.json` CI generation | Immediate | ✅ Done (already wired) + Verified | v1.1.4-tag job run `29142403646` green; local 6/6 controls pass |
+| N-3 Per-plugin test-script locality | Near-term | ✅ Shipped | 6 plugins × 4 tests; CI `plugin-tests` run `29145683777` 21/21 |
+| N-4 ARCHITECTURE.md + `street doctor` | Near-term | ✅ Shipped | doc created; `doctor` already existed (`packages/cli/src/commands/doctor.ts`) |
+| N-2 Consolidated resilience primitive | Near-term | ✅ Shipped (RFC 0004 Implemented) | resilience 11/11 + regressions green; full CI run `29146719709` green |
+| N-1 HA data clients — foundations | Near-term | ◑ Foundations shipped (routing/failover gated) | cluster 13/13 vs Redis reference vectors; core suite green in run `29146719709` |
 
 ---
 
