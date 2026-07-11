@@ -9,6 +9,31 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.1.3] - 2026-07-10
+
+### Fixed
+- **Published tarballs no longer contain test files.** Packages built with
+  `tsc` compiled their `*.test.ts` into `dist`, and a broad
+  `files: ["dist/**/*.js", …]` glob shipped them to consumers. Added
+  `!dist/**/*.test.*` + `!dist/tests/**` + `!dist/**/__tests__/**` exclusions to
+  the `files` allowlist of every affected package (38 packages, including
+  `streetjs`/`@streetjs/core`/`@streetjs/cli` as a safety net). Verified with
+  `npm pack --dry-run`: 0 test files in the tarballs. (The framework/vertical
+  packages that had actually shipped tests were also republished at `1.0.1`.)
+
+### CI / Release
+- **cosign release-asset signing migrated to the new bundle format.** The
+  tag-triggered "Pack and sign release tarballs" step used
+  `cosign sign-blob --output-signature/--output-certificate`, which the cosign
+  binary bundled by `cosign-installer@v4.1.2` (cosign v3.x, `--new-bundle-format`
+  default) rejects unless `--bundle` is supplied — the cause of the failed
+  `v1.1.2` tag-signing run. The step now emits a single Sigstore bundle per
+  tarball via `cosign sign-blob --yes --bundle "<f>.cosign.bundle"`; verify with
+  `cosign verify-blob --bundle`.
+- **Added `publish-backend.yml`** — a provenance-carrying, idempotent npm publish
+  workflow (`backend-v*` tag / manual dispatch) for the 20 backend and
+  vertical-domain packages that previously had no CI publish path.
+
 ## [1.1.2] - 2026-07-10
 
 ### Fixed
