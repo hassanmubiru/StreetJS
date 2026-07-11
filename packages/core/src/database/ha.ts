@@ -156,17 +156,38 @@ export class PgHaClient {
         await this.discover();
         continue;
       }
+      const key = this.keyOf(conn);
       try {
-        return await conn.query(sql, params);
+        return await this.withTimeout(conn.query(sql, params), key);
       } catch (err) {
         lastErr = err;
-        // Connection likely lost / primary demoted — re-resolve and retry.
+        // Connection lost / primary demoted / wedged socket — drop it and
+        // re-resolve the topology (picks up a promoted primary), then retry.
+        if (key) { this.dropConn(key); this.roles.set(key, 'unknown'); }
         await this.discover();
       }
     }
     throw lastErr instanceof Error
       ? lastErr
       : new Error('PgHaClient: query failed after failover attempts');
+  }
+
+  private keyOf(conn: PgConnection): string | undefined {
+    for (const [k, c] of this.conns) if (c === conn) return k;
+    return undefined;
+  }
+
+  /** Race a query against the per-attempt timeout so a dead endpoint cannot hang. */
+  private withTimeout(p: Promise<PgResult>, key: string | undefined): Promise<PgResult> {
+    return new Promise<PgResult>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        reject(new Error(`PgHaClient: query timed out after ${this.queryTimeoutMs}ms${key ? ` on ${key}` : ''}`));
+      }, this.queryTimeoutMs);
+      p.then(
+        (r) => { clearTimeout(timer); resolve(r); },
+        (e) => { clearTimeout(timer); reject(e); },
+      );
+    });
   }
 
   async close(): Promise<void> {
