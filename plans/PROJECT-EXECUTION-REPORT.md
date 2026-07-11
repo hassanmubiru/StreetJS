@@ -225,11 +225,12 @@ entry) was caught by CI and fixed the same engagement.
    not engineering. Only the project owner can recruit a maintainer, enable Sponsors,
    or seed mentored issues. These remain the top strategic priority (see
    `plans/PROJECT-STRATEGY-REVIEW.md`).
-2. **HA-client routing + failover + live suites (N-1 remainder)** — requires live
-   Redis-Cluster and PostgreSQL-HA topologies in CI. Per the evidence discipline held
-   throughout this project, these will not be marked VERIFIED on simulation; the
-   pure, correctness-critical foundations are shipped and verified so the remaining
-   work is wiring + live validation once infra exists.
+2. **HA-client routing + failover (N-1)** — ✅ **now complete and live-verified**
+   (2026-07-11) against real Docker topologies: a 3-master/3-replica Redis Cluster
+   (routing + MOVED self-heal) and a PostgreSQL primary+streaming-replica with a real
+   promotion-based failover. Committed integration tests self-skip when no topology
+   is present. The only remaining HA follow-up is optional: standing up dedicated
+   cluster/HA services in a CI job so the self-skipping suites also run there.
 
 ## Final Statement
 
