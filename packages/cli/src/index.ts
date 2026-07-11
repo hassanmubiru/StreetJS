@@ -50,6 +50,14 @@ export async function runCli(argv: string[]): Promise<void> {
   const args = argvParser(argv);
   const ctx: CliContext = { cwd: process.cwd(), args };
 
+  // ── Load project .env (real env vars keep precedence) ───────────────────
+  // The scaffolds ship `.env.example` → copy to `.env`; the app reads
+  // process.env. Load it here so every command (dev/start/migrate/…) sees it.
+  // `create` has no project yet, so skip it (harmless no-op regardless).
+  if (args.command && args.command !== 'create') {
+    loadEnvFile(ctx.cwd);
+  }
+
   // ── Global flags ──────────────────────────────────────────────────────
   if (args.flags['version'] || args.flags['v']) {
     console.log(`${APP_NAME} v${VERSION}`);
