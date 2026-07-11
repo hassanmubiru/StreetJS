@@ -283,6 +283,9 @@ deferred behind these; the framework is already broad.
   Verified: fresh `npm i streetjs@1.2.0` imports `streetjs/resilience`,
   `streetjs/redis-cluster`, `streetjs/pg-ha` and main-level `RedisClusterClient` /
   `PgHaClient`. Tag run `29162247404` green (publish + cosign + release all ✓).
+- ✅ **1.2.0 docs shipped** — `docs/ha-clients.md` (HA adoption guide + routing
+  policies); GitHub Release `v1.2.0` notes published; CHANGELOG `[1.2.0]`. No
+  migration required (additive).
 - **Cadence:** continue the proven CI-driven, provenance-carrying patch/minor cadence
   (1.1.x → 1.2.x). **No change to the release mechanism** — it is certified.
 - **Minors** for all additive work (HA clients, resilience module, edge profile) under
