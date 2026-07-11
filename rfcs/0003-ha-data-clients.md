@@ -1,7 +1,7 @@
 ---
 rfc: 0003
 title: High-Availability data clients (Redis Cluster + PostgreSQL failover)
-status: Draft
+status: Implemented
 authors: ["@hassanmubiru"]
 created: 2026-07-11
 tracking-issue:
