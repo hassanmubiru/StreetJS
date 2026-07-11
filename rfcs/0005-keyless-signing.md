@@ -9,6 +9,30 @@ tracking-issue:
 
 # RFC 0005 — Keyless plugin signing (Sigstore/OIDC)
 
+## Implementation status (2026-07-11)
+
+**Verification tooling + the security-critical identity policy are implemented and
+unit-tested; the producer wiring and live round-trip are operator/CI steps.**
+- ✅ **Identity policy** (`scripts/security/keyless-identity.mjs`): the pinned signer
+  identity (issuer `token.actions.githubusercontent.com` + the exact
+  `publish-plugins.yml@refs/tags/plugins-v*` workflow), a pure `matchesIdentity`
+  matcher, and `cosignVerifyArgs` builder. **Unit-tested 7/7**, including the decisive
+  negatives — a valid Fulcio cert from a **different repo**, a **different workflow**,
+  a **non-release ref**, and a **wrong issuer** are all rejected.
+- ✅ **Verifier** (`scripts/security/verify-keyless.mjs`): delegates crypto to cosign
+  `verify-blob` with the identity pins; honest-BLOCKED (exit 0) when cosign is absent.
+- ⏳ **Operator/CI steps remaining (cannot be run/verified from a dev box — need the
+  Actions OIDC context, and re-signing re-publishes official plugins):**
+  1. Add a keyless-sign step to `publish-plugins.yml` (it already grants
+     `id-token: write`) that emits a `manifest.cosign.bundle` per plugin alongside the
+     existing Ed25519 `manifest.signed.json` (dual-anchor).
+  2. Wire `verify-keyless.mjs` into `verify-signatures.yml` as an additional (then,
+     after the transition, fatal) check.
+  3. Re-publish official plugins so they carry keyless bundles; then retire the
+     long-lived key once telemetry supports dropping the legacy anchor.
+  These are deliberately **not** executed autonomously (they modify the certified
+  publish pipeline and re-publish live packages).
+
 ## Summary
 
 Migrate official `@streetjs/plugin-*` manifest signing from a long-lived ed25519
