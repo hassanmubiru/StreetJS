@@ -233,10 +233,32 @@ entry) was caught by CI and fixed the same engagement.
 
 ## Final Statement
 
-All engineering-actionable roadmap work that can be honestly completed and verified
-from the current environment is **done and green in CI**. The remaining items are
-bounded and explicit: organizational (people/funding) and infrastructure (live HA
-topologies). The framework's identity and guarantees — dependency-free core, signed
-provenance supply chain, additive SemVer discipline, self-guarding CI — were
-preserved throughout, and the self-guarding CI demonstrably prevented a packaging
-regression from shipping.
+All engineering-actionable roadmap items **within the defined scope** have been
+completed and verified from the current environment (green in CI at the cited run
+IDs). The remaining items are bounded and explicit: organizational (people/funding)
+and infrastructure (live HA topologies). No reproducible engineering defect was
+identified within the scope of this engagement. The framework's identity and
+guarantees — dependency-free core, signed provenance supply chain, additive SemVer
+discipline, self-guarding CI — were preserved throughout, and the self-guarding CI
+demonstrably prevented a packaging regression from shipping.
+
+---
+
+## Change Log
+
+**2026-07-11 (this report):**
+- **Added:** I-3 subpath-import CI gate; N-3 plugin contract tests (6 plugins);
+  N-4 `ARCHITECTURE.md`; N-2 `streetjs/resilience` module; N-1 `streetjs/redis-cluster`
+  foundations; RFCs 0003 (HA clients) and 0004 (resilience); this report.
+- **Completed/Verified:** I-3, I-5, N-3, N-4, N-2; N-1 foundations. TD-1…TD-4 closed.
+- **Fixed:** F-5-class regression (missing `dist/resilience/**/*` in core `files`
+  allowlist) caught by Package Integrity gate; `ARCHITECTURE.md` root-file policy
+  violation caught by Repository-policy gate — both resolved same engagement.
+- **Deferred:** N-1 routing/failover + live-topology suites (infra-gated); TD-5
+  (`@streetjs/core` shim removal) to 2.0; Mid/Long-term themes unchanged.
+- **Not actioned (owner-required):** I-1 maintainer #2, I-2 funding, I-4 contributor
+  pipeline.
+
+*Report revised 2026-07-11 to add a status legend, assumptions, verification window,
+facts/assessment/conclusion separation, consistent evidence IDs, scope-precise
+wording, and this change log (per external prompt-quality review).*
