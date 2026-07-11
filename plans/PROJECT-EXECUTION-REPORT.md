@@ -81,7 +81,7 @@ at the intermediate commits noted inline).
 | N-3 Per-plugin test-script locality | Near-term | ✅ Shipped | 6 plugins × 4 tests; CI `plugin-tests` run `29145683777` 21/21 |
 | N-4 ARCHITECTURE.md + `street doctor` | Near-term | ✅ Shipped | doc created; `doctor` already existed (`packages/cli/src/commands/doctor.ts`) |
 | N-2 Consolidated resilience primitive | Near-term | ✅ Shipped (RFC 0004 Implemented) | resilience 11/11 + regressions green; full CI run `29146719709` green |
-| N-1 HA data clients — foundations | Near-term | ◑ Foundations shipped (routing/failover gated) | cluster 13/13 vs Redis reference vectors; core suite green in run `29146719709` |
+| N-1 HA data clients | Near-term | ✅ Shipped + live-verified (RFC 0003 Implemented) | Redis: `cluster` 13/13 + live `redis-cluster.it` 5/5 (3-master cluster, MOVED self-heal); PG: live failover (promote + primary loss) confirmed |
 
 ---
 

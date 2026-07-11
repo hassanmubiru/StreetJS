@@ -132,24 +132,32 @@ deferred behind these; the framework is already broad.
 
 ### NEAR-TERM (3–6 months) — "Unlock enterprise + tidy the foundation"
 
-**N-1. HA data clients — Redis Cluster + PostgreSQL failover (Theme B) — P1 — ◑ RFC DRAFTED (2026-07-11)**
-- **Objective:** extend `RedisClientOptions`/`PgConnectOptions` to multi-node/replica
-  topologies with redirect/failover handling (Transition Report P1-3, TD is a
-  *capability* gap, not a defect).
+**N-1. HA data clients — Redis Cluster + PostgreSQL failover (Theme B) — P1 — ✅ SHIPPED + LIVE-VERIFIED (2026-07-11)**
+- **Objective:** extend the Redis/PostgreSQL clients to multi-node/replica topologies
+  with redirect/failover handling (Transition Report P1-3 — a *capability* gap).
 - **Business value:** the single largest enterprise-adoption enabler. **Technical
-  value:** High. **Complexity:** High. **Effort:** 3–6 weeks + live-cluster tests.
-- **Dependencies:** live cluster/HA test infra. **Risks:** protocol edge cases;
-  mitigate with property-based + live-topology integration tests.
-- **Status:** ◑ **foundations shipped + verified; routing/failover + live infra remain.**
-  Implemented `packages/core/src/transports/cluster.ts` (CRC16 hash-slot with
-  hash-tags, MOVED/ASK parse, CLUSTER SLOTS parse, slot map) exposed as the
-  `streetjs/redis-cluster` subpath, plus the additive `nodes?` option on
-  `RedisClientOptions`. **Verified offline against Redis reference vectors**
-  (`crc16("123456789")===0x31C3`, `hashSlot("foo")===12182`): `cluster.test.ts`
-  13/13; core suite 14/14, no regression. **Remaining (needs live Redis-Cluster /
-  PG-HA CI infra, no simulation):** the routing engine (per-node pool +
-  redirect-following execute + slot refresh), the PG multi-host/primary-discovery/
-  failover client, and the live-topology integration suites. See `rfcs/0003`.
+  value:** High. **Complexity:** High.
+- **Delivered (RFC 0003 → Implemented):**
+  - **Redis Cluster** — `RedisClusterClient` (`transports/cluster-client.ts`): per-node
+    connection pool, `CLUSTER SLOTS` discovery, key-slot routing, MOVED (slot-map
+    self-heal) + ASK (ASKING one-shot) handling; pure primitives in `cluster.ts`
+    (`streetjs/redis-cluster`). Additive `nodes?` on `RedisClientOptions`.
+  - **PostgreSQL HA** — `PgHaClient` (`database/ha.ts`, `streetjs/pg-ha`): multi-host,
+    primary discovery via `pg_is_in_recovery()`, role-targeted routing
+    (`primary`/`prefer-replica`/`any`), and failover (per-attempt query timeout →
+    drop dead primary → re-discover → retry, picking up a promoted primary).
+- **Live-verified this engagement (real Docker topologies, no simulation):**
+  - Redis: 3-master/3-replica cluster — 16384-slot discovery; cross-master set/get/del;
+    **explicit MOVED redirect followed + slot-map self-healed**; hash-tag co-location.
+    `cluster.test` 13/13 (offline vectors) + `redis-cluster.it.test` 5/5 (live).
+  - PostgreSQL: primary + streaming replica — role discovery; `prefer-replica` reads
+    on the standby; **failover** — promoted the standby (`pg_promote`), stopped the
+    old primary, `target: primary` query re-resolved to the promoted node and
+    succeeded; post-failover write/read succeeded. `pg-ha.it.test` self-skips w/o infra.
+  - Packaging: `verify-package` resolves all **171** published modules (new subpaths ship).
+- **Note:** the committed integration tests self-skip (honest BLOCKED) when no
+  topology is present, so CI stays green without dedicated HA infra; provisioning
+  cluster/HA services in a CI job would run them there too.
 - **Milestone:** M2 — additive config + passing live-cluster/HA integration suite.
 
 **N-2. Consolidated resilience primitive (Theme D / TD-1) — P2 — ✅ SHIPPED (2026-07-11)**
