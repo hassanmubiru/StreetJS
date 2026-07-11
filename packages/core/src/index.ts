@@ -486,6 +486,17 @@ export { MemcachedTransport } from './platform/transports/memcached.js';
 export type { MemcachedOptions } from './platform/transports/memcached.js';
 export { RedisClient, RespParser, encodeCommand } from './transports/resp.js';
 export type { RedisClientOptions, RespValue } from './transports/resp.js';
+export { RedisClusterClient } from './transports/cluster-client.js';
+export type { RedisClusterOptions } from './transports/cluster-client.js';
+export {
+  crc16,
+  hashSlot,
+  parseRedirect,
+  parseClusterSlots,
+  buildSlotMap,
+  REDIS_CLUSTER_SLOTS,
+} from './transports/cluster.js';
+export type { Redirect, ClusterNode, SlotRange } from './transports/cluster.js';
 
 // ── Platform: Event Streaming ─────────────────────────────────────────────────
 export { EventStreamPublisher, EventStreamConsumer, InProcessStreamTransport, RealtimeAggregator } from './platform/event-streaming.js';
