@@ -201,3 +201,45 @@ not a source engineering defect.
 > Path to ENGINEERING COMPLETE: (1) republish the 8 packages (propagates R-1);
 > (2) confirm cosign signing on the next release tag; (3) verify providers with
 > credentials. All are release/operational/external, none an open source defect.
+
+---
+
+## Post-audit closure (same engagement) — F-1 fully remediated + release-infra gap fixed
+
+After the audit, the operational follow-up for F-1 was executed and verified:
+
+### Release-infrastructure gap discovered
+Of the 8 packages that shipped test files, only `edge` had a CI publish path
+(`publish-frontend.yml`). The other **20 backend/vertical packages had NO CI
+publish workflow** and were published manually **without provenance** (verified:
+`@streetjs/{gateway,storage,events,queue,realtime,workflow,dating-auth}@1.0.0`
+all `dist.attestations = NONE`; `edge@1.0.0` had provenance).
+
+### Remediation (this engagement)
+1. **Created `.github/workflows/publish-backend.yml`** — provenance-carrying,
+   idempotent publish workflow for the 20 previously-uncovered packages
+   (`backend-v*` tag / manual dispatch), mirroring `publish-frontend.yml`.
+2. **Bumped the 8 polluted packages to `1.0.1`**; regenerated the root lockfile
+   (0 vulnerabilities); verified each packs **0 test files**; inter-package pins
+   (`>=1.0.0`) remain satisfied.
+3. **Pushed `backend-v1.0.1` + `frontend-v1.0.1`** → CI publish runs **succeeded**
+   (`Publish Backend Packages` + `Publish Frontend Packages`).
+
+### Verified on npm (this engagement)
+All 8 republished at **1.0.1**, each with **provenance = YES** and
+**0 test files** in the published tarball:
+`@streetjs/{gateway,storage,events,queue,realtime,workflow,dating-auth,edge}@1.0.1`.
+
+### Status update
+- **F-1: fully resolved** — source fixed (38 packages) **and** propagated to npm
+  (8 packages republished clean, with provenance). The old polluted `1.0.0`
+  tarballs remain on npm as historical versions but are no longer `latest`.
+- **New (fixed): release-infra gap** — 20 backend/vertical packages now have a
+  provenance-carrying CI publish path (`publish-backend.yml`).
+
+### Remaining (unchanged, external/operational)
+- **cosign tag-signing (M-1):** migrated + flag-validated; live confirmation needs
+  a core-line `v*` release tag.
+- **Providers:** NOT VERIFIED (no credentials).
+- The 20-package `publish-backend.yml` has now been exercised for the 8 bumped
+  packages; the other 12 remain at `1.0.0` (unchanged, publish when next bumped).
