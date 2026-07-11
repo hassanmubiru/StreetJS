@@ -40,12 +40,26 @@ export class MigrateCommand {
     return undefined;
   }
 
-  /** Emit clear guidance when migrations are attempted on a SQLite project. */
+  /** Emit clear, actionable guidance when migrations are attempted on a SQLite
+   * project. The shipped migrations are PostgreSQL-dialect (BIGSERIAL/TIMESTAMPTZ/
+   * now()), so the fix is to point the project at Postgres — the scaffold already
+   * bundles one via docker-compose — rather than translate SQL dialects. */
   private warnSqliteUnsupported(): void {
-    console.error('[street] This project is configured for SQLite (DB_DRIVER=sqlite).');
-    console.error('[street] `street migrate:run` / `migrate:diff` currently support PostgreSQL only.');
-    console.error('[street] To use migrations, configure PostgreSQL (set PG_HOST/PG_DATABASE/... or');
-    console.error('[street] recreate the project with `--database postgres`), then re-run.');
+    const hasCompose = existsSync(resolve(process.cwd(), 'docker-compose.yml'));
+    console.error('[street] This project is configured for SQLite (DB_DRIVER=sqlite), but the');
+    console.error('[street] migrations under ./migrations are PostgreSQL-dialect (BIGSERIAL,');
+    console.error('[street] TIMESTAMPTZ, now(), …). `street migrate:run` / `migrate:diff` run those');
+    console.error('[street] against PostgreSQL only.');
+    console.error('[street]');
+    console.error('[street] To run them, point this project at PostgreSQL, then re-run migrate:run:');
+    if (hasCompose) {
+      console.error('[street]   1) docker compose up -d            # starts the bundled Postgres');
+    }
+    console.error('[street]   • set DB_DRIVER=postgres and PG_HOST/PG_PORT/PG_USER/PG_PASSWORD/PG_DATABASE');
+    console.error('[street]     in .env (the CLI now loads .env automatically), then: street migrate:run');
+    console.error('[street]');
+    console.error('[street] Prefer SQLite? Keep DB_DRIVER=sqlite and hand-write SQLite-dialect');
+    console.error('[street] migrations (e.g. INTEGER PRIMARY KEY AUTOINCREMENT, CURRENT_TIMESTAMP).');
     process.exitCode = 1;
   }
   /**
