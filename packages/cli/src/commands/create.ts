@@ -4222,26 +4222,21 @@ export class CreateCommand {
       return;
     }
 
-    // Database driver. Default is 'sqlite' (zero-config, no local DB server or
-    // credentials) for most templates. The `saas` starter is the exception: its
-    // migrations are PostgreSQL-dialect (BIGSERIAL/TIMESTAMPTZ/now()), so a SQLite
-    // saas project is internally inconsistent (migrations can't run). It therefore
-    // defaults to 'postgres' — coherent out of the box with the bundled
-    // docker-compose Postgres. An explicit `--database` flag always wins.
-    const defaultDatabase = template === 'saas' ? 'postgres' : 'sqlite';
-    const database = String(ctx.args.flags['database'] ?? defaultDatabase).toLowerCase();
+    // Database driver (default 'sqlite' — zero-config, works out of the box with
+    // no local database server or credentials). 'postgres' is for production;
+    // its generated startup validates credentials and degrades gracefully rather
+    // than crashing when the database is unreachable.
+    //
+    // Note: the `saas` starter boots zero-config on SQLite by design (its schema
+    // is created at runtime; the shipped PostgreSQL-dialect migrations are for the
+    // production Postgres path via `--database postgres`). `street migrate:run`
+    // surfaces that dialect boundary if invoked on a SQLite project.
+    const database = String(ctx.args.flags['database'] ?? 'sqlite').toLowerCase();
     const DATABASES = ['sqlite', 'postgres'];
     if (!DATABASES.includes(database)) {
       console.error(`[street] Unknown database "${database}". Available: ${DATABASES.join(', ')}`);
       process.exitCode = 1;
       return;
-    }
-    if (template === 'saas' && database === 'sqlite') {
-      console.warn(
-        '[street] Note: the saas starter ships PostgreSQL-dialect migrations, so ' +
-        '`street migrate:run` will not run them on SQLite. Use --database postgres ' +
-        '(default), or hand-write SQLite-dialect migrations.',
-      );
     }
 
     // Opt-in starter flags. The default `--starter saas` scaffold is
