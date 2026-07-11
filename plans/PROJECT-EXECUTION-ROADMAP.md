@@ -110,12 +110,25 @@ deferred behind these; the framework is already broad.
 - **Business value:** grows the maintainer funnel. **Complexity:** Low. **Effort:**
   ongoing. **Dependencies:** none. **Milestone:** M1.
 
-**I-5. `release-inputs.json` CI generation (Theme B / TD-3) — P1**
+**I-5. `release-inputs.json` CI generation (Theme B / TD-3) — P1 — ✅ DONE / VERIFIED (2026-07-11)**
 - **Objective:** derive release-enforcement inputs from live sources (Scorecard API,
-  coverage artifact, `npm audit`) so the enforcement job passes on real dispatch
-  without a hand-placed file — **without** fabricating scores.
+  coverage artifact) so the enforcement job passes on real dispatch without a
+  hand-placed file — **without** fabricating scores.
 - **Business value:** unblocks release enforcement. **Complexity:** Medium. **Effort:**
   1–2 days. **Dependencies:** none. **Milestone:** M1.
+- **Finding on execution:** already implemented and wired —
+  `scripts/release/derive-inputs.mjs` derives `security` live (OpenSSF Scorecard API,
+  0-10 ×10) and `coverage` live (`packages/core/coverage/lcov.info`), merging the
+  maintainer-owned rubric dimensions (reliability/performance) + thresholds + health
+  from the git-tracked `scripts/release/release-inputs.template.json`; it never
+  fabricates the rubric dimensions. `.github/workflows/ci-cd-enforcement.yml`
+  (`release-engineering` job, gated to release/dispatch/`v*`-tag) runs coverage →
+  derive → enforce.
+- **Verified this engagement:** (a) the `Release Engineering Enforcement` job
+  **passed on the `v1.1.4` tag** (run `29142403646`, "live-derived: security,
+  coverage", "not derived: (none)"); (b) fresh local run derived
+  security=74 (OpenSSF 7.4×10) / coverage=78.42 / reliability=75 / performance=70,
+  and `render-report.mjs` enforced **6/6 controls PASS, exit 0**. No new code required.
 
 ### NEAR-TERM (3–6 months) — "Unlock enterprise + tidy the foundation"
 
