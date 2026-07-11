@@ -11,22 +11,64 @@ following the completed certification/transition/strategy phases.
 infrastructure are marked ◑ with the exact reason — never simulated, never
 overstated.
 
+**Verification window:** 2026-07-11, approximately 05:48Z–13:49Z (UTC), spanning the
+CI runs and local commands cited below. **Repository at commit:** `937e1e6d`
+(local == `origin/main` at time of the latest update; earlier sections were verified
+at the intermediate commits noted inline).
+
+## Status Legend
+
+| Marker | Meaning |
+|--------|---------|
+| **Done** | Implemented. |
+| **Verified** | Implemented and confirmed via a test or CI run cited here. |
+| **Shipped** | Implemented, verified, and merged to `main`. |
+| **Complete** | No remaining engineering work for this item within the defined scope. |
+| **Foundations** | Core/pure implementation done + verified; dependent layers remain. |
+| ◑ **Blocked/Gated** | Cannot be verified here due to an external dependency (infra/credentials). |
+
+## Assumptions
+
+- The npm registry (`registry.npmjs.org`) was reachable for install/import checks.
+- GitHub Actions and the `gh` CLI were reachable for CI dispatch and log retrieval.
+- The public OpenSSF Scorecard API was reachable for the I-5 derive check.
+- Local runtime: Node v20.20.1 (below the packages' declared `engines >= 22`); CI
+  runs on Node 22/24. Where local Node 20 produced an environment artifact, CI on
+  Node 22 is treated as authoritative and cited.
+- Docker 29.1.3 available locally (used earlier this day for the framework image; no
+  live Redis-Cluster / PG-HA topology was provisioned).
+
 ---
 
 ## Executive Summary
 
-The Immediate tier of the roadmap is **fully complete for all engineering-owned
-items**, and the Near-term engineering tier is **complete except for the portion of
-HA data clients that requires live-topology CI infrastructure**. Six roadmap items
-were executed and verified this engagement; two of them turned out to be already
-implemented and were independently re-verified; one introduced an F-5-class
-packaging regression that the project's **own CI gate caught before publish** and
-which was then fixed.
+### Verified facts (from cited commands/CI this engagement)
 
-The remaining open work is either **human/operational** (a second maintainer,
-funding, contributor pipeline) or **infrastructure-gated** (live Redis-Cluster /
-PostgreSQL-HA topologies for the HA-client routing/failover layer). No reproducible
-engineering defect remains; `ci-cd.yml` on `main` is green end-to-end.
+- Roadmap items I-3, I-5, N-3, N-4, N-2 were implemented and verified; N-1 foundations
+  were implemented and verified (details + evidence IDs below).
+- `ci-cd.yml` on `main` `1f8933ae` completed with **all jobs success** (evidence: run
+  `29146719709`); `Repository policy` on `937e1e6d` is **success** (evidence: run
+  `29155142136`).
+- One F-5-class packaging regression was introduced and **caught by the Package
+  Integrity CI gate before publish**, then fixed and re-verified.
+
+### Assessment (interpretation)
+
+- All **engineering-owned Immediate-tier** items are complete; the **Near-term
+  engineering tier** is complete except the portion of HA data clients that requires
+  live-topology CI infrastructure.
+- No reproducible engineering defect was identified within the scope of this
+  engagement.
+
+### Conclusion
+
+- **Roadmap execution status:** engineering-actionable items within scope are
+  completed and verified, except the infrastructure-gated HA-client remainder.
+- **Product roadmap:** continues beyond this report (Mid/Long-term themes unchanged).
+- Remaining open work is either **human/operational** (maintainer #2, funding,
+  contributor pipeline) or **infrastructure-gated** (live Redis-Cluster / PG-HA
+  topologies). Completion of the roadmap's engineering slice is **not** project
+  completion.
 
 ---
 
