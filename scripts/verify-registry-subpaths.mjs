@@ -24,7 +24,7 @@
 //   node scripts/verify-registry-subpaths.mjs pkgA pkgB  # only the named packages
 // ─────────────────────────────────────────────────────────────────────────────
 import { readFileSync, writeFileSync, mkdirSync, mkdtempSync, readdirSync, existsSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execSync, execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -71,12 +71,34 @@ function subpathsOf(pj) {
   return [['.', exp]]; // a bare conditions object is the "." export
 }
 
+// ── child importer: runs INSIDE the temp project so bare specifiers resolve ──
+const CHILD = `
+import { readFileSync, writeFileSync } from 'node:fs';
+const targets = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+const results = [];
+for (const t of targets) {
+  try {
+    if (t.json) await import(t.target, { with: { type: 'json' } });
+    else {
+      try { await import(t.target); }
+      catch (e) {
+        const c = String(e.code || '');
+        if (c.includes('IMPORT_ATTRIBUTE') || c.includes('ASSERTION') || /type.*json/i.test(e.message))
+          await import(t.target, { with: { type: 'json' } });
+        else throw e;
+      }
+    }
+    results.push({ ...t, status: 'OK' });
+  } catch (e) {
+    results.push({ ...t, status: 'FAIL', code: e.code || '', message: (e.message || '').split('\\n')[0] });
+  }
+}
+writeFileSync(process.argv[3], JSON.stringify(results));
+`;
+
 async function main() {
   const names = publishablePackages();
-  if (names.length === 0) {
-    console.error('[subpaths] no publishable packages found');
-    process.exit(1);
-  }
+  if (names.length === 0) { console.error('[subpaths] no publishable packages found'); process.exit(1); }
   console.log(`[subpaths] ${names.length} publishable packages`);
 
   // ── 3. Resolve published versions ──────────────────────────────────────────
@@ -85,83 +107,65 @@ async function main() {
   for (const name of names) {
     try {
       const v = execSync(`npm view ${name} version`, { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
-      if (v) specs.push(`${name}@${v}`); else unpublished.push(name);
+      if (v) specs.push({ name, version: v }); else unpublished.push(name);
     } catch { unpublished.push(name); }
   }
   console.log(`[subpaths] resolved ${specs.length} published, ${unpublished.length} unpublished`);
-  if (specs.length === 0) {
-    console.log('[subpaths] BLOCKED: no published versions resolvable (registry unreachable?) — exit 0');
-    process.exit(0);
-  }
+  if (specs.length === 0) { console.log('[subpaths] BLOCKED: no published versions resolvable (registry unreachable?) — exit 0'); process.exit(0); }
 
   // ── 4. Install from the registry into an isolated project ───────────────────
   const work = mkdtempSync(join(tmpdir(), 'streetjs-subpaths-'));
   writeFileSync(join(work, 'package.json'), JSON.stringify({ name: 'subpath-gate', private: true, type: 'module', version: '0.0.0' }));
   try {
-    execSync(`npm install --no-audit --no-fund ${specs.join(' ')}`, { cwd: work, stdio: ['ignore', 'ignore', 'pipe'] });
+    execSync(`npm install --no-audit --no-fund ${specs.map((s) => `${s.name}@${s.version}`).join(' ')}`, { cwd: work, stdio: ['ignore', 'ignore', 'pipe'] });
   } catch (e) {
-    const msg = (e.stderr?.toString() || e.message || '').split('\n').slice(-5).join(' ');
+    const msg = (e.stderr?.toString() || e.message || '').split('\n').slice(-4).join(' ');
     console.log(`[subpaths] BLOCKED: registry install failed (infrastructure, not a package defect): ${msg} — exit 0`);
     process.exit(0);
   }
 
-  // ── 5. Import every runtime subpath ─────────────────────────────────────────
-  const { pathToFileURL } = await import('node:url');
-  const results = [];
-  let ok = 0, fail = 0, skip = 0;
-  for (const spec of specs) {
-    const name = spec.replace(/@[^@]+$/, '');
+  // ── 5. Build the runtime-subpath target list from installed exports ─────────
+  const targets = [];
+  const classified = { skipTypes: 0, skipPattern: 0 };
+  const pkgErrors = [];
+  for (const { name } of specs) {
     let pj;
     try { pj = JSON.parse(readFileSync(join(work, 'node_modules', name, 'package.json'), 'utf8')); }
-    catch (e) { results.push({ name, sub: '(package.json)', status: 'FAIL', message: e.message }); fail++; continue; }
+    catch (e) { pkgErrors.push({ name, sub: '(package.json)', status: 'FAIL', message: e.message }); continue; }
     for (const [key, val] of subpathsOf(pj)) {
-      if (key.includes('*')) { results.push({ name, sub: key, status: 'SKIP_PATTERN' }); skip++; continue; }
-      if (!hasRuntime(val)) { results.push({ name, sub: key, status: 'SKIP_TYPES_ONLY' }); skip++; continue; }
-      const target = name + (key === '.' ? '' : key.slice(1));
-      // resolve against the temp project so bare specifiers find node_modules
-      const resolved = pathToFileURL(join(work, 'node_modules', 'x')).href; // base only
-      const json = isJsonOnly(val);
-      try {
-        const spec2 = await import.meta.resolve
-          ? import.meta.resolve(target, pathToFileURL(join(work, 'index.js')).href)
-          : target;
-        if (json) await import(spec2, { with: { type: 'json' } });
-        else {
-          try { await import(spec2); }
-          catch (e) {
-            const c = String(e.code || '');
-            if (c.includes('IMPORT_ATTRIBUTE') || c.includes('ASSERTION') || /type.*json/i.test(e.message)) {
-              await import(spec2, { with: { type: 'json' } });
-            } else throw e;
-          }
-        }
-        results.push({ name, sub: key, target, json, status: 'OK' }); ok++;
-      } catch (e) {
-        results.push({ name, sub: key, target, json, status: 'FAIL', code: e.code || '', message: (e.message || '').split('\n')[0] }); fail++;
-      }
+      if (key.includes('*')) { classified.skipPattern++; continue; }
+      if (!hasRuntime(val)) { classified.skipTypes++; continue; }
+      targets.push({ name, sub: key, target: name + (key === '.' ? '' : key.slice(1)), json: isJsonOnly(val) });
     }
   }
 
-  // ── 6. Emit artifact + summary ──────────────────────────────────────────────
+  // ── 6. Import every runtime subpath from inside the temp project ────────────
+  writeFileSync(join(work, '__targets.json'), JSON.stringify(targets));
+  writeFileSync(join(work, '__import-check.mjs'), CHILD);
+  execFileSync(process.execPath, ['__import-check.mjs', '__targets.json', '__results.json'], { cwd: work, stdio: ['ignore', 'inherit', 'inherit'] });
+  const results = JSON.parse(readFileSync(join(work, '__results.json'), 'utf8')).concat(pkgErrors);
+
+  const ok = results.filter((r) => r.status === 'OK').length;
+  const failures = results.filter((r) => r.status === 'FAIL');
+
+  // ── 7. Emit artifact + summary ──────────────────────────────────────────────
   const outDir = join(repoRoot, 'verification-artifacts', 'registry-subpaths');
   mkdirSync(outDir, { recursive: true });
   const artifact = {
     generatedAt: new Date().toISOString(),
     node: process.version,
     packages: specs.length,
-    runtimeSubpaths: ok + fail,
-    ok, fail, skipped: skip,
-    unpublished,
-    failures: results.filter((r) => r.status === 'FAIL'),
-    results,
+    runtimeSubpaths: ok + failures.length,
+    ok, fail: failures.length,
+    skippedTypesOnly: classified.skipTypes, skippedWildcard: classified.skipPattern,
+    unpublished, failures, results,
   };
   writeFileSync(join(outDir, 'registry-subpaths.artifact.json'), JSON.stringify(artifact, null, 2));
 
-  console.log('[subpaths] === FAILURES ===');
-  for (const r of artifact.failures) console.log(`  FAIL ${r.target || r.name} [${r.code || ''}] ${r.message}`);
-  console.log(`[subpaths] packages=${specs.length} runtimeSubpaths=${ok + fail} OK=${ok} FAIL=${fail} skipped=${skip}`);
+  if (failures.length) { console.log('[subpaths] === FAILURES ==='); for (const r of failures) console.log(`  FAIL ${r.target || r.name} [${r.code || ''}] ${r.message}`); }
+  console.log(`[subpaths] packages=${specs.length} runtimeSubpaths=${ok + failures.length} OK=${ok} FAIL=${failures.length} skipped=${classified.skipTypes + classified.skipPattern}`);
 
-  if (fail > 0) { console.error(`[subpaths] ✖ ${fail} subpath import(s) failed — packaging/exports defect`); process.exit(1); }
+  if (failures.length) { console.error(`[subpaths] ✖ ${failures.length} subpath import(s) failed — packaging/exports defect`); process.exit(1); }
   console.log('[subpaths] ✔ every published subpath imports cleanly'); process.exit(0);
 }
 
