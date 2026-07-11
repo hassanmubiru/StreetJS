@@ -144,7 +144,7 @@ port-and-scheme policy, and bounding redirect depth. TLS options apply per node.
 ## Alternatives considered
 
 - **Wrap a third-party client (ioredis / node-postgres cluster helpers):**
-  rejected — violates the dependency-free-core invariant (permanent architectural
+  rejected — violates the minimal-dependency-core invariant (permanent architectural
   decision).
 - **A separate `@streetjs/ha` package:** rejected — the capability belongs in the
   wire clients themselves; a split would fragment the client API.
