@@ -1,0 +1,35 @@
+{
+  "name": "street-plugin-starter",
+  "version": "1.0.0",
+  "description": "Starter template for a StreetJS plugin. Copy, rename, and set \"private\": false to publish.",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "import": "./dist/index.js", "types": "./dist/index.d.ts" }
+  },
+  "peerDependencies": {
+    "streetjs": ">=1.2.0"
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.js.map",
+    "dist/**/*.d.ts",
+    "dist/**/*.d.ts.map",
+    "!dist/**/*.test.js",
+    "!dist/**/*.test.js.map",
+    "!dist/**/*.test.d.ts",
+    "!dist/**/*.test.d.ts.map",
+    "manifest.json",
+    "manifest.signed.json",
+    "README.md",
+    "LICENSE",
+    "example/**/*"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test test/*.test.mjs",
+    "lint": "tsc --noEmit"
+  }
+}
