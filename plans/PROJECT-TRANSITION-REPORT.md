@@ -19,7 +19,7 @@ transition review to establish the baseline for the next development cycle.
 
 ## Executive Summary
 
-StreetJS is a 54-package TypeScript monorepo (dependency-free core; `streetjs` /
+StreetJS is a 54-package TypeScript monorepo (minimal-dependency core; `streetjs` /
 `@streetjs/core` compat / `@streetjs/cli` lockstep line at `1.1.4` on npm with SLSA
 provenance and cosign-signed release assets). The repository is clean, branch-synced,
 green across all 44 CI workflows, and free of open security alerts.
@@ -43,7 +43,7 @@ Cluster / PostgreSQL-HA client capability as the flagship 2.0 feature.
 
 | Dimension | State (verified) | Notes |
 |-----------|------------------|-------|
-| Packages | 54 publishable | dependency-free core; clean lockstep line |
+| Packages | 54 publishable | minimal-dependency core; clean lockstep line |
 | Working tree / sync | clean; local == `origin/main` | Finding |
 | Branches | remote `main` only; 0 open PRs | 2 stale local branches previously removed |
 | Release line | `streetjs`/`@streetjs/core`/`@streetjs/cli` `1.1.4`, provenance OK | signed GitHub Release + SBOM |
