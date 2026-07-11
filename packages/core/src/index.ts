@@ -115,6 +115,8 @@ export { Router, notFoundHandler, errorHandler } from './router/router.js';
 
 // ── Database ──────────────────────────────────────────────────────────────────
 export { PgConnection, StreetPostgresWireStream } from './database/wire.js';
+export { PgHaClient } from './database/ha.js';
+export type { PgHaOptions, PgHaHost, PgTarget } from './database/ha.js';
 export type { PgRow, PgResult, DbResult, PgConnectOptions } from './database/wire.js';
 export { PgPool } from './database/pool.js';
 export type { PoolOptions } from './database/pool.js';
