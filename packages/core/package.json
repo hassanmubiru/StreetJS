@@ -120,6 +120,11 @@
       "browser": "./dist/resilience/index.js",
       "import": "./dist/resilience/index.js",
       "types": "./dist/resilience/index.d.ts"
+    },
+    "./redis-cluster": {
+      "browser": "./dist/transports/cluster.js",
+      "import": "./dist/transports/cluster.js",
+      "types": "./dist/transports/cluster.d.ts"
     }
   },
   "files": [
