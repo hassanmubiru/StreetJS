@@ -4228,7 +4228,6 @@ export class CreateCommand {
     // saas project is internally inconsistent (migrations can't run). It therefore
     // defaults to 'postgres' — coherent out of the box with the bundled
     // docker-compose Postgres. An explicit `--database` flag always wins.
-    const dbFlagProvided = ctx.args.flags['database'] !== undefined;
     const defaultDatabase = template === 'saas' ? 'postgres' : 'sqlite';
     const database = String(ctx.args.flags['database'] ?? defaultDatabase).toLowerCase();
     const DATABASES = ['sqlite', 'postgres'];
