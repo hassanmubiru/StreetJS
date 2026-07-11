@@ -11,7 +11,7 @@ description:  "StreetJS high-availability data clients — Redis Cluster routing
 *Added in **StreetJS 1.2.0** ([RFC 0003](https://github.com/hassanmubiru/StreetJS/blob/main/rfcs/0003-ha-data-clients.md)). Additive and opt-in — existing single-endpoint clients are unchanged, so no migration is required.*
 
 StreetJS ships topology-aware clients for the two most common HA data tiers, built
-on the same dependency-free core as the rest of the framework.
+on the same minimal-dependency core as the rest of the framework.
 
 ---
 
