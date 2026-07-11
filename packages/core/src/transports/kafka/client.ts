@@ -255,31 +255,61 @@ export class KafkaClient {
     return { records, highWatermark };
   }
 
-  /** List offsets: timestamp -1 = latest (end), -2 = earliest (start). */
+  /**
+   * List offsets: timestamp -1 = latest (end), -2 = earliest (start).
+   *
+   * Retries on transient partition-leadership errors (5 LEADER_NOT_AVAILABLE,
+   * 6 NOT_LEADER_FOR_PARTITION, 9 REPLICA_NOT_AVAILABLE) — which occur right
+   * after topic creation or a leader change, before metadata has settled — by
+   * forcing a metadata refresh (so `leaderFor` re-resolves the current leader)
+   * and backing off. Mirrors the coordinator-retry hardening used for
+   * OFFSET_COMMIT/OFFSET_FETCH. Without this, a fresh-topic `listOffset` can
+   * throw NOT_LEADER_FOR_PARTITION transiently.
+   */
   async listOffset(topic: string, partition: number, timestamp: bigint): Promise<bigint> {
-    const leader = await this.leaderFor(topic, partition);
-    const conn = await this._conn(leader.host, leader.port);
-    const r = await conn.request(API.LIST_OFFSETS, 1, (w: KafkaWriter) => {
-      w.int32(-1);     // replica_id
-      w.int32(1);      // topic count
-      w.string(topic);
-      w.int32(1);      // partition count
-      w.int32(partition);
-      w.int64(timestamp);
-    });
-    const topicCount = r.int32();
-    let offset = -1n;
-    for (let i = 0; i < topicCount; i++) {
-      r.string();
-      const pCount = r.int32();
-      for (let p = 0; p < pCount; p++) {
-        r.int32(); const err = r.int16(); r.int64(); const off = r.int64();
-        if (err !== 0) throw new KafkaProtocolError(err, 'listOffsets');
-        offset = off;
+    let lastErr: unknown;
+    for (let attempt = 0; attempt < 12; attempt++) {
+      try {
+        const leader = await this.leaderFor(topic, partition);
+        const conn = await this._conn(leader.host, leader.port);
+        const r = await conn.request(API.LIST_OFFSETS, 1, (w: KafkaWriter) => {
+          w.int32(-1);     // replica_id
+          w.int32(1);      // topic count
+          w.string(topic);
+          w.int32(1);      // partition count
+          w.int32(partition);
+          w.int64(timestamp);
+        });
+        const topicCount = r.int32();
+        let offset = -1n;
+        for (let i = 0; i < topicCount; i++) {
+          r.string();
+          const pCount = r.int32();
+          for (let p = 0; p < pCount; p++) {
+            r.int32(); const err = r.int16(); r.int64(); const off = r.int64();
+            if (err !== 0) throw new KafkaProtocolError(err, 'listOffsets');
+            offset = off;
+          }
+        }
+        return offset;
+      } catch (e) {
+        lastErr = e;
+        const code = e instanceof KafkaProtocolError ? e.code : undefined;
+        if (code !== undefined && KafkaClient.TRANSIENT_LEADER_ERRORS.has(code)) {
+          // Force a metadata refresh so leaderFor re-resolves the new leader.
+          await this.metadata([topic]).catch(() => { /* refreshed best-effort */ });
+          await new Promise((res) => setTimeout(res, Math.min(200 * (attempt + 1), 1500)));
+          continue;
+        }
+        throw e;
       }
     }
-    return offset;
+    throw lastErr instanceof Error ? lastErr : new KafkaProtocolError(6, 'listOffsets');
   }
+
+  /** Transient partition-leadership errors that should be retried with a
+   *  metadata refresh (leader not yet elected / moved). */
+  private static readonly TRANSIENT_LEADER_ERRORS = new Set<number>([5, 6, 9]);
 
   /** Find the group coordinator broker for a consumer group. Retries on
    *  transient coordinator errors (14 LOAD_IN_PROGRESS, 15 NOT_AVAILABLE,
