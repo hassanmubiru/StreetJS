@@ -147,17 +147,23 @@ deferred behind these; the framework is already broad.
   Ready to implement once the RFC is accepted and cluster CI infra is provisioned.
 - **Milestone:** M2 — additive config + passing live-cluster/HA integration suite.
 
-**N-2. Consolidated resilience primitive (Theme D / TD-1) — P2 — ◑ RFC DRAFTED (2026-07-11)**
-- **Objective:** unify the 2× `CircuitBreaker` + ~7 ad-hoc retry/backoff helpers into
-  one internal primitive; keep existing public re-exports.
+**N-2. Consolidated resilience primitive (Theme D / TD-1) — P2 — ✅ SHIPPED (2026-07-11)**
+- **Objective:** unify the 2× `CircuitBreaker` + ad-hoc retry/backoff helpers into
+  one canonical primitive; keep existing public re-exports.
 - **Business value:** lower maintenance cost. **Technical value:** consistency.
   **Complexity:** Medium. **Effort:** 3–5 days. **Dependencies:** none (additive).
-  **Risks:** behavioral drift; mitigate by migrating call sites behind existing tests.
-- **Status:** design complete — `rfcs/0004-resilience-primitive.md` (internal
-  `packages/core/src/resilience/` + `streetjs/resilience` subpath; gateway keeps its
-  public re-exports; incremental test-guarded migration). Deliberately **not
-  rush-implemented** into certified core for a Low-impact debt item — RFC-gated per
-  the repo's own process; ready to implement on acceptance.
+- **Delivered (RFC 0004 → Implemented):** `packages/core/src/resilience/index.ts`
+  (`computeBackoff`, `withRetry`, `defaultDelay` + canonical `CircuitBreaker`
+  re-exported from `microservices/circuit-breaker`); new **`streetjs/resilience`**
+  export subpath; `cloud/secret-providers.ts` migrated off its 4× hardcoded
+  `[1000,2000,4000,8000,10000]` ladders to `computeBackoff` (TD-4 closed,
+  behavior-identical). **Verified:** new resilience suite **11/11**; regression
+  guards green — microservices/CircuitBreaker **25/25**, secret-providers
+  **15/15** + adapters **9/9**; `streetjs/resilience` imports cleanly (5 exports);
+  CircuitBreaker class identity asserted single-canonical.
+- **Follow-up (opt-in, low value):** `@streetjs/gateway` keeps its package-local
+  `retry.ts` public API (unchanged); `otel`/`chaos` single-use helpers may adopt
+  `withRetry` later. Core duplication removed.
 - **Milestone:** M2.
 
 **N-3. Per-plugin test-script locality (Theme D / TD-2) — P2 — ✅ SHIPPED (2026-07-11)**
