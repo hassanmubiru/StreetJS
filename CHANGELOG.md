@@ -9,6 +9,33 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-07-11
+
+### Added
+- **High-availability data clients (RFC 0003).** Two additive, opt-in capabilities;
+  all existing single-endpoint clients are unchanged.
+  - **Redis Cluster** — new `RedisClusterClient` (exported from `streetjs` and the
+    `streetjs/redis-cluster` subpath): multi-seed topology discovery via
+    `CLUSTER SLOTS`, per-node connection pooling, key hash-slot routing (CRC16 with
+    hash-tag support), and `MOVED`/`ASK` redirect handling with slot-map self-heal.
+    The pure primitives (`crc16`, `hashSlot`, `parseRedirect`, `parseClusterSlots`,
+    `buildSlotMap`) are also exported. `RedisClientOptions` gains an additive
+    optional `nodes` field. Verified against a live 3-master/3-replica cluster.
+  - **PostgreSQL HA** — new `PgHaClient` (exported from `streetjs` and the
+    `streetjs/pg-ha` subpath): multi-host configuration, primary discovery via
+    `pg_is_in_recovery()`, role-targeted routing (`primary` / `prefer-replica` /
+    `any`), and failover — a per-attempt query timeout detects a dead/demoted
+    primary, re-discovers the topology, and retries against a promoted primary.
+    Verified against a live primary + streaming-replica topology with a real
+    `pg_promote` failover.
+- **Consolidated resilience primitive (RFC 0004)** — new `streetjs/resilience`
+  subpath exporting `computeBackoff`, `withRetry`, `defaultDelay`, and the canonical
+  `CircuitBreaker`. Internal call sites (secret-provider backoff ladders) migrated to
+  it with identical behavior.
+
+### Changed
+- `@streetjs/core` / `@streetjs/cli` bump in lockstep with `streetjs` to `1.2.0`.
+
 ## [1.1.4] - 2026-07-11
 
 ### Fixed
