@@ -296,7 +296,7 @@ deferred behind these; the framework is already broad.
 | ID | Item | Plan | Horizon |
 |----|------|------|---------|
 | TD-1 | Duplicated resilience primitives | Extract `@streetjs/resilience` (N-2) | Near-term |
-| TD-2 | 6 HTTP plugins lack local test script | Delegating scripts + docs (N-3) | Near-term |
+| TD-2 | 6 HTTP plugins lack local test script | ✅ Done — real offline contract tests (4/4 each) + `test` scripts (N-3) | Near-term |
 | TD-3 | `release-inputs.json` not CI-generated | ✅ Done — derive-inputs.mjs wired in ci-cd-enforcement.yml; verified on v1.1.4 tag + locally (I-5) | Immediate |
 | TD-4 | Hardcoded backoff ladders | Folded into TD-1 | Near-term |
 | TD-5 | `@streetjs/core` compat shim | Remove in 2.0 on telemetry (L-1) | Long-term |
