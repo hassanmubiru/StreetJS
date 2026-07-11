@@ -12,15 +12,7 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [1.2.1] - 2026-07-11
 
 > All items below were found by **dogfooding** the `saas` template end-to-end
-> (scaffold → install → build → migrate → boot), per the "become a consumer" phase.
-
-### Changed
-- **The `saas` starter now defaults to PostgreSQL.** Its migrations are
-  PostgreSQL-dialect, so the previous SQLite default produced an internally
-  inconsistent project (SQLite runtime + un-runnable PG migrations). `street create
-  --template saas` now scaffolds a coherent Postgres project (PgPool runtime +
-  `DB_DRIVER=postgres` + the bundled docker-compose Postgres); other templates keep
-  the zero-config SQLite default. `--database sqlite` is still honored with a warning.
+> (scaffold → install → build → boot), per the "become a consumer" phase.
 
 ### Fixed
 - **`street` CLI now loads the project `.env`.** The scaffolds ship a
