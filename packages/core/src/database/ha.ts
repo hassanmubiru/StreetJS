@@ -27,6 +27,13 @@ export interface PgHaOptions {
   connectTimeoutMs?: number;
   /** Max failover re-resolve attempts for a single query. Default 2. */
   maxFailover?: number;
+  /**
+   * Per-attempt query timeout (ms) used for failover detection. A wedged or
+   * already-closed connection to a dead primary can otherwise hang a query
+   * indefinitely; on timeout the HA client drops that connection, re-discovers
+   * the topology, and retries. Default 8000.
+   */
+  queryTimeoutMs?: number;
 }
 
 type Role = 'primary' | 'replica' | 'unknown';
