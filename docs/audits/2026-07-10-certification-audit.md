@@ -243,3 +243,49 @@ All 8 republished at **1.0.1**, each with **provenance = YES** and
 - **Providers:** NOT VERIFIED (no credentials).
 - The 20-package `publish-backend.yml` has now been exercised for the 8 bumped
   packages; the other 12 remain at `1.0.0` (unchanged, publish when next bumped).
+
+---
+
+## Post-audit closure #2 (same engagement) — cosign M-1 live-validated via a real v1.1.3
+
+To close M-1 legitimately (not with an empty release), a **real** `v1.1.3` was cut
+that ships genuine content: the test-file `files`-exclusion hardening, the cosign
+bundle-format signing migration, and the new `publish-backend.yml` (all documented
+in `CHANGELOG.md [1.1.3]`).
+
+### Executed & verified this engagement
+- Bumped the lockstep trio to **1.1.3** (`streetjs` / `@streetjs/core` compat /
+  `@streetjs/cli`), regenerated core-compat + root lockfile + scaffold pin; builds
+  pass, core `test:run` 14/14, cli 292+56, trio packs **0 test files**, lockstep
+  verified; tagged + pushed `v1.1.3`.
+- **npm:** `streetjs`/`@streetjs/core`/`@streetjs/cli` **1.1.3** published, each
+  **SLSA provenance v1**; `dist-tags.latest = 1.1.3`.
+- **cosign M-1 — LIVE VALIDATED:** the tag run's `Test & Publish` job succeeded;
+  `Install cosign` + `Pack and sign release tarballs` + `Publish signed GitHub
+  Release` all green; the **GitHub Release `v1.1.3` carries `.cosign.bundle` signed
+  assets** for all three tarballs (`streetjs-1.1.3.tgz.cosign.bundle`, etc.) + SBOM.
+  The new-bundle-format signing works end-to-end on a real tag. **M-1 closed.**
+
+### New defect found and FIXED this engagement
+- **F-2 (my-change-induced): certification test false-positive.** The v1.1.3 tag run
+  and subsequent main runs failed the `Certification Suites + DB E2E` job at
+  `REPOSITORY — build-output hygiene` → "npm `files` allowlist excludes tests":
+  `packages/core/tests/certification/repository-certification.test.ts:26` asserted
+  `!f.includes('dist/tests')` over every `files` entry, which incorrectly flagged the
+  **negation** entry `!dist/tests/**` (an exclusion) that R-1 added. **Fix:** skip
+  `!`-prefixed exclusion entries in the check. **Verified:** repository-cert 4/4;
+  full certification suite **51/51 pass** against live PG; the fix-commit `ci-cd.yml`
+  run on `main` is **success** (Certification job green, 0 failing jobs).
+
+### Updated remaining items
+- **cosign M-1:** ✅ **CLOSED** (live-validated on `v1.1.3`).
+- **Providers:** still **NOT VERIFIED** — no credentials (external dependency);
+  not simulated.
+- **F-2:** ✅ FIXED + verified (main pipeline green).
+
+### Decision impact
+The only remaining unverified item is **provider integrations (no credentials)** — a
+pure external dependency. No open engineering defect remains; every engineering item
+discovered this engagement (F-1 pollution, the release-infra gap, M-1 cosign, F-2
+cert test) is fixed and verified. Verdict remains **CONDITIONALLY COMPLETE**, now
+gated solely on credential-dependent provider verification.
