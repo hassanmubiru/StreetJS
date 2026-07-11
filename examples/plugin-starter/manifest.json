@@ -1,0 +1,6 @@
+{
+  "name": "street-plugin-hello",
+  "version": "1.0.0",
+  "capabilities": ["middleware"],
+  "permissions": ["middleware"]
+}
