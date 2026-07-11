@@ -150,11 +150,19 @@ deferred behind these; the framework is already broad.
   **Risks:** behavioral drift; mitigate by migrating call sites behind existing tests.
 - **Milestone:** M2.
 
-**N-3. Per-plugin test-script locality (Theme D / TD-2) — P2**
-- **Objective:** thin delegating `test` scripts for the 6 HTTP plugins + document
-  central offline-harness coverage.
+**N-3. Per-plugin test-script locality (Theme D / TD-2) — P2 — ✅ SHIPPED (2026-07-11)**
+- **Objective:** real local `test` scripts for the 6 HTTP plugins (auth0/r2/s3/
+  sendgrid/stripe/twilio) so `npm test -w <pkg>` is meaningful everywhere.
 - **Business value:** contributor clarity. **Complexity:** Low. **Effort:** 0.5 day.
   **Milestone:** M2.
+- **Delivered:** each plugin gained `test/contract.test.mjs` — a network-free
+  contract test (plugin-class default export; `manifest` name/version; `*PluginManifest`
+  factory matches NAME/VERSION consts; `validate*Config` rejects `null` and `{}`) +
+  a `test: node --test test/*.test.mjs` script. Export names are resolved by pattern
+  so one test is valid for all six. **Verified:** built core + all 6, each suite
+  **4/4 pass, 0 fail** (24 new tests). `test/` is outside the `files` allowlist, so
+  nothing new is published (no F-1 regression). Only `core-compat` (generated shim)
+  now lacks a test script, by design.
 
 **N-4. ARCHITECTURE.md + package map + `street doctor` (Theme C DX) — P2**
 - **Objective:** single architectural entry point + first-run diagnostics (Node engine,
