@@ -9,6 +9,17 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+> All items below were found by **dogfooding** the `saas` template end-to-end
+> (scaffold → install → build → migrate → boot), per the "become a consumer" phase.
+
+### Changed
+- **The `saas` starter now defaults to PostgreSQL.** Its migrations are
+  PostgreSQL-dialect, so the previous SQLite default produced an internally
+  inconsistent project (SQLite runtime + un-runnable PG migrations). `street create
+  --template saas` now scaffolds a coherent Postgres project (PgPool runtime +
+  `DB_DRIVER=postgres` + the bundled docker-compose Postgres); other templates keep
+  the zero-config SQLite default. `--database sqlite` is still honored with a warning.
+
 ### Fixed
 - **`street` CLI now loads the project `.env`.** The scaffolds ship a
   `.env.example` (copy → `.env`) and the generated app reads `process.env`, but the
@@ -18,26 +29,13 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   loads `<cwd>/.env` once for every command except `create`, with real shell/CI env
   vars keeping precedence over `.env` (standard dotenv semantics). New dependency-free
   loader `packages/cli/src/env.ts` (`parseEnv` / `loadEnvFile`) + unit tests.
-  *Found by dogfooding the `saas` template end-to-end.*
-### Changed
-- **The `saas` starter now defaults to PostgreSQL.** Its migrations are
-  PostgreSQL-dialect, so the previous SQLite default produced an internally
-  inconsistent project (SQLite runtime + un-runnable PG migrations). `street create
-  --template saas` now scaffolds a coherent Postgres project (PgPool runtime +
-  `DB_DRIVER=postgres` + the bundled docker-compose Postgres); other templates keep
-  the zero-config SQLite default. `--database sqlite` is still honored with a warning.
-  *Found by dogfooding.*
-
-### Fixed
-- **`street migrate:run` gives actionable guidance on SQLite projects.** The `saas`
-  template's migrations are PostgreSQL-dialect (`BIGSERIAL`/`TIMESTAMPTZ`/`now()`),
-  so running them on the SQLite default failed with a terse message. It now explains
-  the dialect mismatch and the exact fix (start the bundled `docker compose` Postgres,
-  set `DB_DRIVER=postgres` + `PG_*` in `.env`, re-run) — or keep SQLite and hand-write
-  SQLite-dialect migrations. *(The coherent Postgres path — `street create --template
-  saas --database postgres` — was dogfood-verified end-to-end: install → build →
-  `.env`-only `migrate:run` applying all 3 migrations on live Postgres → boot →
-  `/health` 200.)*
+- **`street migrate:run` gives actionable guidance on SQLite projects.** Running
+  PostgreSQL-dialect migrations on a SQLite project failed with a terse message; it
+  now explains the dialect mismatch and the exact fix (start the bundled `docker
+  compose` Postgres, set `DB_DRIVER=postgres` + `PG_*` in `.env`, re-run) — or keep
+  SQLite and hand-write SQLite-dialect migrations. *(The coherent Postgres path was
+  dogfood-verified end-to-end: install → build → `.env`-only `migrate:run` applying
+  all 3 migrations on live Postgres → boot → `/health` 200.)*
 
 ## [1.2.0] - 2026-07-11
 
