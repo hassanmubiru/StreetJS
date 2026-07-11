@@ -7,9 +7,13 @@
 // endpoints such as a local Vault or LocalStack), with no cloud SDK dependency.
 
 import { createHmac } from 'node:crypto';
+import { computeBackoff } from '../resilience/index.js';
 import { request as httpsRequest } from 'node:https';
 import { request as httpRequest } from 'node:http';
 import { EventEmitter } from 'node:events';
+
+const SECRET_MAX_RETRIES = 5;
+const SECRET_BACKOFF = { baseDelayMs: 1000, multiplier: 2, maxDelayMs: 10000 } as const;
 
 // ── SecretProvider interface ──────────────────────────────────────────────────
 
@@ -153,18 +157,18 @@ export class VaultSecretProvider implements SecretProvider {
     url: string,
     headers: Record<string, string>,
   ): Promise<{ status: number; body: string }> {
-    const delays = [1000, 2000, 4000, 8000, 10000];
+    const maxRetries = SECRET_MAX_RETRIES;
     const deadline = Date.now() + 60_000;
     let lastErr: Error | undefined;
 
-    for (let i = 0; i <= delays.length; i++) {
+    for (let i = 0; i <= maxRetries; i++) {
       try {
         return await httpsGet(url, headers, this._tls);
       } catch (err) {
         lastErr = err as Error;
         if (!isRetryable(err)) break;
-        if (i < delays.length && Date.now() + (delays[i] ?? 0) < deadline) {
-          await new Promise((r) => setTimeout(r, delays[i]));
+        if (i < maxRetries && Date.now() + computeBackoff(SECRET_BACKOFF, i + 1) < deadline) {
+          await new Promise((r) => setTimeout(r, computeBackoff(SECRET_BACKOFF, i + 1)));
         } else {
           break;
         }
@@ -294,18 +298,18 @@ export class AwsSecretsManagerProvider implements SecretProvider {
   }
 
   private async _fetchWithRetry(key: string): Promise<string> {
-    const delays = [1000, 2000, 4000, 8000, 10000];
+    const maxRetries = SECRET_MAX_RETRIES;
     const deadline = Date.now() + 60_000;
     let lastErr: Error | undefined;
 
-    for (let i = 0; i <= delays.length; i++) {
+    for (let i = 0; i <= maxRetries; i++) {
       try {
         return await this._fetchSecret(key);
       } catch (err) {
         lastErr = err as Error;
         if (!isRetryable(err)) break;
-        if (i < delays.length && Date.now() + (delays[i] ?? 0) < deadline) {
-          await new Promise((r) => setTimeout(r, delays[i]));
+        if (i < maxRetries && Date.now() + computeBackoff(SECRET_BACKOFF, i + 1) < deadline) {
+          await new Promise((r) => setTimeout(r, computeBackoff(SECRET_BACKOFF, i + 1)));
         } else {
           break;
         }
@@ -410,18 +414,18 @@ export class GcpSecretManagerProvider implements SecretProvider {
   }
 
   private async _fetchWithRetry(key: string): Promise<string> {
-    const delays = [1000, 2000, 4000, 8000, 10000];
+    const maxRetries = SECRET_MAX_RETRIES;
     const deadline = Date.now() + 60_000;
     let lastErr: Error | undefined;
 
-    for (let i = 0; i <= delays.length; i++) {
+    for (let i = 0; i <= maxRetries; i++) {
       try {
         return await this._fetchSecret(key);
       } catch (err) {
         lastErr = err as Error;
         if (!isRetryable(err)) break;
-        if (i < delays.length && Date.now() + (delays[i] ?? 0) < deadline) {
-          await new Promise((r) => setTimeout(r, delays[i]));
+        if (i < maxRetries && Date.now() + computeBackoff(SECRET_BACKOFF, i + 1) < deadline) {
+          await new Promise((r) => setTimeout(r, computeBackoff(SECRET_BACKOFF, i + 1)));
         } else {
           break;
         }
@@ -504,17 +508,17 @@ export class AzureKeyVaultProvider implements SecretProvider {
   }
 
   private async _fetchWithRetry(key: string): Promise<string> {
-    const delays = [1000, 2000, 4000, 8000, 10000];
+    const maxRetries = SECRET_MAX_RETRIES;
     const deadline = Date.now() + 60_000;
     let lastErr: Error | undefined;
-    for (let i = 0; i <= delays.length; i++) {
+    for (let i = 0; i <= maxRetries; i++) {
       try {
         return await this._fetchSecret(key);
       } catch (err) {
         lastErr = err as Error;
         if (!isRetryable(err)) break;
-        if (i < delays.length && Date.now() + (delays[i] ?? 0) < deadline) {
-          await new Promise((r) => setTimeout(r, delays[i]));
+        if (i < maxRetries && Date.now() + computeBackoff(SECRET_BACKOFF, i + 1) < deadline) {
+          await new Promise((r) => setTimeout(r, computeBackoff(SECRET_BACKOFF, i + 1)));
         } else {
           break;
         }
