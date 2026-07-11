@@ -31,9 +31,12 @@ jobs:
       - name: Only approved files may live at the repo root
         run: |
           # Approved root files (CHARTER §1). Directories are not checked here.
+          # ARCHITECTURE.md: standard top-level architectural entry point (package
+          # map + design overview), conventional alongside README/CONTRIBUTING.
           allow=$(cat <<'EOF'
           README.md
           LICENSE
+          ARCHITECTURE.md
           CHANGELOG.md
           CITATION.cff
           CODE_OF_CONDUCT.md
