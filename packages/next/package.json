@@ -21,8 +21,6 @@
     "!dist/**/*.test.js.map",
     "!dist/**/*.test.d.ts",
     "!dist/**/*.test.d.ts.map",
-    "!dist/tests/**",
-    "!dist/**/__tests__/**",
     "README.md",
     "LICENSE"
   ],
