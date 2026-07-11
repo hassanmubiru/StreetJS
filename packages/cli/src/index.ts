@@ -25,6 +25,7 @@ import { UpgradeCommand } from './commands/upgrade.js';
 import { AddCommand } from './commands/add.js';
 import { VerifyCommand } from './commands/verify.js';
 import { RegistryCommand } from './commands/registry.js';
+import { loadEnvFile } from './env.js';
 import { readFileSync } from 'node:fs';
 
 // Read the version from package.json so it never drifts from the published
