@@ -1,0 +1,54 @@
+# .github/workflows/registry-subpath-import.yml
+# Registry subpath-import gate.
+#
+# Installs every published StreetJS package FROM THE NPM REGISTRY and imports every
+# subpath declared in each installed package's `exports`. This is the automated guard
+# against the packaging/exports-vs-tarball defect class (historically F-4
+# @streetjs/storage and F-5 admin/ai/commerce/search): a package whose own
+# exports/files allowlist omits a sibling runtime module installs fine but fails on
+# import. The manual sweep during certification found 130/130 subpaths clean; this
+# workflow keeps it that way on every release and weekly.
+#
+# Exit semantics (see scripts/verify-registry-subpaths.mjs): a genuine subpath import
+# failure fails the job; a registry-unreachable/install failure is an honest BLOCKED
+# (exit 0) so a registry outage never produces a false red.
+name: Registry Subpath Imports
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+  schedule:
+    # Weekly, Mondays 06:00 UTC — catches any post-publish packaging regression.
+    - cron: '0 6 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: registry-subpath-import-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  subpath-import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+
+      # Installs all published packages from the registry and imports every export
+      # subpath (JSON subpaths with { type: 'json' }). Fails only on a real import
+      # failure; a registry-unreachable install is an honest BLOCKED (exit 0).
+      - name: Import every published subpath
+        run: node scripts/verify-registry-subpaths.mjs
+
+      - name: Upload subpath-import artifact
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: registry-subpath-import-verification
+          path: verification-artifacts/registry-subpaths/
+          retention-days: 30
