@@ -221,12 +221,16 @@ deferred behind these; the framework is already broad.
   Implementation gated on the owner enabling CI OIDC (`id-token: write`) + accepting
   the Sigstore trust model. **Milestone:** M3.
 
-**M-2. Third-party plugin ecosystem (Theme C) — P3**
+**M-2. Third-party plugin ecosystem (Theme C) — P3 — ◑ author guide shipped**
 - **Objective:** public community-plugins index + plugin-author guide + signed-manifest
   submission flow.
 - **Business value:** network effects / stickiness. **Technical value:** Medium.
   **Complexity:** Medium. **Dependencies:** governance activation (needs maintainers).
-  **Milestone:** M3.
+- **Delivered:** `docs/plugin-authoring.md` — the plugin-author guide (PluginModule
+  contract, package layout + `files` allowlist lessons, manifest, signing/verification,
+  offline test, publishing via npm + registry, principles). **Remaining:** a public
+  community-plugins index + submission flow (needs maintainer/governance capacity).
+- **Milestone:** M3.
 
 **M-3. Reproducible competitive benchmarks (Theme C) — P3**
 - **Objective:** publish head-to-head, reproducible benchmarks vs. comparable
