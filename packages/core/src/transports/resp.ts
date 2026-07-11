@@ -106,6 +106,15 @@ export interface RedisClientOptions {
   host?: string;
   port?: number;
   password?: string;
+  /**
+   * Redis Cluster seed nodes (RFC 0003). Additive and optional: when provided,
+   * a cluster-aware client discovers the slot topology and routes by key hash
+   * slot, following MOVED/ASK redirects. When omitted, the client operates in
+   * single-node mode against `host`/`port` (unchanged behavior). If both are
+   * given, `nodes` takes precedence. See `transports/cluster.ts` for the pure
+   * slot/redirect/topology primitives.
+   */
+  nodes?: Array<{ host: string; port: number }>;
 }
 
 /**
