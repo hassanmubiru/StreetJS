@@ -54,15 +54,19 @@ dependencies remaining (credential-gated provider verification).
 - **Architecture:** 54-package workspace; dependency-free core; clean package
   boundaries; core / core-compat (deprecated shim) / cli lockstep line. Stable.
 - **Build health:** 53/53 buildable packages compile in dependency order (0 fail).
-- **Runtime health:** core imports (510 exports); CLI `street v1.1.3`; a freshly
+- **Runtime health:** core imports (510 exports); CLI `street v1.1.4`; a freshly
   generated project (`street create` → `npm install` → `tsc --noEmit`) compiles clean.
 - **Package integrity:** exports/main/types targets all resolve (394/394); published
   tarballs are test-file-free after remediation; LICENSE/README/types present.
 - **API stability:** additive/fix-only across the 1.1.x line; no public export or
   path removed; 510 named exports stable.
-- **Release integrity:** core line `1.1.3` on npm with SLSA provenance; `v1.1.3`
-  GitHub Release carries cosign `.cosign.bundle` signed assets; framework/vertical
-  packages published with provenance via `publish-backend.yml`.
+- **Release integrity:** core line `1.1.4` on npm with SLSA provenance (verified
+  `provenance: OK` on all three of `streetjs`/`@streetjs/core`/`@streetjs/cli`); the
+  `v1.1.4` GitHub Release carries cosign `.cosign.bundle` signed assets (3 tarballs +
+  3 bundles + SBOM); framework/vertical packages published with provenance via
+  `publish-backend.yml`. `v1.1.4` was cut this engagement to give the published line
+  the Kafka `listOffset` retry (F-3) and certification `files`-allowlist (F-4) fixes
+  that had landed on `main` after the `v1.1.3` tag.
 - **Security:** 0 open secret-scanning / Dependabot / code-scanning alerts;
   `npm audit` 0 vulnerabilities; no `eval`/`new Function`/`@ts-ignore`/shell-exec/
   hardcoded-secret/proto-pollution sinks in production source.
