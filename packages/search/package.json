@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/search",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Official Street Framework search module: a provider-based search API (indexing, ranking, filters, facets, suggestions) with an in-memory default and a PostgreSQL full-text-search adapter.",
   "type": "module",
   "main": "./dist/index.js",

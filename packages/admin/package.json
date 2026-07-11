@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/admin",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Official Street Framework admin module: user management, RBAC roles & permissions, policy checks, and an append-only audit log with a query viewer.",
   "type": "module",
   "main": "./dist/index.js",

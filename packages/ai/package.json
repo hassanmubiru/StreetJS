@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/ai",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Official Street Framework AI module: provider-agnostic chat, embeddings, RAG, and tool-calling with OpenAI/Anthropic/Ollama adapters and a deterministic in-memory provider for tests.",
   "type": "module",
   "main": "./dist/index.js",
