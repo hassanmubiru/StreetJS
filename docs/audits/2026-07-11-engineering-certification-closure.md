@@ -44,7 +44,7 @@ dependencies remaining (credential-gated provider verification).
 | Branch | `main`, not detached |
 | Working tree | clean (`git status --porcelain` empty) |
 | Origin sync | local `62f7bb8d` == `origin/main` |
-| Release tags | `v1.1.3` (core line), `backend-v1.0.1`/`backend-v1.0.2`, `frontend-v1.0.1`, `plugins-v1.0.3` present on remote |
+| Release tags | `v1.1.4` (latest core line, 2026-07-11), `v1.1.3`, `backend-v1.0.1`/`backend-v1.0.2`/`backend-v1.0.3`, `frontend-v1.0.1`, `plugins-v1.0.3` present on remote |
 | Integrity | no accidental artifacts; benchmark/report outputs gitignored |
 
 ---
