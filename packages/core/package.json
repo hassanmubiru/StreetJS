@@ -125,6 +125,11 @@
       "browser": "./dist/transports/redis-cluster.js",
       "import": "./dist/transports/redis-cluster.js",
       "types": "./dist/transports/redis-cluster.d.ts"
+    },
+    "./pg-ha": {
+      "browser": "./dist/browser-stub.js",
+      "import": "./dist/database/ha.js",
+      "types": "./dist/database/ha.d.ts"
     }
   },
   "files": [
