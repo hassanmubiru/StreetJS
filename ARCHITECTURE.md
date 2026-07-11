@@ -7,15 +7,23 @@ packages a consumer actually needs. For deeper design rationale see
 
 ---
 
-## Core principle: a dependency-free core
+## Core principle: a minimal, curated dependency footprint
 
-`streetjs` (the core package) has **no runtime dependencies**. Everything the
-framework needs at runtime — HTTP, routing, the database wire protocols
-(PostgreSQL, MySQL, SQLite), transports (Redis/RESP, Kafka, NATS, RabbitMQ),
-crypto, validation, plugin loading — is implemented against Node's standard
-library. This is the framework's defining property: a small, auditable trust
-surface and a supply chain that is verifiable end-to-end (npm provenance + cosign
+`streetjs` (the core package) ships with a **minimal, curated dependency set** —
+**3 direct runtime dependencies** (`reflect-metadata`, `ws`, `zod`), each with
+**zero transitive dependencies** (6 resolved packages total). The heavy lifting —
+HTTP, routing, the database wire protocols (PostgreSQL, MySQL, SQLite), transports
+(Redis/RESP, Kafka, NATS, RabbitMQ), crypto, and plugin loading — is implemented
+against Node's standard library, so the graph stays tiny by design. For comparison,
+the footprint benchmark (`scripts/benchmark-footprint.mjs`) measures 6 resolved
+packages for `streetjs` vs 17 (Elysia), 21 (NestJS), 49 (Fastify), and 67 (Express).
+This small, auditable trust surface is the framework's defining property, paired
+with a supply chain that is verifiable end-to-end (npm provenance + cosign
 signatures + signed plugin manifests).
+
+> **Note:** earlier docs described the core as "dependency-free." That was
+> inaccurate — the core carries the three curated, zero-transitive dependencies
+> above. The accurate claim is *minimal, curated dependencies*, not zero.
 
 Integrations that genuinely need a third-party account (Stripe, Twilio, Auth0,
 etc.) are shipped as **optional plugins**, never pulled into the core.
