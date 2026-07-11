@@ -140,11 +140,16 @@ deferred behind these; the framework is already broad.
   value:** High. **Complexity:** High. **Effort:** 3–6 weeks + live-cluster tests.
 - **Dependencies:** live cluster/HA test infra. **Risks:** protocol edge cases;
   mitigate with property-based + live-topology integration tests.
-- **Status:** design complete — `rfcs/0003-ha-data-clients.md` (additive option
-  shapes, CLUSTER SLOTS + MOVED/ASK routing, PG primary discovery + failover,
-  live-topology test plan). **Cannot be honestly marked SHIPPED without live
-  Redis-Cluster / PG-HA integration infra** (evidence discipline: no simulation).
-  Ready to implement once the RFC is accepted and cluster CI infra is provisioned.
+- **Status:** ◑ **foundations shipped + verified; routing/failover + live infra remain.**
+  Implemented `packages/core/src/transports/cluster.ts` (CRC16 hash-slot with
+  hash-tags, MOVED/ASK parse, CLUSTER SLOTS parse, slot map) exposed as the
+  `streetjs/redis-cluster` subpath, plus the additive `nodes?` option on
+  `RedisClientOptions`. **Verified offline against Redis reference vectors**
+  (`crc16("123456789")===0x31C3`, `hashSlot("foo")===12182`): `cluster.test.ts`
+  13/13; core suite 14/14, no regression. **Remaining (needs live Redis-Cluster /
+  PG-HA CI infra, no simulation):** the routing engine (per-node pool +
+  redirect-following execute + slot refresh), the PG multi-host/primary-discovery/
+  failover client, and the live-topology integration suites. See `rfcs/0003`.
 - **Milestone:** M2 — additive config + passing live-cluster/HA integration suite.
 
 **N-2. Consolidated resilience primitive (Theme D / TD-1) — P2 — ✅ SHIPPED (2026-07-11)**
