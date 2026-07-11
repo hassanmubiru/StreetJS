@@ -115,6 +115,11 @@
       "browser": "./dist/browser.js",
       "import": "./dist/browser.js",
       "types": "./dist/browser.d.ts"
+    },
+    "./resilience": {
+      "browser": "./dist/resilience/index.js",
+      "import": "./dist/resilience/index.js",
+      "types": "./dist/resilience/index.d.ts"
     }
   },
   "files": [
