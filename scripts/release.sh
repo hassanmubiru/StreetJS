@@ -107,7 +107,23 @@ if [[ "$DRY_RUN" == false ]]; then
   npm run clean -w packages/cli  >/dev/null && npm run build -w packages/cli  >/dev/null
   ( cd "$COMPAT_DIR" && npx tsc >/dev/null 2>&1 ) || true
   success "Built core + cli (+ core-compat)"
-  npm run test -w packages/cli >/dev/null && success "CLI tests passed"
+  # The CLI suite includes network- and load-sensitive integration tests
+  # (scaffold+boot, npm-install smoke build) that occasionally flake under the
+  # heavy CPU load of a release run. Retry ONCE before failing so a transient
+  # flake doesn't abort the release and force manual tag recovery; a genuine
+  # failure fails both attempts and still aborts here. Correctness is
+  # independently gated by GitHub CI (street CI/CD on Node 22/24) against the
+  # pushed commit and tag, so a single local retry never weakens the release bar.
+  if npm run test -w packages/cli >/dev/null 2>&1; then
+    success "CLI tests passed"
+  else
+    warn "CLI tests failed on first attempt — retrying once (guards against known flaky integration tests)"
+    if npm run test -w packages/cli; then
+      success "CLI tests passed on retry"
+    else
+      error "CLI tests failed twice — aborting release (this is not a transient flake)"
+    fi
+  fi
   for pkg in core cli core-compat; do
     out=$(cd "packages/$pkg" && npm pack --dry-run 2>&1)
     echo "$out" | grep -qE 'dist/tests/|dist/src/' && error "$pkg pack contains dist/tests or dist/src"
