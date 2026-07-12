@@ -99,6 +99,24 @@ function changedPaths(root: string): { paths: string[]; sources: string[] } {
   return { paths: [...set], sources };
 }
 
+/**
+ * A change to `packages/core/package.json` is allowed IFF it is a version-only
+ * bump (the `"version":` line), which is exactly what `scripts/release.sh` does
+ * to keep the lockstep trio aligned — that is release housekeeping, not a MarzPay
+ * scope violation. Any other core package.json edit (deps, exports, files, …) or
+ * any other core path is still flagged. Detected by diffing the file against HEAD
+ * and confirming every added/removed content line is a `"version":` line.
+ */
+function isVersionOnlyCorePkgBump(root: string): boolean {
+  const diff = git(['diff', 'HEAD', '--', CORE_PKG_JSON], root);
+  if (diff === null || diff.trim() === '') return false;
+  const changed = diff
+    .split('\n')
+    .filter((l) => (l.startsWith('+') || l.startsWith('-')) && !l.startsWith('+++') && !l.startsWith('---'));
+  if (changed.length === 0) return false;
+  return changed.every((l) => /^[+-]\s*"version":\s*"[^"]+",?\s*$/.test(l));
+}
+
 describe('MarzPay scope review — no packages/core changes (Requirement 13.1)', () => {
   it('does not modify any file under packages/core — Validates: Requirements 13.1', (t) => {
     const root = repoRoot();
