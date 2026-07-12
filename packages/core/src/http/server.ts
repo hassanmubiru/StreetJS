@@ -198,6 +198,8 @@ export function streetApp(options: StreetAppOptions = {}): StreetApp {
   }
 
   return {
+    server,
+
     use(mw: MiddlewareFn): void {
       globalMiddlewares.push(mw);
     },
