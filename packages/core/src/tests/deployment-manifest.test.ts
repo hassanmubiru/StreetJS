@@ -31,6 +31,17 @@ describe('deployment manifests — generated output validates', () => {
     assert.match(m, /kind:\s*HorizontalPodAutoscaler/);
   });
 
+  it('kubernetes manifest places env + envFrom at container level (not under resources)', () => {
+    const m = generateManifest('kubernetes', config);
+    // env must be a container-level key (10-space indent), NOT nested under
+    // resources: (which would make Kubernetes silently drop the env vars).
+    assert.match(m, /\n {10}env:\n {12}- name: NODE_ENV/);
+    // Required secrets are pulled from a Secret via envFrom (fail-fast in prod).
+    assert.match(m, /\n {10}envFrom:\n {12}- secretRef:\n {14}name: street-app-secrets/);
+    // The header comment documents creating that Secret before apply.
+    assert.match(m, /kubectl create secret generic street-app-secrets/);
+  });
+
   it('ecs manifest is valid JSON with a Fargate task definition', () => {
     const m = generateManifest('ecs', config);
     const parsed = JSON.parse(m);
