@@ -244,6 +244,19 @@ describe('HTTP Server', () => {
         ctx.json({ received: ctx.body }, 201);
       }
 
+      // Real webhook-processor path: verify the provider signature over the
+      // EXACT received bytes (ctx.rawBody), which re-serializing ctx.body cannot
+      // reproduce. Exercises the F-DF5 fix (rawBody preserved on the context).
+      @Post('/webhook')
+      async webhook(ctx: import('../src/core/context.js').StreetContext): Promise<void> {
+        const { verifyStripeWebhook } = await import('../src/platform/plugins/official/stripe.js');
+        const sig = ctx.headers['stripe-signature'] ?? '';
+        const ok =
+          typeof ctx.rawBody === 'string' &&
+          verifyStripeWebhook(ctx.rawBody, sig, 'whsec_test_secret');
+        ctx.json({ verified: ok, rawBodyPresent: typeof ctx.rawBody === 'string' }, ok ? 200 : 400);
+      }
+
       @Get('/error')
       async error(_ctx: import('../src/core/context.js').StreetContext): Promise<void> {
         throw new (await import('../src/http/exceptions.js')).NotFoundException('test not found');
