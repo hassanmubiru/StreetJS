@@ -9,6 +9,18 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- **Scaffolded apps now expose Prometheus `/metrics` out of the box.** The
+  generated `main.ts` wires `registerMetricsRoute(app, new MetricsRegistry())`
+  (alongside the `/health/live` + `/health/ready` probes), so a fresh app serves
+  the standard exposition format — `http_requests_total`, `http_request_duration_seconds`,
+  `process_heap_bytes` — with no extra setup. Point a Prometheus scrape (or the
+  bundled K8s/Helm manifests) at it. Verified on a fresh scaffold:
+  `http_requests_total{route="/health",status="200"}` increments per request.
+  The metrics (Prometheus), tracing (`otelMiddleware`/`OtelTracer`, W3C
+  traceparent propagation + OTLP export), and health-registry paths were all
+  dogfooded end-to-end against a running app.
+
 ## [1.2.6] - 2026-07-12
 
 > Continuing the **dogfooding** phase: built a background job/queue worker on the
