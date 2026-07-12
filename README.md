@@ -17,8 +17,9 @@ Auth, realtime, ORM, jobs, messaging, observability and a signed plugin ecosyste
 [![npm provenance](https://img.shields.io/badge/npm-provenance-2563EB?logo=npm)](https://www.npmjs.com/package/streetjs)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D20-3C873A)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/typescript-%3E%3D5.0-3178C6)](https://www.typescriptlang.org)
+[![Discord](https://img.shields.io/badge/Discord-join%20the%20community-5865F2?logo=discord&logoColor=white)](https://discord.gg/Wgazap3yv)
 
-[**Documentation**](https://hassanmubiru.github.io/StreetJS/) · [**Get Started**](https://hassanmubiru.github.io/StreetJS/getting-started/) · [**Compare**](https://hassanmubiru.github.io/StreetJS/compare/) · [**Plugins**](https://hassanmubiru.github.io/StreetJS/plugins/) · [**Discussions**](https://github.com/hassanmubiru/StreetJS/discussions)
+[**Documentation**](https://hassanmubiru.github.io/StreetJS/) · [**Get Started**](https://hassanmubiru.github.io/StreetJS/getting-started/) · [**Compare**](https://hassanmubiru.github.io/StreetJS/compare/) · [**Plugins**](https://hassanmubiru.github.io/StreetJS/plugins/) · [**Discussions**](https://github.com/hassanmubiru/StreetJS/discussions) · [**Discord**](https://discord.gg/Wgazap3yv)
 
 </div>
 
