@@ -9,6 +9,8 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.2.7] - 2026-07-12
+
 ### Added
 - **Scaffolded apps now expose Prometheus `/metrics` out of the box.** The
   generated `main.ts` wires `registerMetricsRoute(app, new MetricsRegistry())`
