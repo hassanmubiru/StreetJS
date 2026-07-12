@@ -241,9 +241,10 @@ content plans already use "dependency-light." A messaging decision for the owner
 | Build / Runtime | High | 136/136 published subpaths import; core suites green |
 | Security | High | 0 alerts, `npm audit` 0, signed + provenance |
 | Packaging | High | subpath-import + Package Integrity gates green |
-| Releases | High | npm + provenance + cosign verified through 1.2.0 |
+| Releases | High | npm + provenance + cosign verified through **1.2.7**; process hardened (TD-6) |
 | HA | High | live-verified Redis Cluster + PG failover |
-| Documentation | Medium→High | task docs + architecture present; more examples needed |
+| Consumer surfaces | High | jobs/cron/webhooks/WS/validation/tenancy/observability dogfooded on running apps |
+| Documentation | High | architecture + task guides (jobs, observability) + reproducible benchmarks; more examples still valuable |
 | CI/CD | High | 44 workflows green |
 | Operations | None (external) | credentials / org / maintainers unavailable |
 | Adoption | Unknown | no usage evidence yet — the key gap |
