@@ -162,7 +162,7 @@ function k8sEnvSection(config: DeployConfig, indent: string): string {
 
 /**
  * `envFrom` block pulling the app's required secrets (JWT_SECRET, SESSION_KEY,
- * CORS_ORIGINS, and any PG_*/DB creds) from a Kubernetes Secret. Without this the
+ * CORS_ORIGINS, and any PG_* DB creds) from a Kubernetes Secret. Without this the
  * pod boots with NODE_ENV=production and immediately fails fast on the missing
  * JWT_SECRET. The Secret is created out-of-band (see the header comment emitted
  * by generateKubernetes) so credentials are never baked into the manifest.
