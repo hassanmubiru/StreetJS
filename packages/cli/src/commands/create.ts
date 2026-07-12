@@ -6661,6 +6661,12 @@ ${webJob}`;
           ws: '^8.18.0',
         },
         devDependencies: {
+          // The scaffold's dev/build/start/test/migrate scripts invoke the
+          // `street` binary, so the CLI must be a project devDependency —
+          // otherwise `npm run build` fails with "street: not found" in any
+          // clean environment (CI, Docker builds), even though it works locally
+          // when the CLI happens to be installed globally.
+          '@streetjs/cli': '^1.2.3',
           '@types/node': '^20.14.0',
           '@types/ws': '^8.5.10',
           typescript: '^5.4.5',
