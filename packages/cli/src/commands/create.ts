@@ -6919,6 +6919,14 @@ ${isSqlite ? `  // SQLite: zero-config, no server or credentials required. The d
   const healthRegistry = new HealthCheckRegistry();
   registerHealthRoutes(app, healthRegistry);
 
+  // Prometheus metrics: exposes GET /metrics in the standard exposition format
+  // and records http_requests_total / http_request_duration_seconds /
+  // process_heap_bytes for every request. Point your Prometheus scrape config
+  // (or the bundled K8s/Helm manifests) at this endpoint. Registered here so it
+  // times the full middleware + handler chain below.
+  const metricsRegistry = new MetricsRegistry();
+  registerMetricsRoute(app, metricsRegistry);
+
   // Global middleware
   app.use(securityHeaders);
   app.use(corsMiddleware(corsOrigins));
