@@ -9,6 +9,8 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.2.3] - 2026-07-12
+
 > Continuing the **dogfooding** phase: measured the cold onboarding path and
 > built a webhook-processing service on the `app` template end-to-end.
 
