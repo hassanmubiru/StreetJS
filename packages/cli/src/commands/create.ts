@@ -6758,6 +6758,8 @@ import {
   LruCache,
   HealthCheckRegistry,
   registerHealthRoutes,
+  MetricsRegistry,
+  registerMetricsRoute,
 } from 'streetjs';
 import { HealthController } from './controllers/health.controller.js';
 import { ExampleController } from './controllers/example.controller.js';
