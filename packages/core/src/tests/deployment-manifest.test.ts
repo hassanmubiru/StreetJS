@@ -37,7 +37,7 @@ describe('deployment manifests — generated output validates', () => {
     // resources: (which would make Kubernetes silently drop the env vars).
     assert.match(m, /\n {10}env:\n {12}- name: NODE_ENV/);
     // Required secrets are pulled from a Secret via envFrom (fail-fast in prod).
-    assert.match(m, /\n {10}envFrom:\n {12}- secretRef:\n {14}name: street-app-secrets/);
+    assert.match(m, /\n {10}envFrom:\n {12}- secretRef:\n {16}name: street-app-secrets/);
     // The header comment documents creating that Secret before apply.
     assert.match(m, /kubectl create secret generic street-app-secrets/);
   });
