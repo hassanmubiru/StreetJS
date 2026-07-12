@@ -6753,6 +6753,7 @@ import {
 } from 'streetjs';
 import { HealthController } from './controllers/health.controller.js';
 import { ExampleController } from './controllers/example.controller.js';
+import { chatConnectionHandler } from './gateways/chat.gateway.js';
 
 async function bootstrap(): Promise<void> {
   // ── Configuration ────────────────────────────────────────────────────
