@@ -222,7 +222,7 @@ spec:
               memory: ${memory}
             limits:
               cpu: ${cpu}
-              memory: ${memory}${envSection}
+              memory: ${memory}${envSection}${envFromSection}
           startupProbe:
             httpGet:
               path: /health/live
