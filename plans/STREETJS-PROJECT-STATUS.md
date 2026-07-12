@@ -253,13 +253,13 @@ content plans already use "dependency-light." A messaging decision for the owner
 
 ## 9. Recommended Direction (next 6 months)
 
-1. **Become a consumer** — build 3–5 real apps on StreetJS only; fix the friction they expose.
-2. **Kill friction** — install < 2 min, deploy < 10 min, clear package selection, debuggable failures, easy version migration.
-3. **Task docs & examples** — build-a-SaaS / auth / Redis cache / PG-HA / Docker / K8s / CI-CD / prod hardening. People copy examples.
-4. **Honest benchmarks** — extend `benchmark-footprint.mjs` with a separate runtime harness; publish scripts, never screenshots.
-5. **Grow contributors** — good-first-issues, small RFCs, tiny fixes; accumulate gradually.
-6. **Stabilize 1.x** — additive, evidence-driven only; defer 2.0 until adoption data justifies breaking changes.
-7. **Enable funding + recruit maintainer #2** — the top organizational unlocks.
+1. ✅ **Become a consumer** — done and ongoing: 8+ real apps/surfaces dogfooded; 14 findings fixed across 1.2.1→1.2.7.
+2. ◑ **Kill friction** — install/onboarding measured (~6s local) and deployment validated (Docker + K8s); keep watching for the next rough edge.
+3. ◑ **Task docs & examples** — started (background jobs, observability, runtime benchmark, Discord); next: auth, Redis cache, PG-HA, K8s walkthroughs.
+4. ✅ **Honest benchmarks** — `scripts/bench-http.mjs` + `bench-pillars.mjs` with published numbers/hardware/method in `docs/benchmarks/runtime.md` (no screenshots, no cherry-picking).
+5. ◑ **Grow contributors** — community server designed + linked; good-first-issues and the contributor path documented. Needs real people next.
+6. **Stabilize 1.x** — additive, evidence-driven only; defer 2.0 until adoption data justifies breaking changes. (1.2.1→1.2.7 were all additive/fixes.)
+7. **Enable funding + recruit maintainer #2** — still the top organizational unlocks.
 
 **Do not:** add heavy/uncurated core deps · chase parity · rush 2.0 · write more
 certification audits · add speculative breadth.
