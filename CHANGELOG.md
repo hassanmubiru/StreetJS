@@ -9,6 +9,8 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.2.4] - 2026-07-12
+
 > Continuing the **dogfooding** phase: exercised the deployment path
 > (`docker build` → `docker run`) and built an API gateway on the `app` template.
 
