@@ -29,6 +29,13 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `/health/ready` both return 200 on a fresh scaffold.
 
 ### Added
+- **`z` (zod) is now re-exported from `streetjs`.** The `validate`/`validated`
+  input-validation helpers require zod schemas, but `z` was not exported — so
+  consumers had to add their own `zod` dependency and risk a version mismatch
+  against the framework's internal zod (breaking `ZodTypeAny` type identity). You
+  can now `import { z, validate, validated } from 'streetjs'` with no extra
+  dependency and a guaranteed-matching zod. Verified by building a CMS that
+  validates request bodies with `z.object({...})`.
 - **Kubernetes manifest wires required secrets via `envFrom`.** The generated
   Deployment now pulls `JWT_SECRET`/`SESSION_KEY`/`CORS_ORIGINS` (and DB creds) from
   a `<name>-secrets` Secret, and the manifest header documents the exact
