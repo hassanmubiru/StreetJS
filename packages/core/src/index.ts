@@ -161,6 +161,10 @@ export { sanitizeString, sanitizeDeep, escapeHtml, xssMiddleware } from './secur
 
 // ── Consumer Platform Security ────────────────────────────────────────────────
 // Runtime input validation (Phase 1, R2).
+// Re-export zod's `z` so consumers can build schemas for `validate`/`validated`
+// without adding their own `zod` dependency (which would risk version skew
+// against the framework's internal zod). `import { z, validate } from 'streetjs'`.
+export { z } from 'zod';
 export {
   ValidationError, validate, validated, validateEnv, validateArgv,
 } from './security/validation.js';
