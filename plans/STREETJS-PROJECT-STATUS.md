@@ -6,9 +6,9 @@
 `PROJECT-EXECUTION-ROADMAP.md` and `STREETJS-2.0-PLAN.md`; the certification record
 is `docs/audits/2026-07-11-streetjs-final-engineering-certification.md`.
 
-**Date:** 2026-07-11 (UTC) · **Repo:** `hassanmubiru/StreetJS` @ `main` `82b7faa1`
-(local == origin) · **npm:** `streetjs`/`@streetjs/core`/`@streetjs/cli` = **1.2.0**
-(provenance) · **CI:** green.
+**Date:** 2026-07-12 (UTC) · **Repo:** `hassanmubiru/StreetJS` @ `main` `7814ae92`
+(local == origin) · **npm:** `streetjs`/`@streetjs/core`/`@streetjs/cli` = **1.2.2**
+(provenance) · **CI:** green (all workflows on `main` HEAD and tag `v1.2.2`).
 
 **Evidence discipline:** every ✅ is backed by a command/CI run this engagement.
 Items needing external infra or owner decisions are marked ◑ with the reason —
