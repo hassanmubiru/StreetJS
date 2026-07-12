@@ -6895,6 +6895,10 @@ ${isSqlite ? `  // SQLite: zero-config, no server or credentials required. The d
     maxBodyBytes: 1_048_576,
   });
 
+  // Attach the WebSocket gateway to the app's HTTP server so real-time
+  // connections are served on the same port (see src/gateways/chat.gateway.ts).
+  wsServer.attach(app.server, chatConnectionHandler);
+
   // Global middleware
   app.use(securityHeaders);
   app.use(corsMiddleware(corsOrigins));
