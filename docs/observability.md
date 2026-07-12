@@ -1,7 +1,7 @@
 ---
 layout:      default
 title:       "Observability in 5 Minutes"
-permalink:   /observability/
+permalink:   /observability-guide/
 nav_exclude: true
 description:  "Task-oriented guide: make a StreetJS app observable — Prometheus /metrics, Kubernetes liveness/readiness probes, and OpenTelemetry tracing with W3C context propagation — using built-in primitives, no extra dependencies."
 ---
