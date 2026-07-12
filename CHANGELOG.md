@@ -9,6 +9,20 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+> Continuing the **dogfooding** phase: built a background job/queue worker on the
+> `JobQueue` against live PostgreSQL.
+
+### Fixed
+- **`Date` query parameters are now serialized as ISO-8601 UTC (Postgres wire driver).**
+  Binding a JavaScript `Date` fell through to `String(date)`, producing a locale
+  string like `"… GMT+0300 (…)"` that PostgreSQL rejects for a `timestamptz`
+  (`time zone "gmt+0300" not recognized`) — so **passing a `Date` parameter to any
+  query failed on every non-UTC host** (it only appeared to work in UTC). This broke
+  `JobQueue.enqueue` (`run_at`) and any repository/query using `Date` params. The
+  driver now encodes `Date` via `toISOString()`. Found by dogfooding a background
+  worker end-to-end (enqueue → process → retry → dead-letter) against live Postgres;
+  regression test added to the wire-protocol suite.
+
 ## [1.2.5] - 2026-07-12
 
 > Continuing the **dogfooding** phase: exercised the Kubernetes deployment path
