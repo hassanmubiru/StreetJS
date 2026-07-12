@@ -9,6 +9,8 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.2.2] - 2026-07-12
+
 > Found by **dogfooding** the `realtime-chat` template end-to-end (scaffold →
 > install → build → boot → live WebSocket client), continuing the "become a
 > consumer" phase.
