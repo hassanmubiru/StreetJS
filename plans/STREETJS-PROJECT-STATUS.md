@@ -268,9 +268,33 @@ certification audits · add speculative breadth.
 
 ## 10. Final Status
 
-**Engineering: complete and released (MATURE).** The remaining work is
-**organizational and adoption-driven**, not core engineering. The biggest risk is
-no longer technical quality — it is whether the project earns real-world usage and
-contributors. The most valuable feedback now will come from **production users**, not
-further internal engineering. Treat the roadmap as mostly finished; shift investment
-to consumers, docs, and community.
+**Engineering: complete, released, and consumer-validated (MATURE).** Through 1.2.7,
+the framework has been driven the way a real user would: every core surface (HTTP,
+webhooks, WebSockets, jobs, cron, validation, multi-tenancy, observability, Docker/K8s
+deployment) was dogfooded against running software, and every friction or bug was
+fixed at the source — 14 findings, seven signed releases, all CI-green. Reproducible
+benchmarks, task-oriented guides, and the community (Discord) design are now in place.
+
+The remaining risk is **organizational and adoption-driven**, not technical: bus
+factor = 1, no active funding, and no confirmed production users yet. The most
+valuable feedback now will come from **real users**, not further internal
+engineering. Treat the roadmap as mostly finished; keep investing in consumers, docs,
+examples, and community — and stabilize 1.x with additive, evidence-driven changes
+only.
+
+---
+
+## 11. This-Engagement Work Log (dogfooding phase)
+
+| Area | Outcome |
+|---|---|
+| Releases | **1.2.1 → 1.2.7** (7 signed, provenance-carrying patches), each fixing a dogfood-found bug |
+| Findings | **F-DF1–F-DF14** — all fixed; F-DF1–F-DF13 shipped, F-DF14 comment-only on `main` |
+| Clean validations | API gateway, CMS, multi-tenancy, cron, observability (metrics/tracing/health) — no bug found |
+| Scaffold DX | `.env` loading, WS serving, Docker build, health probes + `/metrics` out of the box, `add redis`/`stripe` |
+| Data layer | `ctx.rawBody` for webhook verification; `Date` params fixed for non-UTC hosts |
+| Release process | free-port test fix + retry gate + scope-review/version-bump fix (TD-6) |
+| Docs | `docs/background-jobs.md`, `docs/observability.md`, `docs/benchmarks/runtime.md` |
+| Benchmarks | `scripts/bench-http.mjs`, `scripts/bench-pillars.mjs` — published numbers + hardware + method |
+| Community | `docs/community/discord.md` (full server design) + Discord invite added to README |
+| Verification | every claim above backed by a command/CI run; scratch kept in gitignored `.tmp/` and cleaned |
