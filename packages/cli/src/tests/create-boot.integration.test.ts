@@ -23,10 +23,29 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn, spawnSync } from 'node:child_process';
 import { request } from 'node:http';
+import { createServer } from 'node:net';
 
 // .../packages/cli/dist/tests/<file>.js  →  packages/cli
 const CLI_PKG = dirname(dirname(dirname(fileURLToPath(import.meta.url))));
 const TSC = join(CLI_PKG, '..', '..', 'node_modules', 'typescript', 'bin', 'tsc');
+
+/**
+ * Ask the OS for a free TCP port (bind to :0, read the assigned port, release
+ * it). Far more reliable than guessing a random port in a fixed range, which
+ * intermittently collided with a port already in use and made the child server
+ * exit with EADDRINUSE — the source of this suite's release-time flakiness.
+ */
+function getFreePort(): Promise<number> {
+  return new Promise((resolvePort, reject) => {
+    const srv = createServer();
+    srv.on('error', reject);
+    srv.listen(0, '127.0.0.1', () => {
+      const addr = srv.address();
+      const port = typeof addr === 'object' && addr ? addr.port : 0;
+      srv.close(() => (port ? resolvePort(port) : reject(new Error('no port assigned'))));
+    });
+  });
+}
 
 function httpGet(port: number, path: string): Promise<{ status: number }> {
   return new Promise((resolvePromise, reject) => {
