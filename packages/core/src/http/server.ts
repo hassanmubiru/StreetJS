@@ -1,7 +1,7 @@
 // src/http/server.ts
 // Core HTTP server: body parsing, routing, lifecycle hooks, OpenAPI registration.
 
-import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
+import { createServer, type IncomingMessage, type ServerResponse, type Server } from 'node:http';
 import { URL } from 'node:url';
 import { Router, notFoundHandler, errorHandler } from '../router/router.js';
 import { createContext } from '../core/context.js';
