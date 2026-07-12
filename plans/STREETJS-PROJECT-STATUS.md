@@ -135,6 +135,7 @@ path (Node 20 local; engines declare ≥22). The untested onboarding gap is
 | TD-3 | `release-inputs.json` not CI-generated | ✅ Done — derived live |
 | TD-4 | Hardcoded backoff ladders | ✅ Done — `computeBackoff` |
 | TD-5 | `@streetjs/core` compat shim | Deferred to 2.0 (telemetry-gated) |
+| TD-6 | Flaky release: CLI boot test used a random fixed port (intermittent EADDRINUSE aborted `release.sh`, needing manual recovery) | ✅ Done — `create-boot.integration` now binds an OS-assigned free port (`getFreePort`); stable across repeated runs |
 
 No material new debt. The one regression introduced this session (F-6) was caught by
 CI and fixed same-engagement.
