@@ -108,10 +108,14 @@ and contributors — **not** more core code.
 | **F-DF9** | **Scaffold + deploy manifests disagreed on health probes** — `street deploy:init` probes `/health/live` + `/health/ready`, but the scaffold served only `/health`, so generated K8s/Cloud Run deployments never passed probes | High (deploy blocker) | **FIXED** (dogfood K8s deploy) — scaffold registers `registerHealthRoutes`; verified both probes return 200. *Unreleased.* |
 | **F-DF10** | **K8s manifest dropped env vars + missing secrets** — `env:` was misindented under `resources:` (silently ignored by K8s) and no secret wiring, so pods lost `NODE_ENV` and crashed on the missing `JWT_SECRET` | High (deploy blocker) | **FIXED** — corrected env indentation (regression-tested via YAML parse) + `envFrom` secretRef + `kubectl create secret` header. *Unreleased.* |
 
+| **F-DF11** | **`z` (zod) not re-exported** — the `validate`/`validated` helpers need zod schemas, but consumers had to add their own `zod` dep and risk version skew vs. the framework's internal zod | Med (DX) | **FIXED** (dogfood CMS) — `export { z } from 'zod'`; verified a CMS validates bodies via `import { z, validate } from 'streetjs'`. *Unreleased.* |
+
 No reproducible engineering defect remains. Findings prefixed **F-DF** were surfaced
 by the dogfooding phase and fixed at the source (not worked around), per the
-"become a product" directive. F-DF1–F-DF6 shipped (1.2.1–1.2.3); **F-DF7–F-DF10 are
-on `main`, not yet released** (see §7).
+"become a product" directive. F-DF1–F-DF6 shipped (1.2.1–1.2.3); **F-DF7–F-DF11 are
+on `main`, not yet released** (see §7). The API-gateway (1.2.4-era) and CMS dogfoods
+also served as clean validations — the gateway found no bug; the CMS found only
+F-DF11 — evidence the core request/validation/resilience surface is solid.
 
 **Onboarding measurement (Phase 3 DX, local path, this engagement):** cold
 `create → install → add auth → add redis → build → boot` ≈ **6.3s active CLI time**
