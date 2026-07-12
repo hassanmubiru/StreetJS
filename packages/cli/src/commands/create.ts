@@ -7731,13 +7731,13 @@ trying it out; not for production.
 defaults in production). Build once, then run with the secrets supplied:
 
 \`\`\`bash
-docker build -t ${'${APP}'}:latest .
+docker build -t ${projectName}:latest .
 
 docker run -p 3000:3000 \\
   -e JWT_SECRET="$(openssl rand -hex 24)" \\      # ≥ 32 chars
   -e SESSION_KEY="$(openssl rand -hex 32)" \\     # 64 hex chars
   -e CORS_ORIGINS="https://app.example.com" \\    # comma-separated allowlist
-  ${'${APP}'}:latest
+  ${projectName}:latest
 \`\`\`
 
 In real deployments, inject these from your platform's secret store (Kubernetes
