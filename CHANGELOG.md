@@ -9,6 +9,27 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+> Continuing the **dogfooding** phase: measured the cold onboarding path and
+> built a webhook-processing service on the `app` template end-to-end.
+
+### Added
+- **`ctx.rawBody` — raw request body preserved for webhook signature verification.**
+  The HTTP server read the request bytes, then for `application/json` stored only
+  `JSON.parse(raw)` on `ctx.body` and **discarded the raw string**. This made the
+  shipped signature verifiers (`verifyStripeWebhook`, `verifySendGridWebhook`,
+  `verifyIncomingWebhook`) unusable for JSON webhooks through the standard server —
+  re-serializing `ctx.body` cannot reproduce the exact signed bytes. `parseBody` now
+  also sets `ctx.rawBody` (the raw string, before parsing) for JSON and `text/*`
+  bodies, bounded by `maxBodyBytes`. Additive optional field on `StreetContext`;
+  undefined for GET/HEAD/DELETE and multipart. Verified end-to-end with a real
+  webhook processor: valid signed event → processed; replay → idempotent duplicate;
+  tampered body / bad signature → rejected 400.
+- **`street add redis` and `street add stripe`.** The capability map was missing the
+  two most-reached-for integrations even though both ship in the framework: Redis is
+  built into core (`RedisClient` / `RedisClusterClient`) and Stripe is
+  `@streetjs/plugin-stripe`. `street add redis` (core, no install) and
+  `street add stripe` (installs the plugin) now print accurate wiring snippets.
+
 ## [1.2.2] - 2026-07-12
 
 > Found by **dogfooding** the `realtime-chat` template end-to-end (scaffold →
