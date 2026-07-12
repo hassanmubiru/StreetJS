@@ -214,6 +214,17 @@ describe('buildBindMessage', () => {
     assert.equal(paramVal, '3.14');
   });
 
+  it('encodes a Date as ISO-8601 UTC (never a locale/timezone string)', () => {
+    // Regression: a Date fell through to String(date) → "... GMT+0300 (…)",
+    // which PostgreSQL rejects binding a timestamptz on any non-UTC host.
+    const d = new Date('2026-07-12T08:25:22.698Z');
+    const buf = buildBindMessage([d]);
+    const paramLen = buf.readInt32BE(11);
+    const paramVal = buf.toString('utf8', 15, 15 + paramLen);
+    assert.equal(paramVal, '2026-07-12T08:25:22.698Z');
+    assert.doesNotMatch(paramVal, /GMT|\(/); // no locale/offset tokens
+  });
+
   it('encodes multiple params of mixed types', () => {
     const buf = buildBindMessage([42, 'hello', null, true]);
     // header = 11 bytes, then 4 params
