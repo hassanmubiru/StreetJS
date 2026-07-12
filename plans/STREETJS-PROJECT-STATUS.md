@@ -113,8 +113,8 @@ and contributors — **not** more core code.
 
 No reproducible engineering defect remains. Findings prefixed **F-DF** were surfaced
 by the dogfooding phase and fixed at the source (not worked around), per the
-"become a product" directive. F-DF1–F-DF6 shipped (1.2.1–1.2.3); **F-DF7–F-DF11 are
-on `main`, not yet released** (see §7). The API-gateway (1.2.4-era) and CMS dogfoods
+"become a product" directive. F-DF1–F-DF11 shipped (1.2.1–1.2.5); **F-DF14 (Date
+wire encoding) is on `main`, not yet released** (see §7). The API-gateway (1.2.4-era) and CMS dogfoods
 also served as clean validations — the gateway found no bug; the CMS found only
 F-DF11 — evidence the core request/validation/resilience surface is solid.
 
