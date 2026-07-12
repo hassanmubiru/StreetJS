@@ -96,8 +96,14 @@ and contributors — **not** more core code.
 | F-6 | `dist/resilience/**` missing from core `files` (F-5 class) | Med | FIXED — caught by Package Integrity gate before publish |
 | M-1 | cosign tag-signing v3 bundle format | Medium | FIXED (live on `v1.1.4`/`v1.2.0`) |
 | **D-1** | **"dependency-free core" claim inaccurate** — core has 3 runtime deps | Low (accuracy) | **CORRECTED** in this session's docs → "minimal, curated dependencies"; broader legacy copy still uses the old phrase (see §7) |
+| **F-DF1** | **CLI ignored project `.env`** — scaffolds ship `.env.example` but the CLI never loaded `.env`, so documented setup silently failed | High (DX) | **FIXED** (dogfood `saas`) — shipped **1.2.1** (`packages/cli/src/env.ts`; loaded for every command except `create`; real env wins) |
+| **F-DF2** | `migrate:run` gave a terse error on SQLite projects | Low (DX) | **FIXED** — actionable dialect-mismatch guidance; shipped **1.2.1** (PG path dogfood-verified end-to-end) |
+| **F-DF3** | **Scaffolded `realtime-chat` returned HTTP 404 on WS upgrade** — `StreetWebSocketServer` created/registered but never attached; no public API to reach the HTTP server | High (broken template) | **FIXED** (dogfood `realtime-chat`) — core exposes `app.server` (`StreetHttpApp`); scaffold wires `wsServer.attach(app.server, chatConnectionHandler)`; shipped **1.2.2** (verified live WS client) |
+| **F-DF4** | Example chat gateway used raw-`ws` idioms, not the StreetSocket `{type,payload}` envelope | Med (broken example) | **FIXED** — rewritten to `socket.on('join'/'message')` + `socket.onClose()` + `chat` broadcasts; shipped **1.2.2** |
 
-No reproducible engineering defect remains.
+No reproducible engineering defect remains. Findings prefixed **F-DF** were surfaced
+by the dogfooding phase and fixed at the source (not worked around), per the
+"become a product" directive.
 
 ---
 
@@ -146,6 +152,17 @@ starter template · footprint benchmark · keyless-signing identity policy + ver
 - **Keyless-signing rollout** (RFC 0005) — verification tooling + identity policy
   shipped/tested; producer wiring + plugin re-publish need CI-OIDC go-ahead.
 - **StreetJS 2.0** (`STREETJS-2.0-PLAN.md`) — telemetry-gated; explicitly not started.
+
+**Active — "become a consumer" (dogfooding) phase:** scaffold real apps from the
+published CLI and fix every friction at the source. Delivered so far: `saas` template
+end-to-end (→ 1.2.1: `.env` loading, `migrate:run` guidance), `realtime-chat` template
+end-to-end (→ 1.2.2: WebSocket serving via `app.server`/`StreetHttpApp`, gateway
+protocol). This track is the highest-return work and continues with the next
+templates/example apps. **Release-process note:** promote the CHANGELOG `[Unreleased]`
+heading to the target version *before* running `scripts/release.sh` — the tag-scoped
+Release Engineering Enforcement gate checks the changelog at the tagged commit (a
+`[1.2.2]` heading added after the tag caused a one-off enforcement failure that was
+resolved by re-pointing the tag to the commit that documents the release).
 
 **Owner/community track (not engineering):** recruit maintainer #2; enable funding;
 community plugin index + submission flow; tutorials/examples/case studies.
