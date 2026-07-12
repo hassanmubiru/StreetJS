@@ -131,6 +131,12 @@ export function buildBindMessage(params: unknown[]): Buffer {
         val = param ? 't' : 'f';
       } else if (typeof param === 'number') {
         val = String(param);
+      } else if (param instanceof Date) {
+        // Serialize as ISO-8601 UTC. `String(date)` yields a locale/timezone
+        // string like "... GMT+0300 (…)" which PostgreSQL rejects when binding a
+        // timestamptz on any non-UTC host ('time zone "gmt+0300" not recognized').
+        // toISOString() is unambiguous and parsed reliably by every date/time type.
+        val = param.toISOString();
       } else if (param instanceof Buffer) {
         // Binary parameter - send raw bytes with text format (might not work for all types)
         val = param.toString('utf8');
