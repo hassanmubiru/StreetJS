@@ -189,6 +189,13 @@ export function streetApp(options: StreetAppOptions = {}): StreetHttpApp {
       if (chunks.length === 0) return;
       const raw = Buffer.concat(chunks).toString('utf8');
 
+      // Preserve the raw body so handlers can verify provider webhook signatures
+      // (verifyStripeWebhook / verifySendGridWebhook / verifyIncomingWebhook),
+      // which sign the exact received bytes — re-serializing the parsed body
+      // would not reproduce them. Set before parsing so it is available even
+      // when JSON.parse fails.
+      (ctx as unknown as Record<string, unknown>)['rawBody'] = raw;
+
       if (contentType.includes('application/json')) {
         try {
           (ctx as unknown as Record<string, unknown>)['body'] = JSON.parse(raw);
