@@ -9,6 +9,32 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+> Continuing the **dogfooding** phase: exercised the Kubernetes deployment path
+> (`street deploy:init --platform kubernetes` → apply) end-to-end.
+
+### Fixed
+- **Kubernetes manifest dropped all environment variables.** `generateManifest('kubernetes', …)`
+  emitted the `env:` block indented under `resources:` (12 spaces) instead of at
+  the container level (10 spaces), so Kubernetes silently ignored every variable —
+  including `NODE_ENV=production`. Fixed the indentation; a regression test now
+  parses the manifest and asserts `env`/`envFrom` sit on the container, not under
+  `resources`.
+- **Scaffolded apps now serve the probe endpoints their own deploy manifests expect.**
+  `street deploy:init` emits liveness/startup probes on `/health/live` and a
+  readiness probe on `/health/ready`, but the scaffold only served `/health` — so a
+  generated Kubernetes/Cloud Run deployment would never pass its probes and the pod
+  would never become ready. The scaffold's `main.ts` now registers
+  `registerHealthRoutes(app, new HealthCheckRegistry())` (before other middleware,
+  so probes are unauthenticated and un-rate-limited). Verified: `/health/live` and
+  `/health/ready` both return 200 on a fresh scaffold.
+
+### Added
+- **Kubernetes manifest wires required secrets via `envFrom`.** The generated
+  Deployment now pulls `JWT_SECRET`/`SESSION_KEY`/`CORS_ORIGINS` (and DB creds) from
+  a `<name>-secrets` Secret, and the manifest header documents the exact
+  `kubectl create secret generic …` command to create it. Without this the pod
+  booted in production mode and failed fast on the missing `JWT_SECRET`.
+
 ## [1.2.4] - 2026-07-12
 
 > Continuing the **dogfooding** phase: exercised the deployment path
