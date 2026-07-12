@@ -7307,12 +7307,10 @@ let nextClientId = 1;
 
 const connections = new Map<number, { socket: StreetSocket; user: string; clientId: number }>();
 
-// NOTE: In main.ts, wire up the WebSocket server with:
-//   import { chatConnectionHandler } from './gateways/chat.gateway.js';
-//   import { createServer } from 'node:http';
-//   ...
-//   const httpServer = createServer(...);
-//   wss.attach(httpServer, chatConnectionHandler);
+// This handler is already wired in src/main.ts:
+//   wsServer.attach(app.server, chatConnectionHandler);
+// (\`app.server\` is the app's underlying http.Server; attach adds the upgrade
+// handler on the same port that serves HTTP.) Edit the logic below to taste.
 //   httpServer.listen(port, host);
 
 /** WebSocket connection handler — called for each new connection */
