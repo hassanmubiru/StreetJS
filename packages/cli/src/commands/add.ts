@@ -35,6 +35,14 @@ export const FEATURES: Record<string, FeatureSpec> = {
     description: 'WebSocket server + channel hub (built into streetjs core)',
     snippet: "import { StreetWebSocketServer, ChannelHub } from 'streetjs';",
   },
+  redis: {
+    packages: [],
+    description: 'Redis client — cache, pub/sub, single-node or Cluster (built into streetjs core)',
+    snippet:
+      "import { RedisClient } from 'streetjs';\n" +
+      "const redis = new RedisClient({ host: '127.0.0.1', port: 6379 });\n" +
+      "// High availability: import { RedisClusterClient } from 'streetjs'; new RedisClusterClient({ nodes: [...] });",
+  },
   search: {
     packages: ['@streetjs/search'],
     description: 'Provider-based search (in-memory, Postgres FTS, Meilisearch, Elasticsearch)',
