@@ -22,10 +22,12 @@ export class TenantPoolRegistry {
   /**
    * Returns (or creates) a pool for the given tenant.
    * On first access for a tenant, queries `street_tenants` for the
-   * `connection_string`, then builds a pool using the master pool's
-   * underlying connection parameters.
+   * `connection_string`, then builds a dedicated pool from it.
    *
-   * Returns `null` if the tenant is not found or has no connection_string.
+   * Returns `null` only when the tenant is not found or is not `active`. A found,
+   * active tenant with a NULL/empty `connection_string` shares the master pool
+   * (single-database multi-tenancy); a tenant with a `connection_string` gets its
+   * own dedicated pool (database-per-tenant).
    */
   async getPool(tenantId: string): Promise<GenericPool | null> {
     const existing = this._pools.get(tenantId);
