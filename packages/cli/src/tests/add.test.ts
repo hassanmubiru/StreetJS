@@ -59,4 +59,24 @@ describe('street add', () => {
       assert.ok(FEATURES[f], `feature ${f} must exist`);
     }
   });
+
+  it('redis is a core capability (no install) with an accurate snippet', async () => {
+    const c = capture();
+    try { await new AddCommand().execute(ctx(['redis'])); } finally { c.restore(); }
+    const log = c.out.logs.join('\n');
+    assert.equal(FEATURES['redis']?.packages.length, 0, 'redis is built into core');
+    assert.ok(log.includes('built into streetjs core'));
+    assert.ok(log.includes('RedisClient'));
+    assert.equal(process.exitCode, 0);
+  });
+
+  it('stripe maps to @streetjs/plugin-stripe with --dry-run install plan', async () => {
+    const c = capture();
+    try { await new AddCommand().execute(ctx(['stripe'], { 'dry-run': true })); } finally { c.restore(); }
+    const log = c.out.logs.join('\n');
+    assert.deepEqual(FEATURES['stripe']?.packages, ['@streetjs/plugin-stripe']);
+    assert.ok(log.includes('(dry-run) would run: npm install @streetjs/plugin-stripe'));
+    assert.ok(log.includes('StripePlugin'));
+    assert.equal(process.exitCode, 0);
+  });
 });

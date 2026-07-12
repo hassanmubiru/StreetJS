@@ -98,6 +98,14 @@ export const FEATURES: Record<string, FeatureSpec> = {
     description: 'MySQL/MariaDB pool (wraps the native, dependency-free core driver)',
     snippet: "import { MysqlPlugin } from '@streetjs/plugin-mysql';\nconst mysql = new MysqlPlugin({ host: '127.0.0.1', user, password, database });",
   },
+  stripe: {
+    packages: ['@streetjs/plugin-stripe'],
+    description: 'Stripe payments + signature-verified webhooks (dependency-free HTTPS client)',
+    snippet:
+      "import { StripePlugin } from '@streetjs/plugin-stripe';\n" +
+      "const stripe = new StripePlugin({ apiKey: process.env.STRIPE_SECRET_KEY });\n" +
+      "// Verify webhooks: import { verifyStripeWebhook } from 'streetjs';",
+  },
   paypal: {
     packages: ['@streetjs/plugin-paypal'],
     description: 'PayPal Orders v2 (dependency-free HTTPS client)',
