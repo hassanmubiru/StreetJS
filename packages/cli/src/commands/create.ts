@@ -6656,7 +6656,7 @@ ${webJob}`;
           'migrate:create': 'street migrate:create',
         },
         dependencies: {
-          'streetjs': '^1.2.2',
+          'streetjs': '^1.2.3',
           'reflect-metadata': '^0.2.2',
           ws: '^8.18.0',
         },
