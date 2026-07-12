@@ -174,6 +174,7 @@ Report vulnerabilities privately via the [Security Policy](SECURITY.md).
 
 ## Community
 
+- 🎧 [Discord](https://discord.gg/Wgazap3yv) — real-time help, technical discussion, and release news
 - 💬 [Discussions](https://github.com/hassanmubiru/StreetJS/discussions) — questions, ideas, show-and-tell
 - 🐛 [Issues](https://github.com/hassanmubiru/StreetJS/issues) — bugs and feature requests
 - 🧭 [Contributing Guide](CONTRIBUTING.md) · [Contributor Path](https://hassanmubiru.github.io/StreetJS/community/contributor-path/) · [Code of Conduct](CODE_OF_CONDUCT.md)
