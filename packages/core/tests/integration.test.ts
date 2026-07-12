@@ -290,6 +290,36 @@ describe('HTTP Server', () => {
     assert.equal(body.received.name, 'Alice');
   });
 
+  it('preserves ctx.rawBody so a webhook signature verifies over exact bytes', async () => {
+    // Bytes Stripe would sign — deliberately with whitespace + key order that
+    // JSON.stringify(ctx.body) would NOT reproduce, proving rawBody is the
+    // exact received payload and not a re-serialization.
+    const rawBody = '{ "id":"evt_1",  "type":"payment_intent.succeeded" }';
+    const t = Math.floor(Date.now() / 1000);
+    const { createHmac } = await import('node:crypto');
+    const v1 = createHmac('sha256', 'whsec_test_secret').update(`${t}.${rawBody}`, 'utf8').digest('hex');
+    const res = await fetch(port, '/test/webhook', {
+      method: 'POST',
+      body: rawBody,
+      headers: { 'stripe-signature': `t=${t},v1=${v1}` },
+    });
+    assert.equal(res.status, 200);
+    const body = JSON.parse(res.body) as { verified: boolean; rawBodyPresent: boolean };
+    assert.equal(body.rawBodyPresent, true, 'ctx.rawBody must be present for JSON bodies');
+    assert.equal(body.verified, true, 'signature over ctx.rawBody must verify');
+  });
+
+  it('rejects a webhook whose signature does not match the raw body', async () => {
+    const rawBody = '{"id":"evt_2","type":"tampered"}';
+    const t = Math.floor(Date.now() / 1000);
+    const res = await fetch(port, '/test/webhook', {
+      method: 'POST',
+      body: rawBody,
+      headers: { 'stripe-signature': `t=${t},v1=deadbeef` },
+    });
+    assert.equal(res.status, 400);
+  });
+
   it('returns 404 for unknown routes', async () => {
     const res = await fetch(port, '/does/not/exist');
     assert.equal(res.status, 404);
