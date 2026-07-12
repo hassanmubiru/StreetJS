@@ -27,6 +27,7 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 
 const CORE_PREFIX = 'packages/core/';
+const CORE_PKG_JSON = 'packages/core/package.json';
 
 /** Run a git command from the repo, returning trimmed stdout, or null on any failure. */
 function git(args: string[], cwd: string): string | null {
