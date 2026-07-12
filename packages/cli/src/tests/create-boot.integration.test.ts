@@ -112,7 +112,7 @@ describe('generated project boots successfully (integration)', () => {
         'PGPORT', 'PGUSER', 'PGPASSWORD', 'PGDATABASE', 'DATABASE_URL',
         'KEK', 'JWT_SECRET', 'SESSION_KEY',
       ]) delete cleanEnv[k];
-      const port = 3100 + Math.floor(Math.random() * 800);
+      const port = await getFreePort();
       server = spawn(process.execPath, ['dist/main.js'], {
         cwd: projectDir,
         env: { ...cleanEnv, PORT: String(port), HOST: '127.0.0.1', NODE_ENV: 'development' },
