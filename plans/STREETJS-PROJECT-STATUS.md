@@ -105,9 +105,12 @@ and contributors — **not** more core code.
 | **F-DF7** | **Every scaffolded app failed `docker build`** — scaffold scripts call the `street` bin but `@streetjs/cli` was not a project dependency (`sh: street: not found`); only worked where the CLI was installed globally | High (deploy blocker) | **FIXED** (dogfood Docker deploy) — `@streetjs/cli` added as scaffold devDependency + `release.sh` lockstep; verified `docker build` + container boot + `/health`. *Unreleased.* |
 | **F-DF8** | `docker run` crashed with `JWT_SECRET must be set in production` and no deployment guidance anywhere | Low (docs) | **FIXED** — scaffold README gained a "Deploy with Docker" section (dev compose path + prod run with required secrets). *Unreleased.* |
 
+| **F-DF9** | **Scaffold + deploy manifests disagreed on health probes** — `street deploy:init` probes `/health/live` + `/health/ready`, but the scaffold served only `/health`, so generated K8s/Cloud Run deployments never passed probes | High (deploy blocker) | **FIXED** (dogfood K8s deploy) — scaffold registers `registerHealthRoutes`; verified both probes return 200. *Unreleased.* |
+| **F-DF10** | **K8s manifest dropped env vars + missing secrets** — `env:` was misindented under `resources:` (silently ignored by K8s) and no secret wiring, so pods lost `NODE_ENV` and crashed on the missing `JWT_SECRET` | High (deploy blocker) | **FIXED** — corrected env indentation (regression-tested via YAML parse) + `envFrom` secretRef + `kubectl create secret` header. *Unreleased.* |
+
 No reproducible engineering defect remains. Findings prefixed **F-DF** were surfaced
 by the dogfooding phase and fixed at the source (not worked around), per the
-"become a product" directive. F-DF1–F-DF6 shipped (1.2.1–1.2.3); **F-DF7/F-DF8 are
+"become a product" directive. F-DF1–F-DF6 shipped (1.2.1–1.2.3); **F-DF7–F-DF10 are
 on `main`, not yet released** (see §7).
 
 **Onboarding measurement (Phase 3 DX, local path, this engagement):** cold
