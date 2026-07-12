@@ -100,14 +100,15 @@ and contributors — **not** more core code.
 | **F-DF2** | `migrate:run` gave a terse error on SQLite projects | Low (DX) | **FIXED** — actionable dialect-mismatch guidance; shipped **1.2.1** (PG path dogfood-verified end-to-end) |
 | **F-DF3** | **Scaffolded `realtime-chat` returned HTTP 404 on WS upgrade** — `StreetWebSocketServer` created/registered but never attached; no public API to reach the HTTP server | High (broken template) | **FIXED** (dogfood `realtime-chat`) — core exposes `app.server` (`StreetHttpApp`); scaffold wires `wsServer.attach(app.server, chatConnectionHandler)`; shipped **1.2.2** (verified live WS client) |
 | **F-DF4** | Example chat gateway used raw-`ws` idioms, not the StreetSocket `{type,payload}` envelope | Med (broken example) | **FIXED** — rewritten to `socket.on('join'/'message')` + `socket.onClose()` + `chat` broadcasts; shipped **1.2.2** |
-| **F-DF5** | **Documented webhook verifiers unusable for JSON** — the HTTP server discarded the raw body, so `verifyStripeWebhook`/`verifySendGridWebhook`/`verifyIncomingWebhook` had no exact bytes to verify | High (broken capability) | **FIXED** (dogfood webhook processor) — `parseBody` preserves `ctx.rawBody` (additive); verified E2E (valid→processed, replay→idempotent, tampered/bad-sig→400). *Unreleased.* |
+| **F-DF5** | **Documented webhook verifiers unusable for JSON** — the HTTP server discarded the raw body, so `verifyStripeWebhook`/`verifySendGridWebhook`/`verifyIncomingWebhook` had no exact bytes to verify | High (broken capability) | **FIXED** (dogfood webhook processor) — `parseBody` preserves `ctx.rawBody` (additive); verified E2E (valid→processed, replay→idempotent, tampered/bad-sig→400); shipped **1.2.3**. |
 | **F-DF6** | `street add redis` / `street add stripe` returned "unknown feature" though both ship in the framework | Low (DX) | **FIXED** — added both to the capability map with accurate wiring snippets; shipped **1.2.3**. |
 | **F-DF7** | **Every scaffolded app failed `docker build`** — scaffold scripts call the `street` bin but `@streetjs/cli` was not a project dependency (`sh: street: not found`); only worked where the CLI was installed globally | High (deploy blocker) | **FIXED** (dogfood Docker deploy) — `@streetjs/cli` added as scaffold devDependency + `release.sh` lockstep; verified `docker build` + container boot + `/health`. *Unreleased.* |
 | **F-DF8** | `docker run` crashed with `JWT_SECRET must be set in production` and no deployment guidance anywhere | Low (docs) | **FIXED** — scaffold README gained a "Deploy with Docker" section (dev compose path + prod run with required secrets). *Unreleased.* |
 
 No reproducible engineering defect remains. Findings prefixed **F-DF** were surfaced
 by the dogfooding phase and fixed at the source (not worked around), per the
-"become a product" directive. **F-DF5/F-DF6 are on `main`, not yet released** (see §7).
+"become a product" directive. F-DF1–F-DF6 shipped (1.2.1–1.2.3); **F-DF7/F-DF8 are
+on `main`, not yet released** (see §7).
 
 **Onboarding measurement (Phase 3 DX, local path, this engagement):** cold
 `create → install → add auth → add redis → build → boot` ≈ **6.3s active CLI time**
