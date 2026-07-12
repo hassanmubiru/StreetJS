@@ -21,6 +21,15 @@ export interface StreetContext {
   readonly headers: Record<string, string>;
   /** Parsed request body (JSON or form) */
   body: unknown;
+  /**
+   * Raw request body as received, before JSON/text parsing. Preserved for
+   * JSON and `text/*` bodies so handlers can verify provider webhook signatures
+   * (e.g. `verifyStripeWebhook`, `verifySendGridWebhook`, `verifyIncomingWebhook`),
+   * which sign the exact bytes and cannot be reproduced by re-serializing `body`.
+   * Undefined for methods/content-types with no buffered body (GET/HEAD/DELETE,
+   * multipart). Bounded by the server's `maxBodyBytes`.
+   */
+  rawBody?: string;
   /** Uploaded files from multipart parsing */
   files: ParsedFile[];
   /** Arbitrary state bag for middleware communication */
