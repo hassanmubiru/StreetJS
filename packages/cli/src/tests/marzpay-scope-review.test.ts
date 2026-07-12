@@ -131,7 +131,16 @@ describe('MarzPay scope review — no packages/core changes (Requirement 13.1)',
       return;
     }
 
-    const coreChanges = paths.filter((p) => p.startsWith(CORE_PREFIX));
+    let coreChanges = paths.filter((p) => p.startsWith(CORE_PREFIX));
+    // Allow a release version-only bump to core's package.json (release.sh
+    // housekeeping), but keep flagging every other core change.
+    if (
+      coreChanges.length > 0 &&
+      coreChanges.every((p) => p === CORE_PKG_JSON) &&
+      isVersionOnlyCorePkgBump(root)
+    ) {
+      coreChanges = [];
+    }
     assert.deepEqual(
       coreChanges,
       [],
