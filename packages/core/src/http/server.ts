@@ -28,12 +28,6 @@ export interface StreetAppOptions {
 }
 
 export interface StreetApp {
-  /**
-   * The underlying Node `http.Server`. Exposed so a `StreetWebSocketServer` can
-   * be attached to the same server that serves HTTP:
-   *   `wsServer.attach(app.server, connectionHandler)` before `app.listen()`.
-   */
-  readonly server: Server;
   listen(port?: number, host?: string): Promise<void>;
   close(): Promise<void>;
   registerController(ctor: Constructor): void;
