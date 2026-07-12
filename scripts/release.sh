@@ -85,14 +85,17 @@ if [[ "$DRY_RUN" == false ]]; then
   # Regenerate @streetjs/core compat shim (derives version + streetjs pin from packages/core)
   node scripts/gen-core-compat.mjs >/dev/null
   success "@streetjs/core (compat) regenerated at $NEW_VERSION"
-  # Update scaffold streetjs pin in create.ts (^X.Y.Z form)
+  # Update scaffold streetjs + @streetjs/cli pins in create.ts (^X.Y.Z form).
+  # Both must move in lockstep: the scaffold depends on `streetjs` (runtime) and
+  # `@streetjs/cli` (dev — its build/dev/start scripts invoke the `street` bin).
   node -e "
     const fs=require('fs'); const p='$CLI_DIR/src/commands/create.ts';
     let s=fs.readFileSync(p,'utf8');
     s=s.replace(/('streetjs':\s*')\^[0-9]+\.[0-9]+\.[0-9]+(')/g, \"\$1^$NEW_VERSION\$2\");
+    s=s.replace(/('@streetjs\/cli':\s*')\^[0-9]+\.[0-9]+\.[0-9]+(')/g, \"\$1^$NEW_VERSION\$2\");
     fs.writeFileSync(p,s);
   "
-  success "Scaffold streetjs pin → ^$NEW_VERSION (create.ts)"
+  success "Scaffold streetjs + @streetjs/cli pins → ^$NEW_VERSION (create.ts)"
   npm install --package-lock-only >/dev/null 2>&1
   success "Root package-lock.json regenerated"
 fi
