@@ -168,7 +168,9 @@ function k8sDeploymentManifest(config: DeployConfig): string {
   const replicas = config.replicas ?? 2;
   const cpu = config.cpu ?? '250m';
   const memory = config.memory ?? '256Mi';
-  const envSection = k8sEnvSection(config, '            ');
+  // Container-level indent is 10 spaces (sibling of `resources:`/`ports:`).
+  const envSection = k8sEnvSection(config, '          ');
+  const envFromSection = k8sEnvFromSection(config, '          ');
 
   return `apiVersion: apps/v1
 kind: Deployment
