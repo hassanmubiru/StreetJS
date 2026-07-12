@@ -233,3 +233,377 @@ A: Discord is for real-time discussion; decisions land on GitHub as Issues, RFCs
 ```
 
 ---
+
+## 7. Pinned Messages (per channel)
+
+Copy-ready. One pin per channel keeps intent obvious.
+
+**`#announcements`**
+```
+📣 Official StreetJS announcements: releases, security notices, RFCs, and events.
+Read-only. Click "Follow" to mirror these into your own server. Discussion of any
+post goes in the linked thread or the relevant channel.
+```
+
+**`#general`**
+```
+👋 General StreetJS conversation and introductions. Keep support questions in #help
+so they stay searchable and get answered faster. Be kind and precise.
+```
+
+**`#showcase`**
+```
+🚀 Built something with StreetJS? Share it here: a link + one or two sentences on
+what it does and which StreetJS features you used. Feedback encouraged; keep it
+constructive.
+```
+
+**`#help`** (Forum — set as the guidelines / post template)
+```
+🛠 Getting help fast:
+1. One question per thread. Give the thread a clear title.
+2. Include: StreetJS version, Node version, OS, and a MINIMAL reproduction.
+3. Paste code/errors in code blocks (```), not screenshots of text.
+4. Say what you expected vs. what happened.
+5. Mark the thread solved (or react ✅) when it's resolved — it helps the next person.
+Confirmed bugs get moved to GitHub Issues so they're tracked.
+```
+
+**`#deploy-and-ops`**
+```
+⚙️ Production topics: Docker, Kubernetes, PostgreSQL HA, Redis Cluster,
+observability (/metrics, health probes, OpenTelemetry), scaling, and upgrades.
+Start from the production deployment checklist in the docs (link).
+```
+
+**`#contributors`**
+```
+🤝 Coordinate contributions here. Start with CONTRIBUTING.md and the
+`good first issue` label (link). Discuss approach before large PRs. First merged
+PR earns the Contributor role. GitHub is where PRs and reviews happen.
+```
+
+**`#plugin-authors`**
+```
+🧩 Building a StreetJS plugin? See the plugin authoring guide (link). Share design
+questions and WIP here; announce published plugins via a maintainer for
+#announcements. Follow the plugin security expectations documented in the repo.
+```
+
+**`#rfcs-and-design`**
+```
+🧠 Architecture and RFC discussion. Explore ideas here, but proposals become real
+as RFCs on GitHub (link) — that's where decisions are recorded. Link the RFC/PR
+you're discussing.
+```
+
+**`#ci-releases`**
+```
+🔧 Release engineering: lockstep versioning, signing/provenance, CI/CD. Mostly
+maintainer coordination. Release mechanics live in scripts/ and the workflows.
+```
+
+**`#github-activity`**
+```
+🔔 Curated GitHub activity (releases, merged PRs, notable issues). Read-only and
+intentionally low-noise. Full history lives on GitHub.
+```
+
+---
+
+## 8. Announcement Templates
+
+Reusable, fill-in-the-blanks. Keep them short and link to GitHub for detail.
+
+**Release**
+```
+🚀 StreetJS v{X.Y.Z} released
+
+Highlights:
+• {one-line highlight}
+• {one-line highlight}
+
+Install/upgrade: `npm i streetjs@{X.Y.Z}` (signed, with provenance)
+Changelog: {link}   ·   Release: {link}
+
+Questions or issues after upgrading? → #help / GitHub Issues.
+```
+
+**Security update**
+```
+🔒 Security update — StreetJS {package}@{version}
+
+A {severity} issue has been fixed. Please upgrade to {version}.
+Advisory: {GitHub Security Advisory link}
+
+We follow coordinated disclosure — details are in the advisory. Report
+vulnerabilities privately via SECURITY.md, never in public channels.
+```
+
+**RFC**
+```
+🧠 New RFC: {title} (RFC-{NNNN})
+
+Summary: {one or two sentences}
+We're gathering feedback before a decision. Read and comment on GitHub: {link}
+Discuss here in #rfcs-and-design; the RFC thread on GitHub is where it's decided.
+```
+
+**Documentation update**
+```
+📖 Docs: {what changed}
+
+New/updated: {page name} → {link}
+Feedback welcome in #help or open a docs issue/PR on GitHub.
+```
+
+**Community event**
+```
+📅 {Event name} — {date, time with timezone / UTC}
+
+{One-line description.} Where: {voice channel / link}
+Add to calendar: {link}. No sign-up needed — just show up.
+```
+
+**Contributor recognition**
+```
+🌟 Thank you, {@user}!
+
+For {merged PR / triage help / plugin / great answers in #help}: {link}.
+Community contributions like this are how StreetJS gets better. 🙌
+```
+
+**New plugin**
+```
+🧩 New community plugin: {name}
+
+{One line on what it does.}
+Package: {npm link}   ·   Repo: {link}   ·   Author: {@user}
+Community-maintained (not an official package). Try it and share feedback.
+```
+
+---
+
+## 9. GitHub → Discord Integration
+
+Goal: **useful signal, zero fatigue.** Route noisy events away from conversation
+channels and curate hard.
+
+**Recommended (post to `#github-activity`, read-only):**
+| Event | Include? | Why |
+|---|---|---|
+| Releases published | ✅ | High-value; also cross-post to `#announcements`. |
+| New GitHub Releases / tags | ✅ | Signed release visibility. |
+| Merged PRs | ✅ (title only) | Shows momentum; low volume. |
+| New issues opened | ◑ optional | Useful early; mute if it gets loud. |
+| New RFC PRs (label `rfc`) | ✅ | Feed `#rfcs-and-design` awareness. |
+
+**Do NOT pipe into Discord:**
+- Every push/commit, every comment, CI logs, label changes, or per-check status.
+  These drown conversation and train people to ignore the channel.
+
+**How:** use the GitHub-maintained webhook or a single well-scoped bot, filtered to
+the events above. Prefer **one** curated feed channel over many. For `#ci-status`,
+post only the final result of the release/publish workflow, not every job.
+
+**Announcements that matter (releases, security) are posted by a human** in
+`#announcements` — a short, framed message beats a raw webhook.
+
+---
+
+## 10. Recommended Bots
+
+Fewer, well-maintained bots. Each must justify its presence and its permissions.
+
+| Bot | Use | Why it's worth it |
+|---|---|---|
+| **GitHub** (official webhook / GitHub bot) | The `#github-activity` feed. | First-party, reliable, no third-party trust needed. Scope to the few events in §9. |
+| **Carl-bot** *or* **YAGPDB** (pick one) | Reaction roles, welcome/rules screening, autorole for New Member, simple automod. | Mature, well-documented, covers onboarding + light moderation without custom code. Use one, not both. |
+| **MEE6-free / Statbot** *(optional)* | Lightweight membership/activity stats. | Only if you'll actually use the numbers; otherwise skip. |
+
+**Deliberately avoided:** leveling/XP games, music bots, meme/economy bots, and
+anything requesting Administrator. They add noise and attack surface with no
+benefit to a technical community.
+
+**Rules for bots:** least-privilege scopes (no Admin), enable their audit logging
+into `#mod-log`, and review permissions whenever a bot updates.
+
+---
+
+## 11. Moderation Guidelines
+
+Practical, proportionate, and documented.
+
+**Principles**
+- Assume good faith; most problems are newcomers not knowing norms.
+- Moderate behavior, not disagreement. Technical debate is welcome; disrespect is not.
+- Be transparent: log actions in `#mod-log`; explain removals briefly.
+
+**Escalation ladder**
+1. **Nudge** — a friendly public or DM pointer to the right channel/rule.
+2. **Warn** — explicit warning referencing the rule; note it in `#mod-log`.
+3. **Timeout** — short mute (e.g. 1–24h) for repeated or heated behavior.
+4. **Kick** — for continued disruption after warnings.
+5. **Ban** — for harassment, hate speech, spam/scams, doxxing, or safety threats
+   (often immediate for these — no ladder required).
+
+**Immediate-removal offenses:** hate speech, harassment, sexual content involving
+minors, doxxing, scams/phishing, malware, and coordinated spam. Ban first, discuss
+in `#maintainers` after.
+
+**Operational norms**
+- Two moderators should be reachable across primary time zones before growth.
+- Keep a saved-response set for common cases (wrong channel, ask-to-ask, screenshot
+  of code, security-in-public).
+- Never handle security disclosures in public — redirect to SECURITY.md and delete
+  any posted exploit details.
+- Conflicts of interest: a maintainer involved in a dispute recuses; another handles it.
+
+**Saved responses (examples)**
+```
+👋 Great question — could you move this to #help as a new thread with your StreetJS
++ Node versions and a minimal repro? You'll get a faster, more findable answer.
+```
+```
+🔒 Please don't post security details here. Report privately via SECURITY.md so we
+can fix and disclose responsibly. I'm removing the details above.
+```
+
+---
+
+## 12. Contributor Journey
+
+A clear, earned path. Recognition is explicit and tied to real contribution.
+
+```
+Community Member
+   │  asks/answers in #help, joins discussions, files good issues
+   ▼
+Contributor            ← first merged PR (docs, tests, fix, or feature)
+   │  keeps contributing; reliable PRs; helps triage; good reviews
+   ▼
+Regular Contributor    ← sustained, quality contributions over time; trusted judgment
+   │  mentors newcomers; shapes RFCs; owns areas informally
+   ▼
+Maintainer             ← invited by existing maintainers; merge rights + release duties
+```
+
+| Stage | How you get there | What changes |
+|---|---|---|
+| **Community Member** | Join, participate. | Full chat access after onboarding. |
+| **Contributor** | Land your first PR. | `Contributor` role; thanked in `#announcements`. |
+| **Regular Contributor** | Sustained, high-quality contributions; helpful in reviews and `#help`. | Trusted voice in `#rfcs-and-design`; may get triage rights on GitHub. |
+| **Maintainer** | Invitation after demonstrated trust, judgment, and consistency (per the project's governance/CHARTER). | GitHub merge rights, release/signing duties, `Maintainer` role, `#maintainers` access. |
+
+**Principles:** promotion is by demonstrated trust, not volume alone. The path is
+transparent and documented in `CONTRIBUTING.md`/governance so anyone can see how to
+grow. Maintainer is a responsibility (reviews, releases, stewardship), not a badge.
+
+---
+
+## 13. Community Growth Plan
+
+Bias toward **technical substance** over social chatter. Sustainable cadence.
+
+**Weekly**
+- **Triage sweep:** a maintainer converts resolved `#help` threads into docs/issues
+  (see §14) and posts one "TIL / gotcha of the week" from real questions.
+- Welcome new members in `#general`; point them to `#start-here`.
+- Highlight one `good first issue` in `#contributors`.
+
+**Monthly**
+- **Community call / office hours** (voice): roadmap notes, demos, live Q&A. Post
+  notes afterward in `#announcements` and the repo.
+- **Showcase roundup:** feature a project or plugin from `#showcase`.
+- **Contributor recognition** post for the month's merged PRs and top helpers.
+
+**Quarterly**
+- **RFC review:** surface open RFCs, invite structured feedback, summarize decisions.
+- **Docs/examples sprint:** a themed push (e.g. "auth", "deploy", "observability")
+  turning the quarter's most-asked questions into guides/examples.
+- **State of StreetJS:** short written update — what shipped, what's next, how to
+  help. Written, linkable, honest about what's not done.
+
+**Encourage discussion, not noise:** prompts like "share a production gotcha you
+hit and how you solved it", "post your `street.config` and get feedback", or
+"what's one DX rough edge?" These generate issues and docs, not just reactions.
+
+---
+
+## 14. Documentation Workflow (Discord → durable knowledge)
+
+Discord conversations are ephemeral; GitHub is durable. Convert the good stuff.
+
+**The loop**
+1. **Notice repetition.** If a question in `#help` appears 2–3 times, it's a docs gap.
+2. **Classify the outcome:**
+   | Signal in Discord | Convert to |
+   |---|---|
+   | "How do I do X?" answered well | **Docs** update or a new task-oriented guide |
+   | "X is broken / behaves wrong" (confirmed) | **GitHub Issue** with the repro |
+   | "X should work differently / new capability" | **RFC** (or a discussion that leads to one) |
+   | "Here's a neat pattern" | **Example** in `examples/` or a short tutorial |
+3. **Capture the source.** Link the Discord thread in the issue/PR for context
+   (thread stays as the informal record; GitHub becomes the source of truth).
+4. **Close the loop.** When the docs/issue/example lands, reply in the thread with
+   the link and mark it solved. The next person finds the durable answer.
+
+**Ownership:** the weekly triage sweep (see §13) makes this a habit, not heroics.
+A `docs` and `good first issue` label on the resulting issue invites contributors
+to write the fix — turning support load into contributor onboarding.
+
+**Rule of thumb:** *answer once in Discord, then make sure no one has to ask again.*
+
+---
+
+## 15. Launch Checklist
+
+**Before launch**
+- [ ] Finalize channels, categories, and order (§1); delete anything speculative.
+- [ ] Create roles with least-privilege permissions (§2); only Founder has Admin.
+- [ ] Configure Membership Screening + `#rules`; set `@everyone` to read-only in
+      START HERE / FEEDS.
+- [ ] Pin welcome (§4), rules (§5), FAQ (§6), and per-channel pins (§7).
+- [ ] Set up `#help` as a Forum with the post template (§7).
+- [ ] Add + scope bots (§10); route the GitHub feed to `#github-activity` (§9).
+- [ ] Verify links: docs, quickstart, repo, CONTRIBUTING.md, SECURITY.md,
+      CODE_OF_CONDUCT.md, governance/CHARTER.
+- [ ] Recruit at least 2 moderators/maintainers across time zones.
+- [ ] Enable `#mod-log` + bot audit logging.
+- [ ] Add the invite (https://discord.gg/Wgazap3yv) to README, docs site, and repo
+      "Community" section.
+
+**Launch day**
+- [ ] Post the first `#announcements` message (what the server is for; link docs & repo).
+- [ ] Seed `#help`, `#contributors`, and `#showcase` with 1–2 starter threads so
+      they're not empty.
+- [ ] Have maintainers present for the first several hours to greet and answer.
+- [ ] Announce the server from the repo/README and any existing channels.
+
+**First 30 days**
+- [ ] Reply to every `#help` thread within ~24h; mark solved.
+- [ ] Run the weekly triage sweep; ship at least a few docs/issue conversions (§14).
+- [ ] Hold the first community call; publish notes.
+- [ ] Grant the first `Contributor` roles and thank contributors publicly.
+- [ ] Tune the GitHub feed if it's too noisy or too quiet.
+
+**First 100 members**
+- [ ] Confirm onboarding still lands people in the right channel quickly; refine pins.
+- [ ] Identify 1–2 emerging **Community Helpers**; grant the role.
+- [ ] Establish a predictable monthly call + recognition rhythm.
+- [ ] Start the quarterly docs/examples sprint backlog from real questions.
+
+**First 500 members**
+- [ ] Re-evaluate channel split only where consistently noisy (e.g. split `#help`
+      by topic, or add a language channel) — resist premature fragmentation.
+- [ ] Grow the moderator/maintainer pool ahead of load; document rotation.
+- [ ] Formalize contributor → maintainer pathway per governance.
+- [ ] Review bot permissions and moderation norms; publish a short "how this
+      community works" note.
+
+---
+
+*GitHub remains the source of truth for issues, PRs, RFCs, docs, and the roadmap.
+Discord is where the community helps each other in real time and turns
+conversations into durable improvements. Keep it simple, keep it kind, keep the
+signal high.*
