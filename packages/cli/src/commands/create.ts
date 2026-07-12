@@ -7313,60 +7313,43 @@ const connections = new Map<number, { socket: StreetSocket; user: string; client
 // handler on the same port that serves HTTP.) Edit the logic below to taste.
 //   httpServer.listen(port, host);
 
-/** WebSocket connection handler — called for each new connection */
+// Clients speak the StreetSocket envelope protocol: each frame is JSON
+// \`{ "type": "<name>", "payload": <data> }\`, and a handler registered with
+// \`socket.on('<name>', fn)\` receives the **payload**. Broadcasts arrive back as
+// \`{ "type": "chat", "payload": <ChatMessage> }\`. Example client frames:
+//   { "type": "join",    "payload": { "user": "alice" } }
+//   { "type": "message", "payload": { "text": "hello" } }
+
+/** WebSocket connection handler — called for each new connection. */
 export function chatConnectionHandler(socket: StreetSocket, _req: IncomingMessage): void {
   const clientId = nextClientId++;
   let userName = \`Anonymous-\${clientId}\`;
 
-  socket.on('message', (data: unknown) => {
-    try {
-      const msg = data as ChatMessage;
-
-      switch (msg.type) {
-        case 'join':
-          userName = msg.user || userName;
-          connections.set(clientId, { socket, user: userName, clientId });
-          broadcast({
-            type: 'join',
-            user: userName,
-            text: \`\${userName} joined the chat\`,
-            timestamp: Date.now(),
-          });
-          break;
-
-        case 'message':
-          broadcast({
-            type: 'message',
-            user: userName,
-            text: msg.text,
-            timestamp: Date.now(),
-          });
-          break;
-
-        default:
-          socket.emit('error', { message: 'Unknown message type' });
-      }
-    } catch (err) {
-      socket.emit('error', { message: 'Invalid message format', detail: String(err) });
-    }
+  socket.on('join', (payload: unknown) => {
+    const user = (payload as { user?: string } | undefined)?.user;
+    userName = (typeof user === 'string' && user.trim()) || userName;
+    connections.set(clientId, { socket, user: userName, clientId });
+    broadcast({ type: 'join', user: userName, text: \`\${userName} joined the chat\`, timestamp: Date.now() });
   });
 
-  socket.on('close', () => {
+  socket.on('message', (payload: unknown) => {
+    if (!connections.has(clientId)) connections.set(clientId, { socket, user: userName, clientId });
+    const text = (payload as { text?: string } | undefined)?.text ?? '';
+    broadcast({ type: 'message', user: userName, text: String(text), timestamp: Date.now() });
+  });
+
+  // StreetSocket teardown is via onClose(), not on('close').
+  socket.onClose(() => {
     connections.delete(clientId);
-    broadcast({
-      type: 'leave',
-      user: userName,
-      text: \`\${userName} left the chat\`,
-      timestamp: Date.now(),
-    });
+    broadcast({ type: 'leave', user: userName, text: \`\${userName} left the chat\`, timestamp: Date.now() });
   });
 }
 
+/** Fan a ChatMessage out to every connected client as a \`chat\` event. */
 function broadcast(message: ChatMessage): void {
-  const data = JSON.stringify(message);
   for (const [, conn] of connections) {
     try {
-      conn.socket.emit('chat', data);
+      conn.socket.emit('chat', message);
     } catch {
       // Socket may have closed — remove it
       connections.delete(conn.clientId);
