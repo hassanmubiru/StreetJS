@@ -22,8 +22,24 @@ The engineering roadmap is **substantially complete and released**. StreetJS is 
 54-package TypeScript monorepo with a **minimal, curated dependency footprint**, a
 signed/provenance-carrying supply chain, HA data clients (Redis Cluster +
 PostgreSQL failover, live-verified), a consolidated resilience layer, self-guarding
-CI, and task/architecture documentation. The **1.2.0** feature release ships all of
+CI, and task/architecture documentation. The **1.2.0** feature release shipped all of
 this to npm.
+
+The project has since entered its **"become a consumer" (dogfooding) phase** — using
+the published CLI exactly as a new user would, treating every hitch as a framework
+bug to fix rather than work around. This has already produced two evidence-driven
+patch releases:
+- **1.2.1** — CLI now loads the project `.env` (scaffolds shipped `.env.example` but
+  the CLI ignored it); `migrate:run` gives actionable SQLite-vs-Postgres guidance.
+- **1.2.2** — the `realtime-chat` template now actually serves WebSockets. Dogfooding
+  found that a freshly-scaffolded chat app returned **HTTP 404** on every WS upgrade
+  because the generated `main.ts` never attached its `StreetWebSocketServer` to the
+  HTTP server — and there was no public way to reach it. Fixed additively in core by
+  exposing the underlying `http.Server` as `app.server` (new `StreetHttpApp` return
+  type), wiring `wsServer.attach(app.server, chatConnectionHandler)` in the scaffold,
+  and correcting the example gateway to speak the StreetSocket `{type,payload}`
+  envelope. Verified end-to-end with a live WS client (join/message → `chat`
+  broadcast).
 
 The dominant risk is no longer technical — it is **organizational** (bus factor = 1,
 no active funding) and **adoption** (no evidence of real-world users yet). The
@@ -38,11 +54,11 @@ and contributors — **not** more core code.
 
 | Item | State |
 |------|-------|
-| Branch / sync | `main`, clean, local == `origin/main` `82b7faa1` |
-| Release line | `streetjs`/`@streetjs/core`/`@streetjs/cli` **1.2.0**, npm + SLSA provenance |
-| Signed release | GitHub Release `v1.2.0` — 3 tarballs + 3 cosign bundles + SBOM |
+| Branch / sync | `main`, clean, local == `origin/main` `7814ae92` |
+| Release line | `streetjs`/`@streetjs/core`/`@streetjs/cli` **1.2.2**, npm + SLSA provenance |
+| Signed release | GitHub Release `v1.2.2` — 3 tarballs + 3 cosign bundles + SBOM (tag → `7814ae92`) |
 | Security | 0 open secret-scan / Dependabot / code-scan alerts; `npm audit` 0 |
-| CI | 44 workflows; latest run per workflow on `main` = success |
+| CI | 44 workflows; latest run per workflow on `main` HEAD and tag `v1.2.2` = success |
 | Packaging | subpath-import gate: **136/136** published subpaths import from npm |
 | Leftover artifacts | none tracked (scratch removed; generated files gitignored) |
 
