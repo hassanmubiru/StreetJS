@@ -116,7 +116,13 @@ by the dogfooding phase and fixed at the source (not worked around), per the
 "become a product" directive. F-DF1–F-DF11 shipped (1.2.1–1.2.5); **F-DF14 (Date
 wire encoding) is on `main`, not yet released** (see §7). The API-gateway (1.2.4-era) and CMS dogfoods
 also served as clean validations — the gateway found no bug; the CMS found only
-F-DF11 — evidence the core request/validation/resilience surface is solid.
+F-DF11 — evidence the core request/validation/resilience surface is solid. The
+**observability** path was likewise dogfooded end-to-end against a running app and
+found no bug: Prometheus metrics (`/metrics` exposition, request counters/histogram/
+heap gauge), OpenTelemetry tracing (`otelMiddleware` → W3C traceparent propagation →
+OTLP export, service.name in the resource), and the health-check registry. Scaffolds
+now wire `/metrics` out of the box (parallel to the `/health/live`+`/health/ready`
+probes) so a generated app is observable with no extra setup.
 
 **Onboarding measurement (Phase 3 DX, local path, this engagement):** cold
 `create → install → add auth → add redis → build → boot` ≈ **6.3s active CLI time**
