@@ -9,6 +9,34 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+> Found by **dogfooding** the `realtime-chat` template end-to-end (scaffold →
+> install → build → boot → live WebSocket client), continuing the "become a
+> consumer" phase.
+
+### Added
+- **`streetApp()` now exposes its underlying `http.Server` as `app.server`.** The
+  factory return type is a new `StreetHttpApp` interface (`extends StreetApp` with
+  `readonly server: Server`), so callers can attach WebSocket upgrade handling,
+  custom `upgrade`/`connect` listeners, or graceful-shutdown logic to the same
+  server that serves HTTP — previously impossible through the public API. Purely
+  additive: `StreetApp` is unchanged, and factories that return a plain `StreetApp`
+  (e.g. the HTTP/2 microservice helper) are unaffected.
+
+### Fixed
+- **Scaffolded `realtime-chat` app now actually serves WebSockets.** The generated
+  `main.ts` created and registered a `StreetWebSocketServer` but never attached it
+  to the HTTP server, so every WebSocket upgrade returned **HTTP 404**. The scaffold
+  now wires `wsServer.attach(app.server, chatConnectionHandler)` after app creation,
+  so real-time connections are served on the same port as HTTP.
+- **Example chat gateway now uses the correct StreetSocket protocol.** The generated
+  `chat.gateway.ts` used raw-`ws` idioms (`socket.on('message', envelope)` and
+  `socket.on('close')`) that don't match StreetSocket, which routes by envelope
+  `type` and delivers only the `payload` to `socket.on('<type>', ...)`, and exposes
+  teardown via `socket.onClose(...)`. Rewritten to speak the `{ type, payload }`
+  envelope (`join` / `message` events, `chat` broadcasts) with a documented client
+  contract. Verified end-to-end: a live client's `join` and `message` frames are
+  broadcast back as `chat` events (no "Invalid message format").
+
 ## [1.2.1] - 2026-07-11
 
 > All items below were found by **dogfooding** the `saas` template end-to-end
