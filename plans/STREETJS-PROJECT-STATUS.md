@@ -25,26 +25,34 @@ PostgreSQL failover, live-verified), a consolidated resilience layer, self-guard
 CI, and task/architecture documentation. The **1.2.0** feature release shipped all of
 this to npm.
 
-The project has since entered its **"become a consumer" (dogfooding) phase** — using
-the published CLI exactly as a new user would, treating every hitch as a framework
-bug to fix rather than work around. This has already produced two evidence-driven
-patch releases:
-- **1.2.1** — CLI now loads the project `.env` (scaffolds shipped `.env.example` but
-  the CLI ignored it); `migrate:run` gives actionable SQLite-vs-Postgres guidance.
-- **1.2.2** — the `realtime-chat` template now actually serves WebSockets. Dogfooding
-  found that a freshly-scaffolded chat app returned **HTTP 404** on every WS upgrade
-  because the generated `main.ts` never attached its `StreetWebSocketServer` to the
-  HTTP server — and there was no public way to reach it. Fixed additively in core by
-  exposing the underlying `http.Server` as `app.server` (new `StreetHttpApp` return
-  type), wiring `wsServer.attach(app.server, chatConnectionHandler)` in the scaffold,
-  and correcting the example gateway to speak the StreetSocket `{type,payload}`
-  envelope. Verified end-to-end with a live WS client (join/message → `chat`
-  broadcast).
+The project has since run a sustained **"become a consumer" (dogfooding) phase** —
+using the published CLI exactly as a new user would, building real apps, and fixing
+every hitch at the source rather than working around it. This produced **seven
+evidence-driven patch releases (1.2.1 → 1.2.7)**, each fixing a real bug found by
+running the framework:
+
+| Release | Fix (found by dogfooding) |
+|---|---|
+| **1.2.1** | CLI now loads the project `.env`; `migrate:run` gives actionable SQLite-vs-Postgres guidance. |
+| **1.2.2** | `realtime-chat` scaffold actually serves WebSockets — core exposes `app.server` (`StreetHttpApp`), scaffold attaches the WS server, gateway speaks the correct StreetSocket envelope (was HTTP 404 on every upgrade). |
+| **1.2.3** | `ctx.rawBody` preserved so the shipped webhook verifiers (`verifyStripeWebhook` et al.) actually work for JSON; `street add redis`/`stripe` added. |
+| **1.2.4** | Scaffolded apps build in Docker (`@streetjs/cli` added as scaffold devDependency; was `sh: street: not found`); scaffold README gains Docker deploy guidance. |
+| **1.2.5** | K8s deploy fixed: scaffold serves `/health/live`+`/health/ready` (matching generated manifests); manifest env no longer silently dropped (indentation) + secrets wired via `envFrom`; `z` re-exported from `streetjs`. |
+| **1.2.6** | Postgres wire driver serializes `Date` params as ISO-8601 UTC — previously **any `Date` query parameter failed on a non-UTC host** (a core data-layer correctness bug that only "worked" in UTC). |
+| **1.2.7** | Scaffolds expose Prometheus `/metrics` out of the box; root-caused and fixed the intermittent release-abort (a scope-review test racing the version bump, not a Node flake). |
+
+Beyond releases, this phase also produced **honest, reproducible benchmarks**
+(`scripts/bench-http.mjs` + `scripts/bench-pillars.mjs` with published numbers and
+hardware), **task-oriented guides** (background jobs, observability), a **runtime
+benchmark doc**, and a complete **Discord community design** — with the invite added
+to the README. Several surfaces (API gateway, CMS, multi-tenancy, cron, observability)
+were dogfooded and found **clean** — evidence the core is solid, not just that bugs
+were fixed.
 
 The dominant risk is no longer technical — it is **organizational** (bus factor = 1,
 no active funding) and **adoption** (no evidence of real-world users yet). The
 highest-return work now is consumer validation, friction removal, honest benchmarks,
-and contributors — **not** more core code.
+docs, and contributors — **not** more core code.
 
 **Verdict:** Engineering — **MATURE**. Overall project — **STABLE, adoption-gated.**
 
@@ -54,13 +62,13 @@ and contributors — **not** more core code.
 
 | Item | State |
 |------|-------|
-| Branch / sync | `main`, clean, local == `origin/main` `7814ae92` |
-| Release line | `streetjs`/`@streetjs/core`/`@streetjs/cli` **1.2.2**, npm + SLSA provenance |
-| Signed release | GitHub Release `v1.2.2` — 3 tarballs + 3 cosign bundles + SBOM (tag → `7814ae92`) |
+| Branch / sync | `main`, clean, local == `origin/main` `b407ef69` |
+| Release line | `streetjs`/`@streetjs/core`/`@streetjs/cli` **1.2.7**, npm + SLSA provenance |
+| Signed release | GitHub Release `v1.2.7` — 3 tarballs + 3 cosign bundles + SBOM; every `v1.2.x` release signed |
 | Security | 0 open secret-scan / Dependabot / code-scan alerts; `npm audit` 0 |
-| CI | 44 workflows; latest run per workflow on `main` HEAD and tag `v1.2.2` = success |
+| CI | 44 workflows; latest run per workflow on `main` HEAD and tag `v1.2.7` = success |
 | Packaging | subpath-import gate: **136/136** published subpaths import from npm |
-| Leftover artifacts | none tracked (scratch removed; generated files gitignored) |
+| Leftover artifacts | none tracked (dogfood scratch in gitignored `.tmp/`; removed after each run) |
 
 ---
 
@@ -78,9 +86,20 @@ and contributors — **not** more core code.
   canonical `CircuitBreaker`); secret-provider backoff ladders migrated.
 - **Self-guarding CI:** registry subpath-import gate; `release-inputs.json` derived
   live; keyless-signing identity policy + verifier (7/7, incl. the critical negatives).
+- **Consumer-facing surfaces (validated by dogfooding, this phase):** HTTP + raw-body
+  webhooks (`ctx.rawBody`), WebSockets (`app.server` + StreetSocket), background jobs
+  (`JobQueue` — enqueue/retry/DLQ on live PG), cron (`CronScheduler`), zod validation
+  (`z`/`validate`/`validated`), multi-tenancy (`TenantPoolRegistry` — single-DB and
+  DB-per-tenant), and observability (Prometheus `/metrics`, `/health/live`+`/ready`,
+  OpenTelemetry tracing with W3C propagation). All exercised against running apps.
 - **Docs:** `ARCHITECTURE.md`, `docs/ha-clients.md`, `docs/plugin-authoring.md`,
-  `examples/plugin-starter/` (builds + tests 2/2), footprint benchmark.
-- **Release:** CI-driven, provenance + cosign; 1.1.2→1.1.4→**1.2.0** cadence.
+  `examples/plugin-starter/` (builds + tests 2/2); **new task-oriented guides**
+  (`docs/background-jobs.md`, `docs/observability.md`); **reproducible benchmarks**
+  (`docs/benchmarks/footprint.md` + `docs/benchmarks/runtime.md` with committed
+  `scripts/bench-http.mjs` / `scripts/bench-pillars.mjs`); **community** design
+  (`docs/community/discord.md`, invite in README).
+- **Release:** CI-driven, provenance + cosign; cadence 1.1.2 → 1.2.0 → **1.2.7**
+  (seven dogfood-driven patches). Release process hardened (see TD-6).
 
 ---
 
@@ -102,34 +121,40 @@ and contributors — **not** more core code.
 | **F-DF4** | Example chat gateway used raw-`ws` idioms, not the StreetSocket `{type,payload}` envelope | Med (broken example) | **FIXED** — rewritten to `socket.on('join'/'message')` + `socket.onClose()` + `chat` broadcasts; shipped **1.2.2** |
 | **F-DF5** | **Documented webhook verifiers unusable for JSON** — the HTTP server discarded the raw body, so `verifyStripeWebhook`/`verifySendGridWebhook`/`verifyIncomingWebhook` had no exact bytes to verify | High (broken capability) | **FIXED** (dogfood webhook processor) — `parseBody` preserves `ctx.rawBody` (additive); verified E2E (valid→processed, replay→idempotent, tampered/bad-sig→400); shipped **1.2.3**. |
 | **F-DF6** | `street add redis` / `street add stripe` returned "unknown feature" though both ship in the framework | Low (DX) | **FIXED** — added both to the capability map with accurate wiring snippets; shipped **1.2.3**. |
-| **F-DF7** | **Every scaffolded app failed `docker build`** — scaffold scripts call the `street` bin but `@streetjs/cli` was not a project dependency (`sh: street: not found`); only worked where the CLI was installed globally | High (deploy blocker) | **FIXED** (dogfood Docker deploy) — `@streetjs/cli` added as scaffold devDependency + `release.sh` lockstep; verified `docker build` + container boot + `/health`. *Unreleased.* |
-| **F-DF8** | `docker run` crashed with `JWT_SECRET must be set in production` and no deployment guidance anywhere | Low (docs) | **FIXED** — scaffold README gained a "Deploy with Docker" section (dev compose path + prod run with required secrets). *Unreleased.* |
-
-| **F-DF9** | **Scaffold + deploy manifests disagreed on health probes** — `street deploy:init` probes `/health/live` + `/health/ready`, but the scaffold served only `/health`, so generated K8s/Cloud Run deployments never passed probes | High (deploy blocker) | **FIXED** (dogfood K8s deploy) — scaffold registers `registerHealthRoutes`; verified both probes return 200. *Unreleased.* |
-| **F-DF10** | **K8s manifest dropped env vars + missing secrets** — `env:` was misindented under `resources:` (silently ignored by K8s) and no secret wiring, so pods lost `NODE_ENV` and crashed on the missing `JWT_SECRET` | High (deploy blocker) | **FIXED** — corrected env indentation (regression-tested via YAML parse) + `envFrom` secretRef + `kubectl create secret` header. *Unreleased.* |
-
-| **F-DF14** | **`Date` query params broke on non-UTC hosts** — the Pg wire driver bound a `Date` via `String(date)` → `"… GMT+0300 (…)"`, which Postgres rejects for `timestamptz`; broke `JobQueue.enqueue` and any `Date`-param query off-UTC | High (data-layer) | **FIXED** (dogfood job worker) — bind `Date` as `toISOString()`; verified E2E (enqueue→process→retry→DLQ on live PG) + wire regression test. *Unreleased.* |
-| **F-DF11** | **`z` (zod) not re-exported** — the `validate`/`validated` helpers need zod schemas, but consumers had to add their own `zod` dep and risk version skew vs. the framework's internal zod | Med (DX) | **FIXED** (dogfood CMS) — `export { z } from 'zod'`; verified a CMS validates bodies via `import { z, validate } from 'streetjs'`. *Unreleased.* |
+| **F-DF7** | **Every scaffolded app failed `docker build`** — scaffold scripts call the `street` bin but `@streetjs/cli` was not a project dependency (`sh: street: not found`); only worked where the CLI was installed globally | High (deploy blocker) | **FIXED** (dogfood Docker deploy) — `@streetjs/cli` added as scaffold devDependency + `release.sh` lockstep; verified `docker build` + container boot + `/health`; shipped **1.2.4**. |
+| **F-DF8** | `docker run` crashed with `JWT_SECRET must be set in production` and no deployment guidance anywhere | Low (docs) | **FIXED** — scaffold README gained a "Deploy with Docker" section (dev compose path + prod run with required secrets); shipped **1.2.4**. |
+| **F-DF9** | **Scaffold + deploy manifests disagreed on health probes** — `street deploy:init` probes `/health/live` + `/health/ready`, but the scaffold served only `/health`, so generated K8s/Cloud Run deployments never passed probes | High (deploy blocker) | **FIXED** (dogfood K8s deploy) — scaffold registers `registerHealthRoutes`; verified both probes return 200; shipped **1.2.5**. |
+| **F-DF10** | **K8s manifest dropped env vars + missing secrets** — `env:` was misindented under `resources:` (silently ignored by K8s) and no secret wiring, so pods lost `NODE_ENV` and crashed on the missing `JWT_SECRET` | High (deploy blocker) | **FIXED** — corrected env indentation (regression-tested via YAML parse) + `envFrom` secretRef + `kubectl create secret` header; shipped **1.2.5**. |
+| **F-DF11** | **`z` (zod) not re-exported** — the `validate`/`validated` helpers need zod schemas, but consumers had to add their own `zod` dep and risk version skew vs. the framework's internal zod | Med (DX) | **FIXED** (dogfood CMS) — `export { z } from 'zod'`; verified a CMS validates bodies via `import { z, validate } from 'streetjs'`; shipped **1.2.5**. |
+| **F-DF12** | **`Date` query params broke on non-UTC hosts** — the Pg wire driver bound a `Date` via `String(date)` → `"… GMT+0300 (…)"`, which Postgres rejects for `timestamptz`; broke `JobQueue.enqueue` and any `Date`-param query off-UTC | High (data-layer) | **FIXED** (dogfood job worker) — bind `Date` as `toISOString()`; verified E2E (enqueue→process→retry→DLQ on live PG) + wire regression test; shipped **1.2.6**. |
+| **F-DF13** | **Intermittent release abort** — `scripts/release.sh` aborted on a "flaky" CLI test; root cause was `marzpay-scope-review` asserting no `packages/core/` changes while `release.sh` itself bumps `packages/core/package.json` (a race vs. the auto-commit, not a Node flake) | Med (release) | **FIXED** — test now allows a version-only bump to core `package.json` while still flagging real core edits; shipped **1.2.7** (see TD-6). |
+| **F-DF14** | `TenantPoolRegistry.getPool` JSDoc said it returns null when a tenant "has no connection_string" — it actually shares the master pool | Low (docs) | **FIXED** — corrected the comment to describe both single-DB and DB-per-tenant models; on `main` (comment-only; rides next functional release). |
 
 No reproducible engineering defect remains. Findings prefixed **F-DF** were surfaced
 by the dogfooding phase and fixed at the source (not worked around), per the
-"become a product" directive. F-DF1–F-DF11 shipped (1.2.1–1.2.5); **F-DF14 (Date
-wire encoding) is on `main`, not yet released** (see §7). The API-gateway (1.2.4-era) and CMS dogfoods
-also served as clean validations — the gateway found no bug; the CMS found only
-F-DF11 — evidence the core request/validation/resilience surface is solid. The
-**observability** path was likewise dogfooded end-to-end against a running app and
-found no bug: Prometheus metrics (`/metrics` exposition, request counters/histogram/
-heap gauge), OpenTelemetry tracing (`otelMiddleware` → W3C traceparent propagation →
-OTLP export, service.name in the resource), and the health-check registry. Scaffolds
-now wire `/metrics` out of the box (parallel to the `/health/live`+`/health/ready`
-probes) so a generated app is observable with no extra setup.
+"become a product" directive. **F-DF1–F-DF13 are all shipped (1.2.1 → 1.2.7);**
+F-DF14 is a comment-only fix on `main`. The API-gateway, CMS, multi-tenancy, cron,
+and observability dogfoods were **clean validations** (no functional bug): Prometheus
+metrics, OpenTelemetry tracing (W3C traceparent propagation + OTLP export), the
+health-check registry, `JobQueue` (retry/DLQ), `CronScheduler`, and per-tenant pool
+routing all behaved correctly against running apps — evidence the core is solid, not
+merely patched. Scaffolds now wire both health probes **and** `/metrics` out of the
+box, so a generated app is observable and deployable with no extra setup.
 
 **Onboarding measurement (Phase 3 DX, local path, this engagement):** cold
 `create → install → add auth → add redis → build → boot` ≈ **6.3s active CLI time**
 (scaffold 2.85s · warm-cache install 1.26s · add auth 0.17s · add redis 0.22s ·
 build 1.54s · cold boot to healthy `/health` 0.30s), zero friction on the happy
-path (Node 20 local; engines declare ≥22). The untested onboarding gap is
-**deployment** (Docker/prod), which matches the Phase-2 backlog.
+path (Node 20 local; engines declare ≥22). The **deployment** path has since been
+dogfooded too: `docker build` + container boot verified end-to-end (F-DF7/F-DF8),
+and `street deploy:init --platform kubernetes` now produces a deployable manifest
+with working probes + wired secrets (F-DF9/F-DF10).
+
+**Published benchmarks (reproducible, this engagement):** `scripts/bench-http.mjs`
+on an i7-1255U / Node 20 reports ~1 ms cold start and a ~25–28k req/sec hello-world
+*floor* (in-process probe, honestly labeled — not a tuned peak); `scripts/bench-pillars.mjs`
+reports in-memory hot-path ops/sec. Method, hardware, and scripts are published in
+`docs/benchmarks/runtime.md` with no cherry-picking or framework comparisons.
 
 ---
 
@@ -142,10 +167,12 @@ path (Node 20 local; engines declare ≥22). The untested onboarding gap is
 | TD-3 | `release-inputs.json` not CI-generated | ✅ Done — derived live |
 | TD-4 | Hardcoded backoff ladders | ✅ Done — `computeBackoff` |
 | TD-5 | `@streetjs/core` compat shim | Deferred to 2.0 (telemetry-gated) |
-| TD-6 | Flaky release: transient CLI-test flakes aborted `release.sh`, forcing manual tag recovery | ✅ Done (two-layer) — (a) `create-boot.integration` binds an OS-assigned free port (`getFreePort`), removing the random-port EADDRINUSE flake; (b) `release.sh` retries the CLI suite once before aborting, so remaining load/network-sensitive integration flakes (scaffold+boot, npm-install smoke) no longer break a release. Correctness stays gated by GitHub CI (Node 22/24). |
+| TD-6 | Release aborts that forced manual tag recovery | ✅ Done (root-caused) — initially treated as a Node-20 flake and mitigated two ways: (a) `create-boot.integration` binds an OS-assigned free port (`getFreePort`); (b) `release.sh` retries the CLI suite once. That retry then surfaced the **true** cause: `marzpay-scope-review` asserts no `packages/core/` changes, which conflicts with the version bump `release.sh` writes to `packages/core/package.json` (a race vs. auto-commit). Fixed the test to allow a version-only bump (F-DF13, shipped 1.2.7). Correctness stays gated by GitHub CI (Node 22/24). |
 
-No material new debt. The one regression introduced this session (F-6) was caught by
-CI and fixed same-engagement.
+No material new debt. The one regression introduced during the engineering phase
+(F-6) was caught by CI and fixed same-engagement. Honest note: the release-abort was
+misattributed to a Node-20 flake for two releases before the retry gate proved it
+was a deterministic test/process conflict — now understood and fixed.
 
 ---
 
@@ -180,19 +207,24 @@ starter template · footprint benchmark · keyless-signing identity policy + ver
   shipped/tested; producer wiring + plugin re-publish need CI-OIDC go-ahead.
 - **StreetJS 2.0** (`STREETJS-2.0-PLAN.md`) — telemetry-gated; explicitly not started.
 
-**Active — "become a consumer" (dogfooding) phase:** scaffold real apps from the
-published CLI and fix every friction at the source. Delivered so far: `saas` template
-end-to-end (→ 1.2.1: `.env` loading, `migrate:run` guidance), `realtime-chat` template
-end-to-end (→ 1.2.2: WebSocket serving via `app.server`/`StreetHttpApp`, gateway
-protocol). This track is the highest-return work and continues with the next
-templates/example apps. **Release-process note:** promote the CHANGELOG `[Unreleased]`
-heading to the target version *before* running `scripts/release.sh` — the tag-scoped
-Release Engineering Enforcement gate checks the changelog at the tagged commit (a
-`[1.2.2]` heading added after the tag caused a one-off enforcement failure that was
-resolved by re-pointing the tag to the commit that documents the release).
+**Delivered — "become a consumer" (dogfooding) phase (1.2.1 → 1.2.7):** dogfooded
+the `saas`, `realtime-chat`, and `app` templates plus purpose-built webhook,
+API-gateway, CMS, background-worker, and multi-tenant apps; fixed every friction at
+the source (F-DF1–F-DF14); measured onboarding and deployment; published reproducible
+benchmarks and task-oriented guides; hardened the release process; and produced the
+community (Discord) design. This is the highest-return work and can continue with more
+example apps and guides (auth, Redis cache, PG-HA walkthroughs).
 
-**Owner/community track (not engineering):** recruit maintainer #2; enable funding;
-community plugin index + submission flow; tutorials/examples/case studies.
+**Release-process notes (learned):** (1) promote the CHANGELOG `[Unreleased]` heading
+to the target version *before* running `scripts/release.sh` (the tag-scoped
+enforcement gate checks the changelog at the tagged commit); (2) the CLI suite is
+retried once and the scope-review/version-bump conflict is fixed, so releases no
+longer need manual recovery.
+
+**Owner/community track (partly started):** the **Discord community** is now
+designed and linked from the README (`docs/community/discord.md`, invite live);
+recruit maintainer #2; enable funding; community plugin index + submission flow;
+more tutorials/examples/case studies.
 
 **Cleanup still owed:** the legacy "dependency-free core" phrasing remains in ~90
 older docs (governance/audits/marketing copy) not authored this session; the newer
