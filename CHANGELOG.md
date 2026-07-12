@@ -9,6 +9,27 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+> Continuing the **dogfooding** phase: exercised the deployment path
+> (`docker build` → `docker run`) and built an API gateway on the `app` template.
+
+### Fixed
+- **Scaffolded apps now build in Docker (and any clean environment).** The
+  generated `package.json` build/dev/start/test/migrate scripts invoke the `street`
+  binary, but `@streetjs/cli` was in neither `dependencies` nor `devDependencies` —
+  so `docker build` failed at `npm run build` with `sh: street: not found`. It only
+  worked locally because the developer had the CLI installed globally. `@streetjs/cli`
+  is now a scaffold `devDependency` (kept in release lockstep by `scripts/release.sh`),
+  so `npm ci && npm run build` works in Docker/CI out of the box. Verified end-to-end:
+  a fresh scaffold now `docker build`s and the container boots and serves `/health`.
+
+### Docs
+- **Scaffold README now documents Docker deployment.** Added a "Deploy with Docker"
+  section covering the zero-config `docker compose up` (development) path and the
+  production `docker build` + `docker run` path, including the required secrets
+  (`JWT_SECRET`, `SESSION_KEY`, `CORS_ORIGINS`) — the production image sets
+  `NODE_ENV=production` and fails fast without them by design, which previously left
+  users hitting `JWT_SECRET must be set in production` with no guidance.
+
 ## [1.2.3] - 2026-07-12
 
 > Continuing the **dogfooding** phase: measured the cold onboarding path and
