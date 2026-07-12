@@ -6907,6 +6907,16 @@ ${isSqlite ? `  // SQLite: zero-config, no server or credentials required. The d
   // connections are served on the same port (see src/gateways/chat.gateway.ts).
   wsServer.attach(app.server, chatConnectionHandler);
 
+  // Kubernetes / orchestrator probes: GET /health/live and /health/ready.
+  // These match the liveness/readiness probe paths emitted by
+  // \`street deploy:init --platform kubernetes\` (generateManifest), so a
+  // scaffolded app deploys and passes its probes out of the box. Registered
+  // before the other middleware so probes are always served, unauthenticated
+  // and un-rate-limited. Add checks to the registry (e.g. a DB reachability
+  // probe with \`type: 'readiness'\`) to gate readiness on real dependencies.
+  const healthRegistry = new HealthCheckRegistry();
+  registerHealthRoutes(app, healthRegistry);
+
   // Global middleware
   app.use(securityHeaders);
   app.use(corsMiddleware(corsOrigins));
