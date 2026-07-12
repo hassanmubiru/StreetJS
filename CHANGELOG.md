@@ -9,8 +9,10 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.2.5] - 2026-07-12
+
 > Continuing the **dogfooding** phase: exercised the Kubernetes deployment path
-> (`street deploy:init --platform kubernetes` → apply) end-to-end.
+> (`street deploy:init --platform kubernetes` → apply) and built a CMS end-to-end.
 
 ### Fixed
 - **Kubernetes manifest dropped all environment variables.** `generateManifest('kubernetes', …)`
