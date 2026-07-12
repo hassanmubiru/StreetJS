@@ -48,7 +48,17 @@ interface RegisteredRoute {
   controllerMeta: ControllerMetadata;
 }
 
-export function streetApp(options: StreetAppOptions = {}): StreetApp {
+/**
+ * A {@link StreetApp} that also exposes its underlying Node `http.Server`, so a
+ * `StreetWebSocketServer` can be attached to the same server that serves HTTP:
+ *   `wsServer.attach(app.server, connectionHandler)` before `app.listen()`.
+ * This is the return type of the standard {@link streetApp} factory.
+ */
+export interface StreetHttpApp extends StreetApp {
+  readonly server: Server;
+}
+
+export function streetApp(options: StreetAppOptions = {}): StreetHttpApp {
   const router = new Router();
   const globalMiddlewares: MiddlewareFn[] = [...(options.globalMiddlewares ?? [])];
   const registeredRoutes: RegisteredRoute[] = [];
