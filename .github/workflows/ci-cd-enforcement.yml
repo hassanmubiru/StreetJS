@@ -143,7 +143,10 @@ jobs:
         env:
           POSTGRES_DB: street_test
           POSTGRES_USER: street
-          POSTGRES_PASSWORD: ${{ secrets.PG_PASSWORD }}
+          # Test-only credential; fall back when the secret is unavailable (e.g.
+          # Dependabot runs get no repo secrets) so the postgres service still
+          # initializes. Matches ci-cd.yml's PG_PASSWORD fallback.
+          POSTGRES_PASSWORD: ${{ secrets.PG_PASSWORD || 'streetpass' }}
         ports:
           - 5432:5432
         options: >-
