@@ -104,6 +104,13 @@ updates:
     labels:
       - "dependencies"
       - "docker"
+    # Stay on an even-numbered (LTS) Node line for base images. Node 25 is an
+    # odd, non-LTS release; the framework declares engines >=22 and CI runs
+    # 22/24. Ignore node 25.x until the next LTS (26) so base-image PRs don't
+    # churn onto a non-LTS runtime. Digest bumps within 24.x still flow.
+    ignore:
+      - dependency-name: "node"
+        versions: ["25.x"]
     open-pull-requests-limit: 5
     cooldown:
       default-days: 7
@@ -118,6 +125,10 @@ updates:
     labels:
       - "dependencies"
       - "docker"
+    # See note above: skip the non-LTS Node 25 line for base images.
+    ignore:
+      - dependency-name: "node"
+        versions: ["25.x"]
     open-pull-requests-limit: 5
     cooldown:
       default-days: 7
