@@ -172,7 +172,7 @@ jobs:
           PG_HOST: localhost
           PG_PORT: 5432
           PG_USER: street
-          PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
+          PG_PASSWORD: ${{ secrets.PG_PASSWORD || 'streetpass' }}
           PG_DATABASE: street_test
           KEK: ${{ secrets.KEK }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
