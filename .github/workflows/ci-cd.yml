@@ -74,7 +74,14 @@ env:
   PG_HOST: localhost
   PG_PORT: 5432
   PG_USER: street
-  PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
+  # The CI Postgres is an ephemeral throwaway container, so this is a test-only
+  # credential, not a real secret. Fall back to a fixed value when the secret is
+  # unavailable — notably on Dependabot-triggered runs, where GitHub does not
+  # expose repository secrets, so `secrets.PG_PASSWORD` is empty and the
+  # `postgres:16-alpine` service would otherwise fail to initialize ("superuser
+  # password is not specified"), failing every DB-backed job. Mirrors the fixed
+  # `streetpass` password already used by the postgres-certification e2e job.
+  PG_PASSWORD: ${{ secrets.PG_PASSWORD || 'streetpass' }}
   PG_DATABASE: street_test
   SUITE: ${{ inputs.suite || 'all' }}
 
