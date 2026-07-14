@@ -1,0 +1,90 @@
+{
+  "name": "@streetjs/websocket",
+  "version": "1.0.0",
+  "description": "StreetJS realtime foundation: a hardened WebSocket server (origin + auth gating, heartbeat, capacity limits), an event-framed socket, an SSE connection, and a transport-agnostic channel hub with presence and typing. Built on ws.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.js.map",
+    "dist/**/*.d.ts",
+    "dist/**/*.d.ts.map",
+    "!dist/**/*.test.js",
+    "!dist/**/*.test.js.map",
+    "!dist/**/*.test.d.ts",
+    "!dist/**/*.test.d.ts.map",
+    "!dist/tests/**",
+    "!dist/examples/**",
+    "README.md",
+    "ARCHITECTURE.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "c8": {
+    "include": ["dist/**/*.js"],
+    "exclude": ["dist/tests/**", "dist/examples/**", "dist/types.js"],
+    "reporter": ["text", "lcov"],
+    "all": true,
+    "check-coverage": true,
+    "lines": 90,
+    "functions": 90,
+    "branches": 85,
+    "statements": 90
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test dist/tests/*.test.js",
+    "coverage": "c8 node --test dist/tests/*.test.js",
+    "example": "node dist/examples/integration.js",
+    "lint": "tsc --noEmit",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\""
+  },
+  "keywords": [
+    "streetjs",
+    "street-framework",
+    "websocket",
+    "ws",
+    "sse",
+    "server-sent-events",
+    "realtime",
+    "channels",
+    "presence",
+    "typescript",
+    "esm"
+  ],
+  "author": "street contributors",
+  "license": "MIT",
+  "homepage": "https://hassanmubiru.github.io/StreetJS/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hassanmubiru/StreetJS.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hassanmubiru/StreetJS/issues"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.0",
+    "@types/ws": "^8.5.10",
+    "c8": "^11.0.0",
+    "typescript": "^6.0.3"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
