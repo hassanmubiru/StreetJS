@@ -215,6 +215,58 @@ test('flush and close delegate to the transport', async () => {
   assert.equal(closed, 1);
 });
 
+test('default error handler writes a notice to stderr without throwing', () => {
+  const failing: Transport = {
+    name: 'failing',
+    write() {
+      throw new Error('sink down');
+    },
+  };
+  const captured: string[] = [];
+  const original = process.stderr.write.bind(process.stderr);
+  (process.stderr as unknown as { write: (c: string) => boolean }).write = (chunk: string) => {
+    captured.push(chunk);
+    return true;
+  };
+  try {
+    const log = createLogger({ transport: failing, clock: () => 1 });
+    assert.doesNotThrow(() => log.warn('x'));
+  } finally {
+    (process.stderr as unknown as { write: typeof original }).write = original;
+  }
+  assert.equal(captured.length, 1);
+  assert.match(captured[0], /transport error: sink down/);
+  assert.match(captured[0], /dropped warn record/);
+});
+
+test('default error handler tolerates non-Error throwables', () => {
+  const failing: Transport = {
+    name: 'failing',
+    write() {
+      throw 'string failure';
+    },
+  };
+  const captured: string[] = [];
+  const original = process.stderr.write.bind(process.stderr);
+  (process.stderr as unknown as { write: (c: string) => boolean }).write = (chunk: string) => {
+    captured.push(chunk);
+    return true;
+  };
+  try {
+    const log = createLogger({ transport: failing, clock: () => 1 });
+    assert.doesNotThrow(() => log.info('y'));
+  } finally {
+    (process.stderr as unknown as { write: typeof original }).write = original;
+  }
+  assert.match(captured[0], /transport error: string failure/);
+});
+
+test('bindings getter exposes the bound fields', () => {
+  const memory = new MemoryTransport();
+  const log = createLogger({ transport: memory, base: { app: 'x' } });
+  assert.deepEqual(log.bindings, { app: 'x' });
+});
+
 test('flush and close are safe when the transport omits them', async () => {
   const log = createLogger({ transport: new MemoryTransport() });
   await assert.doesNotReject(log.flush());
