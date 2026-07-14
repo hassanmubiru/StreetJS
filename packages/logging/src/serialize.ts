@@ -114,8 +114,7 @@ export function isPlainContainer(value: unknown): value is Record<string, unknow
   if (typeof (value as { toJSON?: unknown }).toJSON === 'function') {
     return false;
   }
-  if (Array.isArray(value) || value instanceof Map || value instanceof Set) {
-    return true;
-  }
+  // Arrays, Maps, Sets, and plain objects are all walked (so redaction reaches
+  // values nested inside them).
   return true;
 }
