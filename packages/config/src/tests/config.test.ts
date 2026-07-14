@@ -21,7 +21,7 @@ const baseSchema = {
     url: s.url({ protocols: ['postgres', 'postgresql'] }).secret(),
     poolSize: s.number({ integer: true, min: 1 }).default(10),
   },
-  timeout: s.duration().default('30s'),
+  timeout: s.duration().default(30_000),
   adminEmail: s.email().optional(),
 } as const;
 
