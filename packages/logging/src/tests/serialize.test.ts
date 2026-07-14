@@ -71,6 +71,29 @@ test('normalizeLeaf reports typed arrays by kind and size', () => {
   assert.match(String(normalizeLeaf(buf)), /Uint8Array: 4 bytes/);
 });
 
+test('toJSON returning nested containers is normalized recursively', () => {
+  const obj = {
+    toJSON: () => ({
+      list: [1, 2n, new Date('2020-01-01T00:00:00.000Z')],
+      m: new Map<string, unknown>([['k', 1]]),
+      s: new Set([9]),
+    }),
+  };
+  const out = normalizeLeaf(obj) as Record<string, unknown>;
+  assert.deepEqual(out.list, [1, '2', '2020-01-01T00:00:00.000Z']);
+  assert.deepEqual(out.m, { k: 1 });
+  assert.deepEqual(out.s, [9]);
+});
+
+test('toJSON returning a circular structure is guarded', () => {
+  const circular: Record<string, unknown> = { a: 1 };
+  circular.self = circular;
+  const obj = { toJSON: () => circular };
+  const out = normalizeLeaf(obj) as Record<string, unknown>;
+  assert.equal(out.a, 1);
+  assert.equal(out.self, '[Circular]');
+});
+
 test('isPlainContainer distinguishes containers from leaves', () => {
   assert.equal(isPlainContainer({ a: 1 }), true);
   assert.equal(isPlainContainer([1, 2]), true);
