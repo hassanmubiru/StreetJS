@@ -8,14 +8,15 @@ is `docs/audits/2026-07-11-streetjs-final-engineering-certification.md`.
 
 **Date:** 2026-07-12 (UTC) · **Repo:** `hassanmubiru/StreetJS` @ `main` `2a71c2ea`
 (local == origin) · **npm:** `streetjs`/`@streetjs/core`/`@streetjs/cli` = **1.2.7**
-(provenance); **12 new foundation packages published at 1.0.0 with SLSA provenance**
+(provenance); **13 new foundation packages published at 1.0.0 with SLSA provenance**
 (`config`, `logging`, `metrics`, `health`, `tracing`, `http-client`, `webhooks`,
-`testing`, `cache`, `session`, `security`, `websocket`); **core-monolith split underway**
-via dependency inversion — `cache`, `session`, `security` (JWT), `websocket` (WS + SSE +
-channels) published; and `@streetjs/xss` (input sanitizers, built + verified, 100% cov)
-extracted — core re-exports all five as the single source of truth (keeping the
-framework-coupled `xssMiddleware`) · **CI:** green (all workflows on `main` HEAD, incl.
-Publish Backend Packages and Docker Build, and tag `v1.2.7`).
+`testing`, `cache`, `session`, `security`, `websocket`, `xss`); **core-monolith split
+underway** via dependency inversion — `cache`, `session`, `security` (JWT), `websocket`
+(WS + SSE + channels), `xss` (sanitizers) published; and `@streetjs/multipart` (streaming
+form-data parser, built + verified, 12 tests) extracted — core re-exports all six as the
+single source of truth (keeping framework-coupled layers like `xssMiddleware` and
+`UploadGuard`) · **CI:** green (all workflows on `main` HEAD, incl. Publish Backend
+Packages and Docker Build, and tag `v1.2.7`).
 
 **Evidence discipline:** every ✅ is backed by a command/CI run this engagement.
 Items needing external infra or owner decisions are marked ◑ with the reason —
