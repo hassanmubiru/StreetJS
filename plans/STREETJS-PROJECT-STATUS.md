@@ -252,24 +252,43 @@ exactly how `config` was done. Delivered so far:
   custom); namespaces, deep-merge precedence, secret masking, descriptive startup
   errors; zero runtime deps, 10 acyclic modules, 34/34 tests. First in the
   `publish-backend.yml` `PKGS` set (leaf/base ordering).
-- **`@streetjs/logging@1.0.0`** — built and **verified** (build + lint clean, 68 tests,
-  98.5% line / 95.7% branch coverage; example runs): fast structured level-based logging
-  with child loggers + bound context, pluggable transports (console JSON/pretty, stream,
-  memory, multi), automatic secret redaction before any sink, safe error/circular
-  serialization, timers, injectable clock, and a `LOGGER` DI token; zero runtime deps, 7
-  acyclic modules. Wired into `publish-backend.yml` after `config`; publishes with
-  provenance on the next dispatch (awaiting go-ahead to publish).
-- **`@streetjs/metrics@1.0.0`** — built and **verified** (build + lint clean, 49 tests,
-  99.7% line / 98.6% branch coverage; example emits valid exposition): Prometheus-compatible
-  `Counter`/`Gauge`/`Histogram`, labels with strict validation + deterministic series keys,
-  a `MetricsRegistry` rendering the text exposition format, optional pull-based default
-  process metrics, injectable clock/process source, and a `METRICS_REGISTRY` DI token; zero
-  runtime deps, 10 acyclic modules. Wired into `publish-backend.yml` after `logging`.
+All built as zero-runtime-dependency, interface-first, strict-TS, ESM packages with
+acyclic module graphs, a DI token, docs (README + ARCHITECTURE + CHANGELOG + LICENSE), a
+runnable example, and ≥90% enforced coverage. Each is wired into `publish-backend.yml`
+(leaf-first) and publishes with provenance on the next dispatch (awaiting go-ahead).
 
-Next candidates (missing, low in the graph): `tracing`, `health`, `http-client`,
-`webhooks` (standalone), `testing`, `validation`/`environment`, then the higher layers.
-Downstream packages accept these by interface; they depend on the foundation packages,
-never the reverse.
+- **`@streetjs/logging@1.0.0`** — structured level logging; child loggers + bound context;
+  pluggable transports (console JSON/pretty, stream, memory, multi); automatic secret
+  redaction before any sink; safe error/circular serialization; timers; `LOGGER` token.
+  68 tests, 98.5% line / 95.7% branch.
+- **`@streetjs/metrics@1.0.0`** — Prometheus-compatible `Counter`/`Gauge`/`Histogram`;
+  strict-validated labels + deterministic series keys; `MetricsRegistry` rendering the text
+  exposition format; optional pull-based default process metrics; `METRICS_REGISTRY` token.
+  49 tests, 99.7% / 98.6%.
+- **`@streetjs/health@1.0.0`** — framework-agnostic health-check registry;
+  liveness/readiness/startup; per-check timeouts + criticality; status aggregation (non-
+  critical failures degrade to `warn`); IETF `health+json` reporting; `HEALTH_REGISTRY`
+  token. 23 tests, 100% / 98.4%.
+- **`@streetjs/tracing@1.0.0`** — lightweight distributed tracing; spans with attributes/
+  events/status; W3C `traceparent` propagation; async-context active spans; samplers;
+  pluggable exporters; `TRACER` token. 27 tests, 100% / 94.6%.
+- **`@streetjs/http-client@1.0.0`** — typed outbound client over `fetch`; base URLs, query
+  building, JSON helpers, timeouts, idempotent-only retries with backoff + `Retry-After`,
+  request/response interceptors, descriptive errors; injectable fetch/sleep; `HTTP_CLIENT`
+  token. 29 tests, 97.9% / 95.8%.
+- **`@streetjs/webhooks@1.0.0`** — generic HMAC-SHA256 signing + delivery with retries and
+  constant-time verification with replay protection; injectable transport; `WEBHOOK_
+  DISPATCHER` token. 24 tests, 100% / 93.8%.
+- **`@streetjs/testing@1.0.0`** — test-runner-agnostic utilities: spies, a fake clock that
+  plugs into every injectable-clock package, deferreds, `waitFor`/`delay`, and a scripted
+  `fetch` mock. 21 tests, 100% / 98.8%.
+
+Next candidates (missing, low in the graph): `validation`/`environment` (config-adjacent),
+then higher layers. Much of the requested list already ships as `streetjs` core subpaths
+(`/http`, `/database`, `/repository`, `/migrations`, `/security`, `/session`, `/websocket`,
+`/webhook`, jobs) or existing packages (`events`, `queue`, `realtime`, `storage`, `search`,
+`ai`); re-creating those would duplicate logic or be shims (forbidden), so the remaining
+work there is a larger extraction decision rather than new foundation code.
 
 **Owner/community track (partly started):** the **Discord community** is now
 designed and linked from the README (`docs/community/discord.md`, invite live);
@@ -347,5 +366,5 @@ only.
 | Docs | `docs/background-jobs.md`, `docs/observability.md`, `docs/benchmarks/runtime.md` |
 | Benchmarks | `scripts/bench-http.mjs`, `scripts/bench-pillars.mjs` — published numbers + hardware + method |
 | Community | `docs/community/discord.md` (full server design) + Discord invite added to README |
-| New packages | **`@streetjs/config@1.0.0`** — typed/schema-validated/immutable config foundation; zero runtime deps; 10 acyclic modules; 34/34 tests; **published** to npm with SLSA provenance. **`@streetjs/logging@1.0.0`** — structured level logging with child loggers, pluggable transports, secret redaction, safe serialization, timers, DI token; zero runtime deps; 7 acyclic modules; 68 tests; 98.5% coverage. **`@streetjs/metrics@1.0.0`** — Prometheus-compatible Counter/Gauge/Histogram + registry + exposition format + default process metrics + DI token; zero runtime deps; 10 acyclic modules; 49 tests; 99.7% coverage. logging + metrics wired into `publish-backend.yml` (publish with provenance on next dispatch) |
+| New packages | **`@streetjs/config@1.0.0`** — **published** to npm with SLSA provenance (34 tests). Plus **7 foundation packages built + verified** at 1.0.0, wired into `publish-backend.yml` (publish with provenance on next dispatch), 241 tests total, all ≥90% coverage: **logging** (68), **metrics** (49), **health** (23), **tracing** (27), **http-client** (29), **webhooks** (24), **testing** (21). All zero-runtime-dep, interface-first, acyclic, with DI tokens + docs + examples. |
 | Verification | every claim above backed by a command/CI run; scratch kept in gitignored `.tmp/` and cleaned |
