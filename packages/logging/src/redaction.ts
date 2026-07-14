@@ -91,6 +91,8 @@ export class DefaultRedactor implements Redactor {
 
   redact(fields: LogFields): Record<string, JsonValue> {
     const seen = new WeakSet<object>();
+    // Seed the root so a direct self-reference is caught at the first level.
+    seen.add(fields);
     const result = this.walkObject(fields, [], seen, 0);
     return result as Record<string, JsonValue>;
   }
