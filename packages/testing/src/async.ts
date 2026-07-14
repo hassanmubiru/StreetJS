@@ -17,14 +17,9 @@ export function deferred<T = void>(): Deferred<T> {
   return { promise, resolve, reject };
 }
 
-/** Resolve after `ms` milliseconds (unref'd, so it never keeps the process alive). */
+/** Resolve after `ms` milliseconds. */
 export function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => {
-    const t = setTimeout(resolve, ms);
-    if (typeof (t as { unref?: () => void }).unref === 'function') {
-      (t as { unref: () => void }).unref();
-    }
-  });
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
