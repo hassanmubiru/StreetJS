@@ -211,7 +211,7 @@ export class StreetWebSocketServer {
       maxPayload: 512 * 1024, // 512 KB max message
     });
 
-    this.wss.on('connection', (ws, req) => {
+    this.wss.on('connection', (ws) => {
       if (this.clients.size >= this.MAX_CLIENTS) {
         ws.close(1013, 'Server at capacity');
         return;
