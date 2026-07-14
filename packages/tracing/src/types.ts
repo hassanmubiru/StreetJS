@@ -68,7 +68,7 @@ export interface Span {
   setAttributes(attributes: Attributes): this;
   addEvent(name: string, attributes?: Attributes): this;
   setStatus(status: SpanStatus): this;
-  /** Record an exception as an event and (unless suppressed) set status to error. */
+  /** Record an exception as a span `exception` event (does not itself set status). */
   recordException(error: unknown): this;
   updateName(name: string): this;
   /** Finish the span. Idempotent — subsequent calls are ignored. */
