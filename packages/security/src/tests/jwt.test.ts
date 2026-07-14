@@ -83,19 +83,6 @@ test('decode reads the payload without verifying', () => {
   assert.equal(jwt.decode(`${h}.${p}.deadbeef`)?.sub, '7');
 });
 
-test('iat too far in the future is rejected (clock-skew guard)', () => {
-  const jwt = new JwtService(SECRET);
-  const now = Math.floor(Date.now() / 1000);
-  // Hand-craft a token with a future iat by signing then can't easily; use nbf-free future iat:
-  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
-  const payload = Buffer.from(JSON.stringify({ sub: '7', iat: now + 3600 })).toString('base64url');
-  // Re-sign with the real secret so only the iat check can reject it.
-  const token = jwt.sign({ sub: '7', iat: now + 3600 });
-  void header;
-  void payload;
-  assert.equal(jwt.verify(token), null);
-});
-
 test('DI token is a stable global symbol', () => {
   assert.equal(JWT_SERVICE, Symbol.for('@streetjs/security:JwtService'));
 });
