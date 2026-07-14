@@ -11,6 +11,7 @@ COPY packages/cli/package.json packages/cli/
 COPY packages/cache/package.json packages/cache/
 COPY packages/session/package.json packages/session/
 COPY packages/security/package.json packages/security/
+COPY packages/websocket/package.json packages/websocket/
 
 RUN npm ci
 
