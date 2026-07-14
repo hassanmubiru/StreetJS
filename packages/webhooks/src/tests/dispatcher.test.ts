@@ -97,6 +97,15 @@ test('retries transport errors then reports the error', async () => {
   assert.equal(result.error, 'ECONNREFUSED');
 });
 
+test('uses the default real timer when no sleep is injected', async () => {
+  // No `sleep` injected → exercises the built-in unref'd timer with a 0ms backoff.
+  const { transport } = recordingTransport([500, 200]);
+  const d = new WebhookDispatcher({ transport, retries: 1, baseDelayMs: 0 });
+  const result = await d.dispatch(endpoint, { type: 't', data: {} });
+  assert.equal(result.delivered, true);
+  assert.equal(result.attempts, 2);
+});
+
 test('buildEnvelope produces a stable, ordered JSON envelope', () => {
   const body = buildEnvelope({ type: 'a', data: { x: 1 } }, 'id1', 42);
   assert.equal(body, '{"id":"id1","type":"a","created":42,"data":{"x":1}}');
