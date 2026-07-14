@@ -89,7 +89,7 @@ export class Field<T> implements FieldDescriptor<T> {
   get type(): ConfigValueType {
     return this.def.type;
   }
-  get secret(): boolean {
+  get isSecret(): boolean {
     return this.def.secret;
   }
   get required(): boolean {
@@ -186,7 +186,7 @@ export const s = {
   ip: (version?: 4 | 6): Field<string> => field('ip', (r) => validateIp(r, version)),
   email: (): Field<string> => field('email', (r) => validateEmail(r)),
   /** A fully custom field: supply a validator returning the typed value or a message. */
-  custom: <T>(label: string, validate: (raw: unknown) => Outcome<T>): Field<T> => field('custom', validate),
+  custom: <T>(validate: (raw: unknown) => Outcome<T>): Field<T> => field('custom', validate),
 } as const;
 
 /** Identity helper that fixes the schema type for inference. Alias: `schema`. */

@@ -73,7 +73,7 @@ function walk(shape: SchemaShape, prefix: string, ctx: WalkCtx): void {
 }
 
 function resolveField(field: FieldDescriptor<unknown>, path: string, ctx: WalkCtx): void {
-  if (field.secret) ctx.secretPaths.add(path);
+  if (field.isSecret) ctx.secretPaths.add(path);
   const [present, raw] = navigate(ctx.merged, path);
   const source = ctx.provenance.get(path) ?? null;
 
@@ -87,10 +87,10 @@ function resolveField(field: FieldDescriptor<unknown>, path: string, ctx: WalkCt
       ctx.issues.push({
         key: path,
         source,
-        invalidValue: field.secret ? REDACTED : raw,
+        invalidValue: field.isSecret ? REDACTED : raw,
         expectedType: outcome.expected,
         message: outcome.message,
-        secret: field.secret,
+        secret: field.isSecret,
       });
     }
     return;
