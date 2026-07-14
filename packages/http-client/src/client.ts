@@ -29,13 +29,7 @@ import { HttpResponse } from './response.js';
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 
-const realSleep: SleepFn = (ms) =>
-  new Promise((resolve) => {
-    const t = setTimeout(resolve, ms);
-    if (typeof (t as { unref?: () => void }).unref === 'function') {
-      (t as { unref: () => void }).unref();
-    }
-  });
+const realSleep: SleepFn = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function hasHeader(headers: HeaderMap, name: string): boolean {
   const lower = name.toLowerCase();
