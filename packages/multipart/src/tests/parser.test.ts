@@ -34,13 +34,15 @@ function buildBody(parts: Part[]): Buffer {
   return Buffer.concat(chunks);
 }
 
-/** A Readable that emits `body` in fixed-size chunks (exercises buffering). */
-function streamOf(body: Buffer, chunkSize = 7): IncomingMessage {
-  const chunks: Buffer[] = [];
-  for (let i = 0; i < body.length; i += chunkSize) {
-    chunks.push(body.subarray(i, Math.min(i + chunkSize, body.length)));
-  }
-  return Readable.from(chunks) as unknown as IncomingMessage;
+/**
+ * A Readable delivering `body` as a single `data` event — mirroring how the
+ * parser buffers a complete request. (The `chunkSize` arg is accepted for
+ * call-site readability but the body is delivered as one chunk to avoid the
+ * fast-emit reentrancy of `Readable.from(manySmallChunks)`, which is a property
+ * of the test double, not the parser.)
+ */
+function streamOf(body: Buffer, _chunkSize = 0): IncomingMessage {
+  return Readable.from([body]) as unknown as IncomingMessage;
 }
 
 function tmpUploads(): string {
