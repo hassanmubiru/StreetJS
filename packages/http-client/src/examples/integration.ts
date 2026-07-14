@@ -8,12 +8,14 @@
 import { createHttpClient, type FetchLike } from '../index.js';
 
 function scriptedFetch(): FetchLike {
-  let call = 0;
+  let flakyHits = 0;
   return async (url, init) => {
-    call++;
     process.stdout.write(`→ ${String(init.method)} ${url}\n`);
-    if (url.endsWith('/flaky') && call < 2) {
-      return new Response('{}', { status: 503 });
+    if (url.endsWith('/flaky')) {
+      flakyHits++;
+      if (flakyHits < 2) {
+        return new Response('{}', { status: 503 }); // first attempt fails, retry succeeds
+      }
     }
     if (url.includes('/users') && init.method === 'POST') {
       return new Response(JSON.stringify({ id: 42, name: 'Ada' }), {
