@@ -101,7 +101,7 @@ test('ConsoleTransport pretty mode emits readable lines', () => {
   const out: string[] = [];
   const t = new ConsoleTransport({ format: 'pretty', stdout: (c) => out.push(c) });
   t.write(record());
-  assert.match(out[0], /INFO \(app\) hello/);
+  assert.match(out[0], /INFO\s+\(app\) hello/);
 });
 
 test('StreamTransport writes JSON lines to a stream', () => {
