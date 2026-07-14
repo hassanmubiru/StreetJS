@@ -77,7 +77,7 @@ export class ConfigValidationError extends ConfigError {
   }
 
   /** Structured, secret-safe representation for programmatic handling. */
-  override toJSON(): { name: string; issues: readonly ValidationIssue[] } {
+  toJSON(): { name: string; issues: readonly ValidationIssue[] } {
     return { name: this.name, issues: this.issues };
   }
 }
