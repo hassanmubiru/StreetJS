@@ -15,7 +15,7 @@ function sequentialIds(): IdGenerator {
   };
 }
 
-function setup(sampler?: Parameters<typeof createTracer>[0]['sampler']) {
+function setup(sampler?: Sampler) {
   const exporter = new InMemorySpanExporter();
   let now = 1000;
   const tracer = createTracer({
@@ -146,6 +146,25 @@ test('startActiveSpan handles async success and failure', async () => {
   );
   const failed = exporter.getFinishedSpans().find((s) => s.name === 'async-fail');
   assert.equal(failed?.status.code, 'error');
+});
+
+test('parent:null forces a new root even inside an active span', () => {
+  const { tracer } = setup();
+  tracer.startActiveSpan('outer', (outer) => {
+    const forcedRoot = tracer.startSpan('root', { parent: null });
+    assert.notEqual(forcedRoot.spanContext().traceId, outer.spanContext().traceId);
+    assert.equal(forcedRoot.spanContext().traceId.length, 32);
+    forcedRoot.end();
+  });
+});
+
+test('explicit startTime is honored', () => {
+  const { exporter, tracer } = setup();
+  const span = tracer.startSpan('op', { startTime: 500 });
+  span.end(700);
+  const data = exporter.getFinishedSpans()[0];
+  assert.equal(data.startTime, 500);
+  assert.equal(data.durationMs, 200);
 });
 
 test('a non-sampled span records nothing and is not exported', () => {
