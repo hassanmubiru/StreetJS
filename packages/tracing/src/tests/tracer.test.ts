@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { createTracer } from '../tracer.js';
 import { InMemorySpanExporter, SimpleSpanProcessor } from '../exporter.js';
 import { alwaysOffSampler } from '../sampler.js';
-import type { IdGenerator } from '../types.js';
+import type { IdGenerator, Sampler } from '../types.js';
 
 function sequentialIds(): IdGenerator {
   let t = 0;
