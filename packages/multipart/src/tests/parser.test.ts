@@ -150,6 +150,30 @@ test('handles multiple files and fields together', async () => {
   }
 });
 
+test('unlinks already-written files when a later chunk exceeds the limit', async () => {
+  const dir = tmpUploads();
+  try {
+    // chunk1: a complete file part followed by the start of the next boundary
+    // (so the parser writes the file), keeping total bytes under the limit.
+    const chunk1 = Buffer.from(
+      `--${BOUNDARY}\r\nContent-Disposition: form-data; name="f"; filename="a.bin"\r\n\r\nHELLO\r\n--${BOUNDARY}\r\n`,
+      'ascii',
+    );
+    const parser = new MultipartParser(BOUNDARY, dir, chunk1.length + 50);
+    const r = new Readable({ read() {} });
+    r.push(chunk1);
+    // A later chunk pushes total bytes over the limit → parse rejects and the
+    // partially-written file must be cleaned up.
+    setTimeout(() => r.push(Buffer.alloc(200, 0x62)), 20);
+
+    await assert.rejects(parser.parse(r as unknown as IncomingMessage), /Upload too large/);
+    const { readdirSync } = await import('node:fs');
+    assert.equal(readdirSync(dir).length, 0); // written file was unlinked
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('a stream error rejects the parse', async () => {
   const dir = tmpUploads();
   try {
