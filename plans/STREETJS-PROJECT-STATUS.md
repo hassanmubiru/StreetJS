@@ -340,5 +340,5 @@ only.
 | Docs | `docs/background-jobs.md`, `docs/observability.md`, `docs/benchmarks/runtime.md` |
 | Benchmarks | `scripts/bench-http.mjs`, `scripts/bench-pillars.mjs` — published numbers + hardware + method |
 | Community | `docs/community/discord.md` (full server design) + Discord invite added to README |
-| New package | **`@streetjs/config@1.0.0`** — typed/schema-validated/immutable config foundation; zero runtime deps; 10 acyclic modules; 34/34 tests; published to npm with SLSA provenance via `publish-backend.yml` |
+| New packages | **`@streetjs/config@1.0.0`** — typed/schema-validated/immutable config foundation; zero runtime deps; 10 acyclic modules; 34/34 tests; **published** to npm with SLSA provenance. **`@streetjs/logging@1.0.0`** — structured level logging with child loggers, pluggable transports, secret redaction, safe serialization, timers, DI token; zero runtime deps; 7 acyclic modules; 68 tests; 98.5% coverage; wired into `publish-backend.yml` (publishes with provenance on next dispatch) |
 | Verification | every claim above backed by a command/CI run; scratch kept in gitignored `.tmp/` and cleaned |
