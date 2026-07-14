@@ -37,13 +37,7 @@ export interface DispatcherOptions {
   readonly clock?: Clock;
 }
 
-const realSleep: SleepFn = (ms) =>
-  new Promise((resolve) => {
-    const t = setTimeout(resolve, ms);
-    if (typeof (t as { unref?: () => void }).unref === 'function') {
-      (t as { unref: () => void }).unref();
-    }
-  });
+const realSleep: SleepFn = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /** Serialize an event into the canonical JSON envelope that gets signed. */
 export function buildEnvelope(event: WebhookEvent, id: string, created: number): string {
