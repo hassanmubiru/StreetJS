@@ -114,12 +114,8 @@ export function isPlainContainer(value: unknown): value is Record<string, unknow
   if (typeof (value as { toJSON?: unknown }).toJSON === 'function') {
     return false;
   }
-  if (Array.isArray(value)) {
+  if (Array.isArray(value) || value instanceof Map || value instanceof Set) {
     return true;
-  }
-  // Map/Set are represented via normalizeLeaf's fallback unless plain object.
-  if (value instanceof Map || value instanceof Set) {
-    return false;
   }
   return true;
 }
