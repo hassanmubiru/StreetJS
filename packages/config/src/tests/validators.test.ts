@@ -31,7 +31,7 @@ describe('validateString', () => {
     assert.equal(value(validateString('  hi  ')), 'hi');
     assert.equal(value(validateString('abc', { minLength: 3 })), 'abc');
     assert.equal(failed(validateString('ab', { minLength: 3 })).expected, 'string (min length 3)');
-    assert.equal(failed(validateString('abcd', { maxLength: 3 })).ok ?? false, false);
+    assert.ok(failed(validateString('abcd', { maxLength: 3 })).message.includes('too long'));
     assert.ok(value(validateString('a1', { pattern: /^[a-z]\d$/ })));
     assert.ok(failed(validateString('11', { pattern: /^[a-z]\d$/ })).message.includes('pattern'));
     assert.equal(failed(validateString(5)).expected, 'string');
