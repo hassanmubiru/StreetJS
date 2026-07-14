@@ -53,10 +53,17 @@ test('malformed headers fail cleanly', () => {
   assert.equal(verifySignature(PAYLOAD, 'v1=abc', SECRET, { now: 1000 }).reason, 'malformed signature header');
 });
 
-test('parseSignatureHeader extracts t and v1, ignoring extras and whitespace', () => {
-  assert.deepEqual(parseSignatureHeader('t=123, v1=deadbeef, v0=old'), { t: 123, v1: 'deadbeef' });
+test('parseSignatureHeader extracts t and v1, ignoring extras, bare parts, and whitespace', () => {
+  assert.deepEqual(parseSignatureHeader('t=123, v1=deadbeef, v0=old, bare'), { t: 123, v1: 'deadbeef' });
   assert.equal(parseSignatureHeader('t=notnum,v1=x'), null);
   assert.equal(parseSignatureHeader('nope'), null);
+  // A non-string input is rejected.
+  assert.equal(parseSignatureHeader(undefined as unknown as string), null);
+});
+
+test('an empty v1 fails without throwing', () => {
+  const result = verifySignature(PAYLOAD, 't=1000,v1=', SECRET, { now: 1000 });
+  assert.equal(result.valid, false);
 });
 
 test('a v1 of the wrong length fails without throwing', () => {
