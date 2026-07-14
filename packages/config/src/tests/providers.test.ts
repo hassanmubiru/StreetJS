@@ -78,6 +78,8 @@ title = "StreetJS"
 retries = 3
 ratio = 1.5
 enabled = true
+server.timeout = 30
+limits = { soft = 10, hard = 20 }
 
 [database]
 host = "localhost"
@@ -87,9 +89,6 @@ tags = ["a", "b"]
 [database.pool]
 min = 1
 max = 10
-
-server.timeout = 30
-limits = { soft = 10, hard = 20 }
 `);
     assert.deepEqual(doc, {
       title: 'StreetJS',
