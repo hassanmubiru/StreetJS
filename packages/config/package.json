@@ -1,0 +1,78 @@
+{
+  "name": "@streetjs/config",
+  "version": "1.0.0",
+  "description": "StreetJS configuration foundation: typed, schema-validated, immutable configuration with pluggable sources (env, JSON, YAML, TOML, custom providers), namespaces, secret masking, and descriptive startup validation. Zero runtime dependencies.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.js.map",
+    "dist/**/*.d.ts",
+    "dist/**/*.d.ts.map",
+    "!dist/**/*.test.js",
+    "!dist/**/*.test.js.map",
+    "!dist/**/*.test.d.ts",
+    "!dist/**/*.test.d.ts.map",
+    "!dist/tests/**",
+    "!dist/examples/**",
+    "README.md",
+    "ARCHITECTURE.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test dist/tests/*.test.js",
+    "example": "node dist/examples/integration.js",
+    "lint": "tsc --noEmit",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\""
+  },
+  "keywords": [
+    "streetjs",
+    "street-framework",
+    "config",
+    "configuration",
+    "env",
+    "dotenv",
+    "yaml",
+    "toml",
+    "schema",
+    "validation",
+    "typed",
+    "immutable",
+    "secrets",
+    "typescript",
+    "esm",
+    "zero-dependencies"
+  ],
+  "author": "street contributors",
+  "license": "MIT",
+  "homepage": "https://hassanmubiru.github.io/StreetJS/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hassanmubiru/StreetJS.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hassanmubiru/StreetJS/issues"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.0",
+    "typescript": "^6.0.3"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
