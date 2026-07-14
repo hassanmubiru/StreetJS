@@ -74,11 +74,12 @@ docs, and contributors — **not** more core code.
 
 | Item | State |
 |------|-------|
-| Branch / sync | `main`, clean, local == `origin/main` `b407ef69` |
+| Branch / sync | `main`, clean, local == `origin/main` `2a71c2ea` |
 | Release line | `streetjs`/`@streetjs/core`/`@streetjs/cli` **1.2.7**, npm + SLSA provenance |
+| New package | **`@streetjs/config@1.0.0`** on npm — `dist-tags.latest = 1.0.0`, SLSA provenance v1 attestation present (verified via `npm view … dist.attestations`) |
 | Signed release | GitHub Release `v1.2.7` — 3 tarballs + 3 cosign bundles + SBOM; every `v1.2.x` release signed |
 | Security | 0 open secret-scan / Dependabot / code-scan alerts; `npm audit` 0 |
-| CI | 44 workflows; latest run per workflow on `main` HEAD and tag `v1.2.7` = success |
+| CI | 44 workflows; latest run per workflow on `main` HEAD (incl. **Publish Backend Packages** = success) and tag `v1.2.7` = success |
 | Packaging | subpath-import gate: **136/136** published subpaths import from npm |
 | Leftover artifacts | none tracked (dogfood scratch in gitignored `.tmp/`; removed after each run) |
 
