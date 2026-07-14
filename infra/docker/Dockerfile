@@ -13,6 +13,7 @@ COPY packages/session/package.json packages/session/
 COPY packages/security/package.json packages/security/
 COPY packages/websocket/package.json packages/websocket/
 COPY packages/xss/package.json packages/xss/
+COPY packages/multipart/package.json packages/multipart/
 
 RUN npm ci
 
