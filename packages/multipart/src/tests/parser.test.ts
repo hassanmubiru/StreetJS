@@ -150,6 +150,33 @@ test('handles multiple files and fields together', async () => {
   }
 });
 
+test('a stream error rejects the parse', async () => {
+  const dir = tmpUploads();
+  try {
+    const r = new Readable({ read() {} });
+    setTimeout(() => r.emit('error', new Error('connection reset')), 10);
+    const parser = new MultipartParser(BOUNDARY, dir, 1_000_000);
+    await assert.rejects(parser.parse(r as unknown as IncomingMessage), /connection reset/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('streams a large file exceeding the internal chunk size to disk', async () => {
+  const dir = tmpUploads();
+  try {
+    const big = Buffer.alloc(200 * 1024, 0x61); // 200 KB > 64 KB chunk → exercises drain
+    const body = buildBody([{ name: 'f', value: big, filename: 'big.bin' }]);
+    const parser = new MultipartParser(BOUNDARY, dir, 10 * 1024 * 1024);
+    const { files } = await parser.parse(streamOf(body));
+    assert.equal(files.length, 1);
+    assert.equal(files[0].size, big.length);
+    assert.equal(readFileSync(files[0].path).length, big.length);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('BoundedTransform passes data through under the limit', async () => {
   const bt = new BoundedTransform(100);
   const out: Buffer[] = [];
