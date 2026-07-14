@@ -56,7 +56,7 @@ WORKDIR /build
 # The distroless runtime stage copies node_modules but not packages/*, so
 # replace the workspace symlinks for first-party deps with their real files,
 # keeping the runtime image self-contained.
-RUN for pkg in cache session security websocket; do \
+RUN for pkg in cache session security websocket xss; do \
       rm -rf "node_modules/@streetjs/$pkg" \
    && mkdir -p "node_modules/@streetjs/$pkg" \
    && cp -R "packages/$pkg/dist" "packages/$pkg/package.json" "node_modules/@streetjs/$pkg/"; \
