@@ -108,7 +108,7 @@ function resolveField(field: FieldDescriptor<unknown>, path: string, ctx: WalkCt
       invalidValue: undefined,
       expectedType: field.type,
       message: 'required configuration value is missing',
-      secret: field.secret,
+      secret: field.isSecret,
     });
   } else {
     // optional and absent → recorded as known-but-unset
