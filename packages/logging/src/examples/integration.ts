@@ -43,7 +43,8 @@ function main(): void {
   try {
     throw Object.assign(new Error('database unavailable'), { code: 'ECONNREFUSED' });
   } catch (err) {
-    rootLog.error(err, 'startup dependency check failed');
+    // `catch` binds `unknown`; pass structured so any thrown value serializes.
+    rootLog.error({ err }, 'startup dependency check failed');
   }
 
   // The same logger API drives an in-memory transport for tests/assertions.
