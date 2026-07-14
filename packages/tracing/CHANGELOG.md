@@ -1,4 +1,4 @@
-y# Changelog
+# Changelog
 
 All notable changes to `@streetjs/tracing` are documented here.
 
