@@ -35,14 +35,17 @@ function buildBody(parts: Part[]): Buffer {
 }
 
 /**
- * A Readable delivering `body` as a single `data` event — mirroring how the
- * parser buffers a complete request. (The `chunkSize` arg is accepted for
- * call-site readability but the body is delivered as one chunk to avoid the
- * fast-emit reentrancy of `Readable.from(manySmallChunks)`, which is a property
- * of the test double, not the parser.)
+ * A request-like stream: pushes the body now and signals EOF on a later tick —
+ * mirroring a real HTTP request where `data` and `end` are separated by I/O
+ * ticks (so the parser's async per-chunk processing settles before `end`).
+ * `Readable.from([body])` emits `end` synchronously after `data`, which is not
+ * representative of a socket; this double is.
  */
 function streamOf(body: Buffer, _chunkSize = 0): IncomingMessage {
-  return Readable.from([body]) as unknown as IncomingMessage;
+  const r = new Readable({ read() {} });
+  r.push(body);
+  setTimeout(() => r.push(null), 30);
+  return r as unknown as IncomingMessage;
 }
 
 function tmpUploads(): string {
