@@ -129,10 +129,11 @@ export class MultipartParser {
     createdFiles: string[]
   ): Promise<{ consumed: number }> {
     const boundaryPos = indexOf(buf, this.boundary, 0);
+    if (process.env.MP_DEBUG) console.error('[mp] buf.len', buf.length, 'boundaryPos', boundaryPos, 'bnd.len', this.boundary.length);
     if (boundaryPos === -1) return { consumed: 0 };
 
     const afterBoundary = boundaryPos + this.boundary.length;
-    if (afterBoundary + 2 > buf.length) return { consumed: 0 };
+    if (afterBoundary + 2 > buf.length) { if (process.env.MP_DEBUG) console.error('[mp] short after boundary'); return { consumed: 0 }; }
 
     // Check for final boundary (--)
     if (buf[afterBoundary] === 0x2d && buf[afterBoundary + 1] === 0x2d) {
@@ -142,6 +143,7 @@ export class MultipartParser {
     // Skip \r\n after boundary
     const headerStart = afterBoundary + 2; // skip \r\n
     const headerEnd = indexOf(buf, Buffer.from('\r\n\r\n'), headerStart);
+    if (process.env.MP_DEBUG) console.error('[mp] headerStart', headerStart, 'headerEnd', headerEnd, 'isFinal', buf[afterBoundary] === 0x2d && buf[afterBoundary+1] === 0x2d);
     if (headerEnd === -1) return { consumed: 0 };
 
     const headerStr = buf.toString('ascii', headerStart, headerEnd);
@@ -149,6 +151,7 @@ export class MultipartParser {
 
     const bodyStart = headerEnd + 4;
     const nextBoundaryPos = indexOf(buf, this.boundary, bodyStart);
+    if (process.env.MP_DEBUG) console.error('[mp] bodyStart', bodyStart, 'nextBoundaryPos', nextBoundaryPos, 'hdr', JSON.stringify(buf.toString("ascii", headerStart, headerEnd)));
     if (nextBoundaryPos === -1) return { consumed: 0 };
 
     // Body ends 2 bytes before the next boundary (\r\n before --)
