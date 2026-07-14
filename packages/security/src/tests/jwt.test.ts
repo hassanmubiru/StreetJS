@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { createHmac } from 'node:crypto';
 
 import { JwtService } from '../jwt.js';
 import { JWT_SERVICE } from '../index.js';
