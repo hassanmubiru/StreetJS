@@ -13,7 +13,7 @@ export const httpConfigSchema = {
   http: {
     host: s.hostname().default('0.0.0.0'),
     port: s.number({ integer: true, min: 1, max: 65535 }).default(3000),
-    requestTimeout: s.duration().default('30s'), // → milliseconds
+    requestTimeout: s.duration().default(30_000), // milliseconds (accepts "30s" from a source)
     corsOrigins: s.array(s.url({ protocols: ['http', 'https'] })).default([]),
   },
   security: {
