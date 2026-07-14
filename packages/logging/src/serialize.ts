@@ -80,7 +80,7 @@ export function normalizeLeaf(value: unknown): JsonValue {
       }
       if (typeof (value as { toJSON?: unknown }).toJSON === 'function') {
         try {
-          return normalizeLeaf((value as { toJSON: () => unknown }).toJSON());
+          return jsonSafe((value as { toJSON: () => unknown }).toJSON(), new WeakSet(), 0);
         } catch {
           return '[unserializable]';
         }
