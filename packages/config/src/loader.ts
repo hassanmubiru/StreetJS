@@ -126,7 +126,7 @@ function meta(
   return {
     key: path,
     type: field.type,
-    secret: field.secret,
+    secret: field.isSecret,
     required: field.required,
     present,
     defaulted,
