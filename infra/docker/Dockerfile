@@ -31,6 +31,8 @@ COPY packages/websocket/tsconfig.json packages/websocket/
 COPY packages/websocket/src packages/websocket/src
 COPY packages/xss/tsconfig.json packages/xss/
 COPY packages/xss/src packages/xss/src
+COPY packages/multipart/tsconfig.json packages/multipart/
+COPY packages/multipart/src packages/multipart/src
 
 # Build core's first-party workspace dependencies first (so their compiled
 # output exists when core is type-checked and at runtime).
@@ -43,6 +45,8 @@ RUN npx tsc
 WORKDIR /build/packages/websocket
 RUN npx tsc
 WORKDIR /build/packages/xss
+RUN npx tsc
+WORKDIR /build/packages/multipart
 RUN npx tsc
 
 # Build the runnable app server with an explicit layout (emits dist/src/**,
