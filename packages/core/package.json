@@ -304,7 +304,8 @@
     "statements": 60
   },
   "scripts": {
-    "prebuild": "node src/database/sqlite/download-wasm.mjs",
+    "prebuild": "tsc -p ../cache/tsconfig.json && node src/database/sqlite/download-wasm.mjs",
+    "prebuild:app": "tsc -p ../cache/tsconfig.json",
     "build": "tsc -p tsconfig.lib.json",
     "postbuild": "node -e \"const fs=require('fs');const p=require('path');const s='src/database/sqlite';const d='dist/database/sqlite';fs.mkdirSync(d,{recursive:true});for(const f of ['sqlite3.wasm','sqlite3-node.mjs'])fs.copyFileSync(p.join(s,f),p.join(d,f));\"",
     "build:app": "node src/database/sqlite/download-wasm.mjs && tsc && node -e \"const fs=require('fs');const p=require('path');const s='src/database/sqlite';const d='dist/src/database/sqlite';fs.mkdirSync(d,{recursive:true});for(const f of ['sqlite3.wasm','sqlite3-node.mjs'])fs.copyFileSync(p.join(s,f),p.join(d,f));\"",
@@ -390,6 +391,7 @@
     "url": "https://github.com/hassanmubiru/StreetJS/issues"
   },
   "dependencies": {
+    "@streetjs/cache": "^1.0.0",
     "reflect-metadata": "^0.2.2",
     "ws": "^8.18.0",
     "zod": "^4.4.3"
