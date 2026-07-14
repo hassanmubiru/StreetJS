@@ -38,7 +38,7 @@ import {
 export interface FieldDescriptor<T> {
   readonly kind: 'field';
   readonly type: ConfigValueType;
-  readonly secret: boolean;
+  readonly isSecret: boolean;
   readonly required: boolean;
   readonly hasDefault: boolean;
   readonly defaultValue: T | undefined;
