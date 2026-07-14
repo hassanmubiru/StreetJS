@@ -73,6 +73,26 @@ test('malformed tokens return null', () => {
   assert.equal(jwt.verify('...'), null);
 });
 
+test('a signature of the wrong length is rejected', () => {
+  const jwt = new JwtService(SECRET);
+  const [h, p] = jwt.sign({ sub: '7' }).split('.');
+  assert.equal(jwt.verify(`${h}.${p}.AA`), null); // valid base64url, wrong length
+});
+
+test('a correctly-signed but non-JSON payload is rejected', () => {
+  const jwt = new JwtService(SECRET);
+  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
+  const badPayload = Buffer.from('not-json{').toString('base64url');
+  const sig = createHmac('sha256', SECRET).update(`${header}.${badPayload}`).digest('base64url');
+  assert.equal(jwt.verify(`${header}.${badPayload}.${sig}`), null);
+});
+
+test('decode returns null when the payload segment is not JSON', () => {
+  const jwt = new JwtService(SECRET);
+  const badPayload = Buffer.from('not-json{').toString('base64url');
+  assert.equal(jwt.decode(`aaa.${badPayload}.ccc`), null);
+});
+
 test('decode reads the payload without verifying', () => {
   const jwt = new JwtService(SECRET);
   const token = jwt.sign({ sub: '7', roles: ['x'] });
