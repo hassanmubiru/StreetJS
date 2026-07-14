@@ -51,6 +51,16 @@ to the README. Several surfaces (API gateway, CMS, multi-tenancy, cron, observab
 were dogfooded and found **clean** — evidence the core is solid, not just that bugs
 were fixed.
 
+The phase has now also begun **building the missing foundation packages**: the first,
+**`@streetjs/config@1.0.0`**, is published to npm with SLSA provenance. It is a
+generic, typed, schema-validated, immutable configuration system with pluggable
+sources (env, JSON, YAML, TOML, custom providers), namespaces, deep-merge precedence,
+secret masking, and descriptive aggregated startup errors — **zero runtime
+dependencies** (Node core only), designed to be the config foundation every other
+StreetJS package (runtime-http, auth, database, cache, jobs, metrics, …) and any
+application can build on. 10 acyclic modules, strict-TS + lint clean, 34/34 tests
+green, published via the provenance-carrying `publish-backend.yml` workflow.
+
 The dominant risk is no longer technical — it is **organizational** (bus factor = 1,
 no active funding) and **adoption** (no evidence of real-world users yet). The
 highest-return work now is consumer validation, friction removal, honest benchmarks,
