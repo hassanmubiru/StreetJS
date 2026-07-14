@@ -85,7 +85,7 @@ test('HttpResponse buffers body for repeat reads', async () => {
 });
 
 test('HttpResponse.json returns undefined for an empty body', async () => {
-  const res = await HttpResponse.fromFetch(new Response('', { status: 204 }));
+  const res = await HttpResponse.fromFetch(new Response(null, { status: 204 }));
   assert.equal(res.json(), undefined);
 });
 
