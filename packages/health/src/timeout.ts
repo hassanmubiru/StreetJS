@@ -18,10 +18,9 @@ export class TimeoutError extends Error {
  */
 export function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   return new Promise<T>((resolve, reject) => {
+    // Not unref'd: this bounded timer must fire to enforce the timeout, and it
+    // is always cleared once the wrapped promise settles first.
     const timer = setTimeout(() => reject(new TimeoutError(ms)), ms);
-    if (typeof (timer as { unref?: () => void }).unref === 'function') {
-      (timer as { unref: () => void }).unref();
-    }
     promise.then(
       (value) => {
         clearTimeout(timer);
