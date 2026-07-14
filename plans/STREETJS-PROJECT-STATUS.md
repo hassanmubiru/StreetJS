@@ -235,14 +235,34 @@ enforcement gate checks the changelog at the tagged commit); (2) the CLI suite i
 retried once and the scope-review/version-bump conflict is fixed, so releases no
 longer need manual recovery.
 
-**Delivered — first missing foundation package:** **`@streetjs/config@1.0.0`** is
-built and published (npm + SLSA provenance) — a generic, typed, schema-validated,
-immutable configuration system with pluggable sources (env/JSON/YAML/TOML/custom),
-namespaces, deep-merge precedence, secret masking, and descriptive startup errors;
-zero runtime dependencies, 10 acyclic modules, 34/34 tests green. Added first to the
-`publish-backend.yml` `PKGS` set (leaf/base ordering). This is the seed of the
-"build the missing packages" track; downstream packages can now declare their own
-schema and consume a validated result rather than each re-implementing config.
+**In progress — "build the missing framework packages" track.** A production prompt
+requested ~60 standalone `@streetjs/*` packages so a consumer app can drop compatibility
+adapters and depend only on published packages. Ground-truth mapping first: a large
+share already ships (`config`, `events`, `queue`, `realtime`, `storage`, `search`, `ai`)
+or exists as working code inside `streetjs` core exposed via subpaths (`/http`,
+`/database`, `/repository`, `/migrations`, `/security`, `/session`, `/websocket`,
+`/webhook`, jobs, observability, tenancy, …). Re-creating those would duplicate logic or
+be shims (both forbidden), so the real work is **building the genuinely-missing,
+low-dependency foundation packages bottom-up, one at a time, each fully verified** —
+exactly how `config` was done. Delivered so far:
+
+- **`@streetjs/config@1.0.0`** — built and **published** (npm + SLSA provenance): typed,
+  schema-validated, immutable configuration; pluggable sources (env/JSON/YAML/TOML/
+  custom); namespaces, deep-merge precedence, secret masking, descriptive startup
+  errors; zero runtime deps, 10 acyclic modules, 34/34 tests. First in the
+  `publish-backend.yml` `PKGS` set (leaf/base ordering).
+- **`@streetjs/logging@1.0.0`** — built and **verified** (build + lint clean, 68 tests,
+  98.5% line / 95.7% branch coverage; example runs): fast structured level-based logging
+  with child loggers + bound context, pluggable transports (console JSON/pretty, stream,
+  memory, multi), automatic secret redaction before any sink, safe error/circular
+  serialization, timers, injectable clock, and a `LOGGER` DI token; zero runtime deps, 7
+  acyclic modules. Wired into `publish-backend.yml` after `config`; publishes with
+  provenance on the next dispatch (awaiting go-ahead to publish).
+
+Next candidates (missing, low in the graph): `metrics`, `tracing`, `health`,
+`http-client`, `webhooks` (standalone), `testing`, `validation`/`environment`, then the
+higher layers. Downstream packages accept these by interface; they depend on the
+foundation packages, never the reverse.
 
 **Owner/community track (partly started):** the **Discord community** is now
 designed and linked from the README (`docs/community/discord.md`, invite live);
