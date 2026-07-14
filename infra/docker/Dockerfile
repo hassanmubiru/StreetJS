@@ -22,12 +22,16 @@ COPY packages/cache/tsconfig.json packages/cache/
 COPY packages/cache/src packages/cache/src
 COPY packages/session/tsconfig.json packages/session/
 COPY packages/session/src packages/session/src
+COPY packages/security/tsconfig.json packages/security/
+COPY packages/security/src packages/security/src
 
 # Build core's first-party workspace dependencies first (so their compiled
 # output exists when core is type-checked and at runtime).
 WORKDIR /build/packages/cache
 RUN npx tsc
 WORKDIR /build/packages/session
+RUN npx tsc
+WORKDIR /build/packages/security
 RUN npx tsc
 
 # Build the runnable app server with an explicit layout (emits dist/src/**,
@@ -42,7 +46,7 @@ WORKDIR /build
 # The distroless runtime stage copies node_modules but not packages/*, so
 # replace the workspace symlinks for first-party deps with their real files,
 # keeping the runtime image self-contained.
-RUN for pkg in cache session; do \
+RUN for pkg in cache session security; do \
       rm -rf "node_modules/@streetjs/$pkg" \
    && mkdir -p "node_modules/@streetjs/$pkg" \
    && cp -R "packages/$pkg/dist" "packages/$pkg/package.json" "node_modules/@streetjs/$pkg/"; \
