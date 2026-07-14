@@ -259,11 +259,17 @@ exactly how `config` was done. Delivered so far:
   serialization, timers, injectable clock, and a `LOGGER` DI token; zero runtime deps, 7
   acyclic modules. Wired into `publish-backend.yml` after `config`; publishes with
   provenance on the next dispatch (awaiting go-ahead to publish).
+- **`@streetjs/metrics@1.0.0`** — built and **verified** (build + lint clean, 49 tests,
+  99.7% line / 98.6% branch coverage; example emits valid exposition): Prometheus-compatible
+  `Counter`/`Gauge`/`Histogram`, labels with strict validation + deterministic series keys,
+  a `MetricsRegistry` rendering the text exposition format, optional pull-based default
+  process metrics, injectable clock/process source, and a `METRICS_REGISTRY` DI token; zero
+  runtime deps, 10 acyclic modules. Wired into `publish-backend.yml` after `logging`.
 
-Next candidates (missing, low in the graph): `metrics`, `tracing`, `health`,
-`http-client`, `webhooks` (standalone), `testing`, `validation`/`environment`, then the
-higher layers. Downstream packages accept these by interface; they depend on the
-foundation packages, never the reverse.
+Next candidates (missing, low in the graph): `tracing`, `health`, `http-client`,
+`webhooks` (standalone), `testing`, `validation`/`environment`, then the higher layers.
+Downstream packages accept these by interface; they depend on the foundation packages,
+never the reverse.
 
 **Owner/community track (partly started):** the **Discord community** is now
 designed and linked from the README (`docs/community/discord.md`, invite live);
