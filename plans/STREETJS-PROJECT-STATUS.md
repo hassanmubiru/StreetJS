@@ -234,6 +234,15 @@ enforcement gate checks the changelog at the tagged commit); (2) the CLI suite i
 retried once and the scope-review/version-bump conflict is fixed, so releases no
 longer need manual recovery.
 
+**Delivered — first missing foundation package:** **`@streetjs/config@1.0.0`** is
+built and published (npm + SLSA provenance) — a generic, typed, schema-validated,
+immutable configuration system with pluggable sources (env/JSON/YAML/TOML/custom),
+namespaces, deep-merge precedence, secret masking, and descriptive startup errors;
+zero runtime dependencies, 10 acyclic modules, 34/34 tests green. Added first to the
+`publish-backend.yml` `PKGS` set (leaf/base ordering). This is the seed of the
+"build the missing packages" track; downstream packages can now declare their own
+schema and consume a validated result rather than each re-implementing config.
+
 **Owner/community track (partly started):** the **Discord community** is now
 designed and linked from the README (`docs/community/discord.md`, invite live);
 recruit maintainer #2; enable funding; community plugin index + submission flow;
@@ -310,4 +319,5 @@ only.
 | Docs | `docs/background-jobs.md`, `docs/observability.md`, `docs/benchmarks/runtime.md` |
 | Benchmarks | `scripts/bench-http.mjs`, `scripts/bench-pillars.mjs` — published numbers + hardware + method |
 | Community | `docs/community/discord.md` (full server design) + Discord invite added to README |
+| New package | **`@streetjs/config@1.0.0`** — typed/schema-validated/immutable config foundation; zero runtime deps; 10 acyclic modules; 34/34 tests; published to npm with SLSA provenance via `publish-backend.yml` |
 | Verification | every claim above backed by a command/CI run; scratch kept in gitignored `.tmp/` and cleaned |
