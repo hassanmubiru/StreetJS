@@ -138,6 +138,68 @@ test('capacity limit closes an over-limit connection with 1013', async () => {
   await new Promise<void>((r) => server.close(() => r()));
 });
 
+test('heartbeat pings keep a live client connected', async () => {
+  const server = createServer();
+  const wss = new StreetWebSocketServer({ path: '/ws', heartbeatIntervalMs: 25 });
+  wss.attach(server, () => {});
+  const port = await listen(server);
+  const client = new WebSocket(`ws://127.0.0.1:${port}/ws`);
+  await once(client, 'open');
+  await new Promise((r) => setTimeout(r, 90)); // ~3 heartbeat cycles; ws auto-pongs
+  assert.equal(wss.connectionCount, 1);
+  client.close();
+  await wss.close();
+  await new Promise<void>((r) => server.close(() => r()));
+});
+
+test('attachProtocol rejects a disallowed origin with 403', async () => {
+  const server = createServer();
+  const wss = new StreetWebSocketServer({ path: '/ws' });
+  wss.attachProtocol(server, 'p', () => {});
+  const port = await listen(server);
+  const client = new WebSocket(`ws://127.0.0.1:${port}/ws`, 'p', { origin: 'http://evil.example' });
+  const status = await new Promise<number>((resolve) => {
+    client.on('unexpected-response', (_req, res) => resolve(res.statusCode ?? 0));
+    client.on('error', () => {});
+  });
+  assert.equal(status, 403);
+  await wss.close();
+  await new Promise<void>((r) => server.close(() => r()));
+});
+
+test('attachProtocol rejects a failing authFn with 401', async () => {
+  const server = createServer();
+  const wss = new StreetWebSocketServer({ path: '/ws', authFn: () => false });
+  wss.attachProtocol(server, 'p', () => {});
+  const port = await listen(server);
+  const client = new WebSocket(`ws://127.0.0.1:${port}/ws`, 'p');
+  const status = await new Promise<number>((resolve) => {
+    client.on('unexpected-response', (_req, res) => resolve(res.statusCode ?? 0));
+    client.on('error', () => {});
+  });
+  assert.equal(status, 401);
+  await wss.close();
+  await new Promise<void>((r) => server.close(() => r()));
+});
+
+test('attachProtocol enforces the capacity limit with 1013', async () => {
+  const server = createServer();
+  const wss = new StreetWebSocketServer({ path: '/ws', maxConnections: 1 });
+  wss.attachProtocol(server, 'p', () => {});
+  const port = await listen(server);
+  const a = new WebSocket(`ws://127.0.0.1:${port}/ws`, 'p');
+  await once(a, 'open');
+  const b = new WebSocket(`ws://127.0.0.1:${port}/ws`, 'p');
+  const code = await new Promise<number>((resolve) => {
+    b.on('close', (c) => resolve(c));
+    b.on('error', () => {});
+  });
+  assert.equal(code, 1013);
+  a.close();
+  await wss.close();
+  await new Promise<void>((r) => server.close(() => r()));
+});
+
 test('attachProtocol negotiates a subprotocol and hands over the raw socket', async () => {
   const server = createServer();
   const wss = new StreetWebSocketServer({ path: '/ws' });
@@ -147,10 +209,12 @@ test('attachProtocol negotiates a subprotocol and hands over the raw socket', as
   const port = await listen(server);
 
   const client = new WebSocket(`ws://127.0.0.1:${port}/ws`, 'street-proto');
+  // Attach the message listener before `open` — the server sends on connection,
+  // so the frame can arrive as soon as the handshake completes.
+  const first = once<Buffer>(client, 'message');
   await once(client, 'open');
   assert.equal(client.protocol, 'street-proto');
-  const first = await once<Buffer>(client, 'message');
-  assert.equal(first.toString(), 'welcome');
+  assert.equal((await first).toString(), 'welcome');
 
   client.close();
   await wss.close();
