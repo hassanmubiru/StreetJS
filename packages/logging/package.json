@@ -29,7 +29,7 @@
   ],
   "c8": {
     "include": ["dist/**/*.js"],
-    "exclude": ["dist/tests/**", "dist/examples/**"],
+    "exclude": ["dist/tests/**", "dist/examples/**", "dist/types.js"],
     "reporter": ["text", "lcov"],
     "all": true,
     "check-coverage": true,
