@@ -304,8 +304,8 @@
     "statements": 60
   },
   "scripts": {
-    "prebuild": "tsc -p ../cache/tsconfig.json && tsc -p ../session/tsconfig.json && tsc -p ../security/tsconfig.json && tsc -p ../websocket/tsconfig.json && node src/database/sqlite/download-wasm.mjs",
-    "prebuild:app": "tsc -p ../cache/tsconfig.json && tsc -p ../session/tsconfig.json && tsc -p ../security/tsconfig.json && tsc -p ../websocket/tsconfig.json",
+    "prebuild": "tsc -p ../cache/tsconfig.json && tsc -p ../session/tsconfig.json && tsc -p ../security/tsconfig.json && tsc -p ../websocket/tsconfig.json && tsc -p ../xss/tsconfig.json && node src/database/sqlite/download-wasm.mjs",
+    "prebuild:app": "tsc -p ../cache/tsconfig.json && tsc -p ../session/tsconfig.json && tsc -p ../security/tsconfig.json && tsc -p ../websocket/tsconfig.json && tsc -p ../xss/tsconfig.json",
     "build": "tsc -p tsconfig.lib.json",
     "postbuild": "node -e \"const fs=require('fs');const p=require('path');const s='src/database/sqlite';const d='dist/database/sqlite';fs.mkdirSync(d,{recursive:true});for(const f of ['sqlite3.wasm','sqlite3-node.mjs'])fs.copyFileSync(p.join(s,f),p.join(d,f));\"",
     "build:app": "node src/database/sqlite/download-wasm.mjs && tsc && node -e \"const fs=require('fs');const p=require('path');const s='src/database/sqlite';const d='dist/src/database/sqlite';fs.mkdirSync(d,{recursive:true});for(const f of ['sqlite3.wasm','sqlite3-node.mjs'])fs.copyFileSync(p.join(s,f),p.join(d,f));\"",
@@ -395,6 +395,7 @@
     "@streetjs/security": "^1.0.0",
     "@streetjs/session": "^1.0.0",
     "@streetjs/websocket": "^1.0.0",
+    "@streetjs/xss": "^1.0.0",
     "reflect-metadata": "^0.2.2",
     "ws": "^8.18.0",
     "zod": "^4.4.3"
