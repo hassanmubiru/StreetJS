@@ -394,6 +394,7 @@
     "@streetjs/cache": "^1.0.0",
     "@streetjs/security": "^1.0.0",
     "@streetjs/session": "^1.0.0",
+    "@streetjs/websocket": "^1.0.0",
     "reflect-metadata": "^0.2.2",
     "ws": "^8.18.0",
     "zod": "^4.4.3"
