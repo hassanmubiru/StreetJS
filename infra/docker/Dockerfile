@@ -9,6 +9,7 @@ COPY package.json package-lock.json ./
 COPY packages/core/package.json packages/core/
 COPY packages/cli/package.json packages/cli/
 COPY packages/cache/package.json packages/cache/
+COPY packages/session/package.json packages/session/
 
 RUN npm ci
 
@@ -18,10 +19,14 @@ COPY packages/core/tsconfig.lib.json packages/core/
 COPY packages/core/src packages/core/src
 COPY packages/cache/tsconfig.json packages/cache/
 COPY packages/cache/src packages/cache/src
+COPY packages/session/tsconfig.json packages/session/
+COPY packages/session/src packages/session/src
 
 # Build core's first-party workspace dependencies first (so their compiled
 # output exists when core is type-checked and at runtime).
 WORKDIR /build/packages/cache
+RUN npx tsc
+WORKDIR /build/packages/session
 RUN npx tsc
 
 # Build the runnable app server with an explicit layout (emits dist/src/**,
