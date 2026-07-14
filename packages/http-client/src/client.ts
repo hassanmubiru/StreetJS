@@ -200,13 +200,11 @@ export class HttpClient {
     let timedOut = false;
     let userAborted = false;
 
+    // Not unref'd: the timeout must fire; it is always cleared in `finally`.
     const timer = setTimeout(() => {
       timedOut = true;
       controller.abort();
     }, timeoutMs);
-    if (typeof (timer as { unref?: () => void }).unref === 'function') {
-      (timer as { unref: () => void }).unref();
-    }
 
     const onUserAbort = (): void => {
       userAborted = true;

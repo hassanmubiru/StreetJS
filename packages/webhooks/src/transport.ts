@@ -31,10 +31,8 @@ export class FetchWebhookTransport implements WebhookTransport {
 
   async send(request: DeliveryRequest): Promise<DeliveryResponse> {
     const controller = new AbortController();
+    // Not unref'd: the timeout must fire; it is always cleared in `finally`.
     const timer = setTimeout(() => controller.abort(), this.timeoutMs);
-    if (typeof (timer as { unref?: () => void }).unref === 'function') {
-      (timer as { unref: () => void }).unref();
-    }
     try {
       const response = await this.fetchImpl(request.url, {
         method: 'POST',
