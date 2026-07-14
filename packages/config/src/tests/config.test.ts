@@ -43,7 +43,7 @@ describe('successful loading + typed access', () => {
     assert.deepEqual(config.get('featureFlags'), ['a', 'b', 'c']);
     assert.equal(config.get('database.host'), 'localhost'); // default
     assert.equal(config.get('database.poolSize'), 10); // default
-    assert.equal(config.get('timeout'), 30000); // "30s" default → ms
+    assert.equal(config.get('timeout'), 30000); // default (ms)
     assert.equal(config.environment, 'test');
   });
 });
