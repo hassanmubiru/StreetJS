@@ -200,6 +200,40 @@ test('an already-aborted signal fails immediately', async () => {
   );
 });
 
+test('convenience methods issue the right verbs', async () => {
+  const { fetch, calls } = fakeFetch([new Response('{}'), () => new Response('{}')]);
+  const client = new HttpClient({ baseUrl: 'https://api.test', fetch, sleep: noSleep });
+  await client.delete('/a');
+  await client.head('/b');
+  await client.options('/c');
+  await client.put('/d', { x: 1 });
+  await client.patch('/e', { y: 2 });
+  assert.deepEqual(
+    calls.map((c) => c.init.method),
+    ['DELETE', 'HEAD', 'OPTIONS', 'PUT', 'PATCH'],
+  );
+  assert.equal(calls[3].init.body, '{"x":1}');
+});
+
+test('an explicit content-type is not overwritten for json bodies', async () => {
+  const { fetch, calls } = fakeFetch([new Response('{}')]);
+  const client = new HttpClient({ fetch, sleep: noSleep });
+  await client.post('https://api.test/x', { a: 1 }, { headers: { 'content-type': 'application/vnd.api+json' } });
+  assert.equal((calls[0].init.headers as Record<string, string>)['content-type'], 'application/vnd.api+json');
+});
+
+test('a request that exceeds its timeout fails with a timeout error', async () => {
+  const fetch: FetchLike = (_url, init) =>
+    new Promise((_resolve, reject) => {
+      (init.signal as AbortSignal).addEventListener('abort', () => reject(new Error('aborted')), { once: true });
+    });
+  const client = new HttpClient({ fetch, sleep: noSleep, timeoutMs: 10, retry: { retries: 0 } });
+  await assert.rejects(
+    client.get('https://api.test/slow'),
+    (err: unknown) => err instanceof HttpError && err.kind === 'timeout',
+  );
+});
+
 test('throws when no fetch is available', () => {
   const original = globalThis.fetch;
   // @ts-expect-error force-remove for the test
