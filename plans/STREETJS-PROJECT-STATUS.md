@@ -11,9 +11,10 @@ is `docs/audits/2026-07-11-streetjs-final-engineering-certification.md`.
 (provenance); **9 new foundation packages published at 1.0.0 with SLSA provenance**
 (`config`, `logging`, `metrics`, `health`, `tracing`, `http-client`, `webhooks`,
 `testing`, `cache`); **core-monolith split underway** via dependency inversion —
-`@streetjs/cache` (published) and `@streetjs/session` (built + verified) extracted, core
-re-exports both as the single source of truth · **CI:** green (all workflows on `main`
-HEAD, incl. Publish Backend Packages and Docker Build, and tag `v1.2.7`).
+`@streetjs/cache` + `@streetjs/session` (published) and `@streetjs/security` (JWT, built +
+verified) extracted, core re-exports all three as the single source of truth · **CI:**
+green (all workflows on `main` HEAD, incl. Publish Backend Packages and Docker Build, and
+tag `v1.2.7`).
 
 **Evidence discipline:** every ✅ is backed by a command/CI run this engagement.
 Items needing external infra or owner decisions are marked ◑ with the reason —
