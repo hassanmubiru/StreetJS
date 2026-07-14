@@ -25,6 +25,8 @@ COPY packages/session/tsconfig.json packages/session/
 COPY packages/session/src packages/session/src
 COPY packages/security/tsconfig.json packages/security/
 COPY packages/security/src packages/security/src
+COPY packages/websocket/tsconfig.json packages/websocket/
+COPY packages/websocket/src packages/websocket/src
 
 # Build core's first-party workspace dependencies first (so their compiled
 # output exists when core is type-checked and at runtime).
@@ -33,6 +35,8 @@ RUN npx tsc
 WORKDIR /build/packages/session
 RUN npx tsc
 WORKDIR /build/packages/security
+RUN npx tsc
+WORKDIR /build/packages/websocket
 RUN npx tsc
 
 # Build the runnable app server with an explicit layout (emits dist/src/**,
