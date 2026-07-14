@@ -9,8 +9,9 @@ is `docs/audits/2026-07-11-streetjs-final-engineering-certification.md`.
 **Date:** 2026-07-12 (UTC) · **Repo:** `hassanmubiru/StreetJS` @ `main` `2a71c2ea`
 (local == origin) · **npm:** `streetjs`/`@streetjs/core`/`@streetjs/cli` = **1.2.7**
 (provenance); **`@streetjs/config` = 1.0.0** (first new foundation package, published
-with SLSA provenance) · **CI:** green (all workflows on `main` HEAD, incl. Publish
-Backend Packages, and tag `v1.2.7`).
+with SLSA provenance); **`@streetjs/logging` = 1.0.0** (second foundation package —
+built, verified, wired into the provenance publish set) · **CI:** green (all workflows
+on `main` HEAD, incl. Publish Backend Packages, and tag `v1.2.7`).
 
 **Evidence discipline:** every ✅ is backed by a command/CI run this engagement.
 Items needing external infra or owner decisions are marked ◑ with the reason —
