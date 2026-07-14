@@ -173,7 +173,12 @@ test('a caller abort signal produces an aborted error and is not retried', async
   const controller = new AbortController();
   const fetch: FetchLike = (_url, init) =>
     new Promise((_resolve, reject) => {
-      (init.signal as AbortSignal).addEventListener('abort', () => reject(new Error('aborted')));
+      const signal = init.signal as AbortSignal;
+      if (signal.aborted) {
+        reject(new Error('aborted'));
+        return;
+      }
+      signal.addEventListener('abort', () => reject(new Error('aborted')), { once: true });
     });
   const client = new HttpClient({ fetch, sleep: noSleep, retry: { retries: 3 } });
   const promise = client.get('https://api.test/x', { signal: controller.signal });
