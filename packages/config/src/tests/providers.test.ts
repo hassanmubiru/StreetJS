@@ -163,7 +163,9 @@ describe('file providers (real fixtures)', () => {
 
   it('throws ConfigParseError on malformed input', async () => {
     await assert.rejects(
-      () => jsonFileProvider(join(dir, 'broken.json')).load(),
+      async () => {
+        await jsonFileProvider(join(dir, 'broken.json')).load();
+      },
       (e: unknown) => e instanceof ConfigParseError && e.source.provider === 'json',
     );
   });
