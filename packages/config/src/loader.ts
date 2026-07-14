@@ -98,9 +98,22 @@ function resolveField(field: FieldDescriptor<unknown>, path: string, ctx: WalkCt
 
   // absent from all sources
   if (field.hasDefault) {
-    const value = field.applyTransform(field.defaultValue);
-    setPath(ctx.values, path, value);
-    ctx.metadata.push(meta(path, field, false, true, null));
+    // Coerce/validate the default too, so a malformed default is caught at
+    // startup rather than silently trusted.
+    const outcome = field.validate(field.defaultValue);
+    if (outcome.ok) {
+      setPath(ctx.values, path, field.applyTransform(outcome.value));
+      ctx.metadata.push(meta(path, field, false, true, null));
+    } else {
+      ctx.issues.push({
+        key: path,
+        source: null,
+        invalidValue: field.isSecret ? REDACTED : field.defaultValue,
+        expectedType: outcome.expected,
+        message: `invalid default value: ${outcome.message}`,
+        secret: field.isSecret,
+      });
+    }
   } else if (field.required) {
     ctx.issues.push({
       key: path,
