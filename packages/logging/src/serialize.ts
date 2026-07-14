@@ -100,6 +100,47 @@ export function normalizeLeaf(value: unknown): JsonValue {
   }
 }
 
+/**
+ * Recursively convert a value (typically the result of a `toJSON()` call) to a
+ * JSON-safe structure. Circular-safe and depth-bounded. This does not apply
+ * secret redaction — the main {@link Redactor} walk handles that for normal
+ * object keys; values produced by a custom `toJSON()` are taken as-is.
+ */
+function jsonSafe(value: unknown, seen: WeakSet<object>, depth: number): JsonValue {
+  if (depth > 16) {
+    return '[Truncated: max depth]';
+  }
+  if (!isPlainContainer(value)) {
+    return normalizeLeaf(value);
+  }
+  if (seen.has(value as object)) {
+    return '[Circular]';
+  }
+  seen.add(value as object);
+  try {
+    if (Array.isArray(value)) {
+      return value.map((item) => jsonSafe(item, seen, depth + 1));
+    }
+    if (value instanceof Map) {
+      const out: Record<string, JsonValue> = {};
+      for (const [k, v] of value) {
+        out[String(k)] = jsonSafe(v, seen, depth + 1);
+      }
+      return out;
+    }
+    if (value instanceof Set) {
+      return [...value].map((item) => jsonSafe(item, seen, depth + 1));
+    }
+    const out: Record<string, JsonValue> = {};
+    for (const key of Object.keys(value as Record<string, unknown>)) {
+      out[key] = jsonSafe((value as Record<string, unknown>)[key], seen, depth + 1);
+    }
+    return out;
+  } finally {
+    seen.delete(value as object);
+  }
+}
+
 /** True when `value` should be walked as a plain container (object/array). */
 export function isPlainContainer(value: unknown): value is Record<string, unknown> | unknown[] {
   if (value === null || typeof value !== 'object') {
