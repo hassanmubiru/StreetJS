@@ -17,20 +17,16 @@ function hmacHex(secret: string, data: string): string {
   return createHmac('sha256', secret).update(data).digest('hex');
 }
 
-/** Constant-time comparison of two hex strings of equal byte length. */
+/** Constant-time comparison of two hex strings. Length/decoding mismatches fail. */
 function timingSafeHexEqual(a: string, b: string): boolean {
-  if (a.length !== b.length || a.length === 0 || a.length % 2 !== 0) {
+  if (a.length !== b.length) {
     return false;
   }
-  let bufA: Buffer;
-  let bufB: Buffer;
-  try {
-    bufA = Buffer.from(a, 'hex');
-    bufB = Buffer.from(b, 'hex');
-  } catch {
-    return false;
-  }
-  if (bufA.length !== bufB.length || bufA.length === 0) {
+  // Buffer.from(_, 'hex') truncates at the first non-hex char rather than
+  // throwing, so a decoded length mismatch catches malformed input.
+  const bufA = Buffer.from(a, 'hex');
+  const bufB = Buffer.from(b, 'hex');
+  if (bufA.length === 0 || bufA.length !== bufB.length) {
     return false;
   }
   return timingSafeEqual(bufA, bufB);
