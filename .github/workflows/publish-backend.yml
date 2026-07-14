@@ -35,7 +35,7 @@ jobs:
       # Dependency order is resolved by building twice (see below); this is the
       # publish/verify set. Leaf/base packages first, dependents last.
       PKGS: >-
-        config logging metrics health tracing http-client events queue storage gateway realtime workflow search ai commerce
+        config logging metrics health tracing http-client webhooks events queue storage gateway realtime workflow search ai commerce
         devtools admin registry-server dating-profiles social-users
         social-comments social-notifications dating-moderation dating-auth
         dating-messaging social-feed
