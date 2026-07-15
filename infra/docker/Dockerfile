@@ -51,6 +51,8 @@ WORKDIR /build/packages/xss
 RUN npx tsc
 WORKDIR /build/packages/multipart
 RUN npx tsc
+WORKDIR /build/packages/webhook-dispatcher
+RUN npx tsc
 
 # Build the runnable app server with an explicit layout (emits dist/src/**,
 # including main.js) and copy the SQLite wasm assets alongside it.
