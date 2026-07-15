@@ -54,6 +54,8 @@ COPY packages/postgres/src packages/postgres/src
 
 # Build core's first-party workspace dependencies first (so their compiled
 # output exists when core is type-checked and at runtime).
+WORKDIR /build/packages/container
+RUN npx tsc
 WORKDIR /build/packages/exceptions
 RUN npx tsc
 WORKDIR /build/packages/cache
