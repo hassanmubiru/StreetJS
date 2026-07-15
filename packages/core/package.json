@@ -393,6 +393,7 @@
   "dependencies": {
     "@streetjs/cache": "^1.0.0",
     "@streetjs/cluster": "^1.0.0",
+    "@streetjs/container": "^1.0.0",
     "@streetjs/exceptions": "^1.0.0",
     "@streetjs/security": "^1.0.0",
     "@streetjs/session": "^1.0.0",
