@@ -43,6 +43,8 @@ COPY packages/telemetry/tsconfig.json packages/telemetry/
 COPY packages/telemetry/src packages/telemetry/src
 COPY packages/cluster/tsconfig.json packages/cluster/
 COPY packages/cluster/src packages/cluster/src
+COPY packages/postgres/tsconfig.json packages/postgres/
+COPY packages/postgres/src packages/postgres/src
 
 # Build core's first-party workspace dependencies first (so their compiled
 # output exists when core is type-checked and at runtime).
