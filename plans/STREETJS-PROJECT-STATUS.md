@@ -41,11 +41,12 @@ docs (README/ARCHITECTURE/CHANGELOG/LICENSE) + runnable example, ≥90% coverage
 | `@streetjs/webhooks` | generic HMAC sign/verify/deliver library | 24 |
 | `@streetjs/testing` | spies, fake clock, deferreds, waitFor, fetch mock | 21 |
 
-**Extracted core modules (11) — dependency inversion, core re-exports each:**
+**Extracted core modules (12) — dependency inversion, core re-exports each:**
 
 | Package | Core subpath | Tests |
 |---|---|---|
 | `@streetjs/exceptions` (typed HTTP exception hierarchy, zero-dep) | `streetjs/exceptions` | 7 |
+| `@streetjs/container` (DI/IoC + `@Injectable`) | (internal `core/container`) | 11 |
 | `@streetjs/cache` | `streetjs/cache` | 13 |
 | `@streetjs/session` | `streetjs/session` | 10 |
 | `@streetjs/security` (JWT) | `streetjs/security` | 15 |
@@ -57,7 +58,7 @@ docs (README/ARCHITECTURE/CHANGELOG/LICENSE) + runnable example, ≥90% coverage
 | `@streetjs/cluster` (worker coordinator) | `streetjs/cluster` | 10 |
 | `@streetjs/postgres` (wire driver + HA) | `streetjs/database`, `streetjs/pg-ha` | 100 |
 
-**Split mechanics (reusable, proven across all 11 extractions):** core's `prebuild`/
+**Split mechanics (reusable, proven across all 12 extractions):** core's `prebuild`/
 `prebuild:app` hooks compile first-party deps before core (so every `npm run build -w
 packages/core` keeps working untouched); the distroless `infra/docker/Dockerfile` builds
 those deps and dereferences the workspace symlinks so the runtime image is
