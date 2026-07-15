@@ -68,13 +68,12 @@ export interface OpenApiOperation {
   responses?: Record<string, { description: string; schema?: unknown }>;
 }
 
-/** IPC message types for cluster workers */
-export interface IpcMessage {
-  type: 'heartbeat' | 'ready' | 'shutdown' | 'telemetry';
-  workerId?: number;
-  payload?: unknown;
-  ts: number;
-}
+/**
+ * IPC message types for cluster workers. The canonical definition now lives in
+ * the standalone @streetjs/cluster package (single source of truth); re-exported
+ * here so existing `../core/types.js` importers keep working — dependency inversion.
+ */
+export type { IpcMessage } from '@streetjs/cluster';
 
 /**
  * Telemetry sample. The canonical definition now lives in the standalone
