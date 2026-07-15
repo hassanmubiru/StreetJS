@@ -20,6 +20,7 @@ COPY packages/webhook-dispatcher/package.json packages/webhook-dispatcher/
 COPY packages/telemetry/package.json packages/telemetry/
 COPY packages/cluster/package.json packages/cluster/
 COPY packages/postgres/package.json packages/postgres/
+COPY packages/pool/package.json packages/pool/
 
 RUN npm ci
 
