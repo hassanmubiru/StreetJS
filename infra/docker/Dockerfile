@@ -14,6 +14,7 @@ COPY packages/security/package.json packages/security/
 COPY packages/websocket/package.json packages/websocket/
 COPY packages/xss/package.json packages/xss/
 COPY packages/multipart/package.json packages/multipart/
+COPY packages/webhook-dispatcher/package.json packages/webhook-dispatcher/
 
 RUN npm ci
 
