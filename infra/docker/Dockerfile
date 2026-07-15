@@ -66,6 +66,8 @@ WORKDIR /build/packages/telemetry
 RUN npx tsc
 WORKDIR /build/packages/cluster
 RUN npx tsc
+WORKDIR /build/packages/postgres
+RUN npx tsc
 
 # Build the runnable app server with an explicit layout (emits dist/src/**,
 # including main.js) and copy the SQLite wasm assets alongside it.
