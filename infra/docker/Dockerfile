@@ -52,6 +52,8 @@ COPY packages/cluster/tsconfig.json packages/cluster/
 COPY packages/cluster/src packages/cluster/src
 COPY packages/postgres/tsconfig.json packages/postgres/
 COPY packages/postgres/src packages/postgres/src
+COPY packages/pool/tsconfig.json packages/pool/
+COPY packages/pool/src packages/pool/src
 
 # Build core's first-party workspace dependencies first (so their compiled
 # output exists when core is type-checked and at runtime).
@@ -79,6 +81,8 @@ WORKDIR /build/packages/cluster
 RUN npx tsc
 WORKDIR /build/packages/postgres
 RUN npx tsc
+WORKDIR /build/packages/pool
+RUN npx tsc
 
 # Build the runnable app server with an explicit layout (emits dist/src/**,
 # including main.js) and copy the SQLite wasm assets alongside it.
@@ -92,7 +96,7 @@ WORKDIR /build
 # The distroless runtime stage copies node_modules but not packages/*, so
 # replace the workspace symlinks for first-party deps with their real files,
 # keeping the runtime image self-contained.
-RUN for pkg in container exceptions cache session security websocket xss multipart webhook-dispatcher telemetry cluster postgres; do \
+RUN for pkg in container exceptions cache session security websocket xss multipart webhook-dispatcher telemetry cluster postgres pool; do \
       rm -rf "node_modules/@streetjs/$pkg" \
    && mkdir -p "node_modules/@streetjs/$pkg" \
    && cp -R "packages/$pkg/dist" "packages/$pkg/package.json" "node_modules/@streetjs/$pkg/"; \
