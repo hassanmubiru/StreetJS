@@ -6,7 +6,7 @@
 `PROJECT-EXECUTION-ROADMAP.md` and `STREETJS-2.0-PLAN.md`; the certification record
 is `docs/audits/2026-07-11-streetjs-final-engineering-certification.md`.
 
-**Date:** 2026-07-15 (UTC) · **Repo:** `hassanmubiru/StreetJS` @ `main` `a345639b`
+**Date:** 2026-07-15 (UTC) · **Repo:** `hassanmubiru/StreetJS` @ `main` `6929870`
 (local == origin) · **npm:** `streetjs`/`@streetjs/core`/`@streetjs/cli` = **1.2.7**
 (provenance); **19 new `@streetjs/*` packages published at 1.0.0 with SLSA provenance**
 (8 foundation + 11 extracted core modules); **core-monolith split underway** via
