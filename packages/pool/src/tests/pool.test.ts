@@ -284,6 +284,8 @@ test('idle sweep closes connections above minConnections past the idle timeout',
   pool.release(b);
   pool.release(c);
   assert.equal(pool.size, 3);
+  // Let a few ms elapse so `now - lastUsed` exceeds the (0ms) idle timeout.
+  await new Promise((r) => setTimeout(r, 5));
   // Drive the private sweep directly (the timer fires every 15s in production).
   (pool as unknown as { _sweepIdle(): void })._sweepIdle();
   assert.equal(pool.size, 1, 'sweep trims idle connections down to minConnections');
