@@ -27,6 +27,8 @@ RUN npm ci
 COPY packages/core/tsconfig.json packages/core/
 COPY packages/core/tsconfig.lib.json packages/core/
 COPY packages/core/src packages/core/src
+COPY packages/container/tsconfig.json packages/container/
+COPY packages/container/src packages/container/src
 COPY packages/exceptions/tsconfig.json packages/exceptions/
 COPY packages/exceptions/src packages/exceptions/src
 COPY packages/cache/tsconfig.json packages/cache/
