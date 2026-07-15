@@ -6,22 +6,60 @@
 `PROJECT-EXECUTION-ROADMAP.md` and `STREETJS-2.0-PLAN.md`; the certification record
 is `docs/audits/2026-07-11-streetjs-final-engineering-certification.md`.
 
-**Date:** 2026-07-12 (UTC) · **Repo:** `hassanmubiru/StreetJS` @ `main` `2a71c2ea`
+**Date:** 2026-07-15 (UTC) · **Repo:** `hassanmubiru/StreetJS` @ `main` `a345639b`
 (local == origin) · **npm:** `streetjs`/`@streetjs/core`/`@streetjs/cli` = **1.2.7**
-(provenance); **13 new foundation packages published at 1.0.0 with SLSA provenance**
-(`config`, `logging`, `metrics`, `health`, `tracing`, `http-client`, `webhooks`,
-`testing`, `cache`, `session`, `security`, `websocket`, `xss`); **core-monolith split
-underway** via dependency inversion — `cache`, `session`, `security` (JWT), `websocket`
-(WS + SSE + channels), `xss`, `multipart`, `webhook-dispatcher` (SSRF-hardened sender,
-distinct from `@streetjs/webhooks`) published; and `@streetjs/telemetry` (in-process
-metrics tracker, built + verified) extracted — core re-exports all eight as the single
-source of truth (keeping framework-coupled layers like `xssMiddleware`, `UploadGuard`, and
-`telemetryMiddleware`) · **CI:** green (all workflows on `main` HEAD, incl. Publish Backend
-Packages and Docker Build, and tag `v1.2.7`).
+(provenance); **16 new `@streetjs/*` packages published at 1.0.0 with SLSA provenance**
+(8 foundation + 8 extracted core modules); **core-monolith split underway** via
+dependency inversion — core re-exports each extracted package as the single source of
+truth, keeping framework-coupled layers (`xssMiddleware`, `UploadGuard`,
+`telemetryMiddleware`) in core · **CI:** green (all workflows on `main` HEAD, incl.
+Publish Backend Packages, street CI/CD + Docker Build, Runtime Certification, CodeQL, and
+all security/policy gates; tag `v1.2.7`).
 
 **Evidence discipline:** every ✅ is backed by a command/CI run this engagement.
 Items needing external infra or owner decisions are marked ◑ with the reason —
 never simulated, never overstated.
+
+---
+
+## 0. Published `@streetjs/*` Package Inventory (this engagement)
+
+All at **1.0.0**, npm + SLSA provenance, zero/curated deps, strict-TS + ESM, DI token,
+docs (README/ARCHITECTURE/CHANGELOG/LICENSE) + runnable example, ≥90% coverage
+(integration-heavy packages carry documented, lower branch floors).
+
+**Foundation packages (8) — new capabilities:**
+
+| Package | Purpose | Tests |
+|---|---|---|
+| `@streetjs/config` | typed, schema-validated, immutable config (env/JSON/YAML/TOML/custom) | 34 |
+| `@streetjs/logging` | structured level logging, child loggers, transports, secret redaction | 68 |
+| `@streetjs/metrics` | Prometheus Counter/Gauge/Histogram + registry + exposition | 49 |
+| `@streetjs/health` | liveness/readiness/startup registry, IETF `health+json` | 23 |
+| `@streetjs/tracing` | spans + W3C `traceparent` propagation + samplers/exporters | 27 |
+| `@streetjs/http-client` | typed fetch client: retries, timeouts, interceptors | 29 |
+| `@streetjs/webhooks` | generic HMAC sign/verify/deliver library | 24 |
+| `@streetjs/testing` | spies, fake clock, deferreds, waitFor, fetch mock | 21 |
+
+**Extracted core modules (8) — dependency inversion, core re-exports each:**
+
+| Package | Core subpath | Tests |
+|---|---|---|
+| `@streetjs/cache` | `streetjs/cache` | 13 |
+| `@streetjs/session` | `streetjs/session` | 10 |
+| `@streetjs/security` (JWT) | `streetjs/security` | 15 |
+| `@streetjs/websocket` (WS+SSE+channels) | `streetjs/websocket`, `streetjs/sse` | 51 |
+| `@streetjs/xss` (sanitizers) | `streetjs/xss` | 12 |
+| `@streetjs/multipart` (streaming parser) | `streetjs/multipart` | 12 |
+| `@streetjs/webhook-dispatcher` (SSRF-hardened sender) | `streetjs/webhook` | 8 |
+| `@streetjs/telemetry` (metrics tracker) | `streetjs/telemetry` | 8 |
+
+**Split mechanics (reusable, proven across all 8 extractions):** core's `prebuild`/
+`prebuild:app` hooks compile first-party deps before core (so every `npm run build -w
+packages/core` keeps working untouched); the distroless `infra/docker/Dockerfile` builds
+those deps and dereferences the workspace symlinks so the runtime image is
+self-contained. Each extraction verified end-to-end: core build + build:app, Docker build
++ runtime packaging, runtime subpath resolution, full CI, then published.
 
 ---
 
