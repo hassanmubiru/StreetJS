@@ -53,6 +53,7 @@ docs (README/ARCHITECTURE/CHANGELOG/LICENSE) + runnable example, ≥90% coverage
 | `@streetjs/multipart` (streaming parser) | `streetjs/multipart` | 12 |
 | `@streetjs/webhook-dispatcher` (SSRF-hardened sender) | `streetjs/webhook` | 8 |
 | `@streetjs/telemetry` (metrics tracker) | `streetjs/telemetry` | 8 |
+| `@streetjs/cluster` (worker coordinator) | `streetjs/cluster` | 10 |
 
 **Split mechanics (reusable, proven across all 8 extractions):** core's `prebuild`/
 `prebuild:app` hooks compile first-party deps before core (so every `npm run build -w
