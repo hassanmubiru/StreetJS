@@ -34,6 +34,8 @@ COPY packages/xss/tsconfig.json packages/xss/
 COPY packages/xss/src packages/xss/src
 COPY packages/multipart/tsconfig.json packages/multipart/
 COPY packages/multipart/src packages/multipart/src
+COPY packages/webhook-dispatcher/tsconfig.json packages/webhook-dispatcher/
+COPY packages/webhook-dispatcher/src packages/webhook-dispatcher/src
 
 # Build core's first-party workspace dependencies first (so their compiled
 # output exists when core is type-checked and at runtime).
