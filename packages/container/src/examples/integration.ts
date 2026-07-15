@@ -61,20 +61,18 @@ const fixedConfig = new Config();
 container.register(Config, fixedConfig);
 assert(container.resolve(Config) === fixedConfig, 'pre-registered instance wins');
 
-// Circular dependencies are detected rather than overflowing the stack.
-@Injectable()
-class Left {
-  constructor(readonly right: Right) {}
-}
-@Injectable()
-class Right {
-  constructor(readonly left: Left) {}
-}
+// Circular dependencies are detected rather than overflowing the stack. We set
+// the param metadata explicitly (what `emitDecoratorMetadata` emits) so the
+// mutual references don't hit a temporal-dead-zone at module load.
+class Left {}
+class Right {}
+Reflect.defineMetadata('design:paramtypes', [Right], Left);
+Reflect.defineMetadata('design:paramtypes', [Left], Right);
 let caught = false;
 try {
-  container.resolve(Left);
+  container.resolve(Left as unknown as new () => object);
 } catch (err) {
-  caught = /Circular dependency detected|Cannot resolve/.test(String(err));
+  caught = /Circular dependency detected/.test(String(err));
 }
 assert(caught, 'circular dependency detected');
 
