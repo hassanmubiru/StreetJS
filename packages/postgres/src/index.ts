@@ -28,6 +28,19 @@ export {
   type PgResult,
   type DbResult,
   type PgConnectOptions,
+  // Low-level wire-protocol builders/parsers (were reachable via the
+  // `streetjs/database` subpath; kept public for backward compatibility).
+  buildParseMessage,
+  buildBindMessage,
+  buildExecuteMessage,
+  buildDescribeMessage,
+  buildSyncMessage,
+  buildSASLInitialResponse,
+  buildSASLResponse,
+  parseSASLMechanisms,
+  parseScramParams,
+  validateSASLprep,
+  xorBuffers,
 } from './wire.js';
 
 export {
