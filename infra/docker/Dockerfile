@@ -26,6 +26,8 @@ RUN npm ci
 COPY packages/core/tsconfig.json packages/core/
 COPY packages/core/tsconfig.lib.json packages/core/
 COPY packages/core/src packages/core/src
+COPY packages/exceptions/tsconfig.json packages/exceptions/
+COPY packages/exceptions/src packages/exceptions/src
 COPY packages/cache/tsconfig.json packages/cache/
 COPY packages/cache/src packages/cache/src
 COPY packages/session/tsconfig.json packages/session/
@@ -49,6 +51,8 @@ COPY packages/postgres/src packages/postgres/src
 
 # Build core's first-party workspace dependencies first (so their compiled
 # output exists when core is type-checked and at runtime).
+WORKDIR /build/packages/exceptions
+RUN npx tsc
 WORKDIR /build/packages/cache
 RUN npx tsc
 WORKDIR /build/packages/session
