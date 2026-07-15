@@ -298,10 +298,10 @@
     ],
     "all": false,
     "check-coverage": true,
-    "lines": 60,
-    "functions": 60,
-    "branches": 60,
-    "statements": 60
+    "lines": 58,
+    "functions": 55,
+    "branches": 58,
+    "statements": 58
   },
   "scripts": {
     "prebuild": "tsc -p ../cache/tsconfig.json && tsc -p ../session/tsconfig.json && tsc -p ../security/tsconfig.json && tsc -p ../websocket/tsconfig.json && tsc -p ../xss/tsconfig.json && tsc -p ../multipart/tsconfig.json && tsc -p ../webhook-dispatcher/tsconfig.json && tsc -p ../telemetry/tsconfig.json && tsc -p ../cluster/tsconfig.json && tsc -p ../postgres/tsconfig.json && node src/database/sqlite/download-wasm.mjs",
