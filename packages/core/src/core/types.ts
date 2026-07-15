@@ -1,8 +1,12 @@
 // src/core/types.ts
 // Shared type utilities used across the framework.
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type Constructor<T = object> = new (...args: any[]) => T;
+/**
+ * A newable class reference. The canonical definition now lives in the
+ * standalone @streetjs/container package (single source of truth); re-exported
+ * here so existing `../core/types.js` importers keep working — dependency inversion.
+ */
+export type { Constructor } from '@streetjs/container';
 
 export type Awaitable<T> = T | Promise<T>;
 
