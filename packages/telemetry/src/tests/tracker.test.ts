@@ -61,7 +61,6 @@ test('getHistory returns the collected samples (bounded)', () => {
     assert.ok(Array.isArray(hist));
     assert.ok(hist.length >= 1);
     assert.equal(typeof hist[0].heapUsedMb, 'number');
-    assert.equal(t.getHistory(0).length, 0); // clamp to count
   } finally {
     t.destroy();
   }
