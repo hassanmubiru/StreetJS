@@ -16,6 +16,7 @@ COPY packages/xss/package.json packages/xss/
 COPY packages/multipart/package.json packages/multipart/
 COPY packages/webhook-dispatcher/package.json packages/webhook-dispatcher/
 COPY packages/telemetry/package.json packages/telemetry/
+COPY packages/cluster/package.json packages/cluster/
 
 RUN npm ci
 
