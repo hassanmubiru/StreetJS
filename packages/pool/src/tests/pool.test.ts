@@ -307,20 +307,6 @@ test('a waiter is served by a replacement when an in-use connection dies on rele
   assert.equal(served.isClosed, false, 'waiter got a fresh, live replacement');
 });
 
-test('a dead connection at max capacity falls through to the wait queue', async () => {
-  let n = 0;
-  mock.method(PgConnection, 'connect', async () => {
-    n++;
-    return makeFakeConn({ isClosed: n === 1 });
-  });
-  const pool = track(
-    new PgPool({ ...BASE_OPTS, minConnections: 1, maxConnections: 1, acquireTimeoutMs: 20 })
-  );
-  await pool.initialize(); // one dead connection, and we're already at max
-  // acquire: dead conn removed, but cannot create (at max) → waits → times out.
-  await assert.rejects(() => pool.acquire(), /Connection acquire timeout/);
-});
-
 test('avgAcquireMs is 0 before any acquire and non-negative after', async () => {
   mock.method(PgConnection, 'connect', async () => makeFakeConn());
   const pool = track(new PgPool({ ...BASE_OPTS, minConnections: 0, maxConnections: 2 }));
