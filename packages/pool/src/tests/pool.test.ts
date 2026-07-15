@@ -271,6 +271,54 @@ test('ensureInitialized is idempotent and retryable after failure', async () => 
   assert.equal(pool.size, 1);
 });
 
+test('idle sweep closes connections above minConnections past the idle timeout', async () => {
+  mock.method(PgConnection, 'connect', async () => makeFakeConn());
+  const pool = track(
+    new PgPool({ ...BASE_OPTS, minConnections: 1, maxConnections: 4, idleTimeoutMs: 0 })
+  );
+  // Build up several idle connections.
+  const a = await pool.acquire();
+  const b = await pool.acquire();
+  const c = await pool.acquire();
+  pool.release(a);
+  pool.release(b);
+  pool.release(c);
+  assert.equal(pool.size, 3);
+  // Drive the private sweep directly (the timer fires every 15s in production).
+  (pool as unknown as { _sweepIdle(): void })._sweepIdle();
+  assert.equal(pool.size, 1, 'sweep trims idle connections down to minConnections');
+});
+
+test('a waiter is served by a replacement when an in-use connection dies on release', async () => {
+  mock.method(PgConnection, 'connect', async () => makeFakeConn());
+  const pool = track(new PgPool({ ...BASE_OPTS, minConnections: 0, maxConnections: 1 }));
+  const live = await pool.acquire(); // pool at max
+  const waiter = pool.acquire(); // queued
+  await new Promise((r) => setImmediate(r));
+  assert.equal(pool.waiting, 1);
+  // The held connection dies, then is released → pool removes it and creates a
+  // replacement, which is handed to the waiter.
+  (live as { isClosed: boolean }).isClosed = true;
+  pool.release(live);
+  const served = await waiter;
+  assert.ok(served);
+  assert.equal(served.isClosed, false, 'waiter got a fresh, live replacement');
+});
+
+test('a dead connection at max capacity falls through to the wait queue', async () => {
+  let n = 0;
+  mock.method(PgConnection, 'connect', async () => {
+    n++;
+    return makeFakeConn({ isClosed: n === 1 });
+  });
+  const pool = track(
+    new PgPool({ ...BASE_OPTS, minConnections: 1, maxConnections: 1, acquireTimeoutMs: 20 })
+  );
+  await pool.initialize(); // one dead connection, and we're already at max
+  // acquire: dead conn removed, but cannot create (at max) → waits → times out.
+  await assert.rejects(() => pool.acquire(), /Connection acquire timeout/);
+});
+
 test('avgAcquireMs is 0 before any acquire and non-negative after', async () => {
   mock.method(PgConnection, 'connect', async () => makeFakeConn());
   const pool = track(new PgPool({ ...BASE_OPTS, minConnections: 0, maxConnections: 2 }));
