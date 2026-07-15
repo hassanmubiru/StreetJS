@@ -12,11 +12,13 @@ is `docs/audits/2026-07-11-streetjs-final-engineering-certification.md`.
 (`config`, `logging`, `metrics`, `health`, `tracing`, `http-client`, `webhooks`,
 `testing`, `cache`, `session`, `security`, `websocket`, `xss`); **core-monolith split
 underway** via dependency inversion — `cache`, `session`, `security` (JWT), `websocket`
-(WS + SSE + channels), `xss` (sanitizers) published; and `@streetjs/multipart` (streaming
-form-data parser, built + verified, 12 tests) extracted — core re-exports all six as the
-single source of truth (keeping framework-coupled layers like `xssMiddleware` and
-`UploadGuard`) · **CI:** green (all workflows on `main` HEAD, incl. Publish Backend
-Packages and Docker Build, and tag `v1.2.7`).
+(WS + SSE + channels), `xss` (sanitizers), `multipart` (streaming form-data parser)
+published; and `@streetjs/webhook-dispatcher` (SSRF-hardened outbound sender — distinct
+from `@streetjs/webhooks`, built + verified incl. an openssl HTTPS integration test)
+extracted — core re-exports all seven as the single source of truth (keeping
+framework-coupled layers like `xssMiddleware` and `UploadGuard`) · **CI:** green (all
+workflows on `main` HEAD, incl. Publish Backend Packages and Docker Build, and tag
+`v1.2.7`).
 
 **Evidence discipline:** every ✅ is backed by a command/CI run this engagement.
 Items needing external infra or owner decisions are marked ◑ with the reason —
