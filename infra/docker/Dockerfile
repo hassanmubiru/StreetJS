@@ -37,6 +37,8 @@ COPY packages/multipart/tsconfig.json packages/multipart/
 COPY packages/multipart/src packages/multipart/src
 COPY packages/webhook-dispatcher/tsconfig.json packages/webhook-dispatcher/
 COPY packages/webhook-dispatcher/src packages/webhook-dispatcher/src
+COPY packages/telemetry/tsconfig.json packages/telemetry/
+COPY packages/telemetry/src packages/telemetry/src
 
 # Build core's first-party workspace dependencies first (so their compiled
 # output exists when core is type-checked and at runtime).
@@ -54,6 +56,8 @@ WORKDIR /build/packages/multipart
 RUN npx tsc
 WORKDIR /build/packages/webhook-dispatcher
 RUN npx tsc
+WORKDIR /build/packages/telemetry
+RUN npx tsc
 
 # Build the runnable app server with an explicit layout (emits dist/src/**,
 # including main.js) and copy the SQLite wasm assets alongside it.
@@ -67,7 +71,7 @@ WORKDIR /build
 # The distroless runtime stage copies node_modules but not packages/*, so
 # replace the workspace symlinks for first-party deps with their real files,
 # keeping the runtime image self-contained.
-RUN for pkg in cache session security websocket xss multipart webhook-dispatcher; do \
+RUN for pkg in cache session security websocket xss multipart webhook-dispatcher telemetry; do \
       rm -rf "node_modules/@streetjs/$pkg" \
    && mkdir -p "node_modules/@streetjs/$pkg" \
    && cp -R "packages/$pkg/dist" "packages/$pkg/package.json" "node_modules/@streetjs/$pkg/"; \
