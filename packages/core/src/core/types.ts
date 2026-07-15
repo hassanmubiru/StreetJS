@@ -76,13 +76,9 @@ export interface IpcMessage {
   ts: number;
 }
 
-/** Telemetry sample */
-export interface TelemetrySample {
-  ts: number;
-  heapUsedMb: number;
-  rss: number;
-  latencyP50: number;
-  latencyP99: number;
-  requestCount: number;
-  errorCount: number;
-}
+/**
+ * Telemetry sample. The canonical definition now lives in the standalone
+ * @streetjs/telemetry package (single source of truth); re-exported here so
+ * existing `../core/types.js` importers keep working — dependency inversion.
+ */
+export type { TelemetrySample } from '@streetjs/telemetry';
