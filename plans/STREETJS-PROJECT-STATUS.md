@@ -8,8 +8,8 @@ is `docs/audits/2026-07-11-streetjs-final-engineering-certification.md`.
 
 **Date:** 2026-07-15 (UTC) · **Repo:** `hassanmubiru/StreetJS` @ `main` `a345639b`
 (local == origin) · **npm:** `streetjs`/`@streetjs/core`/`@streetjs/cli` = **1.2.7**
-(provenance); **17 new `@streetjs/*` packages published at 1.0.0 with SLSA provenance**
-(8 foundation + 9 extracted core modules); **core-monolith split underway** via
+(provenance); **18 new `@streetjs/*` packages published at 1.0.0 with SLSA provenance**
+(8 foundation + 10 extracted core modules); **core-monolith split underway** via
 dependency inversion — core re-exports each extracted package as the single source of
 truth, keeping framework-coupled layers (`xssMiddleware`, `UploadGuard`,
 `telemetryMiddleware`) in core · **CI:** green (all workflows on `main` HEAD, incl.
@@ -41,7 +41,7 @@ docs (README/ARCHITECTURE/CHANGELOG/LICENSE) + runnable example, ≥90% coverage
 | `@streetjs/webhooks` | generic HMAC sign/verify/deliver library | 24 |
 | `@streetjs/testing` | spies, fake clock, deferreds, waitFor, fetch mock | 21 |
 
-**Extracted core modules (9) — dependency inversion, core re-exports each:**
+**Extracted core modules (10) — dependency inversion, core re-exports each:**
 
 | Package | Core subpath | Tests |
 |---|---|---|
@@ -54,6 +54,7 @@ docs (README/ARCHITECTURE/CHANGELOG/LICENSE) + runnable example, ≥90% coverage
 | `@streetjs/webhook-dispatcher` (SSRF-hardened sender) | `streetjs/webhook` | 8 |
 | `@streetjs/telemetry` (metrics tracker) | `streetjs/telemetry` | 8 |
 | `@streetjs/cluster` (worker coordinator) | `streetjs/cluster` | 10 |
+| `@streetjs/postgres` (wire driver + HA) | `streetjs/database`, `streetjs/pg-ha` | 100 |
 
 **Split mechanics (reusable, proven across all 8 extractions):** core's `prebuild`/
 `prebuild:app` hooks compile first-party deps before core (so every `npm run build -w
