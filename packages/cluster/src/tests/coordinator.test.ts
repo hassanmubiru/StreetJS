@@ -97,22 +97,19 @@ test('shutdown kills all workers and clears state', () => {
   assert.equal((c as unknown as { workerMap: Map<number, unknown> }).workerMap.size, 0);
 });
 
-test('workerHeartbeat sends heartbeats when an IPC channel exists', () => {
+test('workerHeartbeat sends heartbeats when an IPC channel exists', async () => {
   const sent: IpcMessage[] = [];
   const original = process.send;
   (process as { send?: unknown }).send = (msg: IpcMessage): boolean => {
     sent.push(msg);
     return true;
   };
+  // Restore only after the interval has had a chance to fire (not synchronously).
   try {
     const timer = workerHeartbeat(5);
-    return new Promise<void>((resolve) => {
-      setTimeout(() => {
-        clearInterval(timer);
-        assert.ok(sent.some((m) => m.type === 'heartbeat'));
-        resolve();
-      }, 30);
-    });
+    await new Promise<void>((resolve) => setTimeout(resolve, 30));
+    clearInterval(timer);
+    assert.ok(sent.some((m) => m.type === 'heartbeat'));
   } finally {
     (process as { send?: unknown }).send = original;
   }
