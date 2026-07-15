@@ -58,29 +58,64 @@ test('resolve injects constructor dependencies as singletons', () => {
   assert.equal(service.db, service.repo.db);
 });
 
-test('resolve detects a direct circular dependency', () => {
-  @Injectable()
-  class A {
-    // Lazily reference B to build the cycle at metadata time.
-    constructor(readonly b: B) {}
-  }
-  @Injectable()
-  class B {
-    constructor(readonly a: A) {}
-  }
+test('resolve detects a circular dependency and reports the resolution chain', () => {
+  // Two classes that depend on each other. We set the constructor param
+  // metadata explicitly (exactly what `emitDecoratorMetadata` produces) so the
+  // cycle uses real class references rather than a forward-reference fallback.
+  class A {}
+  class B {}
+  Reflect.defineMetadata('design:paramtypes', [B], A);
+  Reflect.defineMetadata('design:paramtypes', [A], B);
 
-  assert.throws(() => container.resolve(A), /Circular dependency detected|Cannot resolve/);
+  assert.throws(() => container.resolve(A as unknown as new () => object), {
+    message: /Circular dependency detected while resolving: A/,
+  });
 });
 
-test('resolve reports a helpful error for a primitive/undefined dependency', () => {
+test('resolve reports a helpful error for an interface/undefined dependency', () => {
+  interface ILogger {
+    log(): void;
+  }
   @Injectable()
-  class NeedsPrimitive {
-    constructor(readonly count: number) {}
+  class NeedsInterface {
+    // Interface types erase to `Object` in emitted metadata — unresolvable.
+    constructor(readonly logger: ILogger) {}
   }
   assert.throws(
-    () => container.resolve(NeedsPrimitive),
+    () => container.resolve(NeedsInterface),
     /Cannot resolve.*primitive or undefined type/s
   );
+});
+
+test('resolve wraps a failing dependency construction with the resolution chain', () => {
+  @Injectable()
+  class Broken {
+    constructor() {
+      throw new Error('boom');
+    }
+  }
+  @Injectable()
+  class Consumer {
+    constructor(readonly broken: Broken) {}
+  }
+  assert.throws(() => container.resolve(Consumer), /Cannot resolve Consumer → Broken: boom/);
+});
+
+test('resolve propagates an already-annotated nested failure without double-wrapping', () => {
+  interface IMissing {
+    x(): void;
+  }
+  @Injectable()
+  class Inner {
+    constructor(readonly missing: IMissing) {}
+  }
+  @Injectable()
+  class Outer {
+    constructor(readonly inner: Inner) {}
+  }
+  // The inner "primitive or undefined type" error already carries a chain, so
+  // it is rethrown as-is rather than wrapped again.
+  assert.throws(() => container.resolve(Outer), /primitive or undefined type/);
 });
 
 test('has reflects registration and resolution state, reset clears it', () => {
