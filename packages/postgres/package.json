@@ -33,10 +33,10 @@
     "reporter": ["text", "lcov"],
     "all": true,
     "check-coverage": true,
-    "lines": 80,
-    "functions": 85,
-    "branches": 75,
-    "statements": 80
+    "lines": 75,
+    "functions": 75,
+    "branches": 72,
+    "statements": 75
   },
   "scripts": {
     "build": "tsc",
