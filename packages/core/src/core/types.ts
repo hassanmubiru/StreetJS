@@ -1,6 +1,8 @@
 // src/core/types.ts
 // Shared type utilities used across the framework.
 
+import type { MiddlewareFn } from '@streetjs/context';
+
 /**
  * A newable class reference. The canonical definition now lives in the
  * standalone @streetjs/container package (single source of truth); re-exported
