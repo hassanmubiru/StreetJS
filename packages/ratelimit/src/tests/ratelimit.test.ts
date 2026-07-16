@@ -120,6 +120,52 @@ test('RateLimiter honors a custom keyFn and message', async () => {
   limiter.destroy();
 });
 
+test('RateLimiter._sweep keeps live keys and drops stale ones', async () => {
+  // Live key: a wide window means the swept entry survives (set branch).
+  const live = new RateLimiter({ windowMs: 60_000, maxRequests: 5 });
+  await live.middleware()(makeCtx({ ip: 'live' }), noop);
+  (live as unknown as { _sweep(): void })._sweep();
+  live.destroy();
+
+  // Stale key: a 1ms window means the entry ages out and the key is deleted.
+  const stale = new RateLimiter({ windowMs: 1, maxRequests: 5 });
+  await stale.middleware()(makeCtx({ ip: 'stale' }), noop);
+  await new Promise((r) => setTimeout(r, 5));
+  assert.doesNotThrow(() => (stale as unknown as { _sweep(): void })._sweep());
+  stale.destroy();
+});
+
+test('RateLimiter drops expired timestamps on the next check (tiny window)', async () => {
+  const limiter = new RateLimiter({ windowMs: 1, maxRequests: 1 });
+  const mw = limiter.middleware();
+  const a = makeCtx({ ip: 'z' });
+  await mw(a, noop);
+  await new Promise((r) => setTimeout(r, 5)); // let the first hit expire
+  const b = makeCtx({ ip: 'z' });
+  await assert.doesNotReject(() => mw(b, noop), 'expired entry pruned, request allowed');
+  limiter.destroy();
+});
+
+test('trustProxy falls back to the socket address when XFF has no valid IP', async () => {
+  let t = 0;
+  const mw = rateLimit({ scope: 'ip', requests: 1, window: '1m', trustProxy: true, clock: () => t });
+  // XFF present but not a valid IP → falls back to the socket remoteAddress.
+  const ctx = makeCtx({ ip: 'sock-addr', xff: '   ,  ' });
+  await mw(ctx, noop);
+  // Same socket addr shares the bucket → second request rejected.
+  await assert.rejects(() => mw(makeCtx({ ip: 'sock-addr', xff: '' }), noop), /Too Many Requests/);
+});
+
+test('parseWindow rejects a zero value carrying a unit', () => {
+  assert.throws(() => parseWindow('0'), /Invalid rate-limit window/);
+  assert.throws(() => parseWindow('0s'), /Invalid rate-limit window/);
+});
+
+test('rateLimit middleware guards against an unknown scope', async () => {
+  const mw = rateLimit({ scope: 'bogus' as unknown as 'ip', requests: 1, window: '1m' });
+  await assert.rejects(() => mw(makeCtx(), noop), /Unknown rate-limit scope/);
+});
+
 // ── @RateLimit decorator ────────────────────────────────────────────────────────
 
 test('@RateLimit stores metadata retrievable via getRateLimitMeta', () => {
