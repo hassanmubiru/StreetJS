@@ -50,7 +50,7 @@ export interface ControllerMetadata {
  * function of StreetContext); re-exported here so existing `../core/types.js`
  * importers keep working — dependency inversion.
  */
-export type { MiddlewareFn } from '@streetjs/context';
+export type { MiddlewareFn };
 
 /** Validation schema (runtime shape validator) */
 export interface ValidationSchema {
