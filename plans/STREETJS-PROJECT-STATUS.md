@@ -41,15 +41,16 @@ docs (README/ARCHITECTURE/CHANGELOG/LICENSE) + runnable example, ≥90% coverage
 | `@streetjs/webhooks` | generic HMAC sign/verify/deliver library | 24 |
 | `@streetjs/testing` | spies, fake clock, deferreds, waitFor, fetch mock | 21 |
 
-**Extracted core modules (19) — dependency inversion, core re-exports each:**
+**Extracted core modules (20) — dependency inversion, core re-exports each:**
 
 | Package | Core subpath | Tests |
 |---|---|---|
 | `@streetjs/exceptions` (typed HTTP exception hierarchy, zero-dep) | `streetjs/exceptions` | 7 |
 | `@streetjs/container` (DI/IoC + `@Injectable`) | (internal `core/container`) | 11 |
-| `@streetjs/context` (HTTP request/response context) | (internal `core/context`) | 17 |
+| `@streetjs/context` (HTTP request/response context; **1.1.0** adds `MiddlewareFn`) | (internal `core/context`) | 18 |
 | `@streetjs/diagnostics` (structured error reporter, zero-dep) | (internal `diagnostics/reporter`) | 9 |
 | `@streetjs/store` (KV/counter/rate-limit backing stores, zero-dep) | (internal `security/store`) | 12 |
+| `@streetjs/ratelimit` (sliding-window limiter + scopes + Redis store) | `streetjs/ratelimit` | 20 |
 | `@streetjs/cache` | `streetjs/cache` | 13 |
 | `@streetjs/session` | `streetjs/session` | 10 |
 | `@streetjs/security` (JWT) | `streetjs/security` | 15 |
@@ -65,7 +66,7 @@ docs (README/ARCHITECTURE/CHANGELOG/LICENSE) + runnable example, ≥90% coverage
 | `@streetjs/migrations` (SQL runner + schema differ) | `streetjs/migrations` | 16 |
 | `@streetjs/repository` (generic CRUD + ledger) | `streetjs/repository` | 19 |
 
-**Split mechanics (reusable, proven across all 19 extractions):** core's `prebuild`/
+**Split mechanics (reusable, proven across all 20 extractions):** core's `prebuild`/
 `prebuild:app` hooks compile first-party deps before core (so every `npm run build -w
 packages/core` keeps working untouched); the distroless `infra/docker/Dockerfile` builds
 those deps and dereferences the workspace symlinks so the runtime image is
