@@ -41,7 +41,7 @@ docs (README/ARCHITECTURE/CHANGELOG/LICENSE) + runnable example, ≥90% coverage
 | `@streetjs/webhooks` | generic HMAC sign/verify/deliver library | 24 |
 | `@streetjs/testing` | spies, fake clock, deferreds, waitFor, fetch mock | 21 |
 
-**Extracted core modules (13) — dependency inversion, core re-exports each:**
+**Extracted core modules (14) — dependency inversion, core re-exports each:**
 
 | Package | Core subpath | Tests |
 |---|---|---|
