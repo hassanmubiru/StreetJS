@@ -53,21 +53,13 @@ export interface ControllerMetadata {
  */
 export type { MiddlewareFn };
 
-/** Validation schema (runtime shape validator) */
-export interface ValidationSchema {
-  body?: Record<string, FieldRule>;
-  query?: Record<string, FieldRule>;
-  params?: Record<string, FieldRule>;
-}
-
-/** Single field validation rule */
-export interface FieldRule {
-  type: 'string' | 'number' | 'boolean' | 'email' | 'uuid';
-  required?: boolean;
-  min?: number;
-  max?: number;
-  pattern?: RegExp;
-}
+/**
+ * Validation schema and field rule. The canonical definitions now live in the
+ * standalone @streetjs/router package (single source of truth, since the router
+ * owns the validation logic); re-exported here so existing `../core/types.js`
+ * importers keep working — dependency inversion.
+ */
+export type { ValidationSchema, FieldRule } from '@streetjs/router';
 
 /** OpenAPI operation metadata */
 export interface OpenApiOperation {
