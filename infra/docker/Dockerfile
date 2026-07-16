@@ -100,6 +100,8 @@ WORKDIR /build/packages/multipart
 RUN npx tsc
 WORKDIR /build/packages/context
 RUN npx tsc
+WORKDIR /build/packages/ratelimit
+RUN npx tsc
 WORKDIR /build/packages/webhook-dispatcher
 RUN npx tsc
 WORKDIR /build/packages/telemetry
