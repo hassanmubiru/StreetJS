@@ -48,6 +48,8 @@ COPY packages/xss/tsconfig.json packages/xss/
 COPY packages/xss/src packages/xss/src
 COPY packages/multipart/tsconfig.json packages/multipart/
 COPY packages/multipart/src packages/multipart/src
+COPY packages/context/tsconfig.json packages/context/
+COPY packages/context/src packages/context/src
 COPY packages/webhook-dispatcher/tsconfig.json packages/webhook-dispatcher/
 COPY packages/webhook-dispatcher/src packages/webhook-dispatcher/src
 COPY packages/telemetry/tsconfig.json packages/telemetry/
@@ -82,6 +84,8 @@ RUN npx tsc
 WORKDIR /build/packages/xss
 RUN npx tsc
 WORKDIR /build/packages/multipart
+RUN npx tsc
+WORKDIR /build/packages/context
 RUN npx tsc
 WORKDIR /build/packages/webhook-dispatcher
 RUN npx tsc
