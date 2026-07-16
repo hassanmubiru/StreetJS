@@ -394,7 +394,7 @@
     "@streetjs/cache": "^1.0.0",
     "@streetjs/cluster": "^1.0.0",
     "@streetjs/container": "^1.0.0",
-    "@streetjs/context": "^1.0.0",
+    "@streetjs/context": "^1.1.0",
     "@streetjs/diagnostics": "^1.0.0",
     "@streetjs/exceptions": "^1.0.0",
     "@streetjs/migrations": "^1.0.0",
