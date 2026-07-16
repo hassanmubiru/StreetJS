@@ -20,6 +20,7 @@ COPY packages/xss/package.json packages/xss/
 COPY packages/multipart/package.json packages/multipart/
 COPY packages/context/package.json packages/context/
 COPY packages/ratelimit/package.json packages/ratelimit/
+COPY packages/router/package.json packages/router/
 COPY packages/webhook-dispatcher/package.json packages/webhook-dispatcher/
 COPY packages/telemetry/package.json packages/telemetry/
 COPY packages/cluster/package.json packages/cluster/
