@@ -60,7 +60,7 @@ docs (README/ARCHITECTURE/CHANGELOG/LICENSE) + runnable example, ≥90% coverage
 | `@streetjs/pool` (bounded PG connection pool) | `streetjs/pool` | 21 |
 | `@streetjs/schema-inspector` (PG/MySQL/SQLite introspection) | (internal `database/schema-inspector`) | 14 |
 
-**Split mechanics (reusable, proven across all 13 extractions):** core's `prebuild`/
+**Split mechanics (reusable, proven across all 14 extractions):** core's `prebuild`/
 `prebuild:app` hooks compile first-party deps before core (so every `npm run build -w
 packages/core` keeps working untouched); the distroless `infra/docker/Dockerfile` builds
 those deps and dereferences the workspace symlinks so the runtime image is
