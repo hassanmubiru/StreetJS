@@ -20,4 +20,4 @@
  */
 
 export { createContext, serializeCookie } from './context.js';
-export type { StreetContext, AuthenticatedUser, CookieOptions } from './context.js';
+export type { StreetContext, AuthenticatedUser, CookieOptions, MiddlewareFn } from './context.js';
