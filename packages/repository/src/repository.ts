@@ -183,6 +183,7 @@ export class LedgerTransactionService {
         await op(conn);
       }
       if (onSuccess) return onSuccess();
+      return undefined;
     });
   }
 }
