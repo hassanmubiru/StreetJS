@@ -124,7 +124,6 @@ test('RateLimiter honors a custom keyFn and message', async () => {
 
 test('@RateLimit stores metadata retrievable via getRateLimitMeta', () => {
   class Controller {
-    // @ts-expect-error decorator applied for its metadata side effect
     @RateLimit({ requests: 100, window: 60_000, key: 'login' })
     login() {}
   }
