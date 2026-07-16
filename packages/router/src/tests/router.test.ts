@@ -191,6 +191,39 @@ test('a @RateLimit-decorated route bakes and enforces a limiter', async () => {
   );
 });
 
+test('@RateLimit with key "user" buckets by authenticated user id', async () => {
+  class Ctrl {
+    @RateLimit({ requests: 1, window: 60_000, key: 'user' })
+    act() {}
+  }
+  const router = new Router();
+  router.add('POST', '/act', [], () => {}, undefined, Ctrl.prototype, 'act');
+  await router.dispatch(makeCtx({ method: 'POST', path: '/act', userId: 'u1' }));
+  // Same user → limited; a different user has its own bucket.
+  await assert.rejects(
+    () => router.dispatch(makeCtx({ method: 'POST', path: '/act', userId: 'u1' })),
+    /Too Many Requests/,
+  );
+  await assert.doesNotReject(() => router.dispatch(makeCtx({ method: 'POST', path: '/act', userId: 'u2' })));
+});
+
+test('@RateLimit with key "apiKey" buckets by ctx.state.apiKeyId', async () => {
+  class Ctrl {
+    @RateLimit({ requests: 1, window: 60_000, key: 'apiKey' })
+    act() {}
+  }
+  const router = new Router();
+  router.add('POST', '/k', [], () => {}, undefined, Ctrl.prototype, 'act');
+  const withKey = (id: string) => {
+    const ctx = makeCtx({ method: 'POST', path: '/k' });
+    ctx.state['apiKeyId'] = id;
+    return ctx;
+  };
+  await router.dispatch(withKey('key-1'));
+  await assert.rejects(() => router.dispatch(withKey('key-1')), /Too Many Requests/);
+  await assert.doesNotReject(() => router.dispatch(withKey('key-2')));
+});
+
 test('routes with no decorator metadata bake empty RBAC arrays', async () => {
   const router = new Router();
   const ctx = makeCtx({ path: '/open' });
