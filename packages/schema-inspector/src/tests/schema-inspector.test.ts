@@ -237,6 +237,63 @@ test('invalidateCache on an unknown pool does not throw', () => {
   assert.doesNotThrow(() => SchemaInspector.invalidateCache(new PgPool()));
 });
 
+// ── Sparse rows: exercise the per-field fallbacks (`?? ''`, `?? null`, `?? []`) ──
+
+test('Postgres: rows with missing fields fall back gracefully', async () => {
+  class SparsePg implements QueryablePool {
+    async query(sql: string): Promise<ReturnType<typeof result>> {
+      if (/pg_indexes/i.test(sql)) return result([{}]); // no tablename/indexname/indexdef
+      if (/referential_constraints/i.test(sql)) return result([{}]); // no fields
+      return result([{}]); // no column fields → table named ''
+    }
+  }
+  Object.defineProperty(SparsePg, 'name', { value: 'PgPool' });
+  const schema = await SchemaInspector.inspect(new SparsePg());
+  const t = schema.tables.find((x) => x.name === '')!;
+  assert.ok(t, 'a table keyed by the empty name is created');
+  assert.equal(t.columns[0]!.type, '');
+  assert.equal(t.columns[0]!.default, null);
+  assert.equal(t.foreignKeys[0]!.refTable, '');
+  assert.deepEqual(t.indexes[0]!.columns, [], 'missing indexdef yields no columns');
+});
+
+test('MySQL: rows with missing fields fall back gracefully', async () => {
+  class SparseMy implements QueryablePool {
+    async query(sql: string): Promise<ReturnType<typeof result>> {
+      if (/KEY_COLUMN_USAGE/i.test(sql)) return result([{}]);
+      if (/STATISTICS/i.test(sql)) return result([{}]);
+      return result([{}]);
+    }
+  }
+  Object.defineProperty(SparseMy, 'name', { value: 'MysqlPool' });
+  const schema = await SchemaInspector.inspect(new SparseMy());
+  const t = schema.tables.find((x) => x.name === '')!;
+  assert.ok(t);
+  assert.equal(t.foreignKeys[0]!.column, '');
+  assert.equal(t.indexes[0]!.unique, false, 'missing non_unique is treated as non-unique');
+});
+
+test('SQLite: rows with missing fields fall back gracefully', async () => {
+  class SparseLite implements QueryablePool {
+    async query(sql: string): Promise<ReturnType<typeof result>> {
+      if (/sqlite_master/i.test(sql)) return result([{}]); // table name ''
+      if (/table_info/i.test(sql)) return result([{}]); // col with no fields, pk undefined
+      if (/index_list/i.test(sql)) return result([{}]); // index name ''
+      if (/index_info/i.test(sql)) return result([{}]);
+      if (/foreign_key_list/i.test(sql)) return result([{}]);
+      return result([]);
+    }
+  }
+  Object.defineProperty(SparseLite, 'name', { value: 'SqlitePool' });
+  const schema = await SchemaInspector.inspect(new SparseLite());
+  const t = schema.tables[0]!;
+  assert.equal(t.name, '');
+  assert.equal(t.columns[0]!.default, null);
+  assert.deepEqual(t.primaryKey, [], 'undefined pk is excluded');
+  assert.equal(t.foreignKeys[0]!.refTable, '');
+  assert.equal(t.indexes[0]!.name, '');
+});
+
 test('inspectedAt is a recent Date', async () => {
   const before = Date.now();
   const schema: DatabaseSchema = await SchemaInspector.inspect(new PgPool());
