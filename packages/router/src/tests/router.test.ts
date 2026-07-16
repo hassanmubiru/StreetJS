@@ -171,6 +171,7 @@ test('validation flags too-long strings and accepts real boolean values', async 
   };
   const router = new Router();
   let ran = false;
+  router.add('POST', '/v', [], () => { ran = true; }, schema);
   // Real boolean + numeric number pass; over-long string fails.
   await assert.rejects(
     () => router.dispatch(makeCtx({ method: 'POST', path: '/v', body: { code: 'toolong', flag: true, n: 5 } })),
@@ -180,7 +181,6 @@ test('validation flags too-long strings and accepts real boolean values', async 
       return true;
     },
   );
-  router.add('POST', '/v', [], () => { ran = true; }, schema);
   await router.dispatch(makeCtx({ method: 'POST', path: '/v', body: { code: 'ok', flag: false, n: 1 } }));
   assert.equal(ran, true);
 });
