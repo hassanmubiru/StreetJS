@@ -400,6 +400,7 @@
     "@streetjs/multipart": "^1.0.0",
     "@streetjs/pool": "^1.0.0",
     "@streetjs/postgres": "^1.0.0",
+    "@streetjs/schema-inspector": "^1.0.0",
     "@streetjs/telemetry": "^1.0.0",
     "@streetjs/webhook-dispatcher": "^1.0.0",
     "@streetjs/websocket": "^1.0.0",

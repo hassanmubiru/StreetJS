@@ -21,6 +21,7 @@ COPY packages/telemetry/package.json packages/telemetry/
 COPY packages/cluster/package.json packages/cluster/
 COPY packages/postgres/package.json packages/postgres/
 COPY packages/pool/package.json packages/pool/
+COPY packages/schema-inspector/package.json packages/schema-inspector/
 
 RUN npm ci
 
