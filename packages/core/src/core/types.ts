@@ -42,11 +42,13 @@ export interface ControllerMetadata {
   middlewares: MiddlewareFn[];
 }
 
-/** Middleware function signature */
-export type MiddlewareFn = (
-  ctx: import('./context.js').StreetContext,
-  next: () => Promise<void>
-) => Promise<void>;
+/**
+ * Middleware function signature. The canonical definition now lives in the
+ * standalone @streetjs/context package (single source of truth, since it is a
+ * function of StreetContext); re-exported here so existing `../core/types.js`
+ * importers keep working — dependency inversion.
+ */
+export type { MiddlewareFn } from '@streetjs/context';
 
 /** Validation schema (runtime shape validator) */
 export interface ValidationSchema {
