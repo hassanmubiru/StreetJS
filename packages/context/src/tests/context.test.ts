@@ -2,7 +2,7 @@ import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
-import { createContext, serializeCookie } from '../index.js';
+import { createContext, serializeCookie, type MiddlewareFn } from '../index.js';
 
 // ── Fake req/res (no real socket) ──────────────────────────────────────────────
 
