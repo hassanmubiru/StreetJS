@@ -130,7 +130,16 @@ test('acquire rejects with a timeout when no connection frees up', async () => {
     new PgPool({ ...BASE_OPTS, minConnections: 0, maxConnections: 1, acquireTimeoutMs: 20 })
   );
   await pool.acquire(); // exhaust
-  await assert.rejects(() => pool.acquire(), /Connection acquire timeout/);
+  // The pool's acquire-timeout timer is intentionally `unref()`'d so it never
+  // holds a process open. This test awaits *only* that timer, so we keep the
+  // event loop alive ourselves — otherwise a fast CI loop can drain before the
+  // timer fires, leaving the awaited rejection pending.
+  const keepAlive = setInterval(() => {}, 5);
+  try {
+    await assert.rejects(() => pool.acquire(), /Connection acquire timeout/);
+  } finally {
+    clearInterval(keepAlive);
+  }
 });
 
 test('query runs on an acquired connection and releases it', async () => {
