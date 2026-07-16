@@ -195,6 +195,23 @@ test('serializeCookie honors an explicit secure flag regardless of env', () => {
   assert.ok(!/Secure/.test(serializeCookie('sid', 'x', { secure: false })));
 });
 
+test('MiddlewareFn composes over a context and threads next()', async () => {
+  const order: string[] = [];
+  const outer: MiddlewareFn = async (_ctx, next) => {
+    order.push('outer:before');
+    await next();
+    order.push('outer:after');
+  };
+  const inner: MiddlewareFn = async (ctx, _next) => {
+    order.push('inner');
+    ctx.json({ ok: true });
+  };
+  const ctx = createContext(makeReq(), makeRes(), '/', {});
+  await outer(ctx, () => inner(ctx, async () => {}));
+  assert.deepEqual(order, ['outer:before', 'inner', 'outer:after']);
+  assert.equal(ctx.sent, true);
+});
+
 test('serializeCookie emits all attributes in a stable order', () => {
   delete process.env.NODE_ENV;
   const c = serializeCookie('sid', 'v', {
