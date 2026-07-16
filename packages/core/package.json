@@ -406,6 +406,7 @@
     "@streetjs/postgres": "^1.0.0",
     "@streetjs/ratelimit": "^1.0.0",
     "@streetjs/repository": "^1.0.0",
+    "@streetjs/router": "^1.0.0",
     "@streetjs/schema-inspector": "^1.0.0",
     "@streetjs/telemetry": "^1.0.0",
     "@streetjs/webhook-dispatcher": "^1.0.0",
