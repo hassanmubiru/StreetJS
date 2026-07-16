@@ -20,17 +20,17 @@ interface RecordedRes extends ServerResponse {
 
 function makeRes(): RecordedRes {
   const headers: Record<string, unknown> = {};
-  const res = {
+  const rec = {
     _headers: headers,
     _ended: false,
     writeHead(status: number, sentHeaders?: Record<string, string>) {
-      this._status = status;
-      if (sentHeaders) this._sentHeaders = sentHeaders;
-      return this;
+      rec._status = status;
+      if (sentHeaders) rec._sentHeaders = sentHeaders;
+      return rec;
     },
     end(body?: string) {
-      this._body = body;
-      this._ended = true;
+      rec._body = body;
+      rec._ended = true;
     },
     setHeader(name: string, value: unknown) {
       headers[name] = value;
@@ -39,7 +39,7 @@ function makeRes(): RecordedRes {
       return headers[name];
     },
   } as unknown as RecordedRes;
-  return res;
+  return rec;
 }
 
 const ENV = process.env.NODE_ENV;
