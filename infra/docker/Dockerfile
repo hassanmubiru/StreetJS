@@ -37,6 +37,8 @@ COPY packages/container/tsconfig.json packages/container/
 COPY packages/container/src packages/container/src
 COPY packages/exceptions/tsconfig.json packages/exceptions/
 COPY packages/exceptions/src packages/exceptions/src
+COPY packages/diagnostics/tsconfig.json packages/diagnostics/
+COPY packages/diagnostics/src packages/diagnostics/src
 COPY packages/cache/tsconfig.json packages/cache/
 COPY packages/cache/src packages/cache/src
 COPY packages/session/tsconfig.json packages/session/
