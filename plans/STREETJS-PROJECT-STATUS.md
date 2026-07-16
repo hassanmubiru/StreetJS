@@ -47,6 +47,7 @@ docs (README/ARCHITECTURE/CHANGELOG/LICENSE) + runnable example, ≥90% coverage
 |---|---|---|
 | `@streetjs/exceptions` (typed HTTP exception hierarchy, zero-dep) | `streetjs/exceptions` | 7 |
 | `@streetjs/container` (DI/IoC + `@Injectable`) | (internal `core/container`) | 11 |
+| `@streetjs/context` (HTTP request/response context) | (internal `core/context`) | 17 |
 | `@streetjs/cache` | `streetjs/cache` | 13 |
 | `@streetjs/session` | `streetjs/session` | 10 |
 | `@streetjs/security` (JWT) | `streetjs/security` | 15 |
