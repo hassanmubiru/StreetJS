@@ -40,6 +40,8 @@ COPY packages/exceptions/tsconfig.json packages/exceptions/
 COPY packages/exceptions/src packages/exceptions/src
 COPY packages/diagnostics/tsconfig.json packages/diagnostics/
 COPY packages/diagnostics/src packages/diagnostics/src
+COPY packages/store/tsconfig.json packages/store/
+COPY packages/store/src packages/store/src
 COPY packages/cache/tsconfig.json packages/cache/
 COPY packages/cache/src packages/cache/src
 COPY packages/session/tsconfig.json packages/session/
