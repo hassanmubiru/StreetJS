@@ -57,8 +57,9 @@ docs (README/ARCHITECTURE/CHANGELOG/LICENSE) + runnable example, ≥90% coverage
 | `@streetjs/telemetry` (metrics tracker) | `streetjs/telemetry` | 8 |
 | `@streetjs/cluster` (worker coordinator) | `streetjs/cluster` | 10 |
 | `@streetjs/postgres` (wire driver + HA) | `streetjs/database`, `streetjs/pg-ha` | 100 |
+| `@streetjs/pool` (bounded PG connection pool) | `streetjs/pool` | 21 |
 
-**Split mechanics (reusable, proven across all 12 extractions):** core's `prebuild`/
+**Split mechanics (reusable, proven across all 13 extractions):** core's `prebuild`/
 `prebuild:app` hooks compile first-party deps before core (so every `npm run build -w
 packages/core` keeps working untouched); the distroless `infra/docker/Dockerfile` builds
 those deps and dereferences the workspace symlinks so the runtime image is
