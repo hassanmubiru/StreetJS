@@ -60,6 +60,8 @@ COPY packages/context/tsconfig.json packages/context/
 COPY packages/context/src packages/context/src
 COPY packages/ratelimit/tsconfig.json packages/ratelimit/
 COPY packages/ratelimit/src packages/ratelimit/src
+COPY packages/router/tsconfig.json packages/router/
+COPY packages/router/src packages/router/src
 COPY packages/webhook-dispatcher/tsconfig.json packages/webhook-dispatcher/
 COPY packages/webhook-dispatcher/src packages/webhook-dispatcher/src
 COPY packages/telemetry/tsconfig.json packages/telemetry/
