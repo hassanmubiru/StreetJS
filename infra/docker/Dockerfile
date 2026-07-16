@@ -11,6 +11,7 @@ COPY packages/cli/package.json packages/cli/
 COPY packages/container/package.json packages/container/
 COPY packages/exceptions/package.json packages/exceptions/
 COPY packages/diagnostics/package.json packages/diagnostics/
+COPY packages/store/package.json packages/store/
 COPY packages/cache/package.json packages/cache/
 COPY packages/session/package.json packages/session/
 COPY packages/security/package.json packages/security/
