@@ -5,6 +5,16 @@ All notable changes to `@streetjs/context` are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0]
+
+### Added
+
+- `MiddlewareFn` type — the canonical middleware signature
+  `(ctx: StreetContext, next: () => Promise<void>) => Promise<void>`, shared by the
+  router and every middleware-producing subsystem (rate limiting, auth, …). It
+  lives here because it is inseparable from `StreetContext`; the framework core
+  and `@streetjs/*` middleware packages source it from this package.
+
 ## [1.0.0]
 
 ### Added
