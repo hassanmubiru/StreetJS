@@ -81,6 +81,8 @@ WORKDIR /build/packages/exceptions
 RUN npx tsc
 WORKDIR /build/packages/diagnostics
 RUN npx tsc
+WORKDIR /build/packages/store
+RUN npx tsc
 WORKDIR /build/packages/cache
 RUN npx tsc
 WORKDIR /build/packages/session
