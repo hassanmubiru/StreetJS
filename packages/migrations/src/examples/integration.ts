@@ -42,7 +42,7 @@ Reflect.defineMetadata('street:columns', [
 Reflect.defineMetadata('street:primaryKey', ['id'], User);
 Reflect.defineMetadata('street:indexes', [{ name: 'idx_users_email', columns: ['email'], unique: true }], User);
 
-const diff = await MigrationDiffer.diff(new PgPool() as unknown as PgPool, [User]);
+const diff = await MigrationDiffer.diff(new PgPool(), [User]);
 console.log('safe DDL:');
 for (const s of diff.safe) console.log('  ' + s);
 assert(diff.destructive.length === 0, 'creating a new schema is non-destructive');
