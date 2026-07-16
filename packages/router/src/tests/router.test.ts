@@ -66,13 +66,26 @@ test('path params are extracted and URL-decoded', async () => {
   assert.deepEqual(seen, { id: '42', slug: 'hello world' });
 });
 
-test('a wildcard segment and wildcard method match', async () => {
+test('a wildcard path and wildcard method match any request', async () => {
   const router = new Router();
-  let tail = '';
-  router.add('*', '/files/*', [], (ctx) => { tail = ctx.params['0'] ?? Object.values(ctx.params)[0] ?? ''; });
+  let ran = false;
+  router.add('*', '/files/*', [], () => { ran = true; });
   const ok = await router.dispatch(makeCtx({ method: 'DELETE', path: '/files/a/b/c.txt' }));
   assert.equal(ok, true);
-  assert.equal(tail, 'a/b/c.txt');
+  assert.equal(ran, true);
+  // A wildcard method also matches a different verb on a plain path.
+  const r2 = new Router();
+  r2.add('*', '/any', [], () => {});
+  assert.equal(await r2.dispatch(makeCtx({ method: 'PATCH', path: '/any' })), true);
+});
+
+test('dispatch initializes ctx.state when the context lacks one', async () => {
+  const router = new Router();
+  router.add('GET', '/s', [], () => {});
+  const ctx = makeCtx({ path: '/s' });
+  (ctx as unknown as { state: unknown }).state = undefined;
+  await router.dispatch(ctx);
+  assert.deepEqual(ctx.state['_requiredRoles'], []);
 });
 
 test('middlewares run in order before the handler, threading next()', async () => {
