@@ -73,13 +73,13 @@ try {
   await writeFile(join(dir, '001_init.sql'), 'CREATE TABLE users (id int);', 'utf8');
   await writeFile(join(dir, '002_posts.sql'), 'CREATE TABLE posts (id int);', 'utf8');
 
-  await new StreetMigrationRunner(runnerPool as unknown as PgPool).run(dir);
+  await new StreetMigrationRunner(runnerPool as unknown as RealPgPool).run(dir);
   console.log('applied migrations:', [...applied].join(', '));
   assert(applied.has('001_init.sql') && applied.has('002_posts.sql'), 'both migrations applied');
 
   // A second run is idempotent — nothing new to apply.
   const before = applied.size;
-  await new StreetMigrationRunner(runnerPool as unknown as PgPool).run(dir);
+  await new StreetMigrationRunner(runnerPool as unknown as RealPgPool).run(dir);
   assert(applied.size === before, 'second run applies nothing new');
 } finally {
   await rm(dir, { recursive: true, force: true });
