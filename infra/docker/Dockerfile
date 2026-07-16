@@ -61,6 +61,8 @@ COPY packages/schema-inspector/tsconfig.json packages/schema-inspector/
 COPY packages/schema-inspector/src packages/schema-inspector/src
 COPY packages/migrations/tsconfig.json packages/migrations/
 COPY packages/migrations/src packages/migrations/src
+COPY packages/repository/tsconfig.json packages/repository/
+COPY packages/repository/src packages/repository/src
 
 # Build core's first-party workspace dependencies first (so their compiled
 # output exists when core is type-checked and at runtime).
