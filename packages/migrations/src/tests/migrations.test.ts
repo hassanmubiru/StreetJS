@@ -214,7 +214,7 @@ test('runner: applies pending migrations in lexicographic order and records them
     'notes.txt': 'ignored',
   });
   try {
-    await new StreetMigrationRunner(pool as unknown as PgPool).run(dir);
+    await new StreetMigrationRunner(pool as unknown as RealPgPool).run(dir);
     const applied = [...pool.applied];
     assert.deepEqual(applied, ['001_first.sql', '002_second.sql']);
     // The tracking table is created first.
@@ -232,7 +232,7 @@ test('runner: skips already-applied migrations', async () => {
     '002_second.sql': 'CREATE TABLE b (id int);',
   });
   try {
-    await new StreetMigrationRunner(pool as unknown as PgPool).run(dir);
+    await new StreetMigrationRunner(pool as unknown as RealPgPool).run(dir);
     // Only the second migration's DDL should have been executed this run.
     const ddl = pool.queries.filter((q) => /CREATE TABLE [ab] /.test(q.sql)).map((q) => q.sql);
     assert.equal(ddl.length, 1);
@@ -245,7 +245,7 @@ test('runner: skips already-applied migrations', async () => {
 test('runner: a missing directory is tolerated (no migrations, no throw)', async () => {
   const pool = makeRunnerPool();
   const dir = join(tmpdir(), 'streetjs-does-not-exist-' + Date.now());
-  await assert.doesNotReject(() => new StreetMigrationRunner(pool as unknown as PgPool).run(dir));
+  await assert.doesNotReject(() => new StreetMigrationRunner(pool as unknown as RealPgPool).run(dir));
   assert.equal(pool.applied.size, 0);
 });
 
@@ -257,7 +257,7 @@ test('runner: rollback runs the .rollback.sql and removes the record', async () 
     '001_first.rollback.sql': 'DROP TABLE a;',
   });
   try {
-    await new StreetMigrationRunner(pool as unknown as PgPool).rollback(dir, 1);
+    await new StreetMigrationRunner(pool as unknown as RealPgPool).rollback(dir, 1);
     assert.ok(pool.queries.some((q) => /DROP TABLE a;/.test(q.sql)));
     assert.ok(pool.queries.some((q) => /DELETE FROM street_migrations/.test(q.sql)));
   } finally {
@@ -271,7 +271,7 @@ test('runner: rollback throws when the .rollback.sql file is missing', async () 
   const dir = await makeMigrationsDir({ '001_first.sql': 'CREATE TABLE a (id int);' });
   try {
     await assert.rejects(
-      () => new StreetMigrationRunner(pool as unknown as PgPool).rollback(dir, 1),
+      () => new StreetMigrationRunner(pool as unknown as RealPgPool).rollback(dir, 1),
       /Rollback file not found/
     );
   } finally {
