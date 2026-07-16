@@ -171,7 +171,8 @@ test('transparent encryption wraps create and decryption wraps reads', async () 
 test('streamAll rejects parameterized queries and otherwise delegates to pool.stream', async () => {
   const pool = new FakePool();
   const r = repo(pool);
-  await assert.rejects(() => r.streamAll('SELECT $1', ['x']), /does not yet support parameterized/);
+  // streamAll throws synchronously for parameterized queries (it is not async).
+  assert.throws(() => r.streamAll('SELECT $1', ['x']), /does not yet support parameterized/);
   await r.streamAll('SELECT * FROM users');
   assert.deepEqual(pool.streamed, ['SELECT * FROM users']);
 });
