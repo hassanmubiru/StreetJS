@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/context",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "StreetJS request/response context: a strict per-request StreetContext over Node's http req/res with JSON/text/HTML/send helpers, header and secure-by-default cookie handling, params/query/body/state, and a single-write guard.",
   "type": "module",
   "main": "./dist/index.js",
