@@ -161,6 +161,54 @@ test('validation enforces string length and pattern on query and params', async 
   );
 });
 
+test('validation flags too-long strings and accepts real boolean values', async () => {
+  const schema: ValidationSchema = {
+    body: {
+      code: { type: 'string', max: 3 },
+      flag: { type: 'boolean' },
+      n: { type: 'number' },
+    },
+  };
+  const router = new Router();
+  let ran = false;
+  // Real boolean + numeric number pass; over-long string fails.
+  await assert.rejects(
+    () => router.dispatch(makeCtx({ method: 'POST', path: '/v', body: { code: 'toolong', flag: true, n: 5 } })),
+    (err: unknown) => {
+      const d = (err as BadRequestException).details as string[];
+      assert.ok(d.some((x) => /code must be at most 3 chars/.test(x)));
+      return true;
+    },
+  );
+  router.add('POST', '/v', [], () => { ran = true; }, schema);
+  await router.dispatch(makeCtx({ method: 'POST', path: '/v', body: { code: 'ok', flag: false, n: 1 } }));
+  assert.equal(ran, true);
+});
+
+test('validation skips a body that is present but not an object', async () => {
+  const schema: ValidationSchema = { body: { name: { type: 'string', required: true } } };
+  const router = new Router();
+  let ran = false;
+  router.add('POST', '/b', [], () => { ran = true; }, schema);
+  // A string body is not a Record → the body rules are skipped, handler runs.
+  await router.dispatch(makeCtx({ method: 'POST', path: '/b', body: 'raw-string' }));
+  assert.equal(ran, true);
+});
+
+test('validation reports a non-string value for a string rule', async () => {
+  const schema: ValidationSchema = { body: { name: { type: 'string' } } };
+  const router = new Router();
+  router.add('POST', '/n', [], () => {}, schema);
+  await assert.rejects(
+    () => router.dispatch(makeCtx({ method: 'POST', path: '/n', body: { name: 123 } })),
+    (err: unknown) => {
+      const d = (err as BadRequestException).details as string[];
+      assert.ok(d.some((x) => /name must be a string/.test(x)));
+      return true;
+    },
+  );
+});
+
 // ── RBAC & rate-limit baking ─────────────────────────────────────────────────────
 
 test('dispatch bakes @Roles/@Permissions metadata onto ctx.state', async () => {
