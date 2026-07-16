@@ -7,7 +7,7 @@ import { join } from 'node:path';
 
 import { MigrationDiffer, StreetMigrationRunner } from '../index.js';
 import { SchemaInspector } from '@streetjs/schema-inspector';
-import type { PgPool } from '@streetjs/pool';
+import type { PgPool as RealPgPool } from '@streetjs/pool';
 
 // The metadata keys the differ reads (contract set by the @Entity/@Column
 // decorators in core). We set them directly here — the same values a decorator
