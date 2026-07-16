@@ -23,6 +23,7 @@ COPY packages/postgres/package.json packages/postgres/
 COPY packages/pool/package.json packages/pool/
 COPY packages/schema-inspector/package.json packages/schema-inspector/
 COPY packages/migrations/package.json packages/migrations/
+COPY packages/repository/package.json packages/repository/
 
 RUN npm ci
 
