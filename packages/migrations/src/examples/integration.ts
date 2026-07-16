@@ -15,7 +15,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { MigrationDiffer, StreetMigrationRunner } from '../index.js';
-import type { PgPool } from '@streetjs/pool';
+import type { PgPool as RealPgPool } from '@streetjs/pool';
 
 function assert(cond: boolean, msg: string): void {
   if (!cond) throw new Error(`example assertion failed: ${msg}`);
