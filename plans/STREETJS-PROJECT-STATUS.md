@@ -58,6 +58,7 @@ docs (README/ARCHITECTURE/CHANGELOG/LICENSE) + runnable example, ≥90% coverage
 | `@streetjs/cluster` (worker coordinator) | `streetjs/cluster` | 10 |
 | `@streetjs/postgres` (wire driver + HA) | `streetjs/database`, `streetjs/pg-ha` | 100 |
 | `@streetjs/pool` (bounded PG connection pool) | `streetjs/pool` | 21 |
+| `@streetjs/schema-inspector` (PG/MySQL/SQLite introspection) | (internal `database/schema-inspector`) | 14 |
 
 **Split mechanics (reusable, proven across all 13 extractions):** core's `prebuild`/
 `prebuild:app` hooks compile first-party deps before core (so every `npm run build -w
