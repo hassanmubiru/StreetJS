@@ -2,6 +2,7 @@
 // Shared type utilities used across the framework.
 
 import type { MiddlewareFn } from '@streetjs/context';
+import type { ValidationSchema } from '@streetjs/router';
 
 /**
  * A newable class reference. The canonical definition now lives in the
