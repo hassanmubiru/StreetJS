@@ -96,6 +96,8 @@ WORKDIR /build/packages/schema-inspector
 RUN npx tsc
 WORKDIR /build/packages/migrations
 RUN npx tsc
+WORKDIR /build/packages/repository
+RUN npx tsc
 
 # Build the runnable app server with an explicit layout (emits dist/src/**,
 # including main.js) and copy the SQLite wasm assets alongside it.
