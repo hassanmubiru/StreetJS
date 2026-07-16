@@ -63,6 +63,18 @@ export interface AuthenticatedUser {
   roles: string[];
 }
 
+/**
+ * Middleware function signature: receives the request {@link StreetContext} and a
+ * `next` continuation, and returns a promise. Calling `next()` passes control to
+ * the next middleware; not calling it (e.g. after sending a response) short-circuits
+ * the chain. This is the canonical contract shared by the router and every
+ * middleware-producing subsystem (rate limiting, auth, etc.).
+ */
+export type MiddlewareFn = (
+  ctx: StreetContext,
+  next: () => Promise<void>
+) => Promise<void>;
+
 export interface CookieOptions {
   /** Defaults to `true` (HttpOnly emitted) unless explicitly set to `false`. */
   httpOnly?: boolean;
