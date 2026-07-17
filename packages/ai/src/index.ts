@@ -189,6 +189,12 @@ export interface FakeAiProviderOptions {
   chatScript?: (request: ChatRequest) => ChatResponse;
   /** Embedding dimensionality. Default 64. */
   dim?: number;
+  /**
+   * Optional scripted transcription. Defaults to decoding the audio bytes as
+   * UTF-8 text (so tests can pass a known string as "audio" and get it back),
+   * emitting a single full-length segment. Deterministic and network-free.
+   */
+  transcribeScript?: (request: TranscriptionRequest) => TranscriptionResponse;
 }
 
 /** Deterministic, network-free provider for tests, examples, and offline dev. */
@@ -196,10 +202,12 @@ export class FakeAiProvider implements AiProvider {
   readonly name = 'fake';
   private readonly dim: number;
   private readonly chatScript: ((request: ChatRequest) => ChatResponse) | undefined;
+  private readonly transcribeScript: ((request: TranscriptionRequest) => TranscriptionResponse) | undefined;
 
   constructor(options: FakeAiProviderOptions = {}) {
     this.dim = options.dim ?? FAKE_DIM;
     this.chatScript = options.chatScript;
+    this.transcribeScript = options.transcribeScript;
   }
 
   async chat(request: ChatRequest): Promise<ChatResponse> {
