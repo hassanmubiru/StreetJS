@@ -73,19 +73,65 @@ async function readJson(res: { ok: boolean; status: number; text(): Promise<stri
 
 // ── OpenAI ────────────────────────────────────────────────────────────────────
 
-/** OpenAI Chat Completions + Embeddings adapter. */
+/** OpenAI Chat Completions + Embeddings + Whisper transcription adapter. */
 export class OpenAiProvider implements AiProvider {
   readonly name = 'openai';
   private readonly apiKey: string;
   private readonly baseUrl: string;
   private readonly defaultModel: string;
   private readonly fetch: FetchLike;
+  private readonly transcribeModel: string;
+  private readonly transcribeFetch: MultipartFetchLike;
 
-  constructor(options: BaseOptions = {}) {
+  constructor(options: BaseOptions & {
+    /** Default speech-to-text model. Default 'whisper-1'. */
+    transcribeModel?: string;
+    /** Injectable multipart fetch for transcription. Default global fetch. */
+    transcribeFetch?: MultipartFetchLike;
+  } = {}) {
     this.apiKey = options.apiKey ?? process.env['OPENAI_API_KEY'] ?? '';
     this.baseUrl = (options.baseUrl ?? 'https://api.openai.com/v1').replace(/\/$/, '');
     this.defaultModel = options.defaultModel ?? 'gpt-4o-mini';
     this.fetch = resolveFetch(options.fetch);
+    this.transcribeModel = options.transcribeModel ?? 'whisper-1';
+    this.transcribeFetch = resolveMultipartFetch(options.transcribeFetch);
+  }
+
+  /** Transcribe audio via the OpenAI audio/transcriptions (Whisper) endpoint. */
+  async transcribe(request: TranscriptionRequest): Promise<TranscriptionResponse> {
+    const form = new FormData();
+    const blob = new Blob([request.audio as unknown as BlobPart], {
+      type: request.mimeType ?? 'application/octet-stream',
+    });
+    form.append('file', blob, request.filename ?? 'audio');
+    form.append('model', request.model ?? this.transcribeModel);
+    // verbose_json returns language, duration, and time-coded segments.
+    form.append('response_format', 'verbose_json');
+    if (request.language) form.append('language', request.language);
+    if (request.prompt) form.append('prompt', request.prompt);
+
+    const json = await readJson(
+      await this.transcribeFetch(`${this.baseUrl}/audio/transcriptions`, {
+        method: 'POST',
+        headers: { authorization: `Bearer ${this.apiKey}` },
+        body: form,
+      }),
+      this.name,
+    );
+
+    const response: TranscriptionResponse = { text: String(json['text'] ?? '') };
+    if (typeof json['language'] === 'string') response.language = json['language'] as string;
+    const duration = Number(json['duration']);
+    if (Number.isFinite(duration)) response.durationSec = duration;
+    const rawSegments = json['segments'];
+    if (Array.isArray(rawSegments)) {
+      const segments: TranscriptionSegment[] = rawSegments.map((s) => {
+        const seg = (s ?? {}) as Record<string, unknown>;
+        return { start: Number(seg['start'] ?? 0), end: Number(seg['end'] ?? 0), text: String(seg['text'] ?? '') };
+      });
+      response.segments = segments;
+    }
+    return response;
   }
 
   async chat(request: ChatRequest): Promise<ChatResponse> {
