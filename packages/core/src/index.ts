@@ -32,7 +32,7 @@ export {
   isStreetException,
 } from './http/exceptions.js';
 export {
-  authMiddleware, requireRoles, securityHeaders, corsMiddleware,
+  authMiddleware, requireRoles, securityHeaders, corsMiddleware, csrfMiddleware,
 } from './http/auth.middleware.js';
 export {
   buildCsp, computeSecurityHeaders, securityHeadersMiddleware, DEFAULT_CSP,
