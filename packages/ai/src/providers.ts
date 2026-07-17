@@ -53,6 +53,15 @@ function resolveFetch(f: FetchLike | undefined): FetchLike {
   return g as FetchLike;
 }
 
+function resolveMultipartFetch(f: MultipartFetchLike | undefined): MultipartFetchLike {
+  if (f) return f;
+  const g = (globalThis as { fetch?: unknown }).fetch;
+  if (typeof g !== 'function') {
+    throw new Error('No fetch available; pass options.transcribeFetch');
+  }
+  return g as MultipartFetchLike;
+}
+
 async function readJson(res: { ok: boolean; status: number; text(): Promise<string>; json(): Promise<unknown> }, provider: string): Promise<Record<string, unknown>> {
   if (!res.ok) {
     let body = '';
