@@ -232,6 +232,29 @@ test('a failing ffmpeg operation raises MediaCommandError with stderr', async ()
   });
 });
 
+test('NodeCommandRunner captures stdout and exit code from a real process', async () => {
+  const { NodeCommandRunner } = await import('../index.js');
+  const runner = new NodeCommandRunner();
+  // `node` is always available in CI; print a known string and exit 0.
+  const res = await runner.run(process.execPath, ['-e', 'process.stdout.write("hello")']);
+  assert.equal(res.code, 0);
+  assert.equal(res.stdout, 'hello');
+});
+
+test('NodeCommandRunner surfaces a non-zero exit code and stderr', async () => {
+  const { NodeCommandRunner } = await import('../index.js');
+  const runner = new NodeCommandRunner();
+  const res = await runner.run(process.execPath, ['-e', 'process.stderr.write("boom"); process.exit(3)']);
+  assert.equal(res.code, 3);
+  assert.match(res.stderr, /boom/);
+});
+
+test('NodeCommandRunner rejects when the binary cannot be spawned', async () => {
+  const { NodeCommandRunner } = await import('../index.js');
+  const runner = new NodeCommandRunner();
+  await assert.rejects(() => runner.run('this-binary-does-not-exist-xyz', []));
+});
+
 test('the processor defaults to ffmpeg/ffprobe on PATH when no paths are given', () => {
   // Constructing without a runner uses NodeCommandRunner; we only assert it
   // constructs (no execution here — that would require the binaries).
