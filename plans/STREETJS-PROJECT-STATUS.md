@@ -72,6 +72,9 @@ import — no logic of its own; 6 tests, 100% coverage. Not consumed by core.
   `NotificationChannel`s, `{{var}}` template rendering, per-recipient channel/category
   preferences (mandatory categories), resilient per-delivery results. Zero-dep, 15 tests,
   100% line coverage. Not consumed by core.
+- `@streetjs/ai-router` (1.0.0) — `ModelRegistry` + a routing `AiProvider` (chat/embed/
+  transcribe) selecting by pinned model / `ordered` / `cheapest` with automatic fallback.
+  Depends on `@streetjs/ai`. 13 tests, 100% line coverage. Not consumed by core.
 | `@streetjs/cache` | `streetjs/cache` | 13 |
 | `@streetjs/session` | `streetjs/session` | 10 |
 | `@streetjs/security` (JWT) | `streetjs/security` | 15 |
