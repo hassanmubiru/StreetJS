@@ -227,6 +227,20 @@ export class FakeAiProvider implements AiProvider {
       usage: { promptTokens: request.input.reduce((n, t) => n + tokenize(t).length, 0), completionTokens: 0 },
     };
   }
+
+  async transcribe(request: TranscriptionRequest): Promise<TranscriptionResponse> {
+    if (this.transcribeScript) return this.transcribeScript(request);
+    // Deterministic default: decode the audio bytes as UTF-8. Lets tests feed a
+    // known string as "audio" and get it back; real bytes yield a stable, if
+    // not meaningful, string. No network, no model.
+    const text = new TextDecoder().decode(request.audio);
+    const response: TranscriptionResponse = {
+      text,
+      segments: [{ start: 0, end: Math.max(1, text.length), text }],
+    };
+    if (request.language !== undefined) response.language = request.language;
+    return response;
+  }
 }
 
 function countTokens(messages: ChatMessage[]): number {

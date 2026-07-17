@@ -11,14 +11,31 @@ import type {
   EmbedRequest,
   EmbedResponse,
   ToolCall,
+  TranscriptionRequest,
+  TranscriptionResponse,
+  TranscriptionSegment,
 } from './index.js';
 
-/** Subset of the Fetch API this module depends on. */
+interface HttpResponseLike {
+  ok: boolean;
+  status: number;
+  text(): Promise<string>;
+  json(): Promise<unknown>;
+}
+
+/** Subset of the Fetch API this module depends on (JSON bodies). */
 export type FetchLike = (url: string, init: {
   method: string;
   headers: Record<string, string>;
   body: string;
-}) => Promise<{ ok: boolean; status: number; text(): Promise<string>; json(): Promise<unknown> }>;
+}) => Promise<HttpResponseLike>;
+
+/** Fetch variant for multipart uploads (transcription audio). */
+export type MultipartFetchLike = (url: string, init: {
+  method: string;
+  headers: Record<string, string>;
+  body: FormData;
+}) => Promise<HttpResponseLike>;
 
 interface BaseOptions {
   apiKey?: string;
