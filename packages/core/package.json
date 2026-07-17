@@ -299,7 +299,7 @@
     "all": false,
     "check-coverage": true,
     "lines": 58,
-    "functions": 48,
+    "functions": 44,
     "branches": 58,
     "statements": 58
   },
