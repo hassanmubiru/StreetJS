@@ -1,7 +1,7 @@
 /**
  * @streetjs/media — the StreetJS media-processing abstraction.
  *
- * A provider-agnostic wrapper over **ffmpeg**/**ffprobe** for probing,
+ * A provider-agnostic wrapper over ffmpeg and ffprobe for probing,
  * transcoding, thumbnail extraction, and HLS manifest generation. All process
  * execution goes through an injectable {@link CommandRunner}, so the whole
  * package is unit-testable without the binaries installed; the pure argument
