@@ -65,6 +65,13 @@ import — no logic of its own; 6 tests, 100% coverage. Not consumed by core.
 - `@streetjs/ai` (1.1.0) — added speech-to-text: `TranscriptionProvider` contract,
   optional `AiProvider.transcribe`, deterministic `FakeAiProvider.transcribe`, and a
   real `OpenAiProvider.transcribe` (Whisper) via an injectable multipart fetch. 26 tests.
+
+**StreetStudio readiness audit — P1 progress:**
+- `csrfMiddleware` now exported from core's public index (was implemented but internal).
+- `@streetjs/notifications` (1.0.0) — unified multi-channel dispatcher: pluggable
+  `NotificationChannel`s, `{{var}}` template rendering, per-recipient channel/category
+  preferences (mandatory categories), resilient per-delivery results. Zero-dep, 15 tests,
+  100% line coverage. Not consumed by core.
 | `@streetjs/cache` | `streetjs/cache` | 13 |
 | `@streetjs/session` | `streetjs/session` | 10 |
 | `@streetjs/security` (JWT) | `streetjs/security` | 15 |
