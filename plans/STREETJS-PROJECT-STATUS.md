@@ -53,6 +53,10 @@ docs (README/ARCHITECTURE/CHANGELOG/LICENSE) + runnable example, ≥90% coverage
 | `@streetjs/store` (KV/counter/rate-limit backing stores, zero-dep) | (internal `security/store`) | 12 |
 | `@streetjs/ratelimit` (sliding-window limiter + scopes + Redis store) | `streetjs/ratelimit` | 20 |
 | `@streetjs/router` (compiled-regex router + pipeline + validation) | `streetjs/router` | 21 |
+
+**Aggregate meta-package (1):** `@streetjs/database` re-exports the full data layer
+(`postgres` + `pool` + `schema-inspector` + `migrations` + `repository`) under one
+import — no logic of its own; 6 tests, 100% coverage. Not consumed by core.
 | `@streetjs/cache` | `streetjs/cache` | 13 |
 | `@streetjs/session` | `streetjs/session` | 10 |
 | `@streetjs/security` (JWT) | `streetjs/security` | 15 |
