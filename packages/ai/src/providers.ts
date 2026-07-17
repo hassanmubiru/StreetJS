@@ -100,7 +100,7 @@ export class OpenAiProvider implements AiProvider {
   /** Transcribe audio via the OpenAI audio/transcriptions (Whisper) endpoint. */
   async transcribe(request: TranscriptionRequest): Promise<TranscriptionResponse> {
     const form = new FormData();
-    const blob = new Blob([request.audio as unknown as BlobPart], {
+    const blob = new Blob([request.audio], {
       type: request.mimeType ?? 'application/octet-stream',
     });
     form.append('file', blob, request.filename ?? 'audio');
