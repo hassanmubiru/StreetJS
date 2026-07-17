@@ -77,11 +77,57 @@ export interface EmbedResponse {
   usage?: TokenUsage;
 }
 
-/** The common provider contract. */
+// ── Transcription (speech-to-text) ──────────────────────────────────────────────
+
+/** A time-coded transcript segment. */
+export interface TranscriptionSegment {
+  /** Start time in seconds. */
+  start: number;
+  /** End time in seconds. */
+  end: number;
+  text: string;
+}
+
+export interface TranscriptionRequest {
+  /** Raw audio bytes (e.g. mp3/wav/m4a/webm content). */
+  audio: Uint8Array;
+  /** MIME type of the audio, e.g. 'audio/mpeg'. Default 'application/octet-stream'. */
+  mimeType?: string;
+  /** File name hint sent to the provider. Default 'audio'. */
+  filename?: string;
+  /** Model id (provider-specific), e.g. 'whisper-1'. */
+  model?: string;
+  /** ISO-639-1 language hint (e.g. 'en'); improves accuracy when known. */
+  language?: string;
+  /** Optional prompt to bias decoding (domain terms, spelling). */
+  prompt?: string;
+}
+
+export interface TranscriptionResponse {
+  /** Full transcript text. */
+  text: string;
+  /** Detected/most-likely language, when the provider reports it. */
+  language?: string;
+  /** Audio duration in seconds, when reported. */
+  durationSec?: number;
+  /** Time-coded segments, when the provider returns them. */
+  segments?: TranscriptionSegment[];
+}
+
+/** A speech-to-text provider. */
+export interface TranscriptionProvider {
+  readonly name: string;
+  transcribe(request: TranscriptionRequest): Promise<TranscriptionResponse>;
+}
+
+/** The common provider contract. `transcribe` is optional — not every provider
+ * supports speech-to-text (a provider that does also satisfies
+ * {@link TranscriptionProvider}). */
 export interface AiProvider {
   readonly name: string;
   chat(request: ChatRequest): Promise<ChatResponse>;
   embed(request: EmbedRequest): Promise<EmbedResponse>;
+  transcribe?(request: TranscriptionRequest): Promise<TranscriptionResponse>;
 }
 
 // ── Vector math ───────────────────────────────────────────────────────────────
