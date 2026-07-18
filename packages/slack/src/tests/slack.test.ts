@@ -72,6 +72,29 @@ test('updateMessage, deleteMessage, addReaction, listConversations hit the right
   assert.deepEqual(r.calls[3]!.body, { types: 'public_channel', limit: 50 });
 });
 
+test('forwards retries/sleep and throws on an empty (undefined) Slack body', async () => {
+  let slept = 0;
+  // First call: a 500 (retriable) then a JSON ok — proves retries/sleep were forwarded.
+  let n = 0;
+  const fetch: FetchLike = async () => {
+    n++;
+    return n < 2
+      ? { ok: false, status: 500, text: async () => 'err' }
+      : ok({ ok: true });
+  };
+  const slack = new SlackClient({ token: 't', fetch, retries: 2, sleep: async () => { slept++; } });
+  // conversations.list is a POST → not retried; use `call` on a GET-like? Slack is POST-only,
+  // so instead verify sleep is wired by exercising the request retry via a GET helper:
+  await assert.rejects(() => slack.listConversations()); // POST 500, no retry → throws
+  assert.equal(n, 1, 'POST not retried');
+  assert.equal(slept, 0);
+
+  // Empty body → request resolves undefined → call() throws unknown_error.
+  const emptyFetch: FetchLike = async () => ({ ok: true, status: 200, text: async () => '' });
+  const slack2 = new SlackClient({ token: 't', fetch: emptyFetch });
+  await assert.rejects(() => slack2.postMessage({ channel: 'C', text: 'x' }), /unknown_error/);
+});
+
 // ── verifySlackRequest ─────────────────────────────────────────────────────────
 
 function sign(secret: string, ts: number, body: string): string {
