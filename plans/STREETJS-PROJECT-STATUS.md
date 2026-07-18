@@ -90,6 +90,28 @@ import — no logic of its own; 6 tests, 100% coverage. Not consumed by core.
   deleteMessage, addReaction, listConversations, generic `call()` unwrapping Slack's
   `{ok,error}` envelope) + `verifySlackRequest` (v0 signature + replay guard, injectable
   clock). Depends on `@streetjs/integrations`. 11 tests, 100% coverage. Not consumed by core.
+- `@streetjs/github` (1.0.0) — `GitHubClient` (issues, comments, pull requests, releases,
+  workflow/repository dispatch; GHE `baseUrl`) + `verifyGitHubWebhook` (HMAC-SHA256
+  `X-Hub-Signature-256`). 11 tests, 100% lines.
+- `@streetjs/discord` (1.0.0) — `DiscordClient` (channel messages/edits/deletes, reactions,
+  incoming-webhook execution; bot-token auth) + `verifyDiscordInteraction` (Ed25519 via
+  `node:crypto`, since Discord doesn't use HMAC). 8 tests, 100% lines.
+- `@streetjs/gitlab` (1.0.0) — `GitLabClient` (projects, issues, notes, merge requests,
+  pipeline triggers; `PRIVATE-TOKEN` or OAuth; projects by id or path) + `verifyGitLabWebhook`
+  (constant-time `X-Gitlab-Token` compare). 8 tests, 100% lines.
+- `@streetjs/jira` (1.0.0) — `JiraClient` (issues, comments, transitions, assignment, JQL;
+  Basic email+token auth; plain-text→ADF conversion) + `verifyJiraWebhook` (HMAC-SHA256 for
+  signed/hardened webhooks). 8 tests, 100% lines.
+- `@streetjs/linear` (1.0.0) — `LinearClient` (GraphQL: viewer, issues, comments, generic
+  `query`; unwraps GraphQL `errors`; API-key or OAuth) + `verifyLinearWebhook` (HMAC-SHA256
+  `Linear-Signature`). 10 tests, 100% lines.
+- `@streetjs/notion` (1.0.0) — `NotionClient` (pages, databases, blocks, search; required
+  `Notion-Version` header) + `verifyNotionWebhook` (HMAC-SHA256 `X-Notion-Signature`). 7
+  tests, 100% lines.
+- `@streetjs/teams` (1.0.0) — Microsoft Teams via three real paths: `TeamsClient` (Graph
+  channel/chat messages), `sendIncomingWebhook` (connector-card POST), and
+  `verifyTeamsOutgoingWebhook` (base64 `Authorization: HMAC` verification). 10 tests, 100%
+  lines. This completes all 8 audit-flagged vendor connectors on the shared foundation.
 
 | `@streetjs/cache` | `streetjs/cache` | 13 |
 | `@streetjs/session` | `streetjs/session` | 10 |
