@@ -107,6 +107,43 @@ test('sendIncomingWebhook POSTs the card and validates inputs', async () => {
   );
 });
 
+test('sendIncomingWebhook falls back to the global fetch and errors when none exists', async () => {
+  const original = (globalThis as { fetch?: unknown }).fetch;
+  try {
+    // Install a fake global fetch; call without options.fetch to hit the fallback.
+    const calls: string[] = [];
+    (globalThis as { fetch?: unknown }).fetch = async (url: string) => {
+      calls.push(url);
+      return { ok: true, status: 200, text: async () => '1' };
+    };
+    await sendIncomingWebhook('https://outlook.office.com/webhook/g', { text: 'via global' });
+    assert.deepEqual(calls, ['https://outlook.office.com/webhook/g']);
+
+    // Remove the global fetch → the "no fetch available" guard fires.
+    delete (globalThis as { fetch?: unknown }).fetch;
+    await assert.rejects(
+      () => sendIncomingWebhook('https://outlook.office.com/webhook/g', { text: 'x' }),
+      /No fetch available/,
+    );
+  } finally {
+    (globalThis as { fetch?: unknown }).fetch = original;
+  }
+});
+
+test('sendIncomingWebhook tolerates a failing response.text() on the error path', async () => {
+  const fetch = async () => ({
+    ok: false,
+    status: 502,
+    text: async () => {
+      throw new Error('stream closed');
+    },
+  });
+  await assert.rejects(
+    () => sendIncomingWebhook('https://outlook.office.com/webhook/x', {}, { fetch }),
+    /incoming webhook failed: 502/,
+  );
+});
+
 test('computeTeamsSignature matches a manual base64 HMAC', () => {
   const secret = Buffer.from('super-secret-key').toString('base64');
   const body = '{"type":"message","text":"hi"}';
