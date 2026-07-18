@@ -108,6 +108,11 @@ test('constructing without a baseUrl throws', () => {
   assert.throws(() => new HttpConnector({ baseUrl: '' }), IntegrationError);
 });
 
+test('constructing without an explicit fetch resolves the global fetch', () => {
+  // Node 22+ has a global fetch, so resolveFetch returns it without throwing.
+  assert.doesNotThrow(() => new HttpConnector({ baseUrl: 'https://api.x.com' }));
+});
+
 // ── Webhook verification ────────────────────────────────────────────────────
 
 test('hmacHex + timingSafeCompare + verifyHmacSignature (GitHub-style prefix)', () => {
