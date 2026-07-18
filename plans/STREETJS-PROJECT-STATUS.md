@@ -8,8 +8,8 @@ is `docs/audits/2026-07-11-streetjs-final-engineering-certification.md`.
 
 **Date:** 2026-07-15 (UTC) · **Repo:** `hassanmubiru/StreetJS` @ `main` `6929870`
 (local == origin) · **npm:** `streetjs`/`@streetjs/core`/`@streetjs/cli` = **1.2.7**
-(provenance); **33 new `@streetjs/*` packages published (1.0.0; `context` 1.1.0; `ai` 1.1.0) with SLSA provenance**
-(8 foundation + 21 extracted core modules + `@streetjs/database` aggregate + `@streetjs/media` + `@streetjs/notifications` + `@streetjs/ai-router`);
+(provenance); **34 new `@streetjs/*` packages published (1.0.0; `context` 1.1.0; `ai` 1.1.0) with SLSA provenance**
+(8 foundation + 21 extracted core modules + `@streetjs/database` aggregate + `@streetjs/media` + `@streetjs/notifications` + `@streetjs/ai-router` + `@streetjs/client-offline`);
 **core-monolith split underway** via
 dependency inversion — core re-exports each extracted package as the single source of
 truth, keeping framework-coupled layers (`xssMiddleware`, `UploadGuard`,
