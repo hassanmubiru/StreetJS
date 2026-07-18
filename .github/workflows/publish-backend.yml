@@ -35,7 +35,7 @@ jobs:
       # Dependency order is resolved by building twice (see below); this is the
       # publish/verify set. Leaf/base packages first, dependents last.
       PKGS: >-
-        container exceptions diagnostics store cache session security websocket xss multipart context ratelimit router webhook-dispatcher telemetry cluster postgres pool schema-inspector migrations repository database config logging metrics health tracing http-client webhooks testing events queue storage gateway realtime workflow search ai ai-router media notifications commerce
+        container exceptions diagnostics store cache session security websocket xss multipart context ratelimit router webhook-dispatcher telemetry cluster postgres pool schema-inspector migrations repository database config logging metrics health tracing http-client webhooks testing events queue storage gateway realtime workflow search ai ai-router media notifications client-offline commerce
         devtools admin registry-server dating-profiles social-users
         social-comments social-notifications dating-moderation dating-auth
         dating-messaging social-feed
