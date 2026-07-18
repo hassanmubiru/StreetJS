@@ -111,6 +111,13 @@ test('verifySlackRequest accepts a valid, fresh signature', () => {
   );
 });
 
+test('verifySlackRequest uses the current clock by default', () => {
+  const secret = 'shh';
+  const ts = Math.floor(Date.now() / 1000); // "now" → within default tolerance
+  const body = 'a=1';
+  assert.equal(verifySlackRequest({ signingSecret: secret, timestamp: ts, body, signature: sign(secret, ts, body) }), true);
+});
+
 test('verifySlackRequest rejects a wrong secret and a tampered body', () => {
   const secret = 'shh';
   const ts = 1_700_000_000;
