@@ -78,6 +78,19 @@ import — no logic of its own; 6 tests, 100% coverage. Not consumed by core.
 - `@streetjs/client-offline` (1.0.0) — offline-first client primitives: `OfflineCache`
   (TTL + stale-on-error) and a durable, ordered `MutationQueue` outbox (retry/drop/
   re-entrancy guard) over a pluggable `OfflineStore`. Zero-dep, 14 tests. Not consumed by core.
+
+**StreetStudio readiness audit — integrations (vendor connectors):**
+- `@streetjs/integrations` (1.0.0) — shared connector foundation: `HttpConnector` base
+  (injectable fetch, bearer/header/none auth, query building, JSON parsing, normalized
+  `IntegrationError`/`IntegrationRequestError`, idempotent retry/backoff) + webhook
+  verification primitives (`verifyHmacSignature`/`hmacHex`/`timingSafeCompare`). 11 tests,
+  99% lines / 100% funcs. Not consumed by core.
+- `@streetjs/slack` (1.0.0) — first real vendor connector on the foundation: `SlackClient
+  extends HttpConnector` (postMessage incl. ephemeral/thread/blocks, updateMessage,
+  deleteMessage, addReaction, listConversations, generic `call()` unwrapping Slack's
+  `{ok,error}` envelope) + `verifySlackRequest` (v0 signature + replay guard, injectable
+  clock). Depends on `@streetjs/integrations`. 11 tests, 100% coverage. Not consumed by core.
+
 | `@streetjs/cache` | `streetjs/cache` | 13 |
 | `@streetjs/session` | `streetjs/session` | 10 |
 | `@streetjs/security` (JWT) | `streetjs/security` | 15 |
