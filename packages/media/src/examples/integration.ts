@@ -14,8 +14,12 @@ import {
   parseProbeOutput,
   buildMasterPlaylist,
   buildMediaPlaylist,
+  buildWebVtt,
+  buildWaveformArgs,
+  computeWaveformPeaks,
   type CommandRunner,
   type CommandResult,
+  type TranscriptCue,
 } from '../index.js';
 
 function assert(cond: boolean, msg: string): void {
