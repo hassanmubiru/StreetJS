@@ -65,6 +65,11 @@ test('buildWebVtt yields a header-only file for no cues and ends with a newline'
   assert.equal(buildWebVtt([]), 'WEBVTT\n');
 });
 
+test('buildWebVtt tolerates missing text and skips empty cue ids', () => {
+  const vtt = buildWebVtt([{ start: 0, end: 1, text: undefined as unknown as string, id: '' }]);
+  assert.equal(vtt, ['WEBVTT', '', '00:00:00.000 --> 00:00:01.000', '', ''].join('\n'));
+});
+
 test('buildWebVtt validates cue shape and ordering', () => {
   assert.throws(() => buildWebVtt(null as unknown as TranscriptCue[]), MediaValidationError);
   assert.throws(() => buildWebVtt([{ start: -1, end: 1, text: 'x' }]), /start must be >= 0/);
