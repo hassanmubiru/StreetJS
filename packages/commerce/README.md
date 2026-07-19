@@ -81,6 +81,38 @@ Implement your own by satisfying `PaymentGateway` (`charge` + `refund`). The
 Stripe/PayPal adapters accept an injectable `fetch`, so they are unit-tested
 without network access.
 
+## Subscriptions & seats
+
+Recurring plans with seat management live in a self-contained
+`SubscriptionService` that reuses the same `PaymentGateway` contract as one-off
+checkout. It has its own pluggable `SubscriptionStore` (in-memory default), so
+adding it does not change the existing `CommerceStore`/Postgres surface.
+
+```ts
+import { SubscriptionService, FakeGateway } from '@streetjs/commerce';
+
+const billing = new SubscriptionService({ gateway: new FakeGateway() });
+
+const plan = await billing.createPlan({
+  name: 'Team', priceCents: 4900, currency: 'USD', interval: 'month', seats: 5, trialDays: 14,
+});
+
+// Trial → no charge until it ends; otherwise charged immediately.
+const sub = await billing.subscribe({ customerId: 'org_1', planId: plan.id });
+
+await billing.assignSeat(sub.id);      // throws SeatLimitError when full
+await billing.seatsAvailable(sub.id);  // remaining seats (Infinity if unlimited)
+
+await billing.renew(sub.id);           // charge + advance period; past_due on decline
+await billing.changePlan(sub.id, upgradedPlanId); // next-period; no proration
+await billing.cancel(sub.id);          // at period end (or { immediately: true })
+```
+
+Money is integer minor units; time flows through an injectable clock, so the
+whole lifecycle is deterministically testable offline. Mid-period **proration is
+not computed** — plan changes take effect from the next period (documented, not
+approximated). `seats: null` means unlimited.
+
 ## API (selected)
 
 - Products: `createProduct`, `getProduct`, `listProducts`, `setPrice`, `deactivateProduct`
@@ -89,6 +121,7 @@ without network access.
 - Coupons: `createCoupon`, `applyCoupon`
 - Orders: `checkout`, `getOrder`, `listOrders`, `cancelOrder`
 - Reviews: `addReview`, `listReviews`, `averageRating`
+- Subscriptions: `createPlan`, `subscribe`, `renew`, `cancel`, `changePlan`, `assignSeat`, `releaseSeat`, `seatsAvailable`
 - Gateways: `FakeGateway`, `StripeGateway`, `PaypalGateway`
 
 ## Note on persistence
