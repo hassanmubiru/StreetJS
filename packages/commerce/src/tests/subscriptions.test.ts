@@ -14,12 +14,6 @@ import {
   type PaymentGateway,
 } from '../index.js';
 
-/** A controllable clock. */
-function clockFrom(startMs: number): { now: () => number; set: (ms: number) => void } {
-  let t = startMs;
-  return { now: () => t, set: (ms) => { t = ms; } };
-}
-
 const T0 = Date.UTC(2026, 0, 15, 12, 0, 0); // 2026-01-15T12:00:00Z
 
 function svc(overrides: { gateway?: PaymentGateway; now?: () => number } = {}): SubscriptionService {
@@ -120,7 +114,7 @@ describe('renew', () => {
     let calls = 0;
     const gateway: PaymentGateway = {
       name: 'flaky',
-      async charge(req) {
+      async charge() {
         calls += 1;
         if (calls >= 2) throw new PaymentError('declined');
         return { id: `pay_${calls}`, status: 'succeeded' };
