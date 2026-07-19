@@ -55,6 +55,9 @@
     "transcoding",
     "thumbnail",
     "hls",
+    "captions",
+    "webvtt",
+    "waveform",
     "video",
     "typescript",
     "esm"
