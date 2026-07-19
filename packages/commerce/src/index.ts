@@ -19,44 +19,13 @@ import {
   InsufficientStockError, PaymentError,
 } from './types.js';
 import { InMemoryCommerceStore, type CommerceStore } from './store.js';
+import { FakeGateway } from './gateways.js';
 
 export * from './types.js';
 export * from './store.js';
 export * from './pg.js';
 export * from './gateways.js';
 export * from './subscriptions.js';
-
-// ── Fake gateway (offline default) ───────────────────────────────────────────────
-
-export interface FakeGatewayOptions {
-  declineAtOrAbove?: Cents;
-  idGen?: () => string;
-}
-
-export class FakeGateway implements PaymentGateway {
-  readonly name = 'fake';
-  private readonly declineAtOrAbove: number;
-  private readonly idGen: () => string;
-  readonly charged: ChargeRequest[] = [];
-  readonly refunded: string[] = [];
-
-  constructor(options: FakeGatewayOptions = {}) {
-    this.declineAtOrAbove = options.declineAtOrAbove ?? Number.POSITIVE_INFINITY;
-    this.idGen = options.idGen ?? (() => `pay_${randomUUID()}`);
-  }
-
-  async charge(request: ChargeRequest): Promise<ChargeResult> {
-    if (request.amountCents >= this.declineAtOrAbove) {
-      throw new PaymentError(`card declined for amount ${request.amountCents}`);
-    }
-    this.charged.push(request);
-    return { id: this.idGen(), status: 'succeeded' };
-  }
-
-  async refund(paymentId: string): Promise<void> {
-    this.refunded.push(paymentId);
-  }
-}
 
 // ── Service ─────────────────────────────────────────────────────────────────────
 
