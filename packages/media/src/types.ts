@@ -91,6 +91,48 @@ export interface HlsSegment {
   uri: string;
 }
 
+/**
+ * A single timed transcript cue. Structural by design: the segments returned
+ * by `@streetjs/ai`'s `transcribe` (`{ start, end, text }`) map onto this
+ * directly, so caption building stays dependency-free.
+ */
+export interface TranscriptCue {
+  /** Cue start time in seconds (>= 0). */
+  start: number;
+  /** Cue end time in seconds (>= start). */
+  end: number;
+  /** Caption text (CR/LF is normalized on output). */
+  text: string;
+  /** Optional cue identifier line. */
+  id?: string;
+}
+
+/** Options for {@link buildWebVtt}. */
+export interface WebVttOptions {
+  /** Optional header NOTE comment placed after the WEBVTT line. */
+  header?: string;
+}
+
+/** Options for waveform decoding / peak extraction. */
+export interface WaveformOptions {
+  /** PCM sample rate (Hz) to decode at. Default 8000. */
+  sampleRate?: number;
+}
+
+/** A compact, normalized waveform peak set for a scrubber/preview UI. */
+export interface WaveformPeaks {
+  /** Schema version. */
+  version: 1;
+  /** Channel count of the reduced data (always mono here). */
+  channels: 1;
+  /** Number of peak buckets actually produced. */
+  bucketCount: number;
+  /** Normalized absolute-max amplitude per bucket, each in `[0, 1]`. */
+  peaks: number[];
+  /** Sample rate the PCM was decoded at, when known. */
+  sampleRate?: number;
+}
+
 /** Result of a command-backed operation. */
 export interface CommandResult {
   code: number;
