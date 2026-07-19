@@ -83,6 +83,17 @@ import — no logic of its own; 6 tests, 100% coverage. Not consumed by core.
   (TTL + stale-on-error) and a durable, ordered `MutationQueue` outbox (retry/drop/
   re-entrancy guard) over a pluggable `OfflineStore`. Zero-dep, 14 tests. Not consumed by core.
 
+**StreetStudio readiness audit — billing (subscriptions & seats):**
+- `@streetjs/commerce` (**1.1.0**, additive) — recurring subscriptions + seat management via a
+  self-contained `SubscriptionService` with its own pluggable `SubscriptionStore` (in-memory
+  default) so the existing `CommerceStore`/Postgres surface is untouched (backward compatible).
+  Reuses the commerce `PaymentGateway` contract. Plans (`month`/`year`, seat allowance incl.
+  unlimited, trials), `subscribe`/`renew` (charge + period advance; `past_due` on decline),
+  `cancel` (end-of-period or immediate), `changePlan` (next-period; proration intentionally not
+  approximated), and seat assign/release with `SeatLimitError`. Injectable clock + `FakeGateway`
+  → fully deterministic offline. 37 tests (18 new subscription/seat cases). Closes the second
+  review-flagged framework gap ("subscription/seat billing" for StreetStudio plans).
+
 **StreetStudio readiness audit — integrations (vendor connectors):**
 - `@streetjs/integrations` (1.0.0) — shared connector foundation: `HttpConnector` base
   (injectable fetch, bearer/header/none auth, query building, JSON parsing, normalized
