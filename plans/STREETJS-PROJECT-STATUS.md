@@ -59,9 +59,13 @@ docs (README/ARCHITECTURE/CHANGELOG/LICENSE) + runnable example, ≥90% coverage
 import — no logic of its own; 6 tests, 100% coverage. Not consumed by core.
 
 **StreetStudio readiness audit — P0 gaps closed:**
-- `@streetjs/media` (1.0.0) — ffmpeg/ffprobe abstraction: probe, transcode, thumbnail,
+- `@streetjs/media` (**1.1.0**) — ffmpeg/ffprobe abstraction: probe, transcode, thumbnail,
   HLS manifest builders; injectable command runner (fully testable without ffmpeg).
-  21 tests, 100% line coverage. Not consumed by core.
+  **1.1.0 (additive) adds WebVTT caption building (`buildWebVtt`/`formatVttTimestamp` from
+  timed `TranscriptCue`s — maps onto `@streetjs/ai` transcribe segments) and waveform peak
+  extraction (`buildWaveformArgs` PCM-decode argv + pure `computeWaveformPeaks` reducer →
+  normalized `WaveformPeaks`), the two review-player gaps from the final architecture review.**
+  34 tests, 100% line coverage. Not consumed by core.
 - `@streetjs/ai` (1.1.0) — added speech-to-text: `TranscriptionProvider` contract,
   optional `AiProvider.transcribe`, deterministic `FakeAiProvider.transcribe`, and a
   real `OpenAiProvider.transcribe` (Whisper) via an injectable multipart fetch. 26 tests.
