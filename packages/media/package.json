@@ -1,7 +1,7 @@
 {
   "name": "@streetjs/media",
-  "version": "1.0.0",
-  "description": "StreetJS media processing: a provider-agnostic FFmpeg/FFprobe abstraction for probing, transcoding, thumbnail extraction, and HLS/DASH manifest generation, driven by an injectable command runner so it is fully testable without the ffmpeg binary.",
+  "version": "1.1.0",
+  "description": "StreetJS media processing: a provider-agnostic FFmpeg/FFprobe abstraction for probing, transcoding, thumbnail extraction, HLS manifest generation, WebVTT caption building, and waveform peak extraction, driven by an injectable command runner so it is fully testable without the ffmpeg binary.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
