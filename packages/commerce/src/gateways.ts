@@ -3,8 +3,48 @@
 // `fetch`, so request shaping and response parsing are unit-testable without
 // network access. Both implement the PaymentGateway contract from ./index.
 
-import type { PaymentGateway, ChargeRequest, ChargeResult } from './types.js';
+import { randomUUID } from 'node:crypto';
+
+import type { PaymentGateway, ChargeRequest, ChargeResult, Cents } from './types.js';
 import { PaymentError } from './types.js';
+
+// ── Fake gateway (offline default) ───────────────────────────────────────────────
+
+export interface FakeGatewayOptions {
+  declineAtOrAbove?: Cents;
+  idGen?: () => string;
+}
+
+/**
+ * A deterministic, offline payment gateway. Charges succeed unless the amount
+ * reaches `declineAtOrAbove` (then it throws {@link PaymentError}). Records all
+ * charges/refunds for assertions. Default gateway for `CommerceService` and
+ * `SubscriptionService`.
+ */
+export class FakeGateway implements PaymentGateway {
+  readonly name = 'fake';
+  private readonly declineAtOrAbove: number;
+  private readonly idGen: () => string;
+  readonly charged: ChargeRequest[] = [];
+  readonly refunded: string[] = [];
+
+  constructor(options: FakeGatewayOptions = {}) {
+    this.declineAtOrAbove = options.declineAtOrAbove ?? Number.POSITIVE_INFINITY;
+    this.idGen = options.idGen ?? (() => `pay_${randomUUID()}`);
+  }
+
+  async charge(request: ChargeRequest): Promise<ChargeResult> {
+    if (request.amountCents >= this.declineAtOrAbove) {
+      throw new PaymentError(`card declined for amount ${request.amountCents}`);
+    }
+    this.charged.push(request);
+    return { id: this.idGen(), status: 'succeeded' };
+  }
+
+  async refund(paymentId: string): Promise<void> {
+    this.refunded.push(paymentId);
+  }
+}
 
 export type FetchLike = (url: string, init: {
   method: string;
