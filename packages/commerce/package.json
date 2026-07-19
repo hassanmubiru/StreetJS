@@ -1,7 +1,7 @@
 {
   "name": "@streetjs/commerce",
-  "version": "1.0.1",
-  "description": "Official Street Framework commerce module: products, inventory (no oversell), carts, coupons, orders, reviews, and a payment-gateway abstraction with a deterministic fake gateway.",
+  "version": "1.1.0",
+  "description": "Official Street Framework commerce module: products, inventory (no oversell), carts, coupons, orders, reviews, recurring subscriptions with seat management, and a payment-gateway abstraction with a deterministic fake gateway.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
