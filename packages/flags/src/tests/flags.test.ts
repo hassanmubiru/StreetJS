@@ -113,7 +113,7 @@ describe('evaluateFlag — order & reasons', () => {
 
 describe('booleanFlag builder', () => {
   it('defaults to off and carries rules/rollout/enabled through', () => {
-    assert.deepEqual(booleanFlag('x'), { key: 'x', default: false });
+    assert.deepEqual(booleanFlag('x'), { key: 'x', default: false, offValue: false });
     const f = booleanFlag('y', {
       enabled: true,
       default: true,
