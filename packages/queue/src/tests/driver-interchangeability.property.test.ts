@@ -259,7 +259,7 @@ test('Feature: queue-framework, Property 8 — MemoryDriver and simulated RedisD
               }
 
               case 'ack': {
-                const candidates = activeHoldings();
+                const candidates = activeHoldings(now);
                 if (candidates.length === 0) {
                   break;
                 }
@@ -273,7 +273,7 @@ test('Feature: queue-framework, Property 8 — MemoryDriver and simulated RedisD
               }
 
               case 'nack': {
-                const candidates = activeHoldings();
+                const candidates = activeHoldings(now);
                 if (candidates.length === 0) {
                   break;
                 }
@@ -288,7 +288,7 @@ test('Feature: queue-framework, Property 8 — MemoryDriver and simulated RedisD
               }
 
               case 'deadletter': {
-                const candidates = activeHoldings();
+                const candidates = activeHoldings(now);
                 if (candidates.length === 0) {
                   break;
                 }
