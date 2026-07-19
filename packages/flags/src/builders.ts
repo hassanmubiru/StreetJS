@@ -29,6 +29,8 @@ export function booleanFlag(key: string, options: BooleanFlagOptions = {}): Flag
   const def: FlagDefinition<boolean> = {
     key,
     default: options.default ?? false,
+    // A disabled boolean flag is off, regardless of its fallthrough default.
+    offValue: options.offValue ?? false,
   };
   if (options.enabled !== undefined) def.enabled = options.enabled;
   if (options.rules !== undefined) def.rules = options.rules;
