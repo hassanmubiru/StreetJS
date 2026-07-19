@@ -122,6 +122,8 @@ const { peaks } = computeWaveformPeaks(pcmBuffer, { buckets: 400 });
 | `buildProbeArgs` / `buildTranscodeArgs` / `buildThumbnailArgs` / `buildHlsArgs` / `buildScaleFilter` | Pure ffmpeg/ffprobe argv builders. |
 | `parseProbeOutput` / `evalFraction` | Pure ffprobe-JSON → `MediaInfo` parser. |
 | `buildMasterPlaylist` / `buildMediaPlaylist` | Pure HLS m3u8 builders. |
+| `buildWebVtt` / `formatVttTimestamp` | Pure WebVTT caption builders from `TranscriptCue[]`. |
+| `buildWaveformArgs` / `computeWaveformPeaks` | PCM-decode argv + pure peak reducer (`WaveformPeaks`). |
 | `MediaError` / `MediaValidationError` / `MediaCommandError` / `MediaProbeError` | Typed errors. |
 
 ## Example
