@@ -195,8 +195,21 @@ test('Feature: queue-framework, Property 8 — MemoryDriver and simulated RedisD
           const held: HeldPair[] = [];
           let now = 0;
 
-          /** Reservations that can still be validly acted upon (in seq order). */
-          const activeHoldings = (): HeldPair[] => held.filter((h) => !h.resolved && !h.superseded);
+          // Reservations that can still be validly acted upon (in seq order).
+          //
+          // A holding is safe to ack/nack/DLQ only while its visibility lease is
+          // still live (`leaseExpiresAt > now`). Once the lease has expired, the
+          // NEXT reserve on either driver reclaims the job back to ready — and
+          // acting on the now-stale reservation is exactly the "undefined w.r.t.
+          // at-least-once" zone the drivers do not promise to reconcile (in
+          // particular `moveToDeadLetter` is intentionally ownership-unchecked).
+          // The `superseded` flag catches expiry *followed by a re-delivery*;
+          // this clock guard also excludes expiry that has not yet been followed
+          // by a re-reserve, keeping the compared outcomes well-defined and
+          // identical across drivers. Both drivers grant the same
+          // `now + visibilityMs` lease at reserve, so `mem`/`redis` agree here.
+          const activeHoldings = (nowTs: number): HeldPair[] =>
+            held.filter((h) => !h.resolved && !h.superseded && h.mem.leaseExpiresAt > nowTs);
 
           // ── Replay the interleaved operation script on BOTH drivers ────────
           for (const op of ops) {
