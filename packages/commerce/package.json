@@ -39,7 +39,10 @@
     "ecommerce",
     "orders",
     "inventory",
-    "payments"
+    "payments",
+    "subscriptions",
+    "billing",
+    "seats"
   ],
   "author": "street contributors",
   "license": "MIT",
