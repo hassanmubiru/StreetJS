@@ -83,6 +83,15 @@ import — no logic of its own; 6 tests, 100% coverage. Not consumed by core.
   (TTL + stale-on-error) and a durable, ordered `MutationQueue` outbox (retry/drop/
   re-entrancy guard) over a pluggable `OfflineStore`. Zero-dep, 14 tests. Not consumed by core.
 
+**StreetStudio readiness audit — feature gating:**
+- `@streetjs/flags` (1.0.0) — feature-flag foundation: typed boolean/multivariate `FlagDefinition`
+  with a kill switch, ordered attribute **targeting rules** (AND/array/catch-all), and deterministic
+  **percentage rollouts** with sticky per-subject bucketing (pure FNV-1a; no `node:crypto`, edge/
+  browser-safe). `FlagRegistry` evaluates synchronously; pluggable `FlagStore` (+ `InMemoryFlagStore`)
+  hydrates definitions; `evaluateFlagDetailed` exposes the decision `reason`. Zero-dep leaf, not
+  consumed by core. 15 tests, 100% line coverage. Closes the review's `flags` gap (plan-gating,
+  staged rollouts for StreetStudio).
+
 **StreetStudio readiness audit — billing (subscriptions & seats):**
 - `@streetjs/commerce` (**1.1.0**, additive) — recurring subscriptions + seat management via a
   self-contained `SubscriptionService` with its own pluggable `SubscriptionStore` (in-memory
