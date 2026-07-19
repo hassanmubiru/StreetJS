@@ -39,9 +39,10 @@ for (const u of sample) {
 }
 
 // 3. Multivariate targeting.
-console.log('beta user theme:', flags.evaluate('editor-theme', { attributes: { beta: true } }));
-console.log('default theme:', flags.evaluate('editor-theme', { attributes: {} }));
-assert(flags.evaluate('editor-theme', { attributes: { beta: true } }) === 'compact', 'beta → compact');
+type Theme = 'classic' | 'compact';
+console.log('beta user theme:', flags.evaluate<Theme>('editor-theme', { attributes: { beta: true } }));
+console.log('default theme:', flags.evaluate<Theme>('editor-theme', { attributes: {} }));
+assert(flags.evaluate<Theme>('editor-theme', { attributes: { beta: true } }) === 'compact', 'beta → compact');
 
 // 4. Kill switch + evaluation reason.
 flags.setEnabled('new-review-player', false);
