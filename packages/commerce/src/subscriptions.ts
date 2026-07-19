@@ -14,7 +14,7 @@
 import { randomUUID } from 'node:crypto';
 
 import { PaymentError, type Cents, type PaymentGateway } from './types.js';
-import { FakeGateway } from './index.js';
+import { FakeGateway } from './gateways.js';
 
 /** Billing cadence for a plan. */
 export type BillingInterval = 'month' | 'year';

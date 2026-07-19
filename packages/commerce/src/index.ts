@@ -15,8 +15,8 @@ import { randomUUID } from 'node:crypto';
 import {
   type Cents, type Product, type StockLevel, type Cart, type CartLine, type CouponKind,
   type Coupon, type DiscountResult, type Order, type Review,
-  type PaymentGateway, type ChargeRequest, type ChargeResult,
-  InsufficientStockError, PaymentError,
+  type PaymentGateway,
+  InsufficientStockError,
 } from './types.js';
 import { InMemoryCommerceStore, type CommerceStore } from './store.js';
 import { FakeGateway } from './gateways.js';
