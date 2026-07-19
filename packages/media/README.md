@@ -1,11 +1,12 @@
 # @streetjs/media
 
 The StreetJS media-processing abstraction: a provider-agnostic wrapper over
-**ffmpeg** and **ffprobe** for probing, transcoding, thumbnail extraction, and
-HLS manifest generation. All process execution goes through an **injectable
-command runner**, so the whole package is unit-testable without the binaries
-installed — and the pure argument builders, ffprobe JSON parser, and HLS
-playlist builders have no I/O at all. ESM.
+**ffmpeg** and **ffprobe** for probing, transcoding, thumbnail extraction,
+HLS manifest generation, WebVTT caption building, and waveform peak extraction.
+All process execution goes through an **injectable command runner**, so the
+whole package is unit-testable without the binaries installed — and the pure
+argument builders, ffprobe JSON parser, HLS playlist builders, caption builders,
+and waveform reducer have no I/O at all. ESM.
 
 ## Install
 
