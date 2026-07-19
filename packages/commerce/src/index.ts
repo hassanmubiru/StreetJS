@@ -24,6 +24,7 @@ export * from './types.js';
 export * from './store.js';
 export * from './pg.js';
 export * from './gateways.js';
+export * from './subscriptions.js';
 
 // ── Fake gateway (offline default) ───────────────────────────────────────────────
 
