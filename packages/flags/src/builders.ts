@@ -8,6 +8,8 @@ export interface BooleanFlagOptions {
   enabled?: boolean;
   /** Fallthrough value when no rule/rollout applies. Default false. */
   default?: boolean;
+  /** Value when `enabled` is false. Default false — a disabled flag is off. */
+  offValue?: boolean;
   /** Ordered targeting rules; first match wins. */
   rules?: TargetingRule<boolean>[];
   /** Percentage rollout applied when no rule matches. */
