@@ -35,6 +35,10 @@ export {
 
 export { buildMasterPlaylist, buildMediaPlaylist } from './hls.js';
 
+export { buildWebVtt, formatVttTimestamp } from './captions.js';
+
+export { buildWaveformArgs, computeWaveformPeaks } from './waveform.js';
+
 export {
   MediaError,
   MediaValidationError,
@@ -49,6 +53,10 @@ export type {
   ThumbnailOptions,
   HlsVariant,
   HlsSegment,
+  TranscriptCue,
+  WebVttOptions,
+  WaveformOptions,
+  WaveformPeaks,
   CommandResult,
   CommandRunner,
 } from './types.js';
