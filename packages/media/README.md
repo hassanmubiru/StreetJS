@@ -64,6 +64,45 @@ buildMediaPlaylist([
 ]); // computes #EXT-X-TARGETDURATION and appends #EXT-X-ENDLIST
 ```
 
+## Captions (WebVTT)
+
+Turn timed transcript cues — e.g. the segments returned by
+[`@streetjs/ai`](https://www.npmjs.com/package/@streetjs/ai)'s `transcribe` —
+into a WebVTT track for an HTML5 `<track>`. Pure, no ffmpeg:
+
+```ts
+import { buildWebVtt } from '@streetjs/media';
+
+const vtt = buildWebVtt([
+  { start: 0,   end: 2.5, text: 'Welcome to the recording.' },
+  { start: 2.5, end: 5,   text: 'Here is the second line.' },
+]);
+// WEBVTT
+//
+// 00:00:00.000 --> 00:00:02.500
+// Welcome to the recording.
+// ...
+```
+
+`TranscriptCue` is structural (`{ start, end, text, id? }`), so any transcription
+source maps onto it directly — the package stays dependency-free.
+
+## Waveform peaks
+
+Decode audio to raw PCM with `buildWaveformArgs`, then reduce the bytes into a
+compact, normalized peak array for a scrubber/preview UI. The reducer is pure:
+
+```ts
+import { buildWaveformArgs, computeWaveformPeaks } from '@streetjs/media';
+
+// 1. Decode to mono s16le PCM on stdout (capture the bytes as a Buffer):
+const args = buildWaveformArgs('input.mp4', { sampleRate: 8000 });
+//   -hide_banner -v error -i input.mp4 -vn -ac 1 -ar 8000 -f s16le pipe:1
+
+// 2. Reduce the captured PCM into N normalized (0..1) peaks:
+const { peaks } = computeWaveformPeaks(pcmBuffer, { buckets: 400 });
+```
+
 ## Safety & testability
 
 - Arguments are passed as a real **argv** (`shell: false`) — values never go
