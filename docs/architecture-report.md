@@ -51,7 +51,10 @@ of `mariadb.js` to return the correct subclass after reading the server
 greeting (`wire ⇢ mariadb`). It is a runtime (dynamic-import) edge, **not** a
 load-time cycle — the package loads and all suites pass. See
 [ADR-0001](architecture-decision-records/0001-mysql-detection-seam.md) for the
-accepted decision and the planned major-version remediation.
+accepted decision and the planned major-version remediation. See also
+[ADR-0002](architecture-decision-records/0002-framework-first-development.md):
+framework-first development — reusable infrastructure lives in StreetJS; products
+(e.g. StreetStudio) consume it and own only product-specific code.
 
 ## Extension points (stable)
 
