@@ -83,6 +83,17 @@ import — no logic of its own; 6 tests, 100% coverage. Not consumed by core.
   (TTL + stale-on-error) and a durable, ordered `MutationQueue` outbox (retry/drop/
   re-entrancy guard) over a pluggable `OfflineStore`. Zero-dep, 14 tests. Not consumed by core.
 
+**StreetStudio readiness audit — encryption at rest:**
+- `@streetjs/security` (**1.1.0**, additive) — AES-256-GCM field encryption alongside the existing
+  HS256 JWT service. `FieldCipher` (authenticated value encryption with optional AAD context
+  binding; random 96-bit IV per call) and `KeyRing` (multiple named keys, self-describing tokens
+  carrying their key id → rotation is "add new primary, keep old keys"; new writes use the new key
+  while existing ciphertexts stay decryptable). `generateEncryptionKey`, `EncryptionError`,
+  `timingSafeStringEqual`. `node:crypto` only. **Additive to a core-consumed package — core
+  re-exports only `JwtService`, so no rewire; core build + build:app + circular scan verified
+  green.** 28 tests (15 new), 98% coverage. Closes the review's `security` field-encryption item
+  (extend-security, not a new `@streetjs/crypto`).
+
 **StreetStudio readiness audit — secrets:**
 - `@streetjs/config` (**1.1.0**, additive) — dynamic secret resolution + rotation on top of the
   existing static config + secret masking. `SecretStore` resolves across ordered, pluggable
