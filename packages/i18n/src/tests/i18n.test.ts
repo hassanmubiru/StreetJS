@@ -41,6 +41,11 @@ describe('parseAcceptLanguage', () => {
     assert.deepEqual(parseAcceptLanguage(''), []);
     assert.deepEqual(parseAcceptLanguage('   '), []);
   });
+  it('ignores a malformed q value (keeps quality 1) and skips empty tags', () => {
+    const r = parseAcceptLanguage('en;q=abc, ,de');
+    assert.deepEqual(r.map((x) => x.tag), ['en', 'de']);
+    assert.equal(r[0]!.quality, 1);
+  });
 });
 
 describe('defaultFallbackChain', () => {
