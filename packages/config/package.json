@@ -1,7 +1,7 @@
 {
   "name": "@streetjs/config",
-  "version": "1.0.0",
-  "description": "StreetJS configuration foundation: typed, schema-validated, immutable configuration with pluggable sources (env, JSON, YAML, TOML, custom providers), namespaces, secret masking, and descriptive startup validation. Zero runtime dependencies.",
+  "version": "1.1.0",
+  "description": "StreetJS configuration foundation: typed, schema-validated, immutable configuration with pluggable sources (env, JSON, YAML, TOML, custom providers), namespaces, secret masking, descriptive startup validation, and a secret store (pluggable providers, caching, rotation). Zero runtime dependencies.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
