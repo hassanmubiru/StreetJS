@@ -11,7 +11,8 @@
 // with no real secret store.
 
 import { ConfigError } from './errors.js';
-import type { ConfigInput, PlainObject, Provider } from './provider.js';
+import type { Provider } from './provider.js';
+import type { ConfigInput, PlainObject } from './types.js';
 
 /**
  * A pluggable secret backend. `get` returns the secret value or `undefined` when
