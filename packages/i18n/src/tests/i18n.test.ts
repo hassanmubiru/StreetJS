@@ -70,6 +70,13 @@ describe('negotiateLocale', () => {
     assert.equal(negotiateLocale('*', available, 'en'), 'en'); // first available
     assert.equal(negotiateLocale('', available, 'de'), 'de');  // nothing requested → default
   });
+  it('wildcard with no available locales falls back to default', () => {
+    assert.equal(negotiateLocale('*', [], 'en'), 'en');
+  });
+  it('matches a requested primary subtag against a region-qualified available tag', () => {
+    // requested "en" (primary) accepts available "en-GB".
+    assert.equal(negotiateLocale('en', ['en-GB', 'fr'], 'fr'), 'en-GB');
+  });
 });
 
 // ── Intl formatting ─────────────────────────────────────────────────────────────
