@@ -21,6 +21,14 @@
 
 export { JwtService, type JwtPayload, type JwtOptions } from './jwt.js';
 
+export {
+  KeyRing,
+  FieldCipher,
+  EncryptionError,
+  generateEncryptionKey,
+  timingSafeStringEqual,
+} from './crypto.js';
+
 /**
  * Dependency-injection token for a {@link JwtService}. `@streetjs/security`
  * depends on no container, so the token is a plain unique symbol.
