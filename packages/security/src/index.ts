@@ -3,8 +3,9 @@
  *
  * A dependency-free HS256 JWT service (sign/verify/decode) with
  * algorithm-confusion protection, timing-safe signature comparison, and
- * exp/nbf/iat/iss/aud claim validation. Zero runtime dependencies. Public API
- * only.
+ * exp/nbf/iat/iss/aud claim validation, plus AES-256-GCM field encryption
+ * (`FieldCipher` / `KeyRing`) with key rotation for protecting values at rest.
+ * Zero runtime dependencies. Public API only.
  *
  * ```ts
  * import { JwtService } from '@streetjs/security';
