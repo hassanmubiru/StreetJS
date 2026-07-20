@@ -7,6 +7,23 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.1.0]
+
+Additive: dynamic secret resolution + rotation, complementing the existing
+static configuration + secret masking. Backward-compatible with 1.0.0.
+
+### Added
+
+- **`SecretStore`** — resolves secrets across ordered, pluggable `SecretProvider`s
+  with caching, TTL (injectable clock), `rotate()` cache invalidation +
+  `onRotate` listeners, and an `onAccess` audit hook.
+- Built-in providers: `envSecretProvider`, `memorySecretProvider`, and
+  `fileSecretProvider` (Docker/K8s `<dir>/<key>` convention, injected reader).
+- **`secretsProvider`** — a config `Provider` bridge that flows resolved secrets
+  into typed, validated configuration at dotted paths (so secret values land in
+  the schema and inherit secret masking).
+- `SecretNotFoundError` for required-but-missing secrets.
+
 ## [1.0.0] - 2026-07-13
 
 Initial release — the configuration foundation for StreetJS.
