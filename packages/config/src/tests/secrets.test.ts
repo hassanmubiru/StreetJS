@@ -145,7 +145,7 @@ describe('secretsProvider (config bridge)', () => {
         database: { password: s.string().secret() },
         apiKey: s.string().secret(),
       })
-      .use(secretsProvider(store, { 'database.password': 'DB_PASSWORD', apiKey: 'API_KEY' }))
+      .provider(secretsProvider(store, { 'database.password': 'DB_PASSWORD', apiKey: 'API_KEY' }))
       .load();
 
     assert.equal(config.get('database.password'), 's3cr3t');
