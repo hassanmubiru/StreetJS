@@ -53,6 +53,9 @@ describe('defaultFallbackChain', () => {
     assert.deepEqual(defaultFallbackChain('zh-Hant-TW'), ['zh-Hant-TW', 'zh-Hant', 'zh']);
     assert.deepEqual(defaultFallbackChain('en'), ['en']);
   });
+  it('returns [locale] for an empty string', () => {
+    assert.deepEqual(defaultFallbackChain(''), ['']);
+  });
 });
 
 describe('negotiateLocale', () => {
