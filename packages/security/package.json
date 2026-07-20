@@ -55,6 +55,9 @@
     "hmac",
     "json-web-token",
     "auth",
+    "encryption",
+    "aes-256-gcm",
+    "key-rotation",
     "typescript",
     "esm",
     "zero-dependencies"
