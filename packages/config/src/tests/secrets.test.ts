@@ -161,6 +161,6 @@ describe('secretsProvider (config bridge)', () => {
     assert.deepEqual(await provider.load(), {});
     // Required: load throws SecretNotFoundError.
     const strict = secretsProvider(store, { 'a.b': 'MISSING' }, { required: true });
-    await assert.rejects(() => strict.load(), SecretNotFoundError);
+    await assert.rejects(async () => { await strict.load(); }, SecretNotFoundError);
   });
 });
