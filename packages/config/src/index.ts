@@ -70,6 +70,18 @@ export {
   type UrlOptions,
 } from './validator.js';
 
+// ── secrets (resolution + rotation) ──────────────────────────────────────────────
+export {
+  SecretStore,
+  SecretNotFoundError,
+  envSecretProvider,
+  memorySecretProvider,
+  fileSecretProvider,
+  secretsProvider,
+  type SecretProvider,
+  type SecretStoreOptions,
+} from './secrets.js';
+
 // ── namespace view ──────────────────────────────────────────────────────────────
 export { Namespace } from './namespace.js';
 
