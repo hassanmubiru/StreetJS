@@ -21,7 +21,7 @@ test('generateEncryptionKey produces distinct 32-byte hex keys', () => {
 test('FieldCipher round-trips a value', () => {
   const cipher = new FieldCipher(KEY_A);
   const token = cipher.encrypt('sensitive@example.com');
-  assert.notMatch(token, /sensitive/); // ciphertext, not plaintext
+  assert.doesNotMatch(token, /sensitive/); // ciphertext, not plaintext
   assert.equal(cipher.decrypt(token), 'sensitive@example.com');
 });
 
