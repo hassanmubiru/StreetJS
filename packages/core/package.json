@@ -418,13 +418,13 @@
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
-    "@types/node": "^26.1.0",
+    "@types/node": "^26.1.1",
     "@types/ws": "^8.5.10",
     "c8": "^11.0.0",
     "esbuild": "^0.28.1",
-    "fast-check": "^4.8.0",
+    "fast-check": "^4.9.0",
     "js-yaml": "^5.2.1",
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   },
   "peerDependencies": {
     "typescript": ">=5.0.0"
