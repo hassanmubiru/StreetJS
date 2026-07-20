@@ -83,6 +83,15 @@ import — no logic of its own; 6 tests, 100% coverage. Not consumed by core.
   (TTL + stale-on-error) and a durable, ordered `MutationQueue` outbox (retry/drop/
   re-entrancy guard) over a pluggable `OfflineStore`. Zero-dep, 14 tests. Not consumed by core.
 
+**StreetStudio readiness audit — localization:**
+- `@streetjs/i18n` (1.0.0) — localization foundation: typed message catalogs with `{var}`
+  interpolation and `Intl.PluralRules`-backed pluralization (CLDR category maps), locale
+  negotiation (`Accept-Language` parsing + subtag fallback chains + `negotiateLocale`), and
+  locale-bound number/date/list formatting via built-in `Intl`. `I18n` facade with graceful
+  missing-key degradation (returns key + `onMissing` hook). Zero-dep leaf (built-in `Intl`
+  only), edge/browser-safe, not consumed by core. 25 tests, 100% line coverage. Closes the
+  review's `i18n` gap.
+
 **StreetStudio readiness audit — feature gating:**
 - `@streetjs/flags` (1.0.0) — feature-flag foundation: typed boolean/multivariate `FlagDefinition`
   with a kill switch, ordered attribute **targeting rules** (AND/array/catch-all), and deterministic
