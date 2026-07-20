@@ -1,7 +1,7 @@
 {
   "name": "@streetjs/security",
-  "version": "1.0.0",
-  "description": "StreetJS security foundation: a dependency-free HS256 JWT service (sign/verify/decode) with algorithm-confusion protection, timing-safe signature comparison, and exp/nbf/iat/iss/aud claim validation. Zero runtime dependencies.",
+  "version": "1.1.0",
+  "description": "StreetJS security foundation: a dependency-free HS256 JWT service (sign/verify/decode) with algorithm-confusion protection, timing-safe signature comparison, and exp/nbf/iat/iss/aud claim validation, plus AES-256-GCM field encryption (FieldCipher/KeyRing) with key rotation for data at rest. Zero runtime dependencies.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
