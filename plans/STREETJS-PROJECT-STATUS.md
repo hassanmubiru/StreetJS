@@ -83,6 +83,15 @@ import — no logic of its own; 6 tests, 100% coverage. Not consumed by core.
   (TTL + stale-on-error) and a durable, ordered `MutationQueue` outbox (retry/drop/
   re-entrancy guard) over a pluggable `OfflineStore`. Zero-dep, 14 tests. Not consumed by core.
 
+**StreetStudio readiness audit — secrets:**
+- `@streetjs/config` (**1.1.0**, additive) — dynamic secret resolution + rotation on top of the
+  existing static config + secret masking. `SecretStore` resolves across ordered, pluggable
+  `SecretProvider`s with caching, TTL (injectable clock), `rotate()` cache invalidation +
+  `onRotate` listeners, and an `onAccess` audit hook. Built-in `envSecretProvider` /
+  `memorySecretProvider` / `fileSecretProvider`, plus a bridge that flows resolved secrets into
+  typed config. Zero-dep, not consumed by core (standalone foundation). 47 tests. Closes the
+  review's `secrets` hardening item (extend-config, not a new package).
+
 **StreetStudio readiness audit — localization:**
 - `@streetjs/i18n` (1.0.0) — localization foundation: typed message catalogs with `{var}`
   interpolation and `Intl.PluralRules`-backed pluralization (CLDR category maps), locale
