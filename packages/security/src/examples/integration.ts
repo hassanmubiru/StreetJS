@@ -26,6 +26,19 @@ function main(): void {
   // Expiry.
   const expired = jwt.sign({ sub: 'u_42' }, { expiresInSeconds: -1 });
   process.stdout.write(`expired token verifies: ${jwt.verify(expired) === null ? 'null (rejected)' : 'UNEXPECTED'}\n`);
+
+  // ── Field encryption at rest, with key rotation ─────────────────────────────
+  const ring = new KeyRing([{ id: 'k1', key: generateEncryptionKey() }]);
+  // AAD binds the ciphertext to a record/field so it can't be transplanted.
+  const enc = ring.encrypt('user@example.com', 'user:42:email');
+  process.stdout.write(`\nencrypted field: ${enc.slice(0, 28)}… (key ${KeyRing.keyIdOf(enc)})\n`);
+  process.stdout.write(`decrypted: ${ring.decrypt(enc, 'user:42:email')}\n`);
+  process.stdout.write(`wrong AAD: ${ring.tryDecrypt(enc, 'user:99:email') === null ? 'null (rejected)' : 'UNEXPECTED'}\n`);
+
+  // Rotate to a new primary key; old ciphertexts still decrypt.
+  ring.addKey('k2', generateEncryptionKey());
+  const fresh = ring.encrypt('new-secret', 'user:42:token');
+  process.stdout.write(`after rotation → new writes use key ${KeyRing.keyIdOf(fresh)}; legacy still reads: ${ring.decrypt(enc, 'user:42:email')}\n`);
 }
 
 main();
