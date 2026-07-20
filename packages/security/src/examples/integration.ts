@@ -5,7 +5,7 @@
  * that tampering and expiry are rejected.
  */
 
-import { JwtService } from '../index.js';
+import { JwtService, KeyRing, generateEncryptionKey } from '../index.js';
 
 function main(): void {
   const jwt = new JwtService('example-secret-that-is-at-least-32-chars');
