@@ -69,9 +69,9 @@
     "url": "https://github.com/hassanmubiru/StreetJS/issues"
   },
   "devDependencies": {
-    "@types/node": "^26.1.0",
+    "@types/node": "^26.1.1",
     "c8": "^11.0.0",
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   },
   "peerDependencies": {
     "typescript": ">=5.0.0"

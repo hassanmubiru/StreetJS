@@ -54,9 +54,9 @@
     "streetjs": "^1.0.6"
   },
   "devDependencies": {
-    "@types/node": "^26.1.0",
-    "fast-check": "^4.8.0",
-    "typescript": "^6.0.3"
+    "@types/node": "^26.1.1",
+    "fast-check": "^4.9.0",
+    "typescript": "^7.0.2"
   },
   "peerDependencies": {
     "typescript": ">=5.0.0"
