@@ -54,6 +54,9 @@ for (const path of files) {
 
   // Helm chart templates are Go-templated, not valid YAML — skip them.
   if (norm.includes('infra/helm/') && norm.includes('/templates/')) continue;
+  
+  // Skip Ruby exploit test files in vendor/bundle - they contain intentionally invalid YAML
+  if (norm.includes('docs/vendor/bundle/') && norm.includes('exploit.')) continue;
 
   let docs;
   try {
