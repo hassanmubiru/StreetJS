@@ -78,5 +78,8 @@
   "dependencies": {
     "@streetjs/plugin-nats": "^1.0.0",
     "streetjs": "^1.0.7"
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true
   }
 }
