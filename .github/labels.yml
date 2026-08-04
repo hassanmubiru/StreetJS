@@ -38,3 +38,18 @@
 - name: regression
   color: "e11d21"
   description: Worked in a previous release, broken now
+- name: dependencies
+  color: "0366d6"
+  description: Dependency update (Dependabot / manual)
+- name: github-actions
+  color: "000000"
+  description: GitHub Actions workflow or action update
+- name: npm
+  color: "cb3837"
+  description: npm package dependency update
+- name: docker
+  color: "0db7ed"
+  description: Docker image or Dockerfile update
+- name: frontend
+  color: "e4e669"
+  description: Frontend / web SPA dependency update
