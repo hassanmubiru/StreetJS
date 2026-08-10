@@ -22,9 +22,9 @@ import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { targetDependencies } from 'streetjs';
 
-/** True iff the given executable resolves on PATH (`command -v <bin>`). */
+/** True iff the given executable resolves on PATH. */
 export function hasBinary(bin) {
-  const r = spawnSync('command', ['-v', bin], { shell: true, encoding: 'utf8' });
+  const r = spawnSync('which', [bin], { encoding: 'utf8' });
   return r.status === 0 && String(r.stdout ?? '').trim() !== '';
 }
 

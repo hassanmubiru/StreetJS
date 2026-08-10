@@ -37,9 +37,9 @@ export const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', 
 /** The default broker bootstrap address the harness targets. */
 export const DEFAULT_BROKERS = process.env.KAFKA_BROKERS ?? '127.0.0.1:9092';
 
-/** True iff the given executable resolves on PATH (`command -v <bin>`). */
+/** True iff the given executable resolves on PATH. */
 export function hasBinary(bin) {
-  const r = spawnSync('command', ['-v', bin], { shell: true, encoding: 'utf8' });
+  const r = spawnSync('which', [bin], { encoding: 'utf8' });
   return r.status === 0 && String(r.stdout ?? '').trim() !== '';
 }
 

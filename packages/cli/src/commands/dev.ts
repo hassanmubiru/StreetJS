@@ -100,7 +100,6 @@ export class DevCommand {
       const tsc = spawn('npx', ['tsc', '--project', 'tsconfig.json'], {
         cwd: projectDir,
         stdio: 'inherit',
-        shell: true,
       });
 
       tsc.on('close', (code) => {

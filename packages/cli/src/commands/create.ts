@@ -6597,7 +6597,6 @@ ${webJob}`;
       const proc = spawn('npm', ['install', '--package-lock-only', '--no-audit', '--no-fund'], {
         cwd,
         stdio: 'ignore',
-        shell: true,
       });
       proc.on('close', (code) => {
         if (code === 0) {
@@ -6620,7 +6619,6 @@ ${webJob}`;
       const proc = spawn('npm', ['install'], {
         cwd,
         stdio: 'inherit',
-        shell: true,
       });
 
       proc.on('close', (code) => {
