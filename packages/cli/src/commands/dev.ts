@@ -63,7 +63,8 @@ export class DevCommand {
     };
 
     process.once('SIGINT', onSignal);
-    process.once('SIGTERM', onSignal);
+    // SIGTERM is not available on Windows — only register it on Unix.
+    if (!IS_WINDOWS) process.once('SIGTERM', onSignal);
 
     await watcher.start();
 
@@ -97,7 +98,8 @@ export class DevCommand {
       process.exit(0);
     };
 
-    process.once('SIGTERM', cleanup);
+    // SIGTERM is not available on Windows — only register it on Unix.
+    if (!IS_WINDOWS) process.once('SIGTERM', cleanup);
     process.once('SIGINT', cleanup);
   }
 
@@ -165,11 +167,48 @@ export class DevCommand {
 
   private killServer(): void {
     if (this.childProcess && !this.childProcess.killed) {
-      // SIGTERM is not supported on Windows — child.kill() without an argument
-      // sends SIGTERM on Unix and terminates the process on Windows.
-      this.childProcess.kill();
+      const child = this.childProcess;
       this.childProcess = null;
+      if (IS_WINDOWS) {
+        // On Windows, child.kill() only kills the immediate process. If the
+        // server spawned any grandchildren they would keep holding the port.
+        // taskkill /F /T kills the entire process tree rooted at this PID.
+        try {
+          spawn('taskkill', ['/F', '/T', '/PID', String(child.pid)], { stdio: 'ignore' });
+        } catch {
+          child.kill();
+        }
+      } else {
+        child.kill('SIGTERM');
+      }
     }
+  }
+
+  /** Kill the server and wait for it to actually exit before returning. */
+  private killServerAndWait(): Promise<void> {
+    return new Promise((resolve) => {
+      if (!this.childProcess || this.childProcess.killed) {
+        this.childProcess = null;
+        resolve();
+        return;
+      }
+      const child = this.childProcess;
+      this.childProcess = null;
+      child.once('exit', () => resolve());
+      child.once('error', () => resolve());
+      if (IS_WINDOWS) {
+        try {
+          spawn('taskkill', ['/F', '/T', '/PID', String(child.pid)], { stdio: 'ignore' });
+        } catch {
+          child.kill();
+        }
+      } else {
+        child.kill('SIGTERM');
+      }
+      // Safety timeout — if 'exit' never fires (e.g. process is frozen),
+      // release the lock after 3 s so the new server can still start.
+      setTimeout(resolve, 3000);
+    });
   }
 
   private async watchSource(
@@ -197,7 +236,7 @@ export class DevCommand {
 
           try {
             await this.compile(projectDir);
-            this.killServer();
+            await this.killServerAndWait();
             await this.startServer(distDir);
             console.log('[street] Reload complete. Watching for changes...\n');
           } catch (err) {
