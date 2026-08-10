@@ -5,6 +5,10 @@ import { spawn } from 'node:child_process';
 import { resolve } from 'node:path';
 import type { CliContext } from '../index.js';
 
+// On Windows, npx is a .cmd wrapper and requires shell:true to be found.
+// On Unix, shell:true with an args array triggers DEP0190.
+const SHELL_OPT = process.platform === 'win32' ? { shell: true } : {};
+
 export class BuildCommand {
   async execute(ctx: CliContext): Promise<void> {
     const projectDir = ctx.cwd;

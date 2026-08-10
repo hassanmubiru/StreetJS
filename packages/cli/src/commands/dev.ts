@@ -106,6 +106,7 @@ export class DevCommand {
       const tsc = spawn('npx', ['tsc', '--project', 'tsconfig.json'], {
         cwd: projectDir,
         stdio: 'inherit',
+        ...SHELL_OPT,
       });
 
       tsc.on('close', (code) => {
@@ -133,18 +134,28 @@ export class DevCommand {
           ...process.env,
           NODE_ENV: 'development',
         },
+        // node itself is always a real executable; no shell needed on any platform.
       });
 
-      // Give the server a moment to start
-      this.childProcess.on('spawn', () => {
-        setTimeout(resolvePromise, 500);
-      });
+      // Resolve after a short delay to let the server bind its port.
+      // We listen for both 'spawn' (emitted when the process starts) and
+      // 'error' (emitted on Windows when the binary isn't found or the process
+      // fails to start), so the promise never hangs.
+      let resolved = false;
+      const resolveOnce = (): void => {
+        if (!resolved) { resolved = true; setTimeout(resolvePromise, 500); }
+      };
+
+      this.childProcess.on('spawn', resolveOnce);
 
       this.childProcess.on('error', (err) => {
-        reject(new Error(`Failed to start server: ${err.message}`));
+        if (!resolved) { resolved = true; reject(new Error(`Failed to start server: ${err.message}`)); }
       });
 
       this.childProcess.on('exit', (code) => {
+        // If we haven't resolved yet (spawn never fired), resolve now so the
+        // outer flow can handle the error gracefully.
+        resolveOnce();
         if (code !== null && code !== 0 && this.childProcess !== null) {
           console.error(`[street] Server exited with code ${code}`);
         }
@@ -154,7 +165,9 @@ export class DevCommand {
 
   private killServer(): void {
     if (this.childProcess && !this.childProcess.killed) {
-      this.childProcess.kill('SIGTERM');
+      // SIGTERM is not supported on Windows — child.kill() without an argument
+      // sends SIGTERM on Unix and terminates the process on Windows.
+      this.childProcess.kill();
       this.childProcess = null;
     }
   }
