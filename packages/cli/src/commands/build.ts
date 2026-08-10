@@ -30,6 +30,7 @@ export class BuildCommand {
       const tsc = spawn('npx', ['tsc', '--project', 'tsconfig.json'], {
         cwd: projectDir,
         stdio: 'inherit',
+        ...SHELL_OPT,
       });
 
       tsc.on('close', (code) => {
