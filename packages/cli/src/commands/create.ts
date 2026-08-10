@@ -6,6 +6,10 @@ import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import type { CliContext } from '../index.js';
 
+// On Windows, npm is a .cmd wrapper and requires shell:true to be found.
+// On Unix, shell:true with an args array triggers DEP0190.
+const SHELL_OPT = process.platform === 'win32' ? { shell: true } : {};
+
 /** Template variants: extra @streetjs deps + a starter module + a description. */
 interface TemplateSpec {
   /** Always-on dependencies added on top of the base scaffold for every variant. */
@@ -6597,6 +6601,7 @@ ${webJob}`;
       const proc = spawn('npm', ['install', '--package-lock-only', '--no-audit', '--no-fund'], {
         cwd,
         stdio: 'ignore',
+        ...SHELL_OPT,
       });
       proc.on('close', (code) => {
         if (code === 0) {
@@ -6619,6 +6624,7 @@ ${webJob}`;
       const proc = spawn('npm', ['install'], {
         cwd,
         stdio: 'inherit',
+        ...SHELL_OPT,
       });
 
       proc.on('close', (code) => {
