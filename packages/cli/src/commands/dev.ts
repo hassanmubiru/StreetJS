@@ -14,6 +14,12 @@ import { watch } from 'node:fs/promises';
 import { DevWatcher } from 'streetjs';
 import type { CliContext } from '../index.js';
 
+// On Windows, npx/npm are .cmd wrappers and require shell:true to be found.
+// On Unix, shell:true with an args array triggers DEP0190, so we only set it
+// on Windows.
+const IS_WINDOWS = process.platform === 'win32';
+const SHELL_OPT = IS_WINDOWS ? { shell: true } : {};
+
 export class DevCommand {
   private childProcess: ReturnType<typeof spawn> | null = null;
   private abortController = new AbortController();
