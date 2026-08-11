@@ -16,7 +16,7 @@ import assert from 'node:assert/strict';
 import { writeFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { build } from 'esbuild';
 
 const NODE_BUILTINS = [
@@ -95,7 +95,7 @@ describe('browser export conditions', () => {
   });
 
   it('the browser entry exposes the runtime-agnostic public API', async () => {
-    const mod = await import(browserEntry);
+    const mod = await import(pathToFileURL(browserEntry).href);
     assert.equal(typeof mod.LruCache, 'function');
     assert.equal(typeof mod.sanitizeString, 'function');
     assert.equal(typeof mod.escapeHtml, 'function');
@@ -105,8 +105,8 @@ describe('browser export conditions', () => {
   });
 
   it('the Node-only browser stub throws FeatureUnavailableInEdgeRuntimeError on use', async () => {
-    const stub = await import(browserStub);
-    const { FeatureUnavailableInEdgeRuntimeError } = await import(join(distRoot, 'http', 'exceptions.js'));
+    const stub = await import(pathToFileURL(browserStub).href);
+    const { FeatureUnavailableInEdgeRuntimeError } = await import(pathToFileURL(join(distRoot, 'http', 'exceptions.js')).href);
     assert.throws(() => stub.default.anything, (e: unknown) => e instanceof FeatureUnavailableInEdgeRuntimeError);
     assert.throws(() => stub.default(), (e: unknown) => e instanceof FeatureUnavailableInEdgeRuntimeError);
     assert.equal(stub.__browserStub, true);

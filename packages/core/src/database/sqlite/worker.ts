@@ -14,7 +14,7 @@
 
 import { workerData, isMainThread, parentPort } from 'node:worker_threads';
 import { createRequire } from 'node:module';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 
 import type { DbResult } from '../types.js';
@@ -157,10 +157,12 @@ if (!isMainThread) {
   (globalThis as Record<string, unknown>)['require'] = _require;
 
   // Dynamically import the glue code and open the database.
+  // Must use pathToFileURL so Windows absolute paths (C:\...) become
+  // valid file:// URLs — ESM import() rejects bare drive-letter paths.
   let db: OO1Database | null = null;
 
   type GlueModule = { default: (opts?: Record<string, unknown>) => Promise<Sqlite3Module> };
-  const glue = await (import(gluePath) as Promise<GlueModule>);
+  const glue = await (import(pathToFileURL(gluePath).href) as Promise<GlueModule>);
   const sqlite3: Sqlite3Module = await glue.default({
     // Tell the Emscripten runtime where to find sqlite3.wasm
     locateFile: (name: string) => join(__dirname, name),

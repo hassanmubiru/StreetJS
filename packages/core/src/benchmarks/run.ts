@@ -2,7 +2,7 @@
 // Entry point for benchmark suite
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 import { streetApp } from '../http/server.js';
 import { runHttpBenchmark, measureStreetStartup, type BenchmarkResult } from './http-benchmark.js';
@@ -161,7 +161,7 @@ async function runComparison(): Promise<void> {
     console.error('Set up the isolated env: (cd benchmarks/compare && npm install) then re-run.');
     process.exit(1);
   }
-  const { FACTORIES } = await import(serversPath) as { FACTORIES: Record<string, (port: number) => Promise<{ name: string; port: number; close: () => unknown }>> };
+  const { FACTORIES } = await import(pathToFileURL(serversPath).href) as { FACTORIES: Record<string, (port: number) => Promise<{ name: string; port: number; close: () => unknown }>> };
 
   console.log(`Node: ${process.version} | iterations: ${ITERATIONS} | duration: ${DURATION}ms | concurrency: ${CONCURRENCY} | warmup: ${WARMUP_MS}ms`);
   console.log('Route: GET / → {"status":"ok"}\n');
