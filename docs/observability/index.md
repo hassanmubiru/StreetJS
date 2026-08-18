@@ -113,6 +113,8 @@ dbQueryDuration.observe(0.023, { operation: 'SELECT' });
 
 ## OpenTelemetry
 
+> Full guide: [OpenTelemetry Quickstart](/observability/opentelemetry/)
+
 ```typescript
 import { OtelTracer, otelMiddleware } from 'streetjs';
 

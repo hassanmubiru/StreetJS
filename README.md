@@ -213,4 +213,18 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full development and test guide.
 
 ## Docs: OpenTelemetry quickstart
 
-Documentation reference and guidelines for #63.
+Add distributed tracing to any StreetJS app with the built-in `OtelTracer` and `otelMiddleware` — no `@opentelemetry/*` packages required.
+
+```ts
+import { OtelTracer, otelMiddleware } from 'streetjs';
+
+const tracer = new OtelTracer({ serviceName: 'my-api' });
+app.use(otelMiddleware(tracer)); // one span per request, W3C traceparent propagation
+
+process.once('SIGTERM', async () => { await tracer.flush(); tracer.shutdown(); });
+```
+
+Exports spans via OTLP/HTTP to Jaeger, Grafana Tempo, or any OpenTelemetry Collector.
+Set `OTEL_EXPORTER_OTLP_ENDPOINT` to point at your collector (default: `http://localhost:4318`).
+
+**[Full quickstart guide →](https://hassanmubiru.github.io/StreetJS/observability/opentelemetry/)**
