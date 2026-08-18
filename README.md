@@ -209,3 +209,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full development and test guide.
 ## License
 
 [MIT](LICENSE) © street contributors
+
+
+## Docs: OpenTelemetry quickstart
+
+Documentation reference and guidelines for #63.
