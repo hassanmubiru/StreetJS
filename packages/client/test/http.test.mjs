@@ -74,6 +74,28 @@ describe('auth + headers', () => {
     assert.equal(fetch.calls[0].init.headers.authorization, 'Bearer tok123');
   });
 
+  it('does not persist a getToken value in browser storage', async () => {
+    const fetch = fakeFetch({ json: { ok: true } });
+    const writes = [];
+    const storage = { setItem: (key, value) => writes.push({ key, value }) };
+    const localStorageDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+    const sessionStorageDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'sessionStorage');
+    Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: storage });
+    Object.defineProperty(globalThis, 'sessionStorage', { configurable: true, value: storage });
+
+    try {
+      const api = createStreetClient({ baseUrl: '/api', fetch, getToken: () => 'tok123' });
+      await api.auth.session();
+      assert.equal(fetch.calls[0].init.headers.authorization, 'Bearer tok123');
+      assert.deepEqual(writes, []);
+    } finally {
+      if (localStorageDescriptor) Object.defineProperty(globalThis, 'localStorage', localStorageDescriptor);
+      else delete globalThis.localStorage;
+      if (sessionStorageDescriptor) Object.defineProperty(globalThis, 'sessionStorage', sessionStorageDescriptor);
+      else delete globalThis.sessionStorage;
+    }
+  });
+
   it('login POSTs credentials as JSON', async () => {
     const fetch = fakeFetch({ json: { token: 'z' } });
     const api = createStreetClient({ baseUrl: '/api', fetch });

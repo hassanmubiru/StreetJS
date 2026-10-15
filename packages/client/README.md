@@ -34,6 +34,7 @@ const posts = api.resource<Post>('posts');
 const created = await posts.create({ title: 'Hello' });
 
 // Auth
+// The client does not store tokens; provide the current token when needed.
 await api.auth.login({ email, password });
 const session = await api.auth.session();
 
@@ -59,9 +60,9 @@ for await (const token of api.aiChat({ messages: [{ role: 'user', content: 'Hi' 
 
 | Option | Purpose |
 |--------|---------|
-| `baseUrl` | API base, e.g. `/api` or `https://api.example.com` |
+| `baseUrl` | API base, e.g. `/api` or `https://api.example.com`; generated routes do not have trailing slashes |
 | `fetch` | override fetch (defaults to global `fetch`) |
-| `getToken` | returns a bearer token (sync/async) attached as `Authorization` |
+| `getToken` | returns a bearer token (sync/async) attached as `Authorization`; the client does not store it |
 | `headers` | default headers on every request |
 | `credentials` | fetch credentials mode (`'include'` for cookie auth) |
 | `WebSocket` | WebSocket impl for realtime (defaults to global `WebSocket`) |
@@ -69,8 +70,8 @@ for await (const token of api.aiChat({ messages: [{ role: 'user', content: 'Hi' 
 ## Compatibility & footprint
 
 - **Zero runtime dependencies.** Uses platform `fetch`/`WebSocket`/`FormData`.
-- Node 20+ (inject `WebSocket` on Node < 22 where the global isn't stable) and
-  modern browsers.
+- Node 22+ and modern browsers.
+  (Inject `WebSocket` when the runtime does not provide a global.)
 - `sideEffects: false` + named ESM exports → tree-shakeable.
 
 ## Errors
