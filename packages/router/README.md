@@ -53,6 +53,12 @@ except for the root path `/`. Route definitions are normalized to that form, and
 requests such as `/users/` do not match `/users`. Query strings are ignored for
 matching, so `/users?active=true` matches `/users`.
 
+### Error response policy
+
+`errorHandler` preserves the legacy `StreetException.toJSON()` response by
+default. Pass `{ response: 'envelope' }` to opt into the canonical
+`{ code, message, status?, details?, correlationId? }` projection.
+
 ### Pipeline order
 
 For a matched route the pipeline is: **per-route rate limiter → route

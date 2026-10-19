@@ -332,6 +332,21 @@ test('errorHandler serializes a StreetException with its status', async () => {
   assert.equal((ctx._json!.data as { status: number }).status, 404);
 });
 
+test('errorHandler can opt into the canonical envelope without changing legacy mode', async () => {
+  const ctx = makeCtx({ path: '/missing' });
+  ctx.state['correlationId'] = 'req-123';
+  await errorHandler(ctx, new NotFoundException('missing'), { response: 'envelope' });
+  assert.deepEqual(ctx._json, {
+    data: {
+      code: 'NotFoundException',
+      message: 'missing',
+      status: 404,
+      correlationId: 'req-123',
+    },
+    status: 404,
+  });
+});
+
 test('errorHandler masks an unknown error as a generic 500 and reports it', async () => {
   const writes: string[] = [];
   mock.method(process.stderr, 'write', (c: string | Uint8Array) => { writes.push(String(c)); return true; });

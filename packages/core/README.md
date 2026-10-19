@@ -87,6 +87,14 @@ await app.close();
 await app.container.dispose();
 ```
 
+HTTP responses retain the legacy error shape by default. Applications can opt
+into the canonical `{ code, message, status?, details?, correlationId? }`
+envelope without changing the router itself:
+
+```ts
+const app = streetApp({ errorResponse: 'envelope' });
+```
+
 ### Scaffold a full project (recommended)
 
 ```bash

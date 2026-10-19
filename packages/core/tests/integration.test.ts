@@ -229,7 +229,7 @@ describe('HTTP Server', () => {
 
   before(async () => {
     port = 3100 + Math.floor(Math.random() * 900);
-    app = streetApp({ port, uploadsDir: TEST_UPLOADS });
+    app = streetApp({ port, uploadsDir: TEST_UPLOADS, errorResponse: 'envelope' });
 
     @Injectable()
     @Controller('/test')
@@ -333,8 +333,9 @@ describe('HTTP Server', () => {
   it('returns typed error responses', async () => {
     const res = await fetch(port, '/test/error');
     assert.equal(res.status, 404);
-    const body = JSON.parse(res.body) as { error: string };
-    assert.equal(body.error, 'NotFoundException');
+    const body = JSON.parse(res.body) as { code: string; status: number };
+    assert.equal(body.code, 'NotFoundException');
+    assert.equal(body.status, 404);
   });
 
   it('sets content-type header', async () => {

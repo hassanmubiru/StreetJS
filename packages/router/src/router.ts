@@ -3,7 +3,7 @@
 
 import 'reflect-metadata';
 import type { StreetContext, MiddlewareFn } from '@streetjs/context';
-import { BadRequestException, NotFoundException, isStreetException } from '@streetjs/exceptions';
+import { BadRequestException, NotFoundException, isStreetException, toStreetErrorEnvelope } from '@streetjs/exceptions';
 import { diagnosticsReporter } from '@streetjs/diagnostics';
 import { RateLimiter, getRateLimitMeta } from '@streetjs/ratelimit';
 import type { ValidationSchema, FieldRule, RouteProfiler } from './types.js';
@@ -32,6 +32,8 @@ interface CompiledRoute {
 export interface RouterOptions {
   profiler?: RouteProfiler;
 }
+
+export type ErrorResponseMode = 'legacy' | 'envelope';
 
 export class Router {
   private readonly routes: CompiledRoute[] = [];
@@ -277,14 +279,26 @@ export async function notFoundHandler(ctx: StreetContext): Promise<void> {
 }
 
 /** Global error handler */
-export async function errorHandler(ctx: StreetContext, err: unknown): Promise<void> {
+export async function errorHandler(
+  ctx: StreetContext,
+  err: unknown,
+  options: { response?: ErrorResponseMode } = {},
+): Promise<void> {
+  const correlationId = typeof ctx.state?.['correlationId'] === 'string'
+    ? ctx.state['correlationId'] as string
+    : undefined;
+
+  if (options.response === 'envelope') {
+    const status = isStreetException(err) ? err.status : 500;
+    if (!isStreetException(err)) diagnosticsReporter.report(err, correlationId);
+    ctx.json(toStreetErrorEnvelope(err, correlationId), status);
+    return;
+  }
+
   if (isStreetException(err)) {
     ctx.json(err.toJSON(), err.status);
   } else {
     // Log the full error server-side, but never leak internal details to client
-    const correlationId = typeof ctx.state?.['correlationId'] === 'string'
-      ? ctx.state['correlationId'] as string
-      : undefined;
     diagnosticsReporter.report(err, correlationId);
     ctx.json({ error: 'InternalException', message: 'Internal Server Error', status: 500 }, 500);
   }

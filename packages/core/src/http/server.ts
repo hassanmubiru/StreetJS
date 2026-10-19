@@ -4,6 +4,7 @@
 import { createServer, type IncomingMessage, type ServerResponse, type Server } from 'node:http';
 import { URL } from 'node:url';
 import { Router, notFoundHandler, errorHandler } from '../router/router.js';
+import type { ErrorResponseMode } from '../router/router.js';
 import { createContext } from '../core/context.js';
 import type { StreetContext } from '../core/context.js';
 import type { MiddlewareFn, RouteMetadata, ControllerMetadata } from '../core/types.js';
@@ -28,6 +29,8 @@ export interface StreetAppOptions {
   uploadsDir?: string;
   /** Optional application-scoped DI container; defaults to the legacy global container. */
   container?: Container;
+  /** HTTP error response shape; legacy is the backwards-compatible default. */
+  errorResponse?: ErrorResponseMode;
 }
 
 export interface StreetApp {
@@ -128,7 +131,7 @@ export function streetApp(options: StreetAppOptions = {}): StreetHttpApp {
       await runPipeline(ctx, pipeline, 0);
     } catch (err) {
       if (!ctx.sent) {
-        await errorHandler(ctx, err);
+          await errorHandler(ctx, err, { response: options.errorResponse ?? 'legacy' });
       }
     }
   }

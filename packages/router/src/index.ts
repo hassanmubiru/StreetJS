@@ -21,5 +21,5 @@
  */
 
 export { Router, notFoundHandler, errorHandler } from './router.js';
-export type { RouterOptions } from './router.js';
+export type { ErrorResponseMode, RouterOptions } from './router.js';
 export type { ValidationSchema, FieldRule, RouteProfiler } from './types.js';

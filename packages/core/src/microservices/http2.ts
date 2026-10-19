@@ -4,6 +4,7 @@
 
 import { createSecureServer, type Http2SecureServer, type ServerHttp2Stream, type IncomingHttpHeaders } from 'node:http2';
 import { Router, notFoundHandler, errorHandler } from '../router/router.js';
+import type { ErrorResponseMode } from '../router/router.js';
 import { createContext } from '../core/context.js';
 import type { StreetApp, StreetAppOptions } from '../http/server.js';
 import type { MiddlewareFn } from '../core/types.js';
@@ -199,7 +200,7 @@ export function streetHttp2App(opts: {
       await runPipeline(ctx, pipeline, 0);
     } catch (err) {
       if (!ctx.sent) {
-        await errorHandler(ctx, err);
+        await errorHandler(ctx, err, { response: opts.errorResponse as ErrorResponseMode | undefined });
       }
     }
   });

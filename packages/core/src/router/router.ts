@@ -8,4 +8,4 @@
 // API keep working against a single source of truth — no duplication, no shim.
 
 export { Router, notFoundHandler, errorHandler } from '@streetjs/router';
-export type { RouterOptions } from '@streetjs/router';
+export type { ErrorResponseMode, RouterOptions } from '@streetjs/router';
