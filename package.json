@@ -35,6 +35,7 @@
     "test:release-renderer": "node --test scripts/tests/release-render-report.test.mjs",
     "test:registry-harness": "node --test scripts/tests/registry-e2e-harness.test.mjs",
     "test:enterprise-harness": "node --test scripts/tests/enterprise-e2e-harness.test.mjs",
+    "verify": "node scripts/verify.mjs",
     "test:plugins-harness": "node --test scripts/tests/plugin-integration-harness.test.mjs",
     "test:plugins-marketplace": "node --test scripts/tests/gen-plugins-data.test.mjs",
     "test:marzpay-examples": "node --test scripts/tests/marzpay-examples.test.mjs",

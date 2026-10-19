@@ -5,7 +5,7 @@
 # Not distroless on purpose — the demo entrypoint runs an arbitrary example
 # server.mjs and benefits from a shell. For the framework's own production image
 # see the distroless root Dockerfile.
-FROM node:24-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd
+FROM node:22-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402
 WORKDIR /app
 
 # Restore deps from the lockfile (workspace symlinks), then build the packages the
