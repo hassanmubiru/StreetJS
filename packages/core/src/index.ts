@@ -29,8 +29,10 @@ export {
   ForbiddenException, NotFoundException, ConflictException,
   UnprocessableException, InternalException, ServiceUnavailableException,
   DatabaseConnectionError,
+  toStreetErrorEnvelope,
   isStreetException,
 } from './http/exceptions.js';
+export type { StreetErrorEnvelope } from './http/exceptions.js';
 export {
   authMiddleware, requireRoles, securityHeaders, corsMiddleware, csrfMiddleware,
 } from './http/auth.middleware.js';

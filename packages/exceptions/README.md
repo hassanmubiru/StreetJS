@@ -75,6 +75,23 @@ new DatabaseConnectionError('cannot reach primary', 'check DATABASE_URL');
 `details` and `suggestion` are omitted from the JSON when not provided, keeping
 error payloads minimal.
 
+## Canonical error envelope
+
+`toStreetErrorEnvelope(error, correlationId?)` provides an additive,
+transport-oriented projection without changing the existing `toJSON()` wire
+shape:
+
+```ts
+import { toStreetErrorEnvelope } from '@streetjs/exceptions';
+
+toStreetErrorEnvelope(new NotFoundException('user not found'), 'req-123');
+// { code: 'NotFoundException', message: 'user not found', status: 404, correlationId: 'req-123' }
+```
+
+Unknown errors are sanitized to `{ code: 'internal_error', message: 'Internal Server Error' }`.
+The existing `error`, `status`, `details`, `issues`, and `toJSON()` contracts are
+unchanged; framework boundaries can adopt this projection incrementally.
+
 ## Example
 
 A complete runnable example lives in

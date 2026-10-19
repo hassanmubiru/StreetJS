@@ -13,6 +13,7 @@ import {
   ServiceUnavailableException,
   DatabaseConnectionError,
   FeatureUnavailableInEdgeRuntimeError,
+  toStreetErrorEnvelope,
   isStreetException,
 } from '../index.js';
 
@@ -80,4 +81,33 @@ test('isStreetException distinguishes framework errors from plain errors', () =>
   assert.equal(isStreetException(new Error('plain')), false);
   assert.equal(isStreetException('nope'), false);
   assert.equal(isStreetException(null), false);
+});
+
+test('toStreetErrorEnvelope normalizes framework errors without changing toJSON', () => {
+  const error = new StreetException(404, 'user not found', { resource: 'user' });
+  assert.deepEqual(toStreetErrorEnvelope(error, 'req-123'), {
+    code: 'StreetException',
+    message: 'user not found',
+    status: 404,
+    details: { resource: 'user' },
+    correlationId: 'req-123',
+  });
+  assert.deepEqual(error.toJSON(), {
+    error: 'StreetException',
+    message: 'user not found',
+    status: 404,
+    details: { resource: 'user' },
+  });
+});
+
+test('toStreetErrorEnvelope sanitizes unknown errors', () => {
+  assert.deepEqual(toStreetErrorEnvelope(new Error('database password=secret'), 'req-456'), {
+    code: 'internal_error',
+    message: 'Internal Server Error',
+    correlationId: 'req-456',
+  });
+  assert.deepEqual(toStreetErrorEnvelope('bad input'), {
+    code: 'internal_error',
+    message: 'Internal Server Error',
+  });
 });

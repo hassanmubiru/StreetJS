@@ -22,6 +22,37 @@ export class StreetException extends Error {
   }
 }
 
+/** Stable, transport-oriented error shape for framework boundaries. */
+export interface StreetErrorEnvelope {
+  readonly code: string;
+  readonly message: string;
+  readonly status?: number;
+  readonly details?: unknown;
+  readonly correlationId?: string;
+}
+
+/**
+ * Normalize an error without changing any existing exception JSON contracts.
+ * Unknown errors are intentionally sanitized for safe transport to clients.
+ */
+export function toStreetErrorEnvelope(error: unknown, correlationId?: string): StreetErrorEnvelope {
+  if (isStreetException(error)) {
+    return {
+      code: error.name,
+      message: error.message,
+      status: error.status,
+      ...(error.details !== undefined ? { details: error.details } : {}),
+      ...(correlationId !== undefined ? { correlationId } : {}),
+    };
+  }
+
+  return {
+    code: 'internal_error',
+    message: 'Internal Server Error',
+    ...(correlationId !== undefined ? { correlationId } : {}),
+  };
+}
+
 export class BadRequestException extends StreetException {
   constructor(message = 'Bad Request', details?: unknown) {
     super(400, message, details);

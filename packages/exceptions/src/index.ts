@@ -29,5 +29,7 @@ export {
   ServiceUnavailableException,
   DatabaseConnectionError,
   FeatureUnavailableInEdgeRuntimeError,
+  toStreetErrorEnvelope,
   isStreetException,
 } from './exceptions.js';
+export type { StreetErrorEnvelope } from './exceptions.js';
