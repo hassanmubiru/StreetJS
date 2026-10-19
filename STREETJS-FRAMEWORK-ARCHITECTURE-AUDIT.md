@@ -790,3 +790,149 @@ The two reported behaviors fit this conclusion:
 
 - StreetJS server route trailing-slash behavior needs an explicit framework policy; client URL normalization alone is not enough.
 - `@streetjs/client` token non-storage is currently correct and intentionally verified. The missing piece is an optional, portable token lifecycle adapter—not implicit browser persistence in the base client.
+
+---
+
+## 18. Phase-1 reconnaissance maps
+
+This section is the implementation baseline for the next phases. It records where the current contracts live and the compatibility surfaces that must be checked before changes.
+
+### 18.1 Package dependency map
+
+```text
+Application code / generated projects
+              │
+              ▼
+       streetjs (core facade)
+              │
+   ┌──────────┼───────────┐
+   ▼          ▼           ▼
+ router     context     security/session
+   │          │           │
+   ├──────► exceptions ◄──┘
+   │
+   ├── database / pool / repository / migrations / schema-inspector
+   ├── websocket / multipart / ratelimit / cache / store
+   └── telemetry / cluster / diagnostics / platform plugins
+
+Capability packages
+  queue / events / workflow / realtime / storage / gateway
+       │
+       └── currently use some broad streetjs/core exports for shared concerns
+
+Provider plugins and vendor integrations
+  plugin-* / slack / github / ...
+       │
+       └── provider contracts + core/plugin SDK
+
+Client and UI adapters
+  client → react/vue/next/nuxt/auth-ui/ai-ui/admin-ui
+```
+
+**Boundary conclusion:** the facade is a valid consumer entry point, but capability packages should progressively consume narrow existing contracts (`context`, `exceptions`, `config`, observability interfaces) rather than the entire `streetjs` package. No new foundation package is justified until an existing owner proves insufficient.
+
+### 18.2 Public API map
+
+| Developer concern | Current canonical entry point | Evidence | Compatibility note |
+|---|---|---|---|
+| Application bootstrap | `streetjs` → `streetApp` | `packages/core/src/http/server.ts`, root README | Preserve existing factory; `createApp` would need an additive alias/ADR. |
+| HTTP server | `streetjs` HTTP exports | `packages/core/package.json` exports | Public and widely documented. |
+| Router | `streetjs/router`, `@streetjs/router` | core subpath and router package exports | Semantics must converge without removing either entry point. |
+| Middleware | `app.use`, router middleware | core/router source | Preserve function signature while adding ownership where needed. |
+| DI | core container plus `@streetjs/container` | core/container sources | Global compatibility surface; application scoping must be additive first. |
+| Config | `@streetjs/config` and core config usage | config package/tests | Treat config package as canonical. |
+| Context | core context and `@streetjs/context` | package exports/source | Narrow contract candidate. |
+| Errors | `@streetjs/exceptions`, client/workflow errors | package sources | Preserve specialized classes; standardize boundaries. |
+| Plugins | `PluginHost`, `PluginModule`, `SandboxedApp` | core plugin SDK/host | Public extension contract; disposer return is additive-compatible. |
+| Client auth | `getToken` callback | `packages/client/src/http.ts` | Base client remains storage-agnostic. |
+
+### 18.3 Lifecycle and resource map
+
+| Resource | Current owner | Current cleanup | Status/risk |
+|---|---|---|---|
+| HTTP server | `StreetApp` | `app.close()` | Implemented; cross-module ownership needs one convention. |
+| Request timeout | request handler | response finish/close | Implemented and bounded. |
+| Plugin middleware | `StreetApp` / plugin host | removed on unload | Implemented in core path. |
+| Plugin event listeners | `StreetApp` sandbox | disposer/automatic unload cleanup | Improved; needs broader resource registry for timers/health/metrics. |
+| Plugin-host listener records | `GatedSandbox` | disposer removes record | Contract now explicit; host integration remains limited. |
+| DI singletons | global container | `reset()` only | No deterministic disposal; P1 backlog. |
+| Queue worker/scheduler/driver | queue facade | ordered close | Strong local contract; readiness/error state incomplete. |
+| Workflow bridge/engine | workflow plugin | detach + close | Strong local contract. |
+| DB pools | pool/database callers | package-specific close | Needs application ownership integration. |
+| Tracing/metrics exporters | observability packages | package-specific handles | No universal scope registry. |
+
+### 18.4 DI usage map
+
+| Usage | Current mechanism | Evidence | Compatibility risk |
+|---|---|---|---|
+| Core controllers | process-global core container | `packages/core/src/http/server.ts` | High: changing singleton identity can affect existing apps. |
+| Decorated classes | metadata plus constructor resolution | core/container sources | Preserve decorators while adding explicit registration. |
+| Interface/token dependencies | manual symbols/registrations | security `JWT_SERVICE`, container APIs | Add token API without removing class resolution. |
+| Tests | global reset patterns | core/container tests | Application scopes would improve isolation; retain reset bridge. |
+| Capability packages | direct construction and plugin providers | queue/workflow/storage sources | Migrate incrementally to app context/resource ownership. |
+
+### 18.5 Router behavior matrix
+
+| Input/route | Core HTTP registration | Standalone router | Gateway | Current conclusion |
+|---|---|---|---|---|
+| `/users` → `/users` | matches | exact match | static match | Verified canonical form. |
+| `/users/` → `/users` | does not match | no cross-layer contract | static behavior differs by matcher | Undefined framework-wide policy. |
+| `/users/:id` | parameter extraction | parameter extraction | gateway-specific matcher | Needs equivalent encoded/path tests. |
+| `/users/*` | wildcard behavior in router | wildcard behavior | requires remaining segment | Needs one documented wildcard rule. |
+| `/` | root handling exists | package-specific | gateway-specific | Needs explicit root test in common matrix. |
+| query string | parsed at HTTP boundary | supplied separately | gateway policy | Should not affect path matching. |
+| encoded path | URL parser + route matcher | matcher-specific | matcher-specific | Needs encoded-slash/security contract. |
+| mounted router | core composition | package API | gateway prefixes | No common contract test. |
+
+### 18.6 Authentication/client behavior matrix
+
+| Concern | Current behavior | Status | Decision boundary |
+|---|---|---|---|
+| Token acquisition | `getToken()` sync/async per request | VERIFIED | Keep as low-level primitive. |
+| Token storage | no local/session/cookie/IndexedDB writes | VERIFIED by regression test | Keep absent from base client. |
+| Login | POST credentials, return server response | VERIFIED | Does not establish client-owned state. |
+| Refresh | no built-in refresh/retry | MISSING | Optional adapter only after contract design. |
+| 401 retry | immediate `StreetApiError` | VERIFIED | Avoid automatic POST replay in base client. |
+| Logout | POST endpoint only | PARTIAL | Adapter may clear owned store; base client cannot. |
+| Realtime auth | URL/client configuration only | PARTIAL | Needs separate server/client contract review. |
+
+### 18.7 Error taxonomy map
+
+| Error family | Current owner | Boundary representation | Gap |
+|---|---|---|---|
+| HTTP/framework exceptions | `@streetjs/exceptions` | status/message/details JSON | No stable code/correlation schema. |
+| Client errors | `@streetjs/client` | `StreetApiError`/`StreetClientError` classes | Not same envelope as server. |
+| Workflow errors | `@streetjs/workflow` | specialized classes/fields | Separate serialization philosophy. |
+| Plugin errors | core plugin host | specialized classes | Cross-package type guard concerns. |
+| JWT/security failures | security service returns null | null at verification boundary | Correct fail-closed behavior; caller diagnostics vary. |
+| Unknown HTTP failures | core router | generic 500 + correlation behavior | Needs shared error policy. |
+
+### 18.8 Root build/test graph
+
+```text
+npm run build
+  ├── packages/core build
+  │     ├── prebuild compiles 20+ foundational workspaces
+  │     └── postbuild copies SQLite assets
+  └── packages/cli build
+
+npm test
+  └── packages/core test
+        └── dist/tests/integration.test.js
+              ├── offline HTTP/router/container tests
+              └── PostgreSQL suites skipped unless PG_HOST is configured
+```
+
+Current observed behavior after a local build: root build passes, root test passes with 16 tests and 4 PostgreSQL suites skipped, and root lint passes. On a clean checkout before generated core test output exists, root test fails because it assumes `dist/tests/integration.test.js`. Therefore the command graph is not yet a clean-checkout contract.
+
+### 18.9 Compatibility risk register
+
+| Change area | Risk | Required safeguard |
+|---|---|---|
+| DI scoping | Existing apps rely on global singleton identity | Additive `createContainer`/app scope, legacy bridge, migration docs |
+| Router slash policy | Existing clients may rely on 404 or exact matching | ADR, opt-in/configurable transition, cross-layer tests |
+| Error envelope | Consumers may parse existing JSON shapes | Additive fields or versioned boundary, preserve classes |
+| Plugin `on()` return type | Existing callers ignore return | Additive return is source-compatible; document disposer ownership |
+| JWT validation | Previously accepted malformed signed tokens | Security-hardening release note and explicit rejection tests |
+| Client auth adapter | Storage expectations vary by platform | Separate opt-in module/API; no base-client behavior change |
+| Root commands | CI/scripts may depend on current narrow scope | Introduce explicit offline/integration commands while preserving aliases |
