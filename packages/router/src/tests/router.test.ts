@@ -58,6 +58,15 @@ test('dispatch returns false when no route matches', async () => {
   assert.equal(await router.dispatch(makeCtx({ path: '/b' })), false);
 });
 
+test('strict route policy rejects trailing slashes and canonicalizes definitions', async () => {
+  const router = new Router();
+  let ran = false;
+  router.add('GET', '/users/', [], () => { ran = true; });
+  assert.equal(await router.dispatch(makeCtx({ path: '/users/' })), false);
+  assert.equal(await router.dispatch(makeCtx({ path: '/users' })), true);
+  assert.equal(ran, true);
+});
+
 test('path params are extracted and URL-decoded', async () => {
   const router = new Router();
   let seen: Record<string, string> = {};

@@ -279,6 +279,11 @@ describe('HTTP Server', () => {
     assert.equal(body.message, 'world');
   });
 
+  it('strict route policy rejects a trailing slash', async () => {
+    const res = await fetch(port, '/test/hello/');
+    assert.equal(res.status, 404);
+  });
+
   it('POST parses JSON body and echoes it', async () => {
     const payload = { name: 'Alice', value: 42 };
     const res = await fetch(port, '/test/echo', {

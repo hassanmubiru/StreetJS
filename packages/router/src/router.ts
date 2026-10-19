@@ -53,7 +53,8 @@ export class Router {
     /** Optional: method name on handlerTarget — used to read @Roles/@Permissions decorator metadata */
     handlerMethodName?: string,
   ): void {
-    const { pattern, paramNames } = compilePath(path);
+    const canonicalPath = normalizeRoutePath(path);
+    const { pattern, paramNames } = compilePath(canonicalPath);
 
     // Bake RBAC requirements from decorator metadata at registration time so
     // dispatch() doesn't need prototype chain traversal at request time.
@@ -89,7 +90,7 @@ export class Router {
       middlewares,
       handler,
       validate,
-      pathTemplate: path,
+      pathTemplate: canonicalPath,
       requiredRoles,
       requiredPermissions,
       rateLimitMw,
@@ -143,6 +144,7 @@ export class Router {
     method: string,
     path: string
   ): { route: CompiledRoute; params: Record<string, string> } | null {
+    if (!isCanonicalRequestPath(path)) return null;
     for (const route of this.routes) {
       if (route.method !== method && route.method !== '*') continue;
       const m = route.pattern.exec(path);
@@ -160,6 +162,16 @@ export class Router {
   listRoutes(): Array<{ method: string; path: string }> {
     return this.routes.map((r) => ({ method: r.method, path: r.pattern.source }));
   }
+}
+
+function normalizeRoutePath(path: string): string {
+  const normalized = '/' + path.replace(/^\/+/, '');
+  if (normalized === '/') return normalized;
+  return normalized.replace(/\/+$/, '');
+}
+
+function isCanonicalRequestPath(path: string): boolean {
+  return path === '/' || !path.endsWith('/');
 }
 
 /** Convert path string like /users/:id/posts to regex + param names */

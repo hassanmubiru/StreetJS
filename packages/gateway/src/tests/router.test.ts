@@ -17,6 +17,7 @@ test("static kind matches only on exact path equality", () => {
   });
   assert.equal(r.match("/users/42"), null);
   assert.equal(r.match("/user"), null);
+  assert.equal(r.match("/users/"), null);
 });
 
 test("prefix kind matches the pattern itself and any sub-path", () => {
@@ -24,6 +25,7 @@ test("prefix kind matches the pattern itself and any sub-path", () => {
   assert.ok(r.match("/users"));
   assert.ok(r.match("/users/42"));
   assert.ok(r.match("/users/42/posts"));
+  assert.equal(r.match("/users/"), null);
   // A sibling that merely shares a prefix string must not match.
   assert.equal(r.match("/usersession"), null);
   assert.equal(r.match("/user"), null);
@@ -35,6 +37,7 @@ test("wildcard trailing '*' captures the remaining tail", () => {
   assert.deepEqual(r.match("/users/42/posts")?.params, ["42/posts"]);
   // Needs at least one tail segment.
   assert.equal(r.match("/users"), null);
+  assert.equal(r.match("/users/"), null);
 });
 
 test("wildcard interior '*' captures exactly one segment", () => {

@@ -110,7 +110,10 @@ export class Router {
   private readonly compiled: ReadonlyArray<RegExp | null>;
 
   constructor(routes: readonly RouteConfig[]) {
-    this.routes = routes.slice();
+    this.routes = routes.map((route) => {
+      const kind = resolveKind(route);
+      return kind === "regex" ? { ...route } : { ...route, pattern: normalizeRoutePath(route.pattern) };
+    });
     this.compiled = this.routes.map((route) =>
       resolveKind(route) === "regex" ? new RegExp(`^(?:${route.pattern})$`) : null,
     );
@@ -122,6 +125,7 @@ export class Router {
    */
   match(path: string, method?: string): RouteMatch | null {
     const cleanPath = stripQuery(path);
+    if (!isCanonicalRequestPath(cleanPath)) return null;
     let best: RouteConfig | null = null;
     let bestParams: readonly string[] | null = null;
     let bestPriority = 0;
@@ -160,7 +164,7 @@ export class Router {
       case "prefix": {
         if (path === route.pattern) return [];
         const withSlash = route.pattern.endsWith("/") ? route.pattern : route.pattern + "/";
-        return path.startsWith(withSlash) ? [] : null;
+        return path.startsWith(withSlash) && path.length > withSlash.length ? [] : null;
       }
       case "wildcard":
         return matchWildcard(route.pattern, path);
@@ -172,6 +176,16 @@ export class Router {
       }
     }
   }
+}
+
+function normalizeRoutePath(path: string): string {
+  const normalized = '/' + path.replace(/^\/+/, '');
+  if (normalized === '/') return normalized;
+  return normalized.replace(/\/+$/, '');
+}
+
+function isCanonicalRequestPath(path: string): boolean {
+  return path === '/' || !path.endsWith('/');
 }
 
 /** Factory returning a {@link Router} over the given route table. */
