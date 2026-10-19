@@ -191,3 +191,12 @@ test('dispose closes owned instances once and is idempotent', async () => {
   assert.equal(closed, 1);
   assert.throws(() => app.resolve(Resource), /disposed/);
 });
+
+test('dispose supports destroy-only resources', async () => {
+  const app = createContainer();
+  let destroyed = 0;
+  class Resource { destroy(): void { destroyed++; } }
+  app.register(Resource, new Resource());
+  await app.dispose();
+  assert.equal(destroyed, 1);
+});

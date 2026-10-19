@@ -283,6 +283,17 @@ describe('Application-scoped controller containers', () => {
     assert.notEqual(first.container.resolve(AppState), second.container.resolve(AppState));
     assert.equal(first.container.resolve(AppState), first.container.resolve(ScopedController).state);
   });
+
+  it('disposes an app-owned container exactly once during app close', async () => {
+    let destroyed = 0;
+    class Resource { destroy(): void { destroyed++; } }
+    const app = streetApp({ containerOwnership: 'app' });
+    app.container.register(Resource, new Resource());
+    await app.listen(0, '127.0.0.1');
+    await app.close();
+    await app.close();
+    assert.equal(destroyed, 1);
+  });
 });
 
 // ── Replication coordinator ───────────────────────────────────────────────────
