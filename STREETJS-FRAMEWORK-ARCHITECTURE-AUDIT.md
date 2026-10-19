@@ -954,6 +954,7 @@ documented changes:
 | Route paths | Strict no-trailing-slash policy across core/standalone router/gateway; root `/` remains valid; query strings ignored. | Router, gateway property, and core HTTP tests pass. |
 | App/container integration | `StreetApp` and HTTP2 accept an optional `Container` and expose the selected controller container; legacy global fallback remains. | Core build/lint and 39-test roadmap suite pass. |
 | HTTP error envelope | HTTP and HTTP2 support explicit `errorResponse: 'envelope'`; legacy remains default. | Router 23-test suite and core offline integration pass. |
+| Bootstrap DI migration | Executable core bootstrap and CLI command construction use one isolated application container; global fallback remains for compatibility. | Core build/lint and 39-test roadmap suite pass. |
 
 These changes do not claim the entire framework is complete. Remaining major
 contracts are application-container integration into `StreetApp`, broader plugin

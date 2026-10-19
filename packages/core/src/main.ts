@@ -5,7 +5,7 @@ import 'reflect-metadata';
 import cluster from 'node:cluster';
 import { resolve } from 'node:path';
 
-import { container } from './core/container.js';
+import { createContainer } from './core/container.js';
 import { AppConfig } from './config/index.js';
 import { PgPool } from './database/pool.js';
 import { TelemetryTracker } from './telemetry/tracker.js';
@@ -33,10 +33,12 @@ import { LruCache } from './cache/lru.js';
 // ─── Bootstrap ────────────────────────────────────────────────────────────────
 
 async function bootstrap(): Promise<void> {
+  const appContainer = createContainer();
+
   // 1. Load configuration
   const config = new AppConfig();
   config.load(process.env['KEK']);
-  container.register(AppConfig, config);
+  appContainer.register(AppConfig, config);
 
   // 2. Build database pool.
   //
@@ -58,7 +60,7 @@ async function bootstrap(): Promise<void> {
     idleTimeoutMs: 30_000,
     acquireTimeoutMs: 5_000,
   });
-  container.register(PgPool, pool);
+  appContainer.register(PgPool, pool);
 
   if (config.dbInitMode === 'eager') {
     await pool.initialize();
@@ -67,29 +69,29 @@ async function bootstrap(): Promise<void> {
 
   // 3. Register services
   const telemetry = new TelemetryTracker(60_000);
-  container.register(TelemetryTracker, telemetry);
+  appContainer.register(TelemetryTracker, telemetry);
 
   const wsServer = new StreetWebSocketServer({ heartbeatIntervalMs: 30_000, maxConnections: 10_000 });
-  container.register(StreetWebSocketServer, wsServer);
+  appContainer.register(StreetWebSocketServer, wsServer);
 
-  const userRepo = container.resolve(UserRepository);
-  container.register(UserRepository, userRepo);
+  const userRepo = appContainer.resolve(UserRepository);
+  appContainer.register(UserRepository, userRepo);
 
-  const userService = container.resolve(UserService);
-  container.register(UserService, userService);
+  const userService = appContainer.resolve(UserService);
+  appContainer.register(UserService, userService);
 
-  container.register(StreetMigrationRunner, container.resolve(StreetMigrationRunner));
+  appContainer.register(StreetMigrationRunner, appContainer.resolve(StreetMigrationRunner));
 
   // Supplemental singletons (not injected via constructor here, registered for completeness)
-  container.register(JwtService, new JwtService(config.jwtSecret));
-  container.register(SessionManager, new SessionManager(config.sessionKey));
-  container.register(WebhookDispatcher, new WebhookDispatcher());
-  container.register(LruCache, new LruCache({ maxEntries: 1000, ttlMs: 60_000 }));
+  appContainer.register(JwtService, new JwtService(config.jwtSecret));
+  appContainer.register(SessionManager, new SessionManager(config.sessionKey));
+  appContainer.register(WebhookDispatcher, new WebhookDispatcher());
+  appContainer.register(LruCache, new LruCache({ maxEntries: 1000, ttlMs: 60_000 }));
 
   // ─── CLI mode ────────────────────────────────────────────────────────────────
   const args = parseArgv(process.argv);
   if (args.command !== null) {
-    const cli = new CliKernel({ appName: 'street', version: '1.0.0' });
+    const cli = new CliKernel({ appName: 'street', version: '1.0.0', container: appContainer });
     cli.register(MigrateCommand);
     cli.register(UserCommand);
     await cli.run(args);
@@ -114,6 +116,7 @@ async function bootstrap(): Promise<void> {
     uploadsDir: resolve(config.uploadsDir),
     requestTimeoutMs: 30_000,
     maxBodyBytes: 1024 * 1024,
+    container: appContainer,
   });
 
   // Global middleware stack
@@ -132,8 +135,6 @@ async function bootstrap(): Promise<void> {
   app.use(csrfMiddleware());
 
   // Register controllers
-  const healthCtrl = container.resolve(HealthController);
-  container.register(HealthController, healthCtrl);
   app.registerController(HealthController);
   app.registerController(UserController);
 

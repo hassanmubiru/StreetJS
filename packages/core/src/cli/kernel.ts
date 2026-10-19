@@ -2,6 +2,7 @@
 // CLI kernel: argv parser, flag parser, @Command decorator dispatch with DI.
 
 import { container } from '../core/container.js';
+import type { Container } from '../core/container.js';
 import { getCommandMeta } from '../core/decorators.js';
 import type { Constructor } from '../core/types.js';
 
@@ -63,22 +64,26 @@ export function parseArgv(argv: string[]): ParsedArgs {
 export interface CliKernelOptions {
   appName?: string;
   version?: string;
+  /** Container used to construct command handlers; defaults to the legacy global. */
+  container?: Container;
 }
 
 export class CliKernel {
   private readonly handlers = new Map<string, { instance: object; method: string; description: string }>();
-  private readonly opts: Required<CliKernelOptions>;
+  private readonly opts: Required<Omit<CliKernelOptions, 'container'>>;
+  private readonly container: Container;
 
   constructor(opts: CliKernelOptions = {}) {
     this.opts = {
       appName: opts.appName ?? 'street',
       version: opts.version ?? '1.0.0',
     };
+    this.container = opts.container ?? container;
   }
 
   /** Register a class containing @Command-decorated methods */
   register(ctor: Constructor): void {
-    const instance = container.resolve(ctor);
+    const instance = this.container.resolve(ctor);
     const commands = getCommandMeta(ctor);
 
     for (const cmd of commands) {
