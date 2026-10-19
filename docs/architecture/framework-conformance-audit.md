@@ -341,14 +341,12 @@ command were fixed and verified. The remaining work is P2/P3.
 
 ### P2
 
-1. Resolve or formally document the duplicate core versus standalone
-   observability contracts.
-2. Add cross-package lifecycle and DI conformance suites.
-3. Expand routing tests across HTTP/2, mounted routers, encoded paths, and
+1. Add cross-package lifecycle and DI conformance suites.
+2. Expand routing tests across HTTP/2, mounted routers, encoded paths, and
    generated route documentation.
-4. Add a public-boundary error-details redaction policy.
-5. Add the cross-surface malformed-security-input matrix.
-6. CI enforcement for `npm run verify` is now present in `ci-cd.yml`; retain it
+3. Add a public-boundary error-details redaction policy.
+4. Add the cross-surface malformed-security-input matrix.
+5. CI enforcement for `npm run verify` is now present in `ci-cd.yml`; retain it
    as a required status check in repository branch protection.
 
 ### P3
@@ -362,7 +360,8 @@ command were fixed and verified. The remaining work is P2/P3.
 ## Audit conclusion
 
 StreetJS already presents a coherent direction around the core facade, explicit
-ownership, modular capabilities, and compatibility layers. The primary remaining
-work is cross-package contract coverage and resolving the duplicate observability
-ownership model. Package count is not the blocker; verification and
-reproducibility now have a working baseline through `npm run verify`.
+ownership, modular capabilities, and compatibility layers. The observability
+ownership decision is now explicit: core and standalone contracts remain
+distinct. Remaining work is cross-package contract coverage. Package count is
+not the blocker; verification and reproducibility have a working baseline
+through `npm run verify`.

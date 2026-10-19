@@ -144,14 +144,17 @@ reported those members as missing.
 The CLI development dependency is now pinned to `^5.9.3`, the lockfile was
 regenerated, and a fresh `npm ci && npm run build` passes.
 
-### P2 — facade and standalone observability contracts are duplicated
+### Resolved P2 — facade and standalone observability contracts are distinct by decision
 
 `streetjs` exports core `HealthCheckRegistry` and `MetricsRegistry`, while
 `@streetjs/health` and `@streetjs/metrics` export separate public packages with
-similar names but different APIs. This makes future narrowing ambiguous and
-can cause two registries to coexist in one application.
+similar names but different APIs. The ownership decision is now explicit: core
+owns framework-integrated contracts; standalone packages own framework-agnostic
+contracts.
 
-Do not merge or replace these contracts without an ADR and compatibility tests.
+See [`observability-contracts.md`](./observability-contracts.md) and ADR 0019.
+Do not merge or replace these contracts without a new ADR and compatibility
+tests.
 
 ### Resolved P2 — package-local verification was inconsistent
 
