@@ -32,8 +32,9 @@ jwt.decode(token); // payload without signature verification (inspection only)
 - **HS256 only** — verification requires the header to declare exactly `HS256`/`JWT`,
   defeating algorithm-confusion attacks (`alg: none`, RS/HS swaps).
 - **Timing-safe** signature comparison via `crypto.timingSafeEqual`.
-- **Claim validation** — `exp` (expiry), `nbf` (not-before), `iat` (with a 60s
-  clock-skew guard), and optional `iss`/`aud` matching.
+- **Claim validation** — requires a non-empty string `sub`, validates optional
+  `roles` string arrays and numeric `exp` (expiry), `nbf` (not-before), and `iat`
+  claims (with a 60s clock-skew guard), plus optional `iss`/`aud` matching.
 - **Fail closed** — any malformed segment, bad signature, or failed claim check returns
   `null`; `verify` never throws.
 - **Key check** — the secret must be at least 32 characters.

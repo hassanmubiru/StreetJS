@@ -88,6 +88,24 @@ test('a correctly-signed but non-JSON payload is rejected', () => {
   assert.equal(jwt.verify(`${header}.${badPayload}.${sig}`), null);
 });
 
+test('correctly-signed payloads with invalid identity claims are rejected', () => {
+  const jwt = new JwtService(SECRET);
+  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
+
+  for (const claims of [
+    {},
+    { sub: '' },
+    { sub: 7 },
+    { sub: '7', roles: ['admin', 7] },
+    { sub: '7', exp: 'never' },
+    { sub: '7', iat: Number.NaN },
+  ]) {
+    const payload = Buffer.from(JSON.stringify(claims)).toString('base64url');
+    const sig = createHmac('sha256', SECRET).update(`${header}.${payload}`).digest('base64url');
+    assert.equal(jwt.verify(`${header}.${payload}.${sig}`), null);
+  }
+});
+
 test('decode returns null when the payload segment is not JSON', () => {
   const jwt = new JwtService(SECRET);
   const badPayload = Buffer.from('not-json{').toString('base64url');

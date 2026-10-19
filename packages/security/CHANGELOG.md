@@ -25,6 +25,12 @@ existing HS256 JWT service. Backward-compatible with 1.0.0.
   `EncryptionError`. Keys accept 32-byte Buffer / 64-char hex / base64.
 - Zero runtime dependencies (`node:crypto` only). 15 new tests (28 total).
 
+### Security hardening
+
+- `JwtService.verify()` now validates the runtime shape of required identity and
+  standard claims before returning a payload. Signed tokens with a missing or
+  empty `sub`, invalid numeric claims, or non-string roles are rejected.
+
 ## [1.0.0] - 2026-07-14
 
 ### Added

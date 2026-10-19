@@ -96,7 +96,11 @@ export class JwtService {
 
     let payload: JwtPayload;
     try {
-      payload = JSON.parse(base64urlDecode(payloadB64)) as JwtPayload;
+      const parsed: unknown = JSON.parse(base64urlDecode(payloadB64));
+      if (!isJwtPayload(parsed)) {
+        return null;
+      }
+      payload = parsed;
     } catch {
       return null;
     }
@@ -145,4 +149,29 @@ function base64urlEncode(str: string): string {
 
 function base64urlDecode(str: string): string {
   return Buffer.from(str, 'base64url').toString('utf8');
+}
+
+function isJwtPayload(value: unknown): value is JwtPayload {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    return false;
+  }
+
+  const payload = value as Record<string, unknown>;
+  if (typeof payload.sub !== 'string' || payload.sub.length === 0) {
+    return false;
+  }
+
+  for (const claim of ['iat', 'exp', 'nbf']) {
+    const value = payload[claim];
+    if (value !== undefined && (typeof value !== 'number' || !Number.isFinite(value))) {
+      return false;
+    }
+  }
+
+  if (payload.roles !== undefined &&
+      (!Array.isArray(payload.roles) || payload.roles.some((role) => typeof role !== 'string'))) {
+    return false;
+  }
+
+  return true;
 }
