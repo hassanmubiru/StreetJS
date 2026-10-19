@@ -369,7 +369,7 @@ function isAllowedDevDep(spec: string): boolean {
   return spec === 'fast-check';
 }
 
-test('Req 1.5: every queue src import is relative, a node builtin, "streetjs", or a dev-only test dep', () => {
+test('Req 1.5: every queue src import is relative, a node builtin, a public StreetJS package, or a dev-only test dep', () => {
   const files = collectTsFiles(SRC_ROOT);
   assert.ok(files.length > 0, 'expected to find source files under src/');
 
@@ -387,6 +387,7 @@ test('Req 1.5: every queue src import is relative, a node builtin, "streetjs", o
         isRelative(spec) ||
         isNodeBuiltin(spec) ||
         isStreetjs(spec) ||
+        spec.startsWith('@streetjs/') ||
         isSelfPackage(spec) ||
         isAllowedDevDep(spec)
       ) {
@@ -460,7 +461,7 @@ test('Req 1.3: package.json maps "./redis" to the redis driver and "." to the in
 // Req 1.2 — Memory-driver usage introduces zero third-party runtime deps.
 // ─────────────────────────────────────────────────────────────────────────────
 
-test('Req 1.2: the package declares ONLY "streetjs" as a runtime dependency', () => {
+test('Req 1.2: the package declares only first-party StreetJS runtime dependencies', () => {
   const pkg = JSON.parse(readFileSync(resolve(PKG_ROOT, 'package.json'), 'utf8')) as {
     dependencies?: Record<string, string>;
     devDependencies?: Record<string, string>;
@@ -468,8 +469,8 @@ test('Req 1.2: the package declares ONLY "streetjs" as a runtime dependency', ()
   const deps = pkg.dependencies ?? {};
   assert.deepEqual(
     Object.keys(deps).sort(),
-    ['streetjs'],
-    'the only runtime dependency must be "streetjs" so Memory users pull in no third-party runtime deps',
+    ['@streetjs/ratelimit', '@streetjs/store', 'streetjs'],
+    'runtime dependencies must remain first-party StreetJS packages',
   );
 
   // The tooling the tests rely on lives strictly in devDependencies.

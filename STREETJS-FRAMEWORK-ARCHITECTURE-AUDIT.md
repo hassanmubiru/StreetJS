@@ -957,6 +957,8 @@ documented changes:
 | Bootstrap DI migration | Executable core bootstrap and CLI command construction use one isolated application container; global fallback remains for compatibility. | Core build/lint and 39-test roadmap suite pass. |
 | App-owned shutdown | `containerOwnership: 'app'` makes HTTP/HTTP2 close dispose the selected container once; bootstrap uses this mode. | Container suite 15 tests and core roadmap suite 40 tests pass. |
 | Request scope | `requestScope: true` supplies a child container on `StreetContext` and disposes it after each HTTP/HTTP2 request. | Core offline integration passes 18 tests with scoped-resource cleanup coverage. |
+| Plugin resource cleanup | `SandboxedApp.addCleanup()` provides generic ownership for timers, health/metrics handles, sockets, and subscriptions; listeners use it too. | Core plugin-host/lifecycle suites pass. |
+| Narrow capability imports | Queue clock/store/rate-window imports now use `@streetjs/store` and `@streetjs/ratelimit`; unsafe registry/plugin imports remain broad. | Queue suite passes 125 tests with six Redis skips. |
 
 These changes do not claim the entire framework is complete. Remaining major
 contracts are application-container integration into `StreetApp`, broader plugin

@@ -82,6 +82,7 @@ export function streetApp(options: StreetAppOptions = {}): StreetHttpApp {
   const pluginEvents = new EventEmitter();
   const pluginMiddlewares = new Map<PluginModule, MiddlewareFn[]>();
   const pluginListeners = new Map<PluginModule, Array<() => void>>();
+  const pluginCleanups = new Map<PluginModule, Array<() => void>>();
   let closePromise: Promise<void> | undefined;
 
   /** The core per-request handler extracted for direct in-process dispatch. */
@@ -247,17 +248,31 @@ export function streetApp(options: StreetAppOptions = {}): StreetHttpApp {
         },
         on(event: string, handler: (...args: unknown[]) => void): () => void {
           pluginEvents.on(event, handler);
-          const unsubscribe = (): void => {
-            pluginEvents.off(event, handler);
-          };
+          const unsubscribe = (): void => { pluginEvents.off(event, handler); };
+          const dispose = this.addCleanup(unsubscribe);
           const listeners = pluginListeners.get(plugin) ?? [];
-          listeners.push(unsubscribe);
+          listeners.push(dispose);
           pluginListeners.set(plugin, listeners);
-          return unsubscribe;
+          return dispose;
+        },
+        addCleanup(cleanup: () => void): () => void {
+          const cleanups = pluginCleanups.get(plugin) ?? [];
+          let active = true;
+          const dispose = (): void => {
+            if (!active) return;
+            active = false;
+            const index = cleanups.indexOf(dispose);
+            if (index !== -1) cleanups.splice(index, 1);
+            void cleanup();
+          };
+          cleanups.push(dispose);
+          pluginCleanups.set(plugin, cleanups);
+          return dispose;
         },
       };
       pluginMiddlewares.set(plugin, added);
       pluginListeners.set(plugin, []);
+      pluginCleanups.set(plugin, []);
       if (plugin.onLoad) await plugin.onLoad(sandbox);
     },
 
@@ -267,10 +282,12 @@ export function streetApp(options: StreetAppOptions = {}): StreetHttpApp {
       const sandbox: SandboxedApp = {
         use(): void { /* no-op during unload */ },
         on(): () => void { return () => { /* no-op during unload */ }; },
+        addCleanup(): () => void { return () => { /* no-op during unload */ }; },
       };
       if (plugin.onUnload) await plugin.onUnload(sandbox);
-      for (const unsubscribe of pluginListeners.get(plugin) ?? []) unsubscribe();
+      for (const cleanup of [...(pluginCleanups.get(plugin) ?? [])].reverse()) await cleanup();
       pluginListeners.delete(plugin);
+      pluginCleanups.delete(plugin);
       // Restore the middleware stack to its pre-load state.
       for (const mw of added) {
         const idx = globalMiddlewares.indexOf(mw);

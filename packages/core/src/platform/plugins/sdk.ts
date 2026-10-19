@@ -13,6 +13,8 @@ export interface SandboxedApp {
   use(middleware: MiddlewareFn): void;
   /** Listen for framework lifecycle events; returns an unsubscribe function. */
   on(event: string, handler: (...args: unknown[]) => void): () => void;
+  /** Register cleanup for any plugin-owned resource; returns an idempotent disposer. */
+  addCleanup(cleanup: () => void): () => void;
 }
 
 /**

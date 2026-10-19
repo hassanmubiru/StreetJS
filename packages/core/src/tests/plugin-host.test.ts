@@ -194,4 +194,21 @@ describe('plugin host — discovery & disable/remove safety', () => {
     await host.remove('r');
     assert.equal(host.has('r'), false);
   });
+
+  it('disposes arbitrary plugin resources on disable', async () => {
+    let cleaned = 0;
+    class ResourcePlugin extends PluginModule {
+      readonly name = 'resource-plugin';
+      readonly version = '1.0.0';
+      override async onLoad(app: SandboxedApp): Promise<void> {
+        app.addCleanup(() => { cleaned++; });
+      }
+    }
+    const host = new PluginHost({ grantedPermissions: '*' });
+    host.register(new ResourcePlugin(), { name: 'resource-plugin', version: '1.0.0' });
+    await host.enable('resource-plugin');
+    await host.disable('resource-plugin');
+    await host.disable('resource-plugin');
+    assert.equal(cleaned, 1);
+  });
 });

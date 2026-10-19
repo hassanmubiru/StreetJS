@@ -201,6 +201,7 @@ interface PluginEntry {
 class GatedSandbox implements SandboxedApp {
   readonly middlewares: MiddlewareFn[] = [];
   readonly listeners: Array<{ event: string; handler: (...args: unknown[]) => void }> = [];
+  private readonly cleanups: Array<() => void> = [];
   constructor(private readonly perms: Set<PluginPermission>, private readonly pluginName: string) {}
 
   use(middleware: MiddlewareFn): void {
@@ -215,10 +216,27 @@ class GatedSandbox implements SandboxedApp {
     }
     const listener = { event, handler };
     this.listeners.push(listener);
-    return () => {
+    return this.addCleanup(() => {
       const index = this.listeners.indexOf(listener);
       if (index !== -1) this.listeners.splice(index, 1);
+    });
+  }
+
+  addCleanup(cleanup: () => void): () => void {
+    let active = true;
+    const dispose = (): void => {
+      if (!active) return;
+      active = false;
+      const index = this.cleanups.indexOf(dispose);
+      if (index !== -1) this.cleanups.splice(index, 1);
+      void cleanup();
     };
+    this.cleanups.push(dispose);
+    return dispose;
+  }
+
+  async dispose(): Promise<void> {
+    for (const cleanup of [...this.cleanups].reverse()) await cleanup();
   }
 }
 
@@ -356,6 +374,7 @@ export class PluginHost {
     }
     const sandbox = this.sandboxes.get(name);
     if (entry.plugin.onUnload && sandbox) await entry.plugin.onUnload(sandbox);
+    if (sandbox) await sandbox.dispose();
     this.sandboxes.delete(name);
     entry.state = 'disabled';
   }

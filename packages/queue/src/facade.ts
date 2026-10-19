@@ -13,8 +13,10 @@
 // 9.1; those method bodies remain scaffolds here so this task stays focused on
 // dispatch/register/lifecycle.
 
-import { systemClock, parseWindow, InMemoryRateLimitStore } from 'streetjs';
-import type { HealthCheckRegistry, MetricsRegistry, RateLimitStore, Clock } from 'streetjs';
+import { systemClock, InMemoryRateLimitStore } from '@streetjs/store';
+import { parseWindow } from '@streetjs/ratelimit';
+import type { HealthCheckRegistry, MetricsRegistry } from 'streetjs';
+import type { RateLimitStore, Clock } from '@streetjs/store';
 import type {
   BackoffPolicy,
   Job,

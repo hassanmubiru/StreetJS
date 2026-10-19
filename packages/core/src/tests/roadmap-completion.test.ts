@@ -239,9 +239,11 @@ describe('Plugin load/unload round-trip', () => {
       override async onLoad(a: SandboxedApp): Promise<void> {
         this.loaded = true;
         this.unsubscribe = a.on('test', () => {});
+        a.addCleanup(() => { this.cleanupCount++; });
         a.use(async (_c, next) => { await next(); });
         a.use(async (_c, next) => { await next(); });
       }
+      cleanupCount = 0;
       override async onUnload(): Promise<void> {
         this.unsubscribe?.();
         this.loaded = false;
@@ -254,6 +256,9 @@ describe('Plugin load/unload round-trip', () => {
     await app.unloadPlugin(plugin);
     assert.equal(plugin.loaded, false);
     assert.equal(typeof plugin.unsubscribe, 'function');
+    assert.equal(plugin.cleanupCount, 1);
+    await app.unloadPlugin(plugin);
+    assert.equal(plugin.cleanupCount, 1);
     // No assertion error means the middleware stack was restored cleanly.
   });
 });
