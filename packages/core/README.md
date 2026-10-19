@@ -80,11 +80,13 @@ compatibility.
 ```ts
 import { createContainer, streetApp } from 'streetjs';
 
-const app = streetApp({ container: createContainer() });
-// The application owns this container and should dispose it during shutdown.
+const app = streetApp({
+  container: createContainer(),
+  containerOwnership: 'app',
+});
+// app.close() now disposes the application-owned container.
 await app.listen();
 await app.close();
-await app.container.dispose();
 ```
 
 HTTP responses retain the legacy error shape by default. Applications can opt
