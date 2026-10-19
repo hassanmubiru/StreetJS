@@ -936,3 +936,24 @@ Current observed behavior after a local build: root build passes, root test pass
 | JWT validation | Previously accepted malformed signed tokens | Security-hardening release note and explicit rejection tests |
 | Client auth adapter | Storage expectations vary by platform | Separate opt-in module/API; no base-client behavior change |
 | Root commands | CI/scripts may depend on current narrow scope | Introduce explicit offline/integration commands while preserving aliases |
+
+---
+
+## 19. Implemented contract updates after the audit
+
+The following roadmap items have now been implemented as additive or explicitly
+documented changes:
+
+| Contract | Implementation | Evidence |
+|---|---|---|
+| JWT runtime validation | `@streetjs/security` validates identity and standard claim shapes before returning verified payloads. | 29 security tests pass. |
+| Plugin listener ownership | `SandboxedApp.on()` returns a disposer; HTTP plugin unload removes registered listeners. | Core build/lint and 38-test lifecycle suite pass. |
+| Application-scoped DI | `createContainer`, explicit token/factory bindings, singleton/transient/scoped lifetimes, child scopes, and idempotent disposal. Legacy global container remains. | 14 container tests pass; core build/lint pass. |
+| Root test contract | Node 22 pin, offline default test command builds test artifacts before execution, explicit integration alias. | Cleaned core `dist`, then root `npm test` passed 17 tests with four visible PostgreSQL skips. |
+| Error projection | Additive `StreetErrorEnvelope` and `toStreetErrorEnvelope`; existing `toJSON()` remains unchanged. | 9 exceptions tests pass; core exports verified by build/lint. |
+| Route paths | Strict no-trailing-slash policy across core/standalone router/gateway; root `/` remains valid; query strings ignored. | Router, gateway property, and core HTTP tests pass. |
+
+These changes do not claim the entire framework is complete. Remaining major
+contracts are application-container integration into `StreetApp`, broader plugin
+resource registries, cross-package error adoption, dependency-direction cleanup,
+and an optional client authentication lifecycle adapter.
