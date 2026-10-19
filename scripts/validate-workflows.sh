@@ -6,6 +6,13 @@ cd "$ROOT_DIR"
 
 echo ":: Validating GitHub Actions workflow files ..."
 
+# The repository already vendors js-yaml through the Node workspace. Prefer the
+# Node validator so a clean checkout does not require a globally installed
+# PyYAML module; retain the Python path for environments that already provide it.
+if ! python3 -c 'import yaml' >/dev/null 2>&1; then
+  exec node scripts/ci/validate-yaml.mjs
+fi
+
 ERRORS=0
 FILES=0
 for file in .github/workflows/*.yml; do

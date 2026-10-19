@@ -39,6 +39,7 @@ STREETJS_RUN_EXTERNAL=1 npm run verify
 | Core integration tests | `npm run test:integration` | PASS; 18 tests, PostgreSQL suites explicitly skipped |
 | External service stage | default `npm run verify` | SKIPPED explicitly; requires `STREETJS_RUN_EXTERNAL=1` |
 | SQLite asset | `node packages/core/src/database/sqlite/download-wasm.mjs --verify` | PASS; pinned SHA-256 verified |
+| CI enforcement | `.github/workflows/ci-cd.yml` → `framework-verify` | Configured to run `npm run verify` on Node 22 |
 | Formatting/diff hygiene | `git diff --check` | PASS |
 | Docker image build | `docker build ...` | NOT RUN; Docker is unavailable in the audit environment |
 

@@ -38,6 +38,7 @@ true only for the previously installed dependency tree, not for a fresh
 | Root lint script | PRESENT | Delegates only to core lint |
 | Docker builder/runtime alignment | PASS by static inspection | Dockerfiles now use pinned Node 22 Alpine images; Docker unavailable in this environment |
 | Docker network behavior | CONDITIONAL | Committed SQLite WASM is verified before any download; forced regeneration needs network |
+| CI authoritative verification | PASS by workflow inspection | `framework-verify` job runs `npm run verify` on Node 22 |
 | Working tree after audit checks | CLEAN | No source modifications made |
 
 ## Phase 1 — package inventory
@@ -308,11 +309,11 @@ access when valid. Forced regeneration remains network-dependent and should be
 documented as a maintenance operation, not part of the offline verification
 path.
 
-#### P2: no root CI workflow discovered
+#### Resolved P2: CI verification enforcement
 
-No `.github/workflows/*` files were found during the repository scan. The
-project has scripts and Docker compose files, but no checked-in GitHub workflow
-was identified to enforce the stated build/test matrix.
+The repository already has a consolidated `.github/workflows/ci-cd.yml`. It now
+contains a `framework-verify` job that runs the authoritative `npm run verify`
+command on Node 22 after the secrets guard.
 
 ## Phase 11 — public-surface review
 
@@ -347,7 +348,8 @@ command were fixed and verified. The remaining work is P2/P3.
    generated route documentation.
 4. Add a public-boundary error-details redaction policy.
 5. Add the cross-surface malformed-security-input matrix.
-6. Add CI workflow coverage for the authoritative verification command.
+6. CI enforcement for `npm run verify` is now present in `ci-cd.yml`; retain it
+   as a required status check in repository branch protection.
 
 ### P3
 

@@ -197,11 +197,18 @@ This is an npm-workspaces monorepo of 99 packages. The headline packages:
 | `packages/core-compat` | [`@streetjs/core`](https://www.npmjs.com/package/@streetjs/core) | **Deprecated** shim that re-exports `streetjs` |
 
 ```bash
-npm run build          # build all packages
-  npm test               # offline core contract tests (PostgreSQL not required)
-  npm run test:integration # core integration tests (requires PostgreSQL)
-npm run verify:runtime # runtime certification battery
+npm ci                    # reproducible workspace install
+npm run build             # build the core runtime and CLI
+npm run verify            # build, lint, typecheck, offline, integration, and external stages
+npm test                  # offline core contract tests (PostgreSQL not required)
+npm run test:integration  # core integration tests (PostgreSQL suites may be skipped)
+npm run verify:runtime    # runtime certification battery
 ```
+
+`npm run verify` reports unavailable external-service suites as `SKIPPED`.
+Set `STREETJS_RUN_EXTERNAL=1` when the required service credentials and
+infrastructure are available. GitHub Actions runs this command in the
+`framework-verify` job on Node.js 22.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the full development and test guide.
 
