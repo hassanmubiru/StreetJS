@@ -12,7 +12,7 @@
  * {@link CircuitBreaker.onSuccess} / {@link CircuitBreaker.onFailure}.
  */
 
-import { systemClock, type Clock } from "streetjs";
+import { systemClock, type Clock } from "@streetjs/store";
 
 import type { CircuitBreakerPolicy } from "./types.js";
 

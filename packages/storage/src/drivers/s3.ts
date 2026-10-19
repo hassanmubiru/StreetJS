@@ -38,7 +38,7 @@
  * _Requirements: 2.1, 2.3, 3.3_
  */
 
-import { type Clock } from "streetjs";
+import { type Clock } from "@streetjs/store";
 
 import type { StorageDriver } from "../driver.js";
 import { StorageConfigError } from "../errors.js";

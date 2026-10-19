@@ -29,9 +29,9 @@ import {
   STORAGE_UPLOADS_METRIC,
 } from "../index.js";
 
-/** A minimal SandboxedApp-like stub: exposes only `use` / `on`. */
+/** A minimal SandboxedApp-like stub for plugin lifecycle hooks. */
 function fakeApp() {
-  return { use() {}, on() {} };
+  return { use() {}, on() { return () => {}; }, addCleanup() { return () => {}; } };
 }
 
 test("onLoad exposes a usable Storage facade via the `storage` accessor (Req 20.1, 20.3)", async () => {

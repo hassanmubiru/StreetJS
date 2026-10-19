@@ -47,7 +47,7 @@
  * 9.4, 9.6, 15.1, 16.1, 17.1, 17.2, 18.1, 19.1, 19.2, 19.3, 19.4_
  */
 
-import type { Clock } from "streetjs";
+import type { Clock } from "@streetjs/store";
 
 import { bridgeWorkflowEvents } from "./integrations/events.js";
 import { bridgeWorkflowQueue } from "./integrations/queue.js";

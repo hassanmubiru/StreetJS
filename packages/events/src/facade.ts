@@ -14,7 +14,7 @@
 // (routed to metrics + the error hook) so one bad listener never blocks its
 // siblings or the publisher.
 
-import { systemClock, type Clock } from 'streetjs';
+import { systemClock, type Clock } from '@streetjs/store';
 import {
   buildEnvelope,
   isEvent,

@@ -40,7 +40,7 @@ import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { pipeline } from "node:stream/promises";
 
-import { systemClock, type Clock } from "streetjs";
+import { systemClock, type Clock } from "@streetjs/store";
 
 import type { MaybeObject, NodeReadable, StorageDriver } from "../driver.js";
 import { NotFoundError, ValidationError } from "../errors.js";

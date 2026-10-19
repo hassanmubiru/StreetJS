@@ -56,8 +56,8 @@
  * _Requirements: 4.1, 4.2, 4.4, 4.5, 5.1, 5.2, 5.3, 6.2, 6.7, 6.8, 16.2, 16.5_
  */
 
-import type { Clock } from "streetjs";
-import { systemClock } from "streetjs";
+import type { Clock } from "@streetjs/store";
+import { systemClock } from "@streetjs/store";
 
 import { computeBackoff } from "./backoff.js";
 import type { CommandOutcome, JournalCommandSpec, JournalExecuteInfo } from "./journal.js";

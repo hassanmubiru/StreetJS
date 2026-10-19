@@ -35,7 +35,7 @@
  * _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6_
  */
 
-import type { Clock } from "streetjs";
+import type { Clock } from "@streetjs/store";
 
 import type {
   Activity,

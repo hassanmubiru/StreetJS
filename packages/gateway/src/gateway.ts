@@ -24,7 +24,7 @@
  * keeping the core pipeline free of an extra config surface.
  */
 
-import { systemClock, type Clock } from "streetjs";
+import { systemClock, type Clock } from "@streetjs/store";
 
 import type {
   CompressionEncoding,

@@ -53,7 +53,7 @@ import { createHash } from "node:crypto";
 import { Readable, Writable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 
-import { systemClock, type Clock } from "streetjs";
+import { systemClock, type Clock } from "@streetjs/store";
 
 import type { MaybeObject, NodeReadable, StorageDriver } from "../driver.js";
 import { NotFoundError, StorageConfigError } from "../errors.js";

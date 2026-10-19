@@ -34,7 +34,7 @@
  * _Requirements: 25.1, 25.2, 25.3, 25.4_
  */
 
-import type { Clock } from "streetjs";
+import type { Clock } from "@streetjs/store";
 
 import { createWorkflow } from "../engine.js";
 import type { WorkflowEngine } from "../engine.js";

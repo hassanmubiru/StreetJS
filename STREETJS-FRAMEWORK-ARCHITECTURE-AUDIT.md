@@ -958,7 +958,7 @@ documented changes:
 | App-owned shutdown | `containerOwnership: 'app'` makes HTTP/HTTP2 close dispose the selected container once; bootstrap uses this mode. | Container suite 15 tests and core roadmap suite 40 tests pass. |
 | Request scope | `requestScope: true` supplies a child container on `StreetContext` and disposes it after each HTTP/HTTP2 request. | Core offline integration passes 18 tests with scoped-resource cleanup coverage. |
 | Plugin resource cleanup | `SandboxedApp.addCleanup()` provides generic ownership for timers, health/metrics handles, sockets, and subscriptions; listeners use it too. | Core plugin-host/lifecycle suites pass. |
-| Narrow capability imports | Queue clock/store/rate-window imports now use `@streetjs/store` and `@streetjs/ratelimit`; unsafe registry/plugin imports remain broad. | Queue suite passes 125 tests with six Redis skips. |
+| Narrow capability imports | Queue and realtime rate-limit imports use `@streetjs/store`/`@streetjs/ratelimit`; workflow, events, storage, and gateway clock imports now use `@streetjs/store`; unsafe registry/plugin imports remain broad. | Queue suite passes 125 tests with six Redis skips; storage suite passes 367 tests with seven integration skips. |
 | Realtime narrow imports | Realtime rate-limit storage/window imports now use `@streetjs/store` and `@streetjs/ratelimit`; realtime-specific contracts remain broad. | Realtime suite passes 65 tests with four Redis skips. |
 
 These changes do not claim the entire framework is complete. Remaining major

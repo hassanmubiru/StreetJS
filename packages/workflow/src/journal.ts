@@ -43,8 +43,8 @@
  * _Requirements: 4.1, 4.3, 11.2, 13.2, 19.4, 20.2, 20.3_
  */
 
-import type { Clock } from "streetjs";
-import { systemClock } from "streetjs";
+import type { Clock } from "@streetjs/store";
+import { systemClock } from "@streetjs/store";
 
 import { ResumeIntegrityError } from "./errors.js";
 import type {

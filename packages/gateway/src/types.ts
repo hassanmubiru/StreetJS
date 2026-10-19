@@ -7,7 +7,7 @@
  * types, never the reverse).
  */
 
-import type { Clock } from "streetjs";
+import type { Clock } from "@streetjs/store";
 
 // ── HTTP primitives ─────────────────────────────────────────────────────────────
 

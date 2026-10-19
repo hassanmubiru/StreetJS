@@ -61,8 +61,8 @@
  * _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 14.1, 17.2_
  */
 
-import type { Clock } from "streetjs";
-import { systemClock } from "streetjs";
+import type { Clock } from "@streetjs/store";
+import { systemClock } from "@streetjs/store";
 
 import type { CommandOutcome } from "./journal.js";
 import { WorkflowSuspension } from "./journal.js";

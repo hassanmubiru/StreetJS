@@ -43,7 +43,7 @@
  * _Requirements: 13.1, 13.2, 13.3_
  */
 
-import { systemClock, type Clock } from "streetjs";
+import { systemClock, type Clock } from "@streetjs/store";
 
 import type { LifecycleCapability, StorageDriver } from "./driver.js";
 import { toWriteMetadata } from "./metadata.js";

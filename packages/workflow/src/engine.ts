@@ -71,8 +71,8 @@
 
 import { randomUUID } from "node:crypto";
 
-import type { Clock } from "streetjs";
-import { systemClock } from "streetjs";
+import type { Clock } from "@streetjs/store";
+import { systemClock } from "@streetjs/store";
 
 import { SignalTimerCoordinator } from "./coordinator.js";
 import {

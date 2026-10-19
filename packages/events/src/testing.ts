@@ -10,7 +10,7 @@
 //   - TestHarness wraps a real facade with an injected, advanceable clock plus
 //     recording and assertion helpers.
 
-import type { Clock } from 'streetjs';
+import type { Clock } from '@streetjs/store';
 import {
   isEvent,
   type AnyEventMap,

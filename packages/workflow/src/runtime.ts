@@ -47,8 +47,8 @@
  * _Requirements: 3.1, 3.2, 3.3, 7.1, 7.5, 9.1, 9.2, 13.3_
  */
 
-import type { Clock } from "streetjs";
-import { systemClock } from "streetjs";
+import type { Clock } from "@streetjs/store";
+import { systemClock } from "@streetjs/store";
 
 import { Compensator } from "./compensator.js";
 import type { ActivityRunInfo, ActivityRunResult, ActivityRunner } from "./context.js";

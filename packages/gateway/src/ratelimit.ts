@@ -20,7 +20,7 @@
  * `allowed` is false.
  */
 
-import { systemClock, type Clock } from "streetjs";
+import { systemClock, type Clock } from "@streetjs/store";
 
 import type { GatewayRequest, Identity, RateLimitPolicy, RateLimitScope } from "./types.js";
 

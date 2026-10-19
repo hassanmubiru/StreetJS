@@ -17,8 +17,8 @@ import { connect } from "node:net";
 import { get as httpGet } from "node:http";
 import { get as httpsGet } from "node:https";
 
-import type { Clock } from "streetjs";
-import { systemClock } from "streetjs";
+import type { Clock } from "@streetjs/store";
+import { systemClock } from "@streetjs/store";
 
 import type { HealthChecker, HealthRecord, HealthState, UpstreamTarget } from "./types.js";
 

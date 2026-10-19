@@ -93,6 +93,7 @@
     "url": "https://github.com/hassanmubiru/StreetJS/issues"
   },
   "dependencies": {
+    "@streetjs/store": "^1.0.0",
     "streetjs": "^1.0.25"
   },
   "devDependencies": {

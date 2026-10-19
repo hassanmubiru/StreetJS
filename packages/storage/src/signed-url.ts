@@ -39,7 +39,7 @@
 import { Buffer } from "node:buffer";
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-import { systemClock, type Clock } from "streetjs";
+import { systemClock, type Clock } from "@streetjs/store";
 
 import type { SignedUrlCapability, StorageDriver } from "./driver.js";
 import { StorageConfigError } from "./errors.js";

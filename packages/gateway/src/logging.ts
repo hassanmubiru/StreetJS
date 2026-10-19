@@ -12,8 +12,8 @@
  *    state, so it is safe to share and fully deterministic under a fake clock.
  */
 
-import type { Clock } from "streetjs";
-import { systemClock } from "streetjs";
+import type { Clock } from "@streetjs/store";
+import { systemClock } from "@streetjs/store";
 
 import type { AccessLogRecord, AccessLogSink } from "./types.js";
 
