@@ -15,7 +15,7 @@ Auth, realtime, ORM, jobs, messaging, observability and a signed plugin ecosyste
 [![CodeQL](https://github.com/hassanmubiru/StreetJS/actions/workflows/codeql.yml/badge.svg)](https://github.com/hassanmubiru/StreetJS/actions/workflows/codeql.yml)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/hassanmubiru/StreetJS/badge)](https://securityscorecards.dev/viewer/?uri=github.com/hassanmubiru/StreetJS)
 [![npm provenance](https://img.shields.io/badge/npm-provenance-2563EB?logo=npm)](https://www.npmjs.com/package/streetjs)
-[![Node.js](https://img.shields.io/badge/node-%3E%3D20-3C873A)](https://nodejs.org)
+[![Node.js](https://img.shields.io/badge/node-22-3C873A)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/typescript-%3E%3D5.0-3178C6)](https://www.typescriptlang.org)
 [![Discord](https://img.shields.io/badge/Discord-join%20the%20community-5865F2?logo=discord&logoColor=white)](https://discord.gg/Wgazap3yv)
 
@@ -99,7 +99,7 @@ await app.listen();
 // [street] Listening on http://0.0.0.0:3000
 ```
 
-> Requires Node.js ≥ 20, TypeScript ≥ 5.0, and `"type": "module"`. Full setup in [Getting Started](https://hassanmubiru.github.io/StreetJS/getting-started/).
+> Requires Node.js 22, TypeScript ≥ 5.0, and `"type": "module"`. Full setup in [Getting Started](https://hassanmubiru.github.io/StreetJS/getting-started/).
 
 ---
 
@@ -186,19 +186,20 @@ Report vulnerabilities privately via the [Security Policy](SECURITY.md).
 
 ## Monorepo
 
-This is an npm-workspaces monorepo of 47 packages. The headline packages:
+This is an npm-workspaces monorepo of 99 packages. The headline packages:
 
 | Package | npm | Description |
 |---|---|---|
 | `packages/core` | [`streetjs`](https://www.npmjs.com/package/streetjs) | The framework runtime |
 | `packages/cli` | [`@streetjs/cli`](https://www.npmjs.com/package/@streetjs/cli) | Project scaffolding & dev tooling |
 | `packages/orm` | [`@streetjs/orm`](https://www.npmjs.com/package/@streetjs/orm) | First-party ORM |
-| `packages/plugin-*` | `@streetjs/plugin-*` | 19 official signed plugins |
+| `packages/plugin-*` | `@streetjs/plugin-*` | 21 official signed plugins |
 | `packages/core-compat` | [`@streetjs/core`](https://www.npmjs.com/package/@streetjs/core) | **Deprecated** shim that re-exports `streetjs` |
 
 ```bash
 npm run build          # build all packages
-npm test               # core integration tests (requires PostgreSQL)
+  npm test               # offline core contract tests (PostgreSQL not required)
+  npm run test:integration # core integration tests (requires PostgreSQL)
 npm run verify:runtime # runtime certification battery
 ```
 
