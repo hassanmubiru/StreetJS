@@ -9,6 +9,7 @@ import type { StreetApp, StreetAppOptions } from '../http/server.js';
 import type { MiddlewareFn } from '../core/types.js';
 import type { Constructor } from '../core/types.js';
 import { container } from '../core/container.js';
+import type { Container } from '../core/container.js';
 import { getControllerMeta, getRoutesMeta } from '../core/decorators.js';
 import { generateOpenApi } from '../http/openapi.js';
 import type { IncomingMessage, ServerResponse } from 'node:http';
@@ -135,6 +136,7 @@ export function streetHttp2App(opts: {
   key?: Buffer;
   cert?: Buffer;
 } & StreetAppOptions = {}): StreetApp {
+  const appContainer: Container = opts.container ?? container;
   const router = new Router();
   const globalMiddlewares: MiddlewareFn[] = [];
   const pluginMiddlewares = new Map<import('../platform/plugins/sdk.js').PluginModule, MiddlewareFn[]>();
@@ -203,6 +205,7 @@ export function streetHttp2App(opts: {
   });
 
   return {
+    container: appContainer,
     use(mw: MiddlewareFn): void {
       globalMiddlewares.push(mw);
     },
@@ -237,7 +240,7 @@ export function streetHttp2App(opts: {
         throw new Error(`Class ${ctor.name} is not decorated with @Controller`);
       }
 
-      const instance = container.resolve(ctor);
+      const instance = appContainer.resolve(ctor);
       const routesMeta = getRoutesMeta(ctor);
 
       for (const routeMeta of routesMeta) {

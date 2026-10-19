@@ -70,6 +70,23 @@ curl http://localhost:3000/api/hello
 # {"message":"Hello, world!"}
 ```
 
+### Application-scoped DI
+
+For application isolation, pass a container created with
+`createContainer()`. Controllers registered on that app resolve from the
+provided container; the legacy global `container` remains available for
+compatibility.
+
+```ts
+import { createContainer, streetApp } from 'streetjs';
+
+const app = streetApp({ container: createContainer() });
+// The application owns this container and should dispose it during shutdown.
+await app.listen();
+await app.close();
+await app.container.dispose();
+```
+
 ### Scaffold a full project (recommended)
 
 ```bash

@@ -222,6 +222,8 @@ describe('Cloud runtime helpers', () => {
 import { streetApp } from '../http/server.js';
 import { PluginModule, type SandboxedApp } from '../platform/plugins/sdk.js';
 import type { MiddlewareFn } from '../core/types.js';
+import { createContainer, Injectable } from '../core/container.js';
+import { Controller, Get } from '../core/decorators.js';
 
 describe('Plugin load/unload round-trip', () => {
   it('restores the middleware stack after unload', async () => {
@@ -253,6 +255,33 @@ describe('Plugin load/unload round-trip', () => {
     assert.equal(plugin.loaded, false);
     assert.equal(typeof plugin.unsubscribe, 'function');
     // No assertion error means the middleware stack was restored cleanly.
+  });
+});
+
+describe('Application-scoped controller containers', () => {
+  it('uses the configured container instead of the legacy global container', () => {
+    @Injectable()
+    class AppState {
+      readonly id = Symbol('app-state');
+    }
+
+    @Injectable()
+    @Controller('/scoped')
+    class ScopedController {
+      constructor(readonly state: AppState) {}
+
+      @Get('/state')
+      stateRoute(): void {}
+    }
+
+    const first = streetApp({ container: createContainer() });
+    const second = streetApp({ container: createContainer() });
+    first.registerController(ScopedController);
+    second.registerController(ScopedController);
+
+    assert.equal(first.container.resolve(AppState), first.container.resolve(AppState));
+    assert.notEqual(first.container.resolve(AppState), second.container.resolve(AppState));
+    assert.equal(first.container.resolve(AppState), first.container.resolve(ScopedController).state);
   });
 });
 

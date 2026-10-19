@@ -8,6 +8,7 @@ import { createContext } from '../core/context.js';
 import type { StreetContext } from '../core/context.js';
 import type { MiddlewareFn, RouteMetadata, ControllerMetadata } from '../core/types.js';
 import { container } from '../core/container.js';
+import type { Container } from '../core/container.js';
 import type { Constructor } from '../core/types.js';
 import { getControllerMeta, getRoutesMeta } from '../core/decorators.js';
 import { MultipartParser } from '../multipart/parser.js';
@@ -25,9 +26,13 @@ export interface StreetAppOptions {
   requestTimeoutMs?: number;
   maxBodyBytes?: number;
   uploadsDir?: string;
+  /** Optional application-scoped DI container; defaults to the legacy global container. */
+  container?: Container;
 }
 
 export interface StreetApp {
+  /** Container used to construct controllers registered with this application. */
+  readonly container: Container;
   listen(port?: number, host?: string): Promise<void>;
   close(): Promise<void>;
   registerController(ctor: Constructor): void;
@@ -59,6 +64,7 @@ export interface StreetHttpApp extends StreetApp {
 }
 
 export function streetApp(options: StreetAppOptions = {}): StreetHttpApp {
+  const appContainer = options.container ?? container;
   const router = new Router();
   const globalMiddlewares: MiddlewareFn[] = [...(options.globalMiddlewares ?? [])];
   const registeredRoutes: RegisteredRoute[] = [];
@@ -210,6 +216,7 @@ export function streetApp(options: StreetAppOptions = {}): StreetHttpApp {
   }
 
   return {
+    container: appContainer,
     server,
 
     use(mw: MiddlewareFn): void {
@@ -270,7 +277,7 @@ export function streetApp(options: StreetAppOptions = {}): StreetHttpApp {
         throw new Error(`Class ${ctor.name} is not decorated with @Controller`);
       }
 
-      const instance = container.resolve(ctor);
+      const instance = appContainer.resolve(ctor);
       const routesMeta = getRoutesMeta(ctor);
 
       for (const routeMeta of routesMeta) {

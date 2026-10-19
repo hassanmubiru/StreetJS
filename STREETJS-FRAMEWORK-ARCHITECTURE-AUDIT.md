@@ -952,6 +952,7 @@ documented changes:
 | Root test contract | Node 22 pin, offline default test command builds test artifacts before execution, explicit integration alias. | Cleaned core `dist`, then root `npm test` passed 17 tests with four visible PostgreSQL skips. |
 | Error projection | Additive `StreetErrorEnvelope` and `toStreetErrorEnvelope`; existing `toJSON()` remains unchanged. | 9 exceptions tests pass; core exports verified by build/lint. |
 | Route paths | Strict no-trailing-slash policy across core/standalone router/gateway; root `/` remains valid; query strings ignored. | Router, gateway property, and core HTTP tests pass. |
+| App/container integration | `StreetApp` and HTTP2 accept an optional `Container` and expose the selected controller container; legacy global fallback remains. | Core build/lint and 39-test roadmap suite pass. |
 
 These changes do not claim the entire framework is complete. Remaining major
 contracts are application-container integration into `StreetApp`, broader plugin
