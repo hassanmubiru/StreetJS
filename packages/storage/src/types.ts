@@ -7,8 +7,8 @@
  * bridges) imports the models defined here, so this file intentionally has no
  * dependency on any sibling module other than a type-only reference to the
  * driver contract for {@link StorageConfig.driver}. Only core StreetJS
- * primitives (`Clock`, `MetricsRegistry`, `HealthCheckRegistry`) are imported
- * from `streetjs`.
+ * primitives (`MetricsRegistry`, `HealthCheckRegistry`) are imported from
+ * `streetjs`; the shared `Clock` contract is owned by `@streetjs/store`.
  *
  * The structural bridge/auth/codec contracts ({@link AuthLike},
  * {@link ImageCodec}, {@link EventsLike}, {@link QueueLike},
@@ -20,7 +20,8 @@
  * _Requirements: 1.1, 4.1, 8.2, 10.1, 12.2, 13.1, 16.1, 23.2_
  */
 
-import type { Clock, HealthCheckRegistry, MetricsRegistry } from "streetjs";
+import type { Clock } from "@streetjs/store";
+import type { HealthCheckRegistry, MetricsRegistry } from "streetjs";
 
 import type { StorageDriver } from "./driver.js";
 

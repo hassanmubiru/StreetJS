@@ -26,6 +26,6 @@ explicit.
 
 ## Evidence
 
-The storage package build, 374-test suite (367 passed, 7 skipped), and lint pass
-after the migration. The full workspace verification is required before this
-change is committed.
+The workflow and storage package builds and lint checks pass. The storage suite
+passes 374 tests (367 passed, 7 skipped), and the root offline suite passes 18
+tests with four PostgreSQL suites skipped because PostgreSQL is unavailable.

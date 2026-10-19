@@ -37,7 +37,7 @@
 import assert from "node:assert/strict";
 import { Buffer } from "node:buffer";
 
-import type { Clock } from "streetjs";
+import type { Clock } from "@streetjs/store";
 
 import { createStorage } from "../facade.js";
 import type { PutOptions, Storage } from "../facade.js";

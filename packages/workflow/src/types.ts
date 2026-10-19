@@ -6,8 +6,8 @@
  * `compensator.ts`, `coordinator.ts`, `runtime.ts`, `engine.ts`, the four
  * `integrations/*` bridges, and the plugin/CLI/testing utilities) imports the
  * models defined here, so this file intentionally depends on no sibling module.
- * Only core StreetJS primitives (`Clock`, `MetricsRegistry`,
- * `HealthCheckRegistry`) are imported from `streetjs`.
+ * `MetricsRegistry`, and `HealthCheckRegistry`) are imported from `streetjs`;
+ * the shared `Clock` contract is owned by `@streetjs/store`.
  *
  * The structural bridge contracts ({@link StorageLike}, {@link QueueLike},
  * {@link EventsLike}, {@link RealtimeLike}) and the single persistence contract
@@ -19,7 +19,8 @@
  * _Requirements: 1.2, 2.1, 3.4, 4.2, 6.1, 9.5, 19.3, 20.4, 21.2_
  */
 
-import type { Clock, HealthCheckRegistry, MetricsRegistry } from "streetjs";
+import type { Clock } from "@streetjs/store";
+import type { HealthCheckRegistry, MetricsRegistry } from "streetjs";
 
 // ── Run status ────────────────────────────────────────────────────────────────
 
