@@ -143,8 +143,8 @@ test("Feature: gateway, Property: routing — returned route genuinely matches a
         const result = router.match(fullPath, req.method);
 
         // Independent set of genuinely-matching routes (respecting method filter).
-        const matching = routes
-          .map((r, i) => ({ r, i }))
+         const matching = clean !== "/" && clean.endsWith("/") ? [] : routes
+           .map((r, i) => ({ r, i }))
           .filter(({ r }) => refMethodAllows(r, req.method) && refMatches(r, clean));
 
         if (result === null) {

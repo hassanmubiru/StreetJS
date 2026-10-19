@@ -16,6 +16,9 @@
  * - `regex`    — the pattern is a regex source, anchored to the full path; its
  *                capture groups become positional `params`.
  *
+ * Requests follow StreetJS's strict canonical path policy: a non-root trailing
+ * slash never matches.
+ *
  * When `kind` is omitted it is inferred: a pattern ending in `/*` is `wildcard`,
  * otherwise `static`.
  *
@@ -110,10 +113,7 @@ export class Router {
   private readonly compiled: ReadonlyArray<RegExp | null>;
 
   constructor(routes: readonly RouteConfig[]) {
-    this.routes = routes.map((route) => {
-      const kind = resolveKind(route);
-      return kind === "regex" ? { ...route } : { ...route, pattern: normalizeRoutePath(route.pattern) };
-    });
+    this.routes = routes.slice();
     this.compiled = this.routes.map((route) =>
       resolveKind(route) === "regex" ? new RegExp(`^(?:${route.pattern})$`) : null,
     );
@@ -176,12 +176,6 @@ export class Router {
       }
     }
   }
-}
-
-function normalizeRoutePath(path: string): string {
-  const normalized = '/' + path.replace(/^\/+/, '');
-  if (normalized === '/') return normalized;
-  return normalized.replace(/\/+$/, '');
 }
 
 function isCanonicalRequestPath(path: string): boolean {

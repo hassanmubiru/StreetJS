@@ -46,6 +46,13 @@ params into `ctx.params`, runs the pipeline, and returns whether a route matched
 A method of `'*'` matches any verb. `listRoutes()` returns the registered
 method/pattern pairs (used for OpenAPI generation).
 
+### Path policy
+
+StreetJS uses a strict canonical path policy: routes do not have trailing slashes
+except for the root path `/`. Route definitions are normalized to that form, and
+requests such as `/users/` do not match `/users`. Query strings are ignored for
+matching, so `/users?active=true` matches `/users`.
+
 ### Pipeline order
 
 For a matched route the pipeline is: **per-route rate limiter → route
