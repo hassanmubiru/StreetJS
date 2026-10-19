@@ -33,6 +33,8 @@ export interface StreetAppOptions {
   errorResponse?: ErrorResponseMode;
   /** Container ownership; external is the backwards-compatible default. */
   containerOwnership?: 'external' | 'app';
+  /** Create and dispose a child DI scope for each request. */
+  requestScope?: boolean;
 }
 
 export interface StreetApp {
@@ -114,7 +116,8 @@ export function streetApp(options: StreetAppOptions = {}): StreetHttpApp {
       query[k] = v;
     });
 
-    const ctx = createContext(req, res, path, query);
+    const requestContainer = options.requestScope ? appContainer.createScope() : undefined;
+    const ctx = createContext(req, res, path, query, requestContainer);
 
     try {
       // Parse body before dispatching
@@ -135,8 +138,10 @@ export function streetApp(options: StreetAppOptions = {}): StreetHttpApp {
       await runPipeline(ctx, pipeline, 0);
     } catch (err) {
       if (!ctx.sent) {
-          await errorHandler(ctx, err, { response: options.errorResponse ?? 'legacy' });
+        await errorHandler(ctx, err, { response: options.errorResponse ?? 'legacy' });
       }
+    } finally {
+      if (requestContainer) await requestContainer.dispose();
     }
   }
 

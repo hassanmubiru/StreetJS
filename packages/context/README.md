@@ -9,6 +9,10 @@ This is the standalone home of the context that also backs the `streetjs`
 framework's HTTP layer. The framework re-exports this package, so there is a
 single source of truth.
 
+When created by a StreetJS application with `requestScope: true`, the context
+also exposes an optional `container` child scope. The application disposes this
+scope after the request pipeline completes.
+
 ## Install
 
 ```bash

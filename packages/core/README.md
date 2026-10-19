@@ -97,6 +97,21 @@ envelope without changing the router itself:
 const app = streetApp({ errorResponse: 'envelope' });
 ```
 
+Request-scoped dependency resolution is also opt-in. Enable it to expose a child
+container on each `StreetContext`:
+
+```ts
+const app = streetApp({
+  containerOwnership: 'app',
+  requestScope: true,
+});
+
+app.container.registerFactory('request-id', () => crypto.randomUUID(), 'scoped');
+```
+
+Handlers and middleware can resolve the scoped value through `ctx.container`.
+Controllers remain application-scoped for compatibility.
+
 ### Scaffold a full project (recommended)
 
 ```bash

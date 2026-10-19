@@ -3,6 +3,7 @@
 
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { ParsedFile } from '@streetjs/multipart';
+import type { Container } from '@streetjs/container';
 
 export interface StreetContext {
   /** Raw Node.js request */
@@ -34,6 +35,8 @@ export interface StreetContext {
   files: ParsedFile[];
   /** Arbitrary state bag for middleware communication */
   state: Record<string, unknown>;
+  /** Optional request-scoped dependency container supplied by the framework. */
+  readonly container?: Container;
   /** Authenticated user (set by auth middleware) */
   user: AuthenticatedUser | null;
   /** Request start time (hrtime bigint) */
@@ -116,7 +119,8 @@ export function createContext(
   req: IncomingMessage,
   res: ServerResponse,
   path: string,
-  query: Record<string, string>
+  query: Record<string, string>,
+  container?: Container,
 ): StreetContext {
   let _sent = false;
 
@@ -138,6 +142,7 @@ export function createContext(
     body: null,
     files: [],
     state: {},
+    container,
     user: null,
     startTime: process.hrtime.bigint(),
 

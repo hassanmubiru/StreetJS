@@ -226,10 +226,17 @@ describe('Router', () => {
 describe('HTTP Server', () => {
   let port: number;
   let app: ReturnType<typeof streetApp>;
+  let requestScopeDisposed = 0;
+  const requestScopeToken = Symbol('request-scope-test');
 
   before(async () => {
     port = 3100 + Math.floor(Math.random() * 900);
-    app = streetApp({ port, uploadsDir: TEST_UPLOADS, errorResponse: 'envelope' });
+    app = streetApp({ port, uploadsDir: TEST_UPLOADS, errorResponse: 'envelope', requestScope: true });
+    app.container.registerFactory(
+      requestScopeToken,
+      () => ({ close(): void { requestScopeDisposed++; } }),
+      'scoped',
+    );
 
     @Injectable()
     @Controller('/test')
@@ -237,6 +244,13 @@ describe('HTTP Server', () => {
       @Get('/hello')
       async hello(ctx: import('../src/core/context.js').StreetContext): Promise<void> {
         ctx.json({ message: 'world' });
+      }
+
+      @Get('/scope')
+      async scope(ctx: import('../src/core/context.js').StreetContext): Promise<void> {
+        const first = ctx.container?.resolve(requestScopeToken);
+        const second = ctx.container?.resolve(requestScopeToken);
+        ctx.json({ hasContainer: Boolean(ctx.container), same: first === second });
       }
 
       @Post('/echo')
@@ -282,6 +296,13 @@ describe('HTTP Server', () => {
   it('strict route policy rejects a trailing slash', async () => {
     const res = await fetch(port, '/test/hello/');
     assert.equal(res.status, 404);
+  });
+
+  it('creates and disposes a request container scope', async () => {
+    const res = await fetch(port, '/test/scope');
+    assert.equal(res.status, 200);
+    assert.deepEqual(JSON.parse(res.body), { hasContainer: true, same: true });
+    assert.equal(requestScopeDisposed, 1);
   });
 
   it('POST parses JSON body and echoes it', async () => {

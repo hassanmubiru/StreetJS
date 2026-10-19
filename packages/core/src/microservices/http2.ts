@@ -172,7 +172,8 @@ export function streetHttp2App(opts: {
     const fakeReq = buildFakeIncomingMessage(headers, stream as ServerHttp2Stream, body);
     const fakeRes = buildFakeServerResponse(stream as ServerHttp2Stream);
 
-    const ctx = createContext(fakeReq, fakeRes, path, query);
+    const requestContainer = opts.requestScope ? appContainer.createScope() : undefined;
+    const ctx = createContext(fakeReq, fakeRes, path, query, requestContainer);
 
     // Parse JSON body
     if (body.length > 0) {
@@ -204,6 +205,8 @@ export function streetHttp2App(opts: {
       if (!ctx.sent) {
         await errorHandler(ctx, err, { response: opts.errorResponse as ErrorResponseMode | undefined });
       }
+    } finally {
+      if (requestContainer) await requestContainer.dispose();
     }
   });
 

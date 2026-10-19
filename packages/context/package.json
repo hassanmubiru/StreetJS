@@ -69,6 +69,7 @@
     "url": "https://github.com/hassanmubiru/StreetJS/issues"
   },
   "dependencies": {
+    "@streetjs/container": "^1.0.0",
     "@streetjs/multipart": "^1.0.0"
   },
   "devDependencies": {
