@@ -10,36 +10,38 @@ databases, or any other subsystem.
 
 ## Design
 
-### A single process-wide singleton
+### Application scope with a legacy global instance
 
-`Container` has a private constructor and a static `instance`. Consumers reach
-it via `Container.getInstance()` or the exported `container` binding. A single
-registry means a resolved dependency is shared everywhere it is injected — the
-framework's services are effectively singletons by default.
+`Container` is constructible and `createContainer()` creates an isolated
+application registry. `createScope()` creates a child scope. Consumers can still
+reach the legacy process-wide instance via `Container.getInstance()` or the
+exported `container` binding; existing core code continues to use that bridge.
 
 Internally the container keeps two maps/sets:
 
-- `singletons: Map<Constructor, object>` — resolved (or pre-registered) instances.
-- `resolving: Set<Constructor>` — the tokens currently on the resolution stack,
+- `bindings: Map<Token, Binding>` — explicit value/factory bindings and lifetimes.
+- `singletons: Map<Token, unknown>` — resolved (or pre-registered) instances.
+- `resolving: Set<Token>` — the tokens currently on the resolution stack,
   used for cycle detection.
 
 ### Resolution algorithm
 
 `resolve(token)`:
 
-1. Return the cached singleton if present.
-2. If `token` is already in `resolving`, throw a **circular dependency** error
+1. Return the cached singleton/scoped instance if present.
+2. Resolve an explicit token binding when one exists, honoring its lifetime.
+3. If `token` is already in `resolving`, throw a **circular dependency** error
    annotated with the full resolution chain.
-3. Add `token` to `resolving`, then read its constructor parameter types from
+4. Add `token` to `resolving`, then read its constructor parameter types from
    the `design:paramtypes` metadata that `emitDecoratorMetadata` emits.
-4. Recursively `resolve` each parameter:
+5. Recursively `resolve` each parameter:
    - A missing type or `Object` (interfaces, primitives, undecorated unions
      erase to these) is unresolvable — throw a descriptive error naming the
      chain and pointing at `emitDecoratorMetadata`/`@Injectable`.
    - If a nested resolution throws, wrap the message with the chain — unless it
      is already chain-annotated, in which case it is rethrown unchanged to avoid
      double-wrapping.
-5. Construct the instance, cache it, and remove `token` from `resolving` in a
+6. Construct the instance, cache it when singleton, and remove `token` from `resolving` in a
    `finally` so a failed resolution never leaves stale state.
 
 ### `@Injectable()`
@@ -71,8 +73,15 @@ injection with shared sub-dependencies, cycle detection (via explicit
 unresolvable-interface errors, failed-construction wrapping, and `reset`
 semantics. Branch coverage is ≥96%.
 
+### Disposal
+
+`dispose()` is idempotent and calls `dispose()` or `close()` on owned singleton
+and scoped instances in reverse creation order. Transient instances are not
+retained by the container and therefore are not container-owned resources.
+
 ## Non-goals
 
-- No scopes/lifetimes beyond the process singleton (no request/transient scopes).
+- No automatic request scope integration in the HTTP runtime yet; callers can
+  create child scopes explicitly.
 - No property or method injection — constructor injection only.
 - No async factories or conditional bindings.

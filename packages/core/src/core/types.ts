@@ -9,7 +9,7 @@ import type { ValidationSchema } from '@streetjs/router';
  * standalone @streetjs/container package (single source of truth); re-exported
  * here so existing `../core/types.js` importers keep working — dependency inversion.
  */
-export type { Constructor } from '@streetjs/container';
+export type { BindingScope, Constructor, Token } from '@streetjs/container';
 
 export type Awaitable<T> = T | Promise<T>;
 

@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { Container, Injectable, container } from '../index.js';
+import { Container, Injectable, container, createContainer } from '../index.js';
 
 // The DI container is a process-wide singleton; reset it before each test so
 // state from one case never leaks into another.
@@ -146,4 +146,48 @@ test('a fresh resolve after reset builds a brand new instance', () => {
   container.reset();
   const b = container.resolve(Counter);
   assert.notEqual(a.id, b.id, 'instances differ across a reset boundary');
+});
+
+test('createContainer isolates application singletons from the legacy global container', () => {
+  @Injectable()
+  class AppState {
+    readonly id = Symbol('state');
+  }
+  const appA = createContainer();
+  const appB = createContainer();
+  assert.notEqual(appA.resolve(AppState), appB.resolve(AppState));
+  assert.notEqual(appA.resolve(AppState), container.resolve(AppState));
+});
+
+test('explicit token bindings support singleton, transient, and child scoped lifetimes', async () => {
+  const app = createContainer();
+  const token = Symbol('value');
+  let transientCreates = 0;
+  app.registerValue(token, 'configured');
+  app.registerFactory('transient', () => ++transientCreates, 'transient');
+  app.registerFactory('scoped', () => ({ id: Symbol('scope') }), 'scoped');
+
+  assert.equal(app.resolve(token), 'configured');
+  assert.equal(app.resolve('transient'), 1);
+  assert.equal(app.resolve('transient'), 2);
+  const request = app.createScope();
+  assert.equal(request.resolve(token), 'configured');
+  assert.equal(request.resolve('transient'), 3);
+  assert.equal(request.resolve('scoped'), request.resolve('scoped'));
+  assert.notEqual(app.resolve('scoped'), request.resolve('scoped'));
+  await app.dispose();
+  await request.dispose();
+});
+
+test('dispose closes owned instances once and is idempotent', async () => {
+  const app = createContainer();
+  let closed = 0;
+  class Resource {
+    close(): void { closed++; }
+  }
+  app.register(Resource, new Resource());
+  await app.dispose();
+  await app.dispose();
+  assert.equal(closed, 1);
+  assert.throws(() => app.resolve(Resource), /disposed/);
 });

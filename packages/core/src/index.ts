@@ -3,7 +3,7 @@
 // Import from 'street' to get everything you need.
 
 // ── Core ──────────────────────────────────────────────────────────────────────
-export { container, Container, Injectable } from './core/container.js';
+export { container, Container, Injectable, createContainer } from './core/container.js';
 export {
   Controller, Get, Post, Put, Patch, Delete,
   Validate, ApiOperation, Config, Command,
@@ -14,7 +14,7 @@ export type {
   StreetContext, AuthenticatedUser, CookieOptions,
 } from './core/context.js';
 export type {
-  Constructor, Awaitable,
+  BindingScope, Constructor, Token, Awaitable,
   TokenPair, PaginatedResult,
   RouteMetadata, ControllerMetadata, MiddlewareFn,
   ValidationSchema, FieldRule, OpenApiOperation,

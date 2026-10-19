@@ -1,10 +1,11 @@
 /**
  * @streetjs/container — the StreetJS dependency injection container.
  *
- * A process-wide singleton IoC registry that resolves constructor-injected
- * dependency trees from `design:paramtypes` metadata, detects circular
- * dependencies, and exposes an `@Injectable()` class decorator. Backed by
- * `reflect-metadata`.
+ * An application-scoped IoC container that resolves constructor-injected
+ * dependency trees from `design:paramtypes` metadata, supports explicit token
+ * bindings, detects circular dependencies, and owns deterministic disposal.
+ * The exported `container` remains as a legacy process-wide compatibility
+ * instance. Backed by `reflect-metadata`.
  *
  * ```ts
  * import 'reflect-metadata';
@@ -20,5 +21,5 @@
  * > framework; the framework re-exports it, so there is a single implementation.
  */
 
-export { Container, Injectable, container } from './container.js';
-export type { Constructor } from './types.js';
+export { Container, Injectable, container, createContainer } from './container.js';
+export type { BindingScope, Constructor, Token } from './types.js';

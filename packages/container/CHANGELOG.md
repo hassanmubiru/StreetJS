@@ -5,6 +5,18 @@ All notable changes to `@streetjs/container` are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- `createContainer()` and public construction for isolated application containers.
+- Explicit class/symbol/string token values and factories with singleton,
+  transient, and child-scoped lifetimes.
+- Idempotent `dispose()` with reverse-order `dispose()`/`close()` cleanup.
+
+The exported `container` and `Container.getInstance()` remain available as a
+legacy process-wide compatibility path.
+
 ## [1.0.0]
 
 ### Added

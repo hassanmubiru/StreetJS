@@ -1,9 +1,10 @@
 # @streetjs/container
 
-The StreetJS dependency injection container: a process-wide singleton IoC
-registry that resolves constructor-injected dependency trees, detects circular
-dependencies, and exposes an `@Injectable()` class decorator. ESM,
-strict-TypeScript, backed by `reflect-metadata`.
+The StreetJS dependency injection container: an application-scoped IoC registry
+that resolves constructor-injected dependency trees, supports explicit tokens
+and lifetimes, detects circular dependencies, and owns deterministic disposal.
+The exported `container` remains as a process-wide compatibility instance.
+ESM, strict-TypeScript, backed by `reflect-metadata`.
 
 This is the standalone home of the container that also backs the `streetjs`
 framework. The framework re-exports this package, so there is a single source of
@@ -31,7 +32,7 @@ decorator metadata in your `tsconfig.json`:
 
 ```ts
 import 'reflect-metadata';
-import { Injectable, container } from '@streetjs/container';
+import { Injectable, createContainer } from '@streetjs/container';
 
 @Injectable()
 class Database {
@@ -44,7 +45,9 @@ class UserService {
 }
 
 // Database is constructed once and injected as a singleton.
-const users = container.resolve(UserService);
+const app = createContainer();
+const users = app.resolve(UserService);
+await app.dispose();
 ```
 
 ## API
@@ -55,15 +58,21 @@ Class decorator that marks a class as participating in DI. Applying it also
 triggers TypeScript's `design:paramtypes` metadata emission, which the container
 reads to discover constructor dependencies.
 
-### `container` / `Container`
+### `createContainer()` / `Container`
 
-A single shared `Container` instance is exported as `container`
-(`Container.getInstance()` returns the same singleton).
+`createContainer()` creates an isolated application container. `new Container()`
+is equivalent. Child scopes can be created with `createScope()` for scoped
+bindings. The exported `container` and `Container.getInstance()` remain the
+legacy process-wide compatibility instance.
 
 | Method | Description |
 | ------ | ----------- |
-| `resolve(token)` | Return the singleton for `token`, constructing it and its dependency tree on first use. |
-| `register(token, instance)` | Register a pre-built instance so `resolve(token)` returns it. |
+| `resolve(token)` | Resolve a class or explicit token. Unregistered classes are singleton by default. |
+| `register(token, instance)` | Legacy class-token registration of a singleton instance. |
+| `registerValue(token, value)` | Register a class, symbol, or string token as a singleton value. |
+| `registerFactory(token, factory, scope?)` | Register a factory as `singleton`, `transient`, or child-`scoped`. |
+| `createScope()` | Create an isolated child scope that inherits singleton bindings. |
+| `dispose()` | Close/dispose owned instances once, in reverse creation order. |
 | `has(token)` | `true` if the token has been resolved or registered. |
 | `reset()` | Clear all instances — primarily for tests. |
 
@@ -81,7 +90,7 @@ enable `emitDecoratorMetadata` and decorate the dependency.
 
 ## Example
 
-A complete runnable example lives in
+ A complete runnable example lives in
 [`src/examples/integration.ts`](./src/examples/integration.ts):
 
 ```bash

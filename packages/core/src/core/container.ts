@@ -6,4 +6,4 @@
 // every internal `../core/container.js` importer and the public `streetjs` API
 // keep working against a single source of truth — no duplication, no shim.
 
-export { Container, Injectable, container } from '@streetjs/container';
+export { Container, Injectable, container, createContainer } from '@streetjs/container';
