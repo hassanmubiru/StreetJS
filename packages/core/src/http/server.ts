@@ -8,7 +8,7 @@ import type { ErrorResponseMode } from '../router/router.js';
 import { createContext } from '../core/context.js';
 import type { StreetContext } from '../core/context.js';
 import type { MiddlewareFn, RouteMetadata, ControllerMetadata } from '../core/types.js';
-import { container } from '../core/container.js';
+import { container, createContainer } from '../core/container.js';
 import type { Container } from '../core/container.js';
 import type { Constructor } from '../core/types.js';
 import { getControllerMeta, getRoutesMeta } from '../core/decorators.js';
@@ -31,6 +31,8 @@ export interface StreetAppOptions {
   container?: Container;
   /** HTTP error response shape; legacy is the backwards-compatible default. */
   errorResponse?: ErrorResponseMode;
+  /** Container ownership; external is the backwards-compatible default. */
+  containerOwnership?: 'external' | 'app';
 }
 
 export interface StreetApp {
@@ -67,7 +69,8 @@ export interface StreetHttpApp extends StreetApp {
 }
 
 export function streetApp(options: StreetAppOptions = {}): StreetHttpApp {
-  const appContainer = options.container ?? container;
+  const ownsContainer = options.containerOwnership === 'app';
+  const appContainer = options.container ?? (ownsContainer ? createContainer() : container);
   const router = new Router();
   const globalMiddlewares: MiddlewareFn[] = [...(options.globalMiddlewares ?? [])];
   const registeredRoutes: RegisteredRoute[] = [];
@@ -77,6 +80,7 @@ export function streetApp(options: StreetAppOptions = {}): StreetHttpApp {
   const pluginEvents = new EventEmitter();
   const pluginMiddlewares = new Map<PluginModule, MiddlewareFn[]>();
   const pluginListeners = new Map<PluginModule, Array<() => void>>();
+  let closePromise: Promise<void> | undefined;
 
   /** The core per-request handler extracted for direct in-process dispatch. */
   async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
@@ -335,12 +339,20 @@ export function streetApp(options: StreetAppOptions = {}): StreetHttpApp {
     },
 
     close(): Promise<void> {
-      return new Promise((resolve, reject) => {
+      closePromise ??= new Promise((resolve, reject) => {
         server.close((err) => {
-          if (err) reject(err);
-          else resolve();
+          if (err) {
+            reject(err);
+            return;
+          }
+          if (ownsContainer) {
+            void appContainer.dispose().then(resolve, reject);
+          } else {
+            resolve();
+          }
         });
       });
+      return closePromise;
     },
   };
 }

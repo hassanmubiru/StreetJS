@@ -151,6 +151,7 @@ export class Container {
       try {
         if (isDisposable(instance)) await instance.dispose();
         else if (isCloseable(instance)) await instance.close();
+        else if (isDestroyable(instance)) instance.destroy();
       } catch (error) {
         firstError ??= error;
       }
@@ -187,6 +188,10 @@ function isDisposable(value: unknown): value is { dispose(): void | Promise<void
 
 function isCloseable(value: unknown): value is { close(): void | Promise<void> } {
   return typeof value === 'object' && value !== null && typeof (value as { close?: unknown }).close === 'function';
+}
+
+function isDestroyable(value: unknown): value is { destroy(): void } {
+  return typeof value === 'object' && value !== null && typeof (value as { destroy?: unknown }).destroy === 'function';
 }
 
 /** Global container singleton */

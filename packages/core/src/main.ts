@@ -95,8 +95,7 @@ async function bootstrap(): Promise<void> {
     cli.register(MigrateCommand);
     cli.register(UserCommand);
     await cli.run(args);
-    await pool.close();
-    telemetry.destroy();
+    await appContainer.dispose();
     return;
   }
 
@@ -117,6 +116,7 @@ async function bootstrap(): Promise<void> {
     requestTimeoutMs: 30_000,
     maxBodyBytes: 1024 * 1024,
     container: appContainer,
+    containerOwnership: 'app',
   });
 
   // Global middleware stack
@@ -188,12 +188,9 @@ async function bootstrap(): Promise<void> {
 
     try {
       await app.close();
-      await wsServer.close();
       // Drain buffered spans before connections drop, then stop the flush timer.
       await tracer.flush();
       tracer.shutdown();
-      await pool.close();
-      telemetry.destroy();
       rateLimiter.destroy();
       console.log('[street] Clean shutdown complete.');
     } catch (err) {
