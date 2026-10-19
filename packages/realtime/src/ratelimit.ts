@@ -9,8 +9,9 @@
 // limiter is enabled by default with documented defaults (per-connection
 // `20/1s`, per-channel `200/1s`, Req 11.5).
 
-import type { RateLimitStore } from 'streetjs';
-import { InMemoryRateLimitStore, parseWindow } from 'streetjs';
+import type { RateLimitStore } from '@streetjs/store';
+import { InMemoryRateLimitStore } from '@streetjs/store';
+import { parseWindow } from '@streetjs/ratelimit';
 
 /** A single quota rule: N requests per window. */
 export interface RateLimitQuota {
