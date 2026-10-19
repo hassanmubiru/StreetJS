@@ -211,7 +211,7 @@ export function streetHttp2App(opts: {
       const added: MiddlewareFn[] = [];
       const sandbox: import('../platform/plugins/sdk.js').SandboxedApp = {
         use(mw: MiddlewareFn): void { globalMiddlewares.push(mw); added.push(mw); },
-        on(): void { /* http2 app does not emit plugin events */ },
+        on(): () => void { return () => { /* http2 app does not emit plugin events */ }; },
       };
       pluginMiddlewares.set(plugin, added);
       if (plugin.onLoad) await plugin.onLoad(sandbox);
@@ -221,7 +221,7 @@ export function streetHttp2App(opts: {
       const added = pluginMiddlewares.get(plugin);
       if (!added) return;
       const sandbox: import('../platform/plugins/sdk.js').SandboxedApp = {
-        use(): void {}, on(): void {},
+        use(): void {}, on(): () => void { return () => {}; },
       };
       if (plugin.onUnload) await plugin.onUnload(sandbox);
       for (const mw of added) {

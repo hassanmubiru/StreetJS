@@ -11,8 +11,8 @@ import type { MiddlewareFn } from '../../core/types.js';
 export interface SandboxedApp {
   /** Register a middleware function */
   use(middleware: MiddlewareFn): void;
-  /** Listen for framework lifecycle events */
-  on(event: string, handler: (...args: unknown[]) => void): void;
+  /** Listen for framework lifecycle events; returns an unsubscribe function. */
+  on(event: string, handler: (...args: unknown[]) => void): () => void;
 }
 
 /**

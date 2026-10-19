@@ -67,6 +67,7 @@ export function streetApp(options: StreetAppOptions = {}): StreetHttpApp {
   const uploadsDir = options.uploadsDir ?? './uploads';
   const pluginEvents = new EventEmitter();
   const pluginMiddlewares = new Map<PluginModule, MiddlewareFn[]>();
+  const pluginListeners = new Map<PluginModule, Array<() => void>>();
 
   /** The core per-request handler extracted for direct in-process dispatch. */
   async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
@@ -225,11 +226,19 @@ export function streetApp(options: StreetAppOptions = {}): StreetHttpApp {
           globalMiddlewares.push(mw);
           added.push(mw);
         },
-        on(event: string, handler: (...args: unknown[]) => void): void {
+        on(event: string, handler: (...args: unknown[]) => void): () => void {
           pluginEvents.on(event, handler);
+          const unsubscribe = (): void => {
+            pluginEvents.off(event, handler);
+          };
+          const listeners = pluginListeners.get(plugin) ?? [];
+          listeners.push(unsubscribe);
+          pluginListeners.set(plugin, listeners);
+          return unsubscribe;
         },
       };
       pluginMiddlewares.set(plugin, added);
+      pluginListeners.set(plugin, []);
       if (plugin.onLoad) await plugin.onLoad(sandbox);
     },
 
@@ -238,9 +247,11 @@ export function streetApp(options: StreetAppOptions = {}): StreetHttpApp {
       if (!added) return;
       const sandbox: SandboxedApp = {
         use(): void { /* no-op during unload */ },
-        on(): void { /* no-op during unload */ },
+        on(): () => void { return () => { /* no-op during unload */ }; },
       };
       if (plugin.onUnload) await plugin.onUnload(sandbox);
+      for (const unsubscribe of pluginListeners.get(plugin) ?? []) unsubscribe();
+      pluginListeners.delete(plugin);
       // Restore the middleware stack to its pre-load state.
       for (const mw of added) {
         const idx = globalMiddlewares.indexOf(mw);

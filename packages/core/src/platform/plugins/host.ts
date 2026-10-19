@@ -209,11 +209,16 @@ class GatedSandbox implements SandboxedApp {
     }
     this.middlewares.push(middleware);
   }
-  on(event: string, handler: (...args: unknown[]) => void): void {
+  on(event: string, handler: (...args: unknown[]) => void): () => void {
     if (!this.perms.has('events')) {
       throw new PluginPermissionError(`Plugin "${this.pluginName}" lacks 'events' permission`);
     }
-    this.listeners.push({ event, handler });
+    const listener = { event, handler };
+    this.listeners.push(listener);
+    return () => {
+      const index = this.listeners.indexOf(listener);
+      if (index !== -1) this.listeners.splice(index, 1);
+    };
   }
 }
 

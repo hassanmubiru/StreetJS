@@ -233,12 +233,17 @@ describe('Plugin load/unload round-trip', () => {
       readonly name = 'my-plugin';
       readonly version = '1.0.0';
       loaded = false;
+      unsubscribe: (() => void) | undefined;
       override async onLoad(a: SandboxedApp): Promise<void> {
         this.loaded = true;
+        this.unsubscribe = a.on('test', () => {});
         a.use(async (_c, next) => { await next(); });
         a.use(async (_c, next) => { await next(); });
       }
-      override async onUnload(): Promise<void> { this.loaded = false; }
+      override async onUnload(): Promise<void> {
+        this.unsubscribe?.();
+        this.loaded = false;
+      }
     }
 
     const plugin = new MyPlugin();
@@ -246,6 +251,7 @@ describe('Plugin load/unload round-trip', () => {
     assert.equal(plugin.loaded, true);
     await app.unloadPlugin(plugin);
     assert.equal(plugin.loaded, false);
+    assert.equal(typeof plugin.unsubscribe, 'function');
     // No assertion error means the middleware stack was restored cleanly.
   });
 });
