@@ -73,7 +73,7 @@
     "@streetjs/multipart": "^1.0.0"
   },
   "devDependencies": {
-    "@types/node": "^26.2.0",
+    "@types/node": "^26.6.5",
     "c8": "^12.0.0",
     "typescript": "^7.0.2"
   },
