@@ -222,6 +222,7 @@ describe('Cloud runtime helpers', () => {
 import { streetApp } from '../http/server.js';
 import { PluginModule, type SandboxedApp } from '../platform/plugins/sdk.js';
 import type { MiddlewareFn } from '../core/types.js';
+import { streetHttp2App } from '../microservices/http2.js';
 import { createContainer, Injectable } from '../core/container.js';
 import { Controller, Get } from '../core/decorators.js';
 
@@ -260,6 +261,64 @@ describe('Plugin load/unload round-trip', () => {
     await app.unloadPlugin(plugin);
     assert.equal(plugin.cleanupCount, 1);
     // No assertion error means the middleware stack was restored cleanly.
+  });
+
+  it('rolls back a failed load and preserves startup/cleanup error ordering', async () => {
+    const app = streetApp();
+    const events: string[] = [];
+    let attempt = 0;
+    const plugin = new (class extends PluginModule {
+      readonly name = 'rollback-http1';
+      readonly version = '1.0.0';
+      override async onLoad(a: SandboxedApp): Promise<void> {
+        attempt++;
+        a.use(async (_ctx, next) => { events.push(`middleware-${attempt}`); await next(); });
+        a.addCleanup(() => { events.push(`cleanup-first-${attempt}`); });
+        a.on('test', () => {});
+        if (attempt === 1) {
+          a.addCleanup(() => { events.push(`cleanup-failing-${attempt}`); throw new Error('cleanup failed'); });
+          throw new Error('startup failed');
+        }
+        a.addCleanup(() => { events.push(`cleanup-success-${attempt}`); });
+      }
+    })();
+
+    await assert.rejects(() => app.loadPlugin(plugin), (error: unknown) => {
+      assert.ok(error instanceof AggregateError);
+      assert.equal((error as AggregateError).cause instanceof Error, true);
+      assert.equal((error as AggregateError).errors.length, 2);
+      assert.equal((error as AggregateError).errors[0]?.message, 'startup failed');
+      assert.equal((error as AggregateError).errors[1]?.message, 'cleanup failed');
+      return true;
+    });
+    assert.deepEqual(events, ['cleanup-failing-1', 'cleanup-first-1']);
+
+    await app.loadPlugin(plugin);
+    assert.equal(attempt, 2);
+    await app.unloadPlugin(plugin);
+    assert.deepEqual(events, ['cleanup-failing-1', 'cleanup-first-1', 'cleanup-success-2', 'cleanup-first-2']);
+  });
+
+  it('rolls back failed HTTP2 loads and allows a fresh retry', async () => {
+    const app = streetHttp2App();
+    const cleanups: string[] = [];
+    let attempt = 0;
+    const plugin = new (class extends PluginModule {
+      readonly name = 'rollback-http2';
+      readonly version = '1.0.0';
+      override async onLoad(a: SandboxedApp): Promise<void> {
+        attempt++;
+        a.use(async (_ctx, next) => { await next(); });
+        a.on('test', () => {});
+        a.addCleanup(() => { cleanups.push(`cleanup-${attempt}`); });
+        if (attempt === 1) throw new Error('http2 startup failed');
+      }
+    })();
+
+    await assert.rejects(() => app.loadPlugin(plugin), /http2 startup failed/);
+    await app.loadPlugin(plugin);
+    await app.unloadPlugin(plugin);
+    assert.deepEqual(cleanups, ['cleanup-1', 'cleanup-2']);
   });
 });
 

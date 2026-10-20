@@ -14,6 +14,8 @@ import type { Container } from '../core/container.js';
 import { getControllerMeta, getRoutesMeta } from '../core/decorators.js';
 import { generateOpenApi } from '../http/openapi.js';
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import { EventEmitter } from 'node:events';
+import type { PluginModule, SandboxedApp } from '../platform/plugins/sdk.js';
 
 // ── Internal types ─────────────────────────────────────────────────────────────
 
@@ -141,7 +143,10 @@ export function streetHttp2App(opts: {
   const appContainer: Container = opts.container ?? (ownsContainer ? createContainer() : container);
   const router = new Router();
   const globalMiddlewares: MiddlewareFn[] = [];
-  const pluginMiddlewares = new Map<import('../platform/plugins/sdk.js').PluginModule, MiddlewareFn[]>();
+  const pluginMiddlewares = new Map<PluginModule, MiddlewareFn[]>();
+  const pluginListeners = new Map<PluginModule, Array<() => void>>();
+  const pluginCleanups = new Map<PluginModule, Array<() => void>>();
+  const pluginEvents = new EventEmitter();
   const registeredRoutes: RegisteredRoute[] = [];
   let closePromise: Promise<void> | undefined;
 
@@ -216,26 +221,77 @@ export function streetHttp2App(opts: {
       globalMiddlewares.push(mw);
     },
 
-    async loadPlugin(plugin: import('../platform/plugins/sdk.js').PluginModule): Promise<void> {
+    async loadPlugin(plugin: PluginModule): Promise<void> {
       const added: MiddlewareFn[] = [];
-      const sandbox: import('../platform/plugins/sdk.js').SandboxedApp = {
+      const sandbox: SandboxedApp = {
         use(mw: MiddlewareFn): void { globalMiddlewares.push(mw); added.push(mw); },
-        on(): () => void { return () => { /* http2 app does not emit plugin events */ }; },
-        addCleanup(): () => void { return () => { /* no-op during unload */ }; },
+        on(event: string, handler: (...args: unknown[]) => void): () => void {
+          pluginEvents.on(event, handler);
+          const unsubscribe = (): void => { pluginEvents.off(event, handler); };
+          const dispose = this.addCleanup(unsubscribe);
+          const listeners = pluginListeners.get(plugin) ?? [];
+          listeners.push(dispose);
+          pluginListeners.set(plugin, listeners);
+          return dispose;
+        },
+        addCleanup(cleanup: () => void): () => void {
+          const cleanups = pluginCleanups.get(plugin) ?? [];
+          let active = true;
+          const dispose = (): void => {
+            if (!active) return;
+            active = false;
+            const index = cleanups.indexOf(dispose);
+            if (index !== -1) cleanups.splice(index, 1);
+            cleanup();
+          };
+          cleanups.push(dispose);
+          pluginCleanups.set(plugin, cleanups);
+          return dispose;
+        },
       };
       pluginMiddlewares.set(plugin, added);
-      if (plugin.onLoad) await plugin.onLoad(sandbox);
+      pluginListeners.set(plugin, []);
+      pluginCleanups.set(plugin, []);
+      try {
+        if (plugin.onLoad) await plugin.onLoad(sandbox);
+      } catch (startupError) {
+        const cleanupErrors: unknown[] = [];
+        try {
+          for (const cleanup of [...(pluginCleanups.get(plugin) ?? [])].reverse()) {
+            try { cleanup(); } catch (error) { cleanupErrors.push(error); }
+          }
+        } finally {
+          for (const mw of [...added].reverse()) {
+            const index = globalMiddlewares.lastIndexOf(mw);
+            if (index !== -1) globalMiddlewares.splice(index, 1);
+          }
+          pluginListeners.delete(plugin);
+          pluginCleanups.delete(plugin);
+          pluginMiddlewares.delete(plugin);
+        }
+        if (cleanupErrors.length > 0) {
+          throw new AggregateError(
+            [startupError, ...cleanupErrors],
+            `Plugin "${plugin.name}" startup and cleanup failed`,
+            { cause: startupError },
+          );
+        }
+        throw startupError;
+      }
     },
 
     async unloadPlugin(plugin: import('../platform/plugins/sdk.js').PluginModule): Promise<void> {
       const added = pluginMiddlewares.get(plugin);
       if (!added) return;
-      const sandbox: import('../platform/plugins/sdk.js').SandboxedApp = {
+      const sandbox: SandboxedApp = {
         use(): void {}, on(): () => void { return () => {}; }, addCleanup(): () => void { return () => {}; },
       };
       if (plugin.onUnload) await plugin.onUnload(sandbox);
-      for (const mw of added) {
-        const idx = globalMiddlewares.indexOf(mw);
+      for (const cleanup of [...(pluginCleanups.get(plugin) ?? [])].reverse()) await cleanup();
+      pluginListeners.delete(plugin);
+      pluginCleanups.delete(plugin);
+      for (const mw of [...added].reverse()) {
+        const idx = globalMiddlewares.lastIndexOf(mw);
         if (idx !== -1) globalMiddlewares.splice(idx, 1);
       }
       pluginMiddlewares.delete(plugin);

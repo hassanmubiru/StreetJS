@@ -273,7 +273,32 @@ export function streetApp(options: StreetAppOptions = {}): StreetHttpApp {
       pluginMiddlewares.set(plugin, added);
       pluginListeners.set(plugin, []);
       pluginCleanups.set(plugin, []);
-      if (plugin.onLoad) await plugin.onLoad(sandbox);
+      try {
+        if (plugin.onLoad) await plugin.onLoad(sandbox);
+      } catch (startupError) {
+        const cleanupErrors: unknown[] = [];
+        try {
+          for (const cleanup of [...(pluginCleanups.get(plugin) ?? [])].reverse()) {
+            try { cleanup(); } catch (error) { cleanupErrors.push(error); }
+          }
+        } finally {
+          for (const mw of [...added].reverse()) {
+            const index = globalMiddlewares.lastIndexOf(mw);
+            if (index !== -1) globalMiddlewares.splice(index, 1);
+          }
+          pluginListeners.delete(plugin);
+          pluginCleanups.delete(plugin);
+          pluginMiddlewares.delete(plugin);
+        }
+        if (cleanupErrors.length > 0) {
+          throw new AggregateError(
+            [startupError, ...cleanupErrors],
+            `Plugin "${plugin.name}" startup and cleanup failed`,
+            { cause: startupError },
+          );
+        }
+        throw startupError;
+      }
     },
 
     async unloadPlugin(plugin: PluginModule): Promise<void> {
@@ -289,8 +314,8 @@ export function streetApp(options: StreetAppOptions = {}): StreetHttpApp {
       pluginListeners.delete(plugin);
       pluginCleanups.delete(plugin);
       // Restore the middleware stack to its pre-load state.
-      for (const mw of added) {
-        const idx = globalMiddlewares.indexOf(mw);
+      for (const mw of [...added].reverse()) {
+        const idx = globalMiddlewares.lastIndexOf(mw);
         if (idx !== -1) globalMiddlewares.splice(idx, 1);
       }
       pluginMiddlewares.delete(plugin);
