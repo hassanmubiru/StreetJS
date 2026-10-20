@@ -235,8 +235,20 @@ class GatedSandbox implements SandboxedApp {
     return dispose;
   }
 
-  async dispose(): Promise<void> {
-    for (const cleanup of [...this.cleanups].reverse()) await cleanup();
+  dispose(): void {
+    const errors: unknown[] = [];
+    try {
+      for (const cleanup of [...this.cleanups].reverse()) {
+        try { cleanup(); } catch (error) { errors.push(error); }
+      }
+    } finally {
+      this.cleanups.length = 0;
+      this.middlewares.length = 0;
+      this.listeners.length = 0;
+    }
+    if (errors.length > 0) {
+      throw new AggregateError(errors, `Plugin "${this.pluginName}" sandbox cleanup failed`);
+    }
   }
 }
 
@@ -354,13 +366,32 @@ export class PluginHost {
     const sandbox = new GatedSandbox(new Set(entry.manifest.permissions ?? []), name);
     this.sandboxes.set(name, sandbox);
 
-    if (!entry.installed) {
-      if (entry.plugin.onInstall) await entry.plugin.onInstall();
-      entry.installed = true;
+    try {
+      if (!entry.installed) {
+        if (entry.plugin.onInstall) await entry.plugin.onInstall();
+        entry.installed = true;
+      }
+      if (entry.plugin.onLoad) await entry.plugin.onLoad(sandbox);
+      entry.state = 'enabled';
+    } catch (startupError) {
+      // Roll back only this attempt: dependencies stay enabled, and a failed
+      // load does not call onUnload. Resources must use synchronous cleanups.
+      try {
+        sandbox.dispose();
+      } catch (cleanupError) {
+        const failures = cleanupError instanceof AggregateError ? cleanupError.errors : [cleanupError];
+        throw new AggregateError(
+          [startupError, ...failures],
+          `Plugin "${name}" startup and sandbox cleanup failed`,
+          { cause: startupError },
+        );
+      } finally {
+        this.sandboxes.delete(name);
+      }
+      throw startupError;
+    } finally {
+      visiting.delete(name);
     }
-    if (entry.plugin.onLoad) await entry.plugin.onLoad(sandbox);
-    entry.state = 'enabled';
-    visiting.delete(name);
   }
 
   /** Disable a plugin. Fails if an enabled plugin still depends on it. */

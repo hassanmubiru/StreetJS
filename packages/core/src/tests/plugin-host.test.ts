@@ -203,21 +203,23 @@ describe('plugin host — failed-enable rollback', () => {
   }
 
   it('keeps every cleanup failure individually accessible and still runs the earliest cleanup', async () => {
-    const host = new PluginHost();
+    const host = new PluginHost({ grantedPermissions: '*' });
     const startup = Symbol('startup');
     const middle = new Error('middle cleanup');
     const latest = { reason: 'latest cleanup' };
     const cleaned: number[] = [];
     const plugin = new TestPlugin('cleanup-errors', '1.0.0');
-    let sandbox: ReturnType<typeof sandboxesOf> extends Map<string, infer S> ? S : never;
+    let sandbox!: SandboxedApp & { middlewares: unknown[]; listeners: unknown[] };
     plugin.onLoad = async (app) => {
       sandbox = sandboxesOf(host).get(plugin.name)!;
+      app.use(async (_ctx, next) => { await next(); });
+      app.on('ready', () => {});
       app.addCleanup(() => { cleaned.push(0); });
       app.addCleanup(() => { cleaned.push(1); throw middle; });
       app.addCleanup(() => { cleaned.push(2); throw latest; });
       throw startup;
     };
-    host.register(plugin, { name: plugin.name, version: plugin.version });
+    host.register(plugin, { name: plugin.name, version: plugin.version, permissions: ['middleware', 'events'] });
     await assert.rejects(host.enable(plugin.name), (error) => {
       assert.ok(error instanceof AggregateError);
       assert.equal(error.cause, startup);

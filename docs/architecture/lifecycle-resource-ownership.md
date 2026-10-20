@@ -37,7 +37,7 @@ Every row was reviewed against these questions:
 | Workflow engine | Workflow engine owns runtime state and active timers; plugin owns engine reference | Engine `close()`; plugin unload closes it after bridge detach | Workflow tests cover plugin lifecycle and runtime failure behavior | Async close and plugin unload are awaited | Instance-local; fake stores/clocks support deterministic tests | **Conformant** |
 | Telemetry tracker | `TelemetryTracker` creates an unref'd interval; tracker owns it | Explicit `destroy()` clears interval | Constructor has no multi-resource startup sequence | Destroy is synchronous and repeat-safe at the timer API level; not part of common app close | Instance-local; deterministic state but no app shutdown integration test | **P2 integration gap** |
 | Metrics/health refresh | Facades register refresh timers against supplied registries | Facade close paths stop timers | Registration failures are generally best-effort; partial registry failure needs matrix coverage | Close is package-specific and generally awaited through facade close | Shared registry by design; timer ownership remains facade-local | **P2 contract clarity gap** |
-| Plugin resources/listeners | Plugin host/server creates sandbox registrations; plugin or host owns cleanup | `SandboxedApp.addCleanup()` and listener unsubscribe; host unloads plugin | Host unload path runs plugin unload and restores middleware | Cleanup is idempotent and reverse-ordered; plugin unload awaits hooks | Sandbox prevents direct internal access; lifecycle tests exist | **Conformant** |
+| Plugin resources/listeners | Plugin host/server creates sandbox registrations; plugin or host owns cleanup | `SandboxedApp.addCleanup()` and listener unsubscribe; host unloads plugin | Formal `PluginHost` rolls back failed install/load sandbox registrations; enabled dependencies remain owned by the host | Synchronous cleanup is idempotent, reverse-ordered, exhaustive in formal host; throwing unload paths remain incomplete | Focused host failure tests cover retained registrations and retry; HTTP/HTTP2 failure parity not proven | **Partial; see ADR 0020** |
 | Tracing exporters | Package-specific exporter/transport ownership | No single common close contract proven across all tracing implementations | Requires per-exporter review | Not enough evidence for a universal assertion | Package-local tests only | **P2 audit follow-up** |
 
 ## Cross-cutting conclusions
@@ -45,8 +45,9 @@ Every row was reviewed against these questions:
 - No global singleton was introduced as a lifecycle shortcut.
 - Application-owned containers, request scopes, plugin cleanup, queue close,
   storage close, events close, realtime close, and workflow close are explicit.
-- The largest remaining issue is not an observed leak in the verified paths; it
-  is the absence of one cross-package lifecycle contract test suite.
+- Failed formal plugin enable previously retained sandbox registrations; ADR
+  0020 fixes this narrow path. The remaining audit labels are not certification
+  of failure behavior: a cross-package lifecycle contract suite is still absent.
 - `destroy()` versus `close()`/`dispose()` naming is inconsistent for some
   standalone capabilities. Unifying it requires an ADR and compatibility review.
 - External-service tests are not claimed as passing when Redis/PostgreSQL or
