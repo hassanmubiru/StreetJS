@@ -25,11 +25,14 @@ workspace package or production API is introduced.
 
 ## Coverage still required
 
-This initial slice is not a complete framework certification. It does not yet
-prove configuration validation, HTTP/2, database transactions, events, queue
-workers, observability shutdown, cancellation, startup rollback, resource-leak
-detection, or a realistic golden-path reference application. Existing reference
-applications must be reviewed before selecting or extending one for that role.
+The order-service reference adds real SQLite transactions and rollback,
+authenticated/authorized HTTP operations, body validation, correlation logging,
+health probes and interval-free metrics. See
+`examples/reference-apps/order-service/README.md` for its scope and run steps.
+
+This is not complete framework certification. HTTP/2, events, queue workers,
+exporter shutdown, cancellation, general startup rollback, and resource-leak
+detection remain separate conformance work.
 
 Middleware order remains registration order. Tests use controller endpoints so
 that reload is not hidden behind an earlier terminating middleware.

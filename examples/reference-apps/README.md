@@ -11,6 +11,7 @@ starting points (not npm packages).
 | `ecommerce` | `@streetjs/commerce` | 3 checks | checkout + coupon, no-oversell, cancel/refund/restock |
 | `saas` | `@streetjs/admin` | 3 checks | RBAC wildcards, suspension, audit log |
 | `dating` | `@streetjs/dating-profiles` | 3 checks | encrypted bios, reciprocal matching |
+| `order-service` | `streetjs` (HTTP, DI, SQLite, JWT, observability) | `npm run test:conformance` | authenticated orders, transactional audit, rollback, scoped disposal, app isolation |
 
 ## Run any app
 
@@ -29,7 +30,9 @@ instance with `scripts/deploy/smoke-test.sh`.
 bash scripts/verify-reference-apps.sh
 ```
 
-Runs every app's smoke test; exits non-zero if any fails. Also wired into CI
+Runs the existing smoke-test apps; exits non-zero if any fails. The order-service
+golden-path tests run separately through `npm run test:conformance` (also included
+in `npm run verify`). Existing smoke tests are also wired into CI
 (`.github/workflows/reference-apps.yml`).
 
 ## Benchmarks (executed, in-memory single instance)
