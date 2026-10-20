@@ -32,6 +32,7 @@ runStage("LINT", ["run", "lint"]);
 runStage("TYPECHECK", ["run", "lint", "--workspaces", "--if-present"]);
 runStage("OFFLINE TESTS (CORE)", ["test"]);
 runStage("OFFLINE TESTS (CLI)", ["run", "test:cli"]);
+runStage("FRAMEWORK CONFORMANCE", ["run", "test:conformance"]);
 runStage("INTEGRATION TESTS", ["run", "test:integration"]);
 
 if (process.env.STREETJS_RUN_EXTERNAL === "1") {

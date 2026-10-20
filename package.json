@@ -44,6 +44,8 @@
     "verify:signatures": "node scripts/security/verify-release.mjs",
     "test:devtools-harness": "node --test scripts/tests/devtools-verify-harness.test.mjs",
     "test:observability-harness": "node --test scripts/tests/observability-validate-harness.test.mjs",
+    "pretest:conformance": "npm run build:core",
+    "test:conformance": "node --test scripts/framework-conformance/test.mjs",
     "verify:release": "node scripts/verification/run.mjs release.scorecard --docs -- node scripts/release/render-report.mjs",
     "verify:registry": "node scripts/registry/verify.mjs",
     "verify:enterprise": "node scripts/enterprise/verify.mjs",
