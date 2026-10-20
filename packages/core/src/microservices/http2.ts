@@ -6,7 +6,7 @@ import { createSecureServer, type Http2SecureServer, type ServerHttp2Stream, typ
 import { Router, notFoundHandler, errorHandler } from '../router/router.js';
 import type { ErrorResponseMode } from '../router/router.js';
 import { createContext } from '../core/context.js';
-import type { StreetApp, StreetAppOptions } from '../http/server.js';
+import type { StreetApp, StreetAppLifecycleState, StreetAppOptions } from '../http/server.js';
 import type { MiddlewareFn } from '../core/types.js';
 import type { Constructor } from '../core/types.js';
 import { container, createContainer } from '../core/container.js';
@@ -149,6 +149,8 @@ export function streetHttp2App(opts: {
   const pluginEvents = new EventEmitter();
   const registeredRoutes: RegisteredRoute[] = [];
   let closePromise: Promise<void> | undefined;
+  let listenPromise: Promise<void> | undefined;
+  let lifecycleState: StreetAppLifecycleState = 'CREATED';
 
   const server: Http2SecureServer = createSecureServer({
     key: opts.key,
@@ -250,6 +252,7 @@ export function streetHttp2App(opts: {
 
   return {
     container: appContainer,
+    get lifecycleState(): StreetAppLifecycleState { return lifecycleState; },
     use(mw: MiddlewareFn): void {
       globalMiddlewares.push(mw);
     },
@@ -370,34 +373,52 @@ export function streetHttp2App(opts: {
     },
 
     listen(port = opts.port ?? 443, host = '0.0.0.0'): Promise<void> {
-      return new Promise((resolve, reject) => {
+      if (lifecycleState === 'CLOSED' || lifecycleState === 'DRAINING') {
+        return Promise.reject(new Error(`Cannot listen while application is ${lifecycleState}`));
+      }
+      if (lifecycleState === 'RUNNING') {
+        return Promise.reject(new Error('Cannot listen while application is RUNNING'));
+      }
+      if (listenPromise) return listenPromise;
+
+      lifecycleState = 'STARTING';
+      listenPromise = new Promise((resolve, reject) => {
         const onError = (err: Error): void => {
           server.removeListener('error', onError);
+          lifecycleState = 'CREATED';
           reject(err);
         };
         server.on('error', onError);
         server.listen(port, host, () => {
           server.removeListener('error', onError);
+          lifecycleState = 'RUNNING';
           console.log(`[street/http2] Listening on https://${host}:${port}`);
           resolve();
         });
       });
+      return listenPromise;
     },
 
     close(): Promise<void> {
-      closePromise ??= new Promise((resolve, reject) => {
-        server.close((err) => {
-          if (err) {
-            reject(err);
-            return;
+      closePromise ??= (async () => {
+        if (lifecycleState === 'CLOSED') return;
+        if (lifecycleState === 'STARTING' && listenPromise) {
+          try {
+            await listenPromise;
+          } catch (startupError) {
+            lifecycleState = 'CLOSED';
+            throw startupError;
           }
-          if (ownsContainer) {
-            void appContainer.dispose().then(resolve, reject);
-          } else {
-            resolve();
-          }
-        });
-      });
+        }
+        lifecycleState = 'DRAINING';
+        if (server.listening) {
+          await new Promise<void>((resolve, reject) => {
+            server.close((err) => err ? reject(err) : resolve());
+          });
+        }
+        if (ownsContainer) await appContainer.dispose();
+        lifecycleState = 'CLOSED';
+      })();
       return closePromise;
     },
 

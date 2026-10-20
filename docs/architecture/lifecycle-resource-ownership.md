@@ -23,8 +23,8 @@ Every row was reviewed against these questions:
 
 | Resource | Creates/owns | Close path | Partial failure | Idempotent/awaited | Isolation/testability | Assessment |
 |---|---|---|---|---|---|---|
-| HTTP server | `streetApp()` creates the server; app owns it | `StreetApp.close()` closes the listener and disposes an app-owned container | Startup rejects before exposing a usable app; driver-specific cleanup is covered only in selected paths | Close is promise-based and container disposal is awaited; repeated close behavior is covered | Per-app state; core integration tests cover request scope and shutdown | **Conformant** |
-| HTTP/2 server | HTTP/2 factory creates and owns server state | HTTP/2 `close()` closes listener and app-owned container | Partial startup coverage is weaker than HTTP/1 | Promise-based close and awaited container disposal exist | Per-app state; dedicated close matrix should be expanded | **Mostly conformant; P2 coverage gap** |
+| HTTP server | `streetApp()` creates the server; app owns it | `StreetApp.close()` transitions through `DRAINING`, drains the listener, and disposes an app-owned container | Failed listen returns to `CREATED`; close cleanup failure preserves `DRAINING` | Lifecycle state is explicit; close is memoized/idempotent and container disposal is awaited | Per-app state; focused lifecycle tests cover pre-listen, concurrent close, active drain, and failure | **Mostly conformant; see ADR 0023** |
+| HTTP/2 server | HTTP/2 factory creates and owns server state | HTTP/2 `close()` follows the same lifecycle state and app-owned container rule | Failed listen returns to `CREATED`; close cleanup failure preserves `DRAINING` | Lifecycle state is explicit; close is memoized/idempotent and container disposal is awaited | Per-app state; lifecycle parity covers pre-listen and close contract; live TLS matrix remains absent | **Mostly conformant; see ADR 0023** |
 | WebSocket server | `StreetWebSocketServer` owns sockets and heartbeat timer | `close()` stops heartbeat and closes active connections/server | Connection setup failure paths are locally handled | Async close exists; idempotency needs a cross-instance assertion | Instance-local state; unit/integration tests exist | **Mostly conformant; P2 matrix gap** |
 | Queue workers | `Queue` creates workers and scheduler; queue owns them | `Queue.close()` stops workers, scheduler, then driver | Driver-init failure tests exercise unload/close behavior | Closed guard is idempotent; all close calls are awaited | Queue instances own their drivers; lifecycle tests exist | **Conformant** |
 | Queue scheduler/timers | Queue scheduler owns promotion/cron timers | Scheduler stop is called by queue close | Scheduler startup is coupled to queue startup | Stop is awaited by queue close | Instance-local; scheduler tests exist | **Conformant** |
@@ -53,6 +53,9 @@ Every row was reviewed against these questions:
   and live HTTP/2 abort coverage remain out of scope.
 - `destroy()` versus `close()`/`dispose()` naming is inconsistent for some
   standalone capabilities. Unifying it requires an ADR and compatibility review.
+- Application lifecycle state and graceful close semantics are now explicit for
+  HTTP/1.1 and HTTP/2 per ADR 0023. Shutdown timeout, forced cancellation, and
+  cross-package resource orchestration remain unimplemented.
 - External-service tests are not claimed as passing when Redis/PostgreSQL or
   provider credentials are unavailable.
 
