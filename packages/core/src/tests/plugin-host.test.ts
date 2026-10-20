@@ -161,6 +161,150 @@ describe('plugin host — dependency & version resolution + lifecycle', () => {
   });
 });
 
+describe('plugin host — failed-enable rollback', () => {
+  // Inspect retained references too: removing the map entry alone must not hide leaks.
+  const sandboxesOf = (host: PluginHost) => (host as unknown as {
+    sandboxes: Map<string, SandboxedApp & { middlewares: unknown[]; listeners: unknown[] }>;
+  }).sandboxes;
+
+  for (const count of [0, 1, 3]) {
+    it(`rolls back ${count} resources in reverse order and retries with a fresh sandbox`, async () => {
+      const host = new PluginHost({ grantedPermissions: '*' });
+      const startup = { reason: 'load failed' };
+      const cleaned: number[] = [];
+      const attempts: SandboxedApp[] = [];
+      let fail = true;
+      const plugin = new TestPlugin('rollback', '1.0.0');
+      plugin.onLoad = async (app) => {
+        attempts.push(app);
+        app.use(async (_ctx, next) => { await next(); });
+        app.on('ready', () => {});
+        for (let i = 0; i < count; i++) app.addCleanup(() => { cleaned.push(i); });
+        if (fail) throw startup;
+      };
+      host.register(plugin, { name: plugin.name, version: plugin.version, permissions: ['middleware', 'events'] });
+      await assert.rejects(host.enable(plugin.name), (error) => error === startup);
+      assert.deepEqual(cleaned, Array.from({ length: count }, (_, i) => count - 1 - i));
+      assert.equal(host.state(plugin.name), 'registered');
+      assert.equal(sandboxesOf(host).has(plugin.name), false);
+      assert.deepEqual(host.middlewaresOf(plugin.name), []);
+      const failed = attempts[0] as SandboxedApp & { middlewares: unknown[]; listeners: unknown[] };
+      assert.deepEqual(failed.middlewares, []);
+      assert.deepEqual(failed.listeners, []);
+      assert.equal(plugin.unloaded, 0);
+      fail = false;
+      await host.enable(plugin.name);
+      assert.notEqual(attempts[0], attempts[1]);
+      assert.equal(host.state(plugin.name), 'enabled');
+      assert.equal(plugin.installed, 1);
+      await host.disable(plugin.name);
+      assert.equal(cleaned.length, count * 2);
+    });
+  }
+
+  it('keeps every cleanup failure individually accessible and still runs the earliest cleanup', async () => {
+    const host = new PluginHost();
+    const startup = Symbol('startup');
+    const middle = new Error('middle cleanup');
+    const latest = { reason: 'latest cleanup' };
+    const cleaned: number[] = [];
+    const plugin = new TestPlugin('cleanup-errors', '1.0.0');
+    let sandbox: ReturnType<typeof sandboxesOf> extends Map<string, infer S> ? S : never;
+    plugin.onLoad = async (app) => {
+      sandbox = sandboxesOf(host).get(plugin.name)!;
+      app.addCleanup(() => { cleaned.push(0); });
+      app.addCleanup(() => { cleaned.push(1); throw middle; });
+      app.addCleanup(() => { cleaned.push(2); throw latest; });
+      throw startup;
+    };
+    host.register(plugin, { name: plugin.name, version: plugin.version });
+    await assert.rejects(host.enable(plugin.name), (error) => {
+      assert.ok(error instanceof AggregateError);
+      assert.equal(error.cause, startup);
+      assert.deepEqual(error.errors, [startup, latest, middle]);
+      return true;
+    });
+    assert.deepEqual(cleaned, [2, 1, 0]);
+    assert.deepEqual(sandbox!.middlewares, []);
+    assert.deepEqual(sandbox!.listeners, []);
+    assert.equal(sandboxesOf(host).has(plugin.name), false);
+    assert.equal(host.state(plugin.name), 'registered');
+  });
+
+  it('preserves disabled state after a failed re-enable', async () => {
+    const host = new PluginHost();
+    const plugin = new TestPlugin('disabled', '1.0.0');
+    host.register(plugin, { name: plugin.name, version: plugin.version });
+    await host.enable(plugin.name);
+    await host.disable(plugin.name);
+    let cleaned = 0;
+    plugin.onLoad = async (app) => {
+      app.addCleanup(() => { cleaned++; });
+      throw new Error('re-enable failed');
+    };
+    await assert.rejects(host.enable(plugin.name), /re-enable failed/);
+    assert.equal(cleaned, 1);
+    assert.equal(host.state(plugin.name), 'disabled');
+    assert.equal(sandboxesOf(host).has(plugin.name), false);
+    assert.equal(plugin.unloaded, 1);
+    assert.equal(plugin.installed, 1);
+  });
+
+  it('does not repeat manually invoked disposers, including a throwing disposer', async () => {
+    const host = new PluginHost();
+    const plugin = new TestPlugin('manual', '1.0.0');
+    let calls = 0;
+    let dispose!: () => void;
+    const startup = new Error('startup');
+    plugin.onLoad = async (app) => {
+      dispose = app.addCleanup(() => { calls++; throw new Error('manual cleanup'); });
+      assert.throws(dispose, /manual cleanup/);
+      dispose();
+      app.addCleanup(() => { calls++; });
+      throw startup;
+    };
+    host.register(plugin, { name: plugin.name, version: plugin.version });
+    await assert.rejects(host.enable(plugin.name), (error) => error === startup);
+    dispose();
+    assert.equal(calls, 2);
+  });
+
+  it('removes the sandbox after onInstall fails and retries installation', async () => {
+    const host = new PluginHost();
+    const plugin = new TestPlugin('install-failure', '1.0.0');
+    const startup = undefined;
+    const attempts: unknown[] = [];
+    plugin.onInstall = async () => {
+      attempts.push(sandboxesOf(host).get(plugin.name));
+      if (attempts.length === 1) throw startup;
+    };
+    host.register(plugin, { name: plugin.name, version: plugin.version });
+    await assert.rejects(host.enable(plugin.name), (error) => error === startup);
+    assert.equal(sandboxesOf(host).has(plugin.name), false);
+    assert.equal(host.state(plugin.name), 'registered');
+    assert.equal(plugin.loaded, 0);
+    assert.equal(plugin.unloaded, 0);
+    await host.enable(plugin.name);
+    assert.equal(attempts.length, 2);
+    assert.notEqual(attempts[0], attempts[1]);
+    assert.equal(plugin.loaded, 1);
+  });
+
+  it('leaves auto-enabled dependencies running without unloading the failed plugin', async () => {
+    const host = new PluginHost();
+    const dependency = new TestPlugin('dependency', '1.0.0');
+    const plugin = new TestPlugin('dependent', '1.0.0');
+    plugin.onLoad = async () => { throw new Error('dependent failed'); };
+    host.register(dependency, { name: dependency.name, version: dependency.version });
+    host.register(plugin, { name: plugin.name, version: plugin.version, dependencies: { dependency: '*' } });
+    await assert.rejects(host.enable(plugin.name), /dependent failed/);
+    assert.equal(host.state(dependency.name), 'enabled');
+    assert.equal(dependency.unloaded, 0);
+    assert.equal(plugin.unloaded, 0);
+    assert.equal(sandboxesOf(host).has(plugin.name), false);
+  });
+});
+
 describe('plugin host — discovery & disable/remove safety', () => {
   it('discovers by capability and lists/queries state', async () => {
     const host = new PluginHost({ grantedPermissions: '*' });
