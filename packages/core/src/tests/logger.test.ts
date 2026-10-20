@@ -46,6 +46,7 @@ function makeCtx(headers: Record<string, string> = {}): StreetContext {
     state: {},
     user: null,
     startTime: process.hrtime.bigint(),
+    signal: new AbortController().signal,
     sent: false,
     json: () => undefined,
     text: () => undefined,

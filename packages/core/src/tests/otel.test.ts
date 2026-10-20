@@ -80,6 +80,7 @@ function makeCtx(overrides: Partial<{
     state: {},
     user: null,
     startTime: process.hrtime.bigint(),
+    signal: new AbortController().signal,
     sent: false,
     json: () => undefined,
     text: () => undefined,

@@ -41,6 +41,8 @@ export interface StreetContext {
   user: AuthenticatedUser | null;
   /** Request start time (hrtime bigint) */
   readonly startTime: bigint;
+  /** Cooperative cancellation signal for the lifetime of this request. */
+  readonly signal: AbortSignal;
 
   /** Send JSON response */
   json(data: unknown, status?: number): void;
@@ -121,6 +123,7 @@ export function createContext(
   path: string,
   query: Record<string, string>,
   container?: Container,
+  signal?: AbortSignal,
 ): StreetContext {
   let _sent = false;
 
@@ -145,6 +148,7 @@ export function createContext(
     container,
     user: null,
     startTime: process.hrtime.bigint(),
+    signal: signal ?? new AbortController().signal,
 
     get sent() {
       return _sent;

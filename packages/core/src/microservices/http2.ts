@@ -157,11 +157,35 @@ export function streetHttp2App(opts: {
   });
 
   server.on('stream', async (stream, headers) => {
+    const abortController = new AbortController();
+    let bodyEnded = false;
+    let requestStarted = false;
+    let requestFinished = false;
     // Collect body
     const chunks: Buffer[] = [];
-    stream.on('data', (chunk: Buffer) => chunks.push(chunk));
+    const onData = (chunk: Buffer): void => { chunks.push(chunk); };
+    const onEnd = (): void => {
+      bodyEnded = true;
+      resolveBody?.();
+    };
+    let resolveBody: (() => void) | undefined;
+    const onClose = (): void => {
+      if (!requestFinished && (!bodyEnded || requestStarted)) abortController.abort();
+      if (!bodyEnded) {
+        bodyEnded = true;
+        resolveBody?.();
+      }
+    };
+    const onAborted = (): void => abortController.abort();
+    stream.on('data', onData);
+    stream.once('end', onEnd);
+    stream.once('close', onClose);
+    stream.once('aborted', onAborted);
 
-    await new Promise<void>((resolve) => stream.once('end', resolve));
+    await new Promise<void>((resolve) => {
+      resolveBody = resolve;
+      if (bodyEnded) resolve();
+    });
     const body = Buffer.concat(chunks);
 
     const path = String(headers[':path'] ?? '/').split('?')[0] ?? '/';
@@ -178,7 +202,8 @@ export function streetHttp2App(opts: {
     const fakeRes = buildFakeServerResponse(stream as ServerHttp2Stream);
 
     const requestContainer = opts.requestScope ? appContainer.createScope() : undefined;
-    const ctx = createContext(fakeReq, fakeRes, path, query, requestContainer);
+    const ctx = createContext(fakeReq, fakeRes, path, query, requestContainer, abortController.signal);
+    requestStarted = true;
 
     // Parse JSON body
     if (body.length > 0) {
@@ -211,7 +236,15 @@ export function streetHttp2App(opts: {
         await errorHandler(ctx, err, { response: opts.errorResponse as ErrorResponseMode | undefined });
       }
     } finally {
-      if (requestContainer) await requestContainer.dispose();
+      requestFinished = true;
+      try {
+        if (requestContainer) await requestContainer.dispose();
+      } finally {
+        stream.removeListener('data', onData);
+        stream.removeListener('end', onEnd);
+        stream.removeListener('close', onClose);
+        stream.removeListener('aborted', onAborted);
+      }
     }
   });
 

@@ -65,7 +65,16 @@ test('createContext normalizes method, headers, and sets sane defaults', () => {
   assert.deepEqual(ctx.state, {});
   assert.equal(ctx.user, null);
   assert.equal(typeof ctx.startTime, 'bigint');
+  assert.equal(ctx.signal.aborted, false);
   assert.equal(ctx.sent, false);
+});
+
+test('createContext accepts a cooperative abort signal', () => {
+  const controller = new AbortController();
+  const ctx = createContext(makeReq(), makeRes(), '/', {}, undefined, controller.signal);
+  assert.equal(ctx.signal, controller.signal);
+  controller.abort();
+  assert.equal(ctx.signal.aborted, true);
 });
 
 test('method defaults to GET when the request has none', () => {

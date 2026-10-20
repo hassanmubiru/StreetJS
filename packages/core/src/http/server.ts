@@ -87,6 +87,23 @@ export function streetApp(options: StreetAppOptions = {}): StreetHttpApp {
 
   /** The core per-request handler extracted for direct in-process dispatch. */
   async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    const abortController = new AbortController();
+    const onRequestAborted = (): void => abortController.abort();
+    const onRequestClose = (): void => {
+      if (!res.writableFinished && !res.writableEnded) abortController.abort();
+    };
+    const onResponseClose = (): void => {
+      if (!res.writableFinished && !res.writableEnded) abortController.abort();
+    };
+    req.once('aborted', onRequestAborted);
+    req.once('close', onRequestClose);
+    res.once('close', onResponseClose);
+    const removeTransportListeners = (): void => {
+      req.removeListener('aborted', onRequestAborted);
+      req.removeListener('close', onRequestClose);
+      res.removeListener('close', onResponseClose);
+    };
+
     // Per-request timeout
     const reqTimeout = setTimeout(() => {
       if (!res.writableEnded) {
@@ -108,6 +125,7 @@ export function streetApp(options: StreetAppOptions = {}): StreetHttpApp {
     } catch {
       res.writeHead(400);
       res.end('Bad Request URI');
+      removeTransportListeners();
       return;
     }
 
@@ -118,7 +136,7 @@ export function streetApp(options: StreetAppOptions = {}): StreetHttpApp {
     });
 
     const requestContainer = options.requestScope ? appContainer.createScope() : undefined;
-    const ctx = createContext(req, res, path, query, requestContainer);
+    const ctx = createContext(req, res, path, query, requestContainer, abortController.signal);
 
     try {
       // Parse body before dispatching
@@ -142,7 +160,11 @@ export function streetApp(options: StreetAppOptions = {}): StreetHttpApp {
         await errorHandler(ctx, err, { response: options.errorResponse ?? 'legacy' });
       }
     } finally {
-      if (requestContainer) await requestContainer.dispose();
+      try {
+        if (requestContainer) await requestContainer.dispose();
+      } finally {
+        removeTransportListeners();
+      }
     }
   }
 

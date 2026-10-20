@@ -89,6 +89,7 @@ function makeCtx(opts: {
     state: {},
     user: null,
     startTime: process.hrtime.bigint(),
+    signal: new AbortController().signal,
     sent: false,
     json: () => undefined,
     text: (data: string, status = 200) => { bodyText = data; sentStatus = status; },

@@ -48,7 +48,9 @@ Every row was reviewed against these questions:
 - Failed formal plugin enable and application plugin loads previously retained
   sandbox registrations; ADRs 0020–0021 fix these narrow paths. The remaining
   audit labels are not certification of all failure behavior: a cross-package
-  lifecycle contract suite is still absent.
+  lifecycle contract suite is still absent. Request cancellation is cooperative
+  through `StreetContext.signal` per ADR 0022; arbitrary promise cancellation
+  and live HTTP/2 abort coverage remain out of scope.
 - `destroy()` versus `close()`/`dispose()` naming is inconsistent for some
   standalone capabilities. Unifying it requires an ADR and compatibility review.
 - External-service tests are not claimed as passing when Redis/PostgreSQL or
