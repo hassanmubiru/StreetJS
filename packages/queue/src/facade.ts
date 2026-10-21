@@ -185,8 +185,8 @@ class QueueFacade implements Queue {
 
   /** Cached driver initialization promise (see {@link ensureInitialized}). */
   private initPromise?: Promise<void>;
-  /** Set once {@link close} has been invoked. */
-  private closed = false;
+  /** Shared close promise so concurrent/repeated closes observe one outcome. */
+  private closePromise?: Promise<void>;
 
   constructor(options: QueueOptions = {}) {
     this.options = options;
@@ -426,18 +426,26 @@ class QueueFacade implements Queue {
     };
   }
 
-  async close(): Promise<void> {
-    if (this.closed) {
-      return;
-    }
-    this.closed = true;
-    // Stop reserving new jobs and await in-flight completion across all workers,
-    // stop the scheduler's promotion loop / cron timers, then close the driver
-    // (Req 14.6). The scheduler is stopped before the driver closes so no
-    // in-flight promotion tick touches a closing driver.
-    await Promise.all([...this.workers].map((worker) => worker.stop()));
-    await this.scheduler.stop();
-    await this.driver.close();
+  close(): Promise<void> {
+    this.closePromise ??= (async () => {
+      const cleanupErrors: unknown[] = [];
+
+      // Stop reserving new jobs and await in-flight completion across all
+      // workers. Continue stopping every worker if one drain fails.
+      await Promise.all([...this.workers].map(async (worker) => {
+        try { await worker.stop(); } catch (error) { cleanupErrors.push(error); }
+      }));
+
+      // Stop the scheduler before the driver closes so no promotion tick can
+      // touch a closing driver, while still preserving later cleanup failures.
+      try { await this.scheduler.stop(); } catch (error) { cleanupErrors.push(error); }
+      try { await this.driver.close(); } catch (error) { cleanupErrors.push(error); }
+
+      if (cleanupErrors.length > 0) {
+        throw new AggregateError(cleanupErrors, 'Queue resource cleanup failed');
+      }
+    })();
+    return this.closePromise;
   }
 
   /**
