@@ -18,6 +18,10 @@ function once<T = unknown>(emitter: { once(e: string, cb: (arg: T) => void): unk
   return new Promise((resolve) => emitter.once(event, resolve));
 }
 
+function closeHttp(server: Server): Promise<void> {
+  return new Promise((resolve) => server.close(() => resolve()));
+}
+
 test('attach: echo round-trip over a real client', async () => {
   const server = createServer();
   const wss = new StreetWebSocketServer({ path: '/ws' });
@@ -67,11 +71,11 @@ test('broadcast reaches all clients and connectionCount tracks them', async () =
 test('server socket onClose fires when the client disconnects', async () => {
   const server = createServer();
   const wss = new StreetWebSocketServer({ path: '/ws' });
-  let closed = false;
+  let closed = 0;
   const gotClose = new Promise<void>((resolve) => {
     wss.attach(server, (socket) => {
       socket.onClose(() => {
-        closed = true;
+        closed += 1;
         resolve();
       });
     });
@@ -81,7 +85,8 @@ test('server socket onClose fires when the client disconnects', async () => {
   await once(client, 'open');
   client.close();
   await gotClose;
-  assert.equal(closed, true);
+  await new Promise((resolve) => setTimeout(resolve, 10));
+  assert.equal(closed, 1);
   await wss.close();
   await new Promise<void>((r) => server.close(() => r()));
 });
@@ -219,4 +224,70 @@ test('attachProtocol negotiates a subprotocol and hands over the raw socket', as
   client.close();
   await wss.close();
   await new Promise<void>((r) => server.close(() => r()));
+});
+
+test('two apps own separate paths on one HTTP server and query strings match by pathname', async () => {
+  const server = createServer();
+  const first = new StreetWebSocketServer({ path: '/first' });
+  const second = new StreetWebSocketServer({ path: '/second' });
+  first.attach(server, (socket) => socket.on('ping', () => socket.emit('reply', 'first')));
+  second.attach(server, (socket) => socket.on('ping', () => socket.emit('reply', 'second')));
+  const port = await listen(server);
+  const a = new WebSocket(`ws://127.0.0.1:${port}/first?tenant=a`);
+  const b = new WebSocket(`ws://127.0.0.1:${port}/second?tenant=b`);
+  await Promise.all([once(a, 'open'), once(b, 'open')]);
+  const am = once<Buffer>(a, 'message');
+  const bm = once<Buffer>(b, 'message');
+  a.send(JSON.stringify({ type: 'ping', payload: null, ts: 0 }));
+  b.send(JSON.stringify({ type: 'ping', payload: null, ts: 0 }));
+  assert.equal(JSON.parse((await am).toString()).payload, 'first');
+  assert.equal(JSON.parse((await bm).toString()).payload, 'second');
+  assert.equal(first.connectionCount, 1);
+  assert.equal(second.connectionCount, 1);
+  a.close();
+  await first.close();
+  assert.equal(second.connectionCount, 1);
+  b.close();
+  await second.close();
+  await closeHttp(server);
+});
+
+test('close is idempotent, stops heartbeat, detaches upgrades, and closes protocol clients', async () => {
+  const server = createServer();
+  const wss = new StreetWebSocketServer({ path: '/ws', heartbeatIntervalMs: 10 });
+  wss.attach(server, () => {});
+  wss.attachProtocol(server, 'raw', () => {});
+  const port = await listen(server);
+  const client = new WebSocket(`ws://127.0.0.1:${port}/ws`, 'raw');
+  await once(client, 'open');
+  const closed = once<number>(client, 'close');
+  const closing = wss.close();
+  assert.strictEqual(closing, wss.close());
+  await closing;
+  assert.equal(await closed, 1006);
+  assert.equal((wss as unknown as { heartbeatTimer: NodeJS.Timeout | null }).heartbeatTimer, null);
+  const rejected = new WebSocket(`ws://127.0.0.1:${port}/ws`);
+  const result = await Promise.race([
+    once(rejected, 'open').then(() => 'open'),
+    once(rejected, 'error').then(() => 'error'),
+    new Promise<string>((resolve) => setTimeout(() => resolve('timeout'), 100)),
+  ]);
+  assert.notEqual(result, 'open');
+  rejected.close();
+  await closeHttp(server);
+});
+
+test('accepted handler throws are contained and the client is closed', async () => {
+  const server = createServer();
+  const wss = new StreetWebSocketServer({ path: '/ws' });
+  wss.attach(server, () => { throw new Error('handler failure'); });
+  const port = await listen(server);
+  const client = new WebSocket(`ws://127.0.0.1:${port}/ws`);
+  const code = await new Promise<number>((resolve) => {
+    client.on('close', (value) => resolve(value));
+    client.on('error', () => {});
+  });
+  assert.equal(code, 1011);
+  await wss.close();
+  await closeHttp(server);
 });

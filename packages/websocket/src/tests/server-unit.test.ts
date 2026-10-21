@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
 import type { IncomingMessage } from 'node:http';
+import type { WebSocket } from 'ws';
 
 import {
   StreetSocket,
@@ -132,4 +133,16 @@ test('StreetSocket exposes id and readyState', () => {
   const socket = new StreetSocket(ws as never);
   assert.match(socket.id, /[0-9a-f-]{36}/);
   assert.equal(socket.readyState, 1);
+});
+
+test('server close continues terminating clients after one terminate throws', async () => {
+  const { StreetWebSocketServer } = await import('../server.js');
+  const server = new StreetWebSocketServer();
+  let secondTerminated = 0;
+  const first = { terminate: () => { throw new Error('terminate failed'); } } as unknown as WebSocket;
+  const second = { terminate: () => { secondTerminated += 1; } } as unknown as WebSocket;
+  (server as unknown as { clients: Set<WebSocket> }).clients.add(first);
+  (server as unknown as { clients: Set<WebSocket> }).clients.add(second);
+  await assert.rejects(server.close(), /terminate failed/);
+  assert.equal(secondTerminated, 1);
 });

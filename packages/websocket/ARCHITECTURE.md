@@ -46,7 +46,10 @@ and `streetjs/sse` subpaths and all internal imports resolve to one implementati
 and dispatching to `on(type)` handlers plus a `*` wildcard; malformed frames are ignored.
 It exposes an idempotent close with `onClose` callbacks and a stable `id`. The server
 tracks live clients, an optional unref'd heartbeat (`ping`/`pong`, reaping the unresponsive),
-and both a default handler path (`attach`) and a subprotocol path (`attachProtocol`).
+and both a default handler path (`attach`) and a subprotocol path (`attachProtocol`). Each
+server owns its upgrade listeners, clients, heartbeat, and protocol WebSocketServers;
+`close()` detaches listeners, stops the heartbeat, terminates all owned clients, and is
+memoized. Path matching uses the URL pathname so query parameters do not change ownership.
 
 ## Channel hub
 
@@ -66,7 +69,8 @@ connections. For horizontal scale, place a pub/sub fan-out in front of `publish`
 - **server (unit)** — origin helpers and `StreetSocket` with a fake `ws`.
 - **server (integration)** — a real `http.Server` + `ws` client: echo, broadcast +
   `connectionCount`, `onClose`, origin `403`, auth `401`, capacity `1013`, heartbeat, and
-  `attachProtocol` (happy path + origin/auth/capacity).
+  `attachProtocol` (happy path + origin/auth/capacity), multi-app path ownership,
+  idempotent shutdown, post-close rejection, and handler-failure cleanup.
 
 Coverage is enforced by `c8` (lines/functions/statements ≥90, branches ≥85 — the server
 has defensive socket branches that are impractical to force from integration tests); the

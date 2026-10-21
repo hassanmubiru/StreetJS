@@ -183,10 +183,15 @@ export function isOriginAllowed(req: IncomingMessage, allowedOrigins: string[] |
 export class StreetWebSocketServer {
   private readonly wss: WebSocketServer;
   private readonly clients = new Set<WebSocket>();
+  private readonly protocolServers = new Set<WebSocketServer>();
+  private readonly protocolNames = new Set<string>();
+  private readonly upgradeListeners: Array<{ server: Server; listener: (req: IncomingMessage, socket: import('node:stream').Duplex, head: Buffer) => void }> = [];
   private readonly MAX_CLIENTS: number;
   private readonly authFn: ((req: IncomingMessage) => boolean | Promise<boolean>) | undefined;
   private readonly allowedOrigins: string[] | undefined;
   private heartbeatTimer: NodeJS.Timeout | null = null;
+  private closed = false;
+  private closePromise: Promise<void> | null = null;
 
   constructor(options: WsServerOptions = {}) {
     this.MAX_CLIENTS = options.maxConnections ?? 10_000;
@@ -251,12 +256,17 @@ export class StreetWebSocketServer {
 
   /** Attach to an existing HTTP server (upgrade handling) */
   attach(server: Server, handler: WsHandler): void {
-    server.on('upgrade', async (req, socket, head) => {
-      if (this.wss.options.path && req.url !== this.wss.options.path) {
+    const listener = async (req: IncomingMessage, socket: import('node:stream').Duplex, head: Buffer): Promise<void> => {
+      if (this.closed) {
         socket.destroy();
         return;
       }
-
+      if (this.wss.options.path && new URL(req.url ?? '/', 'http://localhost').pathname !== this.wss.options.path) {
+        return;
+      }
+      const requestedProtocols = String(req.headers['sec-websocket-protocol'] ?? '')
+        .split(',').map((protocol) => protocol.trim()).filter(Boolean);
+      if (requestedProtocols.some((protocol) => this.protocolNames.has(protocol))) return;
       // F-R2: reject disallowed origins before the auth hook / handshake so a
       // cross-origin upgrade never produces a `connection` event (Req 3.4/3.5).
       if (!isOriginAllowed(req, this.allowedOrigins)) {
@@ -284,9 +294,16 @@ export class StreetWebSocketServer {
 
       this.wss.handleUpgrade(req, socket, head, (ws) => {
         this.wss.emit('connection', ws, req);
-        handler(new StreetSocket(ws), req);
+        const streetSocket = new StreetSocket(ws);
+        try {
+          handler(streetSocket, req);
+        } catch {
+          try { ws.close(1011, 'Handler failed'); } catch { ws.terminate(); }
+        }
       });
-    });
+    };
+    server.on('upgrade', listener);
+    this.upgradeListeners.push({ server, listener });
   }
 
   /**
@@ -302,12 +319,21 @@ export class StreetWebSocketServer {
       maxPayload: 512 * 1024,
       handleProtocols: (protocols: Set<string>) => (protocols.has(subprotocol) ? subprotocol : false),
     });
+    this.protocolServers.add(protoWss);
+    this.protocolNames.add(subprotocol);
 
-    server.on('upgrade', async (req, socket, head) => {
-      // Only handle the configured path; leave other upgrades to their handlers.
-      if (this.wss.options.path && req.url !== this.wss.options.path) {
+    const listener = async (req: IncomingMessage, socket: import('node:stream').Duplex, head: Buffer): Promise<void> => {
+      if (this.closed) {
+        socket.destroy();
         return;
       }
+      // Only handle the configured path; leave other upgrades to their handlers.
+      if (this.wss.options.path && new URL(req.url ?? '/', 'http://localhost').pathname !== this.wss.options.path) {
+        return;
+      }
+      const requestedProtocols = String(req.headers['sec-websocket-protocol'] ?? '')
+        .split(',').map((protocol) => protocol.trim()).filter(Boolean);
+      if (!requestedProtocols.includes(subprotocol)) return;
 
       // F-R2: reject disallowed origins before the auth hook / handshake so a
       // cross-origin upgrade never produces a `connection` event (Req 3.4/3.5).
@@ -345,9 +371,15 @@ export class StreetWebSocketServer {
           this.clients.delete(ws);
           ws.terminate();
         });
-        handler(ws, req);
+        try {
+          handler(ws, req);
+        } catch {
+          try { ws.close(1011, 'Handler failed'); } catch { ws.terminate(); }
+        }
       });
-    });
+    };
+    server.on('upgrade', listener);
+    this.upgradeListeners.push({ server, listener });
   }
 
   /** Broadcast a message to all connected clients */
@@ -361,10 +393,38 @@ export class StreetWebSocketServer {
   }
 
   close(): Promise<void> {
-    if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
-    for (const ws of this.clients) ws.terminate();
-    this.clients.clear();
-    return new Promise((resolve) => this.wss.close(() => resolve()));
+    if (this.closePromise) return this.closePromise;
+    this.closed = true;
+    for (const { server, listener } of this.upgradeListeners) server.off('upgrade', listener);
+    this.upgradeListeners.length = 0;
+    if (this.heartbeatTimer) {
+      clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = null;
+    }
+
+    this.closePromise = new Promise<void>((resolve, reject) => {
+      let firstError: unknown;
+      for (const ws of this.clients) {
+        try { ws.terminate(); } catch (error) { if (firstError === undefined) firstError = error; }
+      }
+      this.clients.clear();
+      const servers = [this.wss, ...this.protocolServers];
+      this.protocolServers.clear();
+      let remaining = servers.length;
+      const done = (): void => {
+        remaining -= 1;
+        if (remaining !== 0) return;
+        if (firstError !== undefined) reject(firstError);
+        else resolve();
+      };
+      for (const wss of servers) {
+        try { wss.close(done); } catch (error) {
+          if (firstError === undefined) firstError = error;
+          done();
+        }
+      }
+    });
+    return this.closePromise;
   }
 
   get connectionCount(): number { return this.clients.size; }
