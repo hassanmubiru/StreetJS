@@ -26,8 +26,10 @@ signal unless the caller supplies one.
 The context property and optional argument are additive. Normal completed
 requests keep their signal active and retain existing response behavior. This
 does not define a framework-wide cancellation contract for queues, workflows,
-database drivers, or plugin cleanup. HTTP/2 lifecycle coverage does not open a
-TLS listener; live HTTP/2 abort behavior remains a follow-up.
+database drivers, or plugin cleanup. HTTP/2 lifecycle coverage uses a real TLS
+listener with a runtime-generated self-signed certificate. Normal stream
+completion leaves the signal active; reset streams abort cooperatively, dispose
+request scopes once, remove transport listeners, and leave the session usable.
 
 ## Evidence
 
@@ -40,5 +42,7 @@ node --test packages/core/dist/src/tests/request-abort.test.js
 ```
 
 The context suite passes 19 tests. The focused HTTP suite covers normal
-completion and a real HTTP/1.1 client disconnect, including signal notification,
-transport-listener cleanup, and request-scope disposal.
+completion and real HTTP/1.1 and TLS HTTP/2 client disconnects, including signal
+notification, transport-listener cleanup, request-scope disposal, session reuse,
+and graceful drain. The HTTP/2 test is classified as skipped only when the
+`openssl` executable is unavailable.

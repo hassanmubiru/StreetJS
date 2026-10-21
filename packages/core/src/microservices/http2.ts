@@ -15,6 +15,7 @@ import { getControllerMeta, getRoutesMeta } from '../core/decorators.js';
 import { generateOpenApi } from '../http/openapi.js';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { EventEmitter } from 'node:events';
+import { Readable } from 'node:stream';
 import type { PluginModule, SandboxedApp } from '../platform/plugins/sdk.js';
 
 // ── Internal types ─────────────────────────────────────────────────────────────
@@ -33,7 +34,6 @@ function buildFakeIncomingMessage(
   stream: ServerHttp2Stream,
   body: Buffer,
 ): IncomingMessage {
-  const { Readable } = require('node:stream') as typeof import('node:stream');
   const readable = Readable.from([body]) as unknown as IncomingMessage;
 
   Object.defineProperties(readable, {
@@ -46,7 +46,7 @@ function buildFakeIncomingMessage(
   return readable;
 }
 
-function buildFakeServerResponse(stream: ServerHttp2Stream): ServerResponse {
+function buildFakeServerResponse(stream: ServerHttp2Stream, onEnd: () => void): ServerResponse {
   let statusCode = 200;
   const resHeaders: Record<string, string | string[]> = {};
   let ended = false;
@@ -90,9 +90,10 @@ function buildFakeServerResponse(stream: ServerHttp2Stream): ServerResponse {
       if (ended) return;
       ended = true;
       (fakeRes as { writableEnded: boolean }).writableEnded = true;
+      onEnd();
 
-      const responseHeaders: Record<string, string | string[]> = {
-        ':status': String(statusCode),
+      const responseHeaders: Record<string, string | string[] | number> = {
+        ':status': statusCode,
         ...resHeaders,
       };
 
@@ -134,11 +135,15 @@ function normalizePath(p: string): string {
 
 // ── streetHttp2App ─────────────────────────────────────────────────────────────
 
+export interface StreetHttp2App extends StreetApp {
+  readonly server: Http2SecureServer;
+}
+
 export function streetHttp2App(opts: {
   port?: number;
   key?: Buffer;
   cert?: Buffer;
-} & StreetAppOptions = {}): StreetApp {
+} & StreetAppOptions = {}): StreetHttp2App {
   const ownsContainer = opts.containerOwnership === 'app';
   const appContainer: Container = opts.container ?? (ownsContainer ? createContainer() : container);
   const router = new Router();
@@ -158,11 +163,13 @@ export function streetHttp2App(opts: {
     allowHTTP1: true, // Accept HTTP/1.1 fallback
   });
 
-  server.on('stream', async (stream, headers) => {
+  const handleStream = async (stream: ServerHttp2Stream, headers: IncomingHttpHeaders): Promise<void> => {
     const abortController = new AbortController();
     let bodyEnded = false;
-    let requestStarted = false;
     let requestFinished = false;
+    let responseFinished = false;
+    let requestContainer: Container | undefined;
+    let ctx: ReturnType<typeof createContext> | undefined;
     // Collect body
     const chunks: Buffer[] = [];
     const onData = (chunk: Buffer): void => { chunks.push(chunk); };
@@ -172,7 +179,7 @@ export function streetHttp2App(opts: {
     };
     let resolveBody: (() => void) | undefined;
     const onClose = (): void => {
-      if (!requestFinished && (!bodyEnded || requestStarted)) abortController.abort();
+      if (!requestFinished && !responseFinished) abortController.abort();
       if (!bodyEnded) {
         bodyEnded = true;
         resolveBody?.();
@@ -183,45 +190,49 @@ export function streetHttp2App(opts: {
     stream.once('end', onEnd);
     stream.once('close', onClose);
     stream.once('aborted', onAborted);
-
-    await new Promise<void>((resolve) => {
-      resolveBody = resolve;
-      if (bodyEnded) resolve();
-    });
-    const body = Buffer.concat(chunks);
-
-    const path = String(headers[':path'] ?? '/').split('?')[0] ?? '/';
-    const queryStr = String(headers[':path'] ?? '').split('?')[1] ?? '';
-
-    const query: Record<string, string> = {};
-    if (queryStr) {
-      for (const [k, v] of new URLSearchParams(queryStr)) {
-        query[k] = v;
-      }
-    }
-
-    const fakeReq = buildFakeIncomingMessage(headers, stream as ServerHttp2Stream, body);
-    const fakeRes = buildFakeServerResponse(stream as ServerHttp2Stream);
-
-    const requestContainer = opts.requestScope ? appContainer.createScope() : undefined;
-    const ctx = createContext(fakeReq, fakeRes, path, query, requestContainer, abortController.signal);
-    requestStarted = true;
-
-    // Parse JSON body
-    if (body.length > 0) {
-      const contentType = String(headers['content-type'] ?? '');
-      if (contentType.includes('application/json')) {
-        try {
-          (ctx as unknown as Record<string, unknown>)['body'] = JSON.parse(body.toString('utf8'));
-        } catch {
-          (ctx as unknown as Record<string, unknown>)['body'] = null;
-        }
-      } else {
-        (ctx as unknown as Record<string, unknown>)['body'] = body.toString('utf8');
-      }
-    }
+    stream.resume();
 
     try {
+      await new Promise<void>((resolve) => {
+        resolveBody = resolve;
+        const method = String(headers[':method'] ?? 'GET').toUpperCase();
+        if (bodyEnded || ((method === 'GET' || method === 'HEAD') && headers['content-length'] === undefined)) {
+          bodyEnded = true;
+          resolve();
+        }
+      });
+      const body = Buffer.concat(chunks);
+
+      const path = String(headers[':path'] ?? '/').split('?')[0] ?? '/';
+      const queryStr = String(headers[':path'] ?? '').split('?')[1] ?? '';
+
+      const query: Record<string, string> = {};
+      if (queryStr) {
+        for (const [k, v] of new URLSearchParams(queryStr)) {
+          query[k] = v;
+        }
+      }
+
+      const fakeReq = buildFakeIncomingMessage(headers, stream, body);
+      const fakeRes = buildFakeServerResponse(stream, () => { responseFinished = true; });
+
+      requestContainer = opts.requestScope ? appContainer.createScope() : undefined;
+      ctx = createContext(fakeReq, fakeRes, path, query, requestContainer, abortController.signal);
+
+      // Parse JSON body
+      if (body.length > 0) {
+        const contentType = String(headers['content-type'] ?? '');
+        if (contentType.includes('application/json')) {
+          try {
+            (ctx as unknown as Record<string, unknown>)['body'] = JSON.parse(body.toString('utf8'));
+          } catch {
+            (ctx as unknown as Record<string, unknown>)['body'] = null;
+          }
+        } else {
+          (ctx as unknown as Record<string, unknown>)['body'] = body.toString('utf8');
+        }
+      }
+
       const pipeline: MiddlewareFn[] = [
         ...globalMiddlewares,
         async (c, next) => {
@@ -234,8 +245,14 @@ export function streetHttp2App(opts: {
       ];
       await runPipeline(ctx, pipeline, 0);
     } catch (err) {
-      if (!ctx.sent) {
-        await errorHandler(ctx, err, { response: opts.errorResponse as ErrorResponseMode | undefined });
+      // A reset can reject response writes; there is no transport left to report it to.
+      // Handler errors are otherwise translated through the normal error handler.
+      if (ctx && !ctx.sent && !abortController.signal.aborted) {
+        try {
+          await errorHandler(ctx, err, { response: opts.errorResponse as ErrorResponseMode | undefined });
+        } catch {
+          // Best effort only: reset/destroyed streams cannot accept an error response.
+        }
       }
     } finally {
       requestFinished = true;
@@ -248,6 +265,12 @@ export function streetHttp2App(opts: {
         stream.removeListener('aborted', onAborted);
       }
     }
+  };
+
+  server.on('stream', (stream, headers) => {
+    void handleStream(stream as ServerHttp2Stream, headers).catch(() => {
+      // Keep transport event delivery from producing an unhandled rejection.
+    });
   });
 
   async function unloadPluginResources(plugin: PluginModule): Promise<void> {
@@ -280,6 +303,7 @@ export function streetHttp2App(opts: {
   }
 
   return {
+    server,
     container: appContainer,
     get lifecycleState(): StreetAppLifecycleState { return lifecycleState; },
     use(mw: MiddlewareFn): void {
