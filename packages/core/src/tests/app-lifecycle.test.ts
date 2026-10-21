@@ -76,7 +76,12 @@ test('application shutdown preserves cleanup failure and remains in DRAINING', a
   const firstClose = app.close();
   const secondClose = app.close();
   assert.equal(firstClose, secondClose);
-  await assert.rejects(firstClose, /resource close failed/);
+  await assert.rejects(firstClose, (error: unknown) => {
+    assert.ok(error instanceof AggregateError);
+    assert.equal(error.errors.length, 1);
+    assert.equal((error.errors[0] as Error).message, 'resource close failed');
+    return true;
+  });
   assert.equal(app.lifecycleState, 'DRAINING');
 });
 

@@ -250,6 +250,35 @@ export function streetHttp2App(opts: {
     }
   });
 
+  async function unloadPluginResources(plugin: PluginModule): Promise<void> {
+    const added = pluginMiddlewares.get(plugin);
+    if (!added) return;
+    const errors: unknown[] = [];
+    const sandbox: SandboxedApp = {
+      use(): void {},
+      on(): () => void { return () => {}; },
+      addCleanup(): () => void { return () => {}; },
+    };
+    try {
+      if (plugin.onUnload) await plugin.onUnload(sandbox);
+    } catch (error) {
+      errors.push(error);
+    }
+    for (const cleanup of [...(pluginCleanups.get(plugin) ?? [])].reverse()) {
+      try { await cleanup(); } catch (error) { errors.push(error); }
+    }
+    for (const mw of [...added].reverse()) {
+      const index = globalMiddlewares.lastIndexOf(mw);
+      if (index !== -1) globalMiddlewares.splice(index, 1);
+    }
+    pluginListeners.delete(plugin);
+    pluginCleanups.delete(plugin);
+    pluginMiddlewares.delete(plugin);
+    if (errors.length > 0) {
+      throw new AggregateError(errors, `Plugin "${plugin.name}" cleanup failed`);
+    }
+  }
+
   return {
     container: appContainer,
     get lifecycleState(): StreetAppLifecycleState { return lifecycleState; },
@@ -406,7 +435,14 @@ export function streetHttp2App(opts: {
           try {
             await listenPromise;
           } catch (startupError) {
+            let disposeError: unknown;
+            if (ownsContainer) {
+              try { await appContainer.dispose(); } catch (error) { disposeError = error; }
+            }
             lifecycleState = 'CLOSED';
+            if (disposeError) {
+              throw new AggregateError([startupError, disposeError], 'Application startup and cleanup failed', { cause: startupError });
+            }
             throw startupError;
           }
         }
@@ -416,7 +452,21 @@ export function streetHttp2App(opts: {
             server.close((err) => err ? reject(err) : resolve());
           });
         }
-        if (ownsContainer) await appContainer.dispose();
+        const pluginErrors: unknown[] = [];
+        for (const plugin of [...pluginMiddlewares.keys()]) {
+          try {
+            await unloadPluginResources(plugin);
+          } catch (error) {
+            pluginErrors.push(error);
+          }
+        }
+        const cleanupErrors = [...pluginErrors];
+        if (ownsContainer) {
+          try { await appContainer.dispose(); } catch (error) { cleanupErrors.push(error); }
+        }
+        if (cleanupErrors.length > 0) {
+          throw new AggregateError(cleanupErrors, 'Application resource cleanup failed');
+        }
         lifecycleState = 'CLOSED';
       })();
       return closePromise;

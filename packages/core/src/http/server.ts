@@ -218,20 +218,22 @@ export function streetApp(options: StreetAppOptions = {}): StreetHttpApp {
       let resolveRef: (value: void) => void;
       let rejectRef: (err: Error) => void;
 
-      await new Promise<void>((resolve, reject) => {
-        resolveRef = resolve;
-        rejectRef = reject;
-        req.on('data', onData);
-        req.on('end', onEnd);
-        req.on('error', onError);
-        req.on('aborted', onAborted);
-      });
-
-      // Clean up event listeners after body is fully consumed
-      req.removeListener('data', onData);
-      req.removeListener('end', onEnd);
-      req.removeListener('error', onError);
-      req.removeListener('aborted', onAborted);
+      try {
+        await new Promise<void>((resolve, reject) => {
+          resolveRef = resolve;
+          rejectRef = reject;
+          req.on('data', onData);
+          req.on('end', onEnd);
+          req.on('error', onError);
+          req.on('aborted', onAborted);
+        });
+      } finally {
+        // Clean up event listeners on success and every rejection/error path.
+        req.removeListener('data', onData);
+        req.removeListener('end', onEnd);
+        req.removeListener('error', onError);
+        req.removeListener('aborted', onAborted);
+      }
 
       if (chunks.length === 0) return;
       const raw = Buffer.concat(chunks).toString('utf8');
@@ -252,6 +254,35 @@ export function streetApp(options: StreetAppOptions = {}): StreetHttpApp {
       } else {
         (ctx as unknown as Record<string, unknown>)['body'] = raw;
       }
+    }
+  }
+
+  async function unloadPluginResources(plugin: PluginModule): Promise<void> {
+    const added = pluginMiddlewares.get(plugin);
+    if (!added) return;
+    const errors: unknown[] = [];
+    const sandbox: SandboxedApp = {
+      use(): void { /* no-op during unload */ },
+      on(): () => void { return () => { /* no-op during unload */ }; },
+      addCleanup(): () => void { return () => { /* no-op during unload */ }; },
+    };
+    try {
+      if (plugin.onUnload) await plugin.onUnload(sandbox);
+    } catch (error) {
+      errors.push(error);
+    }
+    for (const cleanup of [...(pluginCleanups.get(plugin) ?? [])].reverse()) {
+      try { await cleanup(); } catch (error) { errors.push(error); }
+    }
+    for (const mw of [...added].reverse()) {
+      const idx = globalMiddlewares.lastIndexOf(mw);
+      if (idx !== -1) globalMiddlewares.splice(idx, 1);
+    }
+    pluginListeners.delete(plugin);
+    pluginCleanups.delete(plugin);
+    pluginMiddlewares.delete(plugin);
+    if (errors.length > 0) {
+      throw new AggregateError(errors, `Plugin "${plugin.name}" cleanup failed`);
     }
   }
 
@@ -330,23 +361,7 @@ export function streetApp(options: StreetAppOptions = {}): StreetHttpApp {
     },
 
     async unloadPlugin(plugin: PluginModule): Promise<void> {
-      const added = pluginMiddlewares.get(plugin);
-      if (!added) return;
-      const sandbox: SandboxedApp = {
-        use(): void { /* no-op during unload */ },
-        on(): () => void { return () => { /* no-op during unload */ }; },
-        addCleanup(): () => void { return () => { /* no-op during unload */ }; },
-      };
-      if (plugin.onUnload) await plugin.onUnload(sandbox);
-      for (const cleanup of [...(pluginCleanups.get(plugin) ?? [])].reverse()) await cleanup();
-      pluginListeners.delete(plugin);
-      pluginCleanups.delete(plugin);
-      // Restore the middleware stack to its pre-load state.
-      for (const mw of [...added].reverse()) {
-        const idx = globalMiddlewares.lastIndexOf(mw);
-        if (idx !== -1) globalMiddlewares.splice(idx, 1);
-      }
-      pluginMiddlewares.delete(plugin);
+      await unloadPluginResources(plugin);
     },
 
     _handleRequest(req: IncomingMessage, res: ServerResponse): void {
@@ -432,7 +447,14 @@ export function streetApp(options: StreetAppOptions = {}): StreetHttpApp {
           try {
             await listenPromise;
           } catch (startupError) {
+            let disposeError: unknown;
+            if (ownsContainer) {
+              try { await appContainer.dispose(); } catch (error) { disposeError = error; }
+            }
             lifecycleState = 'CLOSED';
+            if (disposeError) {
+              throw new AggregateError([startupError, disposeError], 'Application startup and cleanup failed', { cause: startupError });
+            }
             throw startupError;
           }
         }
@@ -442,7 +464,21 @@ export function streetApp(options: StreetAppOptions = {}): StreetHttpApp {
             server.close((err) => err ? reject(err) : resolve());
           });
         }
-        if (ownsContainer) await appContainer.dispose();
+        const pluginErrors: unknown[] = [];
+        for (const plugin of [...pluginMiddlewares.keys()]) {
+          try {
+            await unloadPluginResources(plugin);
+          } catch (error) {
+            pluginErrors.push(error);
+          }
+        }
+        const cleanupErrors = [...pluginErrors];
+        if (ownsContainer) {
+          try { await appContainer.dispose(); } catch (error) { cleanupErrors.push(error); }
+        }
+        if (cleanupErrors.length > 0) {
+          throw new AggregateError(cleanupErrors, 'Application resource cleanup failed');
+        }
         lifecycleState = 'CLOSED';
       })();
       return closePromise;

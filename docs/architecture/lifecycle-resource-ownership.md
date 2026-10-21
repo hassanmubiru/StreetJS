@@ -56,6 +56,11 @@ Every row was reviewed against these questions:
 - Application lifecycle state and graceful close semantics are now explicit for
   HTTP/1.1 and HTTP/2 per ADR 0023. Shutdown timeout, forced cancellation, and
   cross-package resource orchestration remain unimplemented.
+- ADR 0024 adds a reusable HTTP resource conformance harness covering timers,
+  request listeners/scopes, plugin registrations, app-owned resources, failure
+  cleanup, repeated cleanup, and cross-application isolation. This harness is
+  not a certification of WebSocket, queue, storage, workflow, or telemetry
+  lifecycle behavior.
 - External-service tests are not claimed as passing when Redis/PostgreSQL or
   provider credentials are unavailable.
 

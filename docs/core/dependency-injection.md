@@ -295,6 +295,12 @@ const user = await userService.findById('abc-123');
 
 ## Testing with the container
 
+When a container is passed to `streetApp` or `streetHttp2App` with
+`containerOwnership: 'app'`, the application owns its registered resources.
+Closing the application disposes those resources, including when listener
+startup fails. Leave the default ownership as `external` when another
+component is responsible for disposal.
+
 ```typescript
 import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
