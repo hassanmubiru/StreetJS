@@ -25,7 +25,7 @@ Every row was reviewed against these questions:
 |---|---|---|---|---|---|---|
 | HTTP server | `streetApp()` creates the server; app owns it | `StreetApp.close()` transitions through `DRAINING`, drains the listener, and disposes an app-owned container | Failed listen returns to `CREATED`; close cleanup failure preserves `DRAINING` | Lifecycle state is explicit; close is memoized/idempotent and container disposal is awaited | Per-app state; focused lifecycle tests cover pre-listen, concurrent close, active drain, and failure | **Mostly conformant; see ADR 0023** |
 | HTTP/2 server | HTTP/2 factory creates and owns server state | HTTP/2 `close()` follows the same lifecycle state and app-owned container rule | Failed listen returns to `CREATED`; close cleanup failure preserves `DRAINING` | Lifecycle state is explicit; close is memoized/idempotent and container disposal is awaited | Per-app state; TLS integration covers completion, reset, scope disposal, listener cleanup, session reuse, and drain | **Mostly conformant; see ADRs 0022–0023** |
-| WebSocket server | `StreetWebSocketServer` owns sockets and heartbeat timer | `close()` stops heartbeat and closes active connections/server | Connection setup failure paths are locally handled | Async close exists; idempotency needs a cross-instance assertion | Instance-local state; unit/integration tests exist | **Mostly conformant; P2 matrix gap** |
+| WebSocket server | `StreetWebSocketServer` owns sockets and heartbeat timer | `close()` stops heartbeat and closes active connections/server | Connection setup failure paths are locally handled | Async close is memoized/idempotent; application shutdown hook has a bounded grace deadline | Instance-local state; unit/integration tests exist | **Mostly conformant; no forced close deadline on the standalone server** |
 | Queue workers | `Queue` creates workers and scheduler; queue owns them | `Queue.close()` stops workers, scheduler, then driver | Driver-init failure tests exercise unload/close behavior | Closed guard is idempotent; all close calls are awaited | Queue instances own their drivers; lifecycle tests exist | **Conformant** |
 | Queue scheduler/timers | Queue scheduler owns promotion/cron timers | Scheduler stop is called by queue close | Scheduler startup is coupled to queue startup | Stop is awaited by queue close | Instance-local; scheduler tests exist | **Conformant** |
 | Database pools | `Pool` creates idle sweep timer and connections; pool owns them | `Pool.close()` clears timer and closes resources | Pool tests cover failure and cleanup paths | Async close exists; close behavior is tested | Instance-local; injected connection factory enables tests | **Conformant** |
@@ -54,8 +54,9 @@ Every row was reviewed against these questions:
 - `destroy()` versus `close()`/`dispose()` naming is inconsistent for some
   standalone capabilities. Unifying it requires an ADR and compatibility review.
 - Application lifecycle state and graceful close semantics are now explicit for
-  HTTP/1.1 and HTTP/2 per ADR 0023. Shutdown timeout, forced cancellation, and
-  cross-package resource orchestration remain unimplemented.
+  HTTP/1.1 and HTTP/2 per ADR 0023. The cloud shutdown hook now enforces a
+  bounded grace deadline per ADR 0026; forced cancellation and cross-package
+  resource orchestration remain unimplemented.
 - ADR 0024 adds a reusable HTTP resource conformance harness covering timers,
   request listeners/scopes, plugin registrations, app-owned resources, failure
   cleanup, repeated cleanup, and cross-application isolation. This harness is

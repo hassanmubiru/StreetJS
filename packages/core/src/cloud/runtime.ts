@@ -38,21 +38,31 @@ export function registerShutdownHook(app: StreetApp, opts: ShutdownHookOptions =
     if (shuttingDown) return;
     shuttingDown = true;
 
-    const force = setTimeout(() => exit(1), graceMs);
-    force.unref();
-
-    try {
-      await app.close();
-      for (const c of opts.closeables ?? []) {
-        await c.close();
+    let force!: NodeJS.Timeout;
+    const shutdownWork = (async (): Promise<'success' | 'failure'> => {
+      try {
+        await app.close();
+        for (const c of opts.closeables ?? []) {
+          await c.close();
+        }
+        if (opts.onShutdown) await opts.onShutdown();
+        return 'success';
+      } catch {
+        return 'failure';
       }
-      if (opts.onShutdown) await opts.onShutdown();
-      clearTimeout(force);
-      exit(0);
-    } catch {
-      clearTimeout(force);
-      exit(1);
-    }
+    })();
+    const timeout = new Promise<'timeout'>((resolve) => {
+      force = setTimeout(() => {
+        exit(1);
+        resolve('timeout');
+      }, graceMs);
+      force.unref();
+    });
+
+    const result = await Promise.race([shutdownWork, timeout]);
+    clearTimeout(force);
+    if (result === 'success') exit(0);
+    else if (result === 'failure') exit(1);
   };
 
   const onTerm = (): void => { void shutdown('SIGTERM'); };

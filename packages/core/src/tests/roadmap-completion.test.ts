@@ -215,6 +215,37 @@ describe('Cloud runtime helpers', () => {
     assert.equal(exitCode, 0);
     dispose();
   });
+
+  it('registerShutdownHook exits 1 at the grace deadline without running later shutdown work', async () => {
+    let exitCode = -1;
+    let onShutdownCalled = false;
+    const app = {
+      close: () => new Promise<void>(() => {}),
+    } as unknown as import('../http/server.js').StreetApp;
+    const dispose = registerShutdownHook(app, {
+      graceMs: 10,
+      onShutdown: () => { onShutdownCalled = true; },
+      exit: (code) => { exitCode = code; },
+    });
+    process.emit('SIGTERM');
+    await new Promise((r) => setTimeout(r, 30));
+    assert.equal(exitCode, 1);
+    assert.equal(onShutdownCalled, false);
+    dispose();
+  });
+
+  it('registerShutdownHook exits 1 when a closeable fails', async () => {
+    let exitCode = -1;
+    const app = { close: async () => {} } as unknown as import('../http/server.js').StreetApp;
+    const dispose = registerShutdownHook(app, {
+      closeables: [{ close: async () => { throw new Error('close failed'); } }],
+      exit: (code) => { exitCode = code; },
+    });
+    process.emit('SIGTERM');
+    await new Promise((r) => setTimeout(r, 20));
+    assert.equal(exitCode, 1);
+    dispose();
+  });
 });
 
 // ── Plugin lifecycle (load/unload round-trip) ─────────────────────────────────
