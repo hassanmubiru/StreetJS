@@ -466,3 +466,33 @@ test("an engine run exercising ctx.if, an immediate ctx.sleep(0), and ctx.state 
   assert.equal(persisted?.state["path"], "then", "durable state is persisted on the run snapshot");
   await engine.close();
 });
+
+test("engine close is memoized and aborts active cooperative activities", async () => {
+  const engine = createWorkflow({ clock: CLOCK });
+  let activityStarted!: () => void;
+  const started = new Promise<void>((resolve) => { activityStarted = resolve; });
+  let activityAborted = false;
+
+  engine.define("abort-on-close", async (ctx) => {
+    await ctx.activity((activitySignal) => {
+      activityStarted();
+      return new Promise<void>((resolve) => {
+        activitySignal.addEventListener("abort", () => {
+          activityAborted = true;
+          resolve();
+        }, { once: true });
+      });
+    });
+    return "done";
+  });
+
+  const running = engine.run("abort-on-close", null);
+  await started;
+  const firstClose = engine.close();
+  assert.strictEqual(firstClose, engine.close());
+  await firstClose;
+  assert.equal(activityAborted, true);
+  const handle = await running;
+  assert.equal(await handle.status(), "completed");
+  assert.equal(await handle.result(), "done");
+});

@@ -552,6 +552,13 @@ export class SignalTimerCoordinator {
     }
     this.controllers.delete(runId);
   }
+
+  /** Abort every activity currently owned by this coordinator. */
+  abortAll(): void {
+    for (const runId of [...this.controllers.keys()]) {
+      this.abort(runId);
+    }
+  }
 }
 
 /**

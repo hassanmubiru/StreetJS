@@ -225,6 +225,9 @@ class WorkflowEngineImpl implements WorkflowEngine {
   /** Pending `result()` awaiters keyed by runId, resolved when a run settles. */
   private readonly waiters = new Map<string, ResultWaiter[]>();
 
+  /** Shared engine close promise so repeated shutdown observes one outcome. */
+  private closePromise?: Promise<void>;
+
   /**
    * In-flight construction-time auto-resume drives, scheduled as definitions
    * register. Tracked so lifecycle reads and {@link close} can settle them
@@ -528,13 +531,18 @@ class WorkflowEngineImpl implements WorkflowEngine {
     };
   }
 
-  async close(): Promise<void> {
-    // Let any in-flight construction-time auto-resume drives settle so they do not
-    // outlive the engine. No other long-lived resources are held in this build;
-    // timers/signals are driven synchronously through the coordinator.
-    await this.settlePendingResumes();
-    // Release the observability handle (best-effort; a no-op when inert).
-    this.observability.close();
+  close(): Promise<void> {
+    this.closePromise ??= (async () => {
+      // Abort every activity owned by this engine before awaiting pending drives,
+      // so close cannot leave cooperative work running beyond engine ownership.
+      this.coordinator.abortAll();
+      // Let any in-flight construction-time auto-resume drives settle so they do
+      // not outlive the engine. Timers/signals remain durable and are not resumed
+      // after this engine is closed.
+      await this.settlePendingResumes();
+      this.observability.close();
+    })();
+    return this.closePromise;
   }
 
   // ── Private helpers ───────────────────────────────────────────────────────────
