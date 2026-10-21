@@ -336,6 +336,9 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
    */
   protected readonly multipart: MultipartManager;
 
+  /** Shared close promise so repeated shutdown calls are deterministic. */
+  private closePromise?: Promise<void>;
+
   /**
    * The provider-agnostic resumable upload manager. It delegates to the driver's
    * native `resumable` capability when present and otherwise simulates
@@ -1171,8 +1174,11 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
    * refresh timer (when observability is wired); the driver and bridges hold no
    * timers of their own.
    */
-  async close(): Promise<void> {
-    this.observability?.close();
+  close(): Promise<void> {
+    this.closePromise ??= Promise.resolve().then(() => {
+      this.observability?.close();
+    });
+    return this.closePromise;
   }
 }
 

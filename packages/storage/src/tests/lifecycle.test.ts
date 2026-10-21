@@ -27,6 +27,16 @@ import { createStorage } from "../facade.js";
 import { LifecycleEngine, ARCHIVE_KEY_PREFIX } from "../lifecycle.js";
 import { MemoryStorageDriver } from "../drivers/memory.js";
 
+test("storage close is memoized for repeated and concurrent callers", async () => {
+  const storage = createStorage({ provider: "memory" });
+  const firstClose = storage.close();
+  const secondClose = storage.close();
+
+  assert.strictEqual(firstClose, secondClose);
+  await firstClose;
+  await storage.close();
+});
+
 const DAY = 24 * 60 * 60 * 1000;
 const T0 = 1_700_000_000_000;
 
