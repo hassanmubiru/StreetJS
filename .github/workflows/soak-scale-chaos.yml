@@ -43,7 +43,7 @@ jobs:
         env:
           SOAK_MINUTES: ${{ github.event.inputs.soak_minutes || '30' }}
         run: node --expose-gc scripts/audit/soak.mjs
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: soak-artifacts
@@ -74,7 +74,7 @@ jobs:
         env:
           WS_CONNECTIONS: ${{ matrix.connections }}
         run: node scripts/audit/ws-scale.mjs
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: ws-scale-${{ matrix.connections }}
