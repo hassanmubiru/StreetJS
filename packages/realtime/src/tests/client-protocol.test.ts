@@ -73,10 +73,13 @@ test('the client protocol rejects publishing before subscribing', async () => {
     realtime.bind(conn, { id: 'member' });
     conn.receive('publish', { channel: 'match:1', data: { move: 'e4' } });
     await settle();
-    assert.deepEqual(conn.eventsOfType('error')[0]?.payload, {
+    assert.deepEqual(conn.eventsOfType('realtime')[0]?.payload, {
       channel: 'match:1',
-      action: 'publish',
-      reason: 'subscribe to the channel before publishing',
+      type: 'error',
+      data: {
+        action: 'publish',
+        reason: 'subscribe to the channel before publishing',
+      },
     });
   } finally {
     await realtime.close();

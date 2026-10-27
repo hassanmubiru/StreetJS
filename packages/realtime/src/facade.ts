@@ -714,7 +714,15 @@ class RealtimeFacade implements Realtime {
   }
 
   private protocolError(conn: RealtimeConnection, action: string, reason: string, channel?: string): void {
-    conn.emit('error', { ...(channel ? { channel } : {}), action, reason });
+    if (channel) {
+      conn.emit('realtime', {
+        channel,
+        type: 'error',
+        data: { action, reason },
+      });
+      return;
+    }
+    conn.emit('error', { action, reason });
   }
 
   /**
