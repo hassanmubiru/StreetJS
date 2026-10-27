@@ -8,6 +8,7 @@ Transform StreetJS from **99 packages** into **1 framework package** with intern
 - **Target**: 1 `streetjs` package with bundled internal modules
 - **Timeline**: ~2-3 weeks
 - **Breaking Changes**: Plugin API maintained, some subpath imports change
+- **Progress**: 7 packages consolidated (exceptions, diagnostics, cache, store, cluster, xss, telemetry)
 
 ---
 
@@ -31,11 +32,10 @@ Transform StreetJS from **99 packages** into **1 framework package** with intern
 
 ```
 PHASE 1 (50 packages - no internal deps):
-  admin, ai, cache, client, cluster, commerce, config, container,
-  diagnostics, edge, exceptions, flags, health, http-client, i18n,
-  integrations, metrics, multipart, orm, plugin-*, postgres,
-  registry-server, security, session, social-comments, store,
-  telemetry, tracing, webhooks, websocket, xss
+  admin, ai, cache, cluster, config, container, diagnostics, edge, exceptions,
+  flags, health, http-client, i18n, integrations, metrics, multipart, orm,
+  plugin-*, postgres, registry-server, security, session, social-comments,
+  store, telemetry, tracing, webhooks, websocket, xss
 
 PHASE 2 (37 packages - depends on Phase 1):
   ai-router, media, next, react, vue, logging, testing,
@@ -49,17 +49,25 @@ PHASE 3 (12 packages - circular or complex):
   core, devtools, dating-*, social-*, plugin-marzpay, plugin-redis
 ```
 
-### Circular Dependencies Found (MUST FIX)
+### Circular Dependencies Found: NONE (False Positive)
 
-1. **social-feed ↔ social-users**
-   - `social-feed` imports `social-users`
-   - `social-users` imports `social-feed`
-   - **Fix**: Break cycle by extracting shared types into a new `social-types` package
+Earlier analysis incorrectly detected "circular dependencies" - they were false positives from comment matching. The dependency graph is actually a clean DAG with no cycles.
 
-2. **core ↔ devtools**
-   - `core` imports `devtools` (for embedded devtools)
-   - `devtools` imports `core` (for framework integration)
-   - **Fix**: Use dynamic imports or interface-based decoupling
+### Consolidation Progress
+
+**✅ CONSOLIDATED (7 packages):**
+1. `@streetjs/exceptions` → `src/http/exceptions.ts`
+2. `@streetjs/diagnostics` → `src/diagnostics/reporter.ts`
+3. `@streetjs/cache` → `src/cache/lru.ts`
+4. `@streetjs/store` → `src/security/store.ts`
+5. `@streetjs/cluster` → `src/cluster/coordinator.ts`
+6. `@streetjs/xss` → `src/security/xss.ts`
+7. `@streetjs/telemetry` → `src/telemetry/tracker.ts`
+
+**🔲 REMAINING (14 core packages):**
+- container, context, webhook-dispatcher, websocket, router, multipart
+- postgres, pool, repository, migrations, schema-inspector
+- security (jwt, session, ratelimit - some have complex dependencies)
 
 ---
 
