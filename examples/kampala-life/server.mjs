@@ -20,9 +20,7 @@ const districtRoom = 'kampala:central';
 const worldWidth = 1000;
 const worldHeight = 620;
 const maxMoveDistance = 110;
-const maxMovesPerSecond = 20;
 const worldActivities = [];
-const positionWriteQueues = new Map();
 
 const actionDefinitions = {
   'Boda stage': { cash: -1500, energy: -8, reputation: 1, message: 'You caught a boda through the rush. Kampala is moving with you.' },
@@ -239,17 +237,8 @@ async function endDay(req, res) {
 }
 
 async function persistPosition(playerId, position) {
-  const previous = positionWriteQueues.get(playerId) || Promise.resolve();
-  const write = previous.catch(() => {}).then(async () => {
-    const players = await readJson(playersPath, []);
-    await writeJson(playersPath, players.map((entry) => entry.id === playerId ? { ...entry, position } : entry));
-  });
-  positionWriteQueues.set(playerId, write);
-  try {
-    await write;
-  } finally {
-    if (positionWriteQueues.get(playerId) === write) positionWriteQueues.delete(playerId);
-  }
+  const players = await readJson(playersPath, []);
+  await writeJson(playersPath, players.map((entry) => entry.id === playerId ? { ...entry, position } : entry));
 }
 
 function validPosition(value) {
@@ -318,8 +307,7 @@ realtimeServer.attach(server, (socket, req) => {
       return;
     }
 
-    const existing = connectedPlayers.get(player.id);
-    const position = existing?.position || validPosition(player.position) || { x: 500, y: 300 };
+    const position = validPosition(player.position) || { x: 500, y: 300 };
     realtimeHub.bind(socket);
     realtimeHub.join(districtRoom, player.id, socket);
     socket.emit('world:snapshot', {
@@ -328,28 +316,11 @@ realtimeServer.attach(server, (socket, req) => {
       self: publicPresence({ ...player, position }),
       activities: worldActivities.slice(-8).reverse(),
     });
-    const entry = existing || { ...player, position, sockets: new Set(), moveTimes: [] };
-    entry.sockets.add(socket);
-    entry.position = position;
-    entry.moveTimes ||= [];
-    connectedPlayers.set(player.id, entry);
-    if (!existing) {
-      realtimeHub.publish(districtRoom, 'player:joined', publicPresence(entry), { exceptMemberId: player.id });
-    }
+    connectedPlayers.set(player.id, { ...player, position, socket });
+    realtimeHub.publish(districtRoom, 'player:joined', publicPresence({ ...player, position }), { exceptMemberId: player.id });
 
     socket.on('player:move', async (payload) => {
       const current = connectedPlayers.get(player.id);
-      const now = Date.now();
-      const moveTimes = current?.moveTimes || [];
-      while (moveTimes[0] !== undefined && moveTimes[0] <= now - 1000) moveTimes.shift();
-      if (moveTimes.length >= maxMovesPerSecond) {
-        socket.emit('player:move:rejected', {
-          reason: 'You are moving too quickly. Try again in a moment.',
-          position: current?.position || position,
-        });
-        return;
-      }
-      moveTimes.push(now);
       const next = validPosition(payload);
       if (!current || !next || distance(current.position, next) > maxMoveDistance) {
         socket.emit('player:move:rejected', { reason: 'Move is too far or invalid.', position: current?.position || position });
@@ -359,17 +330,10 @@ realtimeServer.attach(server, (socket, req) => {
       await persistPosition(player.id, next);
       const movement = { id: player.id, name: player.name, position: next };
       socket.emit('player:moved', movement);
-      // Exclude only the sending connection. Other tabs for the same account
-      // still receive the authoritative movement update.
-      realtimeHub.publish(districtRoom, 'player:moved', movement, { exceptConnId: socket.id });
+      realtimeHub.publish(districtRoom, 'player:moved', movement, { exceptMemberId: player.id });
     });
 
     socket.onClose(() => {
-      const current = connectedPlayers.get(player.id);
-      if (!current) return;
-      current.sockets.delete(socket);
-      // Presence remains online until the account's last tab/device leaves.
-      if (current.sockets.size > 0) return;
       connectedPlayers.delete(player.id);
       realtimeHub.publish(districtRoom, 'player:left', { id: player.id }, { exceptMemberId: player.id });
     });
