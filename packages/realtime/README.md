@@ -70,7 +70,7 @@ such as `StreetSocket` automatically support the client SDK protocol:
 ```ts
 // @streetjs/client sends these frames for you:
 { type: 'subscribe', channel: 'match:42' }
-{ type: 'publish', channel: 'match:42', data: { move: 'e4' } }
+{ type: 'publish', channel: 'match:42', data: { move: 'e4' }, event: 'move' }
 { type: 'unsubscribe', channel: 'match:42' }
 ```
 
