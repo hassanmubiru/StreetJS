@@ -3,6 +3,7 @@
 
 import { WebSocketServer, WebSocket } from 'ws';
 import type { IncomingMessage, Server } from 'node:http';
+import type { Duplex } from 'node:stream';
 import { randomUUID } from 'node:crypto';
 import { URL } from 'node:url';
 
@@ -110,6 +111,10 @@ export interface WsServerOptions {
   path?: string;
   heartbeatIntervalMs?: number;
   maxConnections?: number;
+  /** Opt in to pre-upgrade admission: cap pending auth/handshakes and reject overload with HTTP 503. */
+  maxPendingUpgrades?: number;
+  /** Pending upgrade deadline when admission is enabled. Defaults to 10 seconds. */
+  upgradeTimeoutMs?: number;
   /**
    * Finding 11 fix: optional authentication hook called before the HTTP
    * upgrade is accepted. Return true to allow the connection, false or
@@ -187,6 +192,9 @@ export class StreetWebSocketServer {
   private readonly protocolNames = new Set<string>();
   private readonly upgradeListeners: Array<{ server: Server; listener: (req: IncomingMessage, socket: import('node:stream').Duplex, head: Buffer) => void }> = [];
   private readonly MAX_CLIENTS: number;
+  private readonly maxPendingUpgrades: number | undefined;
+  private readonly upgradeTimeoutMs: number;
+  private readonly pendingUpgrades = new Map<Duplex, ReturnType<typeof setTimeout> | undefined>();
   private readonly authFn: ((req: IncomingMessage) => boolean | Promise<boolean>) | undefined;
   private readonly allowedOrigins: string[] | undefined;
   private heartbeatTimer: NodeJS.Timeout | null = null;
@@ -195,6 +203,15 @@ export class StreetWebSocketServer {
 
   constructor(options: WsServerOptions = {}) {
     this.MAX_CLIENTS = options.maxConnections ?? 10_000;
+    this.maxPendingUpgrades = options.maxPendingUpgrades;
+    this.upgradeTimeoutMs = options.upgradeTimeoutMs ?? 10_000;
+    if (this.maxPendingUpgrades !== undefined &&
+        (!Number.isSafeInteger(this.maxPendingUpgrades) || this.maxPendingUpgrades <= 0)) {
+      throw new RangeError('maxPendingUpgrades must be a positive safe integer');
+    }
+    if (!Number.isInteger(this.upgradeTimeoutMs) || this.upgradeTimeoutMs <= 0 || this.upgradeTimeoutMs > 2_147_483_647) {
+      throw new RangeError('upgradeTimeoutMs must be an integer between 1 and 2147483647');
+    }
     this.authFn = options.authFn;
     this.allowedOrigins = options.allowedOrigins;
 
@@ -254,6 +271,44 @@ export class StreetWebSocketServer {
     }
   }
 
+  /** Reserve capacity across both transport paths before awaiting authentication. */
+  private async admitUpgrade(req: IncomingMessage, socket: Duplex): Promise<(() => void) | null> {
+    if (this.maxPendingUpgrades !== undefined &&
+        (this.pendingUpgrades.size >= this.maxPendingUpgrades ||
+         this.clients.size + this.pendingUpgrades.size >= this.MAX_CLIENTS)) {
+      socket.end('HTTP/1.1 503 Service Unavailable\r\nRetry-After: 1\r\nContent-Length: 0\r\nConnection: close\r\n\r\n');
+      return null;
+    }
+    const timer = this.maxPendingUpgrades === undefined ? undefined : setTimeout(() => {
+      // Keep the reservation until auth settles: a timed-out auth backend must
+      // not allow an unlimited number of additional in-flight auth calls.
+      socket.destroy();
+    }, this.upgradeTimeoutMs);
+    timer?.unref();
+    this.pendingUpgrades.set(socket, timer);
+    const release = (): void => {
+      clearTimeout(timer);
+      this.pendingUpgrades.delete(socket);
+    };
+    let allowed = true;
+    try {
+      if (this.authFn) allowed = await this.authFn(req);
+    } catch {
+      allowed = false;
+    }
+    if (this.closed || socket.destroyed) {
+      release();
+      socket.destroy();
+      return null;
+    }
+    if (!allowed) {
+      release();
+      socket.end('HTTP/1.1 401 Unauthorized\r\nContent-Length: 0\r\nConnection: close\r\n\r\n');
+      return null;
+    }
+    return release;
+  }
+
   /** Attach to an existing HTTP server (upgrade handling) */
   attach(server: Server, handler: WsHandler): void {
     const listener = async (req: IncomingMessage, socket: import('node:stream').Duplex, head: Buffer): Promise<void> => {
@@ -275,32 +330,25 @@ export class StreetWebSocketServer {
         return;
       }
 
-      // Finding 11 fix: run the auth hook before accepting the upgrade.
-      // If authFn is provided and returns false (or throws), reject with 401.
-      if (this.authFn) {
-        try {
-          const allowed = await this.authFn(req);
-          if (!allowed) {
-            socket.write('HTTP/1.1 401 Unauthorized\r\nContent-Length: 0\r\nConnection: close\r\n\r\n');
-            socket.destroy();
-            return;
+      const release = await this.admitUpgrade(req, socket);
+      if (!release) return;
+      try {
+        if (this.closed || socket.destroyed) { socket.destroy(); return; }
+        this.wss.handleUpgrade(req, socket, head, (ws) => {
+          this.wss.emit('connection', ws, req);
+          if (!this.clients.has(ws)) return;
+          const streetSocket = new StreetSocket(ws);
+          try {
+            handler(streetSocket, req);
+          } catch {
+            try { ws.close(1011, 'Handler failed'); } catch { ws.terminate(); }
           }
-        } catch {
-          socket.write('HTTP/1.1 401 Unauthorized\r\nContent-Length: 0\r\nConnection: close\r\n\r\n');
-          socket.destroy();
-          return;
-        }
+        });
+      } catch {
+        socket.destroy();
+      } finally {
+        release();
       }
-
-      this.wss.handleUpgrade(req, socket, head, (ws) => {
-        this.wss.emit('connection', ws, req);
-        const streetSocket = new StreetSocket(ws);
-        try {
-          handler(streetSocket, req);
-        } catch {
-          try { ws.close(1011, 'Handler failed'); } catch { ws.terminate(); }
-        }
-      });
     };
     server.on('upgrade', listener);
     this.upgradeListeners.push({ server, listener });
@@ -343,40 +391,34 @@ export class StreetWebSocketServer {
         return;
       }
 
-      if (this.authFn) {
-        try {
-          const allowed = await this.authFn(req);
-          if (!allowed) {
-            socket.write('HTTP/1.1 401 Unauthorized\r\nContent-Length: 0\r\nConnection: close\r\n\r\n');
-            socket.destroy();
+      const release = await this.admitUpgrade(req, socket);
+      if (!release) return;
+      try {
+        if (this.closed || socket.destroyed) { socket.destroy(); return; }
+        protoWss.handleUpgrade(req, socket, head, (ws) => {
+          if (this.clients.size >= this.MAX_CLIENTS) {
+            ws.close(1013, 'Server at capacity');
             return;
           }
-        } catch {
-          socket.write('HTTP/1.1 401 Unauthorized\r\nContent-Length: 0\r\nConnection: close\r\n\r\n');
-          socket.destroy();
-          return;
-        }
-      }
-
-      protoWss.handleUpgrade(req, socket, head, (ws) => {
-        if (this.clients.size >= this.MAX_CLIENTS) {
-          ws.close(1013, 'Server at capacity');
-          return;
-        }
-        ws.isAlive = true;
-        this.clients.add(ws);
-        ws.on('pong', () => { ws.isAlive = true; });
-        ws.on('close', () => this.clients.delete(ws));
-        ws.on('error', () => {
-          this.clients.delete(ws);
-          ws.terminate();
+          ws.isAlive = true;
+          this.clients.add(ws);
+          ws.on('pong', () => { ws.isAlive = true; });
+          ws.on('close', () => this.clients.delete(ws));
+          ws.on('error', () => {
+            this.clients.delete(ws);
+            ws.terminate();
+          });
+          try {
+            handler(ws, req);
+          } catch {
+            try { ws.close(1011, 'Handler failed'); } catch { ws.terminate(); }
+          }
         });
-        try {
-          handler(ws, req);
-        } catch {
-          try { ws.close(1011, 'Handler failed'); } catch { ws.terminate(); }
-        }
-      });
+      } catch {
+        socket.destroy();
+      } finally {
+        release();
+      }
     };
     server.on('upgrade', listener);
     this.upgradeListeners.push({ server, listener });
@@ -395,6 +437,11 @@ export class StreetWebSocketServer {
   close(): Promise<void> {
     if (this.closePromise) return this.closePromise;
     this.closed = true;
+    for (const [socket, timer] of this.pendingUpgrades) {
+      clearTimeout(timer);
+      socket.destroy();
+    }
+    this.pendingUpgrades.clear();
     for (const { server, listener } of this.upgradeListeners) server.off('upgrade', listener);
     this.upgradeListeners.length = 0;
     if (this.heartbeatTimer) {
