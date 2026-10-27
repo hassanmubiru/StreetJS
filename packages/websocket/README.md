@@ -41,8 +41,65 @@ ws.attach(httpServer, (socket) => {
   In production, a server with no `authFn` logs a one-time security warning.
 - **Heartbeat** — optional ping/pong reaps dead connections.
 - **Capacity** — connections beyond `maxConnections` are closed with `1013`.
+  Enable pre-upgrade admission below to reject overload with HTTP `503` instead.
 - **`attachProtocol(server, subprotocol, handler)`** — negotiate a custom subprotocol
   (e.g. `graphql-transport-ws`) and own the raw framing.
+
+### Gateway admission for larger deployments
+
+```ts
+const ws = new StreetWebSocketServer({
+  path: '/ws',
+  maxConnections: 10_000,
+  maxPendingUpgrades: 100,
+  upgradeTimeoutMs: 5_000,
+  heartbeatIntervalMs: 30_000,
+  authFn: async (req) => verifyToken(req),
+});
+```
+
+These are example limits, not measured capacity. `maxPendingUpgrades` is opt-in
+and must be a positive integer. When enabled:
+
+- The server reserves a slot **before authentication**, after origin validation.
+  Both `attach` and `attachProtocol` share the same budget.
+- Active connections plus reservations cannot exceed `maxConnections`. Pending
+  authentication/handshakes also cannot exceed `maxPendingUpgrades`.
+- Overload returns HTTP `503` with `Retry-After: 1`, without running `authFn`
+  or the application connection handler. `connectionCount` counts active sockets only.
+- `upgradeTimeoutMs` (default 10,000) destroys an overdue upgrade socket. A late
+  authentication result cannot admit it. The auth call retains its reservation
+  until it settles, preventing a hung backend from accumulating more auth calls.
+  Set timeouts on authentication's database/HTTP calls too; the socket deadline
+  cannot cancel application promises.
+- Shutdown destroys pending sockets and prevents late upgrades.
+
+Without `maxPendingUpgrades`, the existing post-handshake `1013` capacity behavior
+remains in effect and there is no upgrade deadline.
+
+### Capacity planning toward millions of connections
+
+Five million concurrent users is a fleet-level target, **not a verified StreetJS
+capacity rating**. Count connections separately from users (multiple devices/tabs).
+Measure a representative gateway's safe connection limit under the target message
+rate, payload sizes, room sizes, TLS setup, and authentication latency.
+
+For example, **if measured** safe capacity were 10,000 sockets per gateway, five
+million sockets would require 500 gateways at full utilization, or 715 at 70%
+utilization, before accounting for failure-domain loss. Increasing `maxConnections`
+alone does not establish that capacity.
+
+Before expanding a fleet, measure connection admission latency, auth concurrency,
+RSS/heap, event-loop delay, outbound buffering, message latency, and broker traffic.
+Test idle sockets, realistic room fanout, slow consumers, reconnect bursts, and
+gateway/broker loss separately. Ramp from one gateway to a small cluster before
+distributed load tests with independent load generators.
+
+The current realtime Redis adapter uses one pub/sub topic per prefix, so all
+gateways in that group receive every published event. Large fleets still need
+room/tenant routing and partitioned fanout, bounded outbound buffering, reconnect
+jitter, and failure-domain capacity testing. Admission limits are one building
+block toward that architecture.
 
 ### StreetSocket
 

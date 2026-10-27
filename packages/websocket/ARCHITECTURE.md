@@ -39,6 +39,10 @@ and `streetjs/sse` subpaths and all internal imports resolve to one implementati
   one-time, non-throwing warning (the server still starts).
 - **Resource bounds** — 512 KB max payload, a per-event listener cap on `StreetSocket`,
   and a `maxConnections` capacity that closes excess connections with `1013`.
+  Optional `maxPendingUpgrades` reserves shared capacity before auth on both
+  transport paths, rejecting overload with HTTP `503`. Pending sockets have a
+  configurable deadline (`upgradeTimeoutMs`); timed-out auth retains its budget
+  until settlement. This bounds in-flight auth even when its backend stalls.
 
 ## Lifecycle & framing
 
@@ -48,7 +52,7 @@ It exposes an idempotent close with `onClose` callbacks and a stable `id`. The s
 tracks live clients, an optional unref'd heartbeat (`ping`/`pong`, reaping the unresponsive),
 and both a default handler path (`attach`) and a subprotocol path (`attachProtocol`). Each
 server owns its upgrade listeners, clients, heartbeat, and protocol WebSocketServers;
-`close()` detaches listeners, stops the heartbeat, terminates all owned clients, and is
+`close()` destroys pending upgrades, detaches listeners, stops the heartbeat, terminates all owned clients, and is
 memoized. Path matching uses the URL pathname so query parameters do not change ownership.
 
 ## Channel hub

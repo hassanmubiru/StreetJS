@@ -126,7 +126,8 @@ test('a failing authFn rejects the upgrade with 401', async () => {
 test('capacity limit closes an over-limit connection with 1013', async () => {
   const server = createServer();
   const wss = new StreetWebSocketServer({ path: '/ws', maxConnections: 1 });
-  wss.attach(server, () => {});
+  let handled = 0;
+  wss.attach(server, () => { handled += 1; });
   const port = await listen(server);
 
   const a = new WebSocket(`ws://127.0.0.1:${port}/ws`);
@@ -137,6 +138,7 @@ test('capacity limit closes an over-limit connection with 1013', async () => {
     b.on('error', () => {});
   });
   assert.equal(code, 1013);
+  assert.equal(handled, 1, 'rejected connections must not reach the application');
 
   a.close();
   await wss.close();
