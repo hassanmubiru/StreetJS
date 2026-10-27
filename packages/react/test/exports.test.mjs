@@ -12,7 +12,7 @@ describe('@streetjs/react exports', () => {
   });
 
   it('exports all data/realtime/ai hooks', () => {
-    for (const name of ['useQuery', 'useMutation', 'useSession', 'useAuth', 'useSearch', 'useRealtime', 'useChannel', 'useAIChat']) {
+    for (const name of ['useQuery', 'useMutation', 'useSession', 'useAuth', 'useSearch', 'useRealtime', 'useRealtimeState', 'useChannel', 'useAIChat']) {
       assert.equal(typeof react[name], 'function', `${name} must be exported`);
     }
   });

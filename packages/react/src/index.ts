@@ -5,6 +5,6 @@ export { StreetProvider, useStreetClient } from './context.js';
 export type { StreetProviderProps } from './context.js';
 
 export {
-  useQuery, useMutation, useSession, useAuth, useSearch, useRealtime, useChannel, useAIChat,
+  useQuery, useMutation, useSession, useAuth, useSearch, useRealtime, useRealtimeState, useChannel, useAIChat,
 } from './hooks.js';
 export type { QueryState, QueryResult, MutationResult, AuthApi, AIChat } from './hooks.js';

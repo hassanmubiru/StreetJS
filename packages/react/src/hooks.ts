@@ -3,7 +3,13 @@
 // hooks expose { data, error, loading, refetch }.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { ChatMessage, RealtimeClient, RealtimeMessage } from '@streetjs/client';
+import type {
+  ChatMessage,
+  RealtimeClient,
+  RealtimeMessage,
+  RealtimeClientOptions,
+  RealtimeConnectionState,
+} from '@streetjs/client';
 import { useStreetClient } from './context.js';
 
 export interface QueryState<T> { data?: T; error?: unknown; loading: boolean; }
@@ -80,10 +86,10 @@ export function useSearch<T = unknown>(q: string): QueryResult<T> {
 }
 
 /** A connected realtime client, opened on mount and closed on unmount. */
-export function useRealtime(path?: string): RealtimeClient {
+export function useRealtime(path?: string, options?: RealtimeClientOptions): RealtimeClient {
   const client = useStreetClient();
   const ref = useRef<RealtimeClient | null>(null);
-  if (!ref.current) ref.current = client.realtime(path);
+  if (!ref.current) ref.current = client.realtime(path, options);
   useEffect(() => {
     const rt = ref.current!;
     rt.connect();
@@ -92,9 +98,24 @@ export function useRealtime(path?: string): RealtimeClient {
   return ref.current;
 }
 
+/** Subscribe to a realtime client's lifecycle for reactive UI status. */
+export function useRealtimeState(rt: RealtimeClient): RealtimeConnectionState {
+  const [state, setState] = useState<RealtimeConnectionState>(rt.state);
+  useEffect(() => {
+    setState(rt.state);
+    return rt.onStateChange(setState);
+  }, [rt]);
+  return state;
+}
+
 /** Subscribe to a realtime channel for the lifetime of the component. */
-export function useChannel<T = unknown>(channel: string, handler: (msg: RealtimeMessage<T>) => void, path?: string): void {
-  const rt = useRealtime(path);
+export function useChannel<T = unknown>(
+  channel: string,
+  handler: (msg: RealtimeMessage<T>) => void,
+  path?: string,
+  options?: RealtimeClientOptions,
+): void {
+  const rt = useRealtime(path, options);
   const cb = useRef(handler);
   cb.current = handler;
   useEffect(() => rt.subscribe<T>(channel, (m) => cb.current(m)), [rt, channel]);

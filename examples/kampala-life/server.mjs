@@ -20,6 +20,7 @@ const districtRoom = 'kampala:central';
 const worldWidth = 1000;
 const worldHeight = 620;
 const maxMoveDistance = 110;
+const maxMovesPerSecond = 20;
 const worldActivities = [];
 
 const actionDefinitions = {
@@ -307,7 +308,8 @@ realtimeServer.attach(server, (socket, req) => {
       return;
     }
 
-    const position = validPosition(player.position) || { x: 500, y: 300 };
+    const existing = connectedPlayers.get(player.id);
+    const position = existing?.position || validPosition(player.position) || { x: 500, y: 300 };
     realtimeHub.bind(socket);
     realtimeHub.join(districtRoom, player.id, socket);
     socket.emit('world:snapshot', {
@@ -316,11 +318,27 @@ realtimeServer.attach(server, (socket, req) => {
       self: publicPresence({ ...player, position }),
       activities: worldActivities.slice(-8).reverse(),
     });
-    connectedPlayers.set(player.id, { ...player, position, socket });
-    realtimeHub.publish(districtRoom, 'player:joined', publicPresence({ ...player, position }), { exceptMemberId: player.id });
+    const entry = existing || { ...player, position, sockets: new Set() };
+    entry.sockets.add(socket);
+    entry.position = position;
+    connectedPlayers.set(player.id, entry);
+    if (!existing) {
+      realtimeHub.publish(districtRoom, 'player:joined', publicPresence(entry), { exceptMemberId: player.id });
+    }
 
+    const moveTimes = [];
     socket.on('player:move', async (payload) => {
       const current = connectedPlayers.get(player.id);
+      const now = Date.now();
+      while (moveTimes[0] !== undefined && moveTimes[0] <= now - 1000) moveTimes.shift();
+      if (moveTimes.length >= maxMovesPerSecond) {
+        socket.emit('player:move:rejected', {
+          reason: 'You are moving too quickly. Try again in a moment.',
+          position: current?.position || position,
+        });
+        return;
+      }
+      moveTimes.push(now);
       const next = validPosition(payload);
       if (!current || !next || distance(current.position, next) > maxMoveDistance) {
         socket.emit('player:move:rejected', { reason: 'Move is too far or invalid.', position: current?.position || position });
@@ -330,10 +348,17 @@ realtimeServer.attach(server, (socket, req) => {
       await persistPosition(player.id, next);
       const movement = { id: player.id, name: player.name, position: next };
       socket.emit('player:moved', movement);
-      realtimeHub.publish(districtRoom, 'player:moved', movement, { exceptMemberId: player.id });
+      // Exclude only the sending connection. Other tabs for the same account
+      // still receive the authoritative movement update.
+      realtimeHub.publish(districtRoom, 'player:moved', movement, { exceptConnId: socket.id });
     });
 
     socket.onClose(() => {
+      const current = connectedPlayers.get(player.id);
+      if (!current) return;
+      current.sockets.delete(socket);
+      // Presence remains online until the account's last tab/device leaves.
+      if (current.sockets.size > 0) return;
       connectedPlayers.delete(player.id);
       realtimeHub.publish(districtRoom, 'player:left', { id: player.id }, { exceptMemberId: player.id });
     });

@@ -113,7 +113,7 @@ function ChatRoom() {
   useChannel<{ user: string; text: string }>('chat', (msg) => {
     console.log(msg.data.user, msg.data.text);
   });
-  return <button onClick={() => rt.send('chat', { user: 'me', text: 'hi' })}>Send</button>;
+   return <button onClick={() => rt.publish('chat', { user: 'me', text: 'hi' })}>Send</button>;
 }
 ```
 

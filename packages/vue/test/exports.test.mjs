@@ -5,7 +5,7 @@ import * as vue from '../dist/index.js';
 
 describe('@streetjs/vue exports', () => {
   it('exports provide/inject + composables', () => {
-    for (const name of ['provideStreetClient', 'useApi', 'useQuery', 'useSession', 'useAuth', 'useSearch', 'useRealtime', 'useChannel', 'useAI']) {
+    for (const name of ['provideStreetClient', 'useApi', 'useQuery', 'useSession', 'useAuth', 'useSearch', 'useRealtime', 'useRealtimeState', 'useChannel', 'useAI']) {
       assert.equal(typeof vue[name], 'function', `${name} must be exported`);
     }
   });

@@ -7,7 +7,8 @@ import {
 } from 'vue';
 import {
   createStreetClient, type StreetClient, type StreetClientConfig,
-  type RealtimeClient, type RealtimeMessage,
+  type RealtimeClient, type RealtimeMessage, type RealtimeClientOptions,
+  type RealtimeConnectionState,
 } from '@streetjs/client';
 
 const KEY: InjectionKey<StreetClient> = Symbol('streetjs.client');
@@ -84,17 +85,30 @@ export function useSearch<T = unknown>(query: Ref<string>): QueryComposable<T> {
 }
 
 /** A connected realtime client, closed automatically when the scope is disposed. */
-export function useRealtime(path?: string): RealtimeClient {
+export function useRealtime(path?: string, options?: RealtimeClientOptions): RealtimeClient {
   const client = useApi();
-  const rt = client.realtime(path);
+  const rt = client.realtime(path, options);
   rt.connect();
   onScopeDispose(() => rt.close());
   return rt;
 }
 
+/** Reactive realtime lifecycle state for connection-status UI. */
+export function useRealtimeState(rt: RealtimeClient): Ref<RealtimeConnectionState> {
+  const state = ref<RealtimeConnectionState>(rt.state);
+  const off = rt.onStateChange((next: RealtimeConnectionState) => { state.value = next; });
+  onScopeDispose(off);
+  return state;
+}
+
 /** Subscribe to a channel for the lifetime of the current scope. */
-export function useChannel<T = unknown>(channel: string, handler: (m: RealtimeMessage<T>) => void, path?: string): void {
-  const rt = useRealtime(path);
+export function useChannel<T = unknown>(
+  channel: string,
+  handler: (m: RealtimeMessage<T>) => void,
+  path?: string,
+  options?: RealtimeClientOptions,
+): void {
+  const rt = useRealtime(path, options);
   const off = rt.subscribe<T>(channel, handler);
   onScopeDispose(off);
 }
