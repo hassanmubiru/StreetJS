@@ -45,8 +45,8 @@ const hits = await api.search('query', { limit: 10 });
 await api.uploadFile('/files', file, { folder: 'avatars' });
 
 // Realtime (WebSocket channels)
-const rt = api.realtime();
-rt.connect();
+const rt = api.realtime(undefined, { reconnectDelayMs: 250 });
+rt.connect(); // reconnects and restores subscriptions after an unexpected drop
 const off = rt.subscribe('room:1', (msg) => console.log(msg.data));
 rt.publish('room:1', { text: 'hi' });
 
@@ -66,6 +66,10 @@ for await (const token of api.aiChat({ messages: [{ role: 'user', content: 'Hi' 
 | `headers` | default headers on every request |
 | `credentials` | fetch credentials mode (`'include'` for cookie auth) |
 | `WebSocket` | WebSocket impl for realtime (defaults to global `WebSocket`) |
+
+Realtime clients reconnect automatically by default with exponential backoff and
+re-subscribe to every active channel. Use `realtime(path, { reconnect: false })`
+to disable it, or `onStateChange()` to update connection status in a game UI.
 
 ## Compatibility & footprint
 

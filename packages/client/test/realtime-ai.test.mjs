@@ -41,6 +41,25 @@ describe('RealtimeClient', () => {
     assert.deepEqual(JSON.parse(FakeWebSocket.last.sent.at(-1)), { type: 'unsubscribe', channel: 'room:1' });
   });
 
+  it('restores subscriptions after an unexpected disconnect', async () => {
+    const rt = new RealtimeClient('ws://x/rt', FakeWebSocket, { reconnectDelayMs: 0 });
+    const got = [];
+    rt.subscribe('match:1', (m) => got.push(m.data));
+    rt.connect();
+    const first = FakeWebSocket.last;
+    assert.deepEqual(JSON.parse(first.sent[0]), { type: 'subscribe', channel: 'match:1' });
+
+    first.emit('close', {});
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const second = FakeWebSocket.last;
+    assert.notEqual(second, first);
+    assert.deepEqual(JSON.parse(second.sent[0]), { type: 'subscribe', channel: 'match:1' });
+    second.emit('message', { data: JSON.stringify({ type: 'state', channel: 'match:1', data: { turn: 2 } }) });
+    assert.deepEqual(got, [{ turn: 2 }]);
+    rt.close();
+  });
+
   it('publish sends a publish envelope; ignores non-JSON frames', () => {
     const rt = new RealtimeClient('ws://x/rt', FakeWebSocket);
     rt.connect();

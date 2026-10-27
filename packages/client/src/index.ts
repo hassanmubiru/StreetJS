@@ -9,7 +9,13 @@ export { request, buildUrl, parseResponse } from './http.js';
 export type { StreetClientConfig, RequestOptions, Query, FetchLike } from './http.js';
 
 export { RealtimeClient, createRealtime, toWsUrl } from './realtime.js';
-export type { RealtimeMessage, MessageHandler } from './realtime.js';
+export type {
+  RealtimeMessage,
+  MessageHandler,
+  RealtimeConnectionState,
+  RealtimeStateHandler,
+  RealtimeClientOptions,
+} from './realtime.js';
 
 export { streamChat, parseSseChunk } from './ai.js';
 export type { ChatMessage } from './ai.js';

@@ -4,7 +4,7 @@
 // framework assumptions; browser + Node.
 
 import { request, type StreetClientConfig, type RequestOptions, type Query } from './http.js';
-import { createRealtime, type RealtimeClient } from './realtime.js';
+import { createRealtime, type RealtimeClient, type RealtimeClientOptions } from './realtime.js';
 import { streamChat, type ChatMessage } from './ai.js';
 
 /** Generic REST resource accessor (`/<name>` collection + `/<name>/:id` item). */
@@ -46,7 +46,7 @@ export interface StreetClientBase {
   /** Upload a file via multipart/form-data. */
   uploadFile<R = unknown>(path: string, file: Blob | File, fields?: Record<string, string>): Promise<R>;
   /** Create a realtime (WebSocket) client. */
-  realtime(path?: string): RealtimeClient;
+  realtime(path?: string, options?: RealtimeClientOptions): RealtimeClient;
   /** Stream an AI chat completion (async iterator of text tokens). */
   aiChat(params: { messages: ChatMessage[]; model?: string; path?: string; signal?: AbortSignal }): AsyncGenerator<string, void, unknown>;
 }
@@ -80,7 +80,7 @@ export function createStreetClient(config: StreetClientConfig): StreetClient {
       for (const [k, v] of Object.entries(fields ?? {})) form.append(k, v);
       return request(config, 'POST', path, { rawBody: form });
     },
-    realtime: (path) => createRealtime(config, path),
+    realtime: (path, options) => createRealtime(config, path, options),
     aiChat: (params) => streamChat(config, params),
   };
 
