@@ -28,9 +28,17 @@
     "LICENSE"
   ],
   "c8": {
-    "include": ["dist/**/*.js"],
-    "exclude": ["dist/tests/**", "dist/examples/**"],
-    "reporter": ["text", "lcov"],
+    "include": [
+      "dist/**/*.js"
+    ],
+    "exclude": [
+      "dist/tests/**",
+      "dist/examples/**"
+    ],
+    "reporter": [
+      "text",
+      "lcov"
+    ],
     "all": true,
     "check-coverage": true,
     "lines": 90,
@@ -89,5 +97,6 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "private": true
 }
