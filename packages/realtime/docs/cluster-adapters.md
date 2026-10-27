@@ -58,9 +58,12 @@ the core `RedisClient` / `RedisLike` pub/sub surface to:
   (`{keyPrefix}events`); the publisher discards its own echo and each peer
   re-injects a foreign broadcast into its local hub **exactly once** per
   eligible connection;
-- mirror presence into per-channel-per-instance Redis sets (with an optional
-  `PEXPIRE` so a crashed instance's presence self-heals) and compute the
-  distributed presence **union** via `remotePresence`;
+- mirror presence into per-channel-per-instance Redis sets plus a per-channel
+  gateway-instance index (with an optional `PEXPIRE` so a crashed instance's
+  presence self-heals) and compute the distributed presence **union** via
+  `remotePresence`. Presence reads use that index rather than Redis `KEYS`, so
+  their work is bounded by the gateways serving the channel instead of the
+  total keyspace;
 - degrade gracefully: on connection loss `health()` flips to `down` and
   `publish` / `publishPresence` become best-effort no-ops while **local**
   broadcasts keep working, resuming cross-instance propagation on reconnect. It

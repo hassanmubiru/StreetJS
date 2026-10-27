@@ -15,10 +15,11 @@
 //     already delivered locally, and each peer re-injects a *foreign* broadcast
 //     into its local hub exactly once via `sink.deliverLocal` (Req 7.6, 13.1).
 //   - Presence membership is mirrored into a per-channel-per-instance Redis set
-//     (`{keyPrefix}presence:{channel}:{instanceId}`) via `SADD`/`SREM` with an
-//     optional `PEXPIRE presenceTtlMs` so a crashed instance's presence
-//     self-heals; `remotePresence` reads every peer's set and returns their
-//     union (Req 5.4, 5.6, 13.2).
+//     (`{keyPrefix}presence:{channel}:{instanceId}`) via `SADD`/`SREM`, with a
+//     per-channel instance index (`{keyPrefix}presence-index:{channel}`) so
+//     queries never need a blocking keyspace scan. An optional
+//     `PEXPIRE presenceTtlMs` lets a crashed instance's presence self-heal;
+//     stale index entries are pruned during reads (Req 5.4, 5.6, 13.2).
 //   - A `connected` flag tracks transport health: on connection loss `health()`
 //     flips to `down` (surfaced through the realtime health check, Req 13.3,
 //     17.4) and `publish`/`publishPresence` degrade to best-effort no-ops while
@@ -102,6 +103,10 @@ export class RedisAdapter implements ClusterAdapter {
   private subscribed = false;
   /** Transport connectivity: drives `health()` and best-effort degradation. */
   private connected = false;
+  /** Local presence keys whose TTL must be refreshed while members remain active. */
+  private readonly localPresenceKeys = new Set<string>();
+  /** Background TTL refresh timer; only active when `presenceTtlMs` is configured. */
+  private presenceRefreshTimer: NodeJS.Timeout | null = null;
   /** The most recent transport error, surfaced in the health details. */
   private lastError: unknown = null;
 
@@ -127,6 +132,7 @@ export class RedisAdapter implements ClusterAdapter {
     this.sink = sink;
     await this.subscribeEvents();
     this.connected = true;
+    this.startPresenceRefresh();
   }
 
   /**
@@ -165,10 +171,18 @@ export class RedisAdapter implements ClusterAdapter {
     try {
       await this.ensureSubscribed();
       const key = this.presenceKey(channel, this.instanceId);
+      const indexKey = this.presenceIndexKey(channel);
       if (state === 'join') {
         await this.client.command(['SADD', key, memberId]);
+        await this.client.command(['SADD', indexKey, this.instanceId]);
+        this.localPresenceKeys.add(key);
       } else {
         await this.client.command(['SREM', key, memberId]);
+        const remaining = await this.client.command(['SCARD', key]);
+        if (Number(remaining ?? 0) === 0) {
+          await this.client.command(['SREM', indexKey, this.instanceId]);
+          this.localPresenceKeys.delete(key);
+        }
       }
       if (this.presenceTtlMs !== undefined) {
         await this.client.command(['PEXPIRE', key, Math.floor(this.presenceTtlMs)]);
@@ -192,22 +206,27 @@ export class RedisAdapter implements ClusterAdapter {
   /**
    * Members present on OTHER instances for `channel` (this instance's own set is
    * excluded, since the facade unions this with local hub presence) (Req 5.4,
-   * 5.6). Discovers every peer's presence set via `KEYS` and unions their
-   * `SMEMBERS`. Best-effort: on transport failure returns `[]` so the union
-   * degrades to local presence rather than throwing.
+   * 5.6). Uses the channel's instance index rather than Redis `KEYS`, so the
+   * query cost scales with the number of gateway instances in that channel,
+   * not with the total number of keys in Redis. Empty peer sets are removed
+   * from the index as stale entries. Best-effort: on transport failure returns
+   * `[]` so the union degrades to local presence rather than throwing.
    */
   async remotePresence(channel: string): Promise<string[]> {
     try {
       await this.ensureSubscribed();
-      const pattern = `${this.keyPrefix}presence:${channel}:*`;
-      const keysReply = await this.client.command(['KEYS', pattern]);
-      const keys = this.asStringArray(keysReply);
-      const ownKey = this.presenceKey(channel, this.instanceId);
+      const indexKey = this.presenceIndexKey(channel);
+      const instanceIds = this.asStringArray(await this.client.command(['SMEMBERS', indexKey]));
       const members = new Set<string>();
-      for (const key of keys) {
-        if (key === ownKey) continue;
-        const membersReply = await this.client.command(['SMEMBERS', key]);
-        for (const member of this.asStringArray(membersReply)) {
+      for (const instanceId of instanceIds) {
+        if (instanceId === this.instanceId) continue;
+        const peerKey = this.presenceKey(channel, instanceId);
+        const membersReply = await this.client.command(['SMEMBERS', peerKey]);
+        const peerMembers = this.asStringArray(membersReply);
+        if (peerMembers.length === 0) {
+          await this.client.command(['SREM', indexKey, instanceId]);
+        }
+        for (const member of peerMembers) {
           members.add(member);
         }
       }
@@ -238,6 +257,11 @@ export class RedisAdapter implements ClusterAdapter {
 
   /** Release the subscription and reset transport state. */
   async close(): Promise<void> {
+    if (this.presenceRefreshTimer) {
+      clearInterval(this.presenceRefreshTimer);
+      this.presenceRefreshTimer = null;
+    }
+    this.localPresenceKeys.clear();
     this.teardownSubscription();
     this.connected = false;
     this.sink = null;
@@ -340,9 +364,38 @@ export class RedisAdapter implements ClusterAdapter {
     this.subscribed = false;
   }
 
+  /** Start refreshing active presence sets before their TTL can expire. */
+  private startPresenceRefresh(): void {
+    if (this.presenceTtlMs === undefined || this.presenceRefreshTimer) return;
+    const intervalMs = Math.max(1, Math.floor(this.presenceTtlMs / 3));
+    this.presenceRefreshTimer = setInterval(() => {
+      void this.refreshPresenceTtl();
+    }, intervalMs);
+    this.presenceRefreshTimer.unref?.();
+  }
+
+  /** Refresh all local presence sets; failures degrade the adapter as usual. */
+  private async refreshPresenceTtl(): Promise<void> {
+    if (this.presenceTtlMs === undefined || this.localPresenceKeys.size === 0) return;
+    try {
+      await this.ensureSubscribed();
+      for (const key of this.localPresenceKeys) {
+        await this.client.command(['PEXPIRE', key, Math.floor(this.presenceTtlMs)]);
+      }
+      this.markUp();
+    } catch (err) {
+      this.markDown(err);
+    }
+  }
+
   /** The per-channel-per-instance presence set key. */
   private presenceKey(channel: string, instanceId: string): string {
     return `${this.keyPrefix}presence:${channel}:${instanceId}`;
+  }
+
+  /** Index of gateway instances that currently have presence in `channel`. */
+  private presenceIndexKey(channel: string): string {
+    return `${this.keyPrefix}presence-index:${channel}`;
   }
 
   /** Coerce a RESP reply into a string array, dropping non-string elements. */
