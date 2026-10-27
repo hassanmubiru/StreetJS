@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90 110" role="img" aria-label="Kampala tree">
+  <defs><linearGradient id="leaf" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#72c878"/><stop offset="1" stop-color="#227c54"/></linearGradient></defs>
+  <ellipse cx="46" cy="101" rx="33" ry="7" fill="#3a7958" opacity=".22"/>
+  <path d="M38 98 43 53h10l5 45Z" fill="#896342" stroke="#684b38" stroke-width="3"/>
+  <circle cx="28" cy="45" r="20" fill="url(#leaf)" stroke="#28744e" stroke-width="3"/>
+  <circle cx="53" cy="33" r="24" fill="url(#leaf)" stroke="#28744e" stroke-width="3"/>
+  <circle cx="70" cy="54" r="18" fill="url(#leaf)" stroke="#28744e" stroke-width="3"/>
+</svg>

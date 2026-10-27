@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 230 160" role="img" aria-label="Isometric Kampala market">
+  <defs>
+    <linearGradient id="roof" x1="0" x2="1"><stop stop-color="#f15f67"/><stop offset="1" stop-color="#d83e67"/></linearGradient>
+    <linearGradient id="wall" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#ffd99b"/><stop offset="1" stop-color="#d99b6d"/></linearGradient>
+    <filter id="shadow"><feDropShadow dx="7" dy="9" stdDeviation="3" flood-color="#496c55" flood-opacity=".28"/></filter>
+  </defs>
+  <path d="M22 61 116 20l92 41-95 43Z" fill="url(#roof)" stroke="#a8395a" stroke-width="3"/>
+  <path d="m22 61 95 43v44l-95-40Z" fill="url(#wall)" stroke="#a9715e" stroke-width="3" filter="url(#shadow)"/>
+  <path d="m117 104 91-43v45l-91 42Z" fill="#bb7b62" stroke="#965866" stroke-width="3"/>
+  <path d="M34 63 116 28l81 35-82 35Z" fill="#f6c15d" opacity=".9"/>
+  <g fill="#53a1a5" stroke="#3d777d" stroke-width="2"><path d="m41 81 24 11v21L41 102Z"/><path d="m73 95 24 11v21l-24-10Z"/><path d="m132 108 21-10v20l-21 10Z"/><path d="m162 94 21-10v20l-21 10Z"/></g>
+  <path d="M27 57h180" stroke="#fff2b0" stroke-width="4" opacity=".8"/>
+  <g fill="#58a760" stroke="#3e784c" stroke-width="2"><circle cx="45" cy="47" r="9"/><circle cx="77" cy="34" r="9"/><circle cx="170" cy="48" r="9"/></g>
+</svg>

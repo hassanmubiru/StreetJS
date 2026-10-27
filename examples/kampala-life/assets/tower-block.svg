@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 240" role="img" aria-label="Isometric city tower">
+  <defs>
+    <linearGradient id="towerFront" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#d6f0e5"/><stop offset="1" stop-color="#9ac8bc"/></linearGradient>
+    <linearGradient id="towerSide" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#75aaa8"/><stop offset="1" stop-color="#4d7c86"/></linearGradient>
+    <linearGradient id="towerTop" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#e9f4dc"/><stop offset="1" stop-color="#8ebdb2"/></linearGradient>
+    <filter id="shadow"><feDropShadow dx="8" dy="12" stdDeviation="4" flood-color="#29584f" flood-opacity=".3"/></filter>
+  </defs>
+  <path d="M25 38 89 11l65 29-66 32Z" fill="url(#towerTop)" stroke="#477b7b" stroke-width="3"/>
+  <path d="M25 38v161l63 29V72Z" fill="url(#towerFront)" stroke="#477b7b" stroke-width="3" filter="url(#shadow)"/>
+  <path d="m88 72 66-32v160l-66 28Z" fill="url(#towerSide)" stroke="#3f6d78" stroke-width="3"/>
+  <g fill="#5f9ea7" stroke="#3c707e" stroke-width="2">
+    <path d="m39 54 17-8v22l-17 8Z"/><path d="m63 43 17-8v22l-17 8Z"/>
+    <path d="m39 91 17 8v19l-17-8Z"/><path d="m63 103 17 8v19l-17-8Z"/>
+    <path d="m39 133 17 8v19l-17-8Z"/><path d="m63 145 17 8v19l-17-8Z"/>
+    <path d="m104 79 18-9v19l-18 9Z"/><path d="m104 112 18-9v19l-18 9Z"/><path d="m104 145 18-9v19l-18 9Z"/>
+  </g>
+  <path d="M84 17v47" stroke="#f9e5a3" stroke-width="4"/><path d="M84 12v-9" stroke="#477b7b" stroke-width="3"/>
+</svg>

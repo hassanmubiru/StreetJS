@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 170" role="img" aria-label="Kampala billboard">
+  <defs><linearGradient id="screen" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#f266a0"/><stop offset="1" stop-color="#713fc4"/></linearGradient><filter id="shadow"><feDropShadow dx="5" dy="8" stdDeviation="3" flood-color="#2b4c53" flood-opacity=".3"/></filter></defs>
+  <path d="M25 22 190 38l-14 73-164-17Z" fill="url(#screen)" stroke="#182f42" stroke-width="8" filter="url(#shadow)"/>
+  <path d="m43 118-5 47M160 127l-5 39" stroke="#43515b" stroke-width="8"/>
+  <path d="M46 51h113M42 70h86M38 89h97" stroke="#fff" stroke-width="6" opacity=".9"/>
+  <path d="M41 95h57" stroke="#ffd064" stroke-width="5"/>
+</svg>

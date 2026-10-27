@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 150" role="img" aria-label="Isometric apartment block">
+  <defs>
+    <linearGradient id="roof" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#f7d37b"/><stop offset="1" stop-color="#e69a58"/></linearGradient>
+    <linearGradient id="front" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#f7efd1"/><stop offset="1" stop-color="#d9bd93"/></linearGradient>
+    <linearGradient id="side" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#d09b72"/><stop offset="1" stop-color="#a86c5c"/></linearGradient>
+    <filter id="shadow"><feDropShadow dx="7" dy="9" stdDeviation="3" flood-color="#335f52" flood-opacity=".3"/></filter>
+  </defs>
+  <path d="M24 55 113 13l82 37-92 43Z" fill="url(#roof)" stroke="#b97554" stroke-width="3"/>
+  <path d="M24 55v57l89 36V93Z" fill="url(#front)" stroke="#b97554" stroke-width="3" filter="url(#shadow)"/>
+  <path d="m113 93 82-43v57l-82 41Z" fill="url(#side)" stroke="#9c6357" stroke-width="3"/>
+  <g fill="#62aeb6" stroke="#3c7d83" stroke-width="2">
+    <path d="m43 65 18 8v17l-18-7Z"/><path d="m70 77 18 8v17l-18-7Z"/><path d="m97 88 18 8v17l-18-7Z"/>
+    <path d="m126 82 18-9v16l-18 9Z"/><path d="m153 68 18-9v16l-18 9Z"/>
+  </g>
+  <g fill="#f9f0c8"><path d="m41 119 24 10v13l-24-10Z"/><path d="m74 132 24 10v8l-24-10Z"/></g>
+  <path d="M34 55h145" stroke="#fff4bf" stroke-width="4" opacity=".65"/>
+</svg>

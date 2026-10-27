@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100" role="img" aria-label="Kampala boda boda">
+  <ellipse cx="73" cy="86" rx="58" ry="8" fill="#315b53" opacity=".22"/>
+  <circle cx="39" cy="67" r="17" fill="#243d4a" stroke="#f3d36d" stroke-width="4"/><circle cx="111" cy="67" r="17" fill="#243d4a" stroke="#f3d36d" stroke-width="4"/>
+  <path d="M39 65 55 40l34 4 22 22H74Z" fill="#e95c58" stroke="#6c3b49" stroke-width="4"/>
+  <path d="m56 40 17-21 18 25M91 44l14-24" fill="none" stroke="#354f5b" stroke-width="6"/>
+  <circle cx="72" cy="14" r="10" fill="#805d47"/><path d="M64 24 52 43l28 2-5-19Z" fill="#f3b942" stroke="#715048" stroke-width="3"/>
+</svg>

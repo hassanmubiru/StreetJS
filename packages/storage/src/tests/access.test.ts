@@ -14,6 +14,7 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
+import { Readable } from "node:stream";
 
 import { AccessController } from "../access.js";
 import type { AccessOperation } from "../access.js";
@@ -357,4 +358,34 @@ test("facade put of a role-based object is denied for a non-owner and persists n
     (err) => err instanceof AuthorizationError && err.operation === "write",
   );
   assert.equal(await storage.exists("role.txt"), false);
+});
+
+test("facade putStream records an authorization denial as a failed upload", async () => {
+  const storage = createStorage({
+    provider: "memory",
+    auth: makeAuth(false),
+  });
+
+  await assert.rejects(
+    () =>
+      storage.putStream(
+        "denied-stream.txt",
+        Readable.from([Buffer.from("data")]),
+        { accessLevel: "private" },
+      ),
+    (err) => err instanceof AuthorizationError && err.operation === "write",
+  );
+
+  assert.deepEqual(storage.stats(), {
+    uploads: 0,
+    downloads: 0,
+    bytesUploaded: 0,
+    bytesDownloaded: 0,
+    activeUploads: 0,
+    failedUploads: 1,
+    storageUsage: 0,
+    multipartUploads: 0,
+    resumableSessions: 0,
+  });
+  assert.equal(await storage.exists("denied-stream.txt"), false);
 });

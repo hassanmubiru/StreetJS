@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f5f8f1" />
+    <meta
+      name="description"
+      content="Kampala Life — make your own story in the city of seven hills."
+    />
+    <title>Kampala Life — make your own story</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="game-shell" id="game-shell">
+      <section class="city-map" aria-label="A stylized map of Kampala">
+        <div class="map-sun"></div>
+        <div class="hill hill-one"></div>
+        <div class="hill hill-two"></div>
+        <div class="lake lake-victoria"><span>LAKE VICTORIA</span></div>
+        <div class="map-grid"></div>
+
+        <div class="world-art" aria-hidden="true">
+          <div class="world-water water-one"></div>
+          <div class="world-water water-two"></div>
+          <div class="world-road city-road-one"></div>
+          <div class="world-road city-road-two"></div>
+          <div class="world-road city-road-three"></div>
+          <img class="art-asset asset-market" src="./assets/market.svg" alt="" />
+          <img class="art-asset asset-apartment asset-apartment-one" src="./assets/apartment-block.svg" alt="" />
+          <img class="art-asset asset-apartment asset-apartment-two" src="./assets/apartment-block.svg" alt="" />
+          <img class="art-asset asset-tower asset-tower-one" src="./assets/tower-block.svg" alt="" />
+          <img class="art-asset asset-tower asset-tower-two" src="./assets/tower-block.svg" alt="" />
+          <img class="art-asset asset-park asset-park-one" src="./assets/park.svg" alt="" />
+          <img class="art-asset asset-park asset-park-two" src="./assets/park.svg" alt="" />
+          <img class="art-asset asset-tree asset-tree-one" src="./assets/tree.svg" alt="" />
+          <img class="art-asset asset-tree asset-tree-two" src="./assets/tree.svg" alt="" />
+          <img class="art-asset asset-tree asset-tree-three" src="./assets/tree.svg" alt="" />
+          <img class="art-asset asset-tree asset-tree-four" src="./assets/tree.svg" alt="" />
+          <img class="art-asset asset-billboard asset-billboard-one" src="./assets/billboard.svg" alt="" />
+          <img class="art-asset asset-billboard asset-billboard-two" src="./assets/billboard.svg" alt="" />
+          <img class="art-asset asset-boda" src="./assets/boda.svg" alt="" />
+        </div>
+
+        <div class="multiplayer-layer" id="multiplayer-layer" aria-live="polite"></div>
+
+        <div class="road road-horizontal road-one"></div>
+        <div class="road road-horizontal road-two"></div>
+        <div class="road road-vertical road-three"></div>
+        <div class="road road-diagonal road-four"></div>
+
+        <div class="neighborhood neighborhood-kololo">KOLOLO</div>
+        <div class="neighborhood neighborhood-nakasero">NAKASERO</div>
+        <div class="neighborhood neighborhood-kabalagala">KABALAGALA</div>
+        <div class="neighborhood neighborhood-makindye">MAKINDEYE</div>
+
+        <div class="landmark landmark-market" title="Owino Market">
+          <span>🧺</span><small>Owino Market</small>
+        </div>
+        <div class="landmark landmark-cafe" title="Hilltop cafe">
+          <span>☕</span><small>Hilltop cafe</small>
+        </div>
+        <div class="landmark landmark-stadium" title="Mandela National Stadium">
+          <span>⚽</span><small>Stadium</small>
+        </div>
+        <div class="landmark landmark-beach" title="Ggaba beach">
+          <span>🏝️</span><small>Ggaba beach</small>
+        </div>
+
+        <div class="home home-a"><i></i><i></i><i></i></div>
+        <div class="home home-b"><i></i><i></i><i></i></div>
+        <div class="home home-c"><i></i><i></i><i></i></div>
+        <div class="home home-d"><i></i><i></i><i></i></div>
+        <div class="home home-e"><i></i><i></i><i></i></div>
+        <div class="home home-f"><i></i><i></i><i></i></div>
+
+        <button class="map-pin pin-one" type="button" data-place="Boda stage" aria-label="Boda stage">🏍️</button>
+        <button class="map-pin pin-two" type="button" data-place="Rolex spot" aria-label="Rolex spot">🌯</button>
+        <button class="map-pin pin-three" type="button" data-place="Live music" aria-label="Live music">🎶</button>
+        <button class="map-pin pin-four" type="button" data-place="Fresh start" aria-label="Fresh start">🌱</button>
+        <button class="map-pin pin-five" type="button" data-place="Market gig" aria-label="Market gig">💼</button>
+        <button class="map-pin pin-six" type="button" data-place="Rest at home" aria-label="Rest at home">🏠</button>
+
+        <div class="billboard billboard-one">YOUR AD HERE<span>UGX 25K / 7 DAYS</span></div>
+        <div class="billboard billboard-two">YOUR AD HERE<span>CALL THE CITY</span></div>
+        <div class="billboard billboard-three">YOUR AD HERE<span>MAKE YOUR MOVE</span></div>
+      </section>
+
+      <header class="topbar glass-panel">
+        <a class="brand" href="#game-shell" aria-label="Kampala Life home">
+          <span class="brand-mark">✦</span>
+          <span>Kampala Life</span>
+        </a>
+        <div class="active-count"><span class="live-dot"></span><strong>1,240</strong> active today</div>
+        <div class="multiplayer-status" id="multiplayer-status"><span class="status-dot"></span><span id="multiplayer-status-copy">Sign in to enter the city</span></div>
+        <div class="top-actions">
+          <button class="music-toggle" type="button" id="music-toggle" aria-pressed="false">
+            <span>♫</span> <strong>Game music</strong>
+          </button>
+          <button class="mood-toggle" type="button" id="mood-toggle" aria-pressed="false">☼ KLA!</button>
+          <button class="button button-primary button-compact" type="button" id="story-button" data-modal="signup">Sign up</button>
+          <button class="button button-ghost button-compact" type="button" data-modal="login">Log in</button>
+        </div>
+      </header>
+
+      <div class="city-stats" aria-label="City stats">
+        <span class="stat-chip">🏛️ Mayor @Kampala</span>
+        <span class="stat-chip">🌊 Lake Victoria</span>
+        <span class="stat-chip">🏠 1,200 homes</span>
+      </div>
+
+      <div class="city-ticker glass-green" aria-live="polite">
+        <span>✦</span>
+        <strong id="ticker-copy">Boda bodas are moving — who will you meet on the way?</strong>
+      </div>
+
+      <aside class="activity-feed glass-panel" id="activity-feed" aria-live="polite" aria-label="Live Kampala activity">
+        <div class="activity-heading"><span>LIVE IN KAMPALA</span><i></i></div>
+        <ol id="activity-list"><li>Sign in to see what other players are doing.</li></ol>
+      </aside>
+
+      <div class="place-toast glass-panel" id="place-toast" role="status" aria-live="polite">
+        <span class="toast-icon">📍</span>
+        <span><strong id="toast-title">Kampala is wide awake</strong><small id="toast-copy">Tap a place on the map to peek inside.</small></span>
+      </div>
+
+      <section class="join-card glass-panel" aria-label="Join Kampala Life">
+        <div class="player-line">
+          <div class="avatar-stack" aria-hidden="true">
+            <span>👩🏾</span><span>🧑🏿</span><span>👨🏾</span><span>🧕🏾</span>
+          </div>
+          <div><strong id="player-title">1,240 Kampala dreamers</strong><span id="player-subtitle">are playing today · free</span></div>
+        </div>
+        <div class="goal-row" aria-live="polite">
+          <div class="goal-copy"><span class="goal-kicker">DAY <strong id="day-number">1</strong> · DAILY GOAL</span><strong id="goal-title">Build your network</strong><small id="goal-description">Sign in to start your first day.</small></div>
+          <div class="goal-progress"><span id="goal-progress-bar"></span></div>
+          <span class="goal-count" id="goal-progress">0/3</span>
+          <button class="end-day-button" id="end-day-button" type="button" disabled>End day</button>
+        </div>
+        <div class="join-actions">
+          <button class="button button-primary button-large" type="button" id="start-story-button" data-modal="signup">Start your story</button>
+          <button class="button button-ghost button-large" type="button" data-modal="login">Log in</button>
+        </div>
+        <div class="official-row"><span>◈ Official</span><span>𝕏</span><span>♪</span><span>◎</span><span>in</span></div>
+      </section>
+    </main>
+
+    <div class="modal-backdrop" id="modal-backdrop" hidden>
+      <section class="modal glass-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <button class="modal-close" id="modal-close" type="button" aria-label="Close">×</button>
+        <div class="modal-emoji" id="modal-emoji">🌇</div>
+        <p class="eyebrow" id="modal-eyebrow">YOUR NEXT CHAPTER</p>
+        <h1 id="modal-title">Make Kampala yours.</h1>
+        <p id="modal-copy">Create a free character and start building a life across the seven hills.</p>
+        <form id="signup-form" class="signup-form">
+          <label for="email">Email address</label>
+          <input id="email" name="email" type="email" placeholder="you@example.com" autocomplete="email" required />
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" placeholder="At least 8 characters" minlength="8" autocomplete="new-password" required />
+          <button class="button button-primary button-large" type="submit" id="modal-submit">Sign me up free</button>
+        </form>
+        <button class="button button-primary button-large modal-enter" type="button" id="modal-enter" hidden>Enter Kampala</button>
+        <button class="button button-ghost button-large modal-signout" type="button" id="modal-signout" hidden>Sign out</button>
+        <p class="form-error" id="form-error" role="alert" hidden></p>
+        <p class="form-note" id="form-note">No card. No pressure. Just Kampala.</p>
+      </section>
+    </div>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>

@@ -40,16 +40,27 @@ export function registerShutdownHook(app: StreetApp, opts: ShutdownHookOptions =
 
     let force!: NodeJS.Timeout;
     const shutdownWork = (async (): Promise<'success' | 'failure'> => {
+      let failed = false;
       try {
         await app.close();
-        for (const c of opts.closeables ?? []) {
-          await c.close();
-        }
-        if (opts.onShutdown) await opts.onShutdown();
-        return 'success';
       } catch {
-        return 'failure';
+        failed = true;
       }
+      for (const c of opts.closeables ?? []) {
+        try {
+          await c.close();
+        } catch {
+          failed = true;
+        }
+      }
+      if (!failed && opts.onShutdown) {
+        try {
+          await opts.onShutdown();
+        } catch {
+          failed = true;
+        }
+      }
+      return failed ? 'failure' : 'success';
     })();
     const timeout = new Promise<'timeout'>((resolve) => {
       force = setTimeout(() => {

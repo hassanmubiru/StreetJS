@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 150" role="img" aria-label="Isometric Kampala park">
+  <defs><filter id="shadow"><feDropShadow dx="7" dy="10" stdDeviation="3" flood-color="#2f7652" flood-opacity=".25"/></filter></defs>
+  <path d="M18 56 119 12l104 45-104 48Z" fill="#83c681" stroke="#3d9366" stroke-width="4" filter="url(#shadow)"/>
+  <path d="m18 56 104 49v26L18 81Z" fill="#64aa73" stroke="#3d9366" stroke-width="4"/>
+  <path d="m122 105 101-48v26l-101 48Z" fill="#55986e" stroke="#3d9366" stroke-width="4"/>
+  <path d="M54 68 123 38l57 25-67 30Z" fill="#e9ce83" opacity=".95"/>
+  <g fill="#338a59" stroke="#226c4a" stroke-width="2"><circle cx="40" cy="47" r="13"/><circle cx="74" cy="31" r="13"/><circle cx="157" cy="36" r="13"/><circle cx="190" cy="50" r="13"/><circle cx="90" cy="90" r="13"/></g>
+  <g fill="#9b6e4a"><path d="M40 58h4v13h-4Z"/><path d="M74 42h4v13h-4Z"/><path d="M157 47h4v13h-4Z"/><path d="M190 61h4v13h-4Z"/><path d="M90 101h4v13h-4Z"/></g>
+</svg>

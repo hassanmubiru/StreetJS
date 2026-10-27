@@ -76,6 +76,18 @@ test('dispatch with no target queue is not reservable from a non-default queue',
   assert.equal(reservation, null);
 });
 
+test('dispatch uses the configured defaultQueue when the job has no queue', async () => {
+  const driver = new MemoryDriver();
+  const queue = createQueue({ driver, clock: fixedClock, defaultQueue: 'emails' });
+
+  await queue.dispatch(new GreetJob({ name: 'ada' }));
+
+  const reservation = await driver.reserve(['emails'], VISIBILITY_MS, FIXED_NOW);
+  assert.ok(reservation, 'expected the dispatched job to use the configured default queue');
+  assert.equal(reservation.queue, 'emails');
+  assert.equal(reservation.envelope.queue, 'emails');
+});
+
 // ── Default priority (Req 8.3) ────────────────────────────────────────────────
 
 test('dispatch with no priority gets priority 0', async () => {

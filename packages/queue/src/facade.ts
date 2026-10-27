@@ -326,7 +326,11 @@ class QueueFacade implements Queue {
     // wins), mirroring buildEnvelope's own merge so the resolved queue, dedupe
     // key, delay, and runAt agree with the built envelope.
     const merged: JobOptions = { ...job.options, ...options };
-    const queue = merged.queue ?? DEFAULT_QUEUE;
+    const queue = merged.queue ?? this.options.defaultQueue ?? DEFAULT_QUEUE;
+    const resolvedOptions =
+      merged.queue === undefined && this.options.defaultQueue !== undefined
+        ? { ...options, queue: this.options.defaultQueue }
+        : options;
 
     // Dedupe drop: if a still-pending/ready job in the same queue already holds
     // this dedupe key, drop the duplicate (enqueue no second envelope) and
@@ -338,13 +342,22 @@ class QueueFacade implements Queue {
         return existingId;
       }
       // Reserve the key with the id of the envelope we are about to enqueue.
-      const envelope = buildEnvelope(job, options, this.clock, this.nextSeq());
+      const envelope = buildEnvelope(job, resolvedOptions, this.clock, this.nextSeq());
       this.activeDedupeKeys.set(key, envelope.id);
-      await this.enqueueEnvelope(queue, envelope, merged);
+      try {
+        await this.enqueueEnvelope(queue, envelope, merged);
+      } catch (error) {
+        // A failed enqueue did not produce a pending job that can release this
+        // key later. Clear only our reservation so a later dispatch can retry;
+        // never remove a newer job's reservation if a driver behaves
+        // unexpectedly while the call is in flight.
+        this.releaseDedupeKey(queue, merged.dedupeKey!, envelope.id);
+        throw error;
+      }
       return envelope.id;
     }
 
-    const envelope = buildEnvelope(job, options, this.clock, this.nextSeq());
+    const envelope = buildEnvelope(job, resolvedOptions, this.clock, this.nextSeq());
     await this.enqueueEnvelope(queue, envelope, merged);
     return envelope.id;
   }

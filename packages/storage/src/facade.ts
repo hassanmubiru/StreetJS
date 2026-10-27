@@ -827,22 +827,26 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
     stream: NodeReadable,
     options?: PutOptions,
   ): Promise<StorageObjectMetadata> {
-    // Access control gates the streamed write before any bytes reach the driver
-    // (Requirement 11.3). No-op when no auth bridge is configured.
-    await this.authorizeAccess(
-      key,
-      "write",
-      options?.accessLevel ?? DEFAULT_ACCESS_LEVEL,
-      options?.owner,
-      options?.tenant,
-    );
-    // Broadcast the upload state transitions through the realtime bridge when
-    // configured (Requirement 19.1). Every broadcast is isolated so it never
-    // breaks the upload path (Requirement 19.3).
     const startedMs = this.nowMs();
-    this.recordActiveStart();
-    this.realtime?.started(key);
+    let activeStarted = false;
     try {
+      // Access control gates the streamed write before any bytes reach the driver
+      // (Requirement 11.3). No-op when no auth bridge is configured. Keeping this
+      // inside the failure boundary makes denied attempts observable as failed
+      // uploads, matching buffered put semantics.
+      await this.authorizeAccess(
+        key,
+        "write",
+        options?.accessLevel ?? DEFAULT_ACCESS_LEVEL,
+        options?.owner,
+        options?.tenant,
+      );
+      this.recordActiveStart();
+      activeStarted = true;
+      this.realtime?.started(key);
+      // Broadcast the upload state transitions through the realtime bridge when
+      // configured (Requirement 19.1). Every broadcast is isolated so it never
+      // breaks the upload path (Requirement 19.3).
       // With no validation configured, stream straight through the driver so
       // large files never fully buffer (Requirement 5.3).
       if (this.validation === undefined) {
@@ -870,12 +874,16 @@ class StorageFacade<T extends StorageMetadataMap = StorageMetadataMap> implement
       this.recordUpload(metadata.size, (this.nowMs() - startedMs) / 1000);
       return metadata;
     } catch (error) {
-      this.realtime?.failed(key, error instanceof Error ? error.message : String(error));
+      if (activeStarted) {
+        this.realtime?.failed(key, error instanceof Error ? error.message : String(error));
+      }
       this.recordUploadFailure();
       throw error;
     } finally {
       // The streamed upload is no longer in flight regardless of outcome.
-      this.recordActiveEnd();
+      if (activeStarted) {
+        this.recordActiveEnd();
+      }
     }
   }
 

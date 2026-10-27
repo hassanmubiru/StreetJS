@@ -1,0 +1,11 @@
+{
+  "name": "kampala-life",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A server-backed Kampala Life browser game MVP.",
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node server.mjs",
+    "check": "node --check app.js && node --check server.mjs"
+  }
+}
