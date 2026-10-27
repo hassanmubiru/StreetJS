@@ -43,6 +43,11 @@ and `streetjs/sse` subpaths and all internal imports resolve to one implementati
   transport paths, rejecting overload with HTTP `503`. Pending sockets have a
   configurable deadline (`upgradeTimeoutMs`); timed-out auth retains its budget
   until settlement. This bounds in-flight auth even when its backend stalls.
+  Framed sends default to a 1 MiB per-connection budget (`maxBufferedBytes`):
+  buffered transport bytes plus the next UTF-8 envelope. Over-limit sockets are
+  terminated before queueing that message; a graceful close could stall behind
+  the same queue. Server broadcasts reuse serialized data and isolate recipients.
+  Raw subprotocol send calls remain owned by their integration.
 
 ## Lifecycle & framing
 

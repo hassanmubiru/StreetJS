@@ -23,15 +23,43 @@ export interface WsEvent {
   ts: number;
 }
 
+const DEFAULT_MAX_BUFFERED_BYTES = 1024 * 1024;
+
+function bufferLimit(value: number | undefined): number {
+  const limit = value ?? DEFAULT_MAX_BUFFERED_BYTES;
+  if (limit !== Infinity && (!Number.isSafeInteger(limit) || limit <= 0)) {
+    throw new RangeError('maxBufferedBytes must be a positive safe integer or Infinity');
+  }
+  return limit;
+}
+
+/** Bound framed application writes without adding a second queue. */
+function sendFrame(ws: WebSocket, frame: string, bytes: number, limit: number): boolean {
+  if (ws.readyState !== WebSocket.OPEN) return false;
+  if ((ws.bufferedAmount ?? 0) + bytes <= limit) {
+    try {
+      ws.send(frame);
+      return true;
+    } catch {
+      // Isolate transport failures just like slow consumers during fanout.
+    }
+  }
+  // A graceful close can itself wait behind the stalled write queue.
+  try { ws.terminate(); } catch { /* isolate a broken transport */ }
+  return false;
+}
+
 export class StreetSocket {
   private readonly listeners = new Map<string, Set<(data: unknown) => void>>();
   private readonly MAX_LISTENERS = 64;
   private readonly closeHandlers = new Set<() => void>();
   private _closed = false;
+  private readonly maxBufferedBytes: number;
   /** Stable, unique id for this connection (used by the channel hub). */
   readonly id: string = randomUUID();
 
-  constructor(private readonly ws: WebSocket) {
+  constructor(private readonly ws: WebSocket, options: Pick<WsServerOptions, 'maxBufferedBytes'> = {}) {
+    this.maxBufferedBytes = bufferLimit(options.maxBufferedBytes);
     ws.on('message', (raw) => {
       try {
         const msg = JSON.parse(raw.toString('utf8')) as WsEvent;
@@ -94,7 +122,8 @@ export class StreetSocket {
   emit(type: string, payload: unknown): void {
     if (this._closed || this.ws.readyState !== WebSocket.OPEN) return;
     const msg: WsEvent = { type, payload, ts: Date.now() };
-    this.ws.send(JSON.stringify(msg));
+    const frame = JSON.stringify(msg);
+    if (!sendFrame(this.ws, frame, Buffer.byteLength(frame), this.maxBufferedBytes)) this._onClose();
   }
 
   close(code = 1000, reason = ''): void {
@@ -111,6 +140,8 @@ export interface WsServerOptions {
   path?: string;
   heartbeatIntervalMs?: number;
   maxConnections?: number;
+  /** Per-connection buffered bytes plus the next UTF-8 JSON envelope. Default 1 MiB; Infinity disables. */
+  maxBufferedBytes?: number;
   /** Opt in to pre-upgrade admission: cap pending auth/handshakes and reject overload with HTTP 503. */
   maxPendingUpgrades?: number;
   /** Pending upgrade deadline when admission is enabled. Defaults to 10 seconds. */
@@ -192,6 +223,7 @@ export class StreetWebSocketServer {
   private readonly protocolNames = new Set<string>();
   private readonly upgradeListeners: Array<{ server: Server; listener: (req: IncomingMessage, socket: import('node:stream').Duplex, head: Buffer) => void }> = [];
   private readonly MAX_CLIENTS: number;
+  private readonly maxBufferedBytes: number;
   private readonly maxPendingUpgrades: number | undefined;
   private readonly upgradeTimeoutMs: number;
   private readonly pendingUpgrades = new Map<Duplex, ReturnType<typeof setTimeout> | undefined>();
@@ -203,6 +235,7 @@ export class StreetWebSocketServer {
 
   constructor(options: WsServerOptions = {}) {
     this.MAX_CLIENTS = options.maxConnections ?? 10_000;
+    this.maxBufferedBytes = bufferLimit(options.maxBufferedBytes);
     this.maxPendingUpgrades = options.maxPendingUpgrades;
     this.upgradeTimeoutMs = options.upgradeTimeoutMs ?? 10_000;
     if (this.maxPendingUpgrades !== undefined &&
@@ -337,7 +370,7 @@ export class StreetWebSocketServer {
         this.wss.handleUpgrade(req, socket, head, (ws) => {
           this.wss.emit('connection', ws, req);
           if (!this.clients.has(ws)) return;
-          const streetSocket = new StreetSocket(ws);
+          const streetSocket = new StreetSocket(ws, { maxBufferedBytes: this.maxBufferedBytes });
           try {
             handler(streetSocket, req);
           } catch {
@@ -427,10 +460,9 @@ export class StreetWebSocketServer {
   /** Broadcast a message to all connected clients */
   broadcast(type: string, payload: unknown): void {
     const msg = JSON.stringify({ type, payload, ts: Date.now() });
+    const bytes = Buffer.byteLength(msg);
     for (const ws of this.clients) {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(msg);
-      }
+      sendFrame(ws, msg, bytes, this.maxBufferedBytes);
     }
   }
 

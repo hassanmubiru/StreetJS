@@ -53,6 +53,7 @@ const ws = new StreetWebSocketServer({
   maxConnections: 10_000,
   maxPendingUpgrades: 100,
   upgradeTimeoutMs: 5_000,
+  maxBufferedBytes: 256 * 1024,
   heartbeatIntervalMs: 30_000,
   authFn: async (req) => verifyToken(req),
 });
@@ -77,6 +78,37 @@ and must be a positive integer. When enabled:
 Without `maxPendingUpgrades`, the existing post-handshake `1013` capacity behavior
 remains in effect and there is no upgrade deadline.
 
+### Slow-client protection
+
+`maxBufferedBytes` defaults to **1 MiB per connection**. Before each framed send,
+StreetJS compares `ws.bufferedAmount` plus the next JSON envelope's UTF-8 byte
+length against this limit. A message that would exceed it is not queued; the
+connection is terminated immediately. Clients normally observe abnormal closure
+(`1006`), because waiting for a close handshake behind a stalled buffer would
+retain that buffer. Transport write failures are isolated during fanout too.
+
+The limit applies to `StreetSocket.emit()` (including room delivery through
+`ChannelHub`) and `StreetWebSocketServer.broadcast()`. Broadcasts serialize once
+and check each recipient independently, so healthy recipients continue receiving.
+Socket close hooks remove disconnected members from hubs bound with `hub.bind()`.
+
+Directly constructed sockets accept the same setting:
+
+```ts
+const socket = new StreetSocket(rawWebSocket, { maxBufferedBytes: 256 * 1024 });
+```
+
+Use a positive safe integer, or `Infinity` to restore unbounded framed sends.
+This also limits individual outgoing messages, including their envelope overhead.
+The budget covers application bytes and the transport's reported buffer, not
+total process memory, serialization allocations, or kernel buffers. Budget across
+all connections: even 1 MiB times 10,000 sockets is about 9.8 GiB.
+
+Custom `attachProtocol` handlers own raw `ws.send()` calls and must enforce their
+own backpressure policy; server broadcasts to those sockets use the limit above.
+Disconnecting a slow consumer is not reliable message delivery: chat applications
+still need persisted messages and a replay cursor after reconnect.
+
 ### Capacity planning toward millions of connections
 
 Five million concurrent users is a fleet-level target, **not a verified StreetJS
@@ -97,8 +129,8 @@ distributed load tests with independent load generators.
 
 The current realtime Redis adapter uses one pub/sub topic per prefix, so all
 gateways in that group receive every published event. Large fleets still need
-room/tenant routing and partitioned fanout, bounded outbound buffering, reconnect
-jitter, and failure-domain capacity testing. Admission limits are one building
+room/tenant routing and partitioned fanout, reconnect jitter, and failure-domain
+capacity testing. Admission and framed-send buffer limits are building
 block toward that architecture.
 
 ### StreetSocket

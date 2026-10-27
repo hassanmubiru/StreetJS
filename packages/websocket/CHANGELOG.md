@@ -7,6 +7,22 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [Unreleased]
+
+### Added
+
+- Configurable `maxBufferedBytes` for framed socket writes and server broadcasts,
+  including room broadcasts through `StreetSocket`. Slow consumers are terminated
+  before another message can push the buffer over its budget.
+
+### Changed
+
+- Framed sends now default to a 1 MiB per-connection budget, including the next
+  outgoing JSON envelope. Set `maxBufferedBytes: Infinity` to retain unbounded
+  behavior. This also rejects oversized individual outgoing messages.
+- Server broadcasts isolate transport send failures so remaining recipients
+  continue receiving messages.
+
 ## [1.0.0] - 2026-07-14
 
 ### Added
