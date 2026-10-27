@@ -123,7 +123,6 @@ export class RealtimeClient {
   private handleClose(ws: WsLike): void {
     if (this.ws !== ws) return;
     this.ws = null;
-    this.pending.length = 0;
     if (this.manuallyClosed) {
       this.setState('closed');
       return;
@@ -191,8 +190,14 @@ export class RealtimeClient {
   }
 
   private write(envelope: OutboundMessage): void {
-    if (!this.ws) throw new StreetClientError('RealtimeClient is not connected — call connect() first.');
     const frame = JSON.stringify(envelope);
+    if (!this.ws) {
+      const reconnecting = this.reconnectTimer !== undefined ||
+        this.currentState === 'connecting' || this.currentState === 'reconnecting';
+      if (!reconnecting) throw new StreetClientError('RealtimeClient is not connected — call connect() first.');
+      this.pending.push(frame);
+      return;
+    }
     if (this.currentState === 'connected') this.ws.send(frame);
     else this.pending.push(frame);
   }

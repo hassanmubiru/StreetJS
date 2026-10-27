@@ -82,3 +82,28 @@ test('the client protocol rejects publishing before subscribing', async () => {
     await realtime.close();
   }
 });
+
+test('the client protocol preserves action order for an immediate publish after subscribe', async () => {
+  const realtime = createRealtime({ server: new StreetWebSocketServer() });
+  const sender = new ProtocolConnection({ id: 'sender-conn' });
+  const receiver = new ProtocolConnection({ id: 'receiver-conn' });
+  try {
+    realtime.bind(sender, { id: 'sender' });
+    realtime.bind(receiver, { id: 'receiver' });
+
+    sender.receive('subscribe', { channel: 'match:2' });
+    receiver.receive('subscribe', { channel: 'match:2' });
+    sender.receive('publish', { channel: 'match:2', data: { move: 'e4' } });
+    await settle();
+    await settle();
+
+    assert.equal(sender.eventsOfType('error').length, 0);
+    assert.deepEqual(receiver.eventsOfType('realtime').at(-1)?.payload, {
+      channel: 'match:2',
+      type: 'message',
+      data: { move: 'e4' },
+    });
+  } finally {
+    await realtime.close();
+  }
+});

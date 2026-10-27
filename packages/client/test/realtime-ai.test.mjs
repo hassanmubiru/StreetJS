@@ -95,6 +95,23 @@ describe('RealtimeClient', () => {
     });
     rt.close();
   });
+
+  it('queues publishes during reconnect and flushes them after subscription restoration', async () => {
+    const rt = new RealtimeClient('ws://x/rt', FakeWebSocket, { reconnectDelayMs: 0 });
+    rt.connect();
+    const first = FakeWebSocket.last;
+    rt.subscribe('match:1', () => {});
+    first.emit('close', {});
+    rt.publish('match:1', { to: 'e4' }, 'move');
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const second = FakeWebSocket.last;
+    assert.deepEqual(second.sent.map((frame) => JSON.parse(frame)), [
+      { type: 'subscribe', channel: 'match:1' },
+      { type: 'publish', channel: 'match:1', data: { to: 'e4' }, event: 'move' },
+    ]);
+    rt.close();
+  });
 });
 
 describe('parseSseChunk', () => {

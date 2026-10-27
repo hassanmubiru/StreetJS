@@ -482,6 +482,8 @@ class RealtimeFacade implements Realtime {
   private readonly protocolSubscriptions = new Map<string, Map<string, Member>>();
   /** Channel-aware connection views used by the client protocol. */
   private readonly protocolConnections = new Map<string, Map<string, ProtocolRoomConnection>>();
+  /** Preserve wire order for subscribe/unsubscribe/publish actions per connection. */
+  private readonly protocolQueues = new Map<string, Promise<void>>();
 
   /**
    * Observability handle registered by {@link createRealtime} when a
@@ -611,24 +613,36 @@ class RealtimeFacade implements Realtime {
     if (!hasProtocolEvents(conn) || this.protocolSubscriptions.has(conn.id)) return;
     this.protocolSubscriptions.set(conn.id, new Map());
     this.protocolConnections.set(conn.id, new Map());
-    conn.on('subscribe', (payload) => {
-      void this.handleClientSubscribe(conn, payload).catch(() => {
-        this.protocolError(conn, 'subscribe', 'subscription failed');
-      });
+    conn.on('subscribe', (payload) => this.enqueueProtocol(conn, 'subscribe', payload));
+    conn.on('unsubscribe', (payload) => this.enqueueProtocol(conn, 'unsubscribe', payload));
+    conn.on('publish', (payload) => this.enqueueProtocol(conn, 'publish', payload));
+  }
+
+  private enqueueProtocol(conn: RealtimeConnection, action: string, payload: unknown): void {
+    const previous = this.protocolQueues.get(conn.id) ?? Promise.resolve();
+    const next = previous
+      .catch(() => {})
+      .then(() => {
+        if (action === 'subscribe') return this.handleClientSubscribe(conn, payload);
+        if (action === 'unsubscribe') return this.handleClientUnsubscribe(conn, payload);
+        return this.handleClientPublish(conn, payload);
+      })
+      .catch(() => {
+        this.protocolError(conn, action, `${action} failed`);
     });
-    conn.on('unsubscribe', (payload) => {
-      void this.handleClientUnsubscribe(conn, payload).catch(() => {
-        this.protocolError(conn, 'unsubscribe', 'unsubscription failed');
-      });
-    });
-    conn.on('publish', (payload) => {
-      void this.handleClientPublish(conn, payload).catch(() => {
-        this.protocolError(conn, 'publish', 'publish failed');
-      });
-    });
+    this.protocolQueues.set(conn.id, next);
+    void next.then(
+      () => this.clearProtocolQueue(conn.id, next),
+      () => this.clearProtocolQueue(conn.id, next),
+    );
+  }
+
+  private clearProtocolQueue(connId: string, queue: Promise<void>): void {
+    if (this.protocolQueues.get(connId) === queue) this.protocolQueues.delete(connId);
   }
 
   private async handleClientSubscribe(conn: RealtimeConnection, payload: unknown): Promise<void> {
+    if (conn.closed) return;
     const channel = protocolString(payload, 'channel');
     if (!channel) {
       this.protocolError(conn, 'subscribe', 'channel must be a non-empty string');
@@ -645,6 +659,10 @@ class RealtimeFacade implements Realtime {
     const roomConnection = new ProtocolRoomConnection(conn, channel);
     try {
       await new RoomHandle(channel, this.ctx).join(member, roomConnection);
+      if (conn.closed) {
+        await new RoomHandle(channel, this.ctx).leave(member, roomConnection);
+        return;
+      }
       subscriptions.set(channel, member);
       connections.set(channel, roomConnection);
       conn.emit('subscribed', { channel });
@@ -654,6 +672,7 @@ class RealtimeFacade implements Realtime {
   }
 
   private async handleClientUnsubscribe(conn: RealtimeConnection, payload: unknown): Promise<void> {
+    if (conn.closed) return;
     const channel = protocolString(payload, 'channel');
     if (!channel) {
       this.protocolError(conn, 'unsubscribe', 'channel must be a non-empty string');
@@ -671,6 +690,7 @@ class RealtimeFacade implements Realtime {
   }
 
   private async handleClientPublish(conn: RealtimeConnection, payload: unknown): Promise<void> {
+    if (conn.closed) return;
     const channel = protocolString(payload, 'channel');
     if (!channel) {
       this.protocolError(conn, 'publish', 'channel must be a non-empty string');
@@ -760,6 +780,7 @@ class RealtimeFacade implements Realtime {
     this.connById.delete(conn.id);
     this.protocolSubscriptions.delete(conn.id);
     this.protocolConnections.delete(conn.id);
+    this.protocolQueues.delete(conn.id);
     this.bound.delete(conn.id);
   }
 
@@ -787,6 +808,9 @@ class RealtimeFacade implements Realtime {
     this.bound.clear();
     this.connById.clear();
     this.peerPresenceMirror.clear();
+    this.protocolSubscriptions.clear();
+    this.protocolConnections.clear();
+    this.protocolQueues.clear();
   }
 }
 
