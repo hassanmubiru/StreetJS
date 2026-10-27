@@ -29,6 +29,7 @@ interface WsLike {
 }
 type WsCtor = new (url: string) => WsLike;
 type OutboundMessage = RealtimeMessage & { event?: string };
+const stableConnectionMs = 1_000;
 
 /**
  * Rewrite a leading http(s) scheme to the matching ws(s) scheme:
@@ -71,6 +72,7 @@ export class RealtimeClient {
   private readonly pending: string[] = [];
   private reconnectTimer: ReturnType<typeof setTimeout> | undefined;
   private reconnectAttempt = 0;
+  private openedAt = -1;
   private manuallyClosed = false;
   private currentState: RealtimeConnectionState = 'idle';
 
@@ -114,7 +116,7 @@ export class RealtimeClient {
 
   private handleOpen(ws: WsLike): void {
     if (this.ws !== ws || this.manuallyClosed || this.currentState === 'connected') return;
-    this.reconnectAttempt = 0;
+    this.openedAt = Date.now();
     this.setState('connected');
     for (const channel of this.handlers.keys()) this.send({ type: 'subscribe', channel });
     this.flushPending();
@@ -123,6 +125,10 @@ export class RealtimeClient {
   private handleClose(ws: WsLike): void {
     if (this.ws !== ws) return;
     this.ws = null;
+    if (this.openedAt >= 0 && Date.now() - this.openedAt >= stableConnectionMs) {
+      this.reconnectAttempt = 0;
+    }
+    this.openedAt = 0;
     if (this.manuallyClosed) {
       this.setState('closed');
       return;
@@ -245,6 +251,7 @@ export class RealtimeClient {
     }
     const ws = this.ws;
     this.ws = null;
+    this.openedAt = 0;
     if (ws) ws.close();
     this.pending.length = 0;
     this.handlers.clear();

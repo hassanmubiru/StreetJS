@@ -112,6 +112,45 @@ describe('RealtimeClient', () => {
     ]);
     rt.close();
   });
+
+  it('keeps exponential backoff for short-lived sockets and resets after stability', () => {
+    const originalSetTimeout = globalThis.setTimeout;
+    const originalClearTimeout = globalThis.clearTimeout;
+    const originalNow = Date.now;
+    const timers = [];
+    let now = 0;
+    globalThis.setTimeout = (callback, delay) => {
+      const timer = { callback, delay };
+      timers.push(timer);
+      return timer;
+    };
+    globalThis.clearTimeout = () => {};
+    Date.now = () => now;
+
+    try {
+      const rt = new RealtimeClient('ws://x/rt', FakeWebSocket, {
+        reconnectDelayMs: 10,
+        maxReconnectDelayMs: 100,
+      });
+      rt.connect();
+      FakeWebSocket.last.emit('close', {});
+      assert.equal(timers[0].delay, 10);
+
+      timers[0].callback();
+      FakeWebSocket.last.emit('close', {});
+      assert.equal(timers[1].delay, 20);
+
+      timers[1].callback();
+      now = 1_000;
+      FakeWebSocket.last.emit('close', {});
+      assert.equal(timers[2].delay, 10);
+      rt.close();
+    } finally {
+      globalThis.setTimeout = originalSetTimeout;
+      globalThis.clearTimeout = originalClearTimeout;
+      Date.now = originalNow;
+    }
+  });
 });
 
 describe('parseSseChunk', () => {
