@@ -22,6 +22,7 @@ const worldHeight = 620;
 const maxMoveDistance = 110;
 const maxMovesPerSecond = 20;
 const worldActivities = [];
+const positionWriteQueues = new Map();
 
 const actionDefinitions = {
   'Boda stage': { cash: -1500, energy: -8, reputation: 1, message: 'You caught a boda through the rush. Kampala is moving with you.' },
@@ -238,8 +239,17 @@ async function endDay(req, res) {
 }
 
 async function persistPosition(playerId, position) {
-  const players = await readJson(playersPath, []);
-  await writeJson(playersPath, players.map((entry) => entry.id === playerId ? { ...entry, position } : entry));
+  const previous = positionWriteQueues.get(playerId) || Promise.resolve();
+  const write = previous.catch(() => {}).then(async () => {
+    const players = await readJson(playersPath, []);
+    await writeJson(playersPath, players.map((entry) => entry.id === playerId ? { ...entry, position } : entry));
+  });
+  positionWriteQueues.set(playerId, write);
+  try {
+    await write;
+  } finally {
+    if (positionWriteQueues.get(playerId) === write) positionWriteQueues.delete(playerId);
+  }
 }
 
 function validPosition(value) {
@@ -318,18 +328,19 @@ realtimeServer.attach(server, (socket, req) => {
       self: publicPresence({ ...player, position }),
       activities: worldActivities.slice(-8).reverse(),
     });
-    const entry = existing || { ...player, position, sockets: new Set() };
+    const entry = existing || { ...player, position, sockets: new Set(), moveTimes: [] };
     entry.sockets.add(socket);
     entry.position = position;
+    entry.moveTimes ||= [];
     connectedPlayers.set(player.id, entry);
     if (!existing) {
       realtimeHub.publish(districtRoom, 'player:joined', publicPresence(entry), { exceptMemberId: player.id });
     }
 
-    const moveTimes = [];
     socket.on('player:move', async (payload) => {
       const current = connectedPlayers.get(player.id);
       const now = Date.now();
+      const moveTimes = current?.moveTimes || [];
       while (moveTimes[0] !== undefined && moveTimes[0] <= now - 1000) moveTimes.shift();
       if (moveTimes.length >= maxMovesPerSecond) {
         socket.emit('player:move:rejected', {

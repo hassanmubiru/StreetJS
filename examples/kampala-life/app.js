@@ -60,6 +60,7 @@ let tickerIndex = 0;
 let realtimeSocket = null;
 let reconnectTimer = null;
 const onlinePlayers = new Map();
+const playerTokens = new Map();
 
 function getSessionToken() {
   try { return window.localStorage.getItem(sessionStorageKey); } catch { return null; }
@@ -99,24 +100,36 @@ function playerAvatar(id) {
 }
 
 function renderOnlinePlayers() {
-  multiplayerLayer.replaceChildren();
+  const visible = new Set();
   for (const player of onlinePlayers.values()) {
-    const token = document.createElement('div');
+    visible.add(player.id);
+    let token = playerTokens.get(player.id);
+    if (!token) {
+      token = document.createElement('div');
+      const avatar = document.createElement('div');
+      avatar.append(document.createElement('span'));
+      token.append(avatar, document.createElement('span'));
+      playerTokens.set(player.id, token);
+      multiplayerLayer.append(token);
+    }
     token.className = `player-token${player.id === currentPlayer?.id ? ' is-self' : ''}`;
     token.style.left = `${(player.position.x / 1000) * 100}%`;
     token.style.top = `${(player.position.y / 620) * 100}%`;
     token.title = `${player.name} is in Kampala`;
 
-    const avatar = document.createElement('div');
+    const avatar = token.firstElementChild;
     avatar.className = 'player-token-avatar';
-    const avatarText = document.createElement('span');
+    const avatarText = avatar.firstElementChild;
     avatarText.textContent = playerAvatar(player.id);
-    avatar.append(avatarText);
-    const name = document.createElement('span');
+    const name = token.lastElementChild;
     name.className = 'player-token-name';
     name.textContent = player.id === currentPlayer?.id ? 'You' : player.name;
-    token.append(avatar, name);
-    multiplayerLayer.append(token);
+  }
+  for (const [id, token] of playerTokens) {
+    if (!visible.has(id)) {
+      token.remove();
+      playerTokens.delete(id);
+    }
   }
 }
 
@@ -161,6 +174,11 @@ function handleRealtimeMessage(message) {
     renderOnlinePlayers();
     setMultiplayerStatus('online', `${onlinePlayers.size} player${onlinePlayers.size === 1 ? '' : 's'} nearby`);
   } else if (type === 'player:move:rejected') {
+    const self = onlinePlayers.get(currentPlayer?.id);
+    if (self && payload.position) {
+      self.position = payload.position;
+      renderOnlinePlayers();
+    }
     toastTitle.textContent = 'Move rejected';
     toastCopy.textContent = payload.reason;
   } else if (type === 'world:activity') {
