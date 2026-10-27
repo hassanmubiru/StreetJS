@@ -62,6 +62,23 @@ await room.join(alice, connection);          // connection is a StreetSocket
 await room.broadcast({ type: 'message', payload: { text: 'Hello, StreetJS!' } });
 ```
 
+### Built-in client protocol
+
+When `Realtime.bind(connection, member)` is called, event-capable connections
+such as `StreetSocket` automatically support the client SDK protocol:
+
+```ts
+// @streetjs/client sends these frames for you:
+{ type: 'subscribe', channel: 'match:42' }
+{ type: 'publish', channel: 'match:42', data: { move: 'e4' } }
+{ type: 'unsubscribe', channel: 'match:42' }
+```
+
+Subscribing joins the corresponding `Room`, publishing broadcasts a `message`
+event to the other subscribed connections, and server-side `room.broadcast`
+events arrive with their channel preserved. Authentication and secured-channel
+authorization still apply; a connection must subscribe before it can publish.
+
 `createRealtime(options)` accepts:
 
 | Option         | Type                                             | Default                     | Purpose |

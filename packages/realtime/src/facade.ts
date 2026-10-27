@@ -188,6 +188,36 @@ interface FacadeContext {
   readonly onRateLimitRejected: () => void;
 }
 
+/** A StreetSocket-like connection that can receive client protocol events. */
+type ProtocolConnection = RealtimeConnection & {
+  on(event: string, handler: (data: unknown) => void): unknown;
+};
+
+/** Narrow a connection to the event-listener surface used by the client protocol. */
+function hasProtocolEvents(conn: RealtimeConnection): conn is ProtocolConnection {
+  return typeof (conn as { on?: unknown }).on === 'function';
+}
+
+/** Connection view that adds the subscribed room to every outbound envelope. */
+class ProtocolRoomConnection implements RealtimeConnection {
+  readonly id: string;
+
+  constructor(
+    private readonly raw: RealtimeConnection,
+    private readonly channel: string,
+  ) {
+    this.id = raw.id;
+  }
+
+  get closed(): boolean {
+    return this.raw.closed;
+  }
+
+  emit(type: string, payload: unknown): void {
+    this.raw.emit('realtime', { channel: this.channel, type, data: payload });
+  }
+}
+
 /** Map the facade's {@link BroadcastOptions} onto the hub's `PublishOptions`. */
 function toPublishOptions(options: BroadcastOptions | undefined): PublishOptions {
   if (!options) return {};
@@ -448,6 +478,10 @@ class RealtimeFacade implements Realtime {
    * while any peer's `join` has not been followed by a `leave`).
    */
   private readonly peerPresenceMirror = new Map<string, Set<string>>();
+  /** Client-protocol subscriptions keyed by connection id and channel. */
+  private readonly protocolSubscriptions = new Map<string, Map<string, Member>>();
+  /** Channel-aware connection views used by the client protocol. */
+  private readonly protocolConnections = new Map<string, Map<string, ProtocolRoomConnection>>();
 
   /**
    * Observability handle registered by {@link createRealtime} when a
@@ -564,6 +598,103 @@ class RealtimeFacade implements Realtime {
       this.bound.add(conn.id);
       conn.onClose(() => this.handleClose(conn));
     }
+    this.installClientProtocol(conn);
+  }
+
+  /**
+   * Install the built-in `{ subscribe, unsubscribe, publish }` protocol when
+   * the transport exposes event listeners (as `StreetSocket` does). Binding a
+   * connection is enough; applications do not need to duplicate WebSocket
+   * framing or room membership plumbing.
+   */
+  private installClientProtocol(conn: RealtimeConnection): void {
+    if (!hasProtocolEvents(conn) || this.protocolSubscriptions.has(conn.id)) return;
+    this.protocolSubscriptions.set(conn.id, new Map());
+    this.protocolConnections.set(conn.id, new Map());
+    conn.on('subscribe', (payload) => {
+      void this.handleClientSubscribe(conn, payload).catch(() => {
+        this.protocolError(conn, 'subscribe', 'subscription failed');
+      });
+    });
+    conn.on('unsubscribe', (payload) => {
+      void this.handleClientUnsubscribe(conn, payload).catch(() => {
+        this.protocolError(conn, 'unsubscribe', 'unsubscription failed');
+      });
+    });
+    conn.on('publish', (payload) => {
+      void this.handleClientPublish(conn, payload).catch(() => {
+        this.protocolError(conn, 'publish', 'publish failed');
+      });
+    });
+  }
+
+  private async handleClientSubscribe(conn: RealtimeConnection, payload: unknown): Promise<void> {
+    const channel = protocolString(payload, 'channel');
+    if (!channel) {
+      this.protocolError(conn, 'subscribe', 'channel must be a non-empty string');
+      return;
+    }
+    const member = this.membersByConnId.get(conn.id);
+    if (!member) {
+      this.protocolError(conn, 'subscribe', 'authentication required', channel);
+      return;
+    }
+    const subscriptions = this.protocolSubscriptions.get(conn.id);
+    const connections = this.protocolConnections.get(conn.id);
+    if (!subscriptions || !connections || subscriptions.has(channel)) return;
+    const roomConnection = new ProtocolRoomConnection(conn, channel);
+    try {
+      await new RoomHandle(channel, this.ctx).join(member, roomConnection);
+      subscriptions.set(channel, member);
+      connections.set(channel, roomConnection);
+      conn.emit('subscribed', { channel });
+    } catch {
+      // RoomHandle emits an authorization error to the protocol connection.
+    }
+  }
+
+  private async handleClientUnsubscribe(conn: RealtimeConnection, payload: unknown): Promise<void> {
+    const channel = protocolString(payload, 'channel');
+    if (!channel) {
+      this.protocolError(conn, 'unsubscribe', 'channel must be a non-empty string');
+      return;
+    }
+    const subscriptions = this.protocolSubscriptions.get(conn.id);
+    const connections = this.protocolConnections.get(conn.id);
+    if (!subscriptions || !connections) return;
+    const member = subscriptions.get(channel);
+    const roomConnection = connections.get(channel);
+    if (!member || !roomConnection) return;
+    await new RoomHandle(channel, this.ctx).leave(member, roomConnection);
+    subscriptions.delete(channel);
+    connections.delete(channel);
+  }
+
+  private async handleClientPublish(conn: RealtimeConnection, payload: unknown): Promise<void> {
+    const channel = protocolString(payload, 'channel');
+    if (!channel) {
+      this.protocolError(conn, 'publish', 'channel must be a non-empty string');
+      return;
+    }
+    const subscriptions = this.protocolSubscriptions.get(conn.id);
+    if (!subscriptions?.has(channel)) {
+      this.protocolError(conn, 'publish', 'subscribe to the channel before publishing', channel);
+      return;
+    }
+    const data = isRecord(payload) ? payload.data : undefined;
+    const event = isRecord(payload) && typeof payload.event === 'string' && payload.event.length > 0
+      ? payload.event
+      : 'message';
+    await new RoomHandle(channel, this.ctx).broadcast(
+      { type: event, payload: data },
+      // The sender is identified for secured-channel authorization and rate
+      // limiting, and does not receive a duplicate echo of its own publish.
+      { exceptConnId: conn.id },
+    );
+  }
+
+  private protocolError(conn: RealtimeConnection, action: string, reason: string, channel?: string): void {
+    conn.emit('error', { ...(channel ? { channel } : {}), action, reason });
   }
 
   /**
@@ -627,6 +758,8 @@ class RealtimeFacade implements Realtime {
     this.members.delete(conn);
     this.membersByConnId.delete(conn.id);
     this.connById.delete(conn.id);
+    this.protocolSubscriptions.delete(conn.id);
+    this.protocolConnections.delete(conn.id);
     this.bound.delete(conn.id);
   }
 
@@ -680,6 +813,15 @@ function describeValue(value: unknown): string {
 /** Human-readable member id for an authorization-denial message. */
 function describeMemberId(member: Member | null): string {
   return member ? member.id : '<anonymous>';
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function protocolString(value: unknown, field: string): string | null {
+  if (!isRecord(value) || typeof value[field] !== 'string' || value[field].length === 0) return null;
+  return value[field] as string;
 }
 
 /**

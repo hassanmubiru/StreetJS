@@ -70,6 +70,31 @@ describe('RealtimeClient', () => {
     rt.close();
     assert.equal(FakeWebSocket.last.closed, true);
   });
+
+  it('normalizes the StreetJS channel-aware server envelope', () => {
+    const rt = new RealtimeClient('ws://x/rt', FakeWebSocket);
+    rt.connect();
+    const got = [];
+    rt.subscribe('match:1', (message) => got.push(message.data));
+    FakeWebSocket.last.emit('message', {
+      data: JSON.stringify({
+        type: 'realtime',
+        payload: { channel: 'match:1', type: 'state', data: { turn: 1 } },
+      }),
+    });
+    assert.deepEqual(got, [{ turn: 1 }]);
+    rt.close();
+  });
+
+  it('supports an optional event name when publishing', () => {
+    const rt = new RealtimeClient('ws://x/rt', FakeWebSocket);
+    rt.connect();
+    rt.publish('match:1', { to: 'e4' }, 'move');
+    assert.deepEqual(JSON.parse(FakeWebSocket.last.sent.at(-1)), {
+      type: 'publish', channel: 'match:1', data: { to: 'e4' }, event: 'move',
+    });
+    rt.close();
+  });
 });
 
 describe('parseSseChunk', () => {

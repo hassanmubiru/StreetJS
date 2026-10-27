@@ -49,6 +49,8 @@ const rt = api.realtime(undefined, { reconnectDelayMs: 250 });
 rt.connect(); // reconnects and restores subscriptions after an unexpected drop
 const off = rt.subscribe('room:1', (msg) => console.log(msg.data));
 rt.publish('room:1', { text: 'hi' });
+// Optional event names let multiplayer features share a room safely.
+rt.publish('room:1', { from: 'alice', to: 'e4' }, 'move');
 
 // AI streaming (async iterator of text tokens)
 for await (const token of api.aiChat({ messages: [{ role: 'user', content: 'Hi' }] })) {

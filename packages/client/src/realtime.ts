@@ -28,6 +28,7 @@ interface WsLike {
   addEventListener(type: string, cb: (ev: { data?: unknown }) => void): void;
 }
 type WsCtor = new (url: string) => WsLike;
+type OutboundMessage = RealtimeMessage & { event?: string };
 
 /**
  * Rewrite a leading http(s) scheme to the matching ws(s) scheme:
@@ -165,6 +166,23 @@ export class RealtimeClient {
     } catch {
       return; // ignore non-JSON frames
     }
+    // The StreetJS realtime server wraps room traffic in a channel-aware
+    // transport envelope because the underlying WebSocket event contract is
+    // `{ type, payload }`. Normalize it to the public client shape.
+    if (
+      msg.type === 'realtime' &&
+      typeof msg.data !== 'object' &&
+      msg.data === undefined &&
+      msg.channel === undefined
+    ) {
+      const wrapped = (msg as RealtimeMessage & { payload?: unknown }).payload;
+      if (wrapped && typeof wrapped === 'object') {
+        const envelope = wrapped as { channel?: unknown; type?: unknown; data?: unknown };
+        if (typeof envelope.channel === 'string' && typeof envelope.type === 'string') {
+          msg = { type: envelope.type, channel: envelope.channel, data: envelope.data };
+        }
+      }
+    }
     for (const h of this.any) h(msg);
     if (msg.channel) {
       const set = this.handlers.get(msg.channel);
@@ -172,7 +190,7 @@ export class RealtimeClient {
     }
   }
 
-  private write(envelope: RealtimeMessage): void {
+  private write(envelope: OutboundMessage): void {
     if (!this.ws) throw new StreetClientError('RealtimeClient is not connected — call connect() first.');
     const frame = JSON.stringify(envelope);
     if (this.currentState === 'connected') this.ws.send(frame);
@@ -198,8 +216,8 @@ export class RealtimeClient {
   }
 
   /** Publish data to a channel. */
-  publish<T = unknown>(channel: string, data: T): void {
-    this.write({ type: 'publish', channel, data });
+  publish<T = unknown>(channel: string, data: T, event = 'message'): void {
+    this.write({ type: 'publish', channel, data, ...(event === 'message' ? {} : { event }) });
   }
 
   /** Receive every message (any channel). */
