@@ -70,15 +70,15 @@
     "streetjs": "^1.0.25"
   },
   "devDependencies": {
-    "@types/node": "^26.2.0",
-    "fast-check": "^4.9.0",
+    "@types/node": "^26.6.5",
+    "fast-check": "^4.10.2",
     "typescript": "^7.0.2"
   },
   "peerDependencies": {
-    "@streetjs/storage": ">=1.0.0",
-    "@streetjs/queue": ">=1.0.0",
     "@streetjs/events": ">=1.0.0",
+    "@streetjs/queue": ">=1.0.0",
     "@streetjs/realtime": ">=1.0.0",
+    "@streetjs/storage": ">=1.0.0",
     "redis": "^4"
   },
   "peerDependenciesMeta": {
