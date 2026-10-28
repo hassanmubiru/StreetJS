@@ -9,6 +9,20 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+- **Consolidated internal packages for simplified npm distribution.** All internal
+  `@streetjs/*` packages (cache, cluster, container, context, database, diagnostics,
+  exceptions, multipart, pool, postgres, ratelimit, repository, router, schema-inspector,
+  security, session, store, telemetry, webhook-dispatcher, websocket, xss) are now marked
+  `private: true` and not published separately to npm. Users install via `npm install streetjs`
+  and the framework bundles all internal packages. This reduces the public API surface to
+  just the `streetjs` meta-package while preserving the modular development workflow.
+- **Reverted `exceptions.ts` to re-export from `@streetjs/exceptions`.** The previous
+  consolidation approach copied the exception classes into `core/src/http/exceptions.ts`,
+  which caused `instanceof` checks to fail across module boundaries (StreetException from
+  one copy was not recognized as StreetException from another). Now re-exports from the
+  canonical `@streetjs/exceptions` package to ensure consistent class identity.
+
 ## [1.2.7] - 2026-07-12
 
 ### Added
