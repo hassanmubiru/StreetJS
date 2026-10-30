@@ -6660,7 +6660,7 @@ ${webJob}`;
           'migrate:create': 'street migrate:create',
         },
         dependencies: {
-          'streetjs': '^1.2.9',
+          'streetjs': '^1.2.10',
           'reflect-metadata': '^0.2.2',
           ws: '^8.18.0',
         },
@@ -6670,7 +6670,7 @@ ${webJob}`;
           // otherwise `npm run build` fails with "street: not found" in any
           // clean environment (CI, Docker builds), even though it works locally
           // when the CLI happens to be installed globally.
-          '@streetjs/cli': '^1.2.9',
+          '@streetjs/cli': '^1.2.10',
           '@types/node': '^20.14.0',
           '@types/ws': '^8.5.10',
           typescript: '^5.4.5',
