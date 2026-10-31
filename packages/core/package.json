@@ -394,13 +394,13 @@
   },
   "dependencies": {
     "reflect-metadata": "^0.2.2",
-    "ws": "^8.21.3",
+    "ws": "^8.22.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^26.2.0",
-    "@types/ws": "^8.5.10",
+    "@types/ws": "^8.18.2",
     "c8": "^12.0.0",
     "esbuild": "^0.28.2",
     "fast-check": "^4.9.0",
