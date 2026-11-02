@@ -303,6 +303,19 @@ export function streetHttp2App(opts: {
     }
   }
 
+  // ── Inline route helper (http2) ────────────────────────────────────────────
+  function addInlineRoute2(
+    method: string,
+    path: string,
+    handler: (ctx: StreetContext) => void | Promise<void>,
+  ): void {
+    const fullPath = normalizePath(path);
+    const inlineMeta: RouteMetadata = { method, path: fullPath, handlerName: 'handler', middlewares: [] };
+    const inlineControllerMeta: ControllerMetadata = { prefix: '', middlewares: [] };
+    router.add(method, fullPath, [], async (ctx) => { await handler(ctx as StreetContext); });
+    registeredRoutes.push({ method, fullPath, meta: inlineMeta, controllerMeta: inlineControllerMeta });
+  }
+
   return {
     server,
     container: appContainer,
