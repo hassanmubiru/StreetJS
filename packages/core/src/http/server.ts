@@ -54,6 +54,19 @@ export interface StreetApp {
   unloadPlugin(plugin: PluginModule): Promise<void>;
   /** Internal: direct in-process request handler. Used by edge adapter and tests. */
   _handleRequest(req: IncomingMessage, res: ServerResponse): void;
+  /**
+   * Inline route shortcuts — register a single handler without a controller class.
+   * Useful for quick scripts, health checks, and lightweight apps.
+   *
+   * @example
+   *   app.get('/ping', (ctx) => ctx.json({ ok: true }));
+   *   app.post('/echo', async (ctx) => ctx.json(ctx.body));
+   */
+  get(path: string, handler: (ctx: StreetContext) => void | Promise<void>): void;
+  post(path: string, handler: (ctx: StreetContext) => void | Promise<void>): void;
+  put(path: string, handler: (ctx: StreetContext) => void | Promise<void>): void;
+  patch(path: string, handler: (ctx: StreetContext) => void | Promise<void>): void;
+  delete(path: string, handler: (ctx: StreetContext) => void | Promise<void>): void;
 }
 
 interface RegisteredRoute {
@@ -286,6 +299,33 @@ export function streetApp(options: StreetAppOptions = {}): StreetHttpApp {
     }
   }
 
+  // ── Inline route helper ─────────────────────────────────────────────────────
+  // Wraps a plain handler function into the router without requiring a @Controller.
+  function addInlineRoute(
+    method: string,
+    path: string,
+    handler: (ctx: StreetContext) => void | Promise<void>,
+  ): void {
+    const fullPath = normalizePath(path);
+    const inlineMeta: RouteMetadata = {
+      method,
+      path: fullPath,
+      handlerName: 'handler',
+      middlewares: [],
+    };
+    const inlineControllerMeta: ControllerMetadata = {
+      prefix: '',
+      middlewares: [],
+    };
+    router.add(method, fullPath, [], async (ctx: StreetContext) => { await handler(ctx); });
+    registeredRoutes.push({
+      method,
+      fullPath,
+      meta: inlineMeta,
+      controllerMeta: inlineControllerMeta,
+    });
+  }
+
   return {
     container: appContainer,
     get lifecycleState(): StreetAppLifecycleState { return lifecycleState; },
@@ -400,6 +440,25 @@ export function streetApp(options: StreetAppOptions = {}): StreetHttpApp {
         );
         registeredRoutes.push({ method: routeMeta.method, fullPath, meta: routeMeta, controllerMeta });
       }
+    },
+
+    // ── Inline route shortcuts ──────────────────────────────────────────────
+    // Registers a single handler directly, without a @Controller class.
+    // The synthetic controller/route metadata keeps openApiSpec() consistent.
+    get(path: string, handler: (ctx: StreetContext) => void | Promise<void>): void {
+      addInlineRoute('GET', path, handler);
+    },
+    post(path: string, handler: (ctx: StreetContext) => void | Promise<void>): void {
+      addInlineRoute('POST', path, handler);
+    },
+    put(path: string, handler: (ctx: StreetContext) => void | Promise<void>): void {
+      addInlineRoute('PUT', path, handler);
+    },
+    patch(path: string, handler: (ctx: StreetContext) => void | Promise<void>): void {
+      addInlineRoute('PATCH', path, handler);
+    },
+    delete(path: string, handler: (ctx: StreetContext) => void | Promise<void>): void {
+      addInlineRoute('DELETE', path, handler);
     },
 
     openApiSpec(): object {
