@@ -24,7 +24,20 @@ const entries = [
   join(dist, 'database', 'wire.js'),
 ];
 
-const external = ['reflect-metadata', 'ws', 'zod', './database/sqlite/pool.js', './database/sqlite/worker.js'];
+// Keep runtime deps and worker-thread files external so import.meta.url
+// in files that use new Worker() resolves correctly at runtime.
+const external = [
+  'reflect-metadata',
+  'ws',
+  'zod',
+  // SQLite WASM pool spawns a worker thread; import.meta.url must resolve
+  // relative to pool.js's real location, not the bundled entry point.
+  './database/sqlite/pool.js',
+  './database/sqlite/worker.js',
+  // All @streetjs/* sub-packages are declared dependencies and must stay
+  // as external imports so their own import.meta.url paths work correctly.
+  '@streetjs/*',
+];
 
 for (const entry of entries) {
   const dir = dirname(entry);
