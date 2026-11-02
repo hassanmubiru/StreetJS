@@ -23,7 +23,7 @@
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import fc from 'fast-check';
-import ts from 'typescript';
+import { transpileModule, ModuleKind, ScriptTarget } from './ts-transpile-helper.js';
 import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -114,8 +114,8 @@ export class NotFoundException extends Error {
 function compileOverlay(relPath: string, stubFileName: string): string {
   const entry = TEMPLATES.saas.extraFiles?.find((f) => f.path === relPath);
   assert.ok(entry, `overlay template "${relPath}" must be registered in TEMPLATES.saas.extraFiles`);
-  const js = ts.transpileModule(entry!.content, {
-    compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
+  const js = transpileModule(entry!.content, {
+    compilerOptions: { module: ModuleKind.ESNext, target: ScriptTarget.ES2022 },
   }).outputText;
   return js.replace(/from\s+['"]streetjs['"]/g, `from './${stubFileName}'`);
 }

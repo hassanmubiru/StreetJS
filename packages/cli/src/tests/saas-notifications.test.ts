@@ -23,7 +23,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
-import ts from 'typescript';
+import { transpileModule, ModuleKind, ScriptTarget } from './ts-transpile-helper.js';
 import { TEMPLATES } from '../commands/create.js';
 
 /** Faithful stub of the streetjs HTTP exceptions the overlay imports. Mirrors
@@ -52,8 +52,8 @@ function templateSource(path: string): string {
 /** Transpile one overlay template to an ESM module on disk (with its `streetjs`
  * import rewritten to the local stub) and dynamically import it. */
 async function loadOverlay(dir: string, templatePath: string, outFile: string): Promise<Record<string, unknown>> {
-  const transpiled = ts.transpileModule(templateSource(templatePath), {
-    compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
+  const transpiled = transpileModule(templateSource(templatePath), {
+    compilerOptions: { module: ModuleKind.ESNext, target: ScriptTarget.ES2022 },
   }).outputText;
   const rewritten = transpiled.replace(/from ['"]streetjs['"]/g, "from './streetjs.mjs'");
   const abs = join(dir, outFile);

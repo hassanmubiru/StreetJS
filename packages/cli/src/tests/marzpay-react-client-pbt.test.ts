@@ -20,7 +20,7 @@
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import fc from 'fast-check';
-import ts from 'typescript';
+import { transpileModule, ModuleKind, ScriptTarget } from './ts-transpile-helper.js';
 import { mkdtempSync, rmSync, writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -55,8 +55,8 @@ type FetchFn = (input: unknown, init?: unknown) => Promise<FakeResponse>;
 
 const TS_OPTS = {
   compilerOptions: {
-    module: ts.ModuleKind.ESNext,
-    target: ts.ScriptTarget.ES2022,
+    module: ModuleKind.ESNext,
+    target: ScriptTarget.ES2022,
   },
 } as const;
 

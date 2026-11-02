@@ -21,7 +21,7 @@
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import fc from 'fast-check';
-import ts from 'typescript';
+import { transpileModule, ModuleKind, ScriptTarget } from './ts-transpile-helper.js';
 import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -56,8 +56,8 @@ async function loadSettingsService(): Promise<{ SettingsService: SettingsService
   );
   assert.ok(svcFile, 'saas overlay must register src/modules/settings/settings.service.ts');
 
-  const js = ts.transpileModule(svcFile!.content, {
-    compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
+  const js = transpileModule(svcFile!.content, {
+    compilerOptions: { module: ModuleKind.ESNext, target: ScriptTarget.ES2022 },
   }).outputText;
 
   const dir = mkdtempSync(join(tmpdir(), 'street-settings-pbt-'));

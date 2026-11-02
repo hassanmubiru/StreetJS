@@ -17,7 +17,7 @@
 
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import ts from 'typescript';
+import { transpileModule, ModuleKind, ScriptTarget } from './ts-transpile-helper.js';
 import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -68,7 +68,7 @@ type SubscriptionServiceCtor = new (
 };
 
 const TS_OPTS = {
-  compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
+  compilerOptions: { module: ModuleKind.ESNext, target: ScriptTarget.ES2022 },
 } as const;
 
 /**
