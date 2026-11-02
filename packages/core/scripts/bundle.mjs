@@ -24,7 +24,7 @@ const entries = [
   join(dist, 'database', 'wire.js'),
 ];
 
-const external = ['reflect-metadata', 'ws', 'zod'];
+const external = ['reflect-metadata', 'ws', 'zod', './database/sqlite/pool.js', './database/sqlite/worker.js'];
 
 for (const entry of entries) {
   const dir = dirname(entry);
