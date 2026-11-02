@@ -412,6 +412,22 @@ export function streetHttp2App(opts: {
       }
     },
 
+    get(path: string, handler: (ctx: StreetContext) => void | Promise<void>): void {
+      addInlineRoute2('GET', path, handler);
+    },
+    post(path: string, handler: (ctx: StreetContext) => void | Promise<void>): void {
+      addInlineRoute2('POST', path, handler);
+    },
+    put(path: string, handler: (ctx: StreetContext) => void | Promise<void>): void {
+      addInlineRoute2('PUT', path, handler);
+    },
+    patch(path: string, handler: (ctx: StreetContext) => void | Promise<void>): void {
+      addInlineRoute2('PATCH', path, handler);
+    },
+    delete(path: string, handler: (ctx: StreetContext) => void | Promise<void>): void {
+      addInlineRoute2('DELETE', path, handler);
+    },
+
     openApiSpec(): object {
       return generateOpenApi(
         registeredRoutes.map((r) => ({
