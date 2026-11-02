@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/container",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "StreetJS dependency injection container: a singleton IoC registry with constructor-injection resolution, circular-dependency detection, and an @Injectable decorator. Backed by reflect-metadata.",
   "type": "module",
   "main": "./dist/index.js",
