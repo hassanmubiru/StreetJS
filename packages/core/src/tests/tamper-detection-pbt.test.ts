@@ -101,7 +101,8 @@ describe('Property 14: tamper detection', () => {
           const field = cipher.encrypt(value);
 
           // Sanity: the untouched envelope round-trips before we tamper.
-          assert.deepEqual(cipher.decrypt(field), value);
+          // FieldCipher is JSON-based, so compare JSON-normalised values.
+          assert.deepEqual(cipher.decrypt(field), JSON.parse(JSON.stringify(value)));
 
           // Produce a tampered envelope where exactly one authenticated
           // component is mutated by a single byte.

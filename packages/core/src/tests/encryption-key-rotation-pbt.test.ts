@@ -100,9 +100,13 @@ describe('Property 13: key rotation preserves decryptability', () => {
         // After the final rotation, a cipher built on the FULLY rotated keyring
         // must still decrypt every historical envelope back to the original
         // plaintext (R6.6) — old data survives every intervening rotation.
+        // FieldCipher serialises values through JSON, so compare JSON-normalised
+        // values. Null-prototype objects round-trip to plain objects through JSON,
+        // which is the correct and expected behaviour for a JSON-based cipher.
+        const normalised = JSON.parse(JSON.stringify(value));
         const rotated = new FieldCipher(keyringUpTo(keks, total));
         for (const field of envelopes) {
-          assert.deepEqual(rotated.decrypt(field), value);
+          assert.deepEqual(rotated.decrypt(field), normalised);
         }
       }),
       { numRuns: NUM_RUNS },
@@ -118,7 +122,7 @@ describe('Property 13: key rotation preserves decryptability', () => {
         const field = rotated.encrypt(value);
         // New writes bind to the current (highest) version (R6.5/6.6).
         assert.equal(field.envelope.v, total);
-        assert.deepEqual(rotated.decrypt(field), value);
+        assert.deepEqual(rotated.decrypt(field), JSON.parse(JSON.stringify(value)));
       }),
       { numRuns: NUM_RUNS },
     );

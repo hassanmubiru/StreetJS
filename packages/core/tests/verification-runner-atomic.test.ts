@@ -72,6 +72,7 @@ const validArtifactArb: fc.Arbitrary<VerificationArtifact> = fc
         min: new Date('2000-01-01T00:00:00.000Z'),
         max: new Date('2100-01-01T00:00:00.000Z'),
       })
+      .filter((d) => !isNaN(d.getTime()))
       .map((d) => d.toISOString()),
     durationMs: fc.nat({ max: 600_000 }),
     timedOut: fc.boolean(),

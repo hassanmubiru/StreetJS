@@ -76,8 +76,12 @@ describe('Property 12: field-encryption round-trip', () => {
         const field = cipher.encrypt(value);
         const recovered = cipher.decrypt(field);
 
-        // Authorized read returns plaintext equal to what was assigned.
-        assert.deepEqual(recovered, value);
+        // FieldCipher serialises values via JSON.stringify/JSON.parse, so the
+        // contract is JSON-round-trip equality, not prototype-chain equality.
+        // Comparing both sides JSON-normalised is the correct assertion for a
+        // JSON-based encryption scheme (null-prototype objects, for example,
+        // serialise and deserialise identically to plain objects through JSON).
+        assert.deepEqual(recovered, JSON.parse(JSON.stringify(value)));
       }),
       { numRuns: NUM_RUNS },
     );
@@ -126,7 +130,7 @@ describe('Property 12: field-encryption round-trip', () => {
         // KEK, encrypts the payload.
         const field2 = cipher.encrypt(value);
         assert.notEqual(field.envelope.wrappedDek, field2.envelope.wrappedDek);
-        assert.deepEqual(cipher.decrypt(field2), value);
+        assert.deepEqual(cipher.decrypt(field2), JSON.parse(JSON.stringify(value)));
       }),
       { numRuns: NUM_RUNS },
     );
