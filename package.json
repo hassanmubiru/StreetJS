@@ -84,14 +84,6 @@
     "@streetjs/plugin-nats": "^1.0.0",
     "streetjs": "^1.0.7"
   },
-  "overrides": {
-    "minimatch": ">=11.0.1",
-    "c8": {
-      "test-exclude": {
-        "minimatch": ">=11.0.1"
-      }
-    }
-  },
   "allowScripts": {
     "esbuild@0.28.1": true
   }
