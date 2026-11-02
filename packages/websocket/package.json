@@ -79,7 +79,7 @@
     "url": "https://github.com/hassanmubiru/StreetJS/issues"
   },
   "dependencies": {
-    "ws": "^8.21.3"
+    "ws": "^8.22.1"
   },
   "devDependencies": {
     "@types/node": "^26.2.0",
