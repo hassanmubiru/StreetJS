@@ -78,11 +78,11 @@
     "url": "https://github.com/hassanmubiru/StreetJS/issues"
   },
   "dependencies": {
-    "@streetjs/postgres": "^1.0.0",
-    "@streetjs/pool": "^1.0.0",
-    "@streetjs/schema-inspector": "^1.0.0",
     "@streetjs/migrations": "^1.0.0",
-    "@streetjs/repository": "^1.0.0"
+    "@streetjs/pool": "^1.0.0",
+    "@streetjs/postgres": "^1.0.0",
+    "@streetjs/repository": "^1.0.0",
+    "@streetjs/schema-inspector": "^1.0.0"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",

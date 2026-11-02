@@ -70,9 +70,9 @@
     "typescript": "^7.0.2"
   },
   "peerDependencies": {
-    "@streetjs/realtime": ">=1.0.0",
-    "@streetjs/queue": ">=1.0.0",
     "@streetjs/events": ">=1.0.0",
+    "@streetjs/queue": ">=1.0.0",
+    "@streetjs/realtime": ">=1.0.0",
     "@streetjs/storage": ">=1.0.0",
     "typescript": ">=5.0.0"
   },
