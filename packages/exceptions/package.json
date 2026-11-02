@@ -1,6 +1,6 @@
 {
   "name": "@streetjs/exceptions",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "StreetJS HTTP exceptions foundation: a typed exception hierarchy (400/401/403/404/409/422/500/501/503) with status codes, JSON serialization, and a type guard. Zero runtime dependencies.",
   "type": "module",
   "main": "./dist/index.js",
