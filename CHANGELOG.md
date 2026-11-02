@@ -9,19 +9,58 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+---
+
+## [1.2.12] - 2026-11-02
+
+### Fixed
+- **`streetjs` missing 21 `@streetjs/*` dependencies (critical packaging bug).**
+  The `streetjs` package imports all `@streetjs/*` sub-packages at runtime but
+  declared none of them in `package.json` `dependencies`. A fresh `npm install
+  streetjs` resolved to `node_modules/streetjs` with no transitive sub-packages,
+  causing an immediate `ERR_MODULE_NOT_FOUND` on every import. All 21 runtime
+  `@streetjs/*` packages are now declared as explicit dependencies.
+- **`bundle.mjs` used `require()` in an ES module file.** The postbuild bundler
+  was written with CJS `require()` / `__dirname` syntax in a `.mjs` file. It
+  silently never ran because a duplicate `"postbuild"` key in `package.json`
+  shadowed it. Both the duplicate key and the CJS syntax are now fixed (converted
+  to ESM `import`).
+- **esbuild bundler broke `new Worker()` path resolution.** When esbuild inlined
+  the SQLite pool into `dist/index.js`, `import.meta.url` in the bundled output
+  referred to `index.js`, so the worker was looked up at `dist/worker.js` instead
+  of `dist/database/sqlite/worker.js`. The sqlite pool is now marked external in
+  the esbuild config so `import.meta.url` resolves correctly from its real location.
+- **WASM artifacts missing from `dist/src/database/sqlite/`.**  The postbuild step
+  only copied `sqlite3.wasm` and `sqlite3-node.mjs` to `dist/database/sqlite/`.
+  Tests compiled via `tsconfig.json` (which omits `rootDir`) output to `dist/src/…`
+  and look for the WASM worker there; 63 tests in `sqlite`, `schema-inspector`, and
+  `migration-diff` all failed with `ERR_MODULE_NOT_FOUND`. The postbuild now copies
+  to both `dist/database/sqlite/` and `dist/src/database/sqlite/`.
+- **Encryption PBT tests failed against null-prototype objects.** `fc.dictionary()`
+  in fast-check v4 generates null-prototype objects; `JSON.parse()` always returns
+  plain objects; `assert.deepEqual` saw them as different. `FieldCipher` is
+  documented as JSON-based so the correct assertion is against the JSON-normalised
+  value. Fixed in `encryption-roundtrip-pbt`, `encryption-key-rotation-pbt`, and
+  `tamper-detection-pbt` (9 tests).
+- **`verification-runner-atomic` failed with `RangeError: Invalid time value`.**
+  `fc.date({ min, max })` in fast-check v4 can generate out-of-range dates; the
+  test's own mapper called `.toISOString()` on them before the code under test ran.
+  Added `.filter(d => !isNaN(d.getTime()))` to the date arbitrary (4 tests).
+
 ### Changed
-- **Consolidated internal packages for simplified npm distribution.** All internal
-  `@streetjs/*` packages (cache, cluster, container, context, database, diagnostics,
-  exceptions, multipart, pool, postgres, ratelimit, repository, router, schema-inspector,
-  security, session, store, telemetry, webhook-dispatcher, websocket, xss) are now marked
-  `private: true` and not published separately to npm. Users install via `npm install streetjs`
-  and the framework bundles all internal packages. This reduces the public API surface to
-  just the `streetjs` meta-package while preserving the modular development workflow.
-- **Reverted `exceptions.ts` to re-export from `@streetjs/exceptions`.** The previous
-  consolidation approach copied the exception classes into `core/src/http/exceptions.ts`,
-  which caused `instanceof` checks to fail across module boundaries (StreetException from
-  one copy was not recognized as StreetException from another). Now re-exports from the
-  canonical `@streetjs/exceptions` package to ensure consistent class identity.
+- **`@streetjs/container@1.0.1` — removed erroneous `"private": true` flag.**
+  Allows future republishes; `createContainer` export now reliably accessible when
+  installed as a transitive dependency.
+- **`@streetjs/exceptions@1.0.2` — removed erroneous `"private": true` flag.**
+  `toStreetErrorEnvelope` export now reliably accessible.
+- **17 other `@streetjs/*` packages — removed `"private": true` flag.** The flag
+  was incorrectly set on every extracted sub-package after initial publish, silently
+  preventing all future republishes. Removed from: `cache`, `cluster`, `context`,
+  `diagnostics`, `multipart`, `pool`, `postgres`, `ratelimit`, `repository`,
+  `router`, `schema-inspector`, `security`, `session`, `store`, `telemetry`,
+  `webhook-dispatcher`, `websocket`, `xss`.
+
+---
 
 ## [1.2.7] - 2026-07-12
 
