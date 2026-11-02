@@ -155,8 +155,8 @@ async function loadHtmxController(): Promise<{ Controller: ControllerCtor; clean
   const controllerPath = join(scaffoldDir, 'hx-app', 'src', 'controllers', 'marzpay.controller.ts');
   const source = readFileSync(controllerPath, 'utf8');
 
-  const js = ts
-    .transpileModule(source, TS_OPTS)
+  const js = transpileModule(
+    source, TS_OPTS)
     .outputText
     // Drop the reflect-metadata side-effect import (no decorator metadata emitted).
     .replace(/import\s*['"]reflect-metadata['"];?/, '')

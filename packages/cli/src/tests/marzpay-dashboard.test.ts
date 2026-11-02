@@ -134,8 +134,8 @@ async function loadDashboardController(): Promise<{
   );
   assert.ok(file, 'saas overlay must register the billing dashboard controller');
 
-  const js = ts
-    .transpileModule(file!.content, TS_OPTS)
+  const js = transpileModule(
+    file!.content, TS_OPTS)
     .outputText.replace(/import\s+['"]reflect-metadata['"];?/, '')
     .replace(
       /import\s*\{[^}]*\}\s*from\s*['"]streetjs['"];?/,

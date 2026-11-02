@@ -140,16 +140,16 @@ before(async () => {
   tempDir = mkdtempSync(join(tmpdir(), 'marzpay-property-3-'));
 
   // 1) tenant.ts -> tenant.mjs (only the exception classes are used at runtime).
-  const tenantJs = ts
-    .transpileModule(templateContent('src/middleware/tenant.ts'), TS_OPTS)
+  const tenantJs = transpileModule(
+    templateContent('src/middleware/tenant.ts'), TS_OPTS)
     .outputText.replace(
       /import\s*\{[^}]*\}\s*from\s*['"]streetjs['"];?/,
       'class ForbiddenException extends Error {} class UnauthorizedException extends Error {}',
     );
 
   // 2) marzpay-billing.service.ts -> billing.mjs (BillingService + orgScopedEventStore).
-  const billingJs = ts
-    .transpileModule(templateContent('src/modules/billing/marzpay-billing.service.ts'), TS_OPTS)
+  const billingJs = transpileModule(
+    templateContent('src/modules/billing/marzpay-billing.service.ts'), TS_OPTS)
     .outputText.replace(
       /import\s*\{[^}]*\}\s*from\s*['"]streetjs['"];?/,
       'class BadRequestException extends Error {}',
@@ -161,8 +161,8 @@ before(async () => {
   //    - replace the streetjs value import with no-op decorators + BadRequestException,
   //    - the @streetjs/plugin-marzpay and ./marzpay-billing.service.js imports are
   //      type-only and elided by transpilation.
-  const controllerJs = ts
-    .transpileModule(templateContent('src/modules/billing/marzpay-webhook.controller.ts'), TS_OPTS)
+  const controllerJs = transpileModule(
+    templateContent('src/modules/billing/marzpay-webhook.controller.ts'), TS_OPTS)
     .outputText.replace(/import\s*['"]reflect-metadata['"];?/, '')
     .replace(
       /import\s*\{[^}]*\}\s*from\s*['"]streetjs['"];?/,

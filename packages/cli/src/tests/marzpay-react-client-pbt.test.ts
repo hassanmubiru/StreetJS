@@ -102,8 +102,8 @@ async function loadReactMarzPayLib(): Promise<{ lib: MarzPayLib; cleanup: () => 
   const libPath = join(scaffoldDir, 'react-app', 'web', 'src', 'lib', 'marzpay.ts');
   const source = readFileSync(libPath, 'utf8');
 
-  const js = ts
-    .transpileModule(source, TS_OPTS)
+  const js = transpileModule(
+    source, TS_OPTS)
     .outputText
     // Neutralize the Vite-only env object (absent under Node, accessing a
     // property of `undefined` would throw at module-eval time).

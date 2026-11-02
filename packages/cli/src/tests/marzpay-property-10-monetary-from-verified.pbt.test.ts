@@ -91,23 +91,23 @@ function templateContent(path: string): string {
  * MarzPayClient is loaded from the built plugin dist.
  */
 async function loadModules(): Promise<LoadedModules> {
-  const tenantJs = ts
-    .transpileModule(templateContent('src/middleware/tenant.ts'), TS_OPTS)
+  const tenantJs = transpileModule(
+    templateContent('src/middleware/tenant.ts'), TS_OPTS)
     .outputText.replace(
       /import\s*\{[^}]*\}\s*from\s*['"]streetjs['"];?/,
       'class ForbiddenException extends Error {} class UnauthorizedException extends Error {}',
     );
 
-  const billingJs = ts
-    .transpileModule(templateContent('src/modules/billing/marzpay-billing.service.ts'), TS_OPTS)
+  const billingJs = transpileModule(
+    templateContent('src/modules/billing/marzpay-billing.service.ts'), TS_OPTS)
     .outputText.replace(
       /import\s*\{[^}]*\}\s*from\s*['"]streetjs['"];?/,
       'class BadRequestException extends Error {}',
     )
     .replace(/['"]\.\.\/\.\.\/middleware\/tenant\.js['"]/, "'./tenant.mjs'");
 
-  const webhookJs = ts
-    .transpileModule(templateContent('src/modules/billing/marzpay-webhook.controller.ts'), TS_OPTS)
+  const webhookJs = transpileModule(
+    templateContent('src/modules/billing/marzpay-webhook.controller.ts'), TS_OPTS)
     .outputText.replace(/import\s+['"]reflect-metadata['"];?/, '')
     .replace(
       /import\s*\{[^}]*\}\s*from\s*['"]streetjs['"];?/,

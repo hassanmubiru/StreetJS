@@ -92,15 +92,15 @@ async function loadSubscriptionModule(): Promise<{
   assert.ok(tenantFile, 'saas overlay must register src/middleware/tenant.ts');
   assert.ok(subFile, 'saas overlay must register the marzpay subscription service');
 
-  const tenantJs = ts
-    .transpileModule(tenantFile!.content, TS_OPTS)
+  const tenantJs = transpileModule(
+    tenantFile!.content, TS_OPTS)
     .outputText.replace(
       /import\s*\{[^}]*\}\s*from\s*['"]streetjs['"];?/,
       'class ForbiddenException extends Error {} class UnauthorizedException extends Error {}',
     );
 
-  const subJs = ts
-    .transpileModule(subFile!.content, TS_OPTS)
+  const subJs = transpileModule(
+    subFile!.content, TS_OPTS)
     .outputText.replace(
       /import\s*\{[^}]*\}\s*from\s*['"]streetjs['"];?/,
       'class BadRequestException extends Error {}',
