@@ -393,11 +393,11 @@
   },
   "dependencies": {
     "@streetjs/cluster": "^1.0.0",
-    "@streetjs/container": "^1.0.0",
+    "@streetjs/container": "^1.0.1",
     "@streetjs/context": "^1.1.0",
     "@streetjs/diagnostics": "^1.0.0",
     "@streetjs/edge": "^1.0.1",
-    "@streetjs/exceptions": "^1.0.0",
+    "@streetjs/exceptions": "^1.0.2",
     "@streetjs/migrations": "^1.0.0",
     "@streetjs/multipart": "^1.0.0",
     "@streetjs/pool": "^1.0.0",
