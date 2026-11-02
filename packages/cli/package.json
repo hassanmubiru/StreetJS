@@ -62,7 +62,7 @@
     "statements": 85
   },
   "dependencies": {
-    "streetjs": "^1.2.10"
+    "streetjs": "^1.2.11"
   },
   "devDependencies": {
     "@types/node": "^26.2.0",
