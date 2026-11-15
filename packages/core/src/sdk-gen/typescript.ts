@@ -19,6 +19,16 @@ export interface OpenApiSpec {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+/**
+ * Escape text for safe embedding inside a `/** … *\/` JSDoc comment.
+ * The only sequence that can break out of a block comment is `*\/`; replace
+ * every `*/` with `*\/` so user-supplied strings (OpenAPI summaries, paths,
+ * operation IDs) cannot terminate the comment early.
+ */
+function escapeJsDoc(text: string): string {
+  return text.replace(/\*\//g, '*\\/');
+}
+
 /** Convert a path like `/users/{id}` to a safe TypeScript identifier. */
 function pathToIdentifier(path: string, method: string): string {
   const sanitized = path
