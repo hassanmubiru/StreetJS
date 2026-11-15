@@ -64,7 +64,7 @@ function generateTypesSource(spec: OpenApiSpec): string {
       const typeName = operationTypeName(path, method, op);
 
       // Request params interface
-      lines.push(`/** Parameters for ${method.toUpperCase()} ${path} */`);
+      lines.push(`/** Parameters for ${escapeJsDoc(method.toUpperCase())} ${escapeJsDoc(path)} */`);
       lines.push(`export interface ${typeName}Params {`);
 
       // Path params extracted from the URL template
@@ -87,7 +87,7 @@ function generateTypesSource(spec: OpenApiSpec): string {
       lines.push('}', '');
 
       // Response interface (generic placeholder)
-      lines.push(`/** Response for ${method.toUpperCase()} ${path} */`);
+      lines.push(`/** Response for ${escapeJsDoc(method.toUpperCase())} ${escapeJsDoc(path)} */`);
       lines.push(`export interface ${typeName}Response {`);
       lines.push('  [key: string]: unknown;');
       lines.push('}', '');
@@ -142,7 +142,7 @@ function generateClientSource(spec: OpenApiSpec): string {
         ...(hasBody ? ['body: body !== undefined ? JSON.stringify(body) : undefined'] : []),
       ].join(', ');
 
-      const summary = op.summary ? `  /** ${op.summary} */\n` : '';
+      const summary = op.summary ? `  /** ${escapeJsDoc(op.summary)} */\n` : '';
 
       methods.push(
         `${summary}  async ${typeName.charAt(0).toLowerCase() + typeName.slice(1)}(params: ${typeName}Params${bodyArg}): Promise<ApiResponse<${typeName}Response>> {`,
