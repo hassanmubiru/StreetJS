@@ -20,10 +20,10 @@ export interface OpenApiSpec {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /**
- * Escape text for safe embedding inside a `/** … *\/` JSDoc comment.
- * The only sequence that can break out of a block comment is `*\/`; replace
- * every `*/` with `*\/` so user-supplied strings (OpenAPI summaries, paths,
- * operation IDs) cannot terminate the comment early.
+ * Escape text for safe embedding inside a JSDoc block comment.
+ * The only sequence that can break out of a block comment is star-slash;
+ * replace every occurrence with star-backslash-slash so user-supplied strings
+ * (OpenAPI summaries, paths, operation IDs) cannot terminate the comment early.
  */
 function escapeJsDoc(text: string): string {
   return text.replace(/\*\//g, '*\\/');
